@@ -1239,6 +1239,8 @@ const DISTRICTS = [
 /* ===================== КАРТИНКИ ===================== */
 
 // Готовые рисованные картинки (webp) заменяют векторные заглушки.
+// Дата сборки для телефона: build.sh вписывает её сюда, в веб-версии строка пустая.
+const APP_BUILD = "18.10.2026 15:22";
 const RASTER = new Set(["races/barbarian", "races/human", "races/dwarf", "races/beastkin", "races/fairy", "races/dragon", "monsters/goblin-face", "monsters/goblin-full"]);
 const artPath = p => `assets/${p}.${RASTER.has(p) ? "webp" : "svg"}`;
 const ART = {
@@ -1995,6 +1997,7 @@ function renderMain() {
           <div class="fx-chips">${members.map(c => `<span class="fx-chip">${esc(c.name)} · ${raceById(c.race).name}</span>`).join("")}</div>
           <button class="fx-btn" data-go="town" style="align-self:flex-start;margin-top:4px">В город</button>
         </div>` : `<p class="fx-hint">В первый раз приложение попросит создать героев отряда.</p>`}
+      ${APP_BUILD ? `<p class="fx-hint" style="opacity:.6;font-size:12px">Версия от ${APP_BUILD}</p>` : ""}
     </div>`;
 }
 
