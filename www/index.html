@@ -572,6 +572,35 @@ body.forge-open { overflow: hidden; }
 .enc-out { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
 .enc-out .fx-btn { padding: 10px 4px; font-size: 14px; white-space: normal; line-height: 1.15; }
 .enc-out .fx-btn.on { background: var(--fx-gold); color: #1d140a; border-color: var(--fx-gold-hi); }
+.mapov .panel.fight { max-height: 100%; overflow-y: auto; }
+.fight-grid { display: grid; grid-template-columns: 116px minmax(0, 1fr); gap: 10px; align-items: start; }
+.init { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.init-h { font: 700 11px/1 var(--f-fancy); letter-spacing: .12em; text-transform: uppercase; color: var(--fx-gold); padding: 2px 0 4px; }
+.init-row { width: 100%; text-align: left; display: flex; flex-direction: column; gap: 1px; padding: 6px 8px; border-radius: 5px; border: 1px solid var(--fx-line);
+  background: rgb(0 0 0 / .25); color: var(--fx-text); font: inherit; cursor: pointer; border-left: 3px solid #7fb35a; }
+.init-row.mon { border-left-color: var(--fx-danger); }
+.init-row b { font: 600 14px/1.15 var(--f-body); overflow-wrap: anywhere; }
+.init-row small { font: 600 12px var(--f-data); color: var(--fx-gold-hi); }
+.init-row small.hp { color: #9fd27a; font-weight: 400; }
+.init-row small i { font-style: normal; color: var(--fx-muted); font-weight: 400; }
+.init-row.now { background: rgb(214 166 76 / .22); border-color: var(--fx-gold); box-shadow: 0 0 0 1px var(--fx-gold) inset; }
+.init-row.gone { opacity: .4; text-decoration: line-through; }
+.init-next { width: 100%; font-size: 13px; padding: 8px 4px; margin-top: 2px; }
+.fight-main { min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+.enc-mon-wrap { display: flex; flex-direction: column; gap: 4px; }
+.stat-btn { align-self: flex-end; font-size: 12.5px; padding: 5px 10px; }
+.stat-ov { z-index: 38; }
+.stat-ov .panel { max-height: 100%; overflow-y: auto; }
+.stat-body { display: flex; flex-direction: column; gap: 10px; text-align: left; }
+.stat-top { display: flex; align-items: center; gap: 10px; color: var(--fx-muted); font-size: 13px; }
+.stat-top .face { width: 56px; height: 56px; flex: none; }
+.stat-txt { font-size: 14px; color: var(--fx-text); line-height: 1.45; }
+.stat-txt ul { margin: 4px 0; padding-left: 18px; }
+.stat-body .abil { margin-top: 6px; }
+.stat-body .abil div { background: rgb(0 0 0 / .35); border: 1px solid rgb(110 86 52 / .5); }
+.stat-body .abil dt { color: var(--fx-gold); }
+.stat-body .abil dd { color: var(--fx-text); }
+.stat-body .abil dd small { color: var(--fx-muted); }
 .enc-roll { margin: 0; font: 13px var(--f-data); color: var(--fx-muted); }
 .roll-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
 .roll-grid .fx-btn { padding: 10px 0; font: 600 18px var(--f-data); }
@@ -626,6 +655,9 @@ body.forge-open { overflow: hidden; }
 .wpn-art img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .wpn-art .tick { position: absolute; top: 6px; right: 6px; width: 28px; height: 28px; border-radius: 50%; background: var(--fx-gold-hi); color: var(--fx-ink); display: grid; place-items: center; }
 .wpn-art .tick svg { width: 16px; height: 16px; }
+.shield-pick { display: grid !important; grid-template-columns: 96px minmax(0, 1fr); gap: 12px; align-items: center; text-align: left; margin-top: 4px; }
+.shield-pick .wpn-art { margin: 0; }
+.shield-pick:disabled { opacity: .45; }
 .kit-note { padding: 12px 14px; font-size: 14.5px; color: var(--fx-muted); text-align: center; }
 .kit-note b { color: var(--fx-gold-hi); font-weight: 500; }
 .pc { touch-action: pan-x; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; cursor: pointer; transition: transform .15s; }
@@ -1240,7 +1272,7 @@ const DISTRICTS = [
 
 // Готовые рисованные картинки (webp) заменяют векторные заглушки.
 // Дата сборки для телефона: build.sh вписывает её сюда, в веб-версии строка пустая.
-const APP_BUILD = "18.10.2026 16:15";
+const APP_BUILD = "18.10.2026 16:23";
 const RASTER = new Set(["races/barbarian", "races/human", "races/dwarf", "races/beastkin", "races/fairy", "races/dragon", "monsters/goblin-face", "monsters/goblin-full"]);
 const artPath = p => `assets/${p}.${RASTER.has(p) ? "webp" : "svg"}`;
 const ART = {
@@ -2067,6 +2099,11 @@ function forgeWeapon() {
         </div>
       </button>`).join("")}
     </div>
+    ${(() => { const sh = WEAPONS.find(x => x.id === "shield"), block = w && (isTwoHandedWeapon(w) || w.group === "ranged") && !(d.race === "barbarian");
+      return `<button class="race-card fx-frame shield-pick" data-fx-shield aria-pressed="${!!d.shield && !block}"${block ? " disabled" : ""}>
+        <div class="wpn-art">${img(ART.weapon("shield"), sh.name)}${d.shield && !block ? `<span class="tick">${TICK}</span>` : ""}</div>
+        <div><h3>Щит в левую руку</h3><div class="bonus-box"><div class="st">${sh.dmg} · ${kgf(sh.weight)} кг</div>
+        <ul><li>${block ? "Не с двуручным оружием и луком" : "Можно взять вместе с оружием"}</li></ul></div></div></button>`; })()}
     <div class="kit-note fx-frame">Каждый герой также получает <b>простую одежду</b>, <b>7 пайков</b> и <b>2 слабых зелья лечения</b>${w && w.group === "ranged" ? " и <b>20 стрел</b>" : ""}. Рюкзак: ${d.race === "barbarian" ? 15 : 10} ячеек.</div>
   </div></div>`;
 }
@@ -2182,6 +2219,8 @@ function finishDraft() {
     essences: [], giantGrip: false, kit: true,
     equip: { main: { t: "w", id: d.weapon }, body: { t: "g", id: "clothes" } }, bag: [],
   };
+  const wpn = WEAPONS.find(x => x.id === d.weapon);
+  if (d.shield && (d.race === "barbarian" || !(isTwoHandedWeapon(wpn) || wpn.group === "ranged"))) c.equip.off = { t: "w", id: "shield" };
   addToBag(c, { t: "g", id: "ration", qty: 7 });
   addToBag(c, { t: "g", id: "potion", qty: 2 });
   if (WEAPONS.find(x => x.id === d.weapon).group === "ranged") addToBag(c, { t: "g", id: "arrow", qty: 20 });
@@ -2203,11 +2242,12 @@ function completeTeam() {
 }
 
 $forge.addEventListener("click", e => {
-  const el = e.target.closest("[data-fx],[data-fx-race],[data-fx-gender],[data-fx-weapon]");
+  const el = e.target.closest("[data-fx],[data-fx-race],[data-fx-gender],[data-fx-weapon],[data-fx-shield]");
   if (!el) return;
   const ds = el.dataset;
   if (ds.fxRace) { forge.draft.race = ds.fxRace; renderForge(true); return; }
   if (ds.fxWeapon) { forge.draft.weapon = ds.fxWeapon; renderForge(true); return; }
+  if (ds.fxShield !== undefined) { forge.draft.shield = !forge.draft.shield; renderForge(true); return; }
   if (ds.fxGender) { forge.draft.gender = ds.fxGender; forge.errors = forge.errors.filter(x => x.f !== "gender"); renderForge(true); return; }
   switch (ds.fx) {
     case "next": if (forge.draft.race) { forge.step = "weapon"; renderForge(); } break;
@@ -2398,8 +2438,18 @@ const seenKeys = (id, keys) => {
   const rec = journal().known[id] ||= { revealed: [], added: new Date().toISOString() };
   for (const k of keys) if (!rec.revealed.includes(k)) rec.revealed.push(k);
 };
+// Инициатива: к20 + мод. Ловкости за каждого героя и каждого монстра, по убыванию (ничья — у кого Ловкость выше).
+// В засаде монстры ходят первыми.
+function rollInitiative(list, ambush) {
+  const rows = [
+    ...state.party.map(c => { const dex = totals(c).dex.total; return { k: "hero", id: c.id, name: c.name, d20: 1 + rnd(20), mod: mod(dex), dex }; }),
+    ...list.map((id, i) => { const m = MONSTERS.find(x => x.id === id), dex = m.abil[1]; return { k: "mon", i, name: m.name, d20: 1 + rnd(20), mod: mod(dex), dex }; }),
+  ];
+  rows.forEach(r => r.total = r.d20 + r.mod);
+  return rows.sort((a, b) => (ambush ? (a.k === "mon" ? 0 : 1) - (b.k === "mon" ? 0 : 1) : 0) || b.total - a.total || b.dex - a.dex);
+}
 function startFight(ev, p, enc) {
-  Object.assign(ev, enc, { key: tkey(p.x, p.y), outcome: null, killed: [] });
+  Object.assign(ev, enc, { key: tkey(p.x, p.y), outcome: null, killed: [], turn: 0, round: 1 });
   enc.list.forEach(id => seenKeys(id, ["area"]));     // встреча открывает портрет, имя и места обитания
 }
 function resolvePass(p) {
@@ -2414,6 +2464,7 @@ function resolvePass(p) {
     if (r.pending && r.pending.cause === "run") r.pending = (r.queue || []).shift() || null;
     const ev = { kind: "ambush", title: "Засада на бегу!", raw: n, n, cause: "pass", ambush: true };
     startFight(ev, p, enc);
+    ev.init = rollInitiative(ev.list, true);
     logRun(`Засада на бегу (${rollTxt}), отряд остановлен в пробегаемом квадрате: ${enc.list.map(id => MONSTERS.find(m => m.id === id).name).join(", ")}.`);
     dgUi.enc = ev;
   } else if (n <= p.trap) {
@@ -2438,6 +2489,7 @@ function resolveRoll() {
     startFight(ev, p, enc);
     ev.ambush = kind === "ambush" || p.cause === "rest-noguard";
     if (ev.ambush) ev.title = "Засада!";
+    ev.init = rollInitiative(ev.list, ev.ambush);
     logRun(`${ev.title} (${rollTxt}): ${enc.list.map(id => MONSTERS.find(m => m.id === id).name).join(", ")}.`);
   } else {
     if (kind === "find") {
@@ -2742,15 +2794,46 @@ function encounterOverlay() {
       <div style="display:flex;justify-content:center"><button class="fx-btn primary big" data-dg="enc-done">Готово</button></div>
     </div></div>`;
   const pickable = e.outcome === "flee" || e.outcome === "retreat";
+  const dead = i => e.killed.includes(i) || e.outcome === "win";
+  const init = e.init || [];
+  const num = i => e.list.filter(x => x === e.list[i]).length > 1 ? " " + e.list.slice(0, i + 1).filter(x => x === e.list[i]).length : "";
+  const order = `<ol class="init" aria-label="Порядок ходов">
+      <li class="init-h">Ход · раунд ${e.round || 1}</li>
+      ${init.map((r, n) => { const gone = r.k === "mon" && dead(r.i); return `
+      <li><button class="init-row ${r.k}${n === e.turn ? " now" : ""}${gone ? " gone" : ""}" data-dg="${r.k === "hero" ? "enc-hero" : "enc-stat"}" data-id="${r.k === "hero" ? r.id : e.list[r.i]}" aria-current="${n === e.turn}">
+        <b>${esc(r.name)}${r.k === "mon" ? num(r.i) : ""}</b>${r.k === "hero" ? (c => c ? `<small class="hp">ОЗ ${hpOf(c)}/${maxHp(c)}</small>` : "")(state.party.find(x => x.id === r.id)) : ""}
+        <small>${r.total} <i>(${r.d20}${r.mod ? signed(r.mod) : ""})</i></small></button></li>`; }).join("")}
+      <li><button class="fx-btn init-next" data-dg="enc-next">Дальше ▸</button></li>
+    </ol>`;
   return `<div class="mapov" role="dialog" aria-modal="true" aria-label="${e.title}">
-    <div class="panel fx-frame enc-panel">
+    <div class="panel fx-frame enc-panel fight">
       <div class="ph-head"><h3>${e.title}</h3><span class="fx-eyebrow" style="font-size:11px">${ZONE_NAME[e.zone]}${e.border ? " · граница" : ""}</span></div>
       <p class="enc-roll">${rollLine}</p>
-      <div class="enc-list">${e.list.map((id, i) => { const m = MONSTERS.find(x => x.id === id), dead = e.killed.includes(i) || e.outcome === "win"; return `
-        <button class="enc-mon${dead ? " dead" : ""}" data-dg="enc-kill" data-i="${i}"${pickable ? "" : " disabled"} aria-pressed="${dead}"><span class="face">${img(ART.monsterFace(id), m.name)}</span><div><b>${m.name}</b><small>${m.rare ? "редкий" : "обычный"} · ${m.cr}</small></div>${dead ? `<span class="kill">убит</span>` : ""}</button>`; }).join("")}</div>
-      ${e.outcome ? (pickable ? `<p>Отметь монстров, которых успели убить${e.outcome === "flee" ? " до побега" : " до их отступления"}.</p>` : "") : e.ambush ? `<p class="enc-warn">Отряд застигнут врасплох${e.cause === "rest-noguard" ? " (никто не стоял в карауле)" : ""}. Монстры действуют первыми.</p>` : `<p>Мастер ведёт бой. Монстры применяют активку эссенции 1 раз за бой.</p>`}
+      <div class="fight-grid">
+        ${order}
+        <div class="fight-main">
+          <div class="enc-list">${e.list.map((id, i) => { const m = MONSTERS.find(x => x.id === id); return `
+            <div class="enc-mon-wrap"><button class="enc-mon${dead(i) ? " dead" : ""}" data-dg="enc-kill" data-i="${i}"${pickable ? "" : " disabled"} aria-pressed="${dead(i)}"><span class="face">${img(ART.monsterFace(id), m.name)}</span><div><b>${m.name}${num(i)}</b><small>${m.rare ? "редкий" : "обычный"} · КД ${m.ac} · ОЗ ${m.hp.split(" ")[0]}</small></div>${dead(i) ? `<span class="kill">убит</span>` : ""}</button>
+            <button class="fx-btn stat-btn" data-dg="enc-stat" data-id="${id}" aria-label="Статы: ${m.name}">Статы</button></div>`; }).join("")}</div>
+          ${e.outcome ? (pickable ? `<p>Отметь монстров, которых успели убить${e.outcome === "flee" ? " до побега" : " до их отступления"}.</p>` : "") : e.ambush ? `<p class="enc-warn">Отряд застигнут врасплох${e.cause === "rest-noguard" ? " (никто не стоял в карауле)" : ""}. Монстры ходят первыми.</p>` : `<p>Монстры применяют активку эссенции 1 раз за бой. Нажми на героя слева — его данные и инвентарь.</p>`}
+        </div>
+      </div>
       <div class="enc-out">${Object.entries(OUTCOME).map(([k, t]) => `<button class="fx-btn${e.outcome === k ? " on" : ""}" data-dg="enc-out" data-o="${k}" aria-pressed="${e.outcome === k}">${t}</button>`).join("")}</div>
       <div style="display:flex;justify-content:center"><button class="fx-btn primary big" data-dg="enc-ok"${e.outcome ? "" : " disabled"}>Подтвердить</button></div>
+    </div></div>
+    ${dgUi.stat ? monStatOverlay(dgUi.stat) : ""}`;
+}
+
+// Полный статблок монстра для мастера (без тумана библиотеки).
+function monStatOverlay(id) {
+  const m = MONSTERS.find(x => x.id === id);
+  return `<div class="mapov stat-ov" role="dialog" aria-modal="true" aria-label="Статы: ${m.name}">
+    <div class="panel fx-frame">
+      <div class="ph-head"><h3>${m.name}</h3><button class="fx-btn" data-dg="stat-close" aria-label="Закрыть" style="width:42px;height:42px;padding:0;display:grid;place-items:center">${ICO_X}</button></div>
+      <div class="stat-body">
+        <div class="stat-top"><span class="face">${img(ART.monsterFace(id), m.name)}</span><small>${m.cls} класс · ${m.rare ? "редкий" : "обычный"} · опасность ${m.cr}</small></div>
+        ${monSections(m).map(x => `<section><div class="lib-sub">${x.group ? x.group + " · " : ""}${x.label}</div><div class="stat-txt">${x.html}</div></section>`).join("")}
+      </div>
     </div></div>`;
 }
 
@@ -2766,7 +2849,19 @@ function rollOverlay() {
     </div></div>`;
 }
 
+// Кнопка «Назад» телефона отменяет Движение, Бег, Отдых и Исследование: на время фазы в историю кладётся запись.
+function syncPhaseHistory() {
+  const active = dgUi.phase !== "menu";
+  if (active && !dgUi.pushed) { history.pushState({ dgPhase: 1 }, ""); dgUi.pushed = true; }
+  else if (!active && dgUi.pushed) { dgUi.pushed = false; history.back(); }
+}
+window.addEventListener("popstate", () => {
+  if (!dgUi.pushed) return;
+  dgUi.pushed = false;
+  if (state.run && dgUi.phase !== "menu") { dgUi.phase = "menu"; dgUi.path = []; dgUi.rest = null; dgUi.target = null; rerender(); }
+});
 function renderDungeon() {
+  syncPhaseHistory();
   const r = ensureRun(), inv = inventory();
   const actionPips = Array.from({ length: FLOOR1.acts }, (_, i) => `<i class="${i < r.act ? "on" : ""}"></i>`).join("");
   const moving = dgUi.phase === "move" || dgUi.phase === "run";
@@ -2785,7 +2880,7 @@ function renderDungeon() {
       ${stageOverlay()}
       ${menu ? `<button class="fx-btn corner-btn l" data-dg="inv" aria-expanded="${dgUi.inv}">${ICO_BAG}Инвентарь</button>
         <button class="fx-btn corner-btn r" data-dg="sup" aria-expanded="${dgUi.sup}">${ICO_PACK}Снаряжение</button>` : ""}
-      ${moving ? `<button class="fx-btn corner-btn r sq" data-dg="cancel" aria-label="Отменить действие">${ICO_X}</button>
+      ${moving ? `<button class="fx-btn corner-btn r" data-dg="cancel" aria-label="Отменить действие">${ICO_X}Отмена</button>
         <div class="phase-pill">${pill}</div>
         <div class="zoom"><button class="fx-btn" data-dg="zoom-in" aria-label="Приблизить">+</button><button class="fx-btn" data-dg="zoom-out" aria-label="Отдалить">−</button></div>` : ""}
       ${menu && dgUi.inv ? `<div class="dd l fx-frame">${invItemHtml("compass", "Компас", ICO_COMPASS)}${invItemHtml("map", "Карта", ICO_MAP)}
@@ -3123,7 +3218,13 @@ document.addEventListener("click", e => {
     case "enc-done": dgUi.enc = null; break;
     case "enc-out": dgUi.enc.outcome = ds.o; if (ds.o === "win") dgUi.enc.killed = []; break;
     case "enc-kill": { const k = dgUi.enc.killed, i = Number(ds.i); k.includes(i) ? k.splice(k.indexOf(i), 1) : k.push(i); break; }
-    case "enc-ok": finishFight(); saveChar(); break;
+    case "enc-ok": finishFight(); dgUi.stat = null; saveChar(); break;
+    case "enc-stat": dgUi.stat = ds.id; break;
+    case "stat-close": dgUi.stat = null; break;
+    case "enc-hero": openHero(ds.id); return;
+    case "enc-next": { const e = dgUi.enc, n = e.init.length; let t = e.turn;
+      for (let k = 0; k < n; k++) { t = (t + 1) % n; if (t === 0) e.round++; const r = e.init[t]; if (!(r.k === "mon" && e.killed.includes(r.i))) break; }
+      e.turn = t; break; }
     case "gm-enc": dgUi.gm = false;
       if (zoneAt(r.pos.x, r.pos.y).kind === "safe") { toast("Возле статуи монстры не появляются"); break; }
       askRoll("gm", true); saveChar(); break;
