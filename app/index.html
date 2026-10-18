@@ -327,6 +327,47 @@ ul.plain { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 15
 .result small { color: var(--muted); font-family: var(--f-data); font-size: 12px; white-space: nowrap; }
 .empty { color: var(--muted); padding: 12px 0; text-align: center; }
 
+/* Кубики: кнопка над нижним меню, видна на всех экранах (и поверх боя) */
+.dice-fab { position: fixed; z-index: 40; right: max(14px, env(safe-area-inset-right, 0px));
+  bottom: calc(74px + env(safe-area-inset-bottom, 0px)); width: 54px; height: 54px; padding: 4px; border-radius: 50%;
+  border: 1px solid #6e5634; background: radial-gradient(circle at 40% 35%, #3a2c1a, #120e09); box-shadow: 0 4px 14px rgb(0 0 0 / .55); cursor: pointer; }
+body.forge-open .dice-fab { display: none; }
+.dice-fab svg { width: 100%; height: 100%; display: block; }
+.dice-fab:focus-visible { outline: 2px solid #f0c979; outline-offset: 2px; }
+#diceov, #saveov { position: fixed; inset: 0; z-index: 50; background: rgb(0 0 0 / .72); display: flex; align-items: flex-end; justify-content: center; color: var(--fx-text); color-scheme: dark;
+  padding: env(safe-area-inset-top, 0px) max(0px, env(safe-area-inset-right, 0px)) 0 max(0px, env(safe-area-inset-left, 0px)); }
+#diceov[hidden], #saveov[hidden] { display: none; }
+.dice-sheet { width: min(520px, 100%); max-height: 100%; overflow-y: auto; box-sizing: border-box; background: linear-gradient(#211910, #120e09); border: 1px solid var(--fx-line); border-bottom: 0;
+  border-radius: 14px 14px 0 0; padding: 14px max(16px, env(safe-area-inset-left, 0px)) calc(16px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 12px; }
+.dice-sheet .ph-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.dice-sheet h3 { margin: 0; font: 400 22px/1.1 var(--f-display); color: var(--fx-gold-hi); }
+.dice-types { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; }
+.dice-types .fx-btn { padding: 9px 0; font: 600 14px var(--f-data); }
+.dice-types .fx-btn.on, .dice-count .fx-btn.on { background: var(--fx-gold); color: #1d140a; border-color: var(--fx-gold-hi); }
+.dice-count { display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--fx-muted); font-size: 14px; }
+.dice-count .fx-btn { width: 40px; height: 36px; padding: 0; font: 600 15px var(--f-data); }
+.dice-stage { min-height: 150px; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px; padding: 8px 0; cursor: pointer; border-radius: 10px;
+  background: radial-gradient(circle at 50% 40%, rgb(214 166 76 / .12), transparent 70%); }
+.die { position: relative; width: 96px; height: 96px; display: grid; place-items: center; }
+.dice-stage.many .die { width: 72px; height: 72px; }
+.die svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.die b { position: relative; font: 400 34px/1 var(--f-display); color: #fff1c4; text-shadow: 0 2px 6px rgb(0 0 0 / .8); font-variant-numeric: tabular-nums; }
+.dice-stage.many .die b { font-size: 26px; }
+.die.crit svg path:first-child { fill: #6b4a12; stroke: #ffe39a; }
+.die.fail svg path:first-child { fill: #5a1a12; stroke: #ff8a6a; }
+.die.rolling { animation: die-spin .75s cubic-bezier(.2,.7,.3,1); }
+@keyframes die-spin { 0% { transform: rotate(0) scale(.6); } 60% { transform: rotate(600deg) scale(1.12); } 100% { transform: rotate(720deg) scale(1); } }
+@media (prefers-reduced-motion: reduce) { .die.rolling { animation: none; } }
+.dice-total { text-align: center; color: var(--fx-muted); font-size: 15px; min-height: 22px; }
+.dice-total b { color: var(--fx-gold-hi); font: 600 22px var(--f-data); }
+.save-list { display: flex; flex-direction: column; gap: 8px; }
+.save-row { border: 1px solid var(--fx-line); border-radius: 8px; padding: 10px 12px; background: rgb(0 0 0 / .25); display: flex; flex-direction: column; gap: 6px; }
+.save-row b { font: 400 18px/1.15 var(--f-display); color: var(--fx-gold-hi); }
+.save-row small { color: var(--fx-muted); font-size: 13px; }
+.save-row .btns { display: flex; gap: 8px; flex-wrap: wrap; }
+.save-row .btns .fx-btn { font-size: 13.5px; padding: 7px 12px; }
+.save-note { color: var(--fx-muted); font-size: 13px; margin: 0; }
+
 /* Tab bar */
 nav.tabs {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 6;
@@ -850,6 +891,11 @@ dl.kv { margin: 0; }
 <div id="libov" role="dialog" aria-modal="true" aria-label="Библиотека" hidden></div>
 <div id="heroov" role="dialog" aria-modal="true" aria-label="Меню героя" hidden></div>
 <div id="forge" role="dialog" aria-modal="true" aria-label="Создание героя" hidden></div>
+<button class="dice-fab" id="dice-fab" data-dice="open" aria-label="Бросить кубик">
+  <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 3 43 14v20L24 45 5 34V14z" fill="#2a1f12" stroke="#f0c979" stroke-width="2.4" stroke-linejoin="round"/><path d="M24 3 15 19h18zM15 19 5 14M33 19l10-5M15 19l-5 15M33 19l5 15M15 19l9 26 9-26M10 34h28" fill="none" stroke="#d6a64c" stroke-width="1.4" stroke-linejoin="round" opacity=".85"/><text x="24" y="31" text-anchor="middle" font-family="Kelly Slab, Georgia, serif" font-size="11" fill="#fff1c4">20</text></svg>
+</button>
+<div id="diceov" role="dialog" aria-modal="true" aria-label="Кубики" hidden></div>
+<div id="saveov" role="dialog" aria-modal="true" aria-label="Сохранения" hidden></div>
 
 <nav class="tabs" aria-label="Разделы приложения">
   <div class="wrap">
@@ -2016,6 +2062,7 @@ function renderMain() {
       <div class="fx-rule"><span></span></div>
       <p class="fx-sub">Раз в месяц открываются врата лабиринта. Собери отряд, спустись за камнями и вернись живым.</p>
       <button class="fx-btn primary big" data-action="start-adventure">Начать приключение</button>
+      <button class="fx-btn" data-save="open">Сохранения</button>
       ${last ? `
         <div class="fx-card fx-frame">
           <span class="fx-eyebrow" style="font-size:12px">Последняя сессия</span>
@@ -2906,6 +2953,7 @@ function renderDungeon() {
         <button class="fx-btn" data-dg="give-compass"${inv.compass.owned ? " disabled" : ""}>Выдать компас</button>
         <button class="fx-btn" data-dg="give-map"${inv.map.owned ? " disabled" : ""}>Выдать карту</button>
         <button class="fx-btn" data-dg="gm-enc">Бросить встречу</button>
+        <button class="fx-btn" data-save="open">Сохранения</button>
         <button class="fx-btn" data-dg="leave">${dgUi.confirm === "leave" ? "Точно выйти? Нажми ещё раз" : "Выйти в город"}</button>
         <button class="fx-btn" data-dg="rollback"${state.runSnap ? "" : ` disabled title="Нет снимка: заход начат до обновления"`}>${dgUi.confirm === "rollback" ? "Точно откатить? Нажми ещё раз" : "Откатить заход"}</button>
         ${state.runSnap ? "" : `<small style="color:var(--fx-muted);font-size:11.5px;max-width:200px">Откат доступен для заходов, начатых после обновления.</small>`}
@@ -3790,6 +3838,114 @@ function route(keepScroll) {
 }
 const rerender = () => route(true);
 
+/* ===================== КУБИКИ ===================== */
+// Просто бросок для удобства: результат никуда не записывается.
+const DICE = [4, 6, 8, 10, 12, 20, 100];
+const DIE_SHAPE = {
+  4: "M50 6 94 88H6z", 6: "M12 12h76v76H12z", 8: "M50 4 94 50 50 96 6 50z", 10: "M50 4 92 42 50 96 8 42z",
+  12: "M50 4 95 37 78 92H22L5 37z", 20: "M50 3 92 27v46L50 97 8 73V27z", 100: "M50 4 92 42 50 96 8 42z",
+};
+let dice = { type: 20, n: 1, vals: null, timer: 0 };
+const $dice = document.getElementById("diceov");
+function dieSvg(t) { return `<svg viewBox="0 0 100 100" aria-hidden="true"><path d="${DIE_SHAPE[t]}" fill="#2a1f12" stroke="#d6a64c" stroke-width="3" stroke-linejoin="round"/><path d="${DIE_SHAPE[t]}" fill="none" stroke="#f0c979" stroke-width="1" opacity=".35" transform="translate(50 50) scale(.72) translate(-50 -50)"/></svg>`; }
+function renderDice() {
+  const d = dice, many = d.n > 1, vals = d.vals || Array(d.n).fill(null);
+  $dice.innerHTML = `<div class="dice-sheet">
+    <div class="ph-head"><h3>Кубики</h3><button class="fx-btn" data-dice="close" aria-label="Закрыть" style="width:42px;height:42px;padding:0;display:grid;place-items:center">${ICO_X}</button></div>
+    <div class="dice-types" role="group" aria-label="Кубик">${DICE.map(t => `<button class="fx-btn${d.type === t ? " on" : ""}" data-dice="type" data-t="${t}" aria-pressed="${d.type === t}">к${t}</button>`).join("")}</div>
+    <div class="dice-count">Сколько: ${[1, 2, 3, 4, 5, 6].map(n => `<button class="fx-btn${d.n === n ? " on" : ""}" data-dice="n" data-n="${n}" aria-pressed="${d.n === n}">${n}</button>`).join("")}</div>
+    <div class="dice-stage${many ? " many" : ""}" data-dice="roll" id="dice-stage" aria-live="polite">
+      ${vals.map(v => `<div class="die${v !== null && d.type === 20 && v === 20 ? " crit" : ""}${v !== null && d.type === 20 && v === 1 ? " fail" : ""}">${dieSvg(d.type)}<b>${v === null ? "к" + d.type : v}</b></div>`).join("")}
+    </div>
+    <div class="dice-total">${d.vals && many ? `Сумма: <b>${d.vals.reduce((a, b) => a + b, 0)}</b>` : d.vals && d.type === 20 && d.vals[0] === 20 ? "Критический успех!" : d.vals && d.type === 20 && d.vals[0] === 1 ? "Критический провал" : "Нажми на кубик или «Бросить»"}</div>
+    <button class="fx-btn primary big" data-dice="roll">Бросить ${d.n > 1 ? d.n : ""}к${d.type}</button>
+  </div>`;
+}
+function rollDice() {
+  clearInterval(dice.timer);
+  const d = dice, roll = () => Array.from({ length: d.n }, () => 1 + rnd(d.type));
+  const final = roll();
+  d.vals = roll(); renderDice();
+  document.querySelectorAll("#dice-stage .die").forEach(el => el.classList.add("rolling"));
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let ticks = reduce ? 0 : 10;
+  const step = () => {
+    if (ticks-- > 0) { const v = roll(); document.querySelectorAll("#dice-stage .die b").forEach((b, i) => b.textContent = v[i]); return; }
+    clearInterval(d.timer); d.vals = final; renderDice();
+  };
+  if (reduce) step(); else d.timer = setInterval(step, 70);
+}
+document.addEventListener("click", e => {
+  const el = e.target.closest("[data-dice]");
+  if (!el) { if (e.target === $dice) { $dice.hidden = true; } return; }
+  const k = el.dataset.dice;
+  if (k === "open") { dice.vals = null; renderDice(); $dice.hidden = false; return; }
+  if (k === "close") { clearInterval(dice.timer); $dice.hidden = true; return; }
+  if (k === "type") { dice.type = Number(el.dataset.t); dice.vals = null; renderDice(); return; }
+  if (k === "n") { dice.n = Number(el.dataset.n); dice.vals = null; renderDice(); return; }
+  if (k === "roll") rollDice();
+});
+
+/* ===================== СОХРАНЕНИЯ ===================== */
+// Слоты сохранений всей игры (отряд, заход, библиотека) на этом устройстве — для тестов без страха.
+const SAVES_KEY = "sputnik.saves.v1";
+const $saves = document.getElementById("saveov");
+let saveUi = { confirm: null };
+function readSaves() { try { return JSON.parse(localStorage.getItem(SAVES_KEY)) || []; } catch (e) { return []; } }
+function writeSaves(list) { try { localStorage.setItem(SAVES_KEY, JSON.stringify(list)); return true; } catch (e) { toast("Не хватило места для сохранения"); return false; } }
+function saveSummary(st) {
+  const names = (st.party || []).map(c => c.name).join(", ") || "без героев";
+  const where = st.run ? `лабиринт, день ${st.run.day}/7, действие ${st.run.act}` : st.townUnlocked ? "город" : "до первого спуска";
+  return `${names} · ${where}`;
+}
+function makeSave(name) {
+  const list = readSaves();
+  const now = new Date();
+  list.unshift({ id: "s" + now.getTime().toString(36), name: name || "Сохранение " + now.toLocaleString("ru-RU", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }),
+    date: now.toISOString(), info: saveSummary(state), data: JSON.stringify(state) });
+  return writeSaves(list.slice(0, 15));
+}
+function loadSave(id) {
+  const sv = readSaves().find(x => x.id === id); if (!sv) return;
+  makeSave("Авто: перед загрузкой «" + sv.name + "»");
+  state = { party: [], sessions: [], current: null, example: clone(DEFAULT_CHAR), ...JSON.parse(sv.data) };
+  char = curChar(); dgUi = freshUi(); saveChar();
+  $saves.hidden = true;
+  if (!document.getElementById("libov").hidden) closeLibrary();
+  if (!document.getElementById("heroov").hidden) closeHero();
+  location.hash = state.run ? "labyrinth" : state.townUnlocked ? "town" : "";
+  rerender();
+  setTimeout(() => toast("Загружено: " + sv.name), 50);
+}
+function renderSaves() {
+  const list = readSaves(), c = saveUi.confirm;
+  $saves.innerHTML = `<div class="dice-sheet">
+    <div class="ph-head"><h3>Сохранения</h3><button class="fx-btn" data-save="close" aria-label="Закрыть" style="width:42px;height:42px;padding:0;display:grid;place-items:center">${ICO_X}</button></div>
+    <p class="save-note">Сейчас: ${esc(saveSummary(state))}. Сохранения лежат на этом телефоне. Перед загрузкой текущая игра сохраняется автоматически.</p>
+    <button class="fx-btn primary big" data-save="new">Сохранить текущую игру</button>
+    <div class="save-list">${list.length ? list.map(sv => `<div class="save-row">
+      <b>${esc(sv.name)}</b><small>${new Date(sv.date).toLocaleString("ru-RU", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" })} · ${esc(sv.info)}</small>
+      <div class="btns"><button class="fx-btn" data-save="load" data-id="${sv.id}">${c === "load:" + sv.id ? "Точно загрузить? Ещё раз" : "Загрузить"}</button>
+      <button class="fx-btn" data-save="del" data-id="${sv.id}">${c === "del:" + sv.id ? "Точно удалить? Ещё раз" : "Удалить"}</button></div></div>`).join("")
+      : `<p class="save-note" style="text-align:center">Сохранений пока нет.</p>`}</div>
+  </div>`;
+}
+function openSaves() { saveUi = { confirm: null }; renderSaves(); $saves.hidden = false; }
+document.addEventListener("click", e => {
+  const el = e.target.closest("[data-save]");
+  if (!el) { if (e.target === $saves) $saves.hidden = true; return; }
+  const k = el.dataset.save, id = el.dataset.id;
+  if (k === "open") { openSaves(); return; }
+  if (k === "close") { $saves.hidden = true; return; }
+  if (k === "new") { if (makeSave()) toast("Игра сохранена"); saveUi.confirm = null; renderSaves(); return; }
+  if (k === "load" || k === "del") {
+    if (saveUi.confirm !== k + ":" + id) { saveUi.confirm = k + ":" + id; renderSaves(); return; }
+    saveUi.confirm = null;
+    if (k === "load") { loadSave(id); return; }
+    writeSaves(readSaves().filter(x => x.id !== id)); renderSaves();
+  }
+});
+
 document.addEventListener("click", e => {
   const el = e.target.closest("[data-go],[data-tab],[data-f],[data-reset],[data-zoom],[data-slot],[data-equip],[data-unequip],[data-custom],[data-action],[data-member],[data-bld]");
   if (!el) return;
@@ -3852,5 +4008,7 @@ $scrim.addEventListener("click", closeSheet);
 $back.addEventListener("click", () => { location.hash = "ref"; });
 window.addEventListener("hashchange", () => route());
 state.party.forEach(ensureKit);       // старые герои получают стартовый набор
+// Первый запуск со слотами сохранений: текущая партия сохраняется сама, чтобы тесты ничего не испортили.
+if (!readSaves().length && state.party.length) makeSave("Партия до тестов (сохранено автоматически)");
 route();
 </script>
