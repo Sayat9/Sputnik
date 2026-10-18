@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256"><defs>
+<linearGradient id="steel" x1="0" y1="0" x2="1" y2="0">
+  <stop offset="0" stop-color="#6d767b"/><stop offset=".42" stop-color="#cfd3cf"/>
+  <stop offset=".55" stop-color="#a3a9a6"/><stop offset="1" stop-color="#5d666b"/></linearGradient>
+<linearGradient id="steelV" x1="0" y1="0" x2="0" y2="1">
+  <stop offset="0" stop-color="#c4c8c3"/><stop offset=".5" stop-color="#8d9490"/><stop offset="1" stop-color="#59626a"/></linearGradient>
+<linearGradient id="iron" x1="0" y1="0" x2="1" y2="0">
+  <stop offset="0" stop-color="#2a2e31"/><stop offset=".5" stop-color="#717a80"/><stop offset="1" stop-color="#25292c"/></linearGradient>
+<linearGradient id="wood" x1="0" y1="0" x2="1" y2="0">
+  <stop offset="0" stop-color="#4f3420"/><stop offset=".5" stop-color="#93683c"/><stop offset="1" stop-color="#4a301c"/></linearGradient>
+<linearGradient id="leather" x1="0" y1="0" x2="1" y2="0">
+  <stop offset="0" stop-color="#3a2418"/><stop offset=".5" stop-color="#714a30"/><stop offset="1" stop-color="#33200f"/></linearGradient>
+<linearGradient id="brass" x1="0" y1="0" x2="1" y2="0">
+  <stop offset="0" stop-color="#7a5a20"/><stop offset=".5" stop-color="#e2c06a"/><stop offset="1" stop-color="#6a4c18"/></linearGradient>
+<linearGradient id="stone" x1="0" y1="0" x2="1" y2="0">
+  <stop offset="0" stop-color="#454844"/><stop offset=".45" stop-color="#8f938c"/><stop offset="1" stop-color="#3c3f3b"/></linearGradient>
+<radialGradient id="amber" cx=".4" cy=".35" r=".7">
+  <stop offset="0" stop-color="#fff1c4"/><stop offset=".45" stop-color="#f0b443"/><stop offset="1" stop-color="#8a5310"/></radialGradient>
+<filter id="worn" x="-10%" y="-10%" width="120%" height="120%" color-interpolation-filters="sRGB">
+  <feColorMatrix in="SourceGraphic" type="saturate" values=".72" result="dull"/>
+  <feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" seed="4" result="n1"/>
+  <feColorMatrix in="n1" type="matrix" values="0 0 0 0 .16  0 0 0 0 .12  0 0 0 0 .09  0 0 0 -3.2 1.38" result="grime"/>
+  <feComposite in="grime" in2="SourceAlpha" operator="in" result="grimeIn"/>
+  <feTurbulence type="fractalNoise" baseFrequency=".045" numOctaves="3" seed="11" result="n2"/>
+  <feColorMatrix in="n2" type="matrix" values="0 0 0 0 .45  0 0 0 0 .22  0 0 0 0 .08  0 0 0 -5 1.78" result="rust"/>
+  <feComposite in="rust" in2="SourceAlpha" operator="in" result="rustIn"/>
+  <feMerge><feMergeNode in="dull"/><feMergeNode in="rustIn"/><feMergeNode in="grimeIn"/></feMerge>
+</filter>
+<filter id="blur6" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="6"/></filter>
+<filter id="blur2" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2"/></filter>
+<filter id="drop" x="-30%" y="-30%" width="160%" height="160%">
+  <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#000" flood-opacity=".55"/></filter>
+
+<radialGradient id="niche" cx=".5" cy=".38" r=".75">
+  <stop offset="0" stop-color="#4b514c"/><stop offset=".55" stop-color="#252a27"/><stop offset="1" stop-color="#101211"/></radialGradient>
+<linearGradient id="beam" x1="0" y1="0" x2="0" y2="1">
+  <stop offset="0" stop-color="#fff6dc" stop-opacity=".16"/><stop offset="1" stop-color="#fff6dc" stop-opacity="0"/></linearGradient>
+<pattern id="bricks" width="64" height="32" patternUnits="userSpaceOnUse">
+  <path d="M0 .5H64M0 16.5H64M32 0V16M.5 16V32" stroke="#000" stroke-opacity=".22" fill="none"/></pattern>
+
+<clipPath id="torso"><path d="M84 52 Q128 42 172 52 L192 68 L184 84 L176 150 Q128 164 80 150 L72 84 L64 68 Z"/></clipPath>
+<pattern id="quilt" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+  <path d="M0 .5H12M.5 0V12" stroke="#5e5240" stroke-width="1.2"/></pattern>
+<pattern id="studs" width="12" height="12" patternUnits="userSpaceOnUse">
+  <circle cx="6" cy="6" r="1.9" fill="url(#brass)" stroke="#3a2a0c" stroke-width=".5"/></pattern>
+<pattern id="chain" width="6" height="5" patternUnits="userSpaceOnUse">
+  <circle cx="3" cy="2.5" r="2.1" fill="none" stroke="#c4cbcf" stroke-width="1"/>
+  <circle cx="0" cy="0" r="2.1" fill="none" stroke="#8e979c" stroke-width="1"/>
+  <circle cx="6" cy="0" r="2.1" fill="none" stroke="#8e979c" stroke-width="1"/></pattern>
+<pattern id="rings" width="11" height="11" patternUnits="userSpaceOnUse">
+  <circle cx="5.5" cy="5.5" r="3.4" fill="none" stroke="#9aa3a8" stroke-width="1.6"/></pattern>
+<pattern id="scales" width="12" height="10" patternUnits="userSpaceOnUse">
+  <path d="M0 0 Q0 10 6 10 Q12 10 12 0" fill="url(#steelV)" stroke="#3a4145" stroke-width=".8"/>
+  <path d="M-6 5 Q-6 15 0 15 Q6 15 6 5 M6 5 Q6 15 12 15 Q18 15 18 5" fill="url(#steelV)" stroke="#3a4145" stroke-width=".8"/></pattern>
+<pattern id="fur" width="10" height="10" patternUnits="userSpaceOnUse">
+  <path d="M2 2 q2 4 0 7 M6 0 q2 5 1 9 M9 4 q1 3 -1 6" stroke="#3e3224" stroke-width="1" fill="none"/></pattern>
+<pattern id="splint" width="14" height="80" patternUnits="userSpaceOnUse">
+  <rect x="1" y="0" width="11" height="80" rx="2" fill="url(#steelV)" stroke="#2f3538"/>
+  <circle cx="6.5" cy="8" r="1.4" fill="#2a2e31"/><circle cx="6.5" cy="40" r="1.4" fill="#2a2e31"/></pattern>
+</defs>
+<rect width="256" height="256" fill="url(#niche)"/>
+<rect width="256" height="256" fill="url(#bricks)"/>
+<path d="M28 256V96C28 40 74 14 128 14S228 40 228 96V256" fill="#000" fill-opacity=".18"/>
+<polygon points="98,0 158,0 206,256 50,256" fill="url(#beam)"/>
+<ellipse cx="128" cy="238" rx="78" ry="11" fill="#000" fill-opacity=".5"/>
+<rect x="60" y="214" width="136" height="16" rx="2" fill="url(#stone)"/>
+<rect x="78" y="180" width="100" height="36" fill="url(#stone)"/>
+<rect x="78" y="180" width="100" height="5" fill="#000" fill-opacity=".25"/>
+<rect x="66" y="170" width="124" height="12" rx="2" fill="url(#stone)"/>
+<rect x="66" y="170" width="124" height="2" fill="#fff" fill-opacity=".18"/>
+<circle cx="128" cy="198" r="12" fill="#f0b443" opacity=".45" filter="url(#blur6)"/>
+<polygon points="128,189 137,198 128,207 119,198" fill="url(#amber)" stroke="#5a3a0a" stroke-width="1"/>
+<ellipse cx="128" cy="170" rx="54" ry="5" fill="#f0b443" opacity=".18" filter="url(#blur6)"/>
+<rect x="123" y="140" width="10" height="32" fill="url(#wood)"/>
+<g filter="url(#drop)"><g filter="url(#worn)">
+<rect x="124" y="28" width="8" height="24" fill="url(#wood)"/><ellipse cx="128" cy="28" rx="9" ry="6" fill="url(#wood)"/>
+
+<path d="M84 52 Q128 42 172 52 L192 68 L184 84 L176 150 Q128 164 80 150 L72 84 L64 68 Z" fill="url(#leather)" stroke="#15181a" stroke-width="1.5"/>
+<g clip-path="url(#torso)"><path d="M128 52V150" stroke="#c8a070" stroke-width="1.2" stroke-dasharray="4 3"/><path d="M84 96 Q128 106 172 96" stroke="#c8a070" stroke-width="1.2" stroke-dasharray="4 3" fill="none"/>
+<path d="M64 40 H128 V170 H64Z" fill="#fff" opacity=".06"/><path d="M150 40 H200 V170 H150Z" fill="#000" opacity=".2"/></g>
+<path d="M108 50 Q128 64 148 50" fill="#1a1d1b" stroke="#15181a"/>
+<path d="M78 136 Q128 146 178 136 L177 145 Q128 155 79 145Z" fill="url(#leather)" stroke="#15181a"/><rect x="121" y="139" width="14" height="12" rx="2" fill="none" stroke="url(#brass)" stroke-width="2.5"/><path d="M62 64 Q66 46 92 50 L96 72 Q78 80 62 64Z" fill="url(#leather)" stroke="#2a2e31" stroke-width="1.3"/><path d="M194 64 Q190 46 164 50 L160 72 Q178 80 194 64Z" fill="url(#leather)" stroke="#2a2e31" stroke-width="1.3"/></g></g>
+</svg>

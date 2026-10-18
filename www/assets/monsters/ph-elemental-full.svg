@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 384" width="256" height="384"><defs>
+<linearGradient id="steel" x1="0" y1="0" x2="1" y2="0">
+  <stop offset="0" stop-color="#6d767b"/><stop offset=".42" stop-color="#cfd3cf"/>
+  <stop offset=".55" stop-color="#a3a9a6"/><stop offset="1" stop-color="#5d666b"/></linearGradient>
+<linearGradient id="steelV" x1="0" y1="0" x2="0" y2="1">
+  <stop offset="0" stop-color="#c4c8c3"/><stop offset=".5" stop-color="#8d9490"/><stop offset="1" stop-color="#59626a"/></linearGradient>
+<linearGradient id="iron" x1="0" y1="0" x2="1" y2="0">
+  <stop offset="0" stop-color="#2a2e31"/><stop offset=".5" stop-color="#717a80"/><stop offset="1" stop-color="#25292c"/></linearGradient>
+<linearGradient id="wood" x1="0" y1="0" x2="1" y2="0">
+  <stop offset="0" stop-color="#4f3420"/><stop offset=".5" stop-color="#93683c"/><stop offset="1" stop-color="#4a301c"/></linearGradient>
+<linearGradient id="leather" x1="0" y1="0" x2="1" y2="0">
+  <stop offset="0" stop-color="#3a2418"/><stop offset=".5" stop-color="#714a30"/><stop offset="1" stop-color="#33200f"/></linearGradient>
+<linearGradient id="brass" x1="0" y1="0" x2="1" y2="0">
+  <stop offset="0" stop-color="#7a5a20"/><stop offset=".5" stop-color="#e2c06a"/><stop offset="1" stop-color="#6a4c18"/></linearGradient>
+<linearGradient id="stone" x1="0" y1="0" x2="1" y2="0">
+  <stop offset="0" stop-color="#454844"/><stop offset=".45" stop-color="#8f938c"/><stop offset="1" stop-color="#3c3f3b"/></linearGradient>
+<radialGradient id="amber" cx=".4" cy=".35" r=".7">
+  <stop offset="0" stop-color="#fff1c4"/><stop offset=".45" stop-color="#f0b443"/><stop offset="1" stop-color="#8a5310"/></radialGradient>
+<filter id="worn" x="-10%" y="-10%" width="120%" height="120%" color-interpolation-filters="sRGB">
+  <feColorMatrix in="SourceGraphic" type="saturate" values=".72" result="dull"/>
+  <feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" seed="4" result="n1"/>
+  <feColorMatrix in="n1" type="matrix" values="0 0 0 0 .16  0 0 0 0 .12  0 0 0 0 .09  0 0 0 -3.2 1.38" result="grime"/>
+  <feComposite in="grime" in2="SourceAlpha" operator="in" result="grimeIn"/>
+  <feTurbulence type="fractalNoise" baseFrequency=".045" numOctaves="3" seed="11" result="n2"/>
+  <feColorMatrix in="n2" type="matrix" values="0 0 0 0 .45  0 0 0 0 .22  0 0 0 0 .08  0 0 0 -5 1.78" result="rust"/>
+  <feComposite in="rust" in2="SourceAlpha" operator="in" result="rustIn"/>
+  <feMerge><feMergeNode in="dull"/><feMergeNode in="rustIn"/><feMergeNode in="grimeIn"/></feMerge>
+</filter>
+<filter id="blur6" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="6"/></filter>
+<filter id="blur2" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2"/></filter>
+<filter id="drop" x="-30%" y="-30%" width="160%" height="160%">
+  <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#000" flood-opacity=".55"/></filter>
+
+<radialGradient id="pbg" cx=".5" cy=".35" r=".8">
+  <stop offset="0" stop-color="#3d433f"/><stop offset=".6" stop-color="#1b1f1d"/><stop offset="1" stop-color="#0d0f0e"/></radialGradient>
+<radialGradient id="rim" cx=".85" cy=".3" r=".6">
+  <stop offset="0" stop-color="#f0b443" stop-opacity=".35"/><stop offset="1" stop-color="#f0b443" stop-opacity="0"/></radialGradient>
+<radialGradient id="shade" cx=".35" cy=".35" r=".85">
+  <stop offset=".5" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".38"/></radialGradient>
+</defs><rect width="256" height="384" fill="url(#pbg)"/><rect width="256" height="384" fill="url(#rim)"/>
+<g transform="translate(0 70)"><path d="M76 196 L88 118 L120 90 L162 100 L184 150 L170 204 L112 214Z" fill="#2a2016" stroke="#6e5634" stroke-width="2"/><path d="M110 120 L126 150 L116 176 M150 128 L140 160" stroke="#6e5634" stroke-width="2" fill="none"/><circle cx="128" cy="150" r="6" fill="#d6a64c" opacity=".8"/></g>
+<text x="128" y="350" text-anchor="middle" font-family="Georgia, serif" font-size="14" letter-spacing="3" fill="#7d6c52">ПОРТРЕТ СКОРО</text></svg>

@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256"><defs>
+<linearGradient id="steel" x1="0" y1="0" x2="1" y2="0">
+  <stop offset="0" stop-color="#6d767b"/><stop offset=".42" stop-color="#cfd3cf"/>
+  <stop offset=".55" stop-color="#a3a9a6"/><stop offset="1" stop-color="#5d666b"/></linearGradient>
+<linearGradient id="steelV" x1="0" y1="0" x2="0" y2="1">
+  <stop offset="0" stop-color="#c4c8c3"/><stop offset=".5" stop-color="#8d9490"/><stop offset="1" stop-color="#59626a"/></linearGradient>
+<linearGradient id="iron" x1="0" y1="0" x2="1" y2="0">
+  <stop offset="0" stop-color="#2a2e31"/><stop offset=".5" stop-color="#717a80"/><stop offset="1" stop-color="#25292c"/></linearGradient>
+<linearGradient id="wood" x1="0" y1="0" x2="1" y2="0">
+  <stop offset="0" stop-color="#4f3420"/><stop offset=".5" stop-color="#93683c"/><stop offset="1" stop-color="#4a301c"/></linearGradient>
+<linearGradient id="leather" x1="0" y1="0" x2="1" y2="0">
+  <stop offset="0" stop-color="#3a2418"/><stop offset=".5" stop-color="#714a30"/><stop offset="1" stop-color="#33200f"/></linearGradient>
+<linearGradient id="brass" x1="0" y1="0" x2="1" y2="0">
+  <stop offset="0" stop-color="#7a5a20"/><stop offset=".5" stop-color="#e2c06a"/><stop offset="1" stop-color="#6a4c18"/></linearGradient>
+<linearGradient id="stone" x1="0" y1="0" x2="1" y2="0">
+  <stop offset="0" stop-color="#454844"/><stop offset=".45" stop-color="#8f938c"/><stop offset="1" stop-color="#3c3f3b"/></linearGradient>
+<radialGradient id="amber" cx=".4" cy=".35" r=".7">
+  <stop offset="0" stop-color="#fff1c4"/><stop offset=".45" stop-color="#f0b443"/><stop offset="1" stop-color="#8a5310"/></radialGradient>
+<filter id="worn" x="-10%" y="-10%" width="120%" height="120%" color-interpolation-filters="sRGB">
+  <feColorMatrix in="SourceGraphic" type="saturate" values=".72" result="dull"/>
+  <feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" seed="4" result="n1"/>
+  <feColorMatrix in="n1" type="matrix" values="0 0 0 0 .16  0 0 0 0 .12  0 0 0 0 .09  0 0 0 -3.2 1.38" result="grime"/>
+  <feComposite in="grime" in2="SourceAlpha" operator="in" result="grimeIn"/>
+  <feTurbulence type="fractalNoise" baseFrequency=".045" numOctaves="3" seed="11" result="n2"/>
+  <feColorMatrix in="n2" type="matrix" values="0 0 0 0 .45  0 0 0 0 .22  0 0 0 0 .08  0 0 0 -5 1.78" result="rust"/>
+  <feComposite in="rust" in2="SourceAlpha" operator="in" result="rustIn"/>
+  <feMerge><feMergeNode in="dull"/><feMergeNode in="rustIn"/><feMergeNode in="grimeIn"/></feMerge>
+</filter>
+<filter id="blur6" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="6"/></filter>
+<filter id="blur2" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2"/></filter>
+<filter id="drop" x="-30%" y="-30%" width="160%" height="160%">
+  <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#000" flood-opacity=".55"/></filter>
+
+<radialGradient id="niche" cx=".5" cy=".38" r=".75">
+  <stop offset="0" stop-color="#4b514c"/><stop offset=".55" stop-color="#252a27"/><stop offset="1" stop-color="#101211"/></radialGradient>
+<linearGradient id="beam" x1="0" y1="0" x2="0" y2="1">
+  <stop offset="0" stop-color="#fff6dc" stop-opacity=".16"/><stop offset="1" stop-color="#fff6dc" stop-opacity="0"/></linearGradient>
+<pattern id="bricks" width="64" height="32" patternUnits="userSpaceOnUse">
+  <path d="M0 .5H64M0 16.5H64M32 0V16M.5 16V32" stroke="#000" stroke-opacity=".22" fill="none"/></pattern>
+</defs>
+<rect width="256" height="256" fill="url(#niche)"/>
+<rect width="256" height="256" fill="url(#bricks)"/>
+<path d="M28 256V96C28 40 74 14 128 14S228 40 228 96V256" fill="#000" fill-opacity=".18"/>
+<polygon points="98,0 158,0 206,256 50,256" fill="url(#beam)"/>
+<ellipse cx="128" cy="238" rx="78" ry="11" fill="#000" fill-opacity=".5"/>
+<rect x="60" y="214" width="136" height="16" rx="2" fill="url(#stone)"/>
+<rect x="78" y="180" width="100" height="36" fill="url(#stone)"/>
+<rect x="78" y="180" width="100" height="5" fill="#000" fill-opacity=".25"/>
+<rect x="66" y="170" width="124" height="12" rx="2" fill="url(#stone)"/>
+<rect x="66" y="170" width="124" height="2" fill="#fff" fill-opacity=".18"/>
+<circle cx="128" cy="198" r="12" fill="#f0b443" opacity=".45" filter="url(#blur6)"/>
+<polygon points="128,189 137,198 128,207 119,198" fill="url(#amber)" stroke="#5a3a0a" stroke-width="1"/>
+<ellipse cx="128" cy="170" rx="54" ry="5" fill="#f0b443" opacity=".18" filter="url(#blur6)"/>
+
+<g filter="url(#drop)"><g filter="url(#worn)"><g transform="translate(128 95) rotate(40) scale(1.0)">
+<polygon points="-6,40 -6,-70 0,-84 6,-70 6,40" fill="url(#steel)" stroke="#3d4448" stroke-width="1"/>
+<path d="M0 -64V34" stroke="#6c757a" stroke-width="1.6" opacity=".8"/><path d="M6 -42.5 L2.8 -40 L6 -37.5Z" fill="#1d2022"/><path d="M-6 -14.5 L-2.8 -12 L-6 -9.5Z" fill="#1d2022"/><path d="M6 11.5 L2.8 14 L6 16.5Z" fill="#1d2022"/><path d="M-6 23.5 L-2.8 26 L-6 28.5Z" fill="#1d2022"/><path d="M-4 -50 L3 -44" stroke="#e9ece8" stroke-width=".7" opacity=".55"/><path d="M-3 0 L4 8" stroke="#e9ece8" stroke-width=".7" opacity=".55"/>
+<rect x="-26" y="39" width="52" height="8" rx="3" fill="url(#iron)" stroke="#1c1f21"/>
+<circle cx="-26" cy="43" r="4" fill="url(#iron)"/><circle cx="26" cy="43" r="4" fill="url(#iron)"/>
+<rect x="-4.5" y="47" width="9" height="28" fill="url(#leather)"/><path d="M-4.5 49 L4.5 53.0" stroke="#22150c" stroke-width="1.4"/><path d="M-4.5 54 L4.5 58.0" stroke="#22150c" stroke-width="1.4"/><path d="M-4.5 59 L4.5 63.0" stroke="#22150c" stroke-width="1.4"/><path d="M-4.5 64 L4.5 68.0" stroke="#22150c" stroke-width="1.4"/><path d="M-4.5 69 L4.5 73.0" stroke="#22150c" stroke-width="1.4"/>
+<circle cx="0" cy="80" r="6.5" fill="url(#iron)" stroke="#1c1f21"/><circle cx="-2" cy="78" r="2" fill="#fff" opacity=".35"/></g></g></g>
+</svg>

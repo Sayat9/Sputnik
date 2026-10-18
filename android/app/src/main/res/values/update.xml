@@ -1,0 +1,4 @@
+<resources>
+    <!-- Адрес папки с обновлениями (оканчивается на /). Пусто — обновления выключены. -->
+    <string name="update_url" translatable="false">https://raw.githubusercontent.com/Sayat9/Sputnik/main/www/</string>
+</resources>
