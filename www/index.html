@@ -1272,7 +1272,7 @@ const DISTRICTS = [
 
 // Готовые рисованные картинки (webp) заменяют векторные заглушки.
 // Дата сборки для телефона: build.sh вписывает её сюда, в веб-версии строка пустая.
-const APP_BUILD = "18.10.2026 16:23";
+const APP_BUILD = "18.10.2026 16:35";
 const RASTER = new Set(["races/barbarian", "races/human", "races/dwarf", "races/beastkin", "races/fairy", "races/dragon", "monsters/goblin-face", "monsters/goblin-full"]);
 const artPath = p => `assets/${p}.${RASTER.has(p) ? "webp" : "svg"}`;
 const ART = {
@@ -2571,7 +2571,20 @@ function inventory() {
   return state.inventory;
 }
 
+// Снимок отряда перед заходом: «Откатить заход» в меню мастера возвращает всё как было до спуска.
+function snapshotRun() {
+  state.runSnap = JSON.stringify({ party: state.party, journal: state.journal || null, inventory: state.inventory || null, townUnlocked: !!state.townUnlocked });
+}
+function rollbackRun() {
+  const snap = JSON.parse(state.runSnap);
+  state.party = snap.party; state.journal = snap.journal; state.inventory = snap.inventory; state.townUnlocked = snap.townUnlocked;
+  state.runSnap = null;
+  state.run = null; dgUi = freshUi(); saveChar();
+  location.hash = "town";
+  setTimeout(() => toast("Заход откатан: отряд в городе, всё как до спуска."), 50);
+}
 function newRun() {
+  snapshotRun();
   const ring = [];
   for (let y = 0; y < FLOOR1.size; y++) for (let x = 0; x < FLOOR1.size; x++) {
     const d = Math.max(Math.abs(x - CENTER), Math.abs(y - CENTER));
@@ -2898,7 +2911,9 @@ function renderDungeon() {
         <button class="fx-btn" data-dg="give-compass"${inv.compass.owned ? " disabled" : ""}>Выдать компас</button>
         <button class="fx-btn" data-dg="give-map"${inv.map.owned ? " disabled" : ""}>Выдать карту</button>
         <button class="fx-btn" data-dg="gm-enc">Бросить встречу</button>
-        <button class="fx-btn" data-dg="leave">Выйти в город</button>
+        <button class="fx-btn" data-dg="leave">${dgUi.confirm === "leave" ? "Точно выйти? Нажми ещё раз" : "Выйти в город"}</button>
+        <button class="fx-btn" data-dg="rollback"${state.runSnap ? "" : ` disabled title="Нет снимка: заход начат до обновления"`}>${dgUi.confirm === "rollback" ? "Точно откатить? Нажми ещё раз" : "Откатить заход"}</button>
+        ${state.runSnap ? "" : `<small style="color:var(--fx-muted);font-size:11.5px;max-width:200px">Откат доступен для заходов, начатых после обновления.</small>`}
         <button class="fx-btn" data-dg="gm">Закрыть</button>
       </div>` : ""}
       ${inv.compass.active && inv.compassOn ? `<div class="compass" id="compass">${COMPASS_SVG}</div>` : ""}
@@ -2961,7 +2976,7 @@ function advanceTime() {
   return false;
 }
 function endRun(early) {
-  state.run = null;
+  state.run = null; state.runSnap = null;
   state.townUnlocked = true;
   dgUi = freshUi();
   saveChar();
@@ -3203,7 +3218,7 @@ document.addEventListener("click", e => {
   switch (ds.dg) {
     case "inv": dgUi.inv = !dgUi.inv; dgUi.sup = false; break;
     case "sup": dgUi.sup = !dgUi.sup; dgUi.inv = false; break;
-    case "gm": dgUi.gm = !dgUi.gm; break;
+    case "gm": dgUi.gm = !dgUi.gm; dgUi.confirm = null; break;
     case "cancel": dgUi.phase = "menu"; dgUi.path = []; dgUi.rest = null; break;
     case "explore-yes": act("explore"); return;
     case "rest-go": act("rest"); return;
@@ -3234,7 +3249,8 @@ document.addEventListener("click", e => {
     case "library": openLibrary(); return;
     case "give-compass": inv.compass.owned = true; saveChar(); toast("Мастер выдал компас"); break;
     case "give-map": inv.map.owned = true; saveChar(); toast("Мастер выдал карту"); break;
-    case "leave": endRun(true); return;
+    case "leave": if (dgUi.confirm !== "leave") { dgUi.confirm = "leave"; break; } endRun(true); return;
+    case "rollback": if (!state.runSnap) break; if (dgUi.confirm !== "rollback") { dgUi.confirm = "rollback"; break; } rollbackRun(); return;
   }
   rerender();
 });
