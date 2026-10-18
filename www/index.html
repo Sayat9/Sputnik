@@ -363,6 +363,9 @@ body.forge-open .dice-fab { display: none; }
 @media (prefers-reduced-motion: reduce) { .die.rolling { animation: none; } }
 .dice-total { text-align: center; color: var(--fx-muted); font-size: 15px; min-height: 22px; }
 .dice-total b { color: var(--fx-gold-hi); font: 600 22px var(--f-data); }
+.upd-box { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.upd-btn { font-size: 13.5px; padding: 7px 14px; }
+.upd-note { color: var(--fx-muted); font-size: 12.5px; text-align: center; max-width: 300px; }
 .save-list { display: flex; flex-direction: column; gap: 8px; }
 .save-row { border: 1px solid var(--fx-line); border-radius: 8px; padding: 10px 12px; background: rgb(0 0 0 / .25); display: flex; flex-direction: column; gap: 6px; }
 .save-row b { font: 400 18px/1.15 var(--f-display); color: var(--fx-gold-hi); }
@@ -1318,7 +1321,9 @@ const DISTRICTS = [
 
 // Готовые рисованные картинки (webp) заменяют векторные заглушки.
 // Дата сборки для телефона: build.sh вписывает её сюда, в веб-версии строка пустая.
-const APP_BUILD = "18.10.2026 16:51";
+const APP_BUILD = "18.10.2026 17:01";
+const APP_VERSION = 1792324910;                 // номер сборки, тоже вписывает build.sh
+const UPDATE_URL = "https://raw.githubusercontent.com/Sayat9/Sputnik/main/www/";
 const RASTER = new Set(["races/barbarian", "races/human", "races/dwarf", "races/beastkin", "races/fairy", "races/dragon", "monsters/goblin-face", "monsters/goblin-full"]);
 const artPath = p => `assets/${p}.${RASTER.has(p) ? "webp" : "svg"}`;
 const ART = {
@@ -2076,7 +2081,9 @@ function renderMain() {
           <div class="fx-chips">${members.map(c => `<span class="fx-chip">${esc(c.name)} · ${raceById(c.race).name}</span>`).join("")}</div>
           <button class="fx-btn" data-go="town" style="align-self:flex-start;margin-top:4px">В город</button>
         </div>` : `<p class="fx-hint">В первый раз приложение попросит создать героев отряда.</p>`}
-      ${APP_BUILD ? `<p class="fx-hint" style="opacity:.6;font-size:12px">Версия от ${APP_BUILD}</p>` : ""}
+      ${APP_BUILD ? `<div class="upd-box"><p class="fx-hint" style="opacity:.6;font-size:12px">Версия от ${APP_BUILD}</p>
+        <button class="fx-btn upd-btn" data-upd="${updUi.state === "downloaded" ? "apply" : "check"}"${updUi.state === "checking" ? " disabled" : ""}>${UPD_LABEL[updUi.state]}</button>
+        ${updUi.note ? `<small class="upd-note">${updUi.note}</small>` : ""}</div>` : ""}
     </div>`;
 }
 
@@ -3843,6 +3850,35 @@ function route(keepScroll) {
 }
 const rerender = () => route(true);
 
+/* ===================== ОБНОВЛЕНИЕ ===================== */
+// В APK кнопка просит Android (window.SputnikApp) проверить и скачать обновление, «Применить» перезагружает страницу на новой версии.
+// Ответ приходит в window.sputnikUpdate. Без моста (старый APK) — просто сравниваем номер версии с GitHub.
+let updUi = { state: "idle", note: "" };
+const UPD_LABEL = { idle: "Проверить обновление", checking: "Проверяю…", latest: "Проверить обновление", downloaded: "Применить обновление", error: "Проверить обновление", old: "Проверить обновление" };
+function updShow(stateName, note) { updUi = { state: stateName, note }; if (!location.hash || location.hash === "#") rerender(); else if (stateName === "downloaded") toast("Обновление скачано: примени его на главном экране"); }
+window.sputnikUpdate = (status, version) => {
+  if (status === "downloaded") updShow("downloaded", "Новая версия скачана. Нажми, чтобы применить — игра сохранится.");
+  else if (status === "latest") updShow("latest", "Установлена последняя версия.");
+  else updShow("error", "Нет связи с сервером обновлений. Проверь интернет.");
+};
+async function checkUpdate() {
+  updShow("checking", "");
+  if (window.SputnikApp) {
+    window.SputnikApp.checkUpdate();
+    setTimeout(() => { if (updUi.state === "checking") updShow("error", "Сервер долго не отвечает. Попробуй ещё раз."); }, 25000);
+    return;
+  }
+  try {
+    const v = (await (await fetch(UPDATE_URL + "version.json?t=" + Date.now(), { cache: "no-store" })).json()).version;
+    updShow(v > APP_VERSION ? "old" : "latest", v > APP_VERSION ? "Есть новая версия. Закрой приложение и открой снова — она скачается сама. Чтобы обновляться этой кнопкой, поставь новый APK." : "Установлена последняя версия.");
+  } catch (e) { updShow("error", "Нет связи с сервером обновлений. Проверь интернет."); }
+}
+document.addEventListener("click", e => {
+  const el = e.target.closest("[data-upd]"); if (!el) return;
+  if (el.dataset.upd === "check") checkUpdate();
+  else if (window.SputnikApp) { saveChar(); window.SputnikApp.applyUpdate(); }
+});
+
 /* ===================== КУБИКИ ===================== */
 // Просто бросок для удобства: результат никуда не записывается.
 const DICE = [4, 6, 8, 10, 12, 20, 100];
@@ -4015,6 +4051,7 @@ window.addEventListener("hashchange", () => route());
 state.party.forEach(ensureKit);       // старые герои получают стартовый набор
 // Первый запуск со слотами сохранений: текущая партия сохраняется сама, чтобы тесты ничего не испортили.
 if (!readSaves().length && state.party.length) makeSave("Партия до тестов (сохранено автоматически)");
+if (window.SputnikApp && window.SputnikApp.pending && window.SputnikApp.pending()) updUi = { state: "downloaded", note: "Новая версия скачана. Нажми, чтобы применить — игра сохранится." };
 route();
 </script>
 </body>

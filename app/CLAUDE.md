@@ -72,4 +72,6 @@
 
 **Обновление без переустановки** (`Updater.java`): `build.sh` пишет `www/version.json` (версия = время сборки, список файлов). При запуске приложение скачивает `version.json` с адреса `res/values/update.xml → update_url`; если версия новее, качает файлы в `files/www_new`, при следующем запуске они становятся `files/www` и открываются по `/local/`. Пустой `update_url` — обновления выключены. Новый APK нужен только при изменении Java-обёртки.
 
+**Кнопка «Проверить обновление»** (главный экран, только в APK): страница зовёт мост `window.SputnikApp` (`checkUpdate`, `applyUpdate`, `pending`, `version`), ответ приходит в `window.sputnikUpdate(status, version)`; «Применить обновление» сразу перезагружает страницу на новой версии. Без моста (APK до 18.10) — сравнение `APP_VERSION` с `version.json` на GitHub. Запросы к GitHub идут с `?t=`/`?v=`, чтобы обойти кэш.
+
 **Выпуск обновления:** `../android/publish.sh "что изменилось"` — собирает www (`WWW_ONLY=1 build.sh`, вписывает дату в `APP_BUILD` — видна внизу главного экрана) и отправляет проект в https://github.com/Sayat9/Sputnik (рабочая копия `/home/user/repo-stage`, папки `app/`, `android/`, `campaign/`, `www/`). Телефоны берут `www/` с `raw.githubusercontent.com` (кэш до ~5 минут). После каждого изменения приложения — выпускать обновление и публиковать веб-версию.

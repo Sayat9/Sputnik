@@ -3,6 +3,7 @@ package rf.sputnik;
 import android.app.Activity;
 import android.net.Uri;
 import android.os.Bundle;
+import android.webkit.JavascriptInterface;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
@@ -20,11 +21,36 @@ import java.io.File;
 public class MainActivity extends Activity {
     private static final String HOST = "https://appassets.androidplatform.net";
     private WebView web;
+    private Updater updater;
+
+    // Мост для страницы: window.SputnikApp.checkUpdate() / applyUpdate() / version().
+    // Ответы приходят в window.sputnikUpdate(status, version), status: downloaded | latest | error.
+    private class Bridge {
+        @JavascriptInterface public String version() { return String.valueOf(updater.current()); }
+        @JavascriptInterface public boolean pending() { return updater.pending(); }
+        @JavascriptInterface public void checkUpdate() { updater.check(reporter()); }
+        @JavascriptInterface public void applyUpdate() {
+            runOnUiThread(() -> { if (updater.applyNow()) web.loadUrl(HOST + "/local/index.html"); });
+        }
+    }
+
+    private Updater.Done reporter() {
+        return new Updater.Done() {
+            @Override public void downloaded(long v) { tell("downloaded", v); }
+            @Override public void upToDate(long v) { tell("latest", v); }
+            @Override public void failed(String why) { tell("error", 0); }
+        };
+    }
+
+    private void tell(String status, long version) {
+        runOnUiThread(() -> web.evaluateJavascript(
+                "window.sputnikUpdate && window.sputnikUpdate('" + status + "', " + version + ")", null));
+    }
 
     @Override
     protected void onCreate(Bundle state) {
         super.onCreate(state);
-        Updater updater = new Updater(this);
+        updater = new Updater(this);
         final WebViewAssetLoader loader = new WebViewAssetLoader.Builder()
                 .addPathHandler("/assets/", new WebViewAssetLoader.AssetsPathHandler(this))
                 .addPathHandler("/local/", new WebViewAssetLoader.InternalStoragePathHandler(this, updater.liveDir()))
@@ -36,6 +62,7 @@ public class MainActivity extends Activity {
         s.setDatabaseEnabled(true);
         s.setTextZoom(100);
         web.setBackgroundColor(0xFF120E09);
+        web.addJavascriptInterface(new Bridge(), "SputnikApp");
         web.setWebViewClient(new WebViewClient() {
             @Override
             public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest req) {
@@ -51,10 +78,14 @@ public class MainActivity extends Activity {
         String home = HOST + (updater.useLocal() ? "/local/index.html" : "/assets/www/index.html");
         if (state != null) web.restoreState(state); else web.loadUrl(home);
 
-        // Проверка обновления в фоне: новое применяется при следующем запуске.
-        updater.check(version -> runOnUiThread(() -> Toast.makeText(this,
-                "Скачано обновление " + version + ". Перезапусти приложение, чтобы его применить.",
-                Toast.LENGTH_LONG).show()));
+        // Проверка обновления в фоне при запуске: если скачалось, страница покажет кнопку «Применить».
+        updater.check(new Updater.Done() {
+            @Override public void downloaded(long v) {
+                tell("downloaded", v);
+                runOnUiThread(() -> Toast.makeText(MainActivity.this,
+                        "Скачано обновление. Нажми «Применить» на главном экране или перезапусти приложение.", Toast.LENGTH_LONG).show());
+            }
+        });
     }
 
     @Override

@@ -17,7 +17,11 @@ import java.net.URL;
 // Если N больше текущей версии, файлы скачиваются в files/www_new и при следующем запуске
 // становятся files/www. Без интернета приложение работает на последней скачанной (или вшитой) версии.
 class Updater {
-    interface Done { void downloaded(long version); }
+    interface Done {
+        void downloaded(long version);
+        default void upToDate(long version) {}
+        default void failed(String why) {}
+    }
 
     private final Context ctx;
     private final File root;
@@ -47,7 +51,15 @@ class Updater {
     // Скачанная версия используется, только если она новее вшитой (после установки нового APK вшитая может быть свежее).
     boolean useLocal() { return localVersion() > bundledVersion(); }
 
-    private long current() { return Math.max(localVersion(), bundledVersion()); }
+    long current() { return Math.max(localVersion(), bundledVersion()); }
+
+    // Есть ли скачанное, но ещё не применённое обновление.
+    boolean pending() { return new File(new File(root, "www_new"), ".complete").exists(); }
+
+    // Применить скачанное прямо сейчас (страница после этого перезагружается).
+    boolean applyNow() { if (!pending()) return false; promote(); return true; }
+
+    private volatile boolean busy = false;
 
     // Готовое обновление из www_new заменяет www до загрузки страницы.
     private void promote() {
@@ -61,12 +73,22 @@ class Updater {
 
     void check(Done done) {
         final String base = ctx.getString(R.string.update_url);
-        if (base.isEmpty()) return;
+        if (base.isEmpty()) { done.failed("обновления выключены"); return; }
+        if (busy) return;
+        busy = true;
         new Thread(() -> {
             try {
-                JSONObject v = new JSONObject(new String(get(base + "version.json"), "UTF-8"));
+                // ?t= обходит кэш GitHub, чтобы сразу видеть свежую версию.
+                JSONObject v = new JSONObject(new String(get(base + "version.json?t=" + System.currentTimeMillis()), "UTF-8"));
                 long version = v.getLong("version");
-                if (version <= current()) return;
+                File ready = new File(root, "www_new");
+                if (pending()) {
+                    try (InputStream in = new java.io.FileInputStream(new File(ready, "version.json"))) {
+                        long have = new JSONObject(new String(readAll(in), "UTF-8")).getLong("version");
+                        if (have >= version) { done.downloaded(have); return; }
+                    }
+                }
+                if (version <= current()) { done.upToDate(current()); return; }
                 File tmp = new File(root, "www_new");
                 deleteTree(tmp);
                 JSONArray files = v.getJSONArray("files");
@@ -74,13 +96,16 @@ class Updater {
                     String path = files.getString(i);
                     File out = new File(tmp, path);
                     out.getParentFile().mkdirs();
-                    try (FileOutputStream fo = new FileOutputStream(out)) { fo.write(get(base + path)); }
+                    try (FileOutputStream fo = new FileOutputStream(out)) { fo.write(get(base + path + "?v=" + version)); }
                 }
                 try (FileOutputStream fo = new FileOutputStream(new File(tmp, "version.json"))) { fo.write(v.toString().getBytes("UTF-8")); }
                 new File(tmp, ".complete").createNewFile();
                 done.downloaded(version);
-            } catch (Exception ignored) {
+            } catch (Exception e) {
                 // Нет сети или сервер недоступен — просто работаем на текущей версии.
+                done.failed("нет связи с сервером обновлений");
+            } finally {
+                busy = false;
             }
         }).start();
     }
