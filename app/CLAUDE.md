@@ -57,6 +57,10 @@
 
 Рисованные картинки (нейросеть, утверждены автором) лежат рядом как `.webp` (лица монстров 512 × 512, полный рост 512 × 768, расы 512 × 640) и перечислены в `RASTER` — для них `ART` отдаёт `.webp` вместо `.svg`. Сейчас: гоблин (лицо и полный рост) и все шесть рас (мужские портреты).
 
+## Бестиарий отдельной страницей
+
+`bestiary.html` — справочник мастера со всеми монстрами (статы, поведение, атаки, эссенции, портреты, поиск и фильтр по зонам). Собирается из `rules.md` командой `python3 tools/gen_bestiary.py`; после изменения монстров пересобрать и опубликовать (https://claude.ai/artifact/W6GFyQmHo1TPzf8A3w2dd3).
+
 ## Сборка APK
 
 Проект Android — `../android` (WebView-обёртка, пакет `rf.sputnik`, minSdk 24). `../android/build.sh` копирует `index.html` и `assets` в `app/src/main/assets/www`, добавляет обёртку `<!doctype>`/`<meta charset>` (сам `index.html` — фрагмент для публикации), подменяет Google Fonts на локальные `fonts/` и собирает `sputnik.apk` (подпись отладочным ключом). Готовый файл копируется в `dist/sputnik.apk`. Нужны JDK 17+, Gradle и Android SDK (`/opt/android-sdk`: platforms;android-35, build-tools;35.0.0). Страница открывается с `https://appassets.androidplatform.net`, поэтому сохранения в `localStorage` постоянные.
