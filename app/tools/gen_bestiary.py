@@ -80,8 +80,7 @@ cards, idx = [], []
 for zid, zname, zdesc in ZONES:
     ms = [m for m in MON if m["zone"] == zid]
     idx.append(f'<div class="zone-idx"><span class="zl">{zname}</span><div class="faces">' + "".join(
-        f'<a href="#{m["id"]}" class="fchip" data-zone="{zid}" data-floor="{m["floor"]}" data-cls="{m["cls"]}" data-rank="{m["rank"]}" data-rare="{int(m["rare"])}"><img src="{face(m)}" alt="" loading="lazy"><span>{m["name"]}</span></a>' for m in ms) + "</div></div>")
-    cards.append(f'<h2 class="zone-h" data-zone="{zid}" id="z-{zid}">{zname}<small>{zdesc}</small></h2>')
+        f'<a href="#{m["id"]}" data-pick="{m["id"]}" class="fchip" data-zone="{zid}" data-floor="{m["floor"]}" data-cls="{m["cls"]}" data-rank="{m["rank"]}" data-rare="{int(m["rare"])}"><img src="{face(m)}" alt="" loading="lazy"><span>{m["name"]}</span></a>' for m in ms) + "</div></div>")
     for m in ms:
         body = blocks.get(m["name"], "")
         lvl = re.search(r"\*\*Уровень:\*\*\s*(\d+)", body)
@@ -93,7 +92,8 @@ for zid, zname, zdesc in ZONES:
         tags = [f'<span class="tag">{m["floor"]} этаж</span>', f'<span class="tag cls">{m["cls"]} класс</span>',
                 f'<span class="tag {"rare" if m["rank"] != "normal" else "std"}">{dict(RANKS)[m["rank"]].lower()}</span>']
         if m["draft"]: tags.append('<span class="tag draft">черновик</span>')
-        cards.append(f'''<article class="mon" id="{m["id"]}" data-zone="{zid}" data-floor="{m["floor"]}" data-cls="{m["cls"]}" data-rank="{m["rank"]}" data-rare="{int(m["rare"])}" data-name="{m["name"].lower()}">
+        cards.append(f'''<article class="mon" hidden id="{m["id"]}" data-zone="{zid}" data-floor="{m["floor"]}" data-cls="{m["cls"]}" data-rank="{m["rank"]}" data-rare="{int(m["rare"])}" data-name="{m["name"].lower()}">
+  <button class="close" data-close aria-label="Закрыть запись">✕</button>
   <header><img class="face" src="{face(m)}" alt="{m["name"]}" loading="lazy">
     <div class="hd"><h3>{m["name"]}</h3><div class="tags">{"".join(tags)}</div>
     {f'<p class="habit">{inline(habit.group(1))}</p>' if habit else ""}</div></header>
@@ -171,6 +171,11 @@ body::before {{ content: ""; position: fixed; inset: 0 0 auto; height: env(safe-
 table {{ border-collapse: collapse; width: 100%; font: 14px var(--f-data); font-variant-numeric: tabular-nums; }}
 th {{ font: 700 12px var(--f-fancy); letter-spacing: .12em; color: var(--gold); padding: 6px 4px; border-bottom: 1px solid var(--line); }}
 td {{ text-align: center; padding: 6px 4px; }}
+.mon {{ position: relative; }}
+.close {{ position: absolute; top: 10px; right: 10px; width: 36px; height: 36px; border-radius: 6px; border: 1px solid var(--line); background: var(--panel); color: var(--gold-hi); font-size: 16px; cursor: pointer; }}
+.mon header {{ padding-right: 54px; }}
+.fchip[aria-current="true"] img {{ box-shadow: 0 0 0 3px var(--gold); }}
+.hint {{ color: var(--muted); text-align: center; margin: 4px 0 0; font-size: 14px; }}
 .empty {{ color: var(--muted); text-align: center; padding: 30px 0; }}
 @media (max-width: 420px) {{ .mon .face {{ width: 68px; height: 68px; }} .top h1 {{ font-size: 28px; }} }}
 @media (prefers-reduced-motion: no-preference) {{ html {{ scroll-behavior: smooth; }} }}
@@ -189,25 +194,44 @@ td {{ text-align: center; padding: 6px 4px; }}
   {"".join(idx)}
   {"".join(cards)}
   <p class="empty" id="empty" hidden>Никого не нашлось. Сбрось фильтр или поиск.</p>
+  <p class="hint" id="hint">Нажми на монстра, чтобы открыть его запись.</p>
 </div>
 <script>
+// Под списком ничего нет: запись монстра открывается только по нажатию на его лицо.
 const q = document.getElementById("q"), chips = [...document.querySelectorAll(".chip")];
 const f = {{ zone: "all", floor: "all", cls: "all", rank: "all" }};
+let pick = null;
 const pass = el => Object.entries(f).every(([k, v]) => v === "all" || el.dataset[k] === v);
 function apply() {{
   const s = q.value.trim().toLowerCase(); let shown = 0;
-  document.querySelectorAll(".mon").forEach(m => {{ const ok = pass(m) && (!s || m.dataset.name.includes(s)); m.hidden = !ok; if (ok) shown++; }});
-  document.querySelectorAll(".zone-h").forEach(h => {{ h.hidden = ![...document.querySelectorAll(`.mon[data-zone="${{h.dataset.zone}}"]`)].some(m => !m.hidden); }});
-  document.querySelectorAll(".fchip").forEach(x => {{ x.hidden = !pass(x); }});
+  document.querySelectorAll(".fchip").forEach(x => {{
+    const ok = pass(x) && (!s || x.textContent.toLowerCase().includes(s));
+    x.hidden = !ok; if (ok) shown++;
+    x.setAttribute("aria-current", x.dataset.pick === pick);
+  }});
   document.querySelectorAll(".zone-idx").forEach(z => {{ z.hidden = ![...z.querySelectorAll(".fchip")].some(x => !x.hidden); }});
+  document.querySelectorAll(".mon").forEach(m => {{ m.hidden = m.id !== pick; }});
   document.getElementById("empty").hidden = shown > 0;
+  document.getElementById("hint").hidden = !!pick || shown === 0;
 }}
+function open(id) {{
+  pick = id; apply();
+  const el = document.getElementById(id);
+  if (el) el.scrollIntoView({{ block: "start" }});
+}}
+document.addEventListener("click", e => {{
+  const a = e.target.closest("[data-pick]");
+  if (a) {{ e.preventDefault(); open(pick === a.dataset.pick ? null : a.dataset.pick); return; }}
+  if (e.target.closest("[data-close]")) {{ pick = null; apply(); }}
+}});
 chips.forEach(c => c.addEventListener("click", () => {{
   f[c.dataset.k] = c.dataset.v;
   chips.filter(x => x.dataset.k === c.dataset.k).forEach(x => x.setAttribute("aria-pressed", x === c));
   apply();
 }}));
 q.addEventListener("input", apply);
+if (/^#[a-z-]+$/.test(location.hash) && document.getElementById(location.hash.slice(1))) open(location.hash.slice(1));
+apply();
 </script>
 '''
 open(os.path.join(APP, "bestiary.html"), "w", encoding="utf-8").write(page)

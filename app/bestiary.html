@@ -64,6 +64,11 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 table { border-collapse: collapse; width: 100%; font: 14px var(--f-data); font-variant-numeric: tabular-nums; }
 th { font: 700 12px var(--f-fancy); letter-spacing: .12em; color: var(--gold); padding: 6px 4px; border-bottom: 1px solid var(--line); }
 td { text-align: center; padding: 6px 4px; }
+.mon { position: relative; }
+.close { position: absolute; top: 10px; right: 10px; width: 36px; height: 36px; border-radius: 6px; border: 1px solid var(--line); background: var(--panel); color: var(--gold-hi); font-size: 16px; cursor: pointer; }
+.mon header { padding-right: 54px; }
+.fchip[aria-current="true"] img { box-shadow: 0 0 0 3px var(--gold); }
+.hint { color: var(--muted); text-align: center; margin: 4px 0 0; font-size: 14px; }
 .empty { color: var(--muted); text-align: center; padding: 30px 0; }
 @media (max-width: 420px) { .mon .face { width: 68px; height: 68px; } .top h1 { font-size: 28px; } }
 @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
@@ -83,8 +88,9 @@ td { text-align: center; padding: 6px 4px; }
     <div class="frow"><span class="fl">Класс</span><div class="chips" role="group" aria-label="Класс"><button class="chip" data-k="cls" data-v="all" aria-pressed="true">Все</button><button class="chip" data-k="cls" data-v="9" aria-pressed="false">9 класс</button><button class="chip" data-k="cls" data-v="8" aria-pressed="false">8 класс</button></div></div>
     <div class="frow"><span class="fl">Тип</span><div class="chips" role="group" aria-label="Тип"><button class="chip" data-k="rank" data-v="all" aria-pressed="true">Все</button><button class="chip" data-k="rank" data-v="normal" aria-pressed="false">Обычный</button><button class="chip" data-k="rank" data-v="rare" aria-pressed="false">Редкий</button><button class="chip" data-k="rank" data-v="special" aria-pressed="false" disabled>Особый</button><button class="chip" data-k="rank" data-v="guardian" aria-pressed="false" disabled>Страж</button><button class="chip" data-k="rank" data-v="lord" aria-pressed="false" disabled>Лорд</button></div></div>
   </div>
-  <div class="zone-idx"><span class="zl">Гуманоиды</span><div class="faces"><a href="#goblin" class="fchip" data-zone="goblin" data-floor="1" data-cls="9" data-rank="normal" data-rare="0"><img src="assets/monsters/goblin-face.webp" alt="" loading="lazy"><span>Гоблин</span></a><a href="#goblin-archer" class="fchip" data-zone="goblin" data-floor="1" data-cls="9" data-rank="rare" data-rare="1"><img src="assets/monsters/goblin-archer-face.webp" alt="" loading="lazy"><span>Гоблин-лучник</span></a><a href="#goblin-sword" class="fchip" data-zone="goblin" data-floor="1" data-cls="9" data-rank="rare" data-rare="1"><img src="assets/monsters/goblin-sword-face.webp" alt="" loading="lazy"><span>Гоблин-мечник</span></a><a href="#goblin-spear" class="fchip" data-zone="goblin" data-floor="1" data-cls="9" data-rank="rare" data-rare="1"><img src="assets/monsters/goblin-spear-face.webp" alt="" loading="lazy"><span>Гоблин-копейщик</span></a><a href="#hobgoblin" class="fchip" data-zone="goblin" data-floor="1" data-cls="8" data-rank="normal" data-rare="0"><img src="assets/monsters/hobgoblin-face.webp" alt="" loading="lazy"><span>Хобгоблин</span></a></div></div><div class="zone-idx"><span class="zl">Звери</span><div class="faces"><a href="#wolf" class="fchip" data-zone="beast" data-floor="1" data-cls="9" data-rank="normal" data-rare="0"><img src="assets/monsters/wolf-face.webp" alt="" loading="lazy"><span>Рубящий волк</span></a><a href="#fox" class="fchip" data-zone="beast" data-floor="1" data-cls="9" data-rank="normal" data-rare="0"><img src="assets/monsters/fox-face.webp" alt="" loading="lazy"><span>Скрытная лиса</span></a><a href="#mouse" class="fchip" data-zone="beast" data-floor="1" data-cls="9" data-rank="rare" data-rare="1"><img src="assets/monsters/mouse-face.webp" alt="" loading="lazy"><span>Громовая мышь</span></a><a href="#bat" class="fchip" data-zone="beast" data-floor="1" data-cls="9" data-rank="normal" data-rare="0"><img src="assets/monsters/bat-face.webp" alt="" loading="lazy"><span>Ядовитая летучка</span></a></div></div><div class="zone-idx"><span class="zl">Нежить</span><div class="faces"><a href="#zombie" class="fchip" data-zone="undead" data-floor="1" data-cls="9" data-rank="normal" data-rare="0"><img src="assets/monsters/ph-undead-face.svg" alt="" loading="lazy"><span>Зомби</span></a><a href="#skeleton" class="fchip" data-zone="undead" data-floor="1" data-cls="9" data-rank="normal" data-rare="0"><img src="assets/monsters/ph-undead-face.svg" alt="" loading="lazy"><span>Скелет</span></a><a href="#skeleton-archer" class="fchip" data-zone="undead" data-floor="1" data-cls="9" data-rank="rare" data-rare="1"><img src="assets/monsters/ph-undead-face.svg" alt="" loading="lazy"><span>Скелет-лучник</span></a><a href="#ghoul" class="fchip" data-zone="undead" data-floor="1" data-cls="9" data-rank="rare" data-rare="1"><img src="assets/monsters/ph-undead-face.svg" alt="" loading="lazy"><span>Гуль</span></a></div></div><div class="zone-idx"><span class="zl">Элементали</span><div class="faces"><a href="#living-stone" class="fchip" data-zone="stone" data-floor="1" data-cls="9" data-rank="normal" data-rare="0"><img src="assets/monsters/ph-elemental-face.svg" alt="" loading="lazy"><span>Живой камень</span></a><a href="#pixie" class="fchip" data-zone="stone" data-floor="1" data-cls="9" data-rank="rare" data-rare="1"><img src="assets/monsters/ph-elemental-face.svg" alt="" loading="lazy"><span>Пикси</span></a><a href="#wisp" class="fchip" data-zone="stone" data-floor="1" data-cls="9" data-rank="rare" data-rare="1"><img src="assets/monsters/ph-elemental-face.svg" alt="" loading="lazy"><span>Огонёк</span></a><a href="#green-boulder" class="fchip" data-zone="stone" data-floor="1" data-cls="9" data-rank="rare" data-rare="1"><img src="assets/monsters/ph-elemental-face.svg" alt="" loading="lazy"><span>Зелёный валун</span></a></div></div>
-  <h2 class="zone-h" data-zone="goblin" id="z-goblin">Гуманоиды<small>зона гоблинов · северо-запад</small></h2><article class="mon" id="goblin" data-zone="goblin" data-floor="1" data-cls="9" data-rank="normal" data-rare="0" data-name="гоблин">
+  <div class="zone-idx"><span class="zl">Гуманоиды</span><div class="faces"><a href="#goblin" data-pick="goblin" class="fchip" data-zone="goblin" data-floor="1" data-cls="9" data-rank="normal" data-rare="0"><img src="assets/monsters/goblin-face.webp" alt="" loading="lazy"><span>Гоблин</span></a><a href="#goblin-archer" data-pick="goblin-archer" class="fchip" data-zone="goblin" data-floor="1" data-cls="9" data-rank="rare" data-rare="1"><img src="assets/monsters/goblin-archer-face.webp" alt="" loading="lazy"><span>Гоблин-лучник</span></a><a href="#goblin-sword" data-pick="goblin-sword" class="fchip" data-zone="goblin" data-floor="1" data-cls="9" data-rank="rare" data-rare="1"><img src="assets/monsters/goblin-sword-face.webp" alt="" loading="lazy"><span>Гоблин-мечник</span></a><a href="#goblin-spear" data-pick="goblin-spear" class="fchip" data-zone="goblin" data-floor="1" data-cls="9" data-rank="rare" data-rare="1"><img src="assets/monsters/goblin-spear-face.webp" alt="" loading="lazy"><span>Гоблин-копейщик</span></a><a href="#hobgoblin" data-pick="hobgoblin" class="fchip" data-zone="goblin" data-floor="1" data-cls="8" data-rank="normal" data-rare="0"><img src="assets/monsters/hobgoblin-face.webp" alt="" loading="lazy"><span>Хобгоблин</span></a></div></div><div class="zone-idx"><span class="zl">Звери</span><div class="faces"><a href="#wolf" data-pick="wolf" class="fchip" data-zone="beast" data-floor="1" data-cls="9" data-rank="normal" data-rare="0"><img src="assets/monsters/wolf-face.webp" alt="" loading="lazy"><span>Рубящий волк</span></a><a href="#fox" data-pick="fox" class="fchip" data-zone="beast" data-floor="1" data-cls="9" data-rank="normal" data-rare="0"><img src="assets/monsters/fox-face.webp" alt="" loading="lazy"><span>Скрытная лиса</span></a><a href="#mouse" data-pick="mouse" class="fchip" data-zone="beast" data-floor="1" data-cls="9" data-rank="rare" data-rare="1"><img src="assets/monsters/mouse-face.webp" alt="" loading="lazy"><span>Громовая мышь</span></a><a href="#bat" data-pick="bat" class="fchip" data-zone="beast" data-floor="1" data-cls="9" data-rank="normal" data-rare="0"><img src="assets/monsters/bat-face.webp" alt="" loading="lazy"><span>Ядовитая летучка</span></a></div></div><div class="zone-idx"><span class="zl">Нежить</span><div class="faces"><a href="#zombie" data-pick="zombie" class="fchip" data-zone="undead" data-floor="1" data-cls="9" data-rank="normal" data-rare="0"><img src="assets/monsters/ph-undead-face.svg" alt="" loading="lazy"><span>Зомби</span></a><a href="#skeleton" data-pick="skeleton" class="fchip" data-zone="undead" data-floor="1" data-cls="9" data-rank="normal" data-rare="0"><img src="assets/monsters/ph-undead-face.svg" alt="" loading="lazy"><span>Скелет</span></a><a href="#skeleton-archer" data-pick="skeleton-archer" class="fchip" data-zone="undead" data-floor="1" data-cls="9" data-rank="rare" data-rare="1"><img src="assets/monsters/ph-undead-face.svg" alt="" loading="lazy"><span>Скелет-лучник</span></a><a href="#ghoul" data-pick="ghoul" class="fchip" data-zone="undead" data-floor="1" data-cls="9" data-rank="rare" data-rare="1"><img src="assets/monsters/ph-undead-face.svg" alt="" loading="lazy"><span>Гуль</span></a></div></div><div class="zone-idx"><span class="zl">Элементали</span><div class="faces"><a href="#living-stone" data-pick="living-stone" class="fchip" data-zone="stone" data-floor="1" data-cls="9" data-rank="normal" data-rare="0"><img src="assets/monsters/ph-elemental-face.svg" alt="" loading="lazy"><span>Живой камень</span></a><a href="#pixie" data-pick="pixie" class="fchip" data-zone="stone" data-floor="1" data-cls="9" data-rank="rare" data-rare="1"><img src="assets/monsters/ph-elemental-face.svg" alt="" loading="lazy"><span>Пикси</span></a><a href="#wisp" data-pick="wisp" class="fchip" data-zone="stone" data-floor="1" data-cls="9" data-rank="rare" data-rare="1"><img src="assets/monsters/ph-elemental-face.svg" alt="" loading="lazy"><span>Огонёк</span></a><a href="#green-boulder" data-pick="green-boulder" class="fchip" data-zone="stone" data-floor="1" data-cls="9" data-rank="rare" data-rare="1"><img src="assets/monsters/ph-elemental-face.svg" alt="" loading="lazy"><span>Зелёный валун</span></a></div></div>
+  <article class="mon" hidden id="goblin" data-zone="goblin" data-floor="1" data-cls="9" data-rank="normal" data-rare="0" data-name="гоблин">
+  <button class="close" data-close aria-label="Закрыть запись">✕</button>
   <header><img class="face" src="assets/monsters/goblin-face.webp" alt="Гоблин" loading="lazy">
     <div class="hd"><h3>Гоблин</h3><div class="tags"><span class="tag">1 этаж</span><span class="tag cls">9 класс</span><span class="tag std">обычный</span></div>
     <p class="habit">1 этаж, зона гоблинов.</p></div></header>
@@ -102,7 +108,8 @@ td { text-align: center; padding: 6px 4px; }
 <ul><li>Простые ловушки (Сл обнаружения 12 и ниже) в пределах 3 м персонаж замечает автоматически, без проверки.</li><li>Простую ловушку можно обезвредить проверкой Ловкости с преимуществом, инструменты не нужны.</li><li>Остальные ловушки: +2 к Восприятию и Расследованию при их поиске.</li></ul>
 <h4 class="act">Поставить ловушку (А)</h4>
 <ul><li><b>Мана:</b> 3.</li><li><b>Время:</b> действие.</li><li><b>Дальность:</b> свободная клетка в пределах 1,5 м.</li><li><b>Длительность:</b> 1 час или до срабатывания. Одновременно не больше 3 ловушек.</li><li><b>Сл:</b> 8 + бонус мастерства + модификатор Ловкости. Ловушка скрыта: заметить её можно Восприятием против этой Сл.</li><li><b>Эффект:</b> существо, вошедшее в клетку, делает спасбросок Ловкости. Провал: 1к6 колющего урона и обездвижено до конца своего следующего хода. Успех: половина урона, без обездвиживания.</li><li><b>Вырваться раньше:</b> действие и проверка Силы против Сл ловушки.</li></ul></div>
-</article><article class="mon" id="goblin-archer" data-zone="goblin" data-floor="1" data-cls="9" data-rank="rare" data-rare="1" data-name="гоблин-лучник">
+</article><article class="mon" hidden id="goblin-archer" data-zone="goblin" data-floor="1" data-cls="9" data-rank="rare" data-rare="1" data-name="гоблин-лучник">
+  <button class="close" data-close aria-label="Закрыть запись">✕</button>
   <header><img class="face" src="assets/monsters/goblin-archer-face.webp" alt="Гоблин-лучник" loading="lazy">
     <div class="hd"><h3>Гоблин-лучник</h3><div class="tags"><span class="tag">1 этаж</span><span class="tag cls">9 класс</span><span class="tag rare">редкий</span></div>
     <p class="habit">1 этаж, зона гоблинов. Редкий: с 4-го дня поодиночке, с 6-го — вместе с обычными.</p></div></header>
@@ -120,7 +127,8 @@ td { text-align: center; padding: 6px 4px; }
 <ul><li>Половинное укрытие цели не мешает твоим дальнобойным атакам: она не получает +2 к КД.</li></ul>
 <h4 class="act">Пригвоздить (А)</h4>
 <ul><li><b>Мана:</b> 3.</li><li><b>Время:</b> действие (дальнобойная атака).</li><li><b>Дальность:</b> дальность оружия.</li><li><b>Длительность:</b> до конца следующего хода цели.</li><li><b>Сл:</b> 8 + бонус мастерства + модификатор Ловкости, спасбросок Силы.</li><li><b>Эффект:</b> при попадании обычный урон, и цель делает спасбросок. Провал: скорость 0. Успех: скорость −3 м.</li><li><b>Вырваться раньше:</b> действие и проверка Силы против Сл.</li></ul></div>
-</article><article class="mon" id="goblin-sword" data-zone="goblin" data-floor="1" data-cls="9" data-rank="rare" data-rare="1" data-name="гоблин-мечник">
+</article><article class="mon" hidden id="goblin-sword" data-zone="goblin" data-floor="1" data-cls="9" data-rank="rare" data-rare="1" data-name="гоблин-мечник">
+  <button class="close" data-close aria-label="Закрыть запись">✕</button>
   <header><img class="face" src="assets/monsters/goblin-sword-face.webp" alt="Гоблин-мечник" loading="lazy">
     <div class="hd"><h3>Гоблин-мечник</h3><div class="tags"><span class="tag">1 этаж</span><span class="tag cls">9 класс</span><span class="tag rare">редкий</span></div>
     <p class="habit">1 этаж, зона гоблинов. Редкий: с 4-го дня поодиночке, с 6-го — вместе с обычными.</p></div></header>
@@ -138,7 +146,8 @@ td { text-align: center; padding: 6px 4px; }
 <ul><li>Попадание рубящим оружием ближнего боя вызывает кровотечение: 1 рубящий урон в начале каждого хода цели.</li><li>Кровотечение не складывается и останавливается любым лечением или перевязкой (действие, Медицина Сл 10).</li></ul>
 <h4 class="act">Размашистый удар (А)</h4>
 <ul><li><b>Мана:</b> 3.</li><li><b>Время:</b> действие, нужно рубящее оружие ближнего боя.</li><li><b>Дальность:</b> до 3 существ на выбор в 1,5 м.</li><li><b>Длительность:</b> мгновенно.</li><li><b>Сл:</b> 8 + бонус мастерства + модификатор Силы, спасбросок Ловкости.</li><li><b>Эффект:</b> провал — урон оружия. Успех — половина урона.</li></ul></div>
-</article><article class="mon" id="goblin-spear" data-zone="goblin" data-floor="1" data-cls="9" data-rank="rare" data-rare="1" data-name="гоблин-копейщик">
+</article><article class="mon" hidden id="goblin-spear" data-zone="goblin" data-floor="1" data-cls="9" data-rank="rare" data-rare="1" data-name="гоблин-копейщик">
+  <button class="close" data-close aria-label="Закрыть запись">✕</button>
   <header><img class="face" src="assets/monsters/goblin-spear-face.webp" alt="Гоблин-копейщик" loading="lazy">
     <div class="hd"><h3>Гоблин-копейщик</h3><div class="tags"><span class="tag">1 этаж</span><span class="tag cls">9 класс</span><span class="tag rare">редкий</span></div>
     <p class="habit">1 этаж, зона гоблинов. Редкий: с 4-го дня поодиночке, с 6-го — вместе с обычными.</p></div></header>
@@ -156,7 +165,8 @@ td { text-align: center; padding: 6px 4px; }
 <ul><li>Досягаемость атак копьём и другим древковым оружием +1,5 м.</li></ul>
 <h4 class="act">Встречный удар (А)</h4>
 <ul><li><b>Мана:</b> 2.</li><li><b>Время:</b> реакция, когда существо входит в досягаемость.</li><li><b>Дальность:</b> досягаемость оружия.</li><li><b>Длительность:</b> до конца хода цели.</li><li><b>Сл:</b> 8 + бонус мастерства + модификатор Силы, спасбросок Силы.</li><li><b>Эффект:</b> атака копьём. При попадании цель делает спасбросок. Провал: её скорость 0 до конца хода. Успех: только урон.</li></ul></div>
-</article><article class="mon" id="hobgoblin" data-zone="goblin" data-floor="1" data-cls="8" data-rank="normal" data-rare="0" data-name="хобгоблин">
+</article><article class="mon" hidden id="hobgoblin" data-zone="goblin" data-floor="1" data-cls="8" data-rank="normal" data-rare="0" data-name="хобгоблин">
+  <button class="close" data-close aria-label="Закрыть запись">✕</button>
   <header><img class="face" src="assets/monsters/hobgoblin-face.webp" alt="Хобгоблин" loading="lazy">
     <div class="hd"><h3>Хобгоблин</h3><div class="tags"><span class="tag">1 этаж</span><span class="tag cls">8 класс</span><span class="tag std">обычный</span><span class="tag draft">черновик</span></div>
     <p class="habit">1 этаж, зона гоблинов, у портала. Только с 7-го дня: первая встреча 7-го дня — монстр 8-го класса, дальше у портала на к20 = 1–2. На следующих этажах — стаями.</p></div></header>
@@ -174,7 +184,8 @@ td { text-align: center; padding: 6px 4px; }
 <ul><li>Первая атака, которая попадает по тебе в бою, наносит на 1к4 урона меньше (не ниже 1).</li></ul>
 <h4 class="act">Рывок (А)</h4>
 <ul><li><b>Мана:</b> 4.</li><li><b>Время:</b> бонусное действие.</li><li><b>Дальность:</b> на себя.</li><li><b>Длительность:</b> до конца хода.</li><li><b>Сл:</b> нет.</li><li><b>Эффект:</b> переместись на половину скорости, это перемещение не провоцирует атак. Первая рукопашная атака в этот ход получает +2 к попаданию.</li></ul></div>
-</article><h2 class="zone-h" data-zone="beast" id="z-beast">Звери<small>зона зверей · юго-запад</small></h2><article class="mon" id="wolf" data-zone="beast" data-floor="1" data-cls="9" data-rank="normal" data-rare="0" data-name="рубящий волк">
+</article><article class="mon" hidden id="wolf" data-zone="beast" data-floor="1" data-cls="9" data-rank="normal" data-rare="0" data-name="рубящий волк">
+  <button class="close" data-close aria-label="Закрыть запись">✕</button>
   <header><img class="face" src="assets/monsters/wolf-face.webp" alt="Рубящий волк" loading="lazy">
     <div class="hd"><h3>Рубящий волк</h3><div class="tags"><span class="tag">1 этаж</span><span class="tag cls">9 класс</span><span class="tag std">обычный</span></div>
     <p class="habit">1 этаж, зона зверей. Стаи по 3–5.</p></div></header>
@@ -192,7 +203,8 @@ td { text-align: center; padding: 6px 4px; }
 <ul><li>Знаешь, у каких существ в 9 м меньше половины ОЗ, даже сквозь стены и укрытия, если существо кровоточит.</li></ul>
 <h4 class="act">Сквозной рывок (А)</h4>
 <ul><li><b>Мана:</b> 3.</li><li><b>Время:</b> действие.</li><li><b>Дальность:</b> движение по прямой на свою скорость, не провоцируя атак.</li><li><b>Длительность:</b> мгновенно.</li><li><b>Сл:</b> 8 + бонус мастерства + модификатор Силы, спасбросок Ловкости.</li><li><b>Эффект:</b> до 2 существ, мимо которых прошёл в 1,5 м, делают спасбросок. Провал — урон рубящего оружия или когтей. Успех — половина.</li></ul></div>
-</article><article class="mon" id="fox" data-zone="beast" data-floor="1" data-cls="9" data-rank="normal" data-rare="0" data-name="скрытная лиса">
+</article><article class="mon" hidden id="fox" data-zone="beast" data-floor="1" data-cls="9" data-rank="normal" data-rare="0" data-name="скрытная лиса">
+  <button class="close" data-close aria-label="Закрыть запись">✕</button>
   <header><img class="face" src="assets/monsters/fox-face.webp" alt="Скрытная лиса" loading="lazy">
     <div class="hd"><h3>Скрытная лиса</h3><div class="tags"><span class="tag">1 этаж</span><span class="tag cls">9 класс</span><span class="tag std">обычный</span></div>
     <p class="habit">1 этаж, зона зверей. Одна или парой.</p></div></header>
@@ -210,7 +222,8 @@ td { text-align: center; padding: 6px 4px; }
 <ul><li>Если атаковал, будучи спрятанным, и промахнулся, остаёшься спрятанным.</li><li>Следующая атака из того же укрытия: −2 к попаданию; при промахе маскировка спадает. Попадание выдаёт как обычно.</li></ul>
 <h4 class="act">Обманный след (А)</h4>
 <ul><li><b>Мана:</b> 2.</li><li><b>Время:</b> бонусное действие.</li><li><b>Дальность:</b> одно существо в 9 м, которое тебя видит или слышит.</li><li><b>Длительность:</b> до конца твоего следующего хода.</li><li><b>Сл:</b> 8 + бонус мастерства + модификатор Ловкости, спасбросок Мудрости.</li><li><b>Эффект:</b> провал — цель теряет тебя из виду: для неё ты спрятан, её атаки по тебе с помехой. Успех — ничего.</li></ul></div>
-</article><article class="mon" id="mouse" data-zone="beast" data-floor="1" data-cls="9" data-rank="rare" data-rare="1" data-name="громовая мышь">
+</article><article class="mon" hidden id="mouse" data-zone="beast" data-floor="1" data-cls="9" data-rank="rare" data-rare="1" data-name="громовая мышь">
+  <button class="close" data-close aria-label="Закрыть запись">✕</button>
   <header><img class="face" src="assets/monsters/mouse-face.webp" alt="Громовая мышь" loading="lazy">
     <div class="hd"><h3>Громовая мышь</h3><div class="tags"><span class="tag">1 этаж</span><span class="tag cls">9 класс</span><span class="tag rare">редкий</span></div>
     <p class="habit">1 этаж, зона зверей. Редкий: с 4-го дня поодиночке, с 6-го — вместе с обычными.</p></div></header>
@@ -228,7 +241,8 @@ td { text-align: center; padding: 6px 4px; }
 <ul><li>Сопротивление урону звуком, преимущество на спасброски против оглушения и оглохшего.</li></ul>
 <h4 class="act">Громовой писк (А)</h4>
 <ul><li><b>Мана:</b> 3.</li><li><b>Время:</b> действие.</li><li><b>Дальность:</b> все существа в 3 м.</li><li><b>Длительность:</b> до конца следующего хода цели.</li><li><b>Сл:</b> 8 + бонус мастерства + модификатор Телосложения, спасбросок Телосложения.</li><li><b>Эффект:</b> провал — 1к4 урона звуком и помеха на следующую проверку или спасбросок Ловкости. Успех — половина урона.</li></ul></div>
-</article><article class="mon" id="bat" data-zone="beast" data-floor="1" data-cls="9" data-rank="normal" data-rare="0" data-name="ядовитая летучка">
+</article><article class="mon" hidden id="bat" data-zone="beast" data-floor="1" data-cls="9" data-rank="normal" data-rare="0" data-name="ядовитая летучка">
+  <button class="close" data-close aria-label="Закрыть запись">✕</button>
   <header><img class="face" src="assets/monsters/bat-face.webp" alt="Ядовитая летучка" loading="lazy">
     <div class="hd"><h3>Ядовитая летучка</h3><div class="tags"><span class="tag">1 этаж</span><span class="tag cls">9 класс</span><span class="tag std">обычный</span></div>
     <p class="habit">1 этаж, зона зверей. Под потолком тёмных залов, по 2–6.</p></div></header>
@@ -246,7 +260,8 @@ td { text-align: center; padding: 6px 4px; }
 <ul><li>Слепое зрение 3 м. Не работает, пока ты оглох.</li></ul>
 <h4 class="act">Ядовитый укус (А)</h4>
 <ul><li><b>Мана:</b> 3.</li><li><b>Время:</b> бонусное действие; действует на следующее попадание рукопашной атакой в этот ход.</li><li><b>Дальность:</b> досягаемость атаки.</li><li><b>Длительность:</b> до конца следующего хода цели.</li><li><b>Сл:</b> 8 + бонус мастерства + модификатор Ловкости, спасбросок Телосложения.</li><li><b>Эффект:</b> провал — 1к4 урона ядом и цель отравлена (помеха на атаки и проверки). Успех — 1к4 урона ядом, без отравления.</li></ul></div>
-</article><h2 class="zone-h" data-zone="undead" id="z-undead">Нежить<small>зона нежити · северо-восток</small></h2><article class="mon" id="zombie" data-zone="undead" data-floor="1" data-cls="9" data-rank="normal" data-rare="0" data-name="зомби">
+</article><article class="mon" hidden id="zombie" data-zone="undead" data-floor="1" data-cls="9" data-rank="normal" data-rare="0" data-name="зомби">
+  <button class="close" data-close aria-label="Закрыть запись">✕</button>
   <header><img class="face" src="assets/monsters/ph-undead-face.svg" alt="Зомби" loading="lazy">
     <div class="hd"><h3>Зомби</h3><div class="tags"><span class="tag">1 этаж</span><span class="tag cls">9 класс</span><span class="tag std">обычный</span></div>
     <p class="habit">1 этаж, зона нежити. Группы по 2–5, самый частый у портала.</p></div></header>
@@ -264,7 +279,8 @@ td { text-align: center; padding: 6px 4px; }
 <ul><li>Когда урон опускает тебя до 0 ОЗ, делаешь спасбросок Телосложения Сл 5 + полученный урон; успех — остаёшься с 1 ОЗ. Каждый следующий успех до длинного отдыха повышает Сл на 5. Не работает против критического попадания и урона излучением.</li></ul>
 <h4 class="act">Мёртвая хватка (А)</h4>
 <ul><li><b>Мана:</b> 3.</li><li><b>Время:</b> действие.</li><li><b>Дальность:</b> существо в 1,5 м.</li><li><b>Длительность:</b> до конца твоего следующего хода.</li><li><b>Сл:</b> 8 + бонус мастерства + модификатор Силы, спасбросок Силы.</li><li><b>Эффект:</b> провал — цель схвачена, её скорость 0; вырваться: действие, Атлетика или Акробатика против Сл. Успех — ничего.</li></ul></div>
-</article><article class="mon" id="skeleton" data-zone="undead" data-floor="1" data-cls="9" data-rank="normal" data-rare="0" data-name="скелет">
+</article><article class="mon" hidden id="skeleton" data-zone="undead" data-floor="1" data-cls="9" data-rank="normal" data-rare="0" data-name="скелет">
+  <button class="close" data-close aria-label="Закрыть запись">✕</button>
   <header><img class="face" src="assets/monsters/ph-undead-face.svg" alt="Скелет" loading="lazy">
     <div class="hd"><h3>Скелет</h3><div class="tags"><span class="tag">1 этаж</span><span class="tag cls">9 класс</span><span class="tag std">обычный</span></div>
     <p class="habit">1 этаж, зона нежити. Отряды по 2–4, реже зомби.</p></div></header>
@@ -284,7 +300,8 @@ td { text-align: center; padding: 6px 4px; }
 <ul><li>Колющий урон по тебе уменьшается на 2 (не ниже 1).</li></ul>
 <h4 class="act">Треск костей (А)</h4>
 <ul><li><b>Мана:</b> 3.</li><li><b>Время:</b> действие.</li><li><b>Дальность:</b> существа на выбор в 3 м.</li><li><b>Длительность:</b> до конца их следующего хода.</li><li><b>Сл:</b> 8 + бонус мастерства + модификатор Телосложения, спасбросок Мудрости.</li><li><b>Эффект:</b> провал — цель испугана тобой. Успех — ничего.</li></ul></div>
-</article><article class="mon" id="skeleton-archer" data-zone="undead" data-floor="1" data-cls="9" data-rank="rare" data-rare="1" data-name="скелет-лучник">
+</article><article class="mon" hidden id="skeleton-archer" data-zone="undead" data-floor="1" data-cls="9" data-rank="rare" data-rare="1" data-name="скелет-лучник">
+  <button class="close" data-close aria-label="Закрыть запись">✕</button>
   <header><img class="face" src="assets/monsters/ph-undead-face.svg" alt="Скелет-лучник" loading="lazy">
     <div class="hd"><h3>Скелет-лучник</h3><div class="tags"><span class="tag">1 этаж</span><span class="tag cls">9 класс</span><span class="tag rare">редкий</span></div>
     <p class="habit">1 этаж, зона нежити. Редкий: с 4-го дня поодиночке, с 6-го — вместе с обычными.</p></div></header>
@@ -304,7 +321,8 @@ td { text-align: center; padding: 6px 4px; }
 <ul><li>Пока ты не двигаешься, ты неотличим от мёртвого тела: преимущество на Скрытность.</li></ul>
 <h4 class="act">Ледяная стрела (А)</h4>
 <ul><li><b>Мана:</b> 3.</li><li><b>Время:</b> действие (дальнобойная атака).</li><li><b>Дальность:</b> дальность оружия.</li><li><b>Длительность:</b> до конца следующего хода цели.</li><li><b>Сл:</b> 8 + бонус мастерства + модификатор Ловкости, спасбросок Телосложения.</li><li><b>Эффект:</b> при попадании цель делает спасбросок. Провал — +1к4 урона холодом и скорость −3 м. Успех — только урон оружия.</li></ul></div>
-</article><article class="mon" id="ghoul" data-zone="undead" data-floor="1" data-cls="9" data-rank="rare" data-rare="1" data-name="гуль">
+</article><article class="mon" hidden id="ghoul" data-zone="undead" data-floor="1" data-cls="9" data-rank="rare" data-rare="1" data-name="гуль">
+  <button class="close" data-close aria-label="Закрыть запись">✕</button>
   <header><img class="face" src="assets/monsters/ph-undead-face.svg" alt="Гуль" loading="lazy">
     <div class="hd"><h3>Гуль</h3><div class="tags"><span class="tag">1 этаж</span><span class="tag cls">9 класс</span><span class="tag rare">редкий</span></div>
     <p class="habit">1 этаж, зона нежити. Редкий: с 4-го дня поодиночке, с 6-го — вместе с обычными.</p></div></header>
@@ -322,7 +340,8 @@ td { text-align: center; padding: 6px 4px; }
 <ul><li>Существо, по которому ты попал когтями или укусом, делает спасбросок Телосложения Сл 8 + бонус мастерства + модификатор Телосложения; провал — не может восстанавливать ОЗ до начала твоего следующего хода.</li></ul>
 <h4 class="act">Сковывающий укус (А)</h4>
 <ul><li><b>Мана:</b> 3.</li><li><b>Время:</b> действие (атака укусом).</li><li><b>Дальность:</b> 1,5 м.</li><li><b>Длительность:</b> до конца следующего хода цели.</li><li><b>Сл:</b> 8 + бонус мастерства + модификатор Ловкости, спасбросок Телосложения.</li><li><b>Эффект:</b> при попадании цель делает спасбросок. Провал — скорость вдвое ниже и помеха на атаки. Успех — ничего.</li></ul></div>
-</article><h2 class="zone-h" data-zone="stone" id="z-stone">Элементали<small>зона элементов · юго-восток</small></h2><article class="mon" id="living-stone" data-zone="stone" data-floor="1" data-cls="9" data-rank="normal" data-rare="0" data-name="живой камень">
+</article><article class="mon" hidden id="living-stone" data-zone="stone" data-floor="1" data-cls="9" data-rank="normal" data-rare="0" data-name="живой камень">
+  <button class="close" data-close aria-label="Закрыть запись">✕</button>
   <header><img class="face" src="assets/monsters/ph-elemental-face.svg" alt="Живой камень" loading="lazy">
     <div class="hd"><h3>Живой камень</h3><div class="tags"><span class="tag">1 этаж</span><span class="tag cls">9 класс</span><span class="tag std">обычный</span></div>
     <p class="habit">1 этаж, зона элементов. По 2–4, самый частый у портала.</p></div></header>
@@ -342,7 +361,8 @@ td { text-align: center; padding: 6px 4px; }
 <ul><li>Преимущество на спасброски и проверки против сбивания с ног, толчков и захвата.</li></ul>
 <h4 class="act">Сокрушающий удар (А)</h4>
 <ul><li><b>Мана:</b> 3.</li><li><b>Время:</b> действие (рукопашная атака).</li><li><b>Дальность:</b> 1,5 м.</li><li><b>Длительность:</b> мгновенно.</li><li><b>Сл:</b> 8 + бонус мастерства + модификатор Силы, спасбросок Силы.</li><li><b>Эффект:</b> при попадании цель делает спасбросок. Провал — сбита с ног. Успех — ничего.</li></ul></div>
-</article><article class="mon" id="pixie" data-zone="stone" data-floor="1" data-cls="9" data-rank="rare" data-rare="1" data-name="пикси">
+</article><article class="mon" hidden id="pixie" data-zone="stone" data-floor="1" data-cls="9" data-rank="rare" data-rare="1" data-name="пикси">
+  <button class="close" data-close aria-label="Закрыть запись">✕</button>
   <header><img class="face" src="assets/monsters/ph-elemental-face.svg" alt="Пикси" loading="lazy">
     <div class="hd"><h3>Пикси</h3><div class="tags"><span class="tag">1 этаж</span><span class="tag cls">9 класс</span><span class="tag rare">редкий</span></div>
     <p class="habit">1 этаж, зона элементов. Редкий: с 4-го дня поодиночке, с 6-го — вместе с обычными.</p></div></header>
@@ -360,7 +380,8 @@ td { text-align: center; padding: 6px 4px; }
 <ul><li>Если ты в этот ход переместился хотя бы на 3 м, первая атака по тебе до начала твоего следующего хода совершается с помехой.</li></ul>
 <h4 class="act">Сонная пыльца (А)</h4>
 <ul><li><b>Мана:</b> 3.</li><li><b>Время:</b> действие.</li><li><b>Дальность:</b> одно существо в 3 м.</li><li><b>Длительность:</b> до Отдыха (персонаж) или до конца боя (монстр).</li><li><b>Сл:</b> 8 + бонус мастерства + модификатор Харизмы, спасбросок Мудрости.</li><li><b>Эффект:</b> провал — персонаж получает +1 уровень Усталости (снимается обычным Отдыхом); монстр получает −1 к атакам и спасброскам до конца боя. Успех — ничего.</li></ul></div>
-</article><article class="mon" id="wisp" data-zone="stone" data-floor="1" data-cls="9" data-rank="rare" data-rare="1" data-name="огонёк">
+</article><article class="mon" hidden id="wisp" data-zone="stone" data-floor="1" data-cls="9" data-rank="rare" data-rare="1" data-name="огонёк">
+  <button class="close" data-close aria-label="Закрыть запись">✕</button>
   <header><img class="face" src="assets/monsters/ph-elemental-face.svg" alt="Огонёк" loading="lazy">
     <div class="hd"><h3>Огонёк</h3><div class="tags"><span class="tag">1 этаж</span><span class="tag cls">9 класс</span><span class="tag rare">редкий</span></div>
     <p class="habit">1 этаж, зона элементов. Редкий: с 4-го дня поодиночке, с 6-го — вместе с обычными.</p></div></header>
@@ -378,7 +399,8 @@ td { text-align: center; padding: 6px 4px; }
 <ul><li>По желанию излучаешь тусклый свет в радиусе 3 м или гасишь его.</li></ul>
 <h4 class="act">Вспышка (А)</h4>
 <ul><li><b>Мана:</b> 2.</li><li><b>Время:</b> действие.</li><li><b>Дальность:</b> все существа в 3 м.</li><li><b>Длительность:</b> до конца их следующего хода.</li><li><b>Сл:</b> 8 + бонус мастерства + модификатор Ловкости, спасбросок Телосложения.</li><li><b>Эффект:</b> провал — 1к4 урона огнём и помеха на следующий бросок атаки. Успех — половина урона.</li></ul></div>
-</article><article class="mon" id="green-boulder" data-zone="stone" data-floor="1" data-cls="9" data-rank="rare" data-rare="1" data-name="зелёный валун">
+</article><article class="mon" hidden id="green-boulder" data-zone="stone" data-floor="1" data-cls="9" data-rank="rare" data-rare="1" data-name="зелёный валун">
+  <button class="close" data-close aria-label="Закрыть запись">✕</button>
   <header><img class="face" src="assets/monsters/ph-elemental-face.svg" alt="Зелёный валун" loading="lazy">
     <div class="hd"><h3>Зелёный валун</h3><div class="tags"><span class="tag">1 этаж</span><span class="tag cls">9 класс</span><span class="tag rare">редкий</span></div>
     <p class="habit">1 этаж, зона элементов. Редкий: с 4-го дня поодиночке, с 6-го — вместе с обычными.</p></div></header>
@@ -398,23 +420,42 @@ td { text-align: center; padding: 6px 4px; }
 <ul><li><b>Мана:</b> 3.</li><li><b>Время:</b> действие.</li><li><b>Дальность:</b> существа на выбор в 3 м.</li><li><b>Длительность:</b> до конца их следующего хода.</li><li><b>Сл:</b> 8 + бонус мастерства + модификатор Телосложения, спасбросок Силы.</li><li><b>Эффект:</b> провал — скорость вдвое меньше. Успех — ничего.</li></ul></div>
 </article>
   <p class="empty" id="empty" hidden>Никого не нашлось. Сбрось фильтр или поиск.</p>
+  <p class="hint" id="hint">Нажми на монстра, чтобы открыть его запись.</p>
 </div>
 <script>
+// Под списком ничего нет: запись монстра открывается только по нажатию на его лицо.
 const q = document.getElementById("q"), chips = [...document.querySelectorAll(".chip")];
 const f = { zone: "all", floor: "all", cls: "all", rank: "all" };
+let pick = null;
 const pass = el => Object.entries(f).every(([k, v]) => v === "all" || el.dataset[k] === v);
 function apply() {
   const s = q.value.trim().toLowerCase(); let shown = 0;
-  document.querySelectorAll(".mon").forEach(m => { const ok = pass(m) && (!s || m.dataset.name.includes(s)); m.hidden = !ok; if (ok) shown++; });
-  document.querySelectorAll(".zone-h").forEach(h => { h.hidden = ![...document.querySelectorAll(`.mon[data-zone="${h.dataset.zone}"]`)].some(m => !m.hidden); });
-  document.querySelectorAll(".fchip").forEach(x => { x.hidden = !pass(x); });
+  document.querySelectorAll(".fchip").forEach(x => {
+    const ok = pass(x) && (!s || x.textContent.toLowerCase().includes(s));
+    x.hidden = !ok; if (ok) shown++;
+    x.setAttribute("aria-current", x.dataset.pick === pick);
+  });
   document.querySelectorAll(".zone-idx").forEach(z => { z.hidden = ![...z.querySelectorAll(".fchip")].some(x => !x.hidden); });
+  document.querySelectorAll(".mon").forEach(m => { m.hidden = m.id !== pick; });
   document.getElementById("empty").hidden = shown > 0;
+  document.getElementById("hint").hidden = !!pick || shown === 0;
 }
+function open(id) {
+  pick = id; apply();
+  const el = document.getElementById(id);
+  if (el) el.scrollIntoView({ block: "start" });
+}
+document.addEventListener("click", e => {
+  const a = e.target.closest("[data-pick]");
+  if (a) { e.preventDefault(); open(pick === a.dataset.pick ? null : a.dataset.pick); return; }
+  if (e.target.closest("[data-close]")) { pick = null; apply(); }
+});
 chips.forEach(c => c.addEventListener("click", () => {
   f[c.dataset.k] = c.dataset.v;
   chips.filter(x => x.dataset.k === c.dataset.k).forEach(x => x.setAttribute("aria-pressed", x === c));
   apply();
 }));
 q.addEventListener("input", apply);
+if (/^#[a-z-]+$/.test(location.hash) && document.getElementById(location.hash.slice(1))) open(location.hash.slice(1));
+apply();
 </script>
