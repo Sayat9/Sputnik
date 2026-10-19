@@ -74,7 +74,7 @@ for part in re.split(r"\n### ", sec)[1:]:
 if os.path.exists(DRAFTS):                      # черновики автора ещё не утвердил — показываем с пометкой
     for part in re.split(r"\n### ", open(DRAFTS, encoding="utf-8").read())[1:]:
         title, body = part.split("\n", 1)
-        blocks.setdefault(title.strip(), body)
+        blocks.setdefault(title.strip(), body.split("\n## ")[0])
 
 cards, idx = [], []
 for zid, zname, zdesc in ZONES:
