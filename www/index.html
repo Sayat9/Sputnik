@@ -1089,6 +1089,13 @@ const ESSENCES = {
     active: { name: "Медвежья хватка", mana: 4, time: "действие (рукопашная атака)",
       text: "1,5 м. При попадании цель делает спасбросок Силы Сл 8 + БМ + мод. Сил. Провал — схвачена и в начале каждого своего хода получает 1к6 дробящего. Успех — ничего. Вырваться: действие, проверка Силы или Ловкости против Сл." },
   },
+  "skeleton-warrior": {
+    id: "skeleton-warrior", name: "Эссенция: скелет-воин", cls: 8, source: "skeleton-warrior", draft: true,
+    stats: { con: 2, str: 1 }, other: ["Атлетика +1", "Тёмное зрение +3 м", "Скрытность −1"],
+    passive: { name: "Стена щита", text: "Пока ты держишь щит, один союзник в 1,5 м от тебя получает +1 к КД. Не складывается с другими такими же бонусами." },
+    active: { name: "Парирование щитом", mana: 4, time: "реакция, когда по тебе попадает рукопашная атака (нужен щит)",
+      text: "На себя, против этой атаки. Если бросок атаки превысил твой КД не больше чем на 3, атака отражена: урон и эффекты попадания не проходят. Эффекты при касании всё равно действуют на тебя; твои эффекты при отражении или блоке применяются к атакующему." },
+  },
   "goblin-spear": {
     id: "goblin-spear", name: "Эссенция гоблина-копейщика", cls: 9, source: "goblin-spear",
     stats: { str: 1, cha: -1 }, other: ["Атлетика +1", "Инициатива +1"],
@@ -1248,6 +1255,19 @@ const MONSTERS = [
       ["Когти", "+5 к попаданию, 2к4+3 рубящего.", "attacks"],
     ],
     loot: "Камень 8-го класса.", essence: "dark-bear" },
+  { id: "skeleton-warrior", zone: "undead", rare: false, weight: 1, draft: true, name: "Скелет-воин", floor: 1, cls: 8, rank: "normal", size: "Средний гуманоид", group: "7-й день, у портала зомби, в одиночку",
+    type: "Гуманоид, нежить", sz: "средний", areas: ["1 этаж: зона нежити, у портала (с 7-го дня)"],
+    ac: "16", hp: "19 (3к8+6)", speed: "9 м", cr: "1/2", abil: [14, 12, 15, 6, 8, 5],
+    senses: "Тёмное зрение 18 м.",
+    traits: [
+      ["Хрупкие кости", "Уязвимость к дробящему урону.", "body"],
+      ["Часовой", "Стоит неподвижно, пока к нему не подойдут.", "behavior"],
+      ["Щит вперёд", "Встречает удары щитом и прикрывает других скелетов.", "behavior"],
+      ["Не отступает", "Сражается до конца.", "behavior"],
+      ["Длинный меч", "+4 к попаданию, 1к8+2 рубящего.", "attacks"],
+      ["Удар щитом", "+4 к попаданию, 1к4+2 дробящего.", "attacks"],
+    ],
+    loot: "Камень 8-го класса.", essence: "skeleton-warrior" },
   { id: "wolf", zone: "beast", rare: false, weight: 2, name: "Рубящий волк", floor: 1, cls: 9, rank: "normal", size: "Средний зверь", group: "Стаи по 3–5",
     type: "Зверь, монстр", sz: "средний", areas: ["1 этаж: зона зверей"],
     ac: "12", hp: "7 (2к8−2)", speed: "12 м", cr: "1/8", abil: [11, 14, 9, 3, 12, 6],
@@ -1361,10 +1381,10 @@ const DISTRICTS = [
 
 // Готовые рисованные картинки (webp) заменяют векторные заглушки.
 // Дата сборки для телефона: build.sh вписывает её сюда, в веб-версии строка пустая.
-const APP_BUILD = "19.10.2026 17:34";
-const APP_VERSION = 1792413292;                 // номер сборки, тоже вписывает build.sh
+const APP_BUILD = "19.10.2026 17:36";
+const APP_VERSION = 1792413369;                 // номер сборки, тоже вписывает build.sh
 const UPDATE_URL = "https://raw.githubusercontent.com/Sayat9/Sputnik/main/www/";
-const RASTER = new Set(["races/barbarian", "races/human", "races/dwarf", "races/beastkin", "races/fairy", "races/dragon", "monsters/goblin-face", "monsters/goblin-full", "monsters/goblin-archer-face", "monsters/goblin-archer-full", "monsters/goblin-sword-face", "monsters/goblin-sword-full", "monsters/goblin-spear-face", "monsters/goblin-spear-full", "monsters/wolf-face", "monsters/wolf-full", "monsters/fox-face", "monsters/fox-full", "monsters/mouse-face", "monsters/mouse-full", "monsters/bat-face", "monsters/bat-full", "monsters/hobgoblin-face", "monsters/hobgoblin-full", "monsters/zombie-face", "monsters/zombie-full", "monsters/skeleton-face", "monsters/skeleton-full", "monsters/skeleton-archer-face", "monsters/skeleton-archer-full", "monsters/ghoul-face", "monsters/ghoul-full", "monsters/dark-bear-face", "monsters/dark-bear-full"]);
+const RASTER = new Set(["races/barbarian", "races/human", "races/dwarf", "races/beastkin", "races/fairy", "races/dragon", "monsters/goblin-face", "monsters/goblin-full", "monsters/goblin-archer-face", "monsters/goblin-archer-full", "monsters/goblin-sword-face", "monsters/goblin-sword-full", "monsters/goblin-spear-face", "monsters/goblin-spear-full", "monsters/wolf-face", "monsters/wolf-full", "monsters/fox-face", "monsters/fox-full", "monsters/mouse-face", "monsters/mouse-full", "monsters/bat-face", "monsters/bat-full", "monsters/hobgoblin-face", "monsters/hobgoblin-full", "monsters/zombie-face", "monsters/zombie-full", "monsters/skeleton-face", "monsters/skeleton-full", "monsters/skeleton-archer-face", "monsters/skeleton-archer-full", "monsters/ghoul-face", "monsters/ghoul-full", "monsters/dark-bear-face", "monsters/dark-bear-full", "monsters/skeleton-warrior-face", "monsters/skeleton-warrior-full"]);
 const artPath = p => `assets/${p}.${RASTER.has(p) ? "webp" : "svg"}`;
 const ART = {
   weapon: id => `assets/items/${id}.svg`,

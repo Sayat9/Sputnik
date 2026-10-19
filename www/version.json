@@ -1,5 +1,5 @@
 {
- "version": 1792413292,
+ "version": 1792413369,
  "files": [
   "assets/items/armor-chainmail.svg",
   "assets/items/armor-hide.svg",
@@ -52,6 +52,8 @@
   "assets/monsters/skeleton-archer-full.webp",
   "assets/monsters/skeleton-face.webp",
   "assets/monsters/skeleton-full.webp",
+  "assets/monsters/skeleton-warrior-face.webp",
+  "assets/monsters/skeleton-warrior-full.webp",
   "assets/monsters/wolf-face.webp",
   "assets/monsters/wolf-full.webp",
   "assets/monsters/zombie-face.webp",
