@@ -5,21 +5,27 @@ import html, os, re
 HERE = os.path.dirname(os.path.abspath(__file__))
 APP = os.path.dirname(HERE)
 RULES = os.path.join(APP, "..", "campaign", "rules.md")
+DRAFTS = os.path.join(APP, "..", "campaign", "drafts.md")
 SRC = open(os.path.join(APP, "index.html"), encoding="utf-8").read()
 rules = open(RULES, encoding="utf-8").read()
 
 # Монстры из данных приложения: id, зона, редкость, имя, заглушка-картинка.
 MON = []
 for m in re.finditer(r'\{ id: "([a-z-]+)", zone: "([a-z]+)", rare: (true|false)[^\n]*?name: "([^"]+)"[^\n]*', SRC):
-    ph = re.search(r'ph: "([a-z]+)"', m.group(0))
-    MON.append(dict(id=m.group(1), zone=m.group(2), rare=m.group(3) == "true", name=m.group(4), ph=ph.group(1) if ph else None))
+    line = m.group(0)
+    ph = re.search(r'ph: "([a-z]+)"', line)
+    rank = re.search(r'rank: "([a-z]+)"', line).group(1)
+    MON.append(dict(id=m.group(1), zone=m.group(2), rare=m.group(3) == "true", name=m.group(4), ph=ph.group(1) if ph else None,
+                    floor=int(re.search(r'floor: (\d+)', line).group(1)), cls=int(re.search(r'cls: (\d+)', line).group(1)),
+                    rank="rare" if rank == "normal" and m.group(3) == "true" else rank, draft="draft: true" in line))
+RANKS = [("normal", "Обычный"), ("rare", "Редкий"), ("special", "Особый"), ("guardian", "Страж"), ("lord", "Лорд")]
 RASTER = set(re.search(r'const RASTER = new Set\(\[([^\]]*)\]', SRC).group(1).replace('"', "").replace(" ", "").split(","))
 def face(m):
     if m["ph"]: return f"assets/monsters/ph-{m['ph']}-face.svg"
     p = f"monsters/{m['id']}-face"
     return f"assets/{p}.{'webp' if p in RASTER else 'svg'}"
 
-ZONES = [("goblin", "Гоблины", "зона гоблинов · северо-запад"), ("beast", "Звери", "зона зверей · юго-запад"),
+ZONES = [("goblin", "Гуманоиды", "зона гоблинов · северо-запад"), ("beast", "Звери", "зона зверей · юго-запад"),
          ("undead", "Нежить", "зона нежити · северо-восток"), ("stone", "Элементали", "зона элементов · юго-восток")]
 
 def inline(t):
@@ -65,12 +71,16 @@ blocks = {}
 for part in re.split(r"\n### ", sec)[1:]:
     title, body = part.split("\n", 1)
     blocks[title.strip()] = body
+if os.path.exists(DRAFTS):                      # черновики автора ещё не утвердил — показываем с пометкой
+    for part in re.split(r"\n### ", open(DRAFTS, encoding="utf-8").read())[1:]:
+        title, body = part.split("\n", 1)
+        blocks.setdefault(title.strip(), body)
 
 cards, idx = [], []
 for zid, zname, zdesc in ZONES:
     ms = [m for m in MON if m["zone"] == zid]
     idx.append(f'<div class="zone-idx"><span class="zl">{zname}</span><div class="faces">' + "".join(
-        f'<a href="#{m["id"]}" class="fchip" data-zone="{zid}" data-rare="{int(m["rare"])}"><img src="{face(m)}" alt="" loading="lazy"><span>{m["name"]}</span></a>' for m in ms) + "</div></div>")
+        f'<a href="#{m["id"]}" class="fchip" data-zone="{zid}" data-floor="{m["floor"]}" data-cls="{m["cls"]}" data-rank="{m["rank"]}" data-rare="{int(m["rare"])}"><img src="{face(m)}" alt="" loading="lazy"><span>{m["name"]}</span></a>' for m in ms) + "</div></div>")
     cards.append(f'<h2 class="zone-h" data-zone="{zid}" id="z-{zid}">{zname}<small>{zdesc}</small></h2>')
     for m in ms:
         body = blocks.get(m["name"], "")
@@ -80,14 +90,20 @@ for zid, zname, zdesc in ZONES:
         habit = re.search(r"\*\*Обитает:\*\*\s*(.+)", body)
         body = re.sub(r"\*\*Обитает:\*\*.*\n", "", body)
         stat_line = re.search(r"\n([^\n|*-][^\n]*Опасность[^\n]*)", body)
-        tags = [f'<span class="tag cls">{lvl.group(1) if lvl else 9} класс</span>',
-                f'<span class="tag {"rare" if m["rare"] else "std"}">{"редкий" if m["rare"] else "обычный"}</span>']
-        cards.append(f'''<article class="mon" id="{m["id"]}" data-zone="{zid}" data-rare="{int(m["rare"])}" data-name="{m["name"].lower()}">
+        tags = [f'<span class="tag">{m["floor"]} этаж</span>', f'<span class="tag cls">{m["cls"]} класс</span>',
+                f'<span class="tag {"rare" if m["rank"] != "normal" else "std"}">{dict(RANKS)[m["rank"]].lower()}</span>']
+        if m["draft"]: tags.append('<span class="tag draft">черновик</span>')
+        cards.append(f'''<article class="mon" id="{m["id"]}" data-zone="{zid}" data-floor="{m["floor"]}" data-cls="{m["cls"]}" data-rank="{m["rank"]}" data-rare="{int(m["rare"])}" data-name="{m["name"].lower()}">
   <header><img class="face" src="{face(m)}" alt="{m["name"]}" loading="lazy">
     <div class="hd"><h3>{m["name"]}</h3><div class="tags">{"".join(tags)}</div>
     {f'<p class="habit">{inline(habit.group(1))}</p>' if habit else ""}</div></header>
   <div class="body">{md(body)}</div>
 </article>''')
+
+def frow(label, key, opts):
+    have = {str(m[key]) for m in MON} if key != "zone" else {m["zone"] for m in MON}
+    return (f'<div class="frow"><span class="fl">{label}</span><div class="chips" role="group" aria-label="{label}">' + "".join(
+        f'<button class="chip" data-k="{key}" data-v="{v}" aria-pressed="{str(v == "all").lower()}"{"" if v == "all" or v in have else " disabled"}>{t}</button>' for v, t in opts) + "</div></div>")
 
 page = f'''<title>Бестиарий Рафдонии</title>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -113,12 +129,17 @@ body {{ background: var(--bg); color: var(--text); font: 400 16px/1.5 var(--f-bo
 .intro {{ border: 1px solid var(--line); border-radius: 6px; background: var(--panel); padding: 12px 14px; font-size: 14.5px; color: var(--muted); }}
 .intro summary {{ cursor: pointer; color: var(--gold); font: 700 13px var(--f-fancy); letter-spacing: .12em; text-transform: uppercase; }}
 .intro p {{ margin: 8px 0 0; }}
-.bar {{ position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); padding-block: 10px; display: flex; flex-direction: column; gap: 8px; border-bottom: 1px solid var(--line); }}
+.bar {{ padding-block: 4px 10px; display: flex; flex-direction: column; gap: 8px; border-bottom: 1px solid var(--line); }}
+.search {{ position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; box-shadow: 0 0 0 6px var(--bg); }}
 body::before {{ content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }}
-.bar input {{ width: 100%; box-sizing: border-box; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; color: var(--text); font: 16px var(--f-body); padding: 9px 12px; }}
-.bar input:focus-visible, .chip:focus-visible, .fchip:focus-visible {{ outline: 2px solid var(--gold); outline-offset: 2px; }}
+.search {{ width: 100%; box-sizing: border-box; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; color: var(--text); font: 16px var(--f-body); padding: 9px 12px; }}
+.search:focus-visible, .chip:focus-visible, .fchip:focus-visible {{ outline: 2px solid var(--gold); outline-offset: 2px; }}
 .chips {{ display: flex; flex-wrap: wrap; gap: 6px; }}
 .chip {{ background: var(--panel); border: 1px solid var(--line); color: var(--muted); border-radius: 999px; padding: 5px 12px; font: 600 13px var(--f-body); cursor: pointer; }}
+.chip:disabled {{ opacity: .35; cursor: default; }}
+.frow {{ display: flex; gap: 8px; align-items: baseline; }}
+.fl {{ flex: none; width: 52px; font: 700 11px var(--f-fancy); letter-spacing: .1em; text-transform: uppercase; color: var(--gold); }}
+.tag.draft {{ color: #E0814F; border-color: #E0814F; }}
 .chip[aria-pressed="true"] {{ background: var(--gold); color: #1d140a; border-color: var(--gold-hi); }}
 .zone-idx {{ display: flex; flex-direction: column; gap: 6px; }}
 .zl {{ font: 700 12px var(--f-fancy); letter-spacing: .16em; text-transform: uppercase; color: var(--gold); }}
@@ -126,9 +147,9 @@ body::before {{ content: ""; position: fixed; inset: 0 0 auto; height: env(safe-
 .fchip {{ display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: var(--text); font-size: 12px; text-align: center; line-height: 1.15; }}
 .fchip img {{ width: 100%; max-width: 72px; aspect-ratio: 1; border-radius: 50%; border: 1px solid var(--line); object-fit: cover; background: #0F0C08; }}
 .fchip[data-rare="1"] img {{ border-color: var(--rare); }}
-.zone-h {{ font: 400 26px/1.1 var(--f-display); color: var(--gold-hi); margin: 14px 0 0; display: flex; flex-direction: column; gap: 2px; scroll-margin-top: 120px; }}
+.zone-h {{ font: 400 26px/1.1 var(--f-display); color: var(--gold-hi); margin: 14px 0 0; display: flex; flex-direction: column; gap: 2px; scroll-margin-top: 60px; }}
 .zone-h small {{ font: 500 13px var(--f-fancy); letter-spacing: .12em; color: var(--muted); text-transform: uppercase; }}
-.mon {{ border: 1px solid var(--line); border-radius: 8px; background: var(--panel); overflow: hidden; scroll-margin-top: 120px; }}
+.mon {{ border: 1px solid var(--line); border-radius: 8px; background: var(--panel); overflow: hidden; scroll-margin-top: 60px; }}
 .mon header {{ display: flex; gap: 14px; align-items: center; padding: 14px; background: var(--panel2); border-bottom: 1px solid var(--line); }}
 .mon .face {{ width: 84px; height: 84px; flex: none; border-radius: 6px; border: 1px solid var(--line); object-fit: cover; background: #0F0C08; }}
 .mon[data-rare="1"] .face {{ border-color: var(--rare); }}
@@ -156,15 +177,14 @@ td {{ text-align: center; padding: 6px 4px; }}
 </style>
 <div class="wrap">
   <div class="top"><span class="eyebrow">Выживание за варвара · 1 этаж</span><h1>Бестиарий Рафдонии</h1>
-    <p>Справочник мастера: все 16 монстров 9-го класса — статы, поведение, атаки и эссенции. Портреты, которых ещё нет, заменены силуэтами.</p></div>
+    <p>Справочник мастера: все монстры лабиринта — статы, поведение, атаки и эссенции. Портреты, которых ещё нет, заменены силуэтами.</p></div>
   <details class="intro"><summary>Как устроены монстры и эссенции</summary>{md(intro_raw)}</details>
+  <input id="q" class="search" type="search" placeholder="Найти монстра по имени…" autocomplete="off" aria-label="Поиск по имени">
   <div class="bar">
-    <input id="q" type="search" placeholder="Найти монстра по имени…" autocomplete="off" aria-label="Поиск по имени">
-    <div class="chips" role="group" aria-label="Фильтр">
-      <button class="chip" data-f="all" aria-pressed="true">Все</button>
-      {"".join(f'<button class="chip" data-f="{z}" aria-pressed="false">{n}</button>' for z, n, _ in ZONES)}
-      <button class="chip" data-f="rare" aria-pressed="false">Только редкие</button>
-    </div>
+    {frow("Группа", "zone", [("all", "Все")] + [(z, n) for z, n, _ in ZONES])}
+    {frow("Этаж", "floor", [("all", "Все")] + [(str(f), f"{f} этаж") for f in sorted({m["floor"] for m in MON})])}
+    {frow("Класс", "cls", [("all", "Все")] + [(str(c), f"{c} класс") for c in sorted({m["cls"] for m in MON}, reverse=True)])}
+    {frow("Тип", "rank", [("all", "Все")] + RANKS)}
   </div>
   {"".join(idx)}
   {"".join(cards)}
@@ -172,21 +192,19 @@ td {{ text-align: center; padding: 6px 4px; }}
 </div>
 <script>
 const q = document.getElementById("q"), chips = [...document.querySelectorAll(".chip")];
-let zone = "all", rareOnly = false;
+const f = {{ zone: "all", floor: "all", cls: "all", rank: "all" }};
+const pass = el => Object.entries(f).every(([k, v]) => v === "all" || el.dataset[k] === v);
 function apply() {{
   const s = q.value.trim().toLowerCase(); let shown = 0;
-  document.querySelectorAll(".mon").forEach(m => {{
-    const ok = (zone === "all" || m.dataset.zone === zone) && (!rareOnly || m.dataset.rare === "1") && (!s || m.dataset.name.includes(s));
-    m.hidden = !ok; if (ok) shown++;
-  }});
+  document.querySelectorAll(".mon").forEach(m => {{ const ok = pass(m) && (!s || m.dataset.name.includes(s)); m.hidden = !ok; if (ok) shown++; }});
   document.querySelectorAll(".zone-h").forEach(h => {{ h.hidden = ![...document.querySelectorAll(`.mon[data-zone="${{h.dataset.zone}}"]`)].some(m => !m.hidden); }});
-  document.querySelectorAll(".fchip").forEach(f => {{ f.hidden = (zone !== "all" && f.dataset.zone !== zone) || (rareOnly && f.dataset.rare !== "1"); }});
-  document.querySelectorAll(".zone-idx").forEach(z => {{ z.hidden = ![...z.querySelectorAll(".fchip")].some(f => !f.hidden); }});
+  document.querySelectorAll(".fchip").forEach(x => {{ x.hidden = !pass(x); }});
+  document.querySelectorAll(".zone-idx").forEach(z => {{ z.hidden = ![...z.querySelectorAll(".fchip")].some(x => !x.hidden); }});
   document.getElementById("empty").hidden = shown > 0;
 }}
 chips.forEach(c => c.addEventListener("click", () => {{
-  if (c.dataset.f === "rare") {{ rareOnly = !rareOnly; c.setAttribute("aria-pressed", rareOnly); }}
-  else {{ zone = c.dataset.f; chips.filter(x => x.dataset.f !== "rare").forEach(x => x.setAttribute("aria-pressed", x === c)); }}
+  f[c.dataset.k] = c.dataset.v;
+  chips.filter(x => x.dataset.k === c.dataset.k).forEach(x => x.setAttribute("aria-pressed", x === c));
   apply();
 }}));
 q.addEventListener("input", apply);

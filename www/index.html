@@ -1075,6 +1075,13 @@ const ESSENCES = {
     active: { name: "Размашистый удар", mana: 3, time: "действие, рубящее оружие ближнего боя",
       text: "До 3 существ на выбор в 1,5 м, мгновенно. Спасбросок Ловкости Сл 8 + БМ + мод. Сил. Провал: урон оружия; успех: половина урона." },
   },
+  hobgoblin: {
+    id: "hobgoblin", name: "Эссенция хобгоблина", cls: 8, source: "hobgoblin", draft: true,
+    stats: { str: 1, con: 1, cha: -1 }, other: ["Атлетика +2", "Тёмное зрение +3 м"],
+    passive: { name: "Толстая шкура", text: "Первая атака, которая попадает по тебе в бою, наносит на 1к4 урона меньше (не ниже 1)." },
+    active: { name: "Рывок", mana: 4, time: "бонусное действие",
+      text: "На себя, до конца хода. Переместись на половину скорости, это перемещение не провоцирует атак. Первая рукопашная атака в этот ход получает +2 к попаданию." },
+  },
   "goblin-spear": {
     id: "goblin-spear", name: "Эссенция гоблина-копейщика", cls: 9, source: "goblin-spear",
     stats: { str: 1, cha: -1 }, other: ["Атлетика +1", "Инициатива +1"],
@@ -1160,7 +1167,8 @@ const ESSENCES = {
   },
 };
 
-const RANKS = { normal: "Обычный", guardian: "Страж", lord: "Лорд этажа" };
+const RANKS = { normal: "Обычный", rare: "Редкий", special: "Особый", guardian: "Страж", lord: "Лорд этажа" };
+const rankOf = m => m.rank === "normal" && m.rare ? "rare" : m.rank;
 const MONSTERS = [
   { id: "goblin", zone: "goblin", rare: false, weight: 1, name: "Гоблин", floor: 1, cls: 9, rank: "normal", size: "Маленький гуманоид", group: "Стаи по 3–8",
     type: "Гуманоид, монстр", sz: "маленький", areas: ["1 этаж: зона гоблинов"],
@@ -1208,6 +1216,18 @@ const MONSTERS = [
       ["Копьё", "+3 к попаданию, досягаемость 3 м (с эссенцией), 1к6+1 колющего; метнуть 6/18 м.", "attacks"],
     ],
     loot: "Камень 9-го класса.", essence: "goblin-spear" },
+  // Черновик: 8 класс ещё не утверждён автором (../campaign/drafts.md). Во встречах не участвует (genEncounter берёт только 9 класс).
+  { id: "hobgoblin", zone: "goblin", rare: false, weight: 1, draft: true, name: "Хобгоблин", floor: 1, cls: 8, rank: "normal", size: "Средний гуманоид", group: "7-й день, у портала гоблинов. Дальше — стаями",
+    type: "Гуманоид, монстр", sz: "средний", areas: ["1 этаж: зона гоблинов, у портала (с 7-го дня)"],
+    ac: "14", hp: "13 (3к8)", speed: "9 м", cr: "1/2", abil: [14, 12, 12, 9, 9, 7],
+    senses: "Атлетика +4. Тёмное зрение 18 м.",
+    traits: [
+      ["Злоба", "Не бежит, пока жив хоть один сородич. Оставшись один, делает спасбросок Мудрости Сл 10 с преимуществом; при провале убегает.", "behavior"],
+      ["Бешенство", "Раненый (меньше половины ОЗ) бьёт того, кто его ранил, даже если рядом цель слабее.", "behavior"],
+      ["Дикарь", "Строя не держит: с рёвом бросается на ближайшего, проскальзывая мимо передних бойцов. Первый удар по нему будто вязнет в шкуре.", "behavior"],
+      ["Длинный меч", "+4 к попаданию, 1к8+2 рубящего.", "attacks"],
+    ],
+    loot: "Камень 8-го класса.", essence: "hobgoblin" },
   { id: "wolf", zone: "beast", rare: false, weight: 2, name: "Рубящий волк", floor: 1, cls: 9, rank: "normal", size: "Средний зверь", group: "Стаи по 3–5",
     type: "Зверь, монстр", sz: "средний", areas: ["1 этаж: зона зверей"],
     ac: "12", hp: "7 (2к8−2)", speed: "12 м", cr: "1/8", abil: [11, 14, 9, 3, 12, 6],
@@ -1321,10 +1341,10 @@ const DISTRICTS = [
 
 // Готовые рисованные картинки (webp) заменяют векторные заглушки.
 // Дата сборки для телефона: build.sh вписывает её сюда, в веб-версии строка пустая.
-const APP_BUILD = "19.10.2026 17:13";
-const APP_VERSION = 1792411987;                 // номер сборки, тоже вписывает build.sh
+const APP_BUILD = "19.10.2026 17:18";
+const APP_VERSION = 1792412287;                 // номер сборки, тоже вписывает build.sh
 const UPDATE_URL = "https://raw.githubusercontent.com/Sayat9/Sputnik/main/www/";
-const RASTER = new Set(["races/barbarian", "races/human", "races/dwarf", "races/beastkin", "races/fairy", "races/dragon", "monsters/goblin-face", "monsters/goblin-full", "monsters/goblin-archer-face", "monsters/goblin-archer-full", "monsters/goblin-sword-face", "monsters/goblin-sword-full", "monsters/goblin-spear-face", "monsters/goblin-spear-full", "monsters/wolf-face", "monsters/wolf-full", "monsters/fox-face", "monsters/fox-full", "monsters/mouse-face", "monsters/mouse-full", "monsters/bat-face", "monsters/bat-full"]);
+const RASTER = new Set(["races/barbarian", "races/human", "races/dwarf", "races/beastkin", "races/fairy", "races/dragon", "monsters/goblin-face", "monsters/goblin-full", "monsters/goblin-archer-face", "monsters/goblin-archer-full", "monsters/goblin-sword-face", "monsters/goblin-sword-full", "monsters/goblin-spear-face", "monsters/goblin-spear-full", "monsters/wolf-face", "monsters/wolf-full", "monsters/fox-face", "monsters/fox-full", "monsters/mouse-face", "monsters/mouse-full", "monsters/bat-face", "monsters/bat-full", "monsters/hobgoblin-face", "monsters/hobgoblin-full"]);
 const artPath = p => `assets/${p}.${RASTER.has(p) ? "webp" : "svg"}`;
 const ART = {
   weapon: id => `assets/items/${id}.svg`,
@@ -1609,7 +1629,7 @@ function renderBestiary() {
   const list = MONSTERS.filter(m =>
     (mf.floor === "all" || m.floor === +mf.floor) &&
     (mf.cls === "all" || m.cls === +mf.cls) &&
-    (mf.rank === "all" || m.rank === mf.rank));
+    (mf.rank === "all" || rankOf(m) === mf.rank));
   const changed = JSON.stringify(mf) !== JSON.stringify(MF_DEFAULT);
   return `
     <div class="filters" data-scope="m">
@@ -1626,7 +1646,7 @@ function renderBestiary() {
           <span class="face">${img(ART.monsterFace(m.id), "Лицо: " + m.name)}</span>
           <div style="min-width:0">
             <h4>${m.name}</h4>
-            <div class="tags"><span class="tag">${m.floor} этаж</span><span class="tag amber">${m.cls} класс</span><span class="tag${m.rank === "normal" ? "" : " warn"}">${RANKS[m.rank]}</span></div>
+            <div class="tags"><span class="tag">${m.floor} этаж</span><span class="tag amber">${m.cls} класс</span><span class="tag${rankOf(m) === "normal" ? "" : " warn"}">${RANKS[rankOf(m)]}</span>${m.draft ? `<span class="tag warn">Черновик</span>` : ""}</div>
           </div>
           <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
         </summary>
