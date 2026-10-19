@@ -1082,6 +1082,13 @@ const ESSENCES = {
     active: { name: "Рывок", mana: 4, time: "бонусное действие",
       text: "На себя, до конца хода. Переместись на половину скорости, это перемещение не провоцирует атак. Первая рукопашная атака в этот ход получает +2 к попаданию." },
   },
+  "dark-bear": {
+    id: "dark-bear", name: "Эссенция тёмного медведя", cls: 8, source: "dark-bear", draft: true,
+    stats: { str: 2, con: 1, dex: -1 }, other: ["Восприятие +1", "Тёмное зрение +3 м"],
+    passive: { name: "Шкура мрака", text: "Преимущество на Скрытность в тусклом свете и темноте." },
+    active: { name: "Медвежья хватка", mana: 4, time: "действие (рукопашная атака)",
+      text: "1,5 м. При попадании цель делает спасбросок Силы Сл 8 + БМ + мод. Сил. Провал — схвачена и в начале каждого своего хода получает 1к6 дробящего. Успех — ничего. Вырваться: действие, проверка Силы или Ловкости против Сл." },
+  },
   "goblin-spear": {
     id: "goblin-spear", name: "Эссенция гоблина-копейщика", cls: 9, source: "goblin-spear",
     stats: { str: 1, cha: -1 }, other: ["Атлетика +1", "Инициатива +1"],
@@ -1228,6 +1235,19 @@ const MONSTERS = [
       ["Длинный меч", "+4 к попаданию, 1к8+2 рубящего.", "attacks"],
     ],
     loot: "Камень 8-го класса.", essence: "hobgoblin" },
+  { id: "dark-bear", zone: "beast", rare: false, weight: 1, draft: true, name: "Тёмный медведь", floor: 1, cls: 8, rank: "normal", size: "Большой зверь", group: "7-й день, у звериного портала, в одиночку",
+    type: "Зверь, монстр", sz: "большой", areas: ["1 этаж: зона зверей, у портала (с 7-го дня)"],
+    ac: "12", hp: "26 (4к10+4)", speed: "12 м, лазание 9 м", cr: "1", abil: [17, 10, 14, 2, 12, 6],
+    senses: "Восприятие +3. Тёмное зрение 18 м.",
+    traits: [
+      ["Из темноты", "Нападает из тени, его почти не видно до первого удара.", "behavior"],
+      ["Свет злит", "Идёт прямо на факел.", "behavior"],
+      ["Хватка", "Вцепившись, не отпускает и давит.", "behavior"],
+      ["Две атаки", "За ход укус и когти.", "attacks"],
+      ["Укус", "+5 к попаданию, 1к8+3 колющего.", "attacks"],
+      ["Когти", "+5 к попаданию, 2к4+3 рубящего.", "attacks"],
+    ],
+    loot: "Камень 8-го класса.", essence: "dark-bear" },
   { id: "wolf", zone: "beast", rare: false, weight: 2, name: "Рубящий волк", floor: 1, cls: 9, rank: "normal", size: "Средний зверь", group: "Стаи по 3–5",
     type: "Зверь, монстр", sz: "средний", areas: ["1 этаж: зона зверей"],
     ac: "12", hp: "7 (2к8−2)", speed: "12 м", cr: "1/8", abil: [11, 14, 9, 3, 12, 6],
@@ -1268,19 +1288,19 @@ const MONSTERS = [
       ["Жгучий укус", "Место укуса распухает и жжёт.", "behavior"],
       ["Укус", "+5 к попаданию, 1к4+3 колющего.", "attacks"],
     ], loot: "Камень 9-го класса.", essence: "bat" },
-  { id: "zombie", zone: "undead", rare: false, weight: 2, name: "Зомби", floor: 1, cls: 9, rank: "normal", size: "Средний гуманоид (нежить)", group: "Группы по 2–5, самый частый у портала", ph: "undead",
+  { id: "zombie", zone: "undead", rare: false, weight: 2, name: "Зомби", floor: 1, cls: 9, rank: "normal", size: "Средний гуманоид (нежить)", group: "Группы по 2–5, самый частый у портала",
     type: "Гуманоид, нежить", sz: "средний", areas: ["1 этаж: зона нежити"],
     ac: "8", hp: "13 (2к8+4)", speed: "6 м", cr: "1/8", abil: [13, 6, 15, 3, 6, 5],
     senses: "Тёмное зрение 18 м.", traits: [["Шаркающий", "Медленно бредёт на шум и свет.", "behavior"], ["Хватка", "Вцепляется в жертву и не отпускает.", "behavior"], ["Встаёт снова", "Иногда поднимается после смертельного удара; после слабого удара — чаще, чем после сильного.", "behavior"], ["Удар", "+3 к попаданию, 1к6+1 дробящего.", "attacks"]], loot: "Камень 9-го класса.", essence: "zombie" },
-  { id: "skeleton", zone: "undead", rare: false, weight: 1, name: "Скелет", floor: 1, cls: 9, rank: "normal", size: "Средний гуманоид (нежить)", group: "Отряды по 2–4, реже зомби", ph: "undead",
+  { id: "skeleton", zone: "undead", rare: false, weight: 1, name: "Скелет", floor: 1, cls: 9, rank: "normal", size: "Средний гуманоид (нежить)", group: "Отряды по 2–4, реже зомби",
     type: "Гуманоид, нежить", sz: "средний", areas: ["1 этаж: зона нежити"],
     ac: "13 (обрывки доспеха)", hp: "9 (2к8)", speed: "9 м", cr: "1/8", abil: [10, 14, 12, 6, 8, 5],
     senses: "Тёмное зрение 18 м.", traits: [["Хрупкие кости", "Уязвимость к дробящему урону.", "body"], ["Треск", "Перед боем громко стучит костями — у слабых духом подкашиваются ноги.", "behavior"], ["Сквозные рёбра", "Стрелы и копья проходят между рёбер.", "behavior"], ["Строй", "Сражается молча и строем, пока не рассыплется; булава и дубина крошат его кости.", "behavior"], ["Ржавый меч", "+4 к попаданию, 1к6+2 рубящего.", "attacks"]], loot: "Камень 9-го класса.", essence: "skeleton" },
-  { id: "skeleton-archer", zone: "undead", rare: true, weight: 1, name: "Скелет-лучник", floor: 1, cls: 9, rank: "normal", size: "Средний гуманоид (нежить)", group: "Редкий: с 4-го дня поодиночке, с 6-го — вместе с обычными", ph: "undead",
+  { id: "skeleton-archer", zone: "undead", rare: true, weight: 1, name: "Скелет-лучник", floor: 1, cls: 9, rank: "normal", size: "Средний гуманоид (нежить)", group: "Редкий: с 4-го дня поодиночке, с 6-го — вместе с обычными",
     type: "Гуманоид, нежить", sz: "средний", areas: ["1 этаж: зона нежити"],
     ac: "13", hp: "9 (2к8)", speed: "9 м", cr: "1/4", abil: [8, 16, 12, 6, 10, 5],
     senses: "Скрытность +5. Тёмное зрение 18 м.", traits: [["Хрупкие кости", "Уязвимость к дробящему урону.", "body"], ["Среди костей", "Стоит неподвижно в нишах и на уступах: его легко принять за обычный скелет у стены.", "behavior"], ["Холодные стрелы", "После его стрел рана немеет от холода, и шаг становится тяжёлым.", "behavior"], ["Короткий лук", "+5 к попаданию, 24/96 м, 1к6+3 колющего.", "attacks"], ["Кинжал", "+5 к попаданию, 1к4+3 колющего.", "attacks"]], loot: "Камень 9-го класса.", essence: "skeleton-archer" },
-  { id: "ghoul", zone: "undead", rare: true, weight: 1, name: "Гуль", floor: 1, cls: 9, rank: "normal", size: "Средний гуманоид (нежить)", group: "Редкий: с 4-го дня поодиночке, с 6-го — вместе с обычными", ph: "undead",
+  { id: "ghoul", zone: "undead", rare: true, weight: 1, name: "Гуль", floor: 1, cls: 9, rank: "normal", size: "Средний гуманоид (нежить)", group: "Редкий: с 4-го дня поодиночке, с 6-го — вместе с обычными",
     type: "Гуманоид, нежить", sz: "средний", areas: ["1 этаж: зона нежити"],
     ac: "12", hp: "11 (2к8+2)", speed: "9 м", cr: "1/4", abil: [13, 15, 12, 7, 10, 6],
     senses: "Тёмное зрение 18 м.", traits: [["Падальщик", "Бросается на упавших и раненых.", "behavior"], ["Гнилые раны", "После его когтей раны перестают затягиваться — зелья не помогают.", "behavior"], ["Как во сне", "Укушенный двигается как во сне.", "behavior"], ["Когти", "+4 к попаданию, 1к4+2 рубящего.", "attacks"], ["Укус", "+4 к попаданию, 1к6+2 колющего.", "attacks"]], loot: "Камень 9-го класса.", essence: "ghoul" },
@@ -1341,10 +1361,10 @@ const DISTRICTS = [
 
 // Готовые рисованные картинки (webp) заменяют векторные заглушки.
 // Дата сборки для телефона: build.sh вписывает её сюда, в веб-версии строка пустая.
-const APP_BUILD = "19.10.2026 17:21";
-const APP_VERSION = 1792412475;                 // номер сборки, тоже вписывает build.sh
+const APP_BUILD = "19.10.2026 17:34";
+const APP_VERSION = 1792413292;                 // номер сборки, тоже вписывает build.sh
 const UPDATE_URL = "https://raw.githubusercontent.com/Sayat9/Sputnik/main/www/";
-const RASTER = new Set(["races/barbarian", "races/human", "races/dwarf", "races/beastkin", "races/fairy", "races/dragon", "monsters/goblin-face", "monsters/goblin-full", "monsters/goblin-archer-face", "monsters/goblin-archer-full", "monsters/goblin-sword-face", "monsters/goblin-sword-full", "monsters/goblin-spear-face", "monsters/goblin-spear-full", "monsters/wolf-face", "monsters/wolf-full", "monsters/fox-face", "monsters/fox-full", "monsters/mouse-face", "monsters/mouse-full", "monsters/bat-face", "monsters/bat-full", "monsters/hobgoblin-face", "monsters/hobgoblin-full"]);
+const RASTER = new Set(["races/barbarian", "races/human", "races/dwarf", "races/beastkin", "races/fairy", "races/dragon", "monsters/goblin-face", "monsters/goblin-full", "monsters/goblin-archer-face", "monsters/goblin-archer-full", "monsters/goblin-sword-face", "monsters/goblin-sword-full", "monsters/goblin-spear-face", "monsters/goblin-spear-full", "monsters/wolf-face", "monsters/wolf-full", "monsters/fox-face", "monsters/fox-full", "monsters/mouse-face", "monsters/mouse-full", "monsters/bat-face", "monsters/bat-full", "monsters/hobgoblin-face", "monsters/hobgoblin-full", "monsters/zombie-face", "monsters/zombie-full", "monsters/skeleton-face", "monsters/skeleton-full", "monsters/skeleton-archer-face", "monsters/skeleton-archer-full", "monsters/ghoul-face", "monsters/ghoul-full", "monsters/dark-bear-face", "monsters/dark-bear-full"]);
 const artPath = p => `assets/${p}.${RASTER.has(p) ? "webp" : "svg"}`;
 const ART = {
   weapon: id => `assets/items/${id}.svg`,
