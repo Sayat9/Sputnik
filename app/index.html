@@ -967,6 +967,10 @@ const WEAPONS = [
   { id: "shield", name: "Щит", group: "shield", kind: "Щит", dmg: "+2 КД", type: "", weight: 3, price: 10,
     props: ["Занимает руку"],
     note: "Дубовые доски с железной оковкой и умбоном. Надеть или снять — действие." },
+  // Ростовой щит держат двумя руками: +3 КД вместо оружия, бить можно только им самим.
+  { id: "tower-shield", name: "Ростовой щит", group: "melee", kind: "Щит", dmg: "1к6", type: "дробящий", weight: 7.5, price: 30, ac: 3, str: 13,
+    props: ["+3 КД", "Двуручное", "Тяжёлое", "Сила 13", "Помеха Скрытности"],
+    note: "Высокая стена из досок с железными полосами, закрывает почти целиком. Бьют им с разворота кромкой; обычный щит вместе с ним не держат." },
 ];
 
 const ARMOR = [
@@ -1798,12 +1802,15 @@ function derived(t, c = char) {
     ac = armor.base + (armor.cat === "light" ? dex : armor.cat === "medium" ? Math.min(dex, 2) : 0);
     acSrc = armor.name;
   }
-  const off = itemOf(c.equip.off);
-  if (off && off.id === "shield" && !twoHanded(c)) ac += 2;
+  const off = itemOf(c.equip.off), main = itemOf(c.equip.main);
+  const tower = main && main.id === "tower-shield";
+  if (tower) { ac += 3; acSrc += " + ростовой щит"; }
+  else if (off && off.id === "shield" && !twoHanded(c)) ac += 2;
   const ld = load(c, t);
   const warnings = [];
   if (armor && armor.str && t.str.total < armor.str) warnings.push(`Сила ${t.str.total} ниже ${armor.str}, нужной для доспеха «${armor.name}»: скорость −3 м.`);
   if (armor && armor.stealth) warnings.push(`«${armor.name}»: помеха к Скрытности.`);
+  if (tower) { warnings.push("Ростовой щит: помеха к Скрытности."); if (t.str.total < 13) warnings.push(`Сила ${t.str.total} ниже 13, нужной для ростового щита: скорость −3 м.`); }
   if (c.giantGrip && c.race === "barbarian" && isTwoHandedWeapon(mainItem(c))) warnings.push(`«${mainItem(c).name}» в одной руке (Великан): −2 к атаке.`);
   if (ld.level !== "ok") warnings.push(LOAD_TEXT[ld.level] + ".");
   const pb = 2 + Math.floor((c.level - 1) / 4);

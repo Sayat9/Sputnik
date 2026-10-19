@@ -235,6 +235,24 @@ def shield():
     return g
 
 
+def tower_shield():
+    # Ростовой (двуручный) щит: высокий прямоугольник с закруглённым верхом, железная окантовка и полосы.
+    shape = "M86 26 Q128 10 170 26 L170 158 Q128 172 86 158 Z"
+    planks = "".join(
+        f'<rect x="{x}" y="10" width="14" height="166" fill="{c}"/><path d="M{x} 10V176" stroke="#2a1a0e" stroke-width="1.1"/>'
+        for x, c in zip(range(86, 170, 14), ["#7a5432", "#8b6139", "#71492b", "#8e663c", "#7d5534", "#6c4628"]))
+    rivets = "".join(f'<circle cx="{x}" cy="{y}" r="2.4" fill="#c9d0d4" stroke="#2a2e31"/>'
+                     for y in (60, 120) for x in (94, 112, 144, 162))
+    return f"""
+<clipPath id="towerClip"><path d="{shape}"/></clipPath>
+<g clip-path="url(#towerClip)">{planks}<rect x="86" y="54" width="84" height="12" fill="url(#iron)"/><rect x="86" y="114" width="84" height="12" fill="url(#iron)"/>
+<circle cx="110" cy="50" r="70" fill="#fff" opacity=".07"/></g>
+<path d="{shape}" fill="none" stroke="url(#iron)" stroke-width="7"/>
+<path d="{shape}" fill="none" stroke="#15181a" stroke-width="1.1"/>
+{rivets}
+<circle cx="128" cy="92" r="15" fill="#2a2e31"/><circle cx="128" cy="92" r="12" fill="url(#steelV)" stroke="#2a2e31" stroke-width="1.3"/>"""
+
+
 # ---------------------------------------------------------------- броня
 
 TORSO = "M84 52 Q128 42 172 52 L192 68 L184 84 L176 150 Q128 164 80 150 L72 84 L64 68 Z"
@@ -615,7 +633,7 @@ def ph_full(kind):
 
 ITEMS = {
     "spear": spear, "mace": mace, "warhammer": warhammer, "sword": sword, "rapier": rapier,
-    "greatsword": greatsword, "shortbow": shortbow, "longbow": longbow, "arrows": arrows, "shield": shield,
+    "greatsword": greatsword, "shortbow": shortbow, "longbow": longbow, "arrows": arrows, "shield": shield, "tower-shield": tower_shield,
 }
 ARMOR = ["leather", "hide", "chainmail"]  # базовая броня каждой группы
 RACES = {"human": human, "barbarian": barbarian, "dwarf": dwarf, "beastkin": beastkin, "fairy": fairy, "dragon": dragon}

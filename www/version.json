@@ -1,5 +1,5 @@
 {
- "version": 1792418295,
+ "version": 1792419110,
  "files": [
   "assets/items/armor-chainmail.svg",
   "assets/items/armor-hide.svg",
@@ -13,6 +13,7 @@
   "assets/items/shortbow.svg",
   "assets/items/spear.svg",
   "assets/items/sword.svg",
+  "assets/items/tower-shield.svg",
   "assets/items/warhammer.svg",
   "assets/monsters/bat-face.webp",
   "assets/monsters/bat-full.webp",

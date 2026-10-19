@@ -972,6 +972,10 @@ const WEAPONS = [
   { id: "shield", name: "Щит", group: "shield", kind: "Щит", dmg: "+2 КД", type: "", weight: 3, price: 10,
     props: ["Занимает руку"],
     note: "Дубовые доски с железной оковкой и умбоном. Надеть или снять — действие." },
+  // Ростовой щит держат двумя руками: +3 КД вместо оружия, бить можно только им самим.
+  { id: "tower-shield", name: "Ростовой щит", group: "melee", kind: "Щит", dmg: "1к6", type: "дробящий", weight: 7.5, price: 30, ac: 3, str: 13,
+    props: ["+3 КД", "Двуручное", "Тяжёлое", "Сила 13", "Помеха Скрытности"],
+    note: "Высокая стена из досок с железными полосами, закрывает почти целиком. Бьют им с разворота кромкой; обычный щит вместе с ним не держат." },
 ];
 
 const ARMOR = [
@@ -1381,8 +1385,8 @@ const DISTRICTS = [
 
 // Готовые рисованные картинки (webp) заменяют векторные заглушки.
 // Дата сборки для телефона: build.sh вписывает её сюда, в веб-версии строка пустая.
-const APP_BUILD = "19.10.2026 18:58";
-const APP_VERSION = 1792418295;                 // номер сборки, тоже вписывает build.sh
+const APP_BUILD = "19.10.2026 19:11";
+const APP_VERSION = 1792419110;                 // номер сборки, тоже вписывает build.sh
 const UPDATE_URL = "https://raw.githubusercontent.com/Sayat9/Sputnik/main/www/";
 const RASTER = new Set(["races/barbarian", "races/human", "races/dwarf", "races/beastkin", "races/fairy", "races/dragon", "monsters/goblin-face", "monsters/goblin-full", "monsters/goblin-archer-face", "monsters/goblin-archer-full", "monsters/goblin-sword-face", "monsters/goblin-sword-full", "monsters/goblin-spear-face", "monsters/goblin-spear-full", "monsters/wolf-face", "monsters/wolf-full", "monsters/fox-face", "monsters/fox-full", "monsters/mouse-face", "monsters/mouse-full", "monsters/bat-face", "monsters/bat-full", "monsters/hobgoblin-face", "monsters/hobgoblin-full", "monsters/zombie-face", "monsters/zombie-full", "monsters/skeleton-face", "monsters/skeleton-full", "monsters/skeleton-archer-face", "monsters/skeleton-archer-full", "monsters/ghoul-face", "monsters/ghoul-full", "monsters/dark-bear-face", "monsters/dark-bear-full", "monsters/skeleton-warrior-face", "monsters/skeleton-warrior-full"]);
 const artPath = p => `assets/${p}.${RASTER.has(p) ? "webp" : "svg"}`;
@@ -1803,12 +1807,15 @@ function derived(t, c = char) {
     ac = armor.base + (armor.cat === "light" ? dex : armor.cat === "medium" ? Math.min(dex, 2) : 0);
     acSrc = armor.name;
   }
-  const off = itemOf(c.equip.off);
-  if (off && off.id === "shield" && !twoHanded(c)) ac += 2;
+  const off = itemOf(c.equip.off), main = itemOf(c.equip.main);
+  const tower = main && main.id === "tower-shield";
+  if (tower) { ac += 3; acSrc += " + ростовой щит"; }
+  else if (off && off.id === "shield" && !twoHanded(c)) ac += 2;
   const ld = load(c, t);
   const warnings = [];
   if (armor && armor.str && t.str.total < armor.str) warnings.push(`Сила ${t.str.total} ниже ${armor.str}, нужной для доспеха «${armor.name}»: скорость −3 м.`);
   if (armor && armor.stealth) warnings.push(`«${armor.name}»: помеха к Скрытности.`);
+  if (tower) { warnings.push("Ростовой щит: помеха к Скрытности."); if (t.str.total < 13) warnings.push(`Сила ${t.str.total} ниже 13, нужной для ростового щита: скорость −3 м.`); }
   if (c.giantGrip && c.race === "barbarian" && isTwoHandedWeapon(mainItem(c))) warnings.push(`«${mainItem(c).name}» в одной руке (Великан): −2 к атаке.`);
   if (ld.level !== "ok") warnings.push(LOAD_TEXT[ld.level] + ".");
   const pb = 2 + Math.floor((c.level - 1) / 4);
