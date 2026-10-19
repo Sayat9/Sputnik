@@ -1203,7 +1203,7 @@ const MONSTERS = [
       ["Копьё", "+3 к попаданию, досягаемость 3 м (с эссенцией), 1к6+1 колющего; метнуть 6/18 м.", "attacks"],
     ],
     loot: "Камень 9-го класса.", essence: "goblin-spear" },
-  { id: "wolf", zone: "beast", rare: false, weight: 2, name: "Рубящий волк", floor: 1, cls: 9, rank: "normal", size: "Средний зверь", group: "Стаи по 3–5", ph: "beast",
+  { id: "wolf", zone: "beast", rare: false, weight: 2, name: "Рубящий волк", floor: 1, cls: 9, rank: "normal", size: "Средний зверь", group: "Стаи по 3–5",
     type: "Зверь, монстр", sz: "средний", areas: ["1 этаж: зона зверей"],
     ac: "12", hp: "7 (2к8−2)", speed: "12 м", cr: "1/8", abil: [11, 14, 9, 3, 12, 6],
     senses: "Восприятие +3, Скрытность +4.",
@@ -1213,7 +1213,7 @@ const MONSTERS = [
       ["Нюх на кровь", "Раненый отряд волки находят быстрее.", "behavior"],
       ["Когти", "+4 к попаданию, 1к4+2 рубящего.", "attacks"],
     ], loot: "Камень 9-го класса.", essence: "wolf" },
-  { id: "fox", zone: "beast", rare: false, weight: 1, name: "Скрытная лиса", floor: 1, cls: 9, rank: "normal", size: "Маленький зверь", group: "Одна или парой", ph: "beast",
+  { id: "fox", zone: "beast", rare: false, weight: 1, name: "Скрытная лиса", floor: 1, cls: 9, rank: "normal", size: "Маленький зверь", group: "Одна или парой",
     type: "Зверь, монстр", sz: "маленький", areas: ["1 этаж: зона зверей"],
     ac: "13", hp: "7 (2к6)", speed: "12 м", cr: "1/8", abil: [6, 16, 10, 6, 13, 8],
     senses: "Восприятие +3, Скрытность +7. Тёмное зрение 18 м.",
@@ -1223,7 +1223,7 @@ const MONSTERS = [
       ["Воровка", "Ночью подкрадывается к лагерю: если караульный проиграл Восприятие против её Скрытности, пропадает 1к3 пайка.", "behavior"],
       ["Укус", "+5 к попаданию, 1к4+3 колющего.", "attacks"],
     ], loot: "Камень 9-го класса.", essence: "fox" },
-  { id: "mouse", zone: "beast", rare: true, weight: 1, name: "Громовая мышь", floor: 1, cls: 9, rank: "normal", size: "Крошечный зверь", group: "Редкий: с 4-го дня поодиночке, с 6-го — вместе с обычными", ph: "beast",
+  { id: "mouse", zone: "beast", rare: true, weight: 1, name: "Громовая мышь", floor: 1, cls: 9, rank: "normal", size: "Крошечный зверь", group: "Редкий: с 4-го дня поодиночке, с 6-го — вместе с обычными",
     type: "Зверь, монстр", sz: "крошечный", areas: ["1 этаж: зона зверей"],
     ac: "12", hp: "3 (1к4+1)", speed: "6 м, лазание 6 м", cr: "1/8", abil: [3, 14, 13, 2, 10, 4],
     senses: "Восприятие +2.",
@@ -1233,7 +1233,7 @@ const MONSTERS = [
       ["Шумная", "После боя с мышами мастер может бросить дополнительную встречу.", "behavior"],
       ["Укус", "+4 к попаданию, 1к4 колющего.", "attacks"],
     ], loot: "Камень 9-го класса.", essence: "mouse" },
-  { id: "bat", zone: "beast", rare: false, weight: 2, name: "Ядовитая летучка", floor: 1, cls: 9, rank: "normal", size: "Маленький зверь", group: "Под потолком тёмных залов, по 2–6", ph: "beast",
+  { id: "bat", zone: "beast", rare: false, weight: 2, name: "Ядовитая летучка", floor: 1, cls: 9, rank: "normal", size: "Маленький зверь", group: "Под потолком тёмных залов, по 2–6",
     type: "Зверь, монстр", sz: "маленький", areas: ["1 этаж: зона зверей"],
     ac: "13", hp: "5 (2к6−2)", speed: "1,5 м, полёт 12 м", cr: "1/8", abil: [6, 16, 8, 2, 12, 4],
     senses: "Восприятие +3. Слепое зрение 3 м.",
@@ -1319,7 +1319,7 @@ const DISTRICTS = [
 const APP_BUILD = "";
 const APP_VERSION = 0;                 // номер сборки, тоже вписывает build.sh
 const UPDATE_URL = "https://raw.githubusercontent.com/Sayat9/Sputnik/main/www/";
-const RASTER = new Set(["races/barbarian", "races/human", "races/dwarf", "races/beastkin", "races/fairy", "races/dragon", "monsters/goblin-face", "monsters/goblin-full", "monsters/goblin-archer-face", "monsters/goblin-archer-full", "monsters/goblin-sword-face", "monsters/goblin-sword-full", "monsters/goblin-spear-face", "monsters/goblin-spear-full"]);
+const RASTER = new Set(["races/barbarian", "races/human", "races/dwarf", "races/beastkin", "races/fairy", "races/dragon", "monsters/goblin-face", "monsters/goblin-full", "monsters/goblin-archer-face", "monsters/goblin-archer-full", "monsters/goblin-sword-face", "monsters/goblin-sword-full", "monsters/goblin-spear-face", "monsters/goblin-spear-full", "monsters/wolf-face", "monsters/wolf-full", "monsters/fox-face", "monsters/fox-full", "monsters/mouse-face", "monsters/mouse-full", "monsters/bat-face", "monsters/bat-full"]);
 const artPath = p => `assets/${p}.${RASTER.has(p) ? "webp" : "svg"}`;
 const ART = {
   weapon: id => `assets/items/${id}.svg`,
