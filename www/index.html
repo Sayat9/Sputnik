@@ -1627,8 +1627,8 @@ const DISTRICTS = [
 
 // Готовые рисованные картинки (webp) заменяют векторные заглушки.
 // Дата сборки для телефона: build.sh вписывает её сюда, в веб-версии строка пустая.
-const APP_BUILD = "20.10.2026 18:35";
-const APP_VERSION = 1792503348;                 // номер сборки, тоже вписывает build.sh
+const APP_BUILD = "20.10.2026 22:47";
+const APP_VERSION = 1792518431;                 // номер сборки, тоже вписывает build.sh
 const UPDATE_URL = "https://raw.githubusercontent.com/Sayat9/Sputnik/main/www/";
 const RASTER = new Set(["monsters/goblin-king-face", "monsters/goblin-king-full", "monsters/goblin-bomber-face", "monsters/goblin-bomber-full", "monsters/hobgoblin-shield-face", "monsters/hobgoblin-shield-full", "races/barbarian", "races/human", "races/dwarf", "races/beastkin", "races/fairy", "races/dragon", "monsters/goblin-face", "monsters/goblin-full", "monsters/goblin-archer-face", "monsters/goblin-archer-full", "monsters/goblin-sword-face", "monsters/goblin-sword-full", "monsters/goblin-spear-face", "monsters/goblin-spear-full", "monsters/wolf-face", "monsters/wolf-full", "monsters/fox-face", "monsters/fox-full", "monsters/mouse-face", "monsters/mouse-full", "monsters/bat-face", "monsters/bat-full", "monsters/hobgoblin-face", "monsters/hobgoblin-full", "monsters/zombie-face", "monsters/zombie-full", "monsters/skeleton-face", "monsters/skeleton-full", "monsters/skeleton-archer-face", "monsters/skeleton-archer-full", "monsters/ghoul-face", "monsters/ghoul-full", "monsters/dark-bear-face", "monsters/dark-bear-full", "monsters/skeleton-warrior-face", "monsters/skeleton-warrior-full", "monsters/living-stone-face", "monsters/living-stone-full", "monsters/wisp-face", "monsters/wisp-full", "monsters/pixie-face", "monsters/pixie-full", "monsters/green-boulder-face", "monsters/green-boulder-full", "monsters/stone-guardian-face", "monsters/stone-guardian-full"]);
 const artPath = p => `assets/${p}.${RASTER.has(p) ? "webp" : "svg"}`;
@@ -2014,6 +2014,7 @@ const GEAR = {
   "shovel-good": { short: "Лопата+", name: "Хорошая лопата", weight: 2.5, stack: 1, uses: 5, note: "Для действия «Копать». Ломается после 5 раскопок." },
   "shovel-best": { short: "Лопата++", name: "Отличная лопата", weight: 2, stack: 1, uses: 10, note: "Для действия «Копать». Ломается после 10 раскопок." },
   "stone-9":   { short: "Камни", name: "Магический камень 9-го класса", weight: 0.1, stack: 99, note: "Добыча лабиринта: 1 камень 9-го класса = 1 з. в скупке." },
+  "stone-8":   { short: "Камни 8", name: "Магический камень 8-го класса", weight: 0.1, stack: 99, note: "Добыча 2 этажа: 1 камень 8-го класса = 3 з. в скупке." },
 };
 const SHOVELS = ["shovel", "shovel-good", "shovel-best"];
 const GEAR_ICON = {
@@ -2023,6 +2024,7 @@ const GEAR_ICON = {
   torch: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M12 3c2 2 3 3.5 3 5.5A3 3 0 0 1 9 8.5C9 6.5 10 5 12 3z" fill="#e0a040" opacity=".9"/><path d="M9.5 11h5l-1.5 10h-2z"/></svg>`,
   arrow: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 20L18 6M18 6h-5M18 6v5M4 20l1-4M4 20l4-1"/></svg>`,
   shovel: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><path d="M17 3l4 4M19 5l-8 8"/><path d="M11 13l-3-3-4 4c-1.5 1.5-1 4.5 0 5.5s4 1.5 5.5 0z" fill="#8a8a80" opacity=".5"/><path d="M11 13l-3-3-4 4c-1.5 1.5-1 4.5 0 5.5s4 1.5 5.5 0z"/></svg>`,
+  "stone-8": `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 3l6 5-2 11H8L6 8z" fill="#7ad0dc" opacity=".55"/><path d="M12 3l6 5-2 11H8L6 8z"/><path d="M6 8h12M12 3l-2 5 2 11 2-11z" stroke-width="1"/></svg>`,
   "stone-9": `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 3l6 5-2 11H8L6 8z" fill="#d6a64c" opacity=".55"/><path d="M12 3l6 5-2 11H8L6 8z"/><path d="M6 8h12M12 3l-2 5 2 11 2-11z" stroke-width="1"/></svg>`,
   custom: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="M9 12h6M12 9v6"/></svg>`,
 };
@@ -2892,7 +2894,7 @@ function resolveRoll() {
 }
 /* ----- исследование и раскопки (числа — черновик в ../campaign/drafts.md, «Исследование, копание, удача») ----- */
 // Особые места этажа (с тайной): на 1 этаже — алтарь у статуи. Там таблицы наград другие, верх таблицы — подсказки о тайне.
-const FLOOR_SPECIAL = { 1: [{ x: CENTER, y: CENTER, name: "Алтарь у статуи" }] };
+const FLOOR_SPECIAL = { 1: [{ x: CENTER, y: CENTER, name: "Алтарь (статуя)" }] };
 const specialAt = (x, y) => (FLOOR_SPECIAL[curFloor()] || []).find(o => o.x === x && o.y === y);
 // [до какого числа к20, награда, мин, макс]. Числа камней каждый раз случайные в пределах строки.
 const SEARCH_TABLE = {
@@ -2905,7 +2907,16 @@ const SEARCH_TABLE = {
 const LUCK_TABLE = [[10, "supplies3"], [13, "floorMap"], [16, "gear"], [19, "magicMap"], [99, "two"]];
 const SEARCH_ROWS_TEXT = { none: "ничего", stones: "камни", monName: "кто здесь водится", monCount: "сколько неизвестных монстров", special: "где особое место",
   monType: "тип неизвестного монстра", secret: "подсказка о тайне", secretBig: "крупная подсказка о тайне", supplies: "расходники", luck: "бросок удачи" };
-const stoneId = () => "stone-9";                     // 1 этаж — камни 9-го класса
+// Камни: на 1 этаже только 9-го класса; со 2 этажа каждый камень — 8-го класса с шансом STONE8_P (8-й в 3 раза дороже).
+const STONE8_P = { explore: .15, dig: .25 };
+function giveStones(n, kind) {
+  let n8 = 0;
+  if (curFloor() >= 2) for (let i = 0; i < n; i++) if (Math.random() < STONE8_P[kind]) n8++;
+  const out = [];
+  if (n - n8) out.push(giveParty({ t: "g", id: "stone-9", qty: n - n8 }));
+  if (n8) out.push(giveParty({ t: "g", id: "stone-8", qty: n8 }));
+  return out;
+}
 const tilePool = (x, y) => { const z = zoneAt(x, y); return MONSTERS.filter(m => z.zones.includes(m.zone) && m.floor === curFloor() && !m.draft); };
 const shovelsOf = () => state.party.flatMap(c => (c.bag || []).map((e, i) => ({ c, e, i })).filter(x => x.e.t === "g" && SHOVELS.includes(x.e.id)));
 // Копают лопатой, у которой меньше всего прочности, — её хозяин и бросает удачу.
@@ -2958,7 +2969,7 @@ function searchReward(row, sr, digger, lines) {
   const r = state.run, j = journal(), [, kind, lo, hi] = row, pool = tilePool(r.pos.x, r.pos.y);
   const unknown = pool.filter(m => !j.known[m.id]);
   if (kind === "none") { lines.push("Ничего не нашли."); return; }
-  if (kind === "stones") { const n = lo + rnd(hi - lo + 1); lines.push(giveParty({ t: "g", id: stoneId(), qty: n })); return; }
+  if (kind === "stones") { lines.push(...giveStones(lo + rnd(hi - lo + 1), sr.kind)); return; }
   if (kind === "monName") {
     if (!pool.length) { lines.push("Следов монстров нет: здесь они не водятся."); return; }
     const m = pickOne(unknown.length ? unknown : pool); seenKeys(m.id, ["area"]);
@@ -2974,7 +2985,7 @@ function searchReward(row, sr, digger, lines) {
     const noType = unknown.filter(m => !(hints[m.id] || []).includes("type")), noFace = unknown.filter(m => !(hints[m.id] || []).includes("portrait"));
     if (noType.length) { const m = pickOne(noType); (hints[m.id] ||= []).push("type"); lines.push(`Находка в земле: здесь водится неизвестный монстр — «${m.type}». Он отмечен в библиотеке.`); return; }
     if (noFace.length) { const m = pickOne(noFace); (hints[m.id] ||= []).push("portrait"); lines.push("Находка в земле: обрывок рисунка — портрет неизвестного монстра. Он появился в библиотеке."); return; }
-    lines.push("Всё о здешних монстрах уже известно — вместо этого:"); lines.push(giveParty({ t: "g", id: stoneId(), qty: 2 + rnd(3) })); return;
+    lines.push("Всё о здешних монстрах уже известно — вместо этого:"); lines.push(...giveStones(2 + rnd(3), sr.kind)); return;
   }
   if (kind === "secret" || kind === "secretBig") { lines.push(`${kind === "secretBig" ? "Крупная подсказка" : "Подсказка"} о тайне места «${specialAt(r.pos.x, r.pos.y).name}». Мастер, расскажи её отряду.`); return; }
   if (kind === "supplies") { lines.push(...giveSupplies(2)); return; }
@@ -2986,7 +2997,7 @@ function searchReward(row, sr, digger, lines) {
   }
 }
 function doSearch(kind) {
-  const r = state.run, sr = dgUi.sr, sp = specialAt(r.pos.x, r.pos.y), lines = [];
+  const r = state.run, sr = { ...dgUi.sr, kind }, sp = specialAt(r.pos.x, r.pos.y), lines = [];
   let digger = null;
   if (kind === "dig") {
     digger = pickShovel();
@@ -3379,7 +3390,7 @@ function stageOverlay() {
 }
 
 // Строки «Снаряжения»: показываются только те расходники, что есть хоть у кого-то.
-const SUPPLY_ROWS = [["ration", "Еда (пайки)"], ["potion", "Зелья лечения"], ["torch", "Факелы"], ["arrow", "Стрелы"], ["shovel", "Лопаты"], ["shovel-good", "Хорошие лопаты"], ["shovel-best", "Отличные лопаты"], ["stone-9", "Камни 9-го класса"]];
+const SUPPLY_ROWS = [["ration", "Еда (пайки)"], ["potion", "Зелья лечения"], ["torch", "Факелы"], ["arrow", "Стрелы"], ["shovel", "Лопаты"], ["shovel-good", "Хорошие лопаты"], ["shovel-best", "Отличные лопаты"], ["stone-9", "Камни 9-го класса"], ["stone-8", "Камни 8-го класса"]];
 const partyFood = () => state.party.reduce((a, c) => a + countGear(c, "ration"), 0);
 function restOverlay() {
   const r = state.run, rs = dgUi.rest, eaten = Object.values(rs.eat).reduce((a, b) => a + b, 0), left = partyFood() - eaten;
@@ -3929,7 +3940,7 @@ function heroStats(c) {
     <dl class="kv"><div><dt>КД</dt><dd>${d.ac}</dd></div><div><dt>Мана</dt><dd>${d.mana}</dd></div><div><dt>БМ</dt><dd>+${d.pb}</dd></div></dl>
     <div class="lrow luck-row"><span>Удача <b style="color:var(--fx-gold-hi)">${signed(luckOf(c))}</b></span>
       <span class="btn-row"><button class="fx-btn" data-hx="luck" data-d="-1" aria-label="Удача −1">−</button><button class="fx-btn" data-hx="luck" data-d="1" aria-label="Удача +1">+</button></span></div>
-    <p class="trait" style="margin:0">Удача прибавляется к броску удачи при раскопках и снижает шанс нападения на долгой стоянке. Крит и уклонение — правила в работе; отрицательная удача даёт врагам шанс крита по герою.</p>
+    <p class="trait" style="margin:0">Удача прибавляется к броску удачи при раскопках и снижает шанс нападения на долгой стоянке. На бой не влияет: крит решает обычный бросок.</p>
     <p class="trait" style="margin:0">КД: ${d.acSrc}${itemOf(c.equip.off)?.id === "shield" && !twoHanded(c) ? " + щит" : ""}. ${[c.gender && GENDERS[c.gender], c.age && ageText(c.age), c.height && c.height + " см", c.weight && c.weight + " кг"].filter(Boolean).join(" · ")}</p>
     ${loadBlock(c)}
     ${st ? `<div class="fx-section">В лабиринте</div>
@@ -3992,7 +4003,7 @@ function heroInv(c) {
     ${selPanel(c)}
     <div class="btn-row" style="justify-content:center"><button class="fx-btn" data-hx="add-toggle" aria-expanded="${heroUi.add}">${heroUi.add ? "Скрыть список" : "+ Добавить предмет (мастер)"}</button></div>
     ${heroUi.add ? `<div class="add-list">
-      ${[["ration", 1], ["potion", 1], ["torch", 1], ["arrow", 20], ["clothes", 1], ["shovel", 1], ["shovel-good", 1], ["shovel-best", 1], ["stone-9", 1]].map(([id, q]) => `<button class="fx-btn" data-hadd="g:${id}:${q}">${GEAR[id].name}${q > 1 ? " ×" + q : ""}</button>`).join("")}
+      ${[["ration", 1], ["potion", 1], ["torch", 1], ["arrow", 20], ["clothes", 1], ["shovel", 1], ["shovel-good", 1], ["shovel-best", 1], ["stone-9", 1], ["stone-8", 1]].map(([id, q]) => `<button class="fx-btn" data-hadd="g:${id}:${q}">${GEAR[id].name}${q > 1 ? " ×" + q : ""}</button>`).join("")}
       ${WEAPONS.filter(w => w.kind !== "Боеприпасы").map(w => `<button class="fx-btn" data-hadd="w:${w.id}:1">${w.name}</button>`).join("")}
       ${ARMOR_FLAT.map(a => `<button class="fx-btn" data-hadd="a:${a.id}:1">${a.name}</button>`).join("")}
     </div>` : ""}`;
