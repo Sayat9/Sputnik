@@ -18,6 +18,11 @@ for m in re.finditer(r'\{ id: "([a-z-]+)", zone: "([a-z]+)", rare: (true|false)[
     MON.append(dict(id=m.group(1), zone=m.group(2), rare=m.group(3) == "true", name=m.group(4), ph=ph.group(1) if ph else None,
                     floor=int(re.search(r'floor: (\d+)', line).group(1)), cls=int(re.search(r'cls: (\d+)', line).group(1)),
                     rank="rare" if rank == "normal" and m.group(3) == "true" else rank, draft="draft: true" in line))
+# Монстры-заготовки 2 этажа (только эссенция, без статблока) записаны в index.html строками-массивами.
+for m in re.finditer(r'\["([a-z-]+)", (\d), (true|false), "([a-z]+)", "([^"]+)", "([^"]+)", "([^"]+)"\]', SRC):
+    MON.append(dict(id=m.group(1), zone="goblin", rare=m.group(3) == "true", name=m.group(5), ph="humanoid", floor=2, cls=int(m.group(2)),
+                    rank="rare" if m.group(4) == "normal" and m.group(3) == "true" else m.group(4), draft=False, stub=True,
+                    group=m.group(6), where=m.group(7)))
 RANKS = [("normal", "Обычный"), ("rare", "Редкий"), ("special", "Особый"), ("guardian", "Страж"), ("lord", "Лорд")]
 RASTER = set(re.search(r'const RASTER = new Set\(\[([^\]]*)\]', SRC).group(1).replace('"', "").replace(" ", "").split(","))
 def face(m):
@@ -71,6 +76,11 @@ blocks = {}
 for part in re.split(r"\n### ", sec)[1:]:
     title, body = part.split("\n", 1)
     blocks[title.strip()] = body
+# Эссенции 2 этажа: подразделы «#### Имя (класс…)» внутри «### 2 этаж: эссенции …».
+for part in re.split(r"\n#### ", sec)[1:]:
+    title, body = part.split("\n", 1)
+    name = re.sub(r"\s*\(.*\)\s*$", "", title.strip())
+    blocks.setdefault("ESS:" + name, body.split("\n### ")[0].split("\n## ")[0])
 if os.path.exists(DRAFTS):                      # черновики автора ещё не утвердил — показываем с пометкой
     for part in re.split(r"\n### ", open(DRAFTS, encoding="utf-8").read())[1:]:
         title, body = part.split("\n", 1)
@@ -83,6 +93,9 @@ for zid, zname, zdesc in ZONES:
         f'<a href="#{m["id"]}" data-pick="{m["id"]}" class="fchip" data-zone="{zid}" data-floor="{m["floor"]}" data-cls="{m["cls"]}" data-rank="{m["rank"]}" data-rare="{int(m["rare"])}"><img src="{face(m)}" alt="" loading="lazy"><span>{m["name"]}</span></a>' for m in ms) + "</div></div>")
     for m in ms:
         body = blocks.get(m["name"], "")
+        if m.get("stub"):
+            body = ("**Обитает:** 2 этаж, Лес гоблинов: " + m["where"] + ". " + m["group"] + ".\n\n"
+                    "Статблок ещё не расписан — пока утверждена только эссенция.\n\n**Эссенция**\n\n" + blocks.get("ESS:" + m["name"], ""))
         lvl = re.search(r"\*\*Уровень:\*\*\s*(\d+)", body)
         body = re.sub(r"\*\*Имя:\*\*.*\n", "", body)
         body = re.sub(r"\*\*Уровень:\*\*.*\n", "", body)
@@ -119,6 +132,7 @@ page = f'''<title>Бестиарий Рафдонии</title>
   --f-display: "Kelly Slab", Georgia, serif; --f-fancy: "Cormorant SC", Georgia, serif;
   --f-body: "Alegreya Sans", system-ui, sans-serif; --f-data: "JetBrains Mono", ui-monospace, monospace;
 }}
+[hidden] {{ display: none !important; }}
 html {{ background: var(--bg); }}
 body {{ background: var(--bg); color: var(--text); font: 400 16px/1.5 var(--f-body);
   padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 20px 60px; }}

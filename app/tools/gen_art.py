@@ -610,6 +610,9 @@ PH_SHAPES = {
              '<circle cx="108" cy="150" r="5" fill="#d6a64c"/><circle cx="148" cy="150" r="5" fill="#d6a64c"/><path d="M118 186 L128 194 L138 186" stroke="#6e5634" stroke-width="2" fill="none"/>',
     "undead": '<path d="M84 140 C84 96 172 96 172 140 C172 166 160 176 156 190 L100 190 C96 176 84 166 84 140Z" fill="#2a2016" stroke="#6e5634" stroke-width="2"/>'
               '<circle cx="110" cy="146" r="11" fill="#0b0805"/><circle cx="146" cy="146" r="11" fill="#0b0805"/><path d="M106 200 V214 M118 200 V216 M130 200 V216 M142 200 V214" stroke="#6e5634" stroke-width="3"/>',
+    "humanoid": '<path d="M94 92 L60 74 L84 112 Z M162 92 L196 74 L172 112 Z" fill="#2a2016" stroke="#6e5634" stroke-width="2"/>'
+                '<path d="M86 130 C86 86 170 86 170 130 C170 168 152 190 128 190 C104 190 86 168 86 130Z" fill="#2a2016" stroke="#6e5634" stroke-width="2"/>'
+                '<circle cx="110" cy="136" r="5" fill="#d6a64c"/><circle cx="146" cy="136" r="5" fill="#d6a64c"/><path d="M60 230 C66 200 94 192 128 192 C162 192 190 200 196 230" fill="#2a2016" stroke="#6e5634" stroke-width="2"/>',
     "elemental": '<path d="M76 196 L88 118 L120 90 L162 100 L184 150 L170 204 L112 214Z" fill="#2a2016" stroke="#6e5634" stroke-width="2"/>'
                  '<path d="M110 120 L126 150 L116 176 M150 128 L140 160" stroke="#6e5634" stroke-width="2" fill="none"/><circle cx="128" cy="150" r="6" fill="#d6a64c" opacity=".8"/>',
 }

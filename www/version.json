@@ -1,5 +1,5 @@
 {
- "version": 1792467852,
+ "version": 1792468182,
  "files": [
   "assets/items/armor-chainmail.svg",
   "assets/items/armor-hide.svg",
@@ -47,6 +47,8 @@
   "assets/monsters/ph-beast-full.svg",
   "assets/monsters/ph-elemental-face.svg",
   "assets/monsters/ph-elemental-full.svg",
+  "assets/monsters/ph-humanoid-face.svg",
+  "assets/monsters/ph-humanoid-full.svg",
   "assets/monsters/ph-undead-face.svg",
   "assets/monsters/ph-undead-full.svg",
   "assets/monsters/skeleton-archer-face.webp",

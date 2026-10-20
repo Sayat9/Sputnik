@@ -1095,6 +1095,51 @@ const ESSENCES = {
     active: { name: "Парирование щитом", mana: 4, time: "реакция, когда по тебе попадает рукопашная атака (нужен щит)",
       text: "На себя, против этой атаки. Если бросок атаки превысил твой КД не больше чем на 3, атака отражена: урон и эффекты попадания не проходят. Эффекты при касании всё равно действуют на тебя; твои эффекты при отражении или блоке применяются к атакующему." },
   },
+  // ===== 2 этаж: Лес гоблинов (rules.md → «2 этаж: эссенции Леса гоблинов»). cd — перезарядка в раундах.
+  "goblin-shaman": { id: "goblin-shaman", name: "Эссенция гоблина-шамана", cls: 9, source: "goblin-shaman",
+    stats: { wis: 1, str: -1 }, other: ["Медицина +1", "Тёмное зрение +3 м"],
+    passive: { name: "Под защитой духов", text: "Союзники в 3 м от тебя получают +1 к спасброскам." },
+    active: { name: "Целебный наговор", mana: 3, time: "бонусное действие", text: "Одно существо в 9 м, которое ты видишь, восстанавливает 1к6 + мод. Мудрости ОЗ. Перезарядка 2 раунда." } },
+  "goblin-assassin": { id: "goblin-assassin", name: "Эссенция гоблина-ассасина", cls: 8, source: "goblin-assassin",
+    stats: { dex: 2, con: -1 }, other: ["КД +1", "Скрытность +1", "Тёмное зрение +3 м"],
+    passive: { name: "Нож в спину", text: "Если цель тебя не видит или застигнута врасплох, первая атака лёгким оружием наносит +1к6 урона. Перезарядка 2 раунда." },
+    active: { name: "Уход в тень", mana: 4, time: "бонусное действие", text: "Перемещаешься на половину скорости, не провоцируя атак. Если в конце пути рядом укрытие, можешь сразу спрятаться (Скрытность против пассивного Восприятия), даже если тебя видели. Перезарядка 3 раунда." } },
+  "goblin-trapper": { id: "goblin-trapper", name: "Эссенция гоблина-зверолова", cls: 8, source: "goblin-trapper",
+    stats: { dex: 1, cha: -1 }, other: ["Выживание +2", "Восприятие +1"],
+    passive: { name: "Охотничий глаз", text: "Простые ловушки и капканы на тебя не срабатывают. Преимущество на выслеживание по следам." },
+    active: { name: "Ловчая сеть", mana: 4, time: "действие", text: "3/9 м, одно существо Большое или меньше. Спасбросок Силы Сл 8 + БМ + мод. Лов. Провал — опутано (скорость 0, атаки по нему с преимуществом, его — с помехой) до освобождения: действие и проверка Силы против Сл или 5 рубящего урона по сети. Успех — скорость вдвое меньше до конца его следующего хода. Перезарядка 3 раунда." } },
+  "goblin-elder": { id: "goblin-elder", name: "Эссенция главного шамана", cls: 8, source: "goblin-elder",
+    stats: { wis: 2, cha: 1, dex: -1 }, other: ["Максимум маны +4"],
+    passive: { name: "Голос старейшины", text: "Союзники в 9 м, которые тебя слышат, получают преимущество на спасброски против испуга и на проверки трусости." },
+    active: { name: "Проклятие предков", mana: 4, time: "действие", text: "Одно существо в 18 м, концентрация до 1 минуты. Спасбросок Мудрости Сл 8 + БМ + мод. Мдр (повтор в конце каждого её хода). Провал — помеха на броски атаки, каждое попадание по цели +1к4 урона. Успех — ничего. Перезарядка 3 раунда после окончания." } },
+  "hobgoblin-brute": { id: "hobgoblin-brute", name: "Эссенция хобгоблина-громилы", cls: 8, source: "hobgoblin-brute",
+    stats: { str: 2, con: 1, dex: -1 }, other: ["Атлетика +1"],
+    passive: { name: "Тяжёлая рука", text: "Попадание дробящим оружием ближнего боя отталкивает существо Среднего размера или меньше на 1,5 м." },
+    active: { name: "Сокрушительный замах", mana: 4, time: "действие (рукопашная атака дробящим оружием)", text: "При попадании спасбросок Силы Сл 8 + БМ + мод. Сил. Провал — +1к8 урона и цель сбита с ног. Успех — обычный урон. Перезарядка 2 раунда." } },
+  "hobgoblin-thrower": { id: "hobgoblin-thrower", name: "Эссенция хобгоблина-метателя", cls: 8, source: "hobgoblin-thrower",
+    stats: { dex: 2, str: 1, wis: -1 }, other: ["Дальность метательного оружия +3 м"],
+    passive: { name: "Полная перевязь", text: "Метательное оружие достаёшь как часть атаки; оно наносит +1 урона." },
+    active: { name: "Двойной бросок", mana: 4, time: "действие", text: "Две дальнобойные атаки метательным оружием, по одной цели или по двум. Перезарядка 2 раунда." } },
+  "hobgoblin-driver": { id: "hobgoblin-driver", name: "Эссенция хобгоблина-загонщика", cls: 8, source: "hobgoblin-driver",
+    stats: { str: 1, cha: 1, wis: -1 }, other: ["Запугивание +2"],
+    passive: { name: "Длинная рука", text: "Досягаемость кнута и цепа +1,5 м." },
+    active: { name: "Подгонять", mana: 4, time: "бонусное действие", text: "Один союзник в 9 м, который тебя слышит, сразу перемещается на половину скорости и реакцией совершает одну атаку оружием. Перезарядка 3 раунда." } },
+  "hobgoblin-shield": { id: "hobgoblin-shield", name: "Эссенция хобгоблина-щитоносца", cls: 8, source: "hobgoblin-shield",
+    stats: { con: 2, str: 1, dex: -1 }, other: ["КД +1"],
+    passive: { name: "Живая стена", text: "Пока держишь щит, союзники в 1,5 м позади тебя получают половинное укрытие: +2 к КД и к спасброскам Ловкости." },
+    active: { name: "Принять удар", mana: 4, time: "реакция, когда союзник в 1,5 м становится целью атаки", text: "Ты становишься целью вместо союзника, атака сравнивается с твоим КД. С ростовым щитом урон по тебе меньше на 1к6. Перезарядка 2 раунда." } },
+  "goblin-king": { id: "goblin-king", name: "Эссенция короля гоблинов", cls: 7, source: "goblin-king",
+    stats: { str: 2, cha: 2, con: 1, dex: -2 }, other: ["Запугивание +1"],
+    passive: { name: "Пока король жив", text: "Союзники в 18 м, которые тебя видят, не могут быть испуганы и получают +1 к броскам атаки." },
+    active: { name: "Боевой рёв", mana: 5, time: "бонусное действие", text: "Существа на выбор в 9 м, до конца твоего следующего хода. Враги — спасбросок Мудрости Сл 8 + БМ + мод. Хар, провал: испуганы тобой. Союзники — 1к6 временных ОЗ. Перезарядка 4 раунда." } },
+  "goblin-bomber": { id: "goblin-bomber", name: "Эссенция гоблина-подрывника", cls: 7, source: "goblin-bomber",
+    stats: { dex: 2, int: 1, wis: -1 }, other: ["Сопротивление урону огнём", "Восприятие −2"],
+    passive: { name: "Свои не горят", text: "Урон огнём от твоих способностей и бомб +2. Иммунитета к своим взрывам нет — только сопротивление огню." },
+    active: { name: "Самодельная бомба", mana: 5, time: "2 хода: поджечь фитиль, затем бросок", text: "Сфера 3 м в пределах 18 м. Спасбросок Ловкости Сл 8 + БМ + мод. Лов: провал — 3к6 огнём и сбит с ног, успех — половина. Пока фитиль горит, любое попадание по тебе взрывает бомбу в руках (сфера на тебе, полный урон тебе без спасброска). Перед броском к20: на 1–2 рвётся в руках. Перезарядка 1 раунд." } },
+  "goblin-thief": { id: "goblin-thief", name: "Эссенция гоблина-вора", cls: 7, source: "goblin-thief",
+    stats: { dex: 2, str: -1 }, other: ["Ловкость рук +1", "Скрытность +1", "Жадность"],
+    passive: { name: "Лёгкие ноги", text: "Скорость +1,5 м. Жадность (минус): если в 3 м лежит что-то ценное, в начале хода спасбросок Мудрости Сл 12; провал — тратишь перемещение и действие, чтобы это схватить." },
+    active: { name: "Срезать кошель", mana: 5, time: "бонусное действие", text: "Существо в 1,5 м, спасбросок Ловкости Сл 8 + БМ + мод. Лов. Провал — забираешь один незакреплённый предмет (не надетое) и перемещаешься на половину скорости, не провоцируя атак. Перезарядка 3 раунда." } },
   "goblin-spear": {
     id: "goblin-spear", name: "Эссенция гоблина-копейщика", cls: 9, source: "goblin-spear",
     stats: { str: 1, cha: -1 }, other: ["Атлетика +1", "Инициатива +1"],
@@ -1267,6 +1312,22 @@ const MONSTERS = [
       ["Удар щитом", "+4 к попаданию, 1к4+2 дробящего.", "attacks"],
     ],
     loot: "Камень 8-го класса.", essence: "skeleton-warrior" },
+  // ===== 2 этаж: Лес гоблинов. Эссенции утверждены (rules.md), статблоков ещё нет — карточки без характеристик.
+  ...[
+    ["goblin-shaman", 9, false, "normal", "Гоблин-шаман", "Только внутри группы гоблинов, один на группу", "поле и поселение"],
+    ["goblin-assassin", 8, false, "normal", "Гоблин-ассасин", "Засады на подходах к логову воров", "подходы к логову воров"],
+    ["goblin-trapper", 8, false, "normal", "Гоблин-зверолов", "Сети и капканы, ловит одиночек", "поселение и поле"],
+    ["goblin-elder", 8, false, "normal", "Главный шаман", "Старый гоблин, живёт в поселении", "поселение"],
+    ["hobgoblin-brute", 8, false, "normal", "Хобгоблин-громила", "Нечасто, максимум 3 за раз, ближе к концу захода", "поле, поселение"],
+    ["hobgoblin-thrower", 8, false, "normal", "Хобгоблин-метатель", "Нечасто, максимум 3 за раз, ближе к концу захода", "поле, поселение"],
+    ["hobgoblin-driver", 8, false, "normal", "Хобгоблин-загонщик", "Нечасто, гонит гоблинов вперёд", "поле, поселение"],
+    ["hobgoblin-shield", 8, true, "normal", "Хобгоблин-щитоносец", "Редкий: в руинах, 1–3 рядом с подрывником; в поселении очень редко", "руины"],
+    ["goblin-king", 7, false, "normal", "Король гоблинов", "Лидер, сидит на троне в поселении", "поселение"],
+    ["goblin-bomber", 7, false, "special", "Гоблин-подрывник", "Особый: в самом углу руин, с 1–3 щитоносцами", "руины"],
+    ["goblin-thief", 7, false, "special", "Гоблин-вор", "Особый: в логове воров", "логово воров"],
+  ].map(([id, cls, rare, rank, name, group, where]) => ({ id, zone: "goblin", rare, weight: 1, name, floor: 2, cls, rank, size: "Гуманоид", group,
+    type: "Гуманоид, монстр", sz: "", areas: ["2 этаж, Лес гоблинов: " + where], ph: "humanoid", stub: true,
+    ac: "—", hp: "—", speed: "—", cr: "—", abil: null, senses: "", traits: [], loot: `Камень ${cls}-го класса.`, essence: id })),
   { id: "wolf", zone: "beast", rare: false, weight: 2, name: "Рубящий волк", floor: 1, cls: 9, rank: "normal", size: "Средний зверь", group: "Стаи по 3–5",
     type: "Зверь, монстр", sz: "средний", areas: ["1 этаж: зона зверей"],
     ac: "12", hp: "7 (2к8−2)", speed: "12 м", cr: "1/8", abil: [11, 14, 9, 3, 12, 6],
@@ -1678,7 +1739,7 @@ function renderBestiary() {
       <div class="fmeta"><small>Показано ${list.length} из ${MONSTERS.length}${changed ? ` · <button class="linkbtn" data-reset="m">Сбросить</button>` : ""}</small></div>
     </div>
     <div class="list">${list.length ? list.map(m => {
-      const ab = STAT_KEYS.map((k, i) => [STAT_SHORT[k], m.abil[i]]);
+      const ab = m.abil ? STAT_KEYS.map((k, i) => [STAT_SHORT[k], m.abil[i]]) : null;
       return `
       <details class="mon" data-mon="${m.id}"${openMonsters.has(m.id) ? " open" : ""}>
         <summary>
@@ -1692,13 +1753,13 @@ function renderBestiary() {
         <div class="mon-body">
           <div class="full-art">${img(ART.monsterFull(m.id), m.name + " в полный рост")}</div>
           <p style="margin:0;color:var(--muted)">${m.size} · ${m.group}</p>
-          <dl class="stats">
+          ${ab ? `<dl class="stats">
             <div><dt>КД</dt><dd>${m.ac}</dd></div>
             <div><dt>ОЗ</dt><dd>${m.hp}</dd></div>
             <div><dt>Скорость</dt><dd>${m.speed}</dd></div>
           </dl>
           <dl class="abil">${ab.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}<small>${signed(mod(v))}</small></dd></div>`).join("")}</dl>
-          <p style="margin:0;color:var(--muted);font-size:15px">Опасность ${m.cr}. ${m.senses}</p>
+          <p style="margin:0;color:var(--muted);font-size:15px">Опасность ${m.cr}. ${m.senses}</p>` : `<p style="margin:0;color:var(--muted);font-size:15px">Статблок ещё не расписан — пока утверждена только эссенция.</p>`}
           <ul class="plain">${m.traits.map(([n, t]) => `<li><b>${n}.</b> ${t}</li>`).join("")}</ul>
           <p style="margin:0;font-size:15px"><b>Добыча:</b> ${m.loot}</p>
           ${m.essence ? essenceBlock(ESSENCES[m.essence]) : ""}
@@ -2518,7 +2579,7 @@ function genEncounter(x, y, day, n = 1, forceRare = false) {
   const z = zoneAt(x, y);
   if (z.kind === "safe") return null;
   const zone = z.zones[rnd(z.zones.length)];
-  const pool = MONSTERS.filter(m => m.zone === zone && m.cls === 9);
+  const pool = MONSTERS.filter(m => m.zone === zone && m.cls === 9 && m.floor === 1 && !m.draft);
   const std = pool.filter(m => !m.rare), rare = pool.filter(m => m.rare);
   const max = day >= 5 ? 3 : day >= 3 ? 2 : 1, sev = eventOf(Math.min(n, 12))[1];
   const stdCount = sev === "easy" ? 1 : sev === "mid" ? Math.max(1, max - 1) : max;
@@ -3617,7 +3678,7 @@ function unlockJournal(cls) {
   const j = journal();
   if (!j.unlocked || !j.tiers.includes(cls)) { j.unlocked = true; if (!j.tiers.includes(cls)) j.tiers.push(cls); }
 }
-const libMonsters = () => MONSTERS.filter(m => journal().tiers.includes(m.cls));
+const libMonsters = () => MONSTERS.filter(m => m.floor === 1 && !m.draft && journal().tiers.includes(m.cls));
 const MON_PH = `<svg viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" fill="#120e09"/><circle cx="50" cy="42" r="18" fill="#2a2016" stroke="#6e5634"/><path d="M18 100 C22 74 36 66 50 66 C64 66 78 74 82 100Z" fill="#2a2016" stroke="#6e5634"/></svg>`;
 const monArt = (m, full) => (full ? ART.monsterFull(m.id) : ART.monsterFace(m.id));
 
@@ -3632,7 +3693,7 @@ function monSections(m) {
     { k: "type", label: "Тип", html: `${m.type || "—"}, ${m.sz || m.size.toLowerCase()} · ${m.group.toLowerCase()}` },
     ...(byCat("body").length ? [{ k: "body", label: "Особенность тела", html: list(byCat("body")) }] : []),
     { k: "stats", label: "Характеристики", html: `КД ${m.ac} · ОЗ ${m.hp} · скорость ${m.speed} · опасность ${m.cr}
-      <dl class="abil">${STAT_KEYS.map((k, i) => `<div><dt>${STAT_SHORT[k]}</dt><dd>${m.abil[i]}<small>${signed(mod(m.abil[i]))}</small></dd></div>`).join("")}</dl>
+      ${m.abil ? `<dl class="abil">${STAT_KEYS.map((k, i) => `<div><dt>${STAT_SHORT[k]}</dt><dd>${m.abil[i]}<small>${signed(mod(m.abil[i]))}</small></dd></div>`).join("")}</dl>` : ""}
       <div style="margin-top:6px">${m.senses}</div>
       ${byCat("behavior").length ? `<div class="lib-sub">Поведение</div>${list(byCat("behavior"))}` : ""}${byCat("attacks").length ? `<div class="lib-sub">Атаки</div>${list(byCat("attacks"))}` : ""}` },
   ];
