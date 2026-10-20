@@ -9,28 +9,12 @@ DRAFTS = os.path.join(APP, "..", "campaign", "drafts.md")
 SRC = open(os.path.join(APP, "index.html"), encoding="utf-8").read()
 rules = open(RULES, encoding="utf-8").read()
 
-# Монстры из данных приложения: id, зона, редкость, имя, заглушка-картинка.
-MON = []
-for m in re.finditer(r'\{ id: "([a-z-]+)", zone: "([a-z]+)", rare: (true|false)[^\n]*?name: "([^"]+)"[^\n]*', SRC):
-    line = m.group(0)
-    ph = re.search(r'ph: "([a-z]+)"', line)
-    rank = re.search(r'rank: "([a-z]+)"', line).group(1)
-    MON.append(dict(id=m.group(1), zone=m.group(2), rare=m.group(3) == "true", name=m.group(4), ph=ph.group(1) if ph else None,
-                    floor=int(re.search(r'floor: (\d+)', line).group(1)), cls=int(re.search(r'cls: (\d+)', line).group(1)),
-                    rank="rare" if rank == "normal" and m.group(3) == "true" else rank, draft="draft: true" in line))
-# Монстры-заготовки 2 этажа (только эссенция, без статблока) записаны в index.html строками-массивами.
-# Каждый массив начинается комментарием «// ===== 2 этаж: <место>.» — по нему берём зону и место.
-STUB_ZONE = {"Лес гоблинов": ("goblin", "humanoid"), "Волчья чаща": ("beast", "beast")}
-for seg in re.split(r"// ===== 2 этаж: ", SRC)[1:]:
-    place = re.match(r"([^.(]+?)[.(]", seg).group(1).strip()
-    if place not in STUB_ZONE: continue
-    zone, ph = STUB_ZONE[place]
-    if "].map(" not in seg: continue
-    arr = seg[:seg.index("].map(")]
-    for m in re.finditer(r'\["([a-z-]+)", (\d), (true|false), "([a-z]+)", "([^"]+)", "([^"]+)", "([^"]+)"\]', arr):
-        MON.append(dict(id=m.group(1), zone=zone, rare=m.group(3) == "true", name=m.group(5), ph=ph, floor=2, cls=int(m.group(2)),
-                        rank="rare" if m.group(4) == "normal" and m.group(3) == "true" else m.group(4), draft=False, stub=True,
-                        group=m.group(6), where=m.group(7), place=place))
+# Монстры из данных приложения (tools/dump_monsters.mjs выполняет блок данных index.html): этажи, места, условия появления.
+import json, subprocess
+DATA = json.loads(subprocess.check_output(["node", os.path.join(HERE, "dump_monsters.mjs")]))
+MON = [dict(id=x["id"], zone=x["zone"], rare=x["rare"], name=x["name"], ph=x.get("ph"), floor=x["floor"], floors=x["floors"], cls=x["cls"],
+            rank="rare" if x["rank"] == "normal" and x["rare"] else x["rank"], draft=bool(x.get("draft")), stub=bool(x.get("stub")),
+            statDraft=bool(x.get("statDraft")), areas=x["areas"], spawn=x.get("spawn")) for x in DATA["MONSTERS"]]
 RANKS = [("normal", "Обычный"), ("rare", "Редкий"), ("special", "Особый"), ("guardian", "Страж"), ("lord", "Лорд")]
 RASTER = set(re.search(r'const RASTER = new Set\(\[([^\]]*)\]', SRC).group(1).replace('"', "").replace(" ", "").split(","))
 def face(m):
@@ -98,31 +82,29 @@ cards, idx = [], []
 for zid, zname, zdesc in ZONES:
     ms = [m for m in MON if m["zone"] == zid]
     idx.append(f'<div class="zone-idx"><span class="zl">{zname}</span><div class="faces">' + "".join(
-        f'<a href="#{m["id"]}" data-pick="{m["id"]}" class="fchip" data-zone="{zid}" data-floor="{m["floor"]}" data-cls="{m["cls"]}" data-rank="{m["rank"]}" data-rare="{int(m["rare"])}"><img src="{face(m)}" alt="" loading="lazy"><span>{m["name"]}</span></a>' for m in ms) + "</div></div>")
+        f'<a href="#{m["id"]}" data-pick="{m["id"]}" class="fchip" data-zone="{zid}" data-floor=" {" ".join(map(str, m["floors"]))} " data-cls="{m["cls"]}" data-rank="{m["rank"]}" data-rare="{int(m["rare"])}"><img src="{face(m)}" alt="" loading="lazy"><span>{m["name"]}</span></a>' for m in ms) + "</div></div>")
     for m in ms:
         body = blocks.get(m["name"], "")
-        if m.get("stub"):
-            body = ("**Обитает:** 2 этаж, " + m["place"] + ": " + m["where"] + ". " + m["group"] + ".\n\n"
-                    "Статблок ещё не расписан — пока утверждена только эссенция.\n\n**Эссенция**\n\n" + blocks.get("ESS:" + m["name"], ""))
-        lvl = re.search(r"\*\*Уровень:\*\*\s*(\d+)", body)
-        body = re.sub(r"\*\*Имя:\*\*.*\n", "", body)
-        body = re.sub(r"\*\*Уровень:\*\*.*\n", "", body)
-        habit = re.search(r"\*\*Обитает:\*\*\s*(.+)", body)
-        body = re.sub(r"\*\*Обитает:\*\*.*\n", "", body)
+        if m["stub"]:
+            body = body + "\n\n**Эссенция**\n\n" + blocks.get("ESS:" + m["name"], "")
+        body = re.sub(r"\*\*(Имя|Уровень|Обитает|Условия появления):\*\*.*\n", "", body)
+        habit = "; ".join(m["areas"])
+        spawn = f'<details class="spawn"><summary>Условия появления</summary><p>{inline(m["spawn"])}</p></details>' if m["spawn"] else ""
         stat_line = re.search(r"\n([^\n|*-][^\n]*Опасность[^\n]*)", body)
-        tags = [f'<span class="tag">{m["floor"]} этаж</span>', f'<span class="tag cls">{m["cls"]} класс</span>',
+        tags = [f'<span class="tag">{", ".join(map(str, m["floors"]))} этаж</span>', f'<span class="tag cls">{m["cls"]} класс</span>',
                 f'<span class="tag {"rare" if m["rank"] != "normal" else "std"}">{dict(RANKS)[m["rank"]].lower()}</span>']
         if m["draft"]: tags.append('<span class="tag draft">черновик</span>')
-        cards.append(f'''<article class="mon" hidden id="{m["id"]}" data-zone="{zid}" data-floor="{m["floor"]}" data-cls="{m["cls"]}" data-rank="{m["rank"]}" data-rare="{int(m["rare"])}" data-name="{m["name"].lower()}">
+        if m["statDraft"]: tags.append('<span class="tag draft">черновик статов</span>')
+        cards.append(f'''<article class="mon" hidden id="{m["id"]}" data-zone="{zid}" data-floor=" {" ".join(map(str, m["floors"]))} " data-cls="{m["cls"]}" data-rank="{m["rank"]}" data-rare="{int(m["rare"])}" data-name="{m["name"].lower()}">
   <button class="close" data-close aria-label="Закрыть запись">✕</button>
   <header><img class="face" src="{face(m)}" alt="{m["name"]}" loading="lazy">
     <div class="hd"><h3>{m["name"]}</h3><div class="tags">{"".join(tags)}</div>
-    {f'<p class="habit">{inline(habit.group(1))}</p>' if habit else ""}</div></header>
-  <div class="body">{md(body)}</div>
+    <p class="habit">{inline(habit)}</p></div></header>
+  {spawn}<div class="body">{md(body)}</div>
 </article>''')
 
 def frow(label, key, opts):
-    have = {str(m[key]) for m in MON} if key != "zone" else {m["zone"] for m in MON}
+    have = {str(f) for m in MON for f in m["floors"]} if key == "floor" else {str(m[key]) for m in MON}
     return (f'<div class="frow"><span class="fl">{label}</span><div class="chips" role="group" aria-label="{label}">' + "".join(
         f'<button class="chip" data-k="{key}" data-v="{v}" aria-pressed="{str(v == "all").lower()}"{"" if v == "all" or v in have else " disabled"}>{t}</button>' for v, t in opts) + "</div></div>")
 
@@ -151,6 +133,9 @@ body {{ background: var(--bg); color: var(--text); font: 400 16px/1.5 var(--f-bo
 .intro {{ border: 1px solid var(--line); border-radius: 6px; background: var(--panel); padding: 12px 14px; font-size: 14.5px; color: var(--muted); }}
 .intro summary {{ cursor: pointer; color: var(--gold); font: 700 13px var(--f-fancy); letter-spacing: .12em; text-transform: uppercase; }}
 .intro p {{ margin: 8px 0 0; }}
+.spawn {{ margin: 12px 14px 0; border: 1px dashed var(--line); border-radius: 6px; padding: 8px 12px; font-size: 14.5px; }}
+.spawn summary {{ cursor: pointer; color: var(--gold); font: 700 13px var(--f-fancy); letter-spacing: .12em; text-transform: uppercase; }}
+.spawn p {{ margin: 8px 0 0; }}
 .bar {{ padding-block: 4px 10px; display: flex; flex-direction: column; gap: 8px; border-bottom: 1px solid var(--line); }}
 .search {{ position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; box-shadow: 0 0 0 6px var(--bg); }}
 body::before {{ content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }}
@@ -203,13 +188,13 @@ td {{ text-align: center; padding: 6px 4px; }}
 @media (prefers-reduced-motion: no-preference) {{ html {{ scroll-behavior: smooth; }} }}
 </style>
 <div class="wrap">
-  <div class="top"><span class="eyebrow">Выживание за варвара · 1 этаж</span><h1>Бестиарий Рафдонии</h1>
+  <div class="top"><span class="eyebrow">Выживание за варвара · лабиринт</span><h1>Бестиарий Рафдонии</h1>
     <p>Справочник мастера: все монстры лабиринта — статы, поведение, атаки и эссенции. Портреты, которых ещё нет, заменены силуэтами.</p></div>
   <details class="intro"><summary>Как устроены монстры и эссенции</summary>{md(intro_raw)}</details>
   <input id="q" class="search" type="search" placeholder="Найти монстра по имени…" autocomplete="off" aria-label="Поиск по имени">
   <div class="bar">
     {frow("Группа", "zone", [("all", "Все")] + [(z, n) for z, n, _ in ZONES])}
-    {frow("Этаж", "floor", [("all", "Все")] + [(str(f), f"{f} этаж") for f in sorted({m["floor"] for m in MON})])}
+    {frow("Этаж", "floor", [("all", "Все")] + [(str(f), f"{f} этаж") for f in sorted({f for m in MON for f in m["floors"]})])}
     {frow("Класс", "cls", [("all", "Все")] + [(str(c), f"{c} класс") for c in sorted({m["cls"] for m in MON}, reverse=True)])}
     {frow("Тип", "rank", [("all", "Все")] + RANKS)}
   </div>
@@ -223,7 +208,7 @@ td {{ text-align: center; padding: 6px 4px; }}
 const q = document.getElementById("q"), chips = [...document.querySelectorAll(".chip")];
 const f = {{ zone: "all", floor: "all", cls: "all", rank: "all" }};
 let pick = null;
-const pass = el => Object.entries(f).every(([k, v]) => v === "all" || el.dataset[k] === v);
+const pass = el => Object.entries(f).every(([k, v]) => v === "all" || (k === "floor" ? el.dataset.floor.includes(" " + v + " ") : el.dataset[k] === v));
 function apply() {{
   const s = q.value.trim().toLowerCase(); let shown = 0;
   document.querySelectorAll(".fchip").forEach(x => {{

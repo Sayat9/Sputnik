@@ -23,6 +23,9 @@ body { background: var(--bg); color: var(--text); font: 400 16px/1.5 var(--f-bod
 .intro { border: 1px solid var(--line); border-radius: 6px; background: var(--panel); padding: 12px 14px; font-size: 14.5px; color: var(--muted); }
 .intro summary { cursor: pointer; color: var(--gold); font: 700 13px var(--f-fancy); letter-spacing: .12em; text-transform: uppercase; }
 .intro p { margin: 8px 0 0; }
+.spawn { margin: 12px 14px 0; border: 1px dashed var(--line); border-radius: 6px; padding: 8px 12px; font-size: 14.5px; }
+.spawn summary { cursor: pointer; color: var(--gold); font: 700 13px var(--f-fancy); letter-spacing: .12em; text-transform: uppercase; }
+.spawn p { margin: 8px 0 0; }
 .bar { padding-block: 4px 10px; display: flex; flex-direction: column; gap: 8px; border-bottom: 1px solid var(--line); }
 .search { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; box-shadow: 0 0 0 6px var(--bg); }
 body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
@@ -75,7 +78,7 @@ td { text-align: center; padding: 6px 4px; }
 @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
 </style>
 <div class="wrap">
-  <div class="top"><span class="eyebrow">Выживание за варвара · 1 этаж</span><h1>Бестиарий Рафдонии</h1>
+  <div class="top"><span class="eyebrow">Выживание за варвара · лабиринт</span><h1>Бестиарий Рафдонии</h1>
     <p>Справочник мастера: все монстры лабиринта — статы, поведение, атаки и эссенции. Портреты, которых ещё нет, заменены силуэтами.</p></div>
   <details class="intro"><summary>Как устроены монстры и эссенции</summary><p>Каждая эссенция даёт статы (числом: +1 к характеристике, навыку или дальности чувства) и ровно один отрицательный стат, а также пассивную (П) и активную (А) способность. Второй минус допускается только у эссенций с очень сильными бонусами. Активные способности тратят ману и не растут с уровнем.</p>
 <p>У всех стандартных монстров одного вида эссенция одинаковая. Особые способности монстра — только пассивка и активка его эссенции (активку монстр применяет 1 раз за бой); сверх этого у него лишь атаки оружием и особенности поведения, по которым игроки могут догадаться, что даёт эссенция. С каждого монстра выпадает магический камень его класса.</p>
@@ -89,12 +92,12 @@ td { text-align: center; padding: 6px 4px; }
     <div class="frow"><span class="fl">Класс</span><div class="chips" role="group" aria-label="Класс"><button class="chip" data-k="cls" data-v="all" aria-pressed="true">Все</button><button class="chip" data-k="cls" data-v="9" aria-pressed="false">9 класс</button><button class="chip" data-k="cls" data-v="8" aria-pressed="false">8 класс</button><button class="chip" data-k="cls" data-v="7" aria-pressed="false">7 класс</button></div></div>
     <div class="frow"><span class="fl">Тип</span><div class="chips" role="group" aria-label="Тип"><button class="chip" data-k="rank" data-v="all" aria-pressed="true">Все</button><button class="chip" data-k="rank" data-v="normal" aria-pressed="false">Обычный</button><button class="chip" data-k="rank" data-v="rare" aria-pressed="false">Редкий</button><button class="chip" data-k="rank" data-v="special" aria-pressed="false">Особый</button><button class="chip" data-k="rank" data-v="guardian" aria-pressed="false" disabled>Страж</button><button class="chip" data-k="rank" data-v="lord" aria-pressed="false" disabled>Лорд</button></div></div>
   </div>
-  <div class="zone-idx"><span class="zl">Гуманоиды</span><div class="faces"><a href="#goblin" data-pick="goblin" class="fchip" data-zone="goblin" data-floor="1" data-cls="9" data-rank="normal" data-rare="0"><img src="assets/monsters/goblin-face.webp" alt="" loading="lazy"><span>Гоблин</span></a><a href="#goblin-archer" data-pick="goblin-archer" class="fchip" data-zone="goblin" data-floor="1" data-cls="9" data-rank="rare" data-rare="1"><img src="assets/monsters/goblin-archer-face.webp" alt="" loading="lazy"><span>Гоблин-лучник</span></a><a href="#goblin-sword" data-pick="goblin-sword" class="fchip" data-zone="goblin" data-floor="1" data-cls="9" data-rank="rare" data-rare="1"><img src="assets/monsters/goblin-sword-face.webp" alt="" loading="lazy"><span>Гоблин-мечник</span></a><a href="#goblin-spear" data-pick="goblin-spear" class="fchip" data-zone="goblin" data-floor="1" data-cls="9" data-rank="rare" data-rare="1"><img src="assets/monsters/goblin-spear-face.webp" alt="" loading="lazy"><span>Гоблин-копейщик</span></a><a href="#hobgoblin" data-pick="hobgoblin" class="fchip" data-zone="goblin" data-floor="1" data-cls="8" data-rank="normal" data-rare="0"><img src="assets/monsters/hobgoblin-face.webp" alt="" loading="lazy"><span>Хобгоблин</span></a><a href="#goblin-shaman" data-pick="goblin-shaman" class="fchip" data-zone="goblin" data-floor="2" data-cls="9" data-rank="normal" data-rare="0"><img src="assets/monsters/ph-humanoid-face.svg" alt="" loading="lazy"><span>Гоблин-шаман</span></a><a href="#goblin-assassin" data-pick="goblin-assassin" class="fchip" data-zone="goblin" data-floor="2" data-cls="8" data-rank="normal" data-rare="0"><img src="assets/monsters/ph-humanoid-face.svg" alt="" loading="lazy"><span>Гоблин-ассасин</span></a><a href="#goblin-trapper" data-pick="goblin-trapper" class="fchip" data-zone="goblin" data-floor="2" data-cls="8" data-rank="normal" data-rare="0"><img src="assets/monsters/ph-humanoid-face.svg" alt="" loading="lazy"><span>Гоблин-зверолов</span></a><a href="#goblin-elder" data-pick="goblin-elder" class="fchip" data-zone="goblin" data-floor="2" data-cls="8" data-rank="normal" data-rare="0"><img src="assets/monsters/ph-humanoid-face.svg" alt="" loading="lazy"><span>Главный шаман</span></a><a href="#hobgoblin-brute" data-pick="hobgoblin-brute" class="fchip" data-zone="goblin" data-floor="2" data-cls="8" data-rank="normal" data-rare="0"><img src="assets/monsters/ph-humanoid-face.svg" alt="" loading="lazy"><span>Хобгоблин-громила</span></a><a href="#hobgoblin-thrower" data-pick="hobgoblin-thrower" class="fchip" data-zone="goblin" data-floor="2" data-cls="8" data-rank="normal" data-rare="0"><img src="assets/monsters/ph-humanoid-face.svg" alt="" loading="lazy"><span>Хобгоблин-метатель</span></a><a href="#hobgoblin-driver" data-pick="hobgoblin-driver" class="fchip" data-zone="goblin" data-floor="2" data-cls="8" data-rank="normal" data-rare="0"><img src="assets/monsters/ph-humanoid-face.svg" alt="" loading="lazy"><span>Хобгоблин-загонщик</span></a><a href="#hobgoblin-shield" data-pick="hobgoblin-shield" class="fchip" data-zone="goblin" data-floor="2" data-cls="8" data-rank="rare" data-rare="1"><img src="assets/monsters/ph-humanoid-face.svg" alt="" loading="lazy"><span>Хобгоблин-щитоносец</span></a><a href="#goblin-king" data-pick="goblin-king" class="fchip" data-zone="goblin" data-floor="2" data-cls="7" data-rank="normal" data-rare="0"><img src="assets/monsters/ph-humanoid-face.svg" alt="" loading="lazy"><span>Король гоблинов</span></a><a href="#goblin-bomber" data-pick="goblin-bomber" class="fchip" data-zone="goblin" data-floor="2" data-cls="7" data-rank="special" data-rare="0"><img src="assets/monsters/ph-humanoid-face.svg" alt="" loading="lazy"><span>Гоблин-подрывник</span></a><a href="#goblin-thief" data-pick="goblin-thief" class="fchip" data-zone="goblin" data-floor="2" data-cls="7" data-rank="special" data-rare="0"><img src="assets/monsters/ph-humanoid-face.svg" alt="" loading="lazy"><span>Гоблин-вор</span></a></div></div><div class="zone-idx"><span class="zl">Звери</span><div class="faces"><a href="#dark-bear" data-pick="dark-bear" class="fchip" data-zone="beast" data-floor="1" data-cls="8" data-rank="normal" data-rare="0"><img src="assets/monsters/dark-bear-face.webp" alt="" loading="lazy"><span>Тёмный медведь</span></a><a href="#wolf" data-pick="wolf" class="fchip" data-zone="beast" data-floor="1" data-cls="9" data-rank="normal" data-rare="0"><img src="assets/monsters/wolf-face.webp" alt="" loading="lazy"><span>Рубящий волк</span></a><a href="#fox" data-pick="fox" class="fchip" data-zone="beast" data-floor="1" data-cls="9" data-rank="normal" data-rare="0"><img src="assets/monsters/fox-face.webp" alt="" loading="lazy"><span>Скрытная лиса</span></a><a href="#mouse" data-pick="mouse" class="fchip" data-zone="beast" data-floor="1" data-cls="9" data-rank="rare" data-rare="1"><img src="assets/monsters/mouse-face.webp" alt="" loading="lazy"><span>Громовая мышь</span></a><a href="#bat" data-pick="bat" class="fchip" data-zone="beast" data-floor="1" data-cls="9" data-rank="normal" data-rare="0"><img src="assets/monsters/bat-face.webp" alt="" loading="lazy"><span>Ядовитая летучка</span></a><a href="#horned-hare" data-pick="horned-hare" class="fchip" data-zone="beast" data-floor="2" data-cls="9" data-rank="rare" data-rare="1"><img src="assets/monsters/ph-beast-face.svg" alt="" loading="lazy"><span>Рогатый заяц</span></a><a href="#swamp-toad" data-pick="swamp-toad" class="fchip" data-zone="beast" data-floor="2" data-cls="9" data-rank="normal" data-rare="0"><img src="assets/monsters/ph-beast-face.svg" alt="" loading="lazy"><span>Болотная жаба</span></a><a href="#burrower" data-pick="burrower" class="fchip" data-zone="beast" data-floor="2" data-cls="9" data-rank="normal" data-rare="0"><img src="assets/monsters/ph-beast-face.svg" alt="" loading="lazy"><span>Потайной землекоп</span></a><a href="#crow" data-pick="crow" class="fchip" data-zone="beast" data-floor="2" data-cls="9" data-rank="normal" data-rare="0"><img src="assets/monsters/ph-beast-face.svg" alt="" loading="lazy"><span>Ворона</span></a><a href="#dire-wolf" data-pick="dire-wolf" class="fchip" data-zone="beast" data-floor="2" data-cls="8" data-rank="normal" data-rare="0"><img src="assets/monsters/ph-beast-face.svg" alt="" loading="lazy"><span>Матёрый волк</span></a><a href="#web-spider" data-pick="web-spider" class="fchip" data-zone="beast" data-floor="2" data-cls="8" data-rank="normal" data-rare="0"><img src="assets/monsters/ph-beast-face.svg" alt="" loading="lazy"><span>Паук-сетепряд</span></a><a href="#werewolf" data-pick="werewolf" class="fchip" data-zone="beast" data-floor="2" data-cls="7" data-rank="normal" data-rare="0"><img src="assets/monsters/ph-beast-face.svg" alt="" loading="lazy"><span>Волколак</span></a><a href="#giant-mole" data-pick="giant-mole" class="fchip" data-zone="beast" data-floor="2" data-cls="7" data-rank="normal" data-rare="0"><img src="assets/monsters/ph-beast-face.svg" alt="" loading="lazy"><span>Крот-исполин</span></a><a href="#swamp-fang" data-pick="swamp-fang" class="fchip" data-zone="beast" data-floor="2" data-cls="7" data-rank="normal" data-rare="0"><img src="assets/monsters/ph-beast-face.svg" alt="" loading="lazy"><span>Болотный клык</span></a><a href="#spider-queen" data-pick="spider-queen" class="fchip" data-zone="beast" data-floor="2" data-cls="7" data-rank="special" data-rare="0"><img src="assets/monsters/ph-beast-face.svg" alt="" loading="lazy"><span>Паучиха-матка</span></a><a href="#blackwing" data-pick="blackwing" class="fchip" data-zone="beast" data-floor="2" data-cls="7" data-rank="special" data-rare="0"><img src="assets/monsters/ph-beast-face.svg" alt="" loading="lazy"><span>Чернокрыл</span></a></div></div><div class="zone-idx"><span class="zl">Нежить</span><div class="faces"><a href="#skeleton-warrior" data-pick="skeleton-warrior" class="fchip" data-zone="undead" data-floor="1" data-cls="8" data-rank="normal" data-rare="0"><img src="assets/monsters/skeleton-warrior-face.webp" alt="" loading="lazy"><span>Скелет-воин</span></a><a href="#zombie" data-pick="zombie" class="fchip" data-zone="undead" data-floor="1" data-cls="9" data-rank="normal" data-rare="0"><img src="assets/monsters/zombie-face.webp" alt="" loading="lazy"><span>Зомби</span></a><a href="#skeleton" data-pick="skeleton" class="fchip" data-zone="undead" data-floor="1" data-cls="9" data-rank="normal" data-rare="0"><img src="assets/monsters/skeleton-face.webp" alt="" loading="lazy"><span>Скелет</span></a><a href="#skeleton-archer" data-pick="skeleton-archer" class="fchip" data-zone="undead" data-floor="1" data-cls="9" data-rank="rare" data-rare="1"><img src="assets/monsters/skeleton-archer-face.webp" alt="" loading="lazy"><span>Скелет-лучник</span></a><a href="#ghoul" data-pick="ghoul" class="fchip" data-zone="undead" data-floor="1" data-cls="9" data-rank="rare" data-rare="1"><img src="assets/monsters/ghoul-face.webp" alt="" loading="lazy"><span>Гуль</span></a></div></div><div class="zone-idx"><span class="zl">Элементали</span><div class="faces"><a href="#stone-guardian" data-pick="stone-guardian" class="fchip" data-zone="stone" data-floor="1" data-cls="8" data-rank="normal" data-rare="0"><img src="assets/monsters/stone-guardian-face.webp" alt="" loading="lazy"><span>Каменный сторож</span></a><a href="#living-stone" data-pick="living-stone" class="fchip" data-zone="stone" data-floor="1" data-cls="9" data-rank="normal" data-rare="0"><img src="assets/monsters/living-stone-face.webp" alt="" loading="lazy"><span>Живой камень</span></a><a href="#pixie" data-pick="pixie" class="fchip" data-zone="stone" data-floor="1" data-cls="9" data-rank="rare" data-rare="1"><img src="assets/monsters/pixie-face.webp" alt="" loading="lazy"><span>Пикси</span></a><a href="#wisp" data-pick="wisp" class="fchip" data-zone="stone" data-floor="1" data-cls="9" data-rank="rare" data-rare="1"><img src="assets/monsters/wisp-face.webp" alt="" loading="lazy"><span>Огонёк</span></a><a href="#green-boulder" data-pick="green-boulder" class="fchip" data-zone="stone" data-floor="1" data-cls="9" data-rank="rare" data-rare="1"><img src="assets/monsters/green-boulder-face.webp" alt="" loading="lazy"><span>Зелёный валун</span></a></div></div>
-  <article class="mon" hidden id="goblin" data-zone="goblin" data-floor="1" data-cls="9" data-rank="normal" data-rare="0" data-name="гоблин">
+  <div class="zone-idx"><span class="zl">Гуманоиды</span><div class="faces"><a href="#goblin" data-pick="goblin" class="fchip" data-zone="goblin" data-floor=" 1 2 " data-cls="9" data-rank="normal" data-rare="0"><img src="assets/monsters/goblin-face.webp" alt="" loading="lazy"><span>Гоблин</span></a><a href="#goblin-archer" data-pick="goblin-archer" class="fchip" data-zone="goblin" data-floor=" 1 2 " data-cls="9" data-rank="rare" data-rare="1"><img src="assets/monsters/goblin-archer-face.webp" alt="" loading="lazy"><span>Гоблин-лучник</span></a><a href="#goblin-sword" data-pick="goblin-sword" class="fchip" data-zone="goblin" data-floor=" 1 2 " data-cls="9" data-rank="rare" data-rare="1"><img src="assets/monsters/goblin-sword-face.webp" alt="" loading="lazy"><span>Гоблин-мечник</span></a><a href="#goblin-spear" data-pick="goblin-spear" class="fchip" data-zone="goblin" data-floor=" 1 2 " data-cls="9" data-rank="rare" data-rare="1"><img src="assets/monsters/goblin-spear-face.webp" alt="" loading="lazy"><span>Гоблин-копейщик</span></a><a href="#hobgoblin" data-pick="hobgoblin" class="fchip" data-zone="goblin" data-floor=" 1 2 " data-cls="8" data-rank="normal" data-rare="0"><img src="assets/monsters/hobgoblin-face.webp" alt="" loading="lazy"><span>Хобгоблин</span></a><a href="#goblin-shaman" data-pick="goblin-shaman" class="fchip" data-zone="goblin" data-floor=" 2 " data-cls="9" data-rank="normal" data-rare="0"><img src="assets/monsters/ph-humanoid-face.svg" alt="" loading="lazy"><span>Гоблин-шаман</span></a><a href="#goblin-assassin" data-pick="goblin-assassin" class="fchip" data-zone="goblin" data-floor=" 2 " data-cls="8" data-rank="normal" data-rare="0"><img src="assets/monsters/ph-humanoid-face.svg" alt="" loading="lazy"><span>Гоблин-ассасин</span></a><a href="#goblin-trapper" data-pick="goblin-trapper" class="fchip" data-zone="goblin" data-floor=" 2 " data-cls="8" data-rank="normal" data-rare="0"><img src="assets/monsters/ph-humanoid-face.svg" alt="" loading="lazy"><span>Гоблин-зверолов</span></a><a href="#goblin-elder" data-pick="goblin-elder" class="fchip" data-zone="goblin" data-floor=" 2 " data-cls="8" data-rank="normal" data-rare="0"><img src="assets/monsters/ph-humanoid-face.svg" alt="" loading="lazy"><span>Главный шаман</span></a><a href="#hobgoblin-brute" data-pick="hobgoblin-brute" class="fchip" data-zone="goblin" data-floor=" 2 " data-cls="8" data-rank="normal" data-rare="0"><img src="assets/monsters/ph-humanoid-face.svg" alt="" loading="lazy"><span>Хобгоблин-громила</span></a><a href="#hobgoblin-thrower" data-pick="hobgoblin-thrower" class="fchip" data-zone="goblin" data-floor=" 2 " data-cls="8" data-rank="normal" data-rare="0"><img src="assets/monsters/ph-humanoid-face.svg" alt="" loading="lazy"><span>Хобгоблин-метатель</span></a><a href="#hobgoblin-driver" data-pick="hobgoblin-driver" class="fchip" data-zone="goblin" data-floor=" 2 " data-cls="8" data-rank="normal" data-rare="0"><img src="assets/monsters/ph-humanoid-face.svg" alt="" loading="lazy"><span>Хобгоблин-загонщик</span></a><a href="#hobgoblin-shield" data-pick="hobgoblin-shield" class="fchip" data-zone="goblin" data-floor=" 2 " data-cls="8" data-rank="rare" data-rare="1"><img src="assets/monsters/ph-humanoid-face.svg" alt="" loading="lazy"><span>Хобгоблин-щитоносец</span></a><a href="#goblin-king" data-pick="goblin-king" class="fchip" data-zone="goblin" data-floor=" 2 " data-cls="7" data-rank="normal" data-rare="0"><img src="assets/monsters/ph-humanoid-face.svg" alt="" loading="lazy"><span>Король гоблинов</span></a><a href="#goblin-bomber" data-pick="goblin-bomber" class="fchip" data-zone="goblin" data-floor=" 2 " data-cls="7" data-rank="special" data-rare="0"><img src="assets/monsters/ph-humanoid-face.svg" alt="" loading="lazy"><span>Гоблин-подрывник</span></a><a href="#goblin-thief" data-pick="goblin-thief" class="fchip" data-zone="goblin" data-floor=" 2 " data-cls="7" data-rank="special" data-rare="0"><img src="assets/monsters/ph-humanoid-face.svg" alt="" loading="lazy"><span>Гоблин-вор</span></a></div></div><div class="zone-idx"><span class="zl">Звери</span><div class="faces"><a href="#dark-bear" data-pick="dark-bear" class="fchip" data-zone="beast" data-floor=" 1 2 " data-cls="8" data-rank="normal" data-rare="0"><img src="assets/monsters/dark-bear-face.webp" alt="" loading="lazy"><span>Тёмный медведь</span></a><a href="#horned-hare" data-pick="horned-hare" class="fchip" data-zone="beast" data-floor=" 2 " data-cls="9" data-rank="rare" data-rare="1"><img src="assets/monsters/ph-beast-face.svg" alt="" loading="lazy"><span>Рогатый заяц</span></a><a href="#swamp-toad" data-pick="swamp-toad" class="fchip" data-zone="beast" data-floor=" 2 " data-cls="9" data-rank="normal" data-rare="0"><img src="assets/monsters/ph-beast-face.svg" alt="" loading="lazy"><span>Болотная жаба</span></a><a href="#burrower" data-pick="burrower" class="fchip" data-zone="beast" data-floor=" 2 " data-cls="9" data-rank="normal" data-rare="0"><img src="assets/monsters/ph-beast-face.svg" alt="" loading="lazy"><span>Потайной землекоп</span></a><a href="#crow" data-pick="crow" class="fchip" data-zone="beast" data-floor=" 2 " data-cls="9" data-rank="normal" data-rare="0"><img src="assets/monsters/ph-beast-face.svg" alt="" loading="lazy"><span>Ворона</span></a><a href="#dire-wolf" data-pick="dire-wolf" class="fchip" data-zone="beast" data-floor=" 2 " data-cls="8" data-rank="normal" data-rare="0"><img src="assets/monsters/ph-beast-face.svg" alt="" loading="lazy"><span>Матёрый волк</span></a><a href="#web-spider" data-pick="web-spider" class="fchip" data-zone="beast" data-floor=" 2 " data-cls="8" data-rank="normal" data-rare="0"><img src="assets/monsters/ph-beast-face.svg" alt="" loading="lazy"><span>Паук-сетепряд</span></a><a href="#werewolf" data-pick="werewolf" class="fchip" data-zone="beast" data-floor=" 2 " data-cls="7" data-rank="normal" data-rare="0"><img src="assets/monsters/ph-beast-face.svg" alt="" loading="lazy"><span>Волколак</span></a><a href="#giant-mole" data-pick="giant-mole" class="fchip" data-zone="beast" data-floor=" 2 " data-cls="7" data-rank="normal" data-rare="0"><img src="assets/monsters/ph-beast-face.svg" alt="" loading="lazy"><span>Крот-исполин</span></a><a href="#swamp-fang" data-pick="swamp-fang" class="fchip" data-zone="beast" data-floor=" 2 " data-cls="7" data-rank="normal" data-rare="0"><img src="assets/monsters/ph-beast-face.svg" alt="" loading="lazy"><span>Болотный клык</span></a><a href="#spider-queen" data-pick="spider-queen" class="fchip" data-zone="beast" data-floor=" 2 " data-cls="7" data-rank="special" data-rare="0"><img src="assets/monsters/ph-beast-face.svg" alt="" loading="lazy"><span>Паучиха-матка</span></a><a href="#blackwing" data-pick="blackwing" class="fchip" data-zone="beast" data-floor=" 2 " data-cls="7" data-rank="special" data-rare="0"><img src="assets/monsters/ph-beast-face.svg" alt="" loading="lazy"><span>Чернокрыл</span></a><a href="#wolf" data-pick="wolf" class="fchip" data-zone="beast" data-floor=" 1 2 " data-cls="9" data-rank="normal" data-rare="0"><img src="assets/monsters/wolf-face.webp" alt="" loading="lazy"><span>Рубящий волк</span></a><a href="#fox" data-pick="fox" class="fchip" data-zone="beast" data-floor=" 1 2 " data-cls="9" data-rank="normal" data-rare="0"><img src="assets/monsters/fox-face.webp" alt="" loading="lazy"><span>Скрытная лиса</span></a><a href="#mouse" data-pick="mouse" class="fchip" data-zone="beast" data-floor=" 1 2 " data-cls="9" data-rank="rare" data-rare="1"><img src="assets/monsters/mouse-face.webp" alt="" loading="lazy"><span>Громовая мышь</span></a><a href="#bat" data-pick="bat" class="fchip" data-zone="beast" data-floor=" 1 2 " data-cls="9" data-rank="normal" data-rare="0"><img src="assets/monsters/bat-face.webp" alt="" loading="lazy"><span>Ядовитая летучка</span></a></div></div><div class="zone-idx"><span class="zl">Нежить</span><div class="faces"><a href="#skeleton-warrior" data-pick="skeleton-warrior" class="fchip" data-zone="undead" data-floor=" 1 " data-cls="8" data-rank="normal" data-rare="0"><img src="assets/monsters/skeleton-warrior-face.webp" alt="" loading="lazy"><span>Скелет-воин</span></a><a href="#zombie" data-pick="zombie" class="fchip" data-zone="undead" data-floor=" 1 " data-cls="9" data-rank="normal" data-rare="0"><img src="assets/monsters/zombie-face.webp" alt="" loading="lazy"><span>Зомби</span></a><a href="#skeleton" data-pick="skeleton" class="fchip" data-zone="undead" data-floor=" 1 " data-cls="9" data-rank="normal" data-rare="0"><img src="assets/monsters/skeleton-face.webp" alt="" loading="lazy"><span>Скелет</span></a><a href="#skeleton-archer" data-pick="skeleton-archer" class="fchip" data-zone="undead" data-floor=" 1 " data-cls="9" data-rank="rare" data-rare="1"><img src="assets/monsters/skeleton-archer-face.webp" alt="" loading="lazy"><span>Скелет-лучник</span></a><a href="#ghoul" data-pick="ghoul" class="fchip" data-zone="undead" data-floor=" 1 " data-cls="9" data-rank="rare" data-rare="1"><img src="assets/monsters/ghoul-face.webp" alt="" loading="lazy"><span>Гуль</span></a></div></div><div class="zone-idx"><span class="zl">Элементали</span><div class="faces"><a href="#stone-guardian" data-pick="stone-guardian" class="fchip" data-zone="stone" data-floor=" 1 " data-cls="8" data-rank="normal" data-rare="0"><img src="assets/monsters/stone-guardian-face.webp" alt="" loading="lazy"><span>Каменный сторож</span></a><a href="#living-stone" data-pick="living-stone" class="fchip" data-zone="stone" data-floor=" 1 " data-cls="9" data-rank="normal" data-rare="0"><img src="assets/monsters/living-stone-face.webp" alt="" loading="lazy"><span>Живой камень</span></a><a href="#pixie" data-pick="pixie" class="fchip" data-zone="stone" data-floor=" 1 " data-cls="9" data-rank="rare" data-rare="1"><img src="assets/monsters/pixie-face.webp" alt="" loading="lazy"><span>Пикси</span></a><a href="#wisp" data-pick="wisp" class="fchip" data-zone="stone" data-floor=" 1 " data-cls="9" data-rank="rare" data-rare="1"><img src="assets/monsters/wisp-face.webp" alt="" loading="lazy"><span>Огонёк</span></a><a href="#green-boulder" data-pick="green-boulder" class="fchip" data-zone="stone" data-floor=" 1 " data-cls="9" data-rank="rare" data-rare="1"><img src="assets/monsters/green-boulder-face.webp" alt="" loading="lazy"><span>Зелёный валун</span></a></div></div>
+  <article class="mon" hidden id="goblin" data-zone="goblin" data-floor=" 1 2 " data-cls="9" data-rank="normal" data-rare="0" data-name="гоблин">
   <button class="close" data-close aria-label="Закрыть запись">✕</button>
   <header><img class="face" src="assets/monsters/goblin-face.webp" alt="Гоблин" loading="lazy">
-    <div class="hd"><h3>Гоблин</h3><div class="tags"><span class="tag">1 этаж</span><span class="tag cls">9 класс</span><span class="tag std">обычный</span></div>
-    <p class="habit">1 этаж, зона гоблинов.</p></div></header>
+    <div class="hd"><h3>Гоблин</h3><div class="tags"><span class="tag">1, 2 этаж</span><span class="tag cls">9 класс</span><span class="tag std">обычный</span></div>
+    <p class="habit">1 этаж: зона гоблинов; 2 этаж, Лес гоблинов: поле, кромка леса, поселение</p></div></header>
   <div class="body"><h4 class="">Статы</h4>
 <p>Маленький гуманоид (монстр). КД 12 (рваная кожа), ОЗ 5 (2к6−2), скорость 9 м. Опасность 1/8.</p>
 <div class="tbl"><table><thead><tr><th>СИЛ</th><th>ЛОВ</th><th>ТЕЛ</th><th>ИНТ</th><th>МДР</th><th>ХАР</th></tr></thead><tbody><tr><td>8 (−1)</td><td>14 (+2)</td><td>8 (−1)</td><td>8 (−1)</td><td>9 (−1)</td><td>6 (−2)</td></tr></tbody></table></div>
@@ -109,12 +112,12 @@ td { text-align: center; padding: 6px 4px; }
 <ul><li>Простые ловушки (Сл обнаружения 12 и ниже) в пределах 3 м персонаж замечает автоматически, без проверки.</li><li>Простую ловушку можно обезвредить проверкой Ловкости с преимуществом, инструменты не нужны.</li><li>Остальные ловушки: +2 к Восприятию и Расследованию при их поиске.</li></ul>
 <h4 class="act">Поставить ловушку (А)</h4>
 <ul><li><b>Мана:</b> 4.</li><li><b>Время:</b> действие.</li><li><b>Дальность:</b> свободная клетка в пределах 1,5 м.</li><li><b>Длительность:</b> 1 час или до срабатывания. Одновременно не больше 3 ловушек.</li><li><b>Сл:</b> 8 + бонус мастерства + модификатор Ловкости. Ловушка скрыта: заметить её можно Восприятием против этой Сл.</li><li><b>Эффект:</b> существо, вошедшее в клетку, делает спасбросок Ловкости. Провал: 1к6 колющего урона и обездвижено до конца своего следующего хода. Успех: половина урона, без обездвиживания.</li><li><b>Вырваться раньше:</b> действие и проверка Силы против Сл ловушки.</li></ul></div>
-</article><article class="mon" hidden id="goblin-archer" data-zone="goblin" data-floor="1" data-cls="9" data-rank="rare" data-rare="1" data-name="гоблин-лучник">
+</article><article class="mon" hidden id="goblin-archer" data-zone="goblin" data-floor=" 1 2 " data-cls="9" data-rank="rare" data-rare="1" data-name="гоблин-лучник">
   <button class="close" data-close aria-label="Закрыть запись">✕</button>
   <header><img class="face" src="assets/monsters/goblin-archer-face.webp" alt="Гоблин-лучник" loading="lazy">
-    <div class="hd"><h3>Гоблин-лучник</h3><div class="tags"><span class="tag">1 этаж</span><span class="tag cls">9 класс</span><span class="tag rare">редкий</span></div>
-    <p class="habit">1 этаж, зона гоблинов. Редкий: с 4-го дня поодиночке, с 6-го — вместе с обычными.</p></div></header>
-  <div class="body"><h4 class="">Статы</h4>
+    <div class="hd"><h3>Гоблин-лучник</h3><div class="tags"><span class="tag">1, 2 этаж</span><span class="tag cls">9 класс</span><span class="tag rare">редкий</span></div>
+    <p class="habit">1 этаж: зона гоблинов; 2 этаж, Лес гоблинов: поле, кромка леса, поселение</p></div></header>
+  <details class="spawn"><summary>Условия появления</summary><p>С 4-го дня поодиночке, с 6-го — вместе с обычными.</p></details><div class="body"><h4 class="">Статы</h4>
 <p>Маленький гуманоид (монстр). КД 13 (кожаный жилет), ОЗ 7 (2к6), скорость 9 м. Опасность 1/4.</p>
 <div class="tbl"><table><thead><tr><th>СИЛ</th><th>ЛОВ</th><th>ТЕЛ</th><th>ИНТ</th><th>МДР</th><th>ХАР</th></tr></thead><tbody><tr><td>8 (−1)</td><td>16 (+3)</td><td>10 (+0)</td><td>8 (−1)</td><td>12 (+1)</td><td>6 (−2)</td></tr></tbody></table></div>
 <p>Навыки: Восприятие +3, Скрытность +5. Тёмное зрение 18 м.</p>
@@ -128,12 +131,12 @@ td { text-align: center; padding: 6px 4px; }
 <ul><li>Половинное укрытие цели не мешает твоим дальнобойным атакам: она не получает +2 к КД.</li></ul>
 <h4 class="act">Пригвоздить (А)</h4>
 <ul><li><b>Мана:</b> 2.</li><li><b>Время:</b> действие (дальнобойная атака).</li><li><b>Дальность:</b> дальность оружия.</li><li><b>Длительность:</b> до конца следующего хода цели.</li><li><b>Сл:</b> 8 + бонус мастерства + модификатор Ловкости, спасбросок Силы.</li><li><b>Эффект:</b> при попадании обычный урон, и цель делает спасбросок. Провал: скорость 0. Успех: скорость −3 м.</li><li><b>Вырваться раньше:</b> действие и проверка Силы против Сл.</li></ul></div>
-</article><article class="mon" hidden id="goblin-sword" data-zone="goblin" data-floor="1" data-cls="9" data-rank="rare" data-rare="1" data-name="гоблин-мечник">
+</article><article class="mon" hidden id="goblin-sword" data-zone="goblin" data-floor=" 1 2 " data-cls="9" data-rank="rare" data-rare="1" data-name="гоблин-мечник">
   <button class="close" data-close aria-label="Закрыть запись">✕</button>
   <header><img class="face" src="assets/monsters/goblin-sword-face.webp" alt="Гоблин-мечник" loading="lazy">
-    <div class="hd"><h3>Гоблин-мечник</h3><div class="tags"><span class="tag">1 этаж</span><span class="tag cls">9 класс</span><span class="tag rare">редкий</span></div>
-    <p class="habit">1 этаж, зона гоблинов. Редкий: с 4-го дня поодиночке, с 6-го — вместе с обычными.</p></div></header>
-  <div class="body"><h4 class="">Статы</h4>
+    <div class="hd"><h3>Гоблин-мечник</h3><div class="tags"><span class="tag">1, 2 этаж</span><span class="tag cls">9 класс</span><span class="tag rare">редкий</span></div>
+    <p class="habit">1 этаж: зона гоблинов; 2 этаж, Лес гоблинов: поле, кромка леса, поселение</p></div></header>
+  <details class="spawn"><summary>Условия появления</summary><p>С 4-го дня поодиночке, с 6-го — вместе с обычными.</p></details><div class="body"><h4 class="">Статы</h4>
 <p>Маленький гуманоид (монстр). КД 15 (кожаный доспех, щит), ОЗ 11 (2к6+4), скорость 9 м. Опасность 1/4.</p>
 <div class="tbl"><table><thead><tr><th>СИЛ</th><th>ЛОВ</th><th>ТЕЛ</th><th>ИНТ</th><th>МДР</th><th>ХАР</th></tr></thead><tbody><tr><td>13 (+1)</td><td>12 (+1)</td><td>14 (+2)</td><td>8 (−1)</td><td>9 (−1)</td><td>8 (−1)</td></tr></tbody></table></div>
 <p>Навыки: Атлетика +3. Тёмное зрение 18 м.</p>
@@ -147,12 +150,12 @@ td { text-align: center; padding: 6px 4px; }
 <ul><li>Попадание рубящим оружием ближнего боя вызывает кровотечение: 1 рубящий урон в начале каждого хода цели.</li><li>Кровотечение не складывается и останавливается любым лечением или перевязкой (действие, Медицина Сл 10).</li></ul>
 <h4 class="act">Размашистый удар (А)</h4>
 <ul><li><b>Мана:</b> 2.</li><li><b>Время:</b> действие, нужно рубящее оружие ближнего боя.</li><li><b>Дальность:</b> до 3 существ на выбор в 1,5 м.</li><li><b>Длительность:</b> мгновенно.</li><li><b>Сл:</b> 8 + бонус мастерства + модификатор Силы, спасбросок Ловкости.</li><li><b>Эффект:</b> провал — урон оружия. Успех — половина урона.</li></ul></div>
-</article><article class="mon" hidden id="goblin-spear" data-zone="goblin" data-floor="1" data-cls="9" data-rank="rare" data-rare="1" data-name="гоблин-копейщик">
+</article><article class="mon" hidden id="goblin-spear" data-zone="goblin" data-floor=" 1 2 " data-cls="9" data-rank="rare" data-rare="1" data-name="гоблин-копейщик">
   <button class="close" data-close aria-label="Закрыть запись">✕</button>
   <header><img class="face" src="assets/monsters/goblin-spear-face.webp" alt="Гоблин-копейщик" loading="lazy">
-    <div class="hd"><h3>Гоблин-копейщик</h3><div class="tags"><span class="tag">1 этаж</span><span class="tag cls">9 класс</span><span class="tag rare">редкий</span></div>
-    <p class="habit">1 этаж, зона гоблинов. Редкий: с 4-го дня поодиночке, с 6-го — вместе с обычными.</p></div></header>
-  <div class="body"><h4 class="">Статы</h4>
+    <div class="hd"><h3>Гоблин-копейщик</h3><div class="tags"><span class="tag">1, 2 этаж</span><span class="tag cls">9 класс</span><span class="tag rare">редкий</span></div>
+    <p class="habit">1 этаж: зона гоблинов; 2 этаж, Лес гоблинов: поле, кромка леса, поселение</p></div></header>
+  <details class="spawn"><summary>Условия появления</summary><p>С 4-го дня поодиночке, с 6-го — вместе с обычными.</p></details><div class="body"><h4 class="">Статы</h4>
 <p>Маленький гуманоид (монстр). КД 13 (кожаный доспех), ОЗ 9 (2к6+2), скорость 9 м. Опасность 1/4.</p>
 <div class="tbl"><table><thead><tr><th>СИЛ</th><th>ЛОВ</th><th>ТЕЛ</th><th>ИНТ</th><th>МДР</th><th>ХАР</th></tr></thead><tbody><tr><td>12 (+1)</td><td>14 (+2)</td><td>12 (+1)</td><td>8 (−1)</td><td>10 (+0)</td><td>6 (−2)</td></tr></tbody></table></div>
 <p>Навыки: Атлетика +3, Скрытность +4. Тёмное зрение 18 м.</p>
@@ -166,12 +169,12 @@ td { text-align: center; padding: 6px 4px; }
 <ul><li>Досягаемость атак копьём и другим древковым оружием +1,5 м.</li></ul>
 <h4 class="act">Встречный удар (А)</h4>
 <ul><li><b>Мана:</b> 3.</li><li><b>Время:</b> реакция, когда существо входит в досягаемость.</li><li><b>Дальность:</b> досягаемость оружия.</li><li><b>Длительность:</b> до конца хода цели.</li><li><b>Сл:</b> 8 + бонус мастерства + модификатор Силы, спасбросок Силы.</li><li><b>Эффект:</b> атака копьём. При попадании цель делает спасбросок. Провал: её скорость 0 до конца хода. Успех: только урон.</li></ul></div>
-</article><article class="mon" hidden id="hobgoblin" data-zone="goblin" data-floor="1" data-cls="8" data-rank="normal" data-rare="0" data-name="хобгоблин">
+</article><article class="mon" hidden id="hobgoblin" data-zone="goblin" data-floor=" 1 2 " data-cls="8" data-rank="normal" data-rare="0" data-name="хобгоблин">
   <button class="close" data-close aria-label="Закрыть запись">✕</button>
   <header><img class="face" src="assets/monsters/hobgoblin-face.webp" alt="Хобгоблин" loading="lazy">
-    <div class="hd"><h3>Хобгоблин</h3><div class="tags"><span class="tag">1 этаж</span><span class="tag cls">8 класс</span><span class="tag std">обычный</span></div>
-    <p class="habit">1 этаж, зона гоблинов, у портала. Только с 7-го дня: первая встреча 7-го дня — монстр 8-го класса, дальше у портала на к20 = 1–2. На следующих этажах — стаями.</p></div></header>
-  <div class="body"><h4 class="">Статы</h4>
+    <div class="hd"><h3>Хобгоблин</h3><div class="tags"><span class="tag">1, 2 этаж</span><span class="tag cls">8 класс</span><span class="tag std">обычный</span></div>
+    <p class="habit">1 этаж: зона гоблинов, у портала; 2 этаж, Лес гоблинов: поле, поселение</p></div></header>
+  <details class="spawn"><summary>Условия появления</summary><p>1 этаж: с 7-го дня у портала своей зоны — первая встреча там всегда он, дальше на к20 = 1–2. В одиночку. 2 этаж: нечасто, максимум 3 за раз, ближе к концу захода.</p></details><div class="body"><h4 class="">Статы</h4>
 <p>Средний гуманоид (монстр). КД 14 (проклёпанная кожа), ОЗ 13 (3к8), скорость 9 м. Опасность 1/2.</p>
 <div class="tbl"><table><thead><tr><th>СИЛ</th><th>ЛОВ</th><th>ТЕЛ</th><th>ИНТ</th><th>МДР</th><th>ХАР</th></tr></thead><tbody><tr><td>14 (+2)</td><td>12 (+1)</td><td>12 (+1)</td><td>9 (−1)</td><td>9 (−1)</td><td>7 (−2)</td></tr></tbody></table></div>
 <p>Атлетика +4. Тёмное зрение 18 м.</p>
@@ -185,96 +188,154 @@ td { text-align: center; padding: 6px 4px; }
 <ul><li>Первая атака, которая попадает по тебе в бою, наносит на 1к4 урона меньше (не ниже 1).</li></ul>
 <h4 class="act">Рывок (А)</h4>
 <ul><li><b>Мана:</b> 3.</li><li><b>Время:</b> бонусное действие.</li><li><b>Дальность:</b> на себя.</li><li><b>Длительность:</b> до конца хода.</li><li><b>Сл:</b> нет.</li><li><b>Эффект:</b> переместись на половину скорости, это перемещение не провоцирует атак. Первая рукопашная атака в этот ход получает +2 к попаданию.</li><li><b>Перезарядка:</b> 2 раунда.</li></ul></div>
-</article><article class="mon" hidden id="goblin-shaman" data-zone="goblin" data-floor="2" data-cls="9" data-rank="normal" data-rare="0" data-name="гоблин-шаман">
+</article><article class="mon" hidden id="goblin-shaman" data-zone="goblin" data-floor=" 2 " data-cls="9" data-rank="normal" data-rare="0" data-name="гоблин-шаман">
   <button class="close" data-close aria-label="Закрыть запись">✕</button>
   <header><img class="face" src="assets/monsters/ph-humanoid-face.svg" alt="Гоблин-шаман" loading="lazy">
-    <div class="hd"><h3>Гоблин-шаман</h3><div class="tags"><span class="tag">2 этаж</span><span class="tag cls">9 класс</span><span class="tag std">обычный</span></div>
-    <p class="habit">2 этаж, Лес гоблинов: поле и поселение. Только внутри группы гоблинов, один на группу.</p></div></header>
-  <div class="body"><p>Статблок ещё не расписан — пока утверждена только эссенция.</p>
+    <div class="hd"><h3>Гоблин-шаман</h3><div class="tags"><span class="tag">2 этаж</span><span class="tag cls">9 класс</span><span class="tag std">обычный</span><span class="tag draft">черновик статов</span></div>
+    <p class="habit">2 этаж, Лес гоблинов: поле и поселение</p></div></header>
+  <details class="spawn"><summary>Условия появления</summary><p>Только внутри группы гоблинов, один на группу.</p></details><div class="body"><h4 class="">Статы</h4>
+<p>Маленький гуманоид (монстр). КД 12 (шкуры и бусы), ОЗ 9 (2к6+2), скорость 9 м. Опасность 1/4.</p>
+<div class="tbl"><table><thead><tr><th>СИЛ</th><th>ЛОВ</th><th>ТЕЛ</th><th>ИНТ</th><th>МДР</th><th>ХАР</th></tr></thead><tbody><tr><td>8 (−1)</td><td>12 (+1)</td><td>12 (+1)</td><td>10 (+0)</td><td>14 (+2)</td><td>9 (−1)</td></tr></tbody></table></div>
+<p>Медицина +4. Тёмное зрение 18 м.</p>
+<h4 class="">Поведение</h4>
+<ul><li><b>За спинами.</b> Держится позади группы и в ближний бой не лезет.</li><li><b>Шёпот духам.</b> Бормочет над сородичами — рядом с ним гоблины стойче.</li><li><b>Лекарь.</b> Тянется к самому раненому сородичу, пока тот не упал.</li></ul>
+<h4 class="">Атаки</h4>
+<ul><li><b>Посох.</b> +1 к попаданию, 1к6−1 дробящего.</li><li><b>Праща.</b> +3 к попаданию, 9/36 м, 1к4+1 дробящего.</li></ul>
 <h4 class="">Эссенция</h4>
 <ul><li>Мудрость +1</li><li>Медицина +1</li><li>Тёмное зрение +3 м</li><li>Сила −1</li></ul>
 <h4 class="pas">Под защитой духов (П)</h4>
 <ul><li>Союзники в 3 м от тебя получают +1 к спасброскам.</li></ul>
 <h4 class="act">Целебный наговор (А)</h4>
 <ul><li><b>Мана:</b> 2.</li><li><b>Время:</b> бонусное действие.</li><li><b>Дальность:</b> одно существо в 9 м, которое ты видишь.</li><li><b>Длительность:</b> мгновенно.</li><li><b>Сл:</b> нет.</li><li><b>Эффект:</b> цель восстанавливает 1к6 + мод. Мудрости ОЗ.</li><li><b>Перезарядка:</b> 2 раунда.</li></ul></div>
-</article><article class="mon" hidden id="goblin-assassin" data-zone="goblin" data-floor="2" data-cls="8" data-rank="normal" data-rare="0" data-name="гоблин-ассасин">
+</article><article class="mon" hidden id="goblin-assassin" data-zone="goblin" data-floor=" 2 " data-cls="8" data-rank="normal" data-rare="0" data-name="гоблин-ассасин">
   <button class="close" data-close aria-label="Закрыть запись">✕</button>
   <header><img class="face" src="assets/monsters/ph-humanoid-face.svg" alt="Гоблин-ассасин" loading="lazy">
-    <div class="hd"><h3>Гоблин-ассасин</h3><div class="tags"><span class="tag">2 этаж</span><span class="tag cls">8 класс</span><span class="tag std">обычный</span></div>
-    <p class="habit">2 этаж, Лес гоблинов: подходы к логову воров. Засады на подходах к логову воров.</p></div></header>
-  <div class="body"><p>Статблок ещё не расписан — пока утверждена только эссенция.</p>
+    <div class="hd"><h3>Гоблин-ассасин</h3><div class="tags"><span class="tag">2 этаж</span><span class="tag cls">8 класс</span><span class="tag std">обычный</span><span class="tag draft">черновик статов</span></div>
+    <p class="habit">2 этаж, Лес гоблинов: подходы к логову воров</p></div></header>
+  <div class="body"><h4 class="">Статы</h4>
+<p>Маленький гуманоид (монстр). КД 14 (кожаный доспех), ОЗ 14 (4к6), скорость 9 м. Опасность 1/2.</p>
+<div class="tbl"><table><thead><tr><th>СИЛ</th><th>ЛОВ</th><th>ТЕЛ</th><th>ИНТ</th><th>МДР</th><th>ХАР</th></tr></thead><tbody><tr><td>8 (−1)</td><td>17 (+3)</td><td>10 (+0)</td><td>9 (−1)</td><td>12 (+1)</td><td>8 (−1)</td></tr></tbody></table></div>
+<p>Скрытность +7, Акробатика +5. Тёмное зрение 18 м.</p>
+<h4 class="">Поведение</h4>
+<ul><li><b>Засада.</b> Ждёт в кустах у троп и бьёт первым.</li><li><b>Из тени.</b> Первый удар из укрытия особенно глубокий.</li><li><b>Исчезает.</b> После удара отскакивает к кустам и пропадает из виду.</li></ul>
+<h4 class="">Атаки</h4>
+<ul><li><b>Две атаки.</b> За ход две атаки ножами.</li><li><b>Нож.</b> +5 к попаданию, 1к4+3 колющего; метнуть 6/18 м.</li></ul>
 <h4 class="">Эссенция</h4>
 <ul><li>Ловкость +2</li><li>КД +1</li><li>Скрытность +1</li><li>Тёмное зрение +3 м</li><li>Телосложение −1</li></ul>
 <h4 class="pas">Нож в спину (П)</h4>
 <ul><li>Если цель тебя не видит или застигнута врасплох, первая атака лёгким оружием наносит +1к6 урона.</li><li><b>Перезарядка:</b> 2 раунда.</li></ul>
 <h4 class="act">Уход в тень (А)</h4>
 <ul><li><b>Мана:</b> 3.</li><li><b>Время:</b> бонусное действие.</li><li><b>Дальность:</b> на себя.</li><li><b>Длительность:</b> мгновенно.</li><li><b>Сл:</b> нет.</li><li><b>Эффект:</b> перемещаешься на половину скорости, не провоцируя атак. Если в конце пути рядом есть укрытие (кусты, деревья, тень), можешь сразу спрятаться — Скрытность против пассивного Восприятия, даже если тебя видели.</li><li><b>Перезарядка:</b> 3 раунда.</li></ul></div>
-</article><article class="mon" hidden id="goblin-trapper" data-zone="goblin" data-floor="2" data-cls="8" data-rank="normal" data-rare="0" data-name="гоблин-зверолов">
+</article><article class="mon" hidden id="goblin-trapper" data-zone="goblin" data-floor=" 2 " data-cls="8" data-rank="normal" data-rare="0" data-name="гоблин-зверолов">
   <button class="close" data-close aria-label="Закрыть запись">✕</button>
   <header><img class="face" src="assets/monsters/ph-humanoid-face.svg" alt="Гоблин-зверолов" loading="lazy">
-    <div class="hd"><h3>Гоблин-зверолов</h3><div class="tags"><span class="tag">2 этаж</span><span class="tag cls">8 класс</span><span class="tag std">обычный</span></div>
-    <p class="habit">2 этаж, Лес гоблинов: поселение и поле. Сети и капканы, ловит одиночек.</p></div></header>
-  <div class="body"><p>Статблок ещё не расписан — пока утверждена только эссенция.</p>
+    <div class="hd"><h3>Гоблин-зверолов</h3><div class="tags"><span class="tag">2 этаж</span><span class="tag cls">8 класс</span><span class="tag std">обычный</span><span class="tag draft">черновик статов</span></div>
+    <p class="habit">2 этаж, Лес гоблинов: поселение и поле</p></div></header>
+  <div class="body"><h4 class="">Статы</h4>
+<p>Маленький гуманоид (монстр). КД 13 (кожаный доспех), ОЗ 18 (4к6+4), скорость 9 м. Опасность 1/2.</p>
+<div class="tbl"><table><thead><tr><th>СИЛ</th><th>ЛОВ</th><th>ТЕЛ</th><th>ИНТ</th><th>МДР</th><th>ХАР</th></tr></thead><tbody><tr><td>10 (+0)</td><td>14 (+2)</td><td>12 (+1)</td><td>10 (+0)</td><td>14 (+2)</td><td>7 (−2)</td></tr></tbody></table></div>
+<p>Выживание +6, Восприятие +4. Тёмное зрение 18 м.</p>
+<h4 class="">Поведение</h4>
+<ul><li><b>Ловец одиночек.</b> Выбирает отставшего или раненого.</li><li><b>Свои капканы.</b> По своим ловушкам ходит свободно, ни одна на нём не срабатывает.</li><li><b>Сначала сеть.</b> Первым делом бросает сеть, потом колет.</li></ul>
+<h4 class="">Атаки</h4>
+<ul><li><b>Копьё.</b> +4 к попаданию, 1к6+2 колющего.</li><li><b>Короткий лук.</b> +4 к попаданию, 24/96 м, 1к6+2 колющего.</li></ul>
 <h4 class="">Эссенция</h4>
 <ul><li>Выживание +2</li><li>Ловкость +1</li><li>Восприятие +1</li><li>Харизма −1</li></ul>
 <h4 class="pas">Охотничий глаз (П)</h4>
 <ul><li>Простые ловушки и капканы на тебя не срабатывают.</li><li>Преимущество на выслеживание по следам.</li></ul>
 <h4 class="act">Ловчая сеть (А)</h4>
 <ul><li><b>Мана:</b> 3.</li><li><b>Время:</b> действие.</li><li><b>Дальность:</b> 3/9 м, одно существо Большое или меньше.</li><li><b>Длительность:</b> пока не освободится.</li><li><b>Сл:</b> 8 + бонус мастерства + модификатор Ловкости, спасбросок Силы.</li><li><b>Эффект:</b> провал — цель опутана (скорость 0, атаки по ней с преимуществом, её атаки с помехой). Успех — скорость вдвое меньше до конца её следующего хода.</li><li><b>Освободиться:</b> действием — проверка Силы против Сл, или нанести сети 5 рубящего урона.</li><li><b>Перезарядка:</b> 3 раунда.</li></ul></div>
-</article><article class="mon" hidden id="goblin-elder" data-zone="goblin" data-floor="2" data-cls="8" data-rank="normal" data-rare="0" data-name="главный шаман">
+</article><article class="mon" hidden id="goblin-elder" data-zone="goblin" data-floor=" 2 " data-cls="8" data-rank="normal" data-rare="0" data-name="главный шаман">
   <button class="close" data-close aria-label="Закрыть запись">✕</button>
   <header><img class="face" src="assets/monsters/ph-humanoid-face.svg" alt="Главный шаман" loading="lazy">
-    <div class="hd"><h3>Главный шаман</h3><div class="tags"><span class="tag">2 этаж</span><span class="tag cls">8 класс</span><span class="tag std">обычный</span></div>
-    <p class="habit">2 этаж, Лес гоблинов: поселение. Старый гоблин, живёт в поселении.</p></div></header>
-  <div class="body"><p>Статблок ещё не расписан — пока утверждена только эссенция.</p>
+    <div class="hd"><h3>Главный шаман</h3><div class="tags"><span class="tag">2 этаж</span><span class="tag cls">8 класс</span><span class="tag std">обычный</span><span class="tag draft">черновик статов</span></div>
+    <p class="habit">2 этаж, Лес гоблинов: поселение</p></div></header>
+  <div class="body"><h4 class="">Статы</h4>
+<p>Маленький гуманоид (монстр). КД 11 (шкуры), ОЗ 12 (5к6−5), скорость 7,5 м. Опасность 1/2.</p>
+<div class="tbl"><table><thead><tr><th>СИЛ</th><th>ЛОВ</th><th>ТЕЛ</th><th>ИНТ</th><th>МДР</th><th>ХАР</th></tr></thead><tbody><tr><td>7 (−2)</td><td>8 (−1)</td><td>9 (−1)</td><td>12 (+1)</td><td>16 (+3)</td><td>13 (+1)</td></tr></tbody></table></div>
+<p>Медицина +5, Религия +3. Тёмное зрение 18 м.</p>
+<h4 class="">Особенность тела</h4>
+<ul><li><b>Старый.</b> Двигается медленно, кашляет, опирается на посох.</li></ul>
+<h4 class="">Поведение</h4>
+<ul><li><b>Голос старейшины.</b> Пока он кричит, гоблины не бегут.</li><li><b>Проклинает.</b> Тычет костяным посохом в самого опасного и шипит.</li><li><b>Бережёт себя.</b> Прячется за хобгоблинами.</li></ul>
+<h4 class="">Атаки</h4>
+<ul><li><b>Костяной посох.</b> +0 к попаданию, 1к6−2 дробящего (минимум 1).</li></ul>
 <h4 class="">Эссенция</h4>
 <ul><li>Мудрость +2</li><li>Максимум маны +4</li><li>Харизма +1</li><li>Ловкость −1</li></ul>
 <h4 class="pas">Голос старейшины (П)</h4>
 <ul><li>Союзники в 9 м, которые тебя слышат, получают преимущество на спасброски против испуга и на проверки трусости.</li></ul>
 <h4 class="act">Проклятие предков (А)</h4>
 <ul><li><b>Мана:</b> 4.</li><li><b>Время:</b> действие.</li><li><b>Дальность:</b> одно существо в 18 м.</li><li><b>Длительность:</b> концентрация, до 1 минуты.</li><li><b>Сл:</b> 8 + бонус мастерства + модификатор Мудрости, спасбросок Мудрости; цель повторяет его в конце каждого своего хода.</li><li><b>Эффект:</b> провал — помеха на броски атаки, и каждое попадание по цели наносит +1к4 урона. Успех — ничего.</li><li><b>Перезарядка:</b> 3 раунда после окончания проклятия.</li></ul></div>
-</article><article class="mon" hidden id="hobgoblin-brute" data-zone="goblin" data-floor="2" data-cls="8" data-rank="normal" data-rare="0" data-name="хобгоблин-громила">
+</article><article class="mon" hidden id="hobgoblin-brute" data-zone="goblin" data-floor=" 2 " data-cls="8" data-rank="normal" data-rare="0" data-name="хобгоблин-громила">
   <button class="close" data-close aria-label="Закрыть запись">✕</button>
   <header><img class="face" src="assets/monsters/ph-humanoid-face.svg" alt="Хобгоблин-громила" loading="lazy">
-    <div class="hd"><h3>Хобгоблин-громила</h3><div class="tags"><span class="tag">2 этаж</span><span class="tag cls">8 класс</span><span class="tag std">обычный</span></div>
-    <p class="habit">2 этаж, Лес гоблинов: поле, поселение. Нечасто, максимум 3 за раз, ближе к концу захода.</p></div></header>
-  <div class="body"><p>Статблок ещё не расписан — пока утверждена только эссенция.</p>
+    <div class="hd"><h3>Хобгоблин-громила</h3><div class="tags"><span class="tag">2 этаж</span><span class="tag cls">8 класс</span><span class="tag std">обычный</span><span class="tag draft">черновик статов</span></div>
+    <p class="habit">2 этаж, Лес гоблинов: поле, поселение</p></div></header>
+  <details class="spawn"><summary>Условия появления</summary><p>2 этаж: нечасто, максимум 3 за раз, ближе к концу захода.</p></details><div class="body"><h4 class="">Статы</h4>
+<p>Средний гуманоид (монстр). КД 13 (шкурный доспех), ОЗ 19 (3к8+6), скорость 9 м. Опасность 1.</p>
+<div class="tbl"><table><thead><tr><th>СИЛ</th><th>ЛОВ</th><th>ТЕЛ</th><th>ИНТ</th><th>МДР</th><th>ХАР</th></tr></thead><tbody><tr><td>17 (+3)</td><td>8 (−1)</td><td>14 (+2)</td><td>8 (−1)</td><td>9 (−1)</td><td>7 (−2)</td></tr></tbody></table></div>
+<p>Атлетика +5. Тёмное зрение 18 м.</p>
+<h4 class="">Поведение</h4>
+<ul><li><b>Таран.</b> Идёт в лоб на самого крупного.</li><li><b>Сносит.</b> Каждый удар дубины отбрасывает назад.</li><li><b>Злоба.</b> Как обычный хобгоблин: не бежит, пока жив хоть один сородич.</li></ul>
+<h4 class="">Атаки</h4>
+<ul><li><b>Большая дубина.</b> +5 к попаданию, 2к4+3 дробящего.</li></ul>
 <h4 class="">Эссенция</h4>
 <ul><li>Сила +2</li><li>Телосложение +1</li><li>Атлетика +1</li><li>Ловкость −1</li></ul>
 <h4 class="pas">Тяжёлая рука (П)</h4>
 <ul><li>Попадание дробящим оружием ближнего боя отталкивает существо Среднего размера или меньше на 1,5 м (без спасброска).</li></ul>
 <h4 class="act">Сокрушительный замах (А)</h4>
 <ul><li><b>Мана:</b> 3.</li><li><b>Время:</b> действие (рукопашная атака дробящим оружием).</li><li><b>Дальность:</b> 1,5 м.</li><li><b>Длительность:</b> мгновенно.</li><li><b>Сл:</b> 8 + бонус мастерства + модификатор Силы, спасбросок Силы.</li><li><b>Эффект:</b> при попадании цель делает спасбросок. Провал — +1к8 урона и цель сбита с ног. Успех — обычный урон.</li><li><b>Перезарядка:</b> 2 раунда.</li></ul></div>
-</article><article class="mon" hidden id="hobgoblin-thrower" data-zone="goblin" data-floor="2" data-cls="8" data-rank="normal" data-rare="0" data-name="хобгоблин-метатель">
+</article><article class="mon" hidden id="hobgoblin-thrower" data-zone="goblin" data-floor=" 2 " data-cls="8" data-rank="normal" data-rare="0" data-name="хобгоблин-метатель">
   <button class="close" data-close aria-label="Закрыть запись">✕</button>
   <header><img class="face" src="assets/monsters/ph-humanoid-face.svg" alt="Хобгоблин-метатель" loading="lazy">
-    <div class="hd"><h3>Хобгоблин-метатель</h3><div class="tags"><span class="tag">2 этаж</span><span class="tag cls">8 класс</span><span class="tag std">обычный</span></div>
-    <p class="habit">2 этаж, Лес гоблинов: поле, поселение. Нечасто, максимум 3 за раз, ближе к концу захода.</p></div></header>
-  <div class="body"><p>Статблок ещё не расписан — пока утверждена только эссенция.</p>
+    <div class="hd"><h3>Хобгоблин-метатель</h3><div class="tags"><span class="tag">2 этаж</span><span class="tag cls">8 класс</span><span class="tag std">обычный</span><span class="tag draft">черновик статов</span></div>
+    <p class="habit">2 этаж, Лес гоблинов: поле, поселение</p></div></header>
+  <details class="spawn"><summary>Условия появления</summary><p>2 этаж: нечасто, максимум 3 за раз, ближе к концу захода.</p></details><div class="body"><h4 class="">Статы</h4>
+<p>Средний гуманоид (монстр). КД 14 (проклёпанная кожа), ОЗ 13 (3к8), скорость 9 м. Опасность 1/2.</p>
+<div class="tbl"><table><thead><tr><th>СИЛ</th><th>ЛОВ</th><th>ТЕЛ</th><th>ИНТ</th><th>МДР</th><th>ХАР</th></tr></thead><tbody><tr><td>13 (+1)</td><td>16 (+3)</td><td>11 (+0)</td><td>9 (−1)</td><td>8 (−1)</td><td>7 (−2)</td></tr></tbody></table></div>
+<p>Атлетика +3. Тёмное зрение 18 м.</p>
+<h4 class="">Поведение</h4>
+<ul><li><b>Дистанция.</b> Отходит, если к нему подошли вплотную.</li><li><b>Перевязь.</b> Обвешан топориками и дротиками, швыряет без паузы, иногда по два сразу.</li></ul>
+<h4 class="">Атаки</h4>
+<ul><li><b>Метательный топорик.</b> +5 к попаданию, 9/24 м, 1к6+4 рубящего.</li><li><b>Дротик.</b> +5 к попаданию, 9/36 м, 1к4+4 колющего.</li></ul>
 <h4 class="">Эссенция</h4>
 <ul><li>Дальность метательного оружия +3 м</li><li>Ловкость +2</li><li>Сила +1</li><li>Мудрость −1</li></ul>
 <h4 class="pas">Полная перевязь (П)</h4>
 <ul><li>Метательное оружие достаёшь как часть атаки; метательное оружие наносит +1 урона.</li></ul>
 <h4 class="act">Двойной бросок (А)</h4>
 <ul><li><b>Мана:</b> 3.</li><li><b>Время:</b> действие.</li><li><b>Дальность:</b> дальность метательного оружия.</li><li><b>Длительность:</b> мгновенно.</li><li><b>Сл:</b> нет.</li><li><b>Эффект:</b> две дальнобойные атаки метательным оружием, по одной цели или по двум разным.</li><li><b>Перезарядка:</b> 2 раунда.</li></ul></div>
-</article><article class="mon" hidden id="hobgoblin-driver" data-zone="goblin" data-floor="2" data-cls="8" data-rank="normal" data-rare="0" data-name="хобгоблин-загонщик">
+</article><article class="mon" hidden id="hobgoblin-driver" data-zone="goblin" data-floor=" 2 " data-cls="8" data-rank="normal" data-rare="0" data-name="хобгоблин-загонщик">
   <button class="close" data-close aria-label="Закрыть запись">✕</button>
   <header><img class="face" src="assets/monsters/ph-humanoid-face.svg" alt="Хобгоблин-загонщик" loading="lazy">
-    <div class="hd"><h3>Хобгоблин-загонщик</h3><div class="tags"><span class="tag">2 этаж</span><span class="tag cls">8 класс</span><span class="tag std">обычный</span></div>
-    <p class="habit">2 этаж, Лес гоблинов: поле, поселение. Нечасто, гонит гоблинов вперёд.</p></div></header>
-  <div class="body"><p>Статблок ещё не расписан — пока утверждена только эссенция.</p>
+    <div class="hd"><h3>Хобгоблин-загонщик</h3><div class="tags"><span class="tag">2 этаж</span><span class="tag cls">8 класс</span><span class="tag std">обычный</span><span class="tag draft">черновик статов</span></div>
+    <p class="habit">2 этаж, Лес гоблинов: поле, поселение</p></div></header>
+  <details class="spawn"><summary>Условия появления</summary><p>2 этаж: нечасто, максимум 3 за раз, ближе к концу захода.</p></details><div class="body"><h4 class="">Статы</h4>
+<p>Средний гуманоид (монстр). КД 14 (проклёпанная кожа), ОЗ 16 (3к8+3), скорость 9 м. Опасность 1/2.</p>
+<div class="tbl"><table><thead><tr><th>СИЛ</th><th>ЛОВ</th><th>ТЕЛ</th><th>ИНТ</th><th>МДР</th><th>ХАР</th></tr></thead><tbody><tr><td>14 (+2)</td><td>12 (+1)</td><td>12 (+1)</td><td>9 (−1)</td><td>8 (−1)</td><td>13 (+1)</td></tr></tbody></table></div>
+<p>Запугивание +5. Тёмное зрение 18 м.</p>
+<h4 class="">Поведение</h4>
+<ul><li><b>Сзади стаи.</b> Гонит гоблинов кнутом вперёд.</li><li><b>Длинный кнут.</b> Достаёт из второго ряда.</li><li><b>Орёт.</b> От его крика гоблин рядом вдруг бросается в атаку.</li></ul>
+<h4 class="">Атаки</h4>
+<ul><li><b>Кнут.</b> +4 к попаданию, досягаемость 4,5 м, 1к4+2 рубящего.</li><li><b>Цеп.</b> +4 к попаданию, досягаемость 3 м, 1к8+2 дробящего.</li></ul>
 <h4 class="">Эссенция</h4>
 <ul><li>Запугивание +2</li><li>Сила +1</li><li>Харизма +1</li><li>Мудрость −1</li></ul>
 <h4 class="pas">Длинная рука (П)</h4>
 <ul><li>Досягаемость кнута и цепа +1,5 м.</li></ul>
 <h4 class="act">Подгонять (А)</h4>
 <ul><li><b>Мана:</b> 3.</li><li><b>Время:</b> бонусное действие.</li><li><b>Дальность:</b> один союзник в 9 м, который тебя слышит.</li><li><b>Длительность:</b> мгновенно.</li><li><b>Сл:</b> нет.</li><li><b>Эффект:</b> союзник сразу перемещается на половину скорости и реакцией совершает одну атаку оружием.</li><li><b>Перезарядка:</b> 3 раунда.</li></ul></div>
-</article><article class="mon" hidden id="hobgoblin-shield" data-zone="goblin" data-floor="2" data-cls="8" data-rank="rare" data-rare="1" data-name="хобгоблин-щитоносец">
+</article><article class="mon" hidden id="hobgoblin-shield" data-zone="goblin" data-floor=" 2 " data-cls="8" data-rank="rare" data-rare="1" data-name="хобгоблин-щитоносец">
   <button class="close" data-close aria-label="Закрыть запись">✕</button>
   <header><img class="face" src="assets/monsters/ph-humanoid-face.svg" alt="Хобгоблин-щитоносец" loading="lazy">
-    <div class="hd"><h3>Хобгоблин-щитоносец</h3><div class="tags"><span class="tag">2 этаж</span><span class="tag cls">8 класс</span><span class="tag rare">редкий</span></div>
-    <p class="habit">2 этаж, Лес гоблинов: руины. Редкий: в руинах, 1–3 рядом с подрывником; в поселении очень редко.</p></div></header>
-  <div class="body"><p>Статблок ещё не расписан — пока утверждена только эссенция.</p>
+    <div class="hd"><h3>Хобгоблин-щитоносец</h3><div class="tags"><span class="tag">2 этаж</span><span class="tag cls">8 класс</span><span class="tag rare">редкий</span><span class="tag draft">черновик статов</span></div>
+    <p class="habit">2 этаж, Лес гоблинов: руины</p></div></header>
+  <details class="spawn"><summary>Условия появления</summary><p>Редкий: 1–3 рядом с подрывником; в поселении очень редко.</p></details><div class="body"><h4 class="">Статы</h4>
+<p>Средний гуманоид (монстр). КД 16 (кольчужная рубаха, ростовой щит), ОЗ 26 (4к8+8), скорость 9 м. Опасность 1.</p>
+<div class="tbl"><table><thead><tr><th>СИЛ</th><th>ЛОВ</th><th>ТЕЛ</th><th>ИНТ</th><th>МДР</th><th>ХАР</th></tr></thead><tbody><tr><td>15 (+2)</td><td>8 (−1)</td><td>15 (+2)</td><td>8 (−1)</td><td>10 (+0)</td><td>7 (−2)</td></tr></tbody></table></div>
+<p>Атлетика +4. Тёмное зрение 18 м.</p>
+<h4 class="">Поведение</h4>
+<ul><li><b>Стена.</b> Стоит перед подрывником и не отходит.</li><li><b>Подставляется.</b> Бросается под удар, предназначенный соседу.</li></ul>
+<h4 class="">Атаки</h4>
+<ul><li><b>Удар щитом.</b> +4 к попаданию, 1к6+2 дробящего.</li><li><b>Короткий меч.</b> +4 к попаданию, 1к6+2 колющего.</li></ul>
 <h4 class="">Эссенция</h4>
 <ul><li>Телосложение +2</li><li>КД +1</li><li>Сила +1</li><li>Ловкость −1</li></ul>
 <p>Носит ростовой щит. Живёт в руинах, в бою закрывает подрывника собой (1–3 щитоносца на одного подрывника).</p>
@@ -282,12 +343,19 @@ td { text-align: center; padding: 6px 4px; }
 <ul><li>Пока ты держишь щит, союзники в 1,5 м позади тебя получают половинное укрытие: +2 к КД и к спасброскам Ловкости.</li></ul>
 <h4 class="act">Принять удар (А)</h4>
 <ul><li><b>Мана:</b> 2.</li><li><b>Время:</b> реакция, когда союзник в 1,5 м от тебя становится целью атаки.</li><li><b>Дальность:</b> 1,5 м.</li><li><b>Длительность:</b> против этой атаки.</li><li><b>Сл:</b> нет.</li><li><b>Эффект:</b> ты становишься целью вместо союзника, атака сравнивается с твоим КД. С ростовым щитом урон по тебе от этой атаки меньше на 1к6.</li><li><b>Перезарядка:</b> 2 раунда.</li></ul></div>
-</article><article class="mon" hidden id="goblin-king" data-zone="goblin" data-floor="2" data-cls="7" data-rank="normal" data-rare="0" data-name="король гоблинов">
+</article><article class="mon" hidden id="goblin-king" data-zone="goblin" data-floor=" 2 " data-cls="7" data-rank="normal" data-rare="0" data-name="король гоблинов">
   <button class="close" data-close aria-label="Закрыть запись">✕</button>
   <header><img class="face" src="assets/monsters/ph-humanoid-face.svg" alt="Король гоблинов" loading="lazy">
-    <div class="hd"><h3>Король гоблинов</h3><div class="tags"><span class="tag">2 этаж</span><span class="tag cls">7 класс</span><span class="tag std">обычный</span></div>
-    <p class="habit">2 этаж, Лес гоблинов: поселение. Лидер, сидит на троне в поселении.</p></div></header>
-  <div class="body"><p>Статблок ещё не расписан — пока утверждена только эссенция.</p>
+    <div class="hd"><h3>Король гоблинов</h3><div class="tags"><span class="tag">2 этаж</span><span class="tag cls">7 класс</span><span class="tag std">обычный</span><span class="tag draft">черновик статов</span></div>
+    <p class="habit">2 этаж, Лес гоблинов: поселение</p></div></header>
+  <div class="body"><h4 class="">Статы</h4>
+<p>Маленький гуманоид (монстр). КД 15 (трофейная кольчуга), ОЗ 45 (10к6+10), скорость 7,5 м. Опасность 2.</p>
+<div class="tbl"><table><thead><tr><th>СИЛ</th><th>ЛОВ</th><th>ТЕЛ</th><th>ИНТ</th><th>МДР</th><th>ХАР</th></tr></thead><tbody><tr><td>16 (+3)</td><td>8 (−1)</td><td>13 (+1)</td><td>10 (+0)</td><td>11 (+0)</td><td>16 (+3)</td></tr></tbody></table></div>
+<p>Запугивание +7, Атлетика +5. Тёмное зрение 18 м.</p>
+<h4 class="">Поведение</h4>
+<ul><li><b>Трон.</b> Сидит и командует; встаёт, только когда враг вплотную или стая почти перебита.</li><li><b>Пока жив король.</b> Гоблины рядом не боятся и бьют точнее.</li><li><b>Рёв.</b> Встав, ревёт так, что дрожат кости.</li></ul>
+<h4 class="">Атаки</h4>
+<ul><li><b>Две атаки.</b> За ход две атаки булавой.</li><li><b>Тяжёлая булава.</b> +5 к попаданию, 1к8+3 дробящего.</li><li><b>Метательное копьё.</b> +5 к попаданию, 6/18 м, 1к6+3 колющего.</li></ul>
 <h4 class="">Эссенция</h4>
 <ul><li>Сила +2</li><li>Харизма +2</li><li>Телосложение +1</li><li>Запугивание +1</li><li>Ловкость −2</li></ul>
 <p>Король большую часть боя сидит на троне и командует; встаёт и дерётся сам, только когда враг подходит вплотную или стая почти перебита. В статблоке: ЛОВ 8, скорость 7,5 м.</p>
@@ -295,24 +363,40 @@ td { text-align: center; padding: 6px 4px; }
 <ul><li>Союзники в 18 м, которые тебя видят, не могут быть испуганы и получают +1 к броскам атаки.</li></ul>
 <h4 class="act">Боевой рёв (А)</h4>
 <ul><li><b>Мана:</b> 4.</li><li><b>Время:</b> бонусное действие.</li><li><b>Дальность:</b> существа на выбор в 9 м.</li><li><b>Длительность:</b> до конца твоего следующего хода.</li><li><b>Сл:</b> 8 + бонус мастерства + модификатор Харизмы, спасбросок Мудрости (только враги).</li><li><b>Эффект:</b> враги — провал: испуганы тобой; успех: ничего. Союзники — каждый получает 1к6 временных ОЗ.</li><li><b>Перезарядка:</b> 4 раунда.</li></ul></div>
-</article><article class="mon" hidden id="goblin-bomber" data-zone="goblin" data-floor="2" data-cls="7" data-rank="special" data-rare="0" data-name="гоблин-подрывник">
+</article><article class="mon" hidden id="goblin-bomber" data-zone="goblin" data-floor=" 2 " data-cls="7" data-rank="special" data-rare="0" data-name="гоблин-подрывник">
   <button class="close" data-close aria-label="Закрыть запись">✕</button>
   <header><img class="face" src="assets/monsters/ph-humanoid-face.svg" alt="Гоблин-подрывник" loading="lazy">
-    <div class="hd"><h3>Гоблин-подрывник</h3><div class="tags"><span class="tag">2 этаж</span><span class="tag cls">7 класс</span><span class="tag rare">особый</span></div>
-    <p class="habit">2 этаж, Лес гоблинов: руины. Особый: в самом углу руин, с 1–3 щитоносцами.</p></div></header>
-  <div class="body"><p>Статблок ещё не расписан — пока утверждена только эссенция.</p>
+    <div class="hd"><h3>Гоблин-подрывник</h3><div class="tags"><span class="tag">2 этаж</span><span class="tag cls">7 класс</span><span class="tag rare">особый</span><span class="tag draft">черновик статов</span></div>
+    <p class="habit">2 этаж, Лес гоблинов: руины</p></div></header>
+  <details class="spawn"><summary>Условия появления</summary><p>Всегда с 1–3 щитоносцами.</p></details><div class="body"><h4 class="">Статы</h4>
+<p>Маленький гуманоид (монстр). КД 13 (кожаный фартук), ОЗ 38 (7к6+14), скорость 9 м. Опасность 2.</p>
+<div class="tbl"><table><thead><tr><th>СИЛ</th><th>ЛОВ</th><th>ТЕЛ</th><th>ИНТ</th><th>МДР</th><th>ХАР</th></tr></thead><tbody><tr><td>8 (−1)</td><td>17 (+3)</td><td>14 (+2)</td><td>13 (+1)</td><td>8 (−1)</td><td>8 (−1)</td></tr></tbody></table></div>
+<p>Ловкость рук +5, Восприятие −1. Тёмное зрение 18 м.</p>
+<h4 class="">Особенность тела</h4>
+<ul><li><b>Обожжённый.</b> Сопротивление урону огнём.</li></ul>
+<h4 class="">Поведение</h4>
+<ul><li><b>За щитами.</b> Прячется за щитоносцами.</li><li><b>Шипящий фитиль.</b> Перед броском целый ход держит горящую бомбу в руке.</li><li><b>Глухой.</b> Не слышит крадущихся.</li></ul>
+<h4 class="">Атаки</h4>
+<ul><li><b>Нож.</b> +5 к попаданию, 1к4+3 колющего.</li><li><b>Праща.</b> +5 к попаданию, 9/36 м, 1к4+3 дробящего.</li></ul>
 <h4 class="">Эссенция</h4>
 <ul><li>Ловкость +2</li><li>Сопротивление урону огнём</li><li>Интеллект +1</li><li>Мудрость −1</li><li>Восприятие −2 (оглох от взрывов)</li></ul>
 <h4 class="pas">Свои не горят (П)</h4>
 <ul><li>Урон огнём от твоих способностей и бомб +2. Иммунитета к своим взрывам нет — только сопротивление огню.</li></ul>
 <h4 class="act">Самодельная бомба (А)</h4>
 <ul><li><b>Мана:</b> 5.</li><li><b>Время:</b> 2 хода. В первый ход — действие: поджечь фитиль (бомба горит в руке). Во второй ход — действие: бросок.</li><li><b>Дальность:</b> сфера радиусом 3 м в пределах 18 м.</li><li><b>Длительность:</b> мгновенно.</li><li><b>Сл:</b> 8 + бонус мастерства + модификатор Ловкости, спасбросок Ловкости.</li><li><b>Эффект:</b> провал — 3к6 урона огнём и цель сбита с ног. Успех — половина урона, на ногах.</li><li><b>Бомба в руке:</b> пока фитиль горит, любое попадание атакой по тебе взрывает бомбу в руках — сфера с центром на тебе, ты получаешь полный урон без спасброска (сопротивление огню его половинит), остальные рядом спасаются как обычно.</li><li><b>Нестабильная смесь:</b> перед броском к20; на 1–2 бомба рвётся в руках так же.</li><li><b>Перезарядка:</b> 1 раунд.</li></ul></div>
-</article><article class="mon" hidden id="goblin-thief" data-zone="goblin" data-floor="2" data-cls="7" data-rank="special" data-rare="0" data-name="гоблин-вор">
+</article><article class="mon" hidden id="goblin-thief" data-zone="goblin" data-floor=" 2 " data-cls="7" data-rank="special" data-rare="0" data-name="гоблин-вор">
   <button class="close" data-close aria-label="Закрыть запись">✕</button>
   <header><img class="face" src="assets/monsters/ph-humanoid-face.svg" alt="Гоблин-вор" loading="lazy">
-    <div class="hd"><h3>Гоблин-вор</h3><div class="tags"><span class="tag">2 этаж</span><span class="tag cls">7 класс</span><span class="tag rare">особый</span></div>
-    <p class="habit">2 этаж, Лес гоблинов: логово воров. Особый: в логове воров.</p></div></header>
-  <div class="body"><p>Статблок ещё не расписан — пока утверждена только эссенция.</p>
+    <div class="hd"><h3>Гоблин-вор</h3><div class="tags"><span class="tag">2 этаж</span><span class="tag cls">7 класс</span><span class="tag rare">особый</span><span class="tag draft">черновик статов</span></div>
+    <p class="habit">2 этаж, Лес гоблинов: логово воров</p></div></header>
+  <div class="body"><h4 class="">Статы</h4>
+<p>Маленький гуманоид (монстр). КД 15 (кожаный доспех), ОЗ 31 (7к6+7), скорость 10,5 м. Опасность 2.</p>
+<div class="tbl"><table><thead><tr><th>СИЛ</th><th>ЛОВ</th><th>ТЕЛ</th><th>ИНТ</th><th>МДР</th><th>ХАР</th></tr></thead><tbody><tr><td>7 (−2)</td><td>18 (+4)</td><td>12 (+1)</td><td>12 (+1)</td><td>10 (+0)</td><td>12 (+1)</td></tr></tbody></table></div>
+<p>Скрытность +8, Ловкость рук +8, Акробатика +6. Тёмное зрение 18 м.</p>
+<h4 class="">Поведение</h4>
+<ul><li><b>Жадность.</b> Бросается к любой блестящей вещи, даже посреди боя.</li><li><b>Срезал и бежит.</b> Схватив добычу, сразу удирает к логову.</li><li><b>Быстрые ноги.</b> Обгоняет любого гоблина.</li></ul>
+<h4 class="">Атаки</h4>
+<ul><li><b>Две атаки.</b> За ход две атаки кинжалом.</li><li><b>Кинжал.</b> +6 к попаданию, 1к4+4 колющего.</li></ul>
 <h4 class="">Эссенция</h4>
 <ul><li>Ловкость +2</li><li>Ловкость рук +1</li><li>Скрытность +1</li><li>Сила −1</li><li>Жадность</li></ul>
 <p><b>Жадность (минус).</b> Если в бою в 3 м от тебя лежит или открыто висит что-то ценное (кошель, зелье, выпавший предмет, монеты), в начале хода спасбросок Мудрости Сл 12; провал — тратишь всё перемещение и действие, чтобы это схватить.</p>
@@ -320,12 +404,12 @@ td { text-align: center; padding: 6px 4px; }
 <ul><li>Скорость +1,5 м.</li></ul>
 <h4 class="act">Срезать кошель (А)</h4>
 <ul><li><b>Мана:</b> 3.</li><li><b>Время:</b> бонусное действие.</li><li><b>Дальность:</b> одно существо в 1,5 м.</li><li><b>Длительность:</b> мгновенно.</li><li><b>Сл:</b> 8 + бонус мастерства + модификатор Ловкости, спасбросок Ловкости.</li><li><b>Эффект:</b> провал — забираешь один незакреплённый предмет (зелье, свиток, паёк, кошель; не надетое оружие и броню) и сразу перемещаешься на половину скорости, не провоцируя атак. Успех — ничего. Монстр-вор с добычей убегает к логову.</li><li><b>Перезарядка:</b> 3 раунда.</li></ul></div>
-</article><article class="mon" hidden id="dark-bear" data-zone="beast" data-floor="1" data-cls="8" data-rank="normal" data-rare="0" data-name="тёмный медведь">
+</article><article class="mon" hidden id="dark-bear" data-zone="beast" data-floor=" 1 2 " data-cls="8" data-rank="normal" data-rare="0" data-name="тёмный медведь">
   <button class="close" data-close aria-label="Закрыть запись">✕</button>
   <header><img class="face" src="assets/monsters/dark-bear-face.webp" alt="Тёмный медведь" loading="lazy">
-    <div class="hd"><h3>Тёмный медведь</h3><div class="tags"><span class="tag">1 этаж</span><span class="tag cls">8 класс</span><span class="tag std">обычный</span></div>
-    <p class="habit">1 этаж, зона зверей, у портала. Только с 7-го дня, в одиночку.</p></div></header>
-  <div class="body"><h4 class="">Статы</h4>
+    <div class="hd"><h3>Тёмный медведь</h3><div class="tags"><span class="tag">1, 2 этаж</span><span class="tag cls">8 класс</span><span class="tag std">обычный</span></div>
+    <p class="habit">1 этаж: зона зверей, у портала; 2 этаж, Волчья чаща: ярус 2 медвежьей пещеры</p></div></header>
+  <details class="spawn"><summary>Условия появления</summary><p>1 этаж: с 7-го дня у портала своей зоны — первая встреча там всегда он, дальше на к20 = 1–2. В одиночку.</p></details><div class="body"><h4 class="">Статы</h4>
 <p>Большой зверь (монстр). КД 12 (природный доспех), ОЗ 26 (4к10+4), скорость 12 м, лазание 9 м. Опасность 1.</p>
 <div class="tbl"><table><thead><tr><th>СИЛ</th><th>ЛОВ</th><th>ТЕЛ</th><th>ИНТ</th><th>МДР</th><th>ХАР</th></tr></thead><tbody><tr><td>17 (+3)</td><td>10 (+0)</td><td>14 (+2)</td><td>2 (−4)</td><td>12 (+1)</td><td>6 (−2)</td></tr></tbody></table></div>
 <p>Восприятие +3. Тёмное зрение 18 м.</p>
@@ -339,11 +423,233 @@ td { text-align: center; padding: 6px 4px; }
 <ul><li>Преимущество на Скрытность в тусклом свете и темноте.</li></ul>
 <h4 class="act">Медвежья хватка (А)</h4>
 <ul><li><b>Мана:</b> 3.</li><li><b>Время:</b> действие (рукопашная атака).</li><li><b>Дальность:</b> 1,5 м.</li><li><b>Длительность:</b> пока цель схвачена.</li><li><b>Сл:</b> 8 + бонус мастерства + модификатор Силы, спасбросок Силы.</li><li><b>Эффект:</b> при попадании цель делает спасбросок. Провал — схвачена и в начале каждого своего хода получает 1к6 дробящего. Успех — ничего. Вырваться: действие, проверка Силы или Ловкости против Сл.</li><li><b>Перезарядка:</b> 3 раунда.</li></ul></div>
-</article><article class="mon" hidden id="wolf" data-zone="beast" data-floor="1" data-cls="9" data-rank="normal" data-rare="0" data-name="рубящий волк">
+</article><article class="mon" hidden id="horned-hare" data-zone="beast" data-floor=" 2 " data-cls="9" data-rank="rare" data-rare="1" data-name="рогатый заяц">
+  <button class="close" data-close aria-label="Закрыть запись">✕</button>
+  <header><img class="face" src="assets/monsters/ph-beast-face.svg" alt="Рогатый заяц" loading="lazy">
+    <div class="hd"><h3>Рогатый заяц</h3><div class="tags"><span class="tag">2 этаж</span><span class="tag cls">9 класс</span><span class="tag rare">редкий</span><span class="tag draft">черновик статов</span></div>
+    <p class="habit">2 этаж, Волчья чаща: чаща</p></div></header>
+  <div class="body"><h4 class="">Статы</h4>
+<p>Маленький зверь (монстр). КД 13, ОЗ 7 (2к6), скорость 13,5 м. Опасность 1/4.</p>
+<div class="tbl"><table><thead><tr><th>СИЛ</th><th>ЛОВ</th><th>ТЕЛ</th><th>ИНТ</th><th>МДР</th><th>ХАР</th></tr></thead><tbody><tr><td>8 (−1)</td><td>16 (+3)</td><td>10 (+0)</td><td>2 (−4)</td><td>12 (+1)</td><td>5 (−3)</td></tr></tbody></table></div>
+<p>Атлетика +1, Восприятие +3.</p>
+<h4 class="">Поведение</h4>
+<ul><li><b>Разгон.</b> Отбегает подальше и несётся по прямой.</li><li><b>Петляет.</b> После удара отскакивает в сторону.</li><li><b>Долгая рана.</b> Рана от рога долго кровит.</li></ul>
+<h4 class="">Атаки</h4>
+<ul><li><b>Рог.</b> +5 к попаданию, 1к6+3 колющего.</li></ul>
+<h4 class="">Эссенция</h4>
+<ul><li>Ловкость +1</li><li>Скорость +1,5 м</li><li>Атлетика +1</li><li>Сила −1</li></ul>
+<h4 class="pas">Петляет (П)</h4>
+<ul><li>Если перед атакой ближнего боя ты пробежал по прямой не меньше 6 м, после неё можешь отскочить на 3 м, не провоцируя атак.</li></ul>
+<h4 class="act">Рывок с тараном (А)</h4>
+<ul><li><b>Мана:</b> 3.</li><li><b>Время:</b> действие.</li><li><b>Дальность:</b> движение по прямой на свою скорость, затем атака колющим оружием (копьё, пика и т. п.; у зайца — рог).</li><li><b>Длительность:</b> мгновенно; кровотечение — до 1 минуты или пока рану не перевяжут.</li><li><b>Сл:</b> по Ловкости, спасбросок Телосложения.</li><li><b>Эффект:</b> при попадании +1к6 урона. Провал — кровотечение: в начале каждого своего хода цель получает 1к4 урона; остановить — действие, Медицина Сл 10 (или любое лечение). Успех — только урон.</li><li><b>Перезарядка:</b> 2 раунда.</li></ul></div>
+</article><article class="mon" hidden id="swamp-toad" data-zone="beast" data-floor=" 2 " data-cls="9" data-rank="normal" data-rare="0" data-name="болотная жаба">
+  <button class="close" data-close aria-label="Закрыть запись">✕</button>
+  <header><img class="face" src="assets/monsters/ph-beast-face.svg" alt="Болотная жаба" loading="lazy">
+    <div class="hd"><h3>Болотная жаба</h3><div class="tags"><span class="tag">2 этаж</span><span class="tag cls">9 класс</span><span class="tag std">обычный</span><span class="tag draft">черновик статов</span></div>
+    <p class="habit">2 этаж, Волчья чаща: топь</p></div></header>
+  <div class="body"><h4 class="">Статы</h4>
+<p>Средний зверь (монстр). КД 11, ОЗ 11 (2к8+2), скорость 6 м, плавание 9 м. Опасность 1/4.</p>
+<div class="tbl"><table><thead><tr><th>СИЛ</th><th>ЛОВ</th><th>ТЕЛ</th><th>ИНТ</th><th>МДР</th><th>ХАР</th></tr></thead><tbody><tr><td>12 (+1)</td><td>8 (−1)</td><td>13 (+1)</td><td>2 (−4)</td><td>10 (+0)</td><td>3 (−4)</td></tr></tbody></table></div>
+<p>Скрытность +1 (в воде и топи +2). Задерживает дыхание на 30 минут.</p>
+<h4 class="">Особенность тела</h4>
+<ul><li><b>Скользкая.</b> Схватить её почти невозможно.</li></ul>
+<h4 class="">Поведение</h4>
+<ul><li><b>Под ряской.</b> Сидит в топи, видны только глаза.</li><li><b>Язык.</b> Тянет добычу к себе.</li></ul>
+<h4 class="">Атаки</h4>
+<ul><li><b>Укус.</b> +3 к попаданию, 1к6+1 колющего.</li></ul>
+<h4 class="">Эссенция</h4>
+<ul><li>Телосложение +1</li><li>Скрытность в воде и топи +1</li><li>Задержка дыхания ×2</li><li>Ловкость −1</li></ul>
+<h4 class="pas">Скользкая кожа (П)</h4>
+<ul><li>Преимущество на проверки и спасброски, чтобы вырваться из захвата или не попасть в него.</li></ul>
+<h4 class="act">Липкий язык (А)</h4>
+<ul><li><b>Мана:</b> 3.</li><li><b>Время:</b> действие.</li><li><b>Дальность:</b> одно существо Среднее или меньше в 4,5 м.</li><li><b>Длительность:</b> пока цель не вырвется.</li><li><b>Сл:</b> по Ловкости, спасбросок Силы.</li><li><b>Эффект:</b> провал — цель притянута вплотную и схвачена (вырваться: действие, проверка Силы или Ловкости против Сл). Успех — ничего.</li><li><b>Перезарядка:</b> 2 раунда.</li></ul></div>
+</article><article class="mon" hidden id="burrower" data-zone="beast" data-floor=" 2 " data-cls="9" data-rank="normal" data-rare="0" data-name="потайной землекоп">
+  <button class="close" data-close aria-label="Закрыть запись">✕</button>
+  <header><img class="face" src="assets/monsters/ph-beast-face.svg" alt="Потайной землекоп" loading="lazy">
+    <div class="hd"><h3>Потайной землекоп</h3><div class="tags"><span class="tag">2 этаж</span><span class="tag cls">9 класс</span><span class="tag std">обычный</span><span class="tag draft">черновик статов</span></div>
+    <p class="habit">2 этаж, Волчья чаща: медвежья пещера</p></div></header>
+  <div class="body"><h4 class="">Статы</h4>
+<p>Маленький зверь (монстр). КД 12, ОЗ 9 (2к6+2), скорость 6 м, рытьё 3 м. Опасность 1/8.</p>
+<div class="tbl"><table><thead><tr><th>СИЛ</th><th>ЛОВ</th><th>ТЕЛ</th><th>ИНТ</th><th>МДР</th><th>ХАР</th></tr></thead><tbody><tr><td>10 (+0)</td><td>12 (+1)</td><td>13 (+1)</td><td>2 (−4)</td><td>10 (+0)</td><td>4 (−3)</td></tr></tbody></table></div>
+<p>Чувство вибрации 3 м. Плохое зрение.</p>
+<h4 class="">Поведение</h4>
+<ul><li><b>Ямы.</b> Копает ловушки на тропах пещеры.</li><li><b>Из-под земли.</b> Выскакивает снизу.</li><li><b>Ныряет.</b> Раненый уходит под землю.</li></ul>
+<h4 class="">Атаки</h4>
+<ul><li><b>Когти.</b> +3 к попаданию, 1к6+1 рубящего.</li></ul>
+<h4 class="">Эссенция</h4>
+<ul><li>Скорость рытья 3 м (рыхлый грунт)</li><li>Чувство вибрации 3 м</li><li>Телосложение +1</li><li>Плохое зрение (помеха на Восприятие глазами)</li></ul>
+<h4 class="pas">Ямокоп (П)</h4>
+<ul><li>За 10 минут вырываешь яму-ловушку: заметить — Восприятие Сл 12; упавший получает 1к6 урона и сбит с ног.</li></ul>
+<h4 class="act">Нырок под землю (А)</h4>
+<ul><li><b>Мана:</b> 3.</li><li><b>Время:</b> бонусное действие.</li><li><b>Дальность:</b> на себя, рыхлый грунт.</li><li><b>Длительность:</b> до начала твоего следующего хода.</li><li><b>Сл:</b> нет.</li><li><b>Эффект:</b> закапываешься, атаковать тебя нельзя; на следующий ход выныриваешь в пределах 4,5 м, первая атака с преимуществом.</li><li><b>Перезарядка:</b> 3 раунда.</li></ul></div>
+</article><article class="mon" hidden id="crow" data-zone="beast" data-floor=" 2 " data-cls="9" data-rank="normal" data-rare="0" data-name="ворона">
+  <button class="close" data-close aria-label="Закрыть запись">✕</button>
+  <header><img class="face" src="assets/monsters/ph-beast-face.svg" alt="Ворона" loading="lazy">
+    <div class="hd"><h3>Ворона</h3><div class="tags"><span class="tag">2 этаж</span><span class="tag cls">9 класс</span><span class="tag std">обычный</span><span class="tag draft">черновик статов</span></div>
+    <p class="habit">2 этаж, Волчья чаща: чаща</p></div></header>
+  <div class="body"><h4 class="">Статы</h4>
+<p>Крошечный зверь (монстр). КД 12, ОЗ 3 (1к4+1), скорость 3 м, полёт 15 м. Опасность 1/8.</p>
+<div class="tbl"><table><thead><tr><th>СИЛ</th><th>ЛОВ</th><th>ТЕЛ</th><th>ИНТ</th><th>МДР</th><th>ХАР</th></tr></thead><tbody><tr><td>4 (−3)</td><td>14 (+2)</td><td>12 (+1)</td><td>3 (−4)</td><td>12 (+1)</td><td>6 (−2)</td></tr></tbody></table></div>
+<p>Восприятие +3.</p>
+<h4 class="">Поведение</h4>
+<ul><li><b>Налёт.</b> Налетает и сразу отлетает.</li><li><b>В глаза.</b> Целит клювом в лицо.</li><li><b>Кричит.</b> Улетая, кричит о вас.</li></ul>
+<h4 class="">Атаки</h4>
+<ul><li><b>Клюв.</b> +4 к попаданию, 1к4 колющего.</li></ul>
+<h4 class="">Эссенция</h4>
+<ul><li>Восприятие +1</li><li>Ловкость +1</li><li>Зоркость (мелкие детали видишь вдвое дальше)</li><li>Сила −1</li></ul>
+<h4 class="pas">Налёт (П)</h4>
+<ul><li>После рукопашной атаки отход не провоцирует атак.</li></ul>
+<h4 class="act">В глаза (А)</h4>
+<ul><li><b>Мана:</b> 2.</li><li><b>Время:</b> бонусное действие.</li><li><b>Дальность:</b> твоя следующая рукопашная атака в этот ход.</li><li><b>Длительность:</b> до конца следующего хода цели.</li><li><b>Сл:</b> нет.</li><li><b>Эффект:</b> при попадании цель получает помеху на свой следующий бросок атаки.</li><li><b>Перезарядка:</b> 1 раунд.</li></ul></div>
+</article><article class="mon" hidden id="dire-wolf" data-zone="beast" data-floor=" 2 " data-cls="8" data-rank="normal" data-rare="0" data-name="матёрый волк">
+  <button class="close" data-close aria-label="Закрыть запись">✕</button>
+  <header><img class="face" src="assets/monsters/ph-beast-face.svg" alt="Матёрый волк" loading="lazy">
+    <div class="hd"><h3>Матёрый волк</h3><div class="tags"><span class="tag">2 этаж</span><span class="tag cls">8 класс</span><span class="tag std">обычный</span><span class="tag draft">черновик статов</span></div>
+    <p class="habit">2 этаж, Волчья чаща: волчьи холмы, чаща</p></div></header>
+  <details class="spawn"><summary>Условия появления</summary><p>Только со стаей волков.</p></details><div class="body"><h4 class="">Статы</h4>
+<p>Средний зверь (монстр). КД 13 (природный доспех), ОЗ 18 (4к8), скорость 12 м. Опасность 1.</p>
+<div class="tbl"><table><thead><tr><th>СИЛ</th><th>ЛОВ</th><th>ТЕЛ</th><th>ИНТ</th><th>МДР</th><th>ХАР</th></tr></thead><tbody><tr><td>16 (+3)</td><td>13 (+1)</td><td>11 (+0)</td><td>4 (−3)</td><td>13 (+1)</td><td>10 (+0)</td></tr></tbody></table></div>
+<p>Восприятие +5, Скрытность +3.</p>
+<h4 class="">Особенность тела</h4>
+<ul><li><b>Старые шрамы.</b> Весь в рубцах — старый и уже не такой крепкий.</li></ul>
+<h4 class="">Поведение</h4>
+<ul><li><b>Вожак стаи.</b> Бьёт того, кого стая уже окружила.</li><li><b>Валит.</b> Первым делом сбивает с ног.</li></ul>
+<h4 class="">Атаки</h4>
+<ul><li><b>Укус.</b> +5 к попаданию, 2к4+3 колющего.</li></ul>
+<h4 class="">Эссенция</h4>
+<ul><li>Сила +2</li><li>Харизма +1</li><li>Восприятие +1</li><li>Телосложение −1</li></ul>
+<p>Старый и потрёпанный, но опытный: в статблоке ТЕЛ ниже, ХАР выше, чем у молодых волков.</p>
+<h4 class="pas">Хватка стаи (П)</h4>
+<ul><li>Преимущество на атаки по существу, рядом с которым (1,5 м) стоит твой боеспособный союзник.</li></ul>
+<h4 class="act">Сбить с ног (А)</h4>
+<ul><li><b>Мана:</b> 2.</li><li><b>Время:</b> действие (рукопашная атака).</li><li><b>Дальность:</b> 1,5 м.</li><li><b>Длительность:</b> мгновенно.</li><li><b>Сл:</b> по Силе, спасбросок Силы.</li><li><b>Эффект:</b> при попадании провал — цель сбита с ног; успех — обычный урон.</li><li><b>Перезарядка:</b> 2 раунда.</li></ul></div>
+</article><article class="mon" hidden id="web-spider" data-zone="beast" data-floor=" 2 " data-cls="8" data-rank="normal" data-rare="0" data-name="паук-сетепряд">
+  <button class="close" data-close aria-label="Закрыть запись">✕</button>
+  <header><img class="face" src="assets/monsters/ph-beast-face.svg" alt="Паук-сетепряд" loading="lazy">
+    <div class="hd"><h3>Паук-сетепряд</h3><div class="tags"><span class="tag">2 этаж</span><span class="tag cls">8 класс</span><span class="tag std">обычный</span><span class="tag draft">черновик статов</span></div>
+    <p class="habit">2 этаж, Волчья чаща: паучьи кроны</p></div></header>
+  <div class="body"><h4 class="">Статы</h4>
+<p>Средний зверь (монстр). КД 14 (природный доспех), ОЗ 22 (4к8+4), скорость 9 м, лазание 9 м. Опасность 1.</p>
+<div class="tbl"><table><thead><tr><th>СИЛ</th><th>ЛОВ</th><th>ТЕЛ</th><th>ИНТ</th><th>МДР</th><th>ХАР</th></tr></thead><tbody><tr><td>12 (+1)</td><td>16 (+3)</td><td>12 (+1)</td><td>2 (−4)</td><td>11 (+0)</td><td>4 (−3)</td></tr></tbody></table></div>
+<p>Скрытность +7, Восприятие +4. Тёмное зрение 18 м.</p>
+<h4 class="">Поведение</h4>
+<ul><li><b>Сверху.</b> Ждёт в кронах и спускается на нити.</li><li><b>Сначала сеть.</b> Сначала опутывает, потом кусает.</li><li><b>По сетям.</b> По паутине бегает свободно.</li></ul>
+<h4 class="">Атаки</h4>
+<ul><li><b>Укус.</b> +5 к попаданию, 1к8+3 колющего.</li></ul>
+<h4 class="">Эссенция</h4>
+<ul><li>Ловкость +2</li><li>Скрытность +1</li><li>Восприятие +1</li><li>Харизма −1</li></ul>
+<h4 class="pas">Паучья хватка (П)</h4>
+<ul><li>Лазаешь по стенам и потолку без проверок, паутина тебя не сковывает.</li></ul>
+<h4 class="act">Паутина (А)</h4>
+<ul><li><b>Мана:</b> 3.</li><li><b>Время:</b> действие.</li><li><b>Дальность:</b> 9/18 м, одно существо Большое или меньше.</li><li><b>Длительность:</b> пока не освободится.</li><li><b>Сл:</b> по Ловкости, спасбросок Ловкости.</li><li><b>Эффект:</b> провал — цель опутана. Вырваться: действие и проверка Силы против Сл, или нанести паутине 5 урона огнём или рубящим.</li><li><b>Перезарядка:</b> 3 раунда.</li></ul></div>
+</article><article class="mon" hidden id="werewolf" data-zone="beast" data-floor=" 2 " data-cls="7" data-rank="normal" data-rare="0" data-name="волколак">
+  <button class="close" data-close aria-label="Закрыть запись">✕</button>
+  <header><img class="face" src="assets/monsters/ph-beast-face.svg" alt="Волколак" loading="lazy">
+    <div class="hd"><h3>Волколак</h3><div class="tags"><span class="tag">2 этаж</span><span class="tag cls">7 класс</span><span class="tag std">обычный</span><span class="tag draft">черновик статов</span></div>
+    <p class="habit">2 этаж, Волчья чаща: волчьи холмы</p></div></header>
+  <details class="spawn"><summary>Условия появления</summary><p>Начинает бой один или с матёрым волком и сразу зовёт 1к3 волков. В 7-й и 14-й дни (полнолуние) каждая встреча с волками идёт вместе с ним.</p></details><div class="body"><h4 class="">Статы</h4>
+<p>Большой зверь (монстр). КД 14 (природный доспех), ОЗ 52 (7к10+14), скорость 12 м. Опасность 3.</p>
+<div class="tbl"><table><thead><tr><th>СИЛ</th><th>ЛОВ</th><th>ТЕЛ</th><th>ИНТ</th><th>МДР</th><th>ХАР</th></tr></thead><tbody><tr><td>18 (+4)</td><td>14 (+2)</td><td>15 (+2)</td><td>4 (−3)</td><td>13 (+1)</td><td>9 (−1)</td></tr></tbody></table></div>
+<p>Восприятие +6 (нюх), Атлетика +6.</p>
+<h4 class="">Особенность тела</h4>
+<ul><li><b>Серебро жжёт.</b> Серебряное оружие наносит ему +1к6 урона.</li></ul>
+<h4 class="">Поведение</h4>
+<ul><li><b>Вой.</b> Начинает бой один или с матёрым волком и сразу воет.</li><li><b>Злее со стаей.</b> Чем больше волков вокруг, тем сильнее бьёт.</li></ul>
+<h4 class="">Атаки</h4>
+<ul><li><b>Две атаки.</b> За ход укус и когти.</li><li><b>Укус.</b> +6 к попаданию, 1к10+4 колющего.</li><li><b>Когти.</b> +6 к попаданию, 2к6+4 рубящего.</li></ul>
+<h4 class="">Эссенция</h4>
+<ul><li>Сила +2</li><li>Телосложение +2</li><li>Восприятие +1 (нюх)</li><li>Серебро жжёт (серебряное оружие наносит тебе +1к6 урона)</li><li>Интеллект −2 (звериный разум)</li></ul>
+<h4 class="pas">Стая вокруг (П)</h4>
+<ul><li>За каждого союзника в 3 м от тебя ты наносишь +1 урона (максимум +3), а союзники в 9 м от тебя — +1 урона.</li></ul>
+<h4 class="act">Зов луны (А)</h4>
+<ul><li><b>Мана:</b> 5.</li><li><b>Время:</b> действие.</li><li><b>Дальность:</b> 9 м.</li><li><b>Длительность:</b> до конца боя.</li><li><b>Сл:</b> нет.</li><li><b>Эффект:</b> на вой приходят 1к3 волка (статы рубящего волка) и сражаются на твоей стороне до конца боя. У героя это призрачные волки, у монстра — настоящие рубящие волки.</li><li><b>Перезарядка:</b> раз за бой.</li></ul></div>
+</article><article class="mon" hidden id="giant-mole" data-zone="beast" data-floor=" 2 " data-cls="7" data-rank="normal" data-rare="0" data-name="крот-исполин">
+  <button class="close" data-close aria-label="Закрыть запись">✕</button>
+  <header><img class="face" src="assets/monsters/ph-beast-face.svg" alt="Крот-исполин" loading="lazy">
+    <div class="hd"><h3>Крот-исполин</h3><div class="tags"><span class="tag">2 этаж</span><span class="tag cls">7 класс</span><span class="tag std">обычный</span><span class="tag draft">черновик статов</span></div>
+    <p class="habit">2 этаж, Волчья чаща: нижние ярусы пещеры</p></div></header>
+  <div class="body"><h4 class="">Статы</h4>
+<p>Большой зверь (монстр). КД 15 (природный доспех), ОЗ 59 (7к10+21), скорость 6 м, рытьё 3 м. Опасность 3.</p>
+<div class="tbl"><table><thead><tr><th>СИЛ</th><th>ЛОВ</th><th>ТЕЛ</th><th>ИНТ</th><th>МДР</th><th>ХАР</th></tr></thead><tbody><tr><td>19 (+4)</td><td>8 (−1)</td><td>17 (+3)</td><td>3 (−4)</td><td>10 (+0)</td><td>5 (−3)</td></tr></tbody></table></div>
+<p>Чувство вибрации 18 м. Видит только на 3 м.</p>
+<h4 class="">Особенность тела</h4>
+<ul><li><b>Боится света.</b> В ярком свете атакует с помехой.</li></ul>
+<h4 class="">Поведение</h4>
+<ul><li><b>Под землёй.</b> Почти всё время сидит под землёй. В конце хода может закопаться (тратит действие), на следующий ход вылезает.</li><li><b>Чует шаги.</b> Неподвижных не замечает; цель с факелом бьёт первой, но с помехой.</li><li><b>Земля дрожит.</b> Бьёт лапами по земле так, что валит с ног.</li></ul>
+<h4 class="">Атаки</h4>
+<ul><li><b>Две атаки.</b> За ход две атаки когтями.</li><li><b>Когти.</b> +6 к попаданию, 2к6+4 рубящего.</li></ul>
+<h4 class="">Эссенция</h4>
+<ul><li>Сила +2</li><li>Телосложение +2</li><li>Чувство вибрации 18 м</li><li>Скорость рытья 3 м</li><li>Плохое зрение (видишь только на 3 м)</li><li>Боится света (в ярком свете помеха на атаки)</li></ul>
+<h4 class="pas">Чует шаги (П)</h4>
+<ul><li>Существо, стоящее на земле в 18 м, не может застать тебя врасплох; невидимых на земле ты чувствуешь вибрацией. У монстра: неподвижных не замечает, кроме цели с факелом — её бьёт в первую очередь, но с помехой.</li></ul>
+<h4 class="act">Сотрясение (А)</h4>
+<ul><li><b>Мана:</b> 5.</li><li><b>Время:</b> действие.</li><li><b>Дальность:</b> все существа на земле в 4,5 м от тебя.</li><li><b>Длительность:</b> мгновенно; замедление — до конца их следующего хода.</li><li><b>Сл:</b> по Силе, спасбросок Ловкости.</li><li><b>Эффект:</b> провал — 3к6 дробящего, цель сбита с ног, её скорость вдвое меньше. Успех — половина урона, на ногах.</li><li><b>Перезарядка:</b> 3 раунда.</li></ul></div>
+</article><article class="mon" hidden id="swamp-fang" data-zone="beast" data-floor=" 2 " data-cls="7" data-rank="normal" data-rare="0" data-name="болотный клык">
+  <button class="close" data-close aria-label="Закрыть запись">✕</button>
+  <header><img class="face" src="assets/monsters/ph-beast-face.svg" alt="Болотный клык" loading="lazy">
+    <div class="hd"><h3>Болотный клык</h3><div class="tags"><span class="tag">2 этаж</span><span class="tag cls">7 класс</span><span class="tag std">обычный</span><span class="tag draft">черновик статов</span></div>
+    <p class="habit">2 этаж, Волчья чаща: топь</p></div></header>
+  <div class="body"><h4 class="">Статы</h4>
+<p>Большой зверь (монстр). КД 14 (природный доспех), ОЗ 57 (6к10+24), скорость 6 м, плавание 9 м. Опасность 3.</p>
+<div class="tbl"><table><thead><tr><th>СИЛ</th><th>ЛОВ</th><th>ТЕЛ</th><th>ИНТ</th><th>МДР</th><th>ХАР</th></tr></thead><tbody><tr><td>19 (+4)</td><td>9 (−1)</td><td>18 (+4)</td><td>2 (−4)</td><td>10 (+0)</td><td>5 (−3)</td></tr></tbody></table></div>
+<p>Скрытность +3 (в воде +6). Задерживает дыхание на 15 минут. Инициатива −1.</p>
+<h4 class="">Поведение</h4>
+<ul><li><b>Из-под воды.</b> Первый удар — из топи.</li><li><b>Хватка.</b> Схватив, не отпускает и тащит под воду.</li><li><b>Неуклюжий.</b> На берегу поворачивается медленно.</li></ul>
+<h4 class="">Атаки</h4>
+<ul><li><b>Укус.</b> +6 к попаданию, 1к10+4 колющего.</li><li><b>Хвост.</b> +6 к попаданию, 1к8+4 дробящего (не по схваченной цели).</li></ul>
+<h4 class="">Эссенция</h4>
+<ul><li>Сила +2</li><li>Телосложение +2</li><li>Задержка дыхания 15 минут</li><li>Скорость плавания = скорости</li><li>Ловкость −1</li><li>Инициатива −1 (медленно реагирует, пока не в воде)</li></ul>
+<h4 class="pas">Из-под воды (П)</h4>
+<ul><li>В воде или топи твоя первая атака в бою — с преимуществом.</li></ul>
+<h4 class="act">Мёртвая хватка (А)</h4>
+<ul><li><b>Мана:</b> 4.</li><li><b>Время:</b> действие (рукопашная атака; у героя — оружием, у крокодила — укусом).</li><li><b>Дальность:</b> 1,5 м.</li><li><b>Длительность:</b> пока цель не вырвется.</li><li><b>Сл:</b> по Силе, спасбросок Силы.</li><li><b>Эффект:</b> при попадании +2к6 урона. Провал — цель схвачена: в начале каждого твоего хода получает 1к6 урона; вырваться — действие и проверка Силы против Сл. Успех — только урон.</li><li><b>Перезарядка:</b> 3 раунда.</li></ul></div>
+</article><article class="mon" hidden id="spider-queen" data-zone="beast" data-floor=" 2 " data-cls="7" data-rank="special" data-rare="0" data-name="паучиха-матка">
+  <button class="close" data-close aria-label="Закрыть запись">✕</button>
+  <header><img class="face" src="assets/monsters/ph-beast-face.svg" alt="Паучиха-матка" loading="lazy">
+    <div class="hd"><h3>Паучиха-матка</h3><div class="tags"><span class="tag">2 этаж</span><span class="tag cls">7 класс</span><span class="tag rare">особый</span><span class="tag draft">черновик статов</span></div>
+    <p class="habit">2 этаж, Волчья чаща: паучьи кроны</p></div></header>
+  <details class="spawn"><summary>Условия появления</summary><p>Только если отряд поджёг 3 тайла с паутиной: погоня, пока отряд в кронах (к6 после каждого действия, на 1–3 догоняет). Потом каждый вход в тайл с паутиной — её засада.</p></details><div class="body"><h4 class="">Статы</h4>
+<p>Большой зверь (монстр). КД 15 (природный доспех), ОЗ 60 (8к10+16), скорость 9 м, лазание 9 м. Опасность 3.</p>
+<div class="tbl"><table><thead><tr><th>СИЛ</th><th>ЛОВ</th><th>ТЕЛ</th><th>ИНТ</th><th>МДР</th><th>ХАР</th></tr></thead><tbody><tr><td>16 (+3)</td><td>18 (+4)</td><td>15 (+2)</td><td>3 (−4)</td><td>13 (+1)</td><td>4 (−3)</td></tr></tbody></table></div>
+<p>Скрытность +7, Восприятие +6. Тёмное зрение 36 м.</p>
+<h4 class="">Особенность тела</h4>
+<ul><li><b>Боится огня.</b> Урон огнём по ней +1к6.</li></ul>
+<h4 class="">Поведение</h4>
+<ul><li><b>Погоня.</b> Гонит отряд, пока он в кронах или рядом.</li><li><b>Сторожит паутину.</b> Отстав, ждёт в паутине и нападает на вошедших.</li><li><b>Рой.</b> Из-под брюха сыплются паучата.</li></ul>
+<h4 class="">Атаки</h4>
+<ul><li><b>Две атаки.</b> За ход укус и лапы.</li><li><b>Укус.</b> +7 к попаданию, 1к10+4 колющего.</li><li><b>Лапы.</b> +7 к попаданию, 2к6+4 рубящего.</li></ul>
+<h4 class="">Эссенция</h4>
+<ul><li>Ловкость +2</li><li>Телосложение +2</li><li>Восприятие +1</li><li>Харизма −1</li><li>Боится огня (урон огнём по тебе +1к6)</li></ul>
+<h4 class="pas">Мать роя (П)</h4>
+<ul><li>Атаки по существам, опутанным паутиной или находящимся в твоём рое, — с преимуществом.</li></ul>
+<h4 class="act">Рой паучат (А)</h4>
+<ul><li><b>Мана:</b> 4.</li><li><b>Время:</b> действие.</li><li><b>Дальность:</b> куб 3 м в пределах 9 м.</li><li><b>Длительность:</b> 1 минута или пока рой не сожгут.</li><li><b>Сл:</b> по Телосложению, спасбросок Телосложения.</li><li><b>Эффект:</b> существо, начинающее ход в рое, получает 2к4 колющего; провал — ещё и отравлено до конца хода. Любой урон огнём по рою уничтожает его.</li><li><b>Перезарядка:</b> 4 раунда.</li></ul></div>
+</article><article class="mon" hidden id="blackwing" data-zone="beast" data-floor=" 2 " data-cls="7" data-rank="special" data-rare="0" data-name="чернокрыл">
+  <button class="close" data-close aria-label="Закрыть запись">✕</button>
+  <header><img class="face" src="assets/monsters/ph-beast-face.svg" alt="Чернокрыл" loading="lazy">
+    <div class="hd"><h3>Чернокрыл</h3><div class="tags"><span class="tag">2 этаж</span><span class="tag cls">7 класс</span><span class="tag rare">особый</span><span class="tag draft">черновик статов</span></div>
+    <p class="habit">2 этаж, Волчья чаща: чаща</p></div></header>
+  <details class="spawn"><summary>Условия появления</summary><p>Только если последняя ворона из гнезда выжила (улетела или её оставили). Через 6 действий прилетает с 4 воронами.</p></details><div class="body"><h4 class="">Статы</h4>
+<p>Средний зверь (монстр). КД 15, ОЗ 38 (7к8+7), скорость 3 м, полёт 18 м. Опасность 2.</p>
+<div class="tbl"><table><thead><tr><th>СИЛ</th><th>ЛОВ</th><th>ТЕЛ</th><th>ИНТ</th><th>МДР</th><th>ХАР</th></tr></thead><tbody><tr><td>10 (+0)</td><td>18 (+4)</td><td>12 (+1)</td><td>8 (−1)</td><td>16 (+3)</td><td>10 (+0)</td></tr></tbody></table></div>
+<p>Восприятие +7, Скрытность +6.</p>
+<h4 class="">Особенность тела</h4>
+<ul><li><b>Лёгкие кости.</b> Тонкие птичьи кости.</li></ul>
+<h4 class="">Поведение</h4>
+<ul><li><b>Стая.</b> Вороны рядом с ним бьют точнее.</li><li><b>Из облака перьев.</b> Прячется в стае и пикирует внезапно.</li><li><b>Не уходит.</b> Пока жив, прилетают новые вороны.</li></ul>
+<h4 class="">Атаки</h4>
+<ul><li><b>Две атаки.</b> За ход клюв и когти.</li><li><b>Клюв.</b> +6 к попаданию, 1к8+4 колющего.</li><li><b>Когти.</b> +6 к попаданию, 2к4+4 рубящего.</li></ul>
+<h4 class="">Эссенция</h4>
+<ul><li>Ловкость +2</li><li>Восприятие +2</li><li>Скрытность +1</li><li>Телосложение −1 (лёгкие птичьи кости)</li><li>Сила −1</li></ul>
+<h4 class="pas">Вожак стаи (П)</h4>
+<ul><li>Раз в ход, когда ты попадаешь по существу, следующая атака союзника по нему до начала твоего хода — с преимуществом. У монстра: вороны в 9 м атакуют с преимуществом.</li></ul>
+<h4 class="act">Пике (А)</h4>
+<ul><li><b>Мана:</b> 4.</li><li><b>Время:</b> действие.</li><li><b>Дальность:</b> движение по прямой на свою скорость, затем атака колющим оружием ближнего боя (копьё, рапира и т. п.; у чернокрыла — когти).</li><li><b>Длительность:</b> мгновенно.</li><li><b>Сл:</b> нет.</li><li><b>Эффект:</b> движение не провоцирует атак; при попадании +2к6 урона. Если ты атаковал из скрытности (цель тебя не видела), после атаки получаешь дополнительное действие в этот ход (не на «Пике»).</li><li><b>Перезарядка:</b> 2 раунда.</li></ul></div>
+</article><article class="mon" hidden id="wolf" data-zone="beast" data-floor=" 1 2 " data-cls="9" data-rank="normal" data-rare="0" data-name="рубящий волк">
   <button class="close" data-close aria-label="Закрыть запись">✕</button>
   <header><img class="face" src="assets/monsters/wolf-face.webp" alt="Рубящий волк" loading="lazy">
-    <div class="hd"><h3>Рубящий волк</h3><div class="tags"><span class="tag">1 этаж</span><span class="tag cls">9 класс</span><span class="tag std">обычный</span></div>
-    <p class="habit">1 этаж, зона зверей. Стаи по 3–5.</p></div></header>
+    <div class="hd"><h3>Рубящий волк</h3><div class="tags"><span class="tag">1, 2 этаж</span><span class="tag cls">9 класс</span><span class="tag std">обычный</span></div>
+    <p class="habit">1 этаж: зона зверей; 2 этаж, Волчья чаща</p></div></header>
   <div class="body"><h4 class="">Статы</h4>
 <p>Средний зверь (монстр). КД 12 (природный доспех), ОЗ 7 (2к8−2), скорость 12 м. Опасность 1/8.</p>
 <div class="tbl"><table><thead><tr><th>СИЛ</th><th>ЛОВ</th><th>ТЕЛ</th><th>ИНТ</th><th>МДР</th><th>ХАР</th></tr></thead><tbody><tr><td>11 (+0)</td><td>14 (+2)</td><td>9 (−1)</td><td>3 (−4)</td><td>12 (+1)</td><td>6 (−2)</td></tr></tbody></table></div>
@@ -358,11 +664,11 @@ td { text-align: center; padding: 6px 4px; }
 <ul><li>Знаешь, у каких существ в 9 м меньше половины ОЗ, даже сквозь стены и укрытия, если существо кровоточит.</li></ul>
 <h4 class="act">Сквозной рывок (А)</h4>
 <ul><li><b>Мана:</b> 3.</li><li><b>Время:</b> действие.</li><li><b>Дальность:</b> движение по прямой на свою скорость, не провоцируя атак.</li><li><b>Длительность:</b> мгновенно.</li><li><b>Сл:</b> 8 + бонус мастерства + модификатор Силы, спасбросок Ловкости.</li><li><b>Эффект:</b> до 2 существ, мимо которых прошёл в 1,5 м, делают спасбросок. Провал — урон рубящего оружия или когтей. Успех — половина.</li></ul></div>
-</article><article class="mon" hidden id="fox" data-zone="beast" data-floor="1" data-cls="9" data-rank="normal" data-rare="0" data-name="скрытная лиса">
+</article><article class="mon" hidden id="fox" data-zone="beast" data-floor=" 1 2 " data-cls="9" data-rank="normal" data-rare="0" data-name="скрытная лиса">
   <button class="close" data-close aria-label="Закрыть запись">✕</button>
   <header><img class="face" src="assets/monsters/fox-face.webp" alt="Скрытная лиса" loading="lazy">
-    <div class="hd"><h3>Скрытная лиса</h3><div class="tags"><span class="tag">1 этаж</span><span class="tag cls">9 класс</span><span class="tag std">обычный</span></div>
-    <p class="habit">1 этаж, зона зверей. Одна или парой.</p></div></header>
+    <div class="hd"><h3>Скрытная лиса</h3><div class="tags"><span class="tag">1, 2 этаж</span><span class="tag cls">9 класс</span><span class="tag std">обычный</span></div>
+    <p class="habit">1 этаж: зона зверей; 2 этаж, Волчья чаща</p></div></header>
   <div class="body"><h4 class="">Статы</h4>
 <p>Маленький зверь (монстр). КД 13, ОЗ 7 (2к6), скорость 12 м. Опасность 1/8.</p>
 <div class="tbl"><table><thead><tr><th>СИЛ</th><th>ЛОВ</th><th>ТЕЛ</th><th>ИНТ</th><th>МДР</th><th>ХАР</th></tr></thead><tbody><tr><td>6 (−2)</td><td>16 (+3)</td><td>10 (+0)</td><td>6 (−2)</td><td>13 (+1)</td><td>8 (−1)</td></tr></tbody></table></div>
@@ -377,12 +683,12 @@ td { text-align: center; padding: 6px 4px; }
 <ul><li>Если атаковал, будучи спрятанным, и промахнулся, остаёшься спрятанным.</li><li>Следующая атака из того же укрытия: −2 к попаданию; при промахе маскировка спадает. Попадание выдаёт как обычно.</li></ul>
 <h4 class="act">Обманный след (А)</h4>
 <ul><li><b>Мана:</b> 2.</li><li><b>Время:</b> бонусное действие.</li><li><b>Дальность:</b> одно существо в 9 м, которое тебя видит или слышит.</li><li><b>Длительность:</b> до конца твоего следующего хода.</li><li><b>Сл:</b> 8 + бонус мастерства + модификатор Ловкости, спасбросок Мудрости.</li><li><b>Эффект:</b> провал — цель теряет тебя из виду: для неё ты спрятан, её атаки по тебе с помехой. Успех — ничего.</li></ul></div>
-</article><article class="mon" hidden id="mouse" data-zone="beast" data-floor="1" data-cls="9" data-rank="rare" data-rare="1" data-name="громовая мышь">
+</article><article class="mon" hidden id="mouse" data-zone="beast" data-floor=" 1 2 " data-cls="9" data-rank="rare" data-rare="1" data-name="громовая мышь">
   <button class="close" data-close aria-label="Закрыть запись">✕</button>
   <header><img class="face" src="assets/monsters/mouse-face.webp" alt="Громовая мышь" loading="lazy">
-    <div class="hd"><h3>Громовая мышь</h3><div class="tags"><span class="tag">1 этаж</span><span class="tag cls">9 класс</span><span class="tag rare">редкий</span></div>
-    <p class="habit">1 этаж, зона зверей. Редкий: с 4-го дня поодиночке, с 6-го — вместе с обычными.</p></div></header>
-  <div class="body"><h4 class="">Статы</h4>
+    <div class="hd"><h3>Громовая мышь</h3><div class="tags"><span class="tag">1, 2 этаж</span><span class="tag cls">9 класс</span><span class="tag rare">редкий</span></div>
+    <p class="habit">1 этаж: зона зверей; 2 этаж, Волчья чаща</p></div></header>
+  <details class="spawn"><summary>Условия появления</summary><p>С 4-го дня поодиночке, с 6-го — вместе с обычными.</p></details><div class="body"><h4 class="">Статы</h4>
 <p>Крошечный зверь (монстр). КД 12, ОЗ 3 (1к4+1), скорость 6 м, лазание 6 м. Опасность 1/8.</p>
 <div class="tbl"><table><thead><tr><th>СИЛ</th><th>ЛОВ</th><th>ТЕЛ</th><th>ИНТ</th><th>МДР</th><th>ХАР</th></tr></thead><tbody><tr><td>3 (−4)</td><td>14 (+2)</td><td>13 (+1)</td><td>2 (−4)</td><td>10 (+0)</td><td>4 (−3)</td></tr></tbody></table></div>
 <p>Навыки: Восприятие +2.</p>
@@ -396,11 +702,11 @@ td { text-align: center; padding: 6px 4px; }
 <ul><li>Сопротивление урону звуком, преимущество на спасброски против оглушения и оглохшего.</li></ul>
 <h4 class="act">Громовой писк (А)</h4>
 <ul><li><b>Мана:</b> 4.</li><li><b>Время:</b> действие.</li><li><b>Дальность:</b> все существа в 3 м.</li><li><b>Длительность:</b> до конца следующего хода цели.</li><li><b>Сл:</b> 8 + бонус мастерства + модификатор Телосложения, спасбросок Телосложения.</li><li><b>Эффект:</b> провал — 1к4 урона звуком и помеха на следующую проверку или спасбросок Ловкости. Успех — половина урона.</li></ul></div>
-</article><article class="mon" hidden id="bat" data-zone="beast" data-floor="1" data-cls="9" data-rank="normal" data-rare="0" data-name="ядовитая летучка">
+</article><article class="mon" hidden id="bat" data-zone="beast" data-floor=" 1 2 " data-cls="9" data-rank="normal" data-rare="0" data-name="ядовитая летучка">
   <button class="close" data-close aria-label="Закрыть запись">✕</button>
   <header><img class="face" src="assets/monsters/bat-face.webp" alt="Ядовитая летучка" loading="lazy">
-    <div class="hd"><h3>Ядовитая летучка</h3><div class="tags"><span class="tag">1 этаж</span><span class="tag cls">9 класс</span><span class="tag std">обычный</span></div>
-    <p class="habit">1 этаж, зона зверей. Под потолком тёмных залов, по 2–6.</p></div></header>
+    <div class="hd"><h3>Ядовитая летучка</h3><div class="tags"><span class="tag">1, 2 этаж</span><span class="tag cls">9 класс</span><span class="tag std">обычный</span></div>
+    <p class="habit">1 этаж: зона зверей; 2 этаж, Волчья чаща</p></div></header>
   <div class="body"><h4 class="">Статы</h4>
 <p>Маленький зверь (монстр). КД 13, ОЗ 5 (2к6−2), скорость 1,5 м, полёт 12 м. Опасность 1/8.</p>
 <div class="tbl"><table><thead><tr><th>СИЛ</th><th>ЛОВ</th><th>ТЕЛ</th><th>ИНТ</th><th>МДР</th><th>ХАР</th></tr></thead><tbody><tr><td>6 (−2)</td><td>16 (+3)</td><td>8 (−1)</td><td>2 (−4)</td><td>12 (+1)</td><td>4 (−3)</td></tr></tbody></table></div>
@@ -415,145 +721,12 @@ td { text-align: center; padding: 6px 4px; }
 <ul><li>Слепое зрение 3 м. Не работает, пока ты оглох.</li></ul>
 <h4 class="act">Ядовитый укус (А)</h4>
 <ul><li><b>Мана:</b> 3.</li><li><b>Время:</b> бонусное действие; действует на следующее попадание рукопашной атакой в этот ход.</li><li><b>Дальность:</b> досягаемость атаки.</li><li><b>Длительность:</b> до конца следующего хода цели.</li><li><b>Сл:</b> 8 + бонус мастерства + модификатор Ловкости, спасбросок Телосложения.</li><li><b>Эффект:</b> провал — 1к4 урона ядом и цель отравлена (помеха на атаки и проверки). Успех — 1к4 урона ядом, без отравления.</li></ul></div>
-</article><article class="mon" hidden id="horned-hare" data-zone="beast" data-floor="2" data-cls="9" data-rank="rare" data-rare="1" data-name="рогатый заяц">
-  <button class="close" data-close aria-label="Закрыть запись">✕</button>
-  <header><img class="face" src="assets/monsters/ph-beast-face.svg" alt="Рогатый заяц" loading="lazy">
-    <div class="hd"><h3>Рогатый заяц</h3><div class="tags"><span class="tag">2 этаж</span><span class="tag cls">9 класс</span><span class="tag rare">редкий</span></div>
-    <p class="habit">2 этаж, Волчья чаща: чаща. Редкий, в чаще.</p></div></header>
-  <div class="body"><p>Статблок ещё не расписан — пока утверждена только эссенция.</p>
-<h4 class="">Эссенция</h4>
-<ul><li>Ловкость +1</li><li>Скорость +1,5 м</li><li>Атлетика +1</li><li>Сила −1</li></ul>
-<h4 class="pas">Петляет (П)</h4>
-<ul><li>Если перед атакой ближнего боя ты пробежал по прямой не меньше 6 м, после неё можешь отскочить на 3 м, не провоцируя атак.</li></ul>
-<h4 class="act">Рывок с тараном (А)</h4>
-<ul><li><b>Мана:</b> 3.</li><li><b>Время:</b> действие.</li><li><b>Дальность:</b> движение по прямой на свою скорость, затем атака колющим оружием (копьё, пика и т. п.; у зайца — рог).</li><li><b>Длительность:</b> мгновенно; кровотечение — до 1 минуты или пока рану не перевяжут.</li><li><b>Сл:</b> по Ловкости, спасбросок Телосложения.</li><li><b>Эффект:</b> при попадании +1к6 урона. Провал — кровотечение: в начале каждого своего хода цель получает 1к4 урона; остановить — действие, Медицина Сл 10 (или любое лечение). Успех — только урон.</li><li><b>Перезарядка:</b> 2 раунда.</li></ul></div>
-</article><article class="mon" hidden id="swamp-toad" data-zone="beast" data-floor="2" data-cls="9" data-rank="normal" data-rare="0" data-name="болотная жаба">
-  <button class="close" data-close aria-label="Закрыть запись">✕</button>
-  <header><img class="face" src="assets/monsters/ph-beast-face.svg" alt="Болотная жаба" loading="lazy">
-    <div class="hd"><h3>Болотная жаба</h3><div class="tags"><span class="tag">2 этаж</span><span class="tag cls">9 класс</span><span class="tag std">обычный</span></div>
-    <p class="habit">2 этаж, Волчья чаща: топь. Только в топи.</p></div></header>
-  <div class="body"><p>Статблок ещё не расписан — пока утверждена только эссенция.</p>
-<h4 class="">Эссенция</h4>
-<ul><li>Телосложение +1</li><li>Скрытность в воде и топи +1</li><li>Задержка дыхания ×2</li><li>Ловкость −1</li></ul>
-<h4 class="pas">Скользкая кожа (П)</h4>
-<ul><li>Преимущество на проверки и спасброски, чтобы вырваться из захвата или не попасть в него.</li></ul>
-<h4 class="act">Липкий язык (А)</h4>
-<ul><li><b>Мана:</b> 3.</li><li><b>Время:</b> действие.</li><li><b>Дальность:</b> одно существо Среднее или меньше в 4,5 м.</li><li><b>Длительность:</b> пока цель не вырвется.</li><li><b>Сл:</b> по Ловкости, спасбросок Силы.</li><li><b>Эффект:</b> провал — цель притянута вплотную и схвачена (вырваться: действие, проверка Силы или Ловкости против Сл). Успех — ничего.</li><li><b>Перезарядка:</b> 2 раунда.</li></ul></div>
-</article><article class="mon" hidden id="burrower" data-zone="beast" data-floor="2" data-cls="9" data-rank="normal" data-rare="0" data-name="потайной землекоп">
-  <button class="close" data-close aria-label="Закрыть запись">✕</button>
-  <header><img class="face" src="assets/monsters/ph-beast-face.svg" alt="Потайной землекоп" loading="lazy">
-    <div class="hd"><h3>Потайной землекоп</h3><div class="tags"><span class="tag">2 этаж</span><span class="tag cls">9 класс</span><span class="tag std">обычный</span></div>
-    <p class="habit">2 этаж, Волчья чаща: медвежья пещера. Роет ямы-ловушки, нападает из-под земли.</p></div></header>
-  <div class="body"><p>Статблок ещё не расписан — пока утверждена только эссенция.</p>
-<h4 class="">Эссенция</h4>
-<ul><li>Скорость рытья 3 м (рыхлый грунт)</li><li>Чувство вибрации 3 м</li><li>Телосложение +1</li><li>Плохое зрение (помеха на Восприятие глазами)</li></ul>
-<h4 class="pas">Ямокоп (П)</h4>
-<ul><li>За 10 минут вырываешь яму-ловушку: заметить — Восприятие Сл 12; упавший получает 1к6 урона и сбит с ног.</li></ul>
-<h4 class="act">Нырок под землю (А)</h4>
-<ul><li><b>Мана:</b> 3.</li><li><b>Время:</b> бонусное действие.</li><li><b>Дальность:</b> на себя, рыхлый грунт.</li><li><b>Длительность:</b> до начала твоего следующего хода.</li><li><b>Сл:</b> нет.</li><li><b>Эффект:</b> закапываешься, атаковать тебя нельзя; на следующий ход выныриваешь в пределах 4,5 м, первая атака с преимуществом.</li><li><b>Перезарядка:</b> 3 раунда.</li></ul></div>
-</article><article class="mon" hidden id="crow" data-zone="beast" data-floor="2" data-cls="9" data-rank="normal" data-rare="0" data-name="ворона">
-  <button class="close" data-close aria-label="Закрыть запись">✕</button>
-  <header><img class="face" src="assets/monsters/ph-beast-face.svg" alt="Ворона" loading="lazy">
-    <div class="hd"><h3>Ворона</h3><div class="tags"><span class="tag">2 этаж</span><span class="tag cls">9 класс</span><span class="tag std">обычный</span></div>
-    <p class="habit">2 этаж, Волчья чаща: чаща. По всему лесу, кроме особых мест; летит со стороны гнезда.</p></div></header>
-  <div class="body"><p>Статблок ещё не расписан — пока утверждена только эссенция.</p>
-<h4 class="">Эссенция</h4>
-<ul><li>Восприятие +1</li><li>Ловкость +1</li><li>Зоркость (мелкие детали видишь вдвое дальше)</li><li>Сила −1</li></ul>
-<h4 class="pas">Налёт (П)</h4>
-<ul><li>После рукопашной атаки отход не провоцирует атак.</li></ul>
-<h4 class="act">В глаза (А)</h4>
-<ul><li><b>Мана:</b> 2.</li><li><b>Время:</b> бонусное действие.</li><li><b>Дальность:</b> твоя следующая рукопашная атака в этот ход.</li><li><b>Длительность:</b> до конца следующего хода цели.</li><li><b>Сл:</b> нет.</li><li><b>Эффект:</b> при попадании цель получает помеху на свой следующий бросок атаки.</li><li><b>Перезарядка:</b> 1 раунд.</li></ul></div>
-</article><article class="mon" hidden id="dire-wolf" data-zone="beast" data-floor="2" data-cls="8" data-rank="normal" data-rare="0" data-name="матёрый волк">
-  <button class="close" data-close aria-label="Закрыть запись">✕</button>
-  <header><img class="face" src="assets/monsters/ph-beast-face.svg" alt="Матёрый волк" loading="lazy">
-    <div class="hd"><h3>Матёрый волк</h3><div class="tags"><span class="tag">2 этаж</span><span class="tag cls">8 класс</span><span class="tag std">обычный</span></div>
-    <p class="habit">2 этаж, Волчья чаща: волчьи холмы, чаща. Только со стаей волков.</p></div></header>
-  <div class="body"><p>Статблок ещё не расписан — пока утверждена только эссенция.</p>
-<h4 class="">Эссенция</h4>
-<ul><li>Сила +2</li><li>Харизма +1</li><li>Восприятие +1</li><li>Телосложение −1</li></ul>
-<p>Старый и потрёпанный, но опытный: в статблоке ТЕЛ ниже, ХАР выше, чем у молодых волков.</p>
-<h4 class="pas">Хватка стаи (П)</h4>
-<ul><li>Преимущество на атаки по существу, рядом с которым (1,5 м) стоит твой боеспособный союзник.</li></ul>
-<h4 class="act">Сбить с ног (А)</h4>
-<ul><li><b>Мана:</b> 2.</li><li><b>Время:</b> действие (рукопашная атака).</li><li><b>Дальность:</b> 1,5 м.</li><li><b>Длительность:</b> мгновенно.</li><li><b>Сл:</b> по Силе, спасбросок Силы.</li><li><b>Эффект:</b> при попадании провал — цель сбита с ног; успех — обычный урон.</li><li><b>Перезарядка:</b> 2 раунда.</li></ul></div>
-</article><article class="mon" hidden id="web-spider" data-zone="beast" data-floor="2" data-cls="8" data-rank="normal" data-rare="0" data-name="паук-сетепряд">
-  <button class="close" data-close aria-label="Закрыть запись">✕</button>
-  <header><img class="face" src="assets/monsters/ph-beast-face.svg" alt="Паук-сетепряд" loading="lazy">
-    <div class="hd"><h3>Паук-сетепряд</h3><div class="tags"><span class="tag">2 этаж</span><span class="tag cls">8 класс</span><span class="tag std">обычный</span></div>
-    <p class="habit">2 этаж, Волчья чаща: паучьи кроны. В кронах, у паутины.</p></div></header>
-  <div class="body"><p>Статблок ещё не расписан — пока утверждена только эссенция.</p>
-<h4 class="">Эссенция</h4>
-<ul><li>Ловкость +2</li><li>Скрытность +1</li><li>Восприятие +1</li><li>Харизма −1</li></ul>
-<h4 class="pas">Паучья хватка (П)</h4>
-<ul><li>Лазаешь по стенам и потолку без проверок, паутина тебя не сковывает.</li></ul>
-<h4 class="act">Паутина (А)</h4>
-<ul><li><b>Мана:</b> 3.</li><li><b>Время:</b> действие.</li><li><b>Дальность:</b> 9/18 м, одно существо Большое или меньше.</li><li><b>Длительность:</b> пока не освободится.</li><li><b>Сл:</b> по Ловкости, спасбросок Ловкости.</li><li><b>Эффект:</b> провал — цель опутана. Вырваться: действие и проверка Силы против Сл, или нанести паутине 5 урона огнём или рубящим.</li><li><b>Перезарядка:</b> 3 раунда.</li></ul></div>
-</article><article class="mon" hidden id="werewolf" data-zone="beast" data-floor="2" data-cls="7" data-rank="normal" data-rare="0" data-name="волколак">
-  <button class="close" data-close aria-label="Закрыть запись">✕</button>
-  <header><img class="face" src="assets/monsters/ph-beast-face.svg" alt="Волколак" loading="lazy">
-    <div class="hd"><h3>Волколак</h3><div class="tags"><span class="tag">2 этаж</span><span class="tag cls">7 класс</span><span class="tag std">обычный</span></div>
-    <p class="habit">2 этаж, Волчья чаща: волчьи холмы. Вожак: воет и зовёт волков; в 7-й и 14-й дни ходит со всеми волками.</p></div></header>
-  <div class="body"><p>Статблок ещё не расписан — пока утверждена только эссенция.</p>
-<h4 class="">Эссенция</h4>
-<ul><li>Сила +2</li><li>Телосложение +2</li><li>Восприятие +1 (нюх)</li><li>Серебро жжёт (серебряное оружие наносит тебе +1к6 урона)</li><li>Интеллект −2 (звериный разум)</li></ul>
-<h4 class="pas">Стая вокруг (П)</h4>
-<ul><li>За каждого союзника в 3 м от тебя ты наносишь +1 урона (максимум +3), а союзники в 9 м от тебя — +1 урона.</li></ul>
-<h4 class="act">Зов луны (А)</h4>
-<ul><li><b>Мана:</b> 5.</li><li><b>Время:</b> действие.</li><li><b>Дальность:</b> 9 м.</li><li><b>Длительность:</b> до конца боя.</li><li><b>Сл:</b> нет.</li><li><b>Эффект:</b> на вой приходят 1к3 волка (статы рубящего волка) и сражаются на твоей стороне до конца боя. У героя это призрачные волки, у монстра — настоящие рубящие волки.</li><li><b>Перезарядка:</b> раз за бой.</li></ul></div>
-</article><article class="mon" hidden id="giant-mole" data-zone="beast" data-floor="2" data-cls="7" data-rank="normal" data-rare="0" data-name="крот-исполин">
-  <button class="close" data-close aria-label="Закрыть запись">✕</button>
-  <header><img class="face" src="assets/monsters/ph-beast-face.svg" alt="Крот-исполин" loading="lazy">
-    <div class="hd"><h3>Крот-исполин</h3><div class="tags"><span class="tag">2 этаж</span><span class="tag cls">7 класс</span><span class="tag std">обычный</span></div>
-    <p class="habit">2 этаж, Волчья чаща: нижние ярусы пещеры. Дно пещеры, рядом сокровище.</p></div></header>
-  <div class="body"><p>Статблок ещё не расписан — пока утверждена только эссенция.</p>
-<h4 class="">Эссенция</h4>
-<ul><li>Сила +2</li><li>Телосложение +2</li><li>Чувство вибрации 18 м</li><li>Скорость рытья 3 м</li><li>Плохое зрение (видишь только на 3 м)</li><li>Боится света (в ярком свете помеха на атаки)</li></ul>
-<h4 class="pas">Чует шаги (П)</h4>
-<ul><li>Существо, стоящее на земле в 18 м, не может застать тебя врасплох; невидимых на земле ты чувствуешь вибрацией. У монстра: неподвижных не замечает, кроме цели с факелом — её бьёт в первую очередь, но с помехой.</li></ul>
-<h4 class="act">Сотрясение (А)</h4>
-<ul><li><b>Мана:</b> 5.</li><li><b>Время:</b> действие.</li><li><b>Дальность:</b> все существа на земле в 4,5 м от тебя.</li><li><b>Длительность:</b> мгновенно; замедление — до конца их следующего хода.</li><li><b>Сл:</b> по Силе, спасбросок Ловкости.</li><li><b>Эффект:</b> провал — 3к6 дробящего, цель сбита с ног, её скорость вдвое меньше. Успех — половина урона, на ногах.</li><li><b>Перезарядка:</b> 3 раунда.</li></ul></div>
-</article><article class="mon" hidden id="swamp-fang" data-zone="beast" data-floor="2" data-cls="7" data-rank="normal" data-rare="0" data-name="болотный клык">
-  <button class="close" data-close aria-label="Закрыть запись">✕</button>
-  <header><img class="face" src="assets/monsters/ph-beast-face.svg" alt="Болотный клык" loading="lazy">
-    <div class="hd"><h3>Болотный клык</h3><div class="tags"><span class="tag">2 этаж</span><span class="tag cls">7 класс</span><span class="tag std">обычный</span></div>
-    <p class="habit">2 этаж, Волчья чаща: топь. Угловой тайл топи, рядом сокровище.</p></div></header>
-  <div class="body"><p>Статблок ещё не расписан — пока утверждена только эссенция.</p>
-<h4 class="">Эссенция</h4>
-<ul><li>Сила +2</li><li>Телосложение +2</li><li>Задержка дыхания 15 минут</li><li>Скорость плавания = скорости</li><li>Ловкость −1</li><li>Инициатива −1 (медленно реагирует, пока не в воде)</li></ul>
-<h4 class="pas">Из-под воды (П)</h4>
-<ul><li>В воде или топи твоя первая атака в бою — с преимуществом.</li></ul>
-<h4 class="act">Мёртвая хватка (А)</h4>
-<ul><li><b>Мана:</b> 4.</li><li><b>Время:</b> действие (рукопашная атака; у героя — оружием, у крокодила — укусом).</li><li><b>Дальность:</b> 1,5 м.</li><li><b>Длительность:</b> пока цель не вырвется.</li><li><b>Сл:</b> по Силе, спасбросок Силы.</li><li><b>Эффект:</b> при попадании +2к6 урона. Провал — цель схвачена: в начале каждого твоего хода получает 1к6 урона; вырваться — действие и проверка Силы против Сл. Успех — только урон.</li><li><b>Перезарядка:</b> 3 раунда.</li></ul></div>
-</article><article class="mon" hidden id="spider-queen" data-zone="beast" data-floor="2" data-cls="7" data-rank="special" data-rare="0" data-name="паучиха-матка">
-  <button class="close" data-close aria-label="Закрыть запись">✕</button>
-  <header><img class="face" src="assets/monsters/ph-beast-face.svg" alt="Паучиха-матка" loading="lazy">
-    <div class="hd"><h3>Паучиха-матка</h3><div class="tags"><span class="tag">2 этаж</span><span class="tag cls">7 класс</span><span class="tag rare">особый</span></div>
-    <p class="habit">2 этаж, Волчья чаща: паучьи кроны. Особый: только если поджечь 3 тайла с паутиной.</p></div></header>
-  <div class="body"><p>Статблок ещё не расписан — пока утверждена только эссенция.</p>
-<h4 class="">Эссенция</h4>
-<ul><li>Ловкость +2</li><li>Телосложение +2</li><li>Восприятие +1</li><li>Харизма −1</li><li>Боится огня (урон огнём по тебе +1к6)</li></ul>
-<h4 class="pas">Мать роя (П)</h4>
-<ul><li>Атаки по существам, опутанным паутиной или находящимся в твоём рое, — с преимуществом.</li></ul>
-<h4 class="act">Рой паучат (А)</h4>
-<ul><li><b>Мана:</b> 4.</li><li><b>Время:</b> действие.</li><li><b>Дальность:</b> куб 3 м в пределах 9 м.</li><li><b>Длительность:</b> 1 минута или пока рой не сожгут.</li><li><b>Сл:</b> по Телосложению, спасбросок Телосложения.</li><li><b>Эффект:</b> существо, начинающее ход в рое, получает 2к4 колющего; провал — ещё и отравлено до конца хода. Любой урон огнём по рою уничтожает его.</li><li><b>Перезарядка:</b> 4 раунда.</li></ul></div>
-</article><article class="mon" hidden id="blackwing" data-zone="beast" data-floor="2" data-cls="7" data-rank="special" data-rare="0" data-name="чернокрыл">
-  <button class="close" data-close aria-label="Закрыть запись">✕</button>
-  <header><img class="face" src="assets/monsters/ph-beast-face.svg" alt="Чернокрыл" loading="lazy">
-    <div class="hd"><h3>Чернокрыл</h3><div class="tags"><span class="tag">2 этаж</span><span class="tag cls">7 класс</span><span class="tag rare">особый</span></div>
-    <p class="habit">2 этаж, Волчья чаща: чаща. Особый: прилетает, если последняя ворона из гнезда выжила.</p></div></header>
-  <div class="body"><p>Статблок ещё не расписан — пока утверждена только эссенция.</p>
-<h4 class="">Эссенция</h4>
-<ul><li>Ловкость +2</li><li>Восприятие +2</li><li>Скрытность +1</li><li>Телосложение −1 (лёгкие птичьи кости)</li><li>Сила −1</li></ul>
-<h4 class="pas">Вожак стаи (П)</h4>
-<ul><li>Раз в ход, когда ты попадаешь по существу, следующая атака союзника по нему до начала твоего хода — с преимуществом. У монстра: вороны в 9 м атакуют с преимуществом.</li></ul>
-<h4 class="act">Пике (А)</h4>
-<ul><li><b>Мана:</b> 4.</li><li><b>Время:</b> действие.</li><li><b>Дальность:</b> движение по прямой на свою скорость, затем атака колющим оружием ближнего боя (копьё, рапира и т. п.; у чернокрыла — когти).</li><li><b>Длительность:</b> мгновенно.</li><li><b>Сл:</b> нет.</li><li><b>Эффект:</b> движение не провоцирует атак; при попадании +2к6 урона. Если ты атаковал из скрытности (цель тебя не видела), после атаки получаешь дополнительное действие в этот ход (не на «Пике»).</li><li><b>Перезарядка:</b> 2 раунда.</li></ul></div>
-</article><article class="mon" hidden id="skeleton-warrior" data-zone="undead" data-floor="1" data-cls="8" data-rank="normal" data-rare="0" data-name="скелет-воин">
+</article><article class="mon" hidden id="skeleton-warrior" data-zone="undead" data-floor=" 1 " data-cls="8" data-rank="normal" data-rare="0" data-name="скелет-воин">
   <button class="close" data-close aria-label="Закрыть запись">✕</button>
   <header><img class="face" src="assets/monsters/skeleton-warrior-face.webp" alt="Скелет-воин" loading="lazy">
     <div class="hd"><h3>Скелет-воин</h3><div class="tags"><span class="tag">1 этаж</span><span class="tag cls">8 класс</span><span class="tag std">обычный</span></div>
-    <p class="habit">1 этаж, зона нежити, у портала. Только с 7-го дня, в одиночку.</p></div></header>
-  <div class="body"><h4 class="">Статы</h4>
+    <p class="habit">1 этаж: зона нежити, у портала</p></div></header>
+  <details class="spawn"><summary>Условия появления</summary><p>1 этаж: с 7-го дня у портала своей зоны — первая встреча там всегда он, дальше на к20 = 1–2. В одиночку.</p></details><div class="body"><h4 class="">Статы</h4>
 <p>Средний гуманоид (нежить). КД 16 (кольчужная рубаха, щит), ОЗ 19 (3к8+6), скорость 9 м. Опасность 1/2.</p>
 <div class="tbl"><table><thead><tr><th>СИЛ</th><th>ЛОВ</th><th>ТЕЛ</th><th>ИНТ</th><th>МДР</th><th>ХАР</th></tr></thead><tbody><tr><td>14 (+2)</td><td>12 (+1)</td><td>15 (+2)</td><td>6 (−2)</td><td>8 (−1)</td><td>5 (−3)</td></tr></tbody></table></div>
 <p>Тёмное зрение 18 м.</p>
@@ -569,11 +742,11 @@ td { text-align: center; padding: 6px 4px; }
 <ul><li>Пока ты держишь щит, один союзник в 1,5 м от тебя получает +1 к КД. Не складывается с другими такими же бонусами.</li></ul>
 <h4 class="act">Парирование щитом (А)</h4>
 <ul><li><b>Мана:</b> 2.</li><li><b>Время:</b> реакция, когда по тебе попадает рукопашная атака, а у тебя есть щит.</li><li><b>Дальность:</b> на себя.</li><li><b>Длительность:</b> против этой атаки.</li><li><b>Сл:</b> нет.</li><li><b>Эффект:</b> если бросок атаки превысил твой КД не больше чем на 3, атака отражена: урон и эффекты попадания не проходят. Эффекты, срабатывающие при касании (яд на коже, жар тела и т. п.), всё равно действуют на тебя. Твои эффекты, срабатывающие при отражении или блоке, применяются к атакующему.</li></ul></div>
-</article><article class="mon" hidden id="zombie" data-zone="undead" data-floor="1" data-cls="9" data-rank="normal" data-rare="0" data-name="зомби">
+</article><article class="mon" hidden id="zombie" data-zone="undead" data-floor=" 1 " data-cls="9" data-rank="normal" data-rare="0" data-name="зомби">
   <button class="close" data-close aria-label="Закрыть запись">✕</button>
   <header><img class="face" src="assets/monsters/zombie-face.webp" alt="Зомби" loading="lazy">
     <div class="hd"><h3>Зомби</h3><div class="tags"><span class="tag">1 этаж</span><span class="tag cls">9 класс</span><span class="tag std">обычный</span></div>
-    <p class="habit">1 этаж, зона нежити. Группы по 2–5, самый частый у портала.</p></div></header>
+    <p class="habit">1 этаж: зона нежити</p></div></header>
   <div class="body"><h4 class="">Статы</h4>
 <p>Средний гуманоид (нежить). КД 8, ОЗ 13 (2к8+4), скорость 6 м. Опасность 1/8.</p>
 <div class="tbl"><table><thead><tr><th>СИЛ</th><th>ЛОВ</th><th>ТЕЛ</th><th>ИНТ</th><th>МДР</th><th>ХАР</th></tr></thead><tbody><tr><td>13 (+1)</td><td>6 (−2)</td><td>15 (+2)</td><td>3 (−4)</td><td>6 (−2)</td><td>5 (−3)</td></tr></tbody></table></div>
@@ -588,11 +761,11 @@ td { text-align: center; padding: 6px 4px; }
 <ul><li>Когда урон опускает тебя до 0 ОЗ, делаешь спасбросок Телосложения Сл 5 + полученный урон; успех — остаёшься с 1 ОЗ. Каждый следующий успех до длинного отдыха повышает Сл на 5. Не работает против критического попадания и урона излучением.</li></ul>
 <h4 class="act">Мёртвая хватка (А)</h4>
 <ul><li><b>Мана:</b> 2.</li><li><b>Время:</b> действие.</li><li><b>Дальность:</b> существо в 1,5 м.</li><li><b>Длительность:</b> до конца твоего следующего хода.</li><li><b>Сл:</b> 8 + бонус мастерства + модификатор Силы, спасбросок Силы.</li><li><b>Эффект:</b> провал — цель схвачена, её скорость 0; вырваться: действие, Атлетика или Акробатика против Сл. Успех — ничего.</li></ul></div>
-</article><article class="mon" hidden id="skeleton" data-zone="undead" data-floor="1" data-cls="9" data-rank="normal" data-rare="0" data-name="скелет">
+</article><article class="mon" hidden id="skeleton" data-zone="undead" data-floor=" 1 " data-cls="9" data-rank="normal" data-rare="0" data-name="скелет">
   <button class="close" data-close aria-label="Закрыть запись">✕</button>
   <header><img class="face" src="assets/monsters/skeleton-face.webp" alt="Скелет" loading="lazy">
     <div class="hd"><h3>Скелет</h3><div class="tags"><span class="tag">1 этаж</span><span class="tag cls">9 класс</span><span class="tag std">обычный</span></div>
-    <p class="habit">1 этаж, зона нежити. Отряды по 2–4, реже зомби.</p></div></header>
+    <p class="habit">1 этаж: зона нежити</p></div></header>
   <div class="body"><h4 class="">Статы</h4>
 <p>Средний гуманоид (нежить). КД 13 (обрывки доспеха), ОЗ 9 (2к8), скорость 9 м. Опасность 1/8.</p>
 <div class="tbl"><table><thead><tr><th>СИЛ</th><th>ЛОВ</th><th>ТЕЛ</th><th>ИНТ</th><th>МДР</th><th>ХАР</th></tr></thead><tbody><tr><td>10 (+0)</td><td>14 (+2)</td><td>12 (+1)</td><td>6 (−2)</td><td>8 (−1)</td><td>5 (−3)</td></tr></tbody></table></div>
@@ -609,12 +782,12 @@ td { text-align: center; padding: 6px 4px; }
 <ul><li>Колющий урон по тебе уменьшается на 2 (не ниже 1).</li></ul>
 <h4 class="act">Треск костей (А)</h4>
 <ul><li><b>Мана:</b> 3.</li><li><b>Время:</b> действие.</li><li><b>Дальность:</b> существа на выбор в 3 м.</li><li><b>Длительность:</b> до конца их следующего хода.</li><li><b>Сл:</b> 8 + бонус мастерства + модификатор Телосложения, спасбросок Мудрости.</li><li><b>Эффект:</b> провал — цель испугана тобой. Успех — ничего.</li></ul></div>
-</article><article class="mon" hidden id="skeleton-archer" data-zone="undead" data-floor="1" data-cls="9" data-rank="rare" data-rare="1" data-name="скелет-лучник">
+</article><article class="mon" hidden id="skeleton-archer" data-zone="undead" data-floor=" 1 " data-cls="9" data-rank="rare" data-rare="1" data-name="скелет-лучник">
   <button class="close" data-close aria-label="Закрыть запись">✕</button>
   <header><img class="face" src="assets/monsters/skeleton-archer-face.webp" alt="Скелет-лучник" loading="lazy">
     <div class="hd"><h3>Скелет-лучник</h3><div class="tags"><span class="tag">1 этаж</span><span class="tag cls">9 класс</span><span class="tag rare">редкий</span></div>
-    <p class="habit">1 этаж, зона нежити. Редкий: с 4-го дня поодиночке, с 6-го — вместе с обычными.</p></div></header>
-  <div class="body"><h4 class="">Статы</h4>
+    <p class="habit">1 этаж: зона нежити</p></div></header>
+  <details class="spawn"><summary>Условия появления</summary><p>С 4-го дня поодиночке, с 6-го — вместе с обычными.</p></details><div class="body"><h4 class="">Статы</h4>
 <p>Средний гуманоид (нежить). КД 13, ОЗ 9 (2к8), скорость 9 м. Опасность 1/4.</p>
 <div class="tbl"><table><thead><tr><th>СИЛ</th><th>ЛОВ</th><th>ТЕЛ</th><th>ИНТ</th><th>МДР</th><th>ХАР</th></tr></thead><tbody><tr><td>8 (−1)</td><td>16 (+3)</td><td>12 (+1)</td><td>6 (−2)</td><td>10 (+0)</td><td>5 (−3)</td></tr></tbody></table></div>
 <p>Скрытность +5. Тёмное зрение 18 м.</p>
@@ -630,12 +803,12 @@ td { text-align: center; padding: 6px 4px; }
 <ul><li>Пока ты не двигаешься, ты неотличим от мёртвого тела: преимущество на Скрытность.</li></ul>
 <h4 class="act">Ледяная стрела (А)</h4>
 <ul><li><b>Мана:</b> 3.</li><li><b>Время:</b> действие (дальнобойная атака).</li><li><b>Дальность:</b> дальность оружия.</li><li><b>Длительность:</b> до конца следующего хода цели.</li><li><b>Сл:</b> 8 + бонус мастерства + модификатор Ловкости, спасбросок Телосложения.</li><li><b>Эффект:</b> при попадании цель делает спасбросок. Провал — +1к4 урона холодом и скорость −3 м. Успех — только урон оружия.</li></ul></div>
-</article><article class="mon" hidden id="ghoul" data-zone="undead" data-floor="1" data-cls="9" data-rank="rare" data-rare="1" data-name="гуль">
+</article><article class="mon" hidden id="ghoul" data-zone="undead" data-floor=" 1 " data-cls="9" data-rank="rare" data-rare="1" data-name="гуль">
   <button class="close" data-close aria-label="Закрыть запись">✕</button>
   <header><img class="face" src="assets/monsters/ghoul-face.webp" alt="Гуль" loading="lazy">
     <div class="hd"><h3>Гуль</h3><div class="tags"><span class="tag">1 этаж</span><span class="tag cls">9 класс</span><span class="tag rare">редкий</span></div>
-    <p class="habit">1 этаж, зона нежити. Редкий: с 4-го дня поодиночке, с 6-го — вместе с обычными.</p></div></header>
-  <div class="body"><h4 class="">Статы</h4>
+    <p class="habit">1 этаж: зона нежити</p></div></header>
+  <details class="spawn"><summary>Условия появления</summary><p>С 4-го дня поодиночке, с 6-го — вместе с обычными.</p></details><div class="body"><h4 class="">Статы</h4>
 <p>Средний гуманоид (нежить). КД 12, ОЗ 11 (2к8+2), скорость 9 м. Опасность 1/4.</p>
 <div class="tbl"><table><thead><tr><th>СИЛ</th><th>ЛОВ</th><th>ТЕЛ</th><th>ИНТ</th><th>МДР</th><th>ХАР</th></tr></thead><tbody><tr><td>13 (+1)</td><td>15 (+2)</td><td>12 (+1)</td><td>7 (−2)</td><td>10 (+0)</td><td>6 (−2)</td></tr></tbody></table></div>
 <p>Тёмное зрение 18 м.</p>
@@ -649,12 +822,12 @@ td { text-align: center; padding: 6px 4px; }
 <ul><li>Существо, по которому ты попал когтями или укусом, делает спасбросок Телосложения Сл 8 + бонус мастерства + модификатор Телосложения; провал — не может восстанавливать ОЗ до начала твоего следующего хода.</li></ul>
 <h4 class="act">Сковывающий укус (А)</h4>
 <ul><li><b>Мана:</b> 2.</li><li><b>Время:</b> действие (атака укусом).</li><li><b>Дальность:</b> 1,5 м.</li><li><b>Длительность:</b> до конца следующего хода цели.</li><li><b>Сл:</b> 8 + бонус мастерства + модификатор Ловкости, спасбросок Телосложения.</li><li><b>Эффект:</b> при попадании цель делает спасбросок. Провал — скорость вдвое ниже и помеха на атаки. Успех — ничего.</li></ul></div>
-</article><article class="mon" hidden id="stone-guardian" data-zone="stone" data-floor="1" data-cls="8" data-rank="normal" data-rare="0" data-name="каменный сторож">
+</article><article class="mon" hidden id="stone-guardian" data-zone="stone" data-floor=" 1 " data-cls="8" data-rank="normal" data-rare="0" data-name="каменный сторож">
   <button class="close" data-close aria-label="Закрыть запись">✕</button>
   <header><img class="face" src="assets/monsters/stone-guardian-face.webp" alt="Каменный сторож" loading="lazy">
     <div class="hd"><h3>Каменный сторож</h3><div class="tags"><span class="tag">1 этаж</span><span class="tag cls">8 класс</span><span class="tag std">обычный</span></div>
-    <p class="habit">1 этаж, зона элементов, у портала. Только с 7-го дня, в одиночку.</p></div></header>
-  <div class="body"><h4 class="">Статы</h4>
+    <p class="habit">1 этаж: зона элементов, у портала</p></div></header>
+  <details class="spawn"><summary>Условия появления</summary><p>1 этаж: с 7-го дня у портала своей зоны — первая встреча там всегда он, дальше на к20 = 1–2. В одиночку.</p></details><div class="body"><h4 class="">Статы</h4>
 <p>Средний элементаль. КД 16 (каменная кожа), ОЗ 30 (4к8+12), скорость 6 м. Опасность 1.</p>
 <div class="tbl"><table><thead><tr><th>СИЛ</th><th>ЛОВ</th><th>ТЕЛ</th><th>ИНТ</th><th>МДР</th><th>ХАР</th></tr></thead><tbody><tr><td>16 (+3)</td><td>8 (−1)</td><td>16 (+3)</td><td>5 (−3)</td><td>10 (+0)</td><td>5 (−3)</td></tr></tbody></table></div>
 <p>Тёмное зрение 18 м, чувство вибрации 3 м.</p>
@@ -670,11 +843,11 @@ td { text-align: center; padding: 6px 4px; }
 <ul><li>Чувство вибрации 3 м: замечаешь существ, стоящих на земле в 3 м, без зрения, даже невидимых и скрытых.</li></ul>
 <h4 class="act">Обвал (А)</h4>
 <ul><li><b>Мана:</b> 4.</li><li><b>Время:</b> действие.</li><li><b>Дальность:</b> куб 3 м в пределах 9 м.</li><li><b>Длительность:</b> мгновенно.</li><li><b>Сл:</b> 8 + бонус мастерства + модификатор Телосложения, спасбросок Ловкости.</li><li><b>Эффект:</b> провал — 2к6 дробящего, цель сбита с ног. Успех — половина урона.</li><li><b>Перезарядка:</b> 3 раунда.</li></ul></div>
-</article><article class="mon" hidden id="living-stone" data-zone="stone" data-floor="1" data-cls="9" data-rank="normal" data-rare="0" data-name="живой камень">
+</article><article class="mon" hidden id="living-stone" data-zone="stone" data-floor=" 1 " data-cls="9" data-rank="normal" data-rare="0" data-name="живой камень">
   <button class="close" data-close aria-label="Закрыть запись">✕</button>
   <header><img class="face" src="assets/monsters/living-stone-face.webp" alt="Живой камень" loading="lazy">
     <div class="hd"><h3>Живой камень</h3><div class="tags"><span class="tag">1 этаж</span><span class="tag cls">9 класс</span><span class="tag std">обычный</span></div>
-    <p class="habit">1 этаж, зона элементов. По 2–4, самый частый у портала.</p></div></header>
+    <p class="habit">1 этаж: зона элементов</p></div></header>
   <div class="body"><h4 class="">Статы</h4>
 <p>Средний элементаль. КД 14 (каменная кожа), ОЗ 15 (2к8+6), скорость 4,5 м. Опасность 1/8.</p>
 <div class="tbl"><table><thead><tr><th>СИЛ</th><th>ЛОВ</th><th>ТЕЛ</th><th>ИНТ</th><th>МДР</th><th>ХАР</th></tr></thead><tbody><tr><td>14 (+2)</td><td>6 (−2)</td><td>16 (+3)</td><td>3 (−4)</td><td>8 (−1)</td><td>3 (−4)</td></tr></tbody></table></div>
@@ -691,12 +864,12 @@ td { text-align: center; padding: 6px 4px; }
 <ul><li>Преимущество на спасброски и проверки против сбивания с ног, толчков и захвата.</li></ul>
 <h4 class="act">Сокрушающий удар (А)</h4>
 <ul><li><b>Мана:</b> 2.</li><li><b>Время:</b> действие (рукопашная атака).</li><li><b>Дальность:</b> 1,5 м.</li><li><b>Длительность:</b> мгновенно.</li><li><b>Сл:</b> 8 + бонус мастерства + модификатор Силы, спасбросок Силы.</li><li><b>Эффект:</b> при попадании цель делает спасбросок. Провал — сбита с ног. Успех — ничего.</li></ul></div>
-</article><article class="mon" hidden id="pixie" data-zone="stone" data-floor="1" data-cls="9" data-rank="rare" data-rare="1" data-name="пикси">
+</article><article class="mon" hidden id="pixie" data-zone="stone" data-floor=" 1 " data-cls="9" data-rank="rare" data-rare="1" data-name="пикси">
   <button class="close" data-close aria-label="Закрыть запись">✕</button>
   <header><img class="face" src="assets/monsters/pixie-face.webp" alt="Пикси" loading="lazy">
     <div class="hd"><h3>Пикси</h3><div class="tags"><span class="tag">1 этаж</span><span class="tag cls">9 класс</span><span class="tag rare">редкий</span></div>
-    <p class="habit">1 этаж, зона элементов. Редкий: с 4-го дня поодиночке, с 6-го — вместе с обычными.</p></div></header>
-  <div class="body"><h4 class="">Статы</h4>
+    <p class="habit">1 этаж: зона элементов</p></div></header>
+  <details class="spawn"><summary>Условия появления</summary><p>С 4-го дня поодиночке, с 6-го — вместе с обычными.</p></details><div class="body"><h4 class="">Статы</h4>
 <p>Крошечный элементаль (дух). КД 14, ОЗ 5 (2к4), скорость 3 м, полёт 12 м. Опасность 1/8.</p>
 <div class="tbl"><table><thead><tr><th>СИЛ</th><th>ЛОВ</th><th>ТЕЛ</th><th>ИНТ</th><th>МДР</th><th>ХАР</th></tr></thead><tbody><tr><td>2 (−4)</td><td>18 (+4)</td><td>8 (−1)</td><td>12 (+1)</td><td>12 (+1)</td><td>14 (+2)</td></tr></tbody></table></div>
 <p>Акробатика +6, Скрытность +6.</p>
@@ -710,12 +883,12 @@ td { text-align: center; padding: 6px 4px; }
 <ul><li>Если ты в этот ход переместился хотя бы на 3 м, первая атака по тебе до начала твоего следующего хода совершается с помехой.</li></ul>
 <h4 class="act">Сонная пыльца (А)</h4>
 <ul><li><b>Мана:</b> 3.</li><li><b>Время:</b> действие.</li><li><b>Дальность:</b> одно существо в 3 м.</li><li><b>Длительность:</b> до Отдыха (персонаж) или до конца боя (монстр).</li><li><b>Сл:</b> 8 + бонус мастерства + модификатор Харизмы, спасбросок Мудрости.</li><li><b>Эффект:</b> провал — персонаж получает +1 уровень Усталости (снимается обычным Отдыхом); монстр получает −1 к атакам и спасброскам до конца боя. Успех — ничего.</li></ul></div>
-</article><article class="mon" hidden id="wisp" data-zone="stone" data-floor="1" data-cls="9" data-rank="rare" data-rare="1" data-name="огонёк">
+</article><article class="mon" hidden id="wisp" data-zone="stone" data-floor=" 1 " data-cls="9" data-rank="rare" data-rare="1" data-name="огонёк">
   <button class="close" data-close aria-label="Закрыть запись">✕</button>
   <header><img class="face" src="assets/monsters/wisp-face.webp" alt="Огонёк" loading="lazy">
     <div class="hd"><h3>Огонёк</h3><div class="tags"><span class="tag">1 этаж</span><span class="tag cls">9 класс</span><span class="tag rare">редкий</span></div>
-    <p class="habit">1 этаж, зона элементов. Редкий: с 4-го дня поодиночке, с 6-го — вместе с обычными.</p></div></header>
-  <div class="body"><h4 class="">Статы</h4>
+    <p class="habit">1 этаж: зона элементов</p></div></header>
+  <details class="spawn"><summary>Условия появления</summary><p>С 4-го дня поодиночке, с 6-го — вместе с обычными.</p></details><div class="body"><h4 class="">Статы</h4>
 <p>Крошечный элементаль. КД 13, ОЗ 5 (2к4), скорость полёт 9 м (парит). Опасность 1/8.</p>
 <div class="tbl"><table><thead><tr><th>СИЛ</th><th>ЛОВ</th><th>ТЕЛ</th><th>ИНТ</th><th>МДР</th><th>ХАР</th></tr></thead><tbody><tr><td>1 (−5)</td><td>16 (+3)</td><td>10 (+0)</td><td>4 (−3)</td><td>10 (+0)</td><td>6 (−2)</td></tr></tbody></table></div>
 <p>Тёмное зрение 18 м.</p>
@@ -729,12 +902,12 @@ td { text-align: center; padding: 6px 4px; }
 <ul><li>По желанию излучаешь тусклый свет в радиусе 3 м или гасишь его.</li></ul>
 <h4 class="act">Вспышка (А)</h4>
 <ul><li><b>Мана:</b> 4.</li><li><b>Время:</b> действие.</li><li><b>Дальность:</b> все существа в 3 м.</li><li><b>Длительность:</b> до конца их следующего хода.</li><li><b>Сл:</b> 8 + бонус мастерства + модификатор Ловкости, спасбросок Телосложения.</li><li><b>Эффект:</b> провал — 1к4 урона огнём и помеха на следующий бросок атаки. Успех — половина урона.</li></ul></div>
-</article><article class="mon" hidden id="green-boulder" data-zone="stone" data-floor="1" data-cls="9" data-rank="rare" data-rare="1" data-name="зелёный валун">
+</article><article class="mon" hidden id="green-boulder" data-zone="stone" data-floor=" 1 " data-cls="9" data-rank="rare" data-rare="1" data-name="зелёный валун">
   <button class="close" data-close aria-label="Закрыть запись">✕</button>
   <header><img class="face" src="assets/monsters/green-boulder-face.webp" alt="Зелёный валун" loading="lazy">
     <div class="hd"><h3>Зелёный валун</h3><div class="tags"><span class="tag">1 этаж</span><span class="tag cls">9 класс</span><span class="tag rare">редкий</span></div>
-    <p class="habit">1 этаж, зона элементов. Редкий: с 4-го дня поодиночке, с 6-го — вместе с обычными.</p></div></header>
-  <div class="body"><h4 class="">Статы</h4>
+    <p class="habit">1 этаж: зона элементов</p></div></header>
+  <details class="spawn"><summary>Условия появления</summary><p>С 4-го дня поодиночке, с 6-го — вместе с обычными.</p></details><div class="body"><h4 class="">Статы</h4>
 <p>Средний элементаль. КД 14, ОЗ 15 (2к8+6), скорость 6 м. Опасность 1/4.</p>
 <div class="tbl"><table><thead><tr><th>СИЛ</th><th>ЛОВ</th><th>ТЕЛ</th><th>ИНТ</th><th>МДР</th><th>ХАР</th></tr></thead><tbody><tr><td>15 (+2)</td><td>6 (−2)</td><td>16 (+3)</td><td>3 (−4)</td><td>10 (+0)</td><td>3 (−4)</td></tr></tbody></table></div>
 <p>Тёмное зрение 18 м.</p>
@@ -757,7 +930,7 @@ td { text-align: center; padding: 6px 4px; }
 const q = document.getElementById("q"), chips = [...document.querySelectorAll(".chip")];
 const f = { zone: "all", floor: "all", cls: "all", rank: "all" };
 let pick = null;
-const pass = el => Object.entries(f).every(([k, v]) => v === "all" || el.dataset[k] === v);
+const pass = el => Object.entries(f).every(([k, v]) => v === "all" || (k === "floor" ? el.dataset.floor.includes(" " + v + " ") : el.dataset[k] === v));
 function apply() {
   const s = q.value.trim().toLowerCase(); let shown = 0;
   document.querySelectorAll(".fchip").forEach(x => {
