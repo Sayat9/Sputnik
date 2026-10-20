@@ -654,6 +654,15 @@ body.forge-open { overflow: hidden; }
 .dg-menu { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; width: min(330px, 100%); }
 .dg-menu .fx-btn { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 6px; font-size: 17px; white-space: normal; }
 .dg-menu .fx-btn svg { width: 30px; height: 30px; }
+.dg-menu:has(.dig-btn) { gap: 8px; }
+.dg-menu:has(.dig-btn) .fx-btn { padding: 9px 6px; gap: 4px; }
+.dg-menu:has(.dig-btn) .fx-btn svg { width: 26px; height: 26px; }
+.dg-menu .dig-btn { grid-column: 1 / -1; flex-direction: row; justify-content: center; gap: 10px; padding: 7px 6px !important; }
+.dg-menu .dig-btn small { margin-left: 4px; }
+.sr-table { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 12.5px; color: var(--fx-muted); margin: 0; }
+.res-list { margin: 0; padding-left: 18px; display: grid; gap: 6px; }
+.luck-row { display: flex; align-items: center; justify-content: space-between; }
+.mbox .hint-type { display: block; color: var(--fx-muted); font-size: 12px; }
 .dg-menu .fx-btn small { font: 400 12.5px/1.2 var(--f-body); color: var(--fx-muted); letter-spacing: 0; }
 .dg-panel { width: 100%; max-height: 100%; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
 .dg-panel h3 { margin: 0; font: 400 22px/1.1 var(--f-display); text-align: center; color: var(--fx-gold-hi); }
@@ -1996,19 +2005,26 @@ const GEAR = {
   potion:  { short: "Зелье", name: "Слабое зелье лечения", weight: 0.25, stack: 5, use: "drink", heal: "1к4 + 2", note: "Восстанавливает 1к4 + 2 ОЗ (3–6, в среднем 4,5): около трети ОЗ героя 1-го уровня." },
   torch:   { short: "Факел", name: "Факел", weight: 0.5, stack: 5, note: "Горит около часа, яркий свет 6 м." },
   arrow:   { short: "Стрелы", name: "Стрелы", weight: 0.025, stack: 40, note: "Боеприпасы для луков. После боя половину можно собрать." },
+  shovel:      { short: "Лопата", name: "Лопата", weight: 2.5, stack: 1, uses: 3, note: "Для действия «Копать». Ломается после 3 раскопок." },
+  "shovel-good": { short: "Лопата+", name: "Хорошая лопата", weight: 2.5, stack: 1, uses: 5, note: "Для действия «Копать». Ломается после 5 раскопок." },
+  "shovel-best": { short: "Лопата++", name: "Отличная лопата", weight: 2, stack: 1, uses: 10, note: "Для действия «Копать». Ломается после 10 раскопок." },
+  "stone-9":   { short: "Камни", name: "Магический камень 9-го класса", weight: 0.1, stack: 99, note: "Добыча лабиринта: 1 камень 9-го класса = 1 з. в скупке." },
 };
+const SHOVELS = ["shovel", "shovel-good", "shovel-best"];
 const GEAR_ICON = {
   clothes: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M8 3l-5 3 2 5 2-1v11h10V10l2 1 2-5-5-3c-.5 1.5-2 2.5-4 2.5S8.5 4.5 8 3z"/></svg>`,
   ration: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M4 11h16a8 8 0 0 1-16 0z"/><path d="M8 7c0-2 2-2 2-4M12 7c0-2 2-2 2-4M16 7c0-2 2-2 2-4"/></svg>`,
   potion: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M10 3h4M10 3v5l-5 8a4 4 0 0 0 3.5 6h7a4 4 0 0 0 3.5-6l-5-8V3"/><path d="M7 15h10" fill="#c8402e"/><path d="M6.5 16l-.5 1a3 3 0 0 0 2.6 4h6.8a3 3 0 0 0 2.6-4l-.5-1z" fill="#c8402e" stroke="none" opacity=".85"/></svg>`,
   torch: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M12 3c2 2 3 3.5 3 5.5A3 3 0 0 1 9 8.5C9 6.5 10 5 12 3z" fill="#e0a040" opacity=".9"/><path d="M9.5 11h5l-1.5 10h-2z"/></svg>`,
   arrow: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 20L18 6M18 6h-5M18 6v5M4 20l1-4M4 20l4-1"/></svg>`,
+  shovel: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><path d="M17 3l4 4M19 5l-8 8"/><path d="M11 13l-3-3-4 4c-1.5 1.5-1 4.5 0 5.5s4 1.5 5.5 0z" fill="#8a8a80" opacity=".5"/><path d="M11 13l-3-3-4 4c-1.5 1.5-1 4.5 0 5.5s4 1.5 5.5 0z"/></svg>`,
+  "stone-9": `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 3l6 5-2 11H8L6 8z" fill="#d6a64c" opacity=".55"/><path d="M12 3l6 5-2 11H8L6 8z"/><path d="M6 8h12M12 3l-2 5 2 11 2-11z" stroke-width="1"/></svg>`,
   custom: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="M9 12h6M12 9v6"/></svg>`,
 };
 
 function itemOf(v) {
   if (!v) return null;
-  if (v.t === "g") { const g = GEAR[v.id]; return g && { ...g, id: v.id, kindOf: "gear", icon: GEAR_ICON[v.id] }; }
+  if (v.t === "g") { const g = GEAR[v.id]; return g && { ...g, id: v.id, kindOf: "gear", icon: GEAR_ICON[v.id] || (SHOVELS.includes(v.id) ? GEAR_ICON.shovel : GEAR_ICON.custom) }; }
   if (v.t === "w") { const w = WEAPONS.find(x => x.id === v.id); return w && { ...w, kindOf: "weapon", art: ART.weapon(w.id) }; }
   if (v.t === "a") { const a = ARMOR_FLAT.find(x => x.id === v.id); return a && { ...a, kindOf: "armor", art: ART.armor(a.id) }; }
   if (v.t === "c") return { name: v.name, kindOf: "custom", weight: 0, icon: GEAR_ICON.custom };
@@ -2068,11 +2084,14 @@ function addToBag(c, e) {
   }
   while (left > 0 && c.bag.length < bagSize(c)) {
     const n = Math.min(left, stackMax(e));
-    c.bag.push(e.t === "c" ? { t: "c", name: e.name, qty: 1 } : { t: e.t, id: e.id, qty: n });
+    const uses = e.t === "g" && GEAR[e.id].uses ? { uses: e.uses ?? GEAR[e.id].uses } : {};
+    c.bag.push(e.t === "c" ? { t: "c", name: e.name, qty: 1 } : { t: e.t, id: e.id, qty: n, ...uses });
     left -= n;
   }
   return left;                                   // сколько не поместилось
 }
+// Удача: новый стат героя, по умолчанию 1 (см. drafts.md, «Исследование, копание, удача»).
+const luckOf = c => c.luck ?? 1;
 const countGear = (c, id) => (c.bag || []).filter(x => x.t === "g" && x.id === id).reduce((a, x) => a + x.qty, 0);
 function takeGear(c, id, n) {
   let need = n;
@@ -2829,6 +2848,16 @@ function resolveRoll() {
   const r = state.run, p = r.pending; if (!p || !p.pick) return;
   r.pending = (r.queue || []).shift() || null;
   if (p.cause === "pass") { resolvePass(p); return; }
+  if (p.cause === "camp") {
+    if (p.pick > p.thr) { logRun(`Стоянка: никто не пришёл (к20 = ${p.pick}).`); toast("Никто не пришёл"); return; }
+    const enc = genEncounter(p.x, p.y, r.day, p.pick);
+    if (!enc) return;
+    const ev = { kind: "hard", title: "Нападение на стоянку!", raw: p.pick, n: p.pick, cause: "camp" };
+    startFight(ev, p, enc);
+    ev.init = rollInitiative(ev.list, false);
+    logRun(`Нападение на стоянку (к20 = ${p.pick} ≤ ${p.thr}): ${enc.list.map(id => MONSTERS.find(m => m.id === id).name).join(", ")}.`);
+    dgUi.enc = ev; return;
+  }
   const n = p.pick - (p.dark ? 2 : 0);
   let [, kind, title] = eventOf(Math.max(1, n));
   if (p.monsters && !MON_EVENTS.has(kind)) [, kind, title] = eventOf(12);
@@ -2855,6 +2884,160 @@ function resolveRoll() {
   }
   (r.cleared ||= {})[tkey(p.x, p.y)] = absAct(r);
   dgUi.enc = ev;
+}
+/* ----- исследование и раскопки (числа — черновик в ../campaign/drafts.md, «Исследование, копание, удача») ----- */
+// Особые места этажа (с тайной): на 1 этаже — алтарь у статуи. Там таблицы наград другие, верх таблицы — подсказки о тайне.
+const FLOOR_SPECIAL = { 1: [{ x: CENTER, y: CENTER, name: "Алтарь у статуи" }] };
+const specialAt = (x, y) => (FLOOR_SPECIAL[curFloor()] || []).find(o => o.x === x && o.y === y);
+// [до какого числа к20, награда, мин, макс]. Числа камней каждый раз случайные в пределах строки.
+const SEARCH_TABLE = {
+  explore: [[4, "none"], [7, "stones", 1, 2], [10, "stones", 2, 4], [12, "stones", 4, 7], [15, "monName"], [18, "monCount"], [20, "special"]],
+  dig: [[2, "none"], [5, "stones", 2, 4], [9, "stones", 4, 7], [13, "monType"], [17, "stones", 5, 8], [20, "stones", 7, 10]],
+  "explore-special": [[5, "none"], [8, "stones", 1, 2], [10, "stones", 2, 4], [13, "monName"], [15, "monCount"], [18, "secret"], [20, "secretBig"]],
+  "dig-special": [[3, "none"], [6, "stones", 2, 4], [9, "stones", 4, 7], [11, "monType"], [16, "secret"], [19, "supplies"], [20, "luck"]],
+};
+// Бросок удачи (к20 + удача копающего) — только при 20 на раскопках в особом месте. Чем выше, тем лучше.
+const LUCK_TABLE = [[10, "supplies3"], [13, "floorMap"], [16, "gear"], [19, "magicMap"], [99, "two"]];
+const SEARCH_ROWS_TEXT = { none: "ничего", stones: "камни", monName: "кто здесь водится", monCount: "сколько неизвестных монстров", special: "где особое место",
+  monType: "тип неизвестного монстра", secret: "подсказка о тайне", secretBig: "крупная подсказка о тайне", supplies: "расходники", luck: "бросок удачи" };
+const stoneId = () => "stone-9";                     // 1 этаж — камни 9-го класса
+const tilePool = (x, y) => { const z = zoneAt(x, y); return MONSTERS.filter(m => z.zones.includes(m.zone) && m.floor === curFloor() && !m.draft); };
+const shovelsOf = () => state.party.flatMap(c => (c.bag || []).map((e, i) => ({ c, e, i })).filter(x => x.e.t === "g" && SHOVELS.includes(x.e.id)));
+// Копают лопатой, у которой меньше всего прочности, — её хозяин и бросает удачу.
+const pickShovel = () => shovelsOf().sort((a, b) => a.e.uses - b.e.uses)[0] || null;
+const pickOne = arr => arr[rnd(arr.length)];
+function giveParty(e) {
+  const name = (itemOf(e) || {}).name || e.id, q = e.qty || 1;
+  let left = q, got = [];
+  for (const c of [...state.party].sort((a, b) => (bagSize(b) - (b.bag || []).length) - (bagSize(a) - (a.bag || []).length))) {
+    if (left <= 0) break;
+    const before = left; left = addToBag(c, { ...e, qty: left });
+    if (left < before) got.push(c.name);
+  }
+  return `${name}${q > 1 ? " × " + q : ""}` + (left === q ? " — места в рюкзаках нет, осталось на земле" : `${left ? ` (не поместилось ${left})` : ""} — забирает ${got.join(", ")}`);
+}
+function hintDir(tx, ty) {
+  const { x, y } = state.run.pos, dx = tx - x, dy = ty - y, d = Math.abs(dx) + Math.abs(dy);
+  if (!d) return "прямо здесь";
+  const far = d === 1 ? "близко" : d === 2 ? "недалеко" : d === 3 ? "далеко" : "очень далеко";
+  const side = Math.abs(dx) >= Math.abs(dy) ? (dx > 0 ? "на востоке" : "на западе") : (dy > 0 ? "на юге" : "на севере");
+  return `${far} ${side}`;
+}
+function giveSupplies(n) {
+  const out = [];
+  for (let i = 0; i < n; i++) {
+    const k = pickOne(["potion", "ration", "torch", "compass"]);
+    if (k === "compass" && !invItem("compass").owned) { invItem("compass").owned = true; out.push("Компас — удерживай его в инвентаре, чтобы зажечь"); continue; }
+    const id = k === "compass" ? "torch" : k;
+    out.push(giveParty({ t: "g", id, qty: id === "ration" ? 2 : 1 }));        // еда выпадает вдвойне
+  }
+  return out;
+}
+function luckReward(kind, lines) {
+  if (kind === "two") { const [a, b] = ["floorMap", "gear", "magicMap"].sort(() => Math.random() - .5); luckReward(a, lines); luckReward(b, lines); return; }
+  if (kind === "floorMap") {
+    if (invItem("map").owned) { lines.push("Карта этажа уже есть — вместо неё:"); lines.push(...giveSupplies(3)); return; }
+    invItem("map").owned = true; lines.push(`Карта ${curFloor()} этажа — удерживай её в инвентаре, чтобы развернуть`); return;
+  }
+  if (kind === "magicMap") {
+    if (invItem("mmap").owned) { luckReward("floorMap", lines); return; }
+    invItem("mmap").owned = true; lines.push(`Магическая карта ${curFloor()} этажа: показывает, где отряд. Удерживай её в инвентаре, чтобы оживить`); return;
+  }
+  if (kind === "gear") {
+    const pool = [...WEAPONS.filter(w => w.kind !== "Боеприпасы").map(w => ({ t: "w", id: w.id })), ...(curFloor() >= 2 ? ARMOR_FLAT.map(a => ({ t: "a", id: a.id })) : [])];
+    lines.push(giveParty(pickOne(pool))); return;
+  }
+  lines.push(...giveSupplies(3));
+}
+function searchReward(row, sr, digger, lines) {
+  const r = state.run, j = journal(), [, kind, lo, hi] = row, pool = tilePool(r.pos.x, r.pos.y);
+  const unknown = pool.filter(m => !j.known[m.id]);
+  if (kind === "none") { lines.push("Ничего не нашли."); return; }
+  if (kind === "stones") { const n = lo + rnd(hi - lo + 1); lines.push(giveParty({ t: "g", id: stoneId(), qty: n })); return; }
+  if (kind === "monName") {
+    if (!pool.length) { lines.push("Следов монстров нет: здесь они не водятся."); return; }
+    const m = pickOne(unknown.length ? unknown : pool); seenKeys(m.id, ["area"]);
+    lines.push(`Следы и знаки: здесь бывает «${m.name}». Запись — в библиотеке.`); return;
+  }
+  if (kind === "monCount") { lines.push(unknown.length ? `Здесь могут появиться ещё ${unknown.length} неизвестных отряду монстров.` : "Всех, кто здесь водится, отряд уже знает."); return; }
+  if (kind === "special") {
+    const sp = (FLOOR_SPECIAL[curFloor()] || []).map(o => ({ ...o, d: Math.abs(o.x - r.pos.x) + Math.abs(o.y - r.pos.y) })).sort((a, b) => a.d - b.d)[0];
+    lines.push(sp ? `Подсказка: особое место — ${sp.name.toLowerCase()} — ${hintDir(sp.x, sp.y)}.` : "Особых мест поблизости не чувствуется."); return;
+  }
+  if (kind === "monType") {
+    const hints = j.hints ||= {};
+    const noType = unknown.filter(m => !(hints[m.id] || []).includes("type")), noFace = unknown.filter(m => !(hints[m.id] || []).includes("portrait"));
+    if (noType.length) { const m = pickOne(noType); (hints[m.id] ||= []).push("type"); lines.push(`Находка в земле: здесь водится неизвестный монстр — «${m.type}». Он отмечен в библиотеке.`); return; }
+    if (noFace.length) { const m = pickOne(noFace); (hints[m.id] ||= []).push("portrait"); lines.push("Находка в земле: обрывок рисунка — портрет неизвестного монстра. Он появился в библиотеке."); return; }
+    lines.push("Всё о здешних монстрах уже известно — вместо этого:"); lines.push(giveParty({ t: "g", id: stoneId(), qty: 2 + rnd(3) })); return;
+  }
+  if (kind === "secret" || kind === "secretBig") { lines.push(`${kind === "secretBig" ? "Крупная подсказка" : "Подсказка"} о тайне места «${specialAt(r.pos.x, r.pos.y).name}». Мастер, расскажи её отряду.`); return; }
+  if (kind === "supplies") { lines.push(...giveSupplies(2)); return; }
+  if (kind === "luck") {
+    const luck = digger ? luckOf(digger.c) : 1, total = sr.luck + luck;
+    const lr = LUCK_TABLE.find(([max]) => total <= max);
+    lines.push(`Бросок удачи: к20 = ${sr.luck} ${signed(luck)} (удача ${digger ? digger.c.name : ""}) = ${total}.`);
+    luckReward(lr[1], lines);
+  }
+}
+function doSearch(kind) {
+  const r = state.run, sr = dgUi.sr, sp = specialAt(r.pos.x, r.pos.y), lines = [];
+  let digger = null;
+  if (kind === "dig") {
+    digger = pickShovel();
+    if (digger) {
+      digger.e.uses--;
+      if (digger.e.uses <= 0) { digger.c.bag.splice(digger.i, 1); lines.push(`${GEAR[digger.e.id].name} (${digger.c.name}) сломалась.`); }
+    }
+  }
+  const row = SEARCH_TABLE[kind + (sp ? "-special" : "")].find(([max]) => sr.pick <= max);
+  searchReward(row, sr, digger, lines);
+  if (kind === "explore") {                              // тайники с компасом и картой (как раньше)
+    const k = tkey(r.pos.x, r.pos.y), found = Object.entries(r.caches || {}).find(([, c]) => c === k);
+    if (found && !invItem(found[0]).owned) { invItem(found[0]).owned = true; lines.push(`В тайнике найден${found[0] === "map" ? "а карта этажа" : " компас"}! Удерживай его в инвентаре, чтобы зажечь.`); }
+  }
+  const title = (kind === "dig" ? "Раскопки" : "Исследование") + (sp ? ` · ${sp.name}` : "");
+  logRun(`${title} (к20 = ${sr.pick}): ${lines.join(" ")}`);
+  dgUi.res = { title, roll: `к20 = ${sr.pick}`, lines };
+}
+// Долгая стоянка: после 2 суток (6 действий) на одном квадрате каждое действие — проверка нападения.
+// Шанс чуть ниже обычной встречи и растёт с каждым действием; Усталость и тьма повышают, удача снижает.
+const CAMP_ACTS = 6, CAMP_BASE = 9;
+function campCheck() {
+  const r = state.run, k = tkey(r.pos.x, r.pos.y);
+  if (!r.stay || r.stay.k !== k) { r.stay = { k, since: absAct(r) }; return; }
+  const stayed = absAct(r) - r.stay.since;
+  if (stayed < CAMP_ACTS || zoneAt(r.pos.x, r.pos.y).kind === "safe") return;
+  const fat = Math.max(0, ...state.party.map(c => r.status[c.id].fat));
+  const luck = state.party.length ? Math.round(state.party.reduce((a, c) => a + luckOf(c), 0) / state.party.length) : 1;
+  const thr = Math.max(1, Math.min(19, CAMP_BASE + (stayed - CAMP_ACTS) + fat - (luck - 1) + (inDarkness() ? 1 : 0)));
+  logRun(`Отряд стоит на месте уже ${stayed} действий: монстры чуют стоянку. Нападение на к20 ≤ ${thr}.`);
+  queueRoll({ cause: "camp", thr, stayed, fat, luck, dk: inDarkness(), x: r.pos.x, y: r.pos.y, pick: null, dark: false });
+}
+function searchOverlay() {
+  const r = state.run, sr = dgUi.sr, kind = dgUi.phase, sp = specialAt(r.pos.x, r.pos.y), sh = kind === "dig" ? pickShovel() : null;
+  const needLuck = kind === "dig" && sp && sr.pick === 20;
+  const grid = (key, cur) => `<div class="roll-grid">${Array.from({ length: 20 }, (_, i) => `<button class="fx-btn${cur === i + 1 ? " on" : ""}" data-dg="${key}" data-n="${i + 1}">${i + 1}</button>`).join("")}</div>`;
+  const table = SEARCH_TABLE[kind + (sp ? "-special" : "")];
+  return `<div class="mapov" role="dialog" aria-modal="true" aria-label="${kind === "dig" ? "Копать" : "Исследовать"}">
+    <div class="panel fx-frame enc-panel">
+      <div class="ph-head"><h3>${kind === "dig" ? "Копать" : "Исследовать"}</h3>
+        <button class="fx-btn" data-dg="cancel" aria-label="Отменить" style="width:42px;height:42px;padding:0;display:grid;place-items:center">${ICO_X}</button></div>
+      <p>${sp ? `<b style="color:var(--fx-gold-hi)">Особое место: ${sp.name}.</b> ` : ""}Брось к20 и нажми выпавшее число. Займёт одно действие${kind === "dig" && sh ? `; копает ${esc(sh.c.name)}: ${GEAR[sh.e.id].name.toLowerCase()}, осталось раскопок ${sh.e.uses}` : ""}.</p>
+      <p class="sr-table">${table.map(([max, k], i) => `<span>${i ? table[i - 1][0] + 1 : 1}–${max} ${SEARCH_ROWS_TEXT[k]}</span>`).join("")}</p>
+      ${grid("sr-n", sr.pick)}
+      ${needLuck ? `<p><b style="color:var(--fx-gold-hi)">20! Бросок удачи:</b> брось к20 ещё раз, к нему прибавится удача ${esc(sh ? sh.c.name : "")} (${signed(sh ? luckOf(sh.c) : 1)}).</p>${grid("sr-l", sr.luck)}` : ""}
+      <div class="row2"><button class="fx-btn" data-dg="cancel">Отмена</button><button class="fx-btn primary" data-dg="sr-ok"${sr.pick && (!needLuck || sr.luck) ? "" : " disabled"}>Подтвердить</button></div>
+    </div></div>`;
+}
+function resultOverlay() {
+  const e = dgUi.res;
+  return `<div class="mapov" role="dialog" aria-modal="true" aria-label="${e.title}">
+    <div class="panel fx-frame enc-panel">
+      <div class="ph-head"><h3>${e.title}</h3><span class="fx-eyebrow" style="font-size:11px">${e.roll}</span></div>
+      <ul class="res-list">${e.lines.map(l => `<li>${l}</li>`).join("")}</ul>
+      <div style="display:flex;justify-content:center"><button class="fx-btn primary big" data-dg="res-done">Готово</button></div>
+    </div></div>`;
 }
 // Опыт (rules.md, «Опыт»): только за первую убитую особь вида, каждый герой получает полный опыт.
 // Монстр 9-го класса — 1 опыт, 8-го — 2 и т. д. (10 − класс).
@@ -2919,9 +3102,19 @@ function tileType(x, y) {
 }
 const rnd = n => Math.floor(Math.random() * n);
 
+// Компас общий, а карта и магическая карта — своего этажа: на другом этаже они не работают.
 function inventory() {
-  state.inventory ||= { compass: { owned: false, active: false }, map: { owned: false, active: false }, compassOn: false };
-  return state.inventory;
+  const inv = state.inventory ||= { compass: { owned: false, active: false }, compassOn: false };
+  inv.maps ||= {}; inv.mmaps ||= {};
+  if (inv.map) { inv.maps[1] = inv.map; delete inv.map; }          // старые сохранения: карта была одна
+  return inv;
+}
+const curFloor = () => (state.run && state.run.floor) || 1;
+function invItem(id) {
+  const inv = inventory();
+  if (id === "compass") return inv.compass;
+  const book = id === "mmap" ? inv.mmaps : inv.maps;
+  return book[curFloor()] ||= { owned: false, active: false };
 }
 
 // Снимок отряда перед заходом: «Откатить заход» в меню мастера возвращает всё как было до спуска.
@@ -2953,6 +3146,7 @@ function newRun() {
     visited: [tkey(sx, sy)], day: 1, act: 1,
     cleared: { [tkey(sx, sy)]: 1 },
     caches: { compass: c1, map: c2 },
+    stay: { k: tkey(sx, sy), since: 1 },
     log: [{ d: 1, a: 1, t: "Отряд прошёл через врата. 1 этаж, вокруг туман." }],
   };
   inventory();
@@ -3121,9 +3315,10 @@ const ICO_ACT = {
   run: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="15" cy="4" r="2" fill="currentColor"/><path d="M9 21l3-6 3 2v5M6 12l3-4h5l3 4 3 1M12 15l-2-4"/><path d="M2 8h3M1 12h3" opacity=".6"/></svg>`,
   rest: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" fill="currentColor" opacity=".9"/><path d="M15 3h4l-4 4h4" stroke-width="1.5"/></svg>`,
   explore: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5.5 5.5"/><path d="M8 9a3 3 0 0 1 3-2" stroke-width="1.5"/></svg>`,
+  dig: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3l4 4M19 5l-8 8"/><path d="M11 13l-3-3-4 4c-1.5 1.5-1 4.5 0 5.5s4 1.5 5.5 0z"/><path d="M3 21h8" opacity=".6"/></svg>`,
 };
 function invItemHtml(id, label, icon) {
-  const it = inventory()[id];
+  const it = invItem(id);
   const on = id === "compass" && inventory().compassOn;
   const cls = ["inv-item", it.active ? "lit" : "grey", on ? "on" : ""].join(" ");
   const hint = !it.owned ? "нет предмета" : !it.active ? "удерживай, чтобы зажечь" : id === "compass" ? (on ? "нажми, чтобы убрать" : "нажми, чтобы показать") : "нажми, чтобы открыть";
@@ -3172,17 +3367,14 @@ function stageOverlay() {
       ${(() => { const heavy = state.party.filter(c => load(c).noRun).map(c => c.name);
         return `<button class="fx-btn" data-act="run"${heavy.length ? " disabled" : ""}>${ICO_ACT.run}Бег<small>${heavy.length ? "перегруз: " + heavy.map(esc).join(", ") : "2 квадрата, +1 Усталость"}</small></button>`; })()}
       <button class="fx-btn" data-act="rest">${ICO_ACT.rest}Отдых<small>сон, караул, еда</small></button>
-      <button class="fx-btn" data-act="explore">${ICO_ACT.explore}Исследовать<small>этот фрагмент</small></button>
-    </div></div>`;
-  if (dgUi.phase === "explore") return `
-    <div class="dg-over"><div class="confirm fx-frame">
-      <h3>Исследовать этот фрагмент?</h3>
-      <p style="margin:0;color:var(--fx-muted);font-size:14px">Займёт одно действие. Событие разыгрывает мастер.</p>
-      <div class="row2"><button class="fx-btn" data-dg="cancel">Отмена</button><button class="fx-btn primary" data-dg="explore-yes">Исследовать</button></div>
+      <button class="fx-btn" data-act="explore">${ICO_ACT.explore}Исследовать<small>этот фрагмент, к20</small></button>
+      ${(() => { const sh = shovelsOf(); return `<button class="fx-btn dig-btn" data-act="dig"${sh.length ? "" : " disabled"}>${ICO_ACT.dig}Копать<small>${sh.length ? `лопат: ${sh.length}, к20` : "нужна лопата"}</small></button>`; })()}
     </div></div>`;
   return "";
 }
 
+// Строки «Снаряжения»: показываются только те расходники, что есть хоть у кого-то.
+const SUPPLY_ROWS = [["ration", "Еда (пайки)"], ["potion", "Зелья лечения"], ["torch", "Факелы"], ["arrow", "Стрелы"], ["shovel", "Лопаты"], ["shovel-good", "Хорошие лопаты"], ["shovel-best", "Отличные лопаты"], ["stone-9", "Камни 9-го класса"]];
 const partyFood = () => state.party.reduce((a, c) => a + countGear(c, "ration"), 0);
 function restOverlay() {
   const r = state.run, rs = dgUi.rest, eaten = Object.values(rs.eat).reduce((a, b) => a + b, 0), left = partyFood() - eaten;
@@ -3265,8 +3457,9 @@ function rollOverlay() {
   const p = state.run.pending;
   return `<div class="mapov" role="dialog" aria-modal="true" aria-label="Бросок события">
     <div class="panel fx-frame enc-panel">
-      <div class="ph-head"><h3>${p.cause === "pass" ? "Пробежка" : p.monsters ? "Кто пришёл?" : "Что в квадрате?"}</h3>${p.cause === "gm" ? `<button class="fx-btn" data-dg="roll-cancel" aria-label="Отмена" style="width:42px;height:42px;padding:0;display:grid;place-items:center">${ICO_X}</button>` : ""}</div>
+      <div class="ph-head"><h3>${p.cause === "pass" ? "Пробежка" : p.cause === "camp" ? "Долгая стоянка" : p.monsters ? "Кто пришёл?" : "Что в квадрате?"}</h3>${p.cause === "gm" ? `<button class="fx-btn" data-dg="roll-cancel" aria-label="Отмена" style="width:42px;height:42px;padding:0;display:grid;place-items:center">${ICO_X}</button>` : ""}</div>
       ${p.cause === "pass" ? `<p>Отряд пробегает квадрат, не осматривая его. Брось к20: засада на 1–${p.amb}${p.trap > p.amb ? `, ловушка гоблинов на ${p.amb + 1}–${p.trap}` : ""}.${p.dark ? ` <span class="enc-warn">Тьма без света.</span>` : p.near ? " Рядом портал." : ""}</p>`
+        : p.cause === "camp" ? `<p>Отряд стоит здесь ${p.stayed} действий. Брось к20: на 1–${p.thr} нападают монстры (база ${CAMP_BASE}, +${p.stayed - CAMP_ACTS} за лишние действия, +${p.fat} Усталость${p.dk ? ", +1 тьма" : ""}, удача ${signed(p.luck)}: каждое очко выше 1 снижает шанс).</p>`
         : `<p>Брось к20 и введи результат.${p.dark ? ` <span class="enc-warn">Тьма без света: −2 к броску.</span>` : ""}</p>`}
       <div class="roll-grid">${Array.from({ length: 20 }, (_, i) => `<button class="fx-btn${p.pick === i + 1 ? " on" : ""}" data-dg="roll-n" data-n="${i + 1}">${i + 1}</button>`).join("")}</div>
       <div style="display:flex;justify-content:center"><button class="fx-btn primary big" data-dg="roll-ok"${p.pick ? "" : " disabled"}>Подтвердить</button></div>
@@ -3307,20 +3500,20 @@ function renderDungeon() {
       ${moving ? `<button class="fx-btn corner-btn r" data-dg="cancel" aria-label="Отменить действие">${ICO_X}Отмена</button>
         <div class="phase-pill">${pill}</div>
         <div class="zoom"><button class="fx-btn" data-dg="zoom-in" aria-label="Приблизить">+</button><button class="fx-btn" data-dg="zoom-out" aria-label="Отдалить">−</button></div>` : ""}
-      ${menu && dgUi.inv ? `<div class="dd l fx-frame">${invItemHtml("compass", "Компас", ICO_COMPASS)}${invItemHtml("map", "Карта", ICO_MAP)}
+      ${menu && dgUi.inv ? `<div class="dd l fx-frame">${invItemHtml("compass", "Компас", ICO_COMPASS)}${invItemHtml("map", `Карта ${curFloor()} эт.`, ICO_MAP)}${invItem("mmap").owned ? invItemHtml("mmap", "Магич. карта", ICO_MAP) : ""}
         <button class="inv-item lit" data-dg="library" aria-label="Библиотека: записи о монстрах">${ICO_BOOK}<small>Библиотека</small></button></div>` : ""}
       ${menu && dgUi.sup ? `<div class="dd r fx-frame">
         <span class="fx-eyebrow" style="font-size:11px">Общее снаряжение</span>
-        ${[["ration", "Еда (пайки)"], ["potion", "Зелья лечения"], ["torch", "Факелы"]].map(([k, name]) => {
-          const per = state.party.map(c => [c.name, countGear(c, k)]).filter(([, n]) => n);
-          return `<div class="sup-row">${GEAR_ICON[k]}<span><b>${name}</b><small style="display:block;color:var(--fx-muted);font-size:11.5px">${per.length ? per.map(([n, q]) => `${esc(n)} ${q}`).join(" · ") : "ни у кого нет"}</small></span>
-          <output style="font:600 18px/1 var(--f-data);color:var(--fx-gold-hi)">${per.reduce((a, [, q]) => a + q, 0)}</output></div>`; }).join("")}
+        ${(() => { const rows = SUPPLY_ROWS.map(([k, name]) => [k, name, state.party.map(c => [c.name, countGear(c, k)]).filter(([, n]) => n)]).filter(([, , per]) => per.length);
+          return rows.length ? rows.map(([k, name, per]) => `<div class="sup-row">${itemOf({ t: "g", id: k }).icon}<span><b>${name}</b><small style="display:block;color:var(--fx-muted);font-size:11.5px">${per.map(([n, q]) => `${esc(n)} ${q}`).join(" · ")}</small></span>
+          <output style="font:600 18px/1 var(--f-data);color:var(--fx-gold-hi)">${per.reduce((a, [, q]) => a + q, 0)}</output></div>`).join("") : `<small style="color:var(--fx-muted)">Расходников нет.</small>`; })()}
         <small style="color:var(--fx-muted);font-size:12px;max-width:220px">Лежит в рюкзаках героев. Удерживай карточку героя внизу, чтобы открыть его инвентарь.</small>
       </div>` : ""}
       ${dgUi.gm ? `<div class="dd r fx-frame" style="top:8px">
         <span class="fx-eyebrow" style="font-size:11px">Мастер</span>
         <button class="fx-btn" data-dg="give-compass"${inv.compass.owned ? " disabled" : ""}>Выдать компас</button>
-        <button class="fx-btn" data-dg="give-map"${inv.map.owned ? " disabled" : ""}>Выдать карту</button>
+        <button class="fx-btn" data-dg="give-map"${invItem("map").owned ? " disabled" : ""}>Выдать карту этажа</button>
+        <button class="fx-btn" data-dg="give-mmap"${invItem("mmap").owned ? " disabled" : ""}>Выдать магическую карту</button>
         <button class="fx-btn" data-dg="gm-enc">Бросить встречу</button>
         <button class="fx-btn" data-save="open">Сохранения</button>
         <button class="fx-btn" data-dg="leave">${dgUi.confirm === "leave" ? "Точно выйти? Нажми ещё раз" : "Выйти в город"}</button>
@@ -3336,7 +3529,9 @@ function renderDungeon() {
   </div>
   ${dgUi.map ? floorMapOverlay() : ""}
   ${dgUi.phase === "rest" ? restOverlay() : ""}
-  ${r.pending && !dgUi.enc ? rollOverlay() : ""}
+  ${dgUi.phase === "explore" || dgUi.phase === "dig" ? searchOverlay() : ""}
+  ${dgUi.res ? resultOverlay() : ""}
+  ${r.pending && !dgUi.enc && !dgUi.res ? rollOverlay() : ""}
   ${dgUi.enc ? encounterOverlay() : ""}`;
 }
 
@@ -3349,16 +3544,18 @@ function floorMapOverlay() {
     const ic = tileIcon(x, y);
     if (ic) cells.push(`<g transform="translate(${x * S + S / 2} ${y * S + S / 2}) scale(.95)">${ic}</g>`);
   }
+  const magic = dgUi.map === "magic", pos = state.run.pos;
+  if (magic) cells.push(`<g transform="translate(${pos.x * S + S / 2} ${pos.y * S + S / 2}) scale(.85)"><circle r="17" fill="none" stroke="#9ad0ff" stroke-width="2" opacity=".8"><animate attributeName="r" values="14;19;14" dur="1.6s" repeatCount="indefinite"/></circle>${ICON.party}</g>`);
   return `<div class="mapov" role="dialog" aria-modal="true" aria-label="Карта этажа">
     <div class="panel fx-frame">
-      <div class="ph-head"><h3>Карта 1 этажа</h3>
+      <div class="ph-head"><h3>${magic ? "Магическая карта" : "Карта"} ${curFloor()} этажа</h3>
         <button class="fx-btn" data-dg="close-map" aria-label="Закрыть карту" style="width:42px;height:42px;padding:0;display:grid;place-items:center">${ICO_X}</button></div>
       <svg class="floor" viewBox="-6 -22 ${n * S + 12} ${n * S + 28}">
         <defs>${ICON_DEFS}</defs>
         <text x="${n * S / 2}" y="-9" text-anchor="middle" font-family="Kelly Slab, Georgia, serif" font-size="14" fill="#e5806f">▲ С</text>
         ${cells.join("")}
       </svg>
-      <p>Статуя в центре, порталы по углам; тёмные квадраты вокруг порталов — зоны тьмы. Где стоит отряд, карта не показывает.</p>
+      <p>${magic ? "Магическая карта: светящаяся метка — где отряд сейчас." : "Статуя в центре, порталы по углам; тёмные квадраты вокруг порталов — зоны тьмы. Где стоит отряд, карта не показывает."}</p>
     </div>
   </div>`;
 }
@@ -3414,26 +3611,22 @@ function act(kind) {
   const r = state.run; if (!r) return;
   if (kind === "move") {
     const t = dgUi.target; r.pos = { x: t.x, y: t.y }; visit(t.x, t.y);
+    r.stay = { k: tkey(t.x, t.y), since: absAct(r) + 1 };
     tick();
     logRun("Движение на 1 квадрат." + tileNote(t.x, t.y));
   } else if (kind === "run") {
     const tired = state.party.filter(c => r.status[c.id].fat >= 3).map(c => c.name);
     const t = dgUi.path[dgUi.path.length - 1]; r.pos = { x: t.x, y: t.y };
+    r.stay = { k: tkey(t.x, t.y), since: absAct(r) + 1 };
     dgUi.finFresh = !r.visited.includes(tkey(t.x, t.y));
     visit(t.x, t.y);                         // первый квадрат пробежали — он остаётся неоткрытым
     tick();
     for (const c of state.party) r.status[c.id].fat = Math.min(4, r.status[c.id].fat + 1);
     logRun("Бег на 2 квадрата: всем +1 Усталость, пассивное Восприятие −5." + tileNote(t.x, t.y)
       + (tired.length ? ` Спасбросок ТЕЛ Сл 12 перед Бегом: ${tired.join(", ")}.` : ""));
-  } else if (kind === "explore") {
+  } else if (kind === "explore" || kind === "dig") {
     tick();
-    const k = tkey(r.pos.x, r.pos.y);
-    const found = Object.entries(r.caches).find(([, c]) => c === k);
-    if (found && !inventory()[found[0]].owned) {
-      inventory()[found[0]].owned = true;
-      logRun(`Исследование: в тайнике найден${found[0] === "map" ? "а карта" : " компас"}! Удерживай его в инвентаре, чтобы зажечь.`);
-      setTimeout(() => toast(found[0] === "map" ? "Найдена карта этажа" : "Найден компас"), 30);
-    } else logRun("Исследование фрагмента: событие разыгрывает мастер.");
+    doSearch(kind);
   } else if (kind === "rest") {
     const rs = dgUi.rest, sleepers = new Set(state.party.filter(c => !rs.guard[c.id]).map(c => c.id));
     let eaten = 0;
@@ -3473,8 +3666,9 @@ function act(kind) {
     r.torchLeft = (r.torchLeft || 0) - 1;
     if (r.torchLeft <= 0) { r.light = false; r.torchLeft = 0; logRun("Факел догорел."); }
   }
-  dgUi.phase = "menu"; dgUi.path = []; dgUi.rest = null; dgUi.target = null;
+  dgUi.phase = "menu"; dgUi.path = []; dgUi.rest = null; dgUi.target = null; dgUi.sr = null;
   if (advanceTime()) return;
+  if (kind !== "move" && kind !== "run") campCheck();
   saveChar();
   rerender();
 }
@@ -3509,8 +3703,8 @@ function startCompass(kick) {
 let hold = null;
 const HOLD_MS = 2000;
 function startHold(id, btn) {
-  const it = inventory()[id];
-  if (!it.owned) { toast(id === "map" ? "Карты нет. Её можно найти, исследуя фрагменты." : "Компаса нет. Его можно найти, исследуя фрагменты."); return; }
+  const it = invItem(id);
+  if (!it.owned) { toast(id === "compass" ? "Компаса нет. Его можно найти, исследуя фрагменты." : "Карты этого этажа нет. Её можно найти, исследуя и копая."); return; }
   if (it.active) return;
   cancelHold();
   const ring = btn.querySelector(`[data-ring="${id}"]`);
@@ -3522,7 +3716,7 @@ function startHold(id, btn) {
     if (p >= 1) {
       it.active = true; hold = null; dgUi.justLit = true; saveChar();
       setTimeout(() => { dgUi.justLit = false; }, 500);
-      toast(id === "map" ? "Карта развёрнута и готова" : "Компас ожил");
+      toast(id === "compass" ? "Компас ожил" : id === "mmap" ? "Магическая карта ожила" : "Карта развёрнута и готова");
       rerender(); return;
     }
     hold.raf = requestAnimationFrame(step);
@@ -3605,10 +3799,10 @@ document.addEventListener("click", e => {
   const ds = el.dataset, inv = inventory(), r = state.run;
   if (ds.inv) {
     if (dgUi.justLit) { dgUi.justLit = false; return; }
-    const it = inv[ds.inv];
+    const it = invItem(ds.inv);
     if (!it.active) return;
     if (ds.inv === "compass") { inv.compassOn = !inv.compassOn; dgUi.kickCompass = inv.compassOn; saveChar(); }
-    else { dgUi.map = true; }
+    else { dgUi.map = ds.inv === "mmap" ? "magic" : "plain"; }
     rerender(); return;
   }
   if (ds.act) {
@@ -3619,6 +3813,7 @@ document.addEventListener("click", e => {
       for (const c of state.party) { eat[c.id] = food > 0 ? 1 : 0; food -= eat[c.id]; }
       dgUi.rest = { guard: {}, eat };
     }
+    if (ds.act === "explore" || ds.act === "dig") dgUi.sr = { pick: null, luck: null };
     dgUi.phase = ds.act;
     rerender(); return;
   }
@@ -3633,8 +3828,11 @@ document.addEventListener("click", e => {
     case "inv": dgUi.inv = !dgUi.inv; dgUi.sup = false; break;
     case "sup": dgUi.sup = !dgUi.sup; dgUi.inv = false; break;
     case "gm": dgUi.gm = !dgUi.gm; dgUi.confirm = null; break;
-    case "cancel": dgUi.phase = "menu"; dgUi.path = []; dgUi.rest = null; break;
-    case "explore-yes": act("explore"); return;
+    case "cancel": dgUi.phase = "menu"; dgUi.path = []; dgUi.rest = null; dgUi.sr = null; break;
+    case "sr-n": dgUi.sr.pick = Number(ds.n); if (dgUi.sr.pick !== 20) dgUi.sr.luck = null; break;
+    case "sr-l": dgUi.sr.luck = Number(ds.n); break;
+    case "sr-ok": act(dgUi.phase); return;
+    case "res-done": dgUi.res = null; break;
     case "rest-go": act("rest"); return;
     case "zoom-in": dgUi.zoom = clampZoom(dgUi.zoom * 1.25); applyRotation(); return;
     case "zoom-out": dgUi.zoom = clampZoom(dgUi.zoom / 1.25); applyRotation(); return;
@@ -3662,7 +3860,8 @@ document.addEventListener("click", e => {
     case "roll-cancel": r.pending = null; saveChar(); break;
     case "library": openLibrary(); return;
     case "give-compass": inv.compass.owned = true; saveChar(); toast("Мастер выдал компас"); break;
-    case "give-map": inv.map.owned = true; saveChar(); toast("Мастер выдал карту"); break;
+    case "give-map": invItem("map").owned = true; saveChar(); toast("Мастер выдал карту этажа"); break;
+    case "give-mmap": invItem("mmap").owned = true; saveChar(); toast("Мастер выдал магическую карту"); break;
     case "leave": if (dgUi.confirm !== "leave") { dgUi.confirm = "leave"; break; } endRun(true); return;
     case "rollback": if (!state.runSnap) break; if (dgUi.confirm !== "rollback") { dgUi.confirm = "rollback"; break; } rollbackRun(); return;
   }
@@ -3723,6 +3922,9 @@ function heroStats(c) {
       <p class="trait" style="margin:0;text-align:center">Кость хитов к10: 10 + ТЕЛ на 1-м уровне, дальше 6 + ТЕЛ за уровень.</p>
     </div>
     <dl class="kv"><div><dt>КД</dt><dd>${d.ac}</dd></div><div><dt>Мана</dt><dd>${d.mana}</dd></div><div><dt>БМ</dt><dd>+${d.pb}</dd></div></dl>
+    <div class="lrow luck-row"><span>Удача <b style="color:var(--fx-gold-hi)">${signed(luckOf(c))}</b></span>
+      <span class="btn-row"><button class="fx-btn" data-hx="luck" data-d="-1" aria-label="Удача −1">−</button><button class="fx-btn" data-hx="luck" data-d="1" aria-label="Удача +1">+</button></span></div>
+    <p class="trait" style="margin:0">Удача прибавляется к броску удачи при раскопках и снижает шанс нападения на долгой стоянке. Крит и уклонение — правила в работе; отрицательная удача даёт врагам шанс крита по герою.</p>
     <p class="trait" style="margin:0">КД: ${d.acSrc}${itemOf(c.equip.off)?.id === "shield" && !twoHanded(c) ? " + щит" : ""}. ${[c.gender && GENDERS[c.gender], c.age && ageText(c.age), c.height && c.height + " см", c.weight && c.weight + " кг"].filter(Boolean).join(" · ")}</p>
     ${loadBlock(c)}
     ${st ? `<div class="fx-section">В лабиринте</div>
@@ -3755,7 +3957,7 @@ function selPanel(c) {
   if (others.length) btns.push(`<button class="fx-btn" data-hx="give-toggle" aria-expanded="${heroUi.give}">Передать</button>`);
   btns.push(`<button class="fx-btn" data-hx="drop">${e.qty > 1 ? "Выбросить 1" : "Выбросить"}</button>`);
   return `<div class="sel-panel fx-frame"><h4>${esc(it.name)}${e.qty > 1 ? ` × ${e.qty}` : ""}</h4>
-    <p>${kgf((it.weight || 0) * (e.qty || 1))} кг${it.note ? " · " + it.note : ""}${it.kindOf === "weapon" && it.dmg ? ` · ${it.dmg} ${it.type}` : ""}${it.kindOf === "armor" ? ` · КД ${it.ac}` : ""}</p>
+    <p>${kgf((it.weight || 0) * (e.qty || 1))} кг${e.uses != null ? ` · осталось раскопок: ${e.uses}` : ""}${it.note ? " · " + it.note : ""}${it.kindOf === "weapon" && it.dmg ? ` · ${it.dmg} ${it.type}` : ""}${it.kindOf === "armor" ? ` · КД ${it.ac}` : ""}</p>
     <div class="btn-row">${btns.join("")}</div>
     ${heroUi.give ? `<div class="btn-row">${others.map(o => `<button class="fx-btn" data-hx="give" data-to="${o.id}">${esc(o.name)} (${(o.bag || []).length}/${bagSize(o)})</button>`).join("")}</div>
       ${e.qty > 1 ? `<p>Передаётся вся стопка.</p>` : ""}` : ""}
@@ -3780,12 +3982,12 @@ function heroInv(c) {
       if (!e) return `<div class="cell empty" aria-hidden="true"></div>`;
       const it = itemOf(e);
       return `<button class="cell" data-hbag="${i}" aria-pressed="${heroUi.sel === i}" aria-label="${esc(it.name)}${e.qty > 1 ? ", " + e.qty + " шт." : ""}">
-        ${itemThumb(e)}${e.qty > 1 ? `<span class="q">${e.qty}</span>` : ""}${it.art ? "" : `<span class="t">${esc(it.short || it.name.split(" ")[0])}</span>`}</button>`;
+        ${itemThumb(e)}${e.qty > 1 ? `<span class="q">${e.qty}</span>` : ""}${e.uses != null ? `<span class="q">${e.uses}</span>` : ""}${it.art ? "" : `<span class="t">${esc(it.short || it.name.split(" ")[0])}</span>`}</button>`;
     }).join("")}</div>
     ${selPanel(c)}
     <div class="btn-row" style="justify-content:center"><button class="fx-btn" data-hx="add-toggle" aria-expanded="${heroUi.add}">${heroUi.add ? "Скрыть список" : "+ Добавить предмет (мастер)"}</button></div>
     ${heroUi.add ? `<div class="add-list">
-      ${[["ration", 1], ["potion", 1], ["torch", 1], ["arrow", 20], ["clothes", 1]].map(([id, q]) => `<button class="fx-btn" data-hadd="g:${id}:${q}">${GEAR[id].name}${q > 1 ? " ×" + q : ""}</button>`).join("")}
+      ${[["ration", 1], ["potion", 1], ["torch", 1], ["arrow", 20], ["clothes", 1], ["shovel", 1], ["shovel-good", 1], ["shovel-best", 1], ["stone-9", 1]].map(([id, q]) => `<button class="fx-btn" data-hadd="g:${id}:${q}">${GEAR[id].name}${q > 1 ? " ×" + q : ""}</button>`).join("")}
       ${WEAPONS.filter(w => w.kind !== "Боеприпасы").map(w => `<button class="fx-btn" data-hadd="w:${w.id}:1">${w.name}</button>`).join("")}
       ${ARMOR_FLAT.map(a => `<button class="fx-btn" data-hadd="a:${a.id}:1">${a.name}</button>`).join("")}
     </div>` : ""}`;
@@ -3838,6 +4040,7 @@ $hero.addEventListener("click", e => {
     case "tab": heroUi.tab = ds.tabTo; heroUi.sel = null; heroUi.slot = null; renderHero(); return;
     case "add-toggle": heroUi.add = !heroUi.add; renderHero(); return;
     case "hp": c.hp = Math.max(0, Math.min(maxHp(c), hpOf(c) + Number(ds.d))); heroAfterChange(); return;
+    case "luck": c.luck = luckOf(c) + Number(ds.d); heroAfterChange(); return;
     case "give-toggle": heroUi.give = !heroUi.give; renderHero(); return;
     case "eat": {
       takeGear(c, "ration", 1);
@@ -3909,7 +4112,7 @@ const ICO_BOOK = `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="curr
 const ICO_PLUS = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>`;
 const ICO_CHECK = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>`;
 
-function journal() { state.journal ||= { unlocked: false, tiers: [], known: {} }; return state.journal; }
+function journal() { state.journal ||= { unlocked: false, tiers: [], known: {} }; state.journal.hints ||= {}; return state.journal; }
 function unlockJournal(cls) {
   const j = journal();
   if (!j.unlocked || !j.tiers.includes(cls)) { j.unlocked = true; if (!j.tiers.includes(cls)) j.tiers.push(cls); }
@@ -3977,7 +4180,8 @@ function libMonstersTab() {
     <div class="mon-grid">${known.map(m => `<button class="mbox fx-frame${libUi.fresh === m.id ? " new" : ""}" data-lx="open" data-id="${m.id}">
       <div class="art">${img(monArt(m), m.name)}${j.known[m.id].xpDone ? `<span class="xp-mark" title="Опыт за вид получен">${ICO_CHECK} опыт</span>` : ""}</div><b>${m.name}</b></button>`).join("")}</div>` : ""}
     ${unknown.length ? `<div class="lib-sec">Неизвестные · ${unknown.length}</div>
-    <div class="mon-grid">${unknown.map(() => `<div class="mbox unknown fx-frame" aria-label="Неизвестный монстр"><div class="art"><div class="mist"><span>?</span></div></div><b>???</b></div>`).join("")}</div>` : ""}
+    <div class="mon-grid">${unknown.map(m => { const h = j.hints[m.id] || [];
+      return `<div class="mbox unknown fx-frame" aria-label="Неизвестный монстр${h.includes("type") ? ": " + m.type : ""}"><div class="art">${h.includes("portrait") ? img(monArt(m), "Портрет неизвестного монстра") : `<div class="mist"><span>?</span></div>`}</div><b>???</b>${h.includes("type") ? `<small class="hint-type">${m.type}</small>` : ""}</div>`; }).join("")}</div>` : ""}
     ${!unknown.length ? `<p class="hold-hint">Все монстры этого класса записаны.</p>` : `<p class="hold-hint">Встретили монстра? Нажми «+» и найди его по имени.</p>`}`;
 }
 
