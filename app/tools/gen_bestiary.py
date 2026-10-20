@@ -19,10 +19,18 @@ for m in re.finditer(r'\{ id: "([a-z-]+)", zone: "([a-z]+)", rare: (true|false)[
                     floor=int(re.search(r'floor: (\d+)', line).group(1)), cls=int(re.search(r'cls: (\d+)', line).group(1)),
                     rank="rare" if rank == "normal" and m.group(3) == "true" else rank, draft="draft: true" in line))
 # Монстры-заготовки 2 этажа (только эссенция, без статблока) записаны в index.html строками-массивами.
-for m in re.finditer(r'\["([a-z-]+)", (\d), (true|false), "([a-z]+)", "([^"]+)", "([^"]+)", "([^"]+)"\]', SRC):
-    MON.append(dict(id=m.group(1), zone="goblin", rare=m.group(3) == "true", name=m.group(5), ph="humanoid", floor=2, cls=int(m.group(2)),
-                    rank="rare" if m.group(4) == "normal" and m.group(3) == "true" else m.group(4), draft=False, stub=True,
-                    group=m.group(6), where=m.group(7)))
+# Каждый массив начинается комментарием «// ===== 2 этаж: <место>.» — по нему берём зону и место.
+STUB_ZONE = {"Лес гоблинов": ("goblin", "humanoid"), "Волчья чаща": ("beast", "beast")}
+for seg in re.split(r"// ===== 2 этаж: ", SRC)[1:]:
+    place = re.match(r"([^.(]+?)[.(]", seg).group(1).strip()
+    if place not in STUB_ZONE: continue
+    zone, ph = STUB_ZONE[place]
+    if "].map(" not in seg: continue
+    arr = seg[:seg.index("].map(")]
+    for m in re.finditer(r'\["([a-z-]+)", (\d), (true|false), "([a-z]+)", "([^"]+)", "([^"]+)", "([^"]+)"\]', arr):
+        MON.append(dict(id=m.group(1), zone=zone, rare=m.group(3) == "true", name=m.group(5), ph=ph, floor=2, cls=int(m.group(2)),
+                        rank="rare" if m.group(4) == "normal" and m.group(3) == "true" else m.group(4), draft=False, stub=True,
+                        group=m.group(6), where=m.group(7), place=place))
 RANKS = [("normal", "Обычный"), ("rare", "Редкий"), ("special", "Особый"), ("guardian", "Страж"), ("lord", "Лорд")]
 RASTER = set(re.search(r'const RASTER = new Set\(\[([^\]]*)\]', SRC).group(1).replace('"', "").replace(" ", "").split(","))
 def face(m):
@@ -94,7 +102,7 @@ for zid, zname, zdesc in ZONES:
     for m in ms:
         body = blocks.get(m["name"], "")
         if m.get("stub"):
-            body = ("**Обитает:** 2 этаж, Лес гоблинов: " + m["where"] + ". " + m["group"] + ".\n\n"
+            body = ("**Обитает:** 2 этаж, " + m["place"] + ": " + m["where"] + ". " + m["group"] + ".\n\n"
                     "Статблок ещё не расписан — пока утверждена только эссенция.\n\n**Эссенция**\n\n" + blocks.get("ESS:" + m["name"], ""))
         lvl = re.search(r"\*\*Уровень:\*\*\s*(\d+)", body)
         body = re.sub(r"\*\*Имя:\*\*.*\n", "", body)
