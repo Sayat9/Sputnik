@@ -157,6 +157,7 @@
       const b = e.target.closest("[data-m]"); if (!b && e.target !== m) return; const k = b && b.dataset.m;
       if (!k || k === "close") { hideModal(); return; }
       if (k === "monhp") S.opts.showMonHp = !S.opts.showMonHp; if (k === "autosave") S.opts.autoSaves = !S.opts.autoSaves;
+      if (k === "monhp" || k === "autosave") { try { (state.settings ||= {}).battleOpts = { showMonHp: !!S.opts.showMonHp, autoSaves: !!S.opts.autoSaves }; saveChar(); } catch (e) {} }          // эти два переключателя помнятся между боями
       if (k === "auto") { S.opts.autoHeroes = !S.opts.autoHeroes; if (S.opts.autoHeroes && UI.endTurn) { hideModal(); endTurn(); return; } }
       if (k === "legacy") { hideModal(); if (await UI.confirm({ title: "Обычный экран боя", text: "Поле закроется: останутся порядок ходов и кнопки «Победа», «Бег», «Монстры убегают». Уже убитых монстров и потери ОЗ сохраним.", yes: "Перейти" })) { B.abort(); if (UI.endTurn) endTurn(); } return; }
       if (k === "gm") { hideModal(); const r = await UI.choose({ title: "Завершить бой как…", options: [{ id: "win", label: "Победа (монстры повержены)" }, { id: "flee", label: "Отряд отступил" }, { id: "retreat", label: "Монстры убежали" }] }); if (r) { S.outcome = r; if (r === "win") B.mons().forEach(mm => { if (mm.alive) { mm.alive = false; mm.hp = 0; S.killed.push(mm.idx); } }); endTurn(); } return; }

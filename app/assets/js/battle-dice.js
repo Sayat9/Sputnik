@@ -340,6 +340,7 @@
         return r;
       },
       async dice(o) {
+        if (!(o.n > 0)) return { rolls: [], sum: 0, total: o.bonus || 0, auto: false };         // нечего бросать
         const r = await runStep(sh, { kind: "dmg", ...o, next: "Далее ▸" });
         if (!r) { closeSheet(sh); return null; }
         return r;

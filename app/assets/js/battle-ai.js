@@ -92,7 +92,7 @@
     const near = es.length ? Math.min(...es.map(e => dist(u, e))) : 9;
     const t = B.tinfo(u.x, u.y), fly = B.isFlying(u);
     if (!fly && t && t.hazard && int >= 1) s -= 8;
-    if (!fly && B.S.objs.some(o => o.kind === "trap" && o.x === u.x && o.y === u.y && !(o.owner === u.side))) s -= (u.ai && u.ai.trapSafe && u.side === "mon") ? 0 : 6;
+    if (!fly && B.S.objs.some(o => o.kind === "trap" && o.x === u.x && o.y === u.y && !(o.owner === u.side) && (!o.hidden || (o.noticed || []).includes(u.id)))) s -= (u.ai && u.ai.trapSafe && u.side === "mon") ? 0 : 6;     // о скрытой ловушке знает только заметивший
     if (!fly && t && t.cost > 1) s -= 0.3;
     if (pr.role === "ranged" || pr.kite) {
       const keep = pr.keep || 3;
@@ -116,6 +116,7 @@
     const src = B.byId(f.data.by); if (!src || !alive(src)) return true;
     return distAt(src, { ...u, x: u.x, y: u.y }, x, y) >= dist(src, u);
   }
+  B.frightenOK = frightenOK;
 
   /* ===== мораль ===== */
   async function moraleCheck(u, pr) {
@@ -274,10 +275,11 @@
     }
   };
   AI.tryEscape = async function (u) {
-    const by = has(u, "grappled") ? B.byId(has(u, "grappled").data.by) : null; let ok = false;
+    const gr = has(u, "grappled"), by = gr ? B.byId(gr.data.by) : null, st = has(u, "trapped") || has(u, "pinned") || has(u, "restrained"); let ok = false;
     B.spendTime(u, "action");
-    if (by && alive(by)) { const r = await B.contest(u, "athletics", by, "athletics", { title: "Вырваться", tagsA: ["grapple"] }); ok = r && r.win; }
-    else { const r = await B.doCheck(u, "athletics", { title: "Вырваться", dc: 10 }); ok = r && r.ok; }
+    if (gr && gr.data.dc) { const r = await B.doCheck(u, B.bestDef(u), { title: "Вырваться", dc: gr.data.dc, tags: ["grapple"] }); ok = r && r.ok; }                    // хватка эссенции: Сл эссенции
+    else if (by && alive(by)) { const r = await B.contest(u, B.bestDef(u), by, "athletics", { title: "Вырваться", tagsA: ["grapple"] }); ok = r && r.win; }
+    else { const r = await B.doCheck(u, B.bestDef(u), { title: "Вырваться", dc: (st && st.data && st.data.dc) || 10 }); ok = r && r.ok; }
     if (ok) { for (const id of ["grappled", "trapped", "restrained", "pinned"]) removeStatus(u, id); log(`${u.name} вырывается.`); }
   };
   AI.profileOf = profileOf; AI.bestAction = bestAction; AI.scoreAttack = scoreAttack;

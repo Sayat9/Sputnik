@@ -100,7 +100,8 @@
     const budget = u.t.move - standCost;
     if (speedOf(u) === 0) { UI().toast("Скорость 0: двигаться нельзя"); return false; }
     if (has(u, "prone") && budget < 0) { UI().toast("Не хватает движения, чтобы встать"); return false; }
-    const map = B.pathMap(u, Math.max(0, budget), { avoid: (x, y) => false });
+    const scared = has(u, "frightened");                                                            // испуганный не приближается к источнику страха
+    const map = B.pathMap(u, Math.max(0, budget), { avoid: (x, y) => scared && B.frightenOK && !B.frightenOK(u, x, y) });
     const cells = new Map();
     for (const [k, v] of map) if ((v.x !== u.x || v.y !== u.y) && B.canStand(u, v.x, v.y)) cells.set(k, v);
     if (!cells.size && !standCost) { UI().toast("Некуда идти"); return false; }
@@ -159,6 +160,7 @@
     return true;
   }
   const bestDef = u => (u.skills.acrobatics || 0) + amod(u.abil.dex) > (u.skills.athletics || 0) + amod(u.abil.str) ? "acrobatics" : "athletics";
+  B.bestDef = bestDef;
   async function doGrapple(u) {
     const near = enemiesOf(u).filter(e => dist(u, e) <= 1 && e.size <= u.size + 1 && canAct(e) || (dist(u, e) <= 1 && has(e, "prone")));
     if (!near.length) { UI().toast("Захват: нужен враг рядом"); return false; }
@@ -187,8 +189,11 @@
     const gr = has(u, "grappled"), tr = has(u, "trapped") || has(u, "pinned"), rs = has(u, "restrained");
     const by = gr ? B.byId(gr.data.by) : null;
     let ok;
-    if (by && alive(by)) {
-      const r = await B.contest(u, bestDef(u), by, "athletics", { title: "Вырваться из захвата", cancel: true, onCommit: () => spendTime(u, "action"), advA: has(u, "wet") ? ["промок: скользкий"] : [], tags: ["grapple"] });
+    if (gr && gr.data.dc) {                                       // хватка эссенции: проверка Силы или Ловкости против её Сл
+      const r = await B.doCheck(u, bestDef(u), { title: "Вырваться из хватки", label: `Сл ${gr.data.dc}`, dc: gr.data.dc, cancel: true, onCommit: () => spendTime(u, "action"), adv: has(u, "wet") ? ["промок: скользкий"] : [], tags: ["grapple"] });
+      if (!r) return false; ok = r.ok;
+    } else if (by && alive(by)) {
+      const r = await B.contest(u, bestDef(u), by, "athletics", { title: "Вырваться из захвата", cancel: true, onCommit: () => spendTime(u, "action"), advA: has(u, "wet") ? ["промок: скользкий"] : [], tagsA: ["grapple"] });
       if (!r) return false; ok = r.win;
     } else {
       const dc = (tr && tr.data.dc) || (rs && rs.data.dc) || 12;
@@ -197,6 +202,18 @@
     }
     if (ok) { for (const id of ["grappled", "trapped", "restrained", "pinned"]) removeStatus(u, id); log(`${u.name} вырывается.`, "good"); UI().fxText(u, "свободен", "good"); }
     else UI().fxText(u, "не вышло", "bad");
+    return true;
+  }
+  // Перевязка: Медицина Сл 10 останавливает кровотечение у себя или у союзника рядом (текст «Кровопускания»).
+  async function doBandage(u) {
+    const cands = [u, ...alliesOf(u).filter(a => dist(u, a) <= 1 && !a.dead)].filter(a => has(a, "bleeding"));
+    if (!cands.length) { UI().toast("Некого перевязывать: нет кровотечения"); return false; }
+    const t = cands.length === 1 ? cands[0] : await UI().pickUnit({ prompt: "Перевязать: кого?", units: cands.map(a => a.id), cells: [], kind: "heal" });
+    if (!t) return false;
+    const r = await B.doCheck(u, "medicine", { title: "Перевязать", label: `${t.name} · Сл 10`, dc: 10, cancel: true, onCommit: () => spendTime(u, "action") });
+    if (!r) return false;
+    if (r.ok) { removeStatus(t, "bleeding"); log(`${u.name} перевязывает ${t.name}: кровотечение остановлено.`, "good"); UI().fxText(t, "перевязан", "good"); }
+    else { log(`${u.name} не справляется с перевязкой.`); UI().fxText(t, "не вышло", "bad"); }
     return true;
   }
   async function doSearch(u) {
@@ -336,6 +353,7 @@
     opts.push(simple("grapple", "Захват", "grapple", "Атлетика против Атлетики или Акробатики", () => doGrapple(u), { enabled: !act && enemiesOf(u).some(e => dist(u, e) <= 1), why: act || "нет врага рядом" }));
     opts.push(simple("shove", "Толчок", "shove", "оттолкнуть или сбить с ног", () => doShove(u), { enabled: !act && enemiesOf(u).some(e => dist(u, e) <= 1), why: act || "нет врага рядом" }));
     if (has(u, "grappled") || has(u, "trapped") || has(u, "restrained") || has(u, "pinned")) opts.push(simple("escape", "Вырваться", "grapple", "проверка Силы или Ловкости", () => doEscape(u), { enabled: !act, why: act }));
+    if ([u, ...alliesOf(u)].some(a => has(a, "bleeding") && dist(u, a) <= 1 && !a.dead)) opts.push(simple("bandage", "Перевязать", "heart", "остановить кровотечение: Медицина Сл 10", () => doBandage(u), { enabled: !act, why: act }));
     if (B.S.objs.some(o => o.kind === "trap" && o.hidden)) opts.push(simple("search", "Осмотреться", "search", "найти скрытые ловушки", () => doSearch(u), { enabled: !act, why: act }));
     // предметы
     const c = u.hero, bon = timeWhy(u, "bonus");

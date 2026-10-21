@@ -51,7 +51,7 @@
       tgt(u) { return { type: cfg.choose ? "units" : "area", prompt: `${cfg.name}: подтвердите`, units: pool(u).map(x => x.id), cells: cellsAround(u, cfg.radius), min: 0, max: cfg.max || 9, kind: "area" }; },
       can(u) { return pool(u).length ? true : "никого рядом"; },
       async run(u, pk, ctl) {
-        let ts = pk.units ? pk.units.filter(x => alive(x) || x.down) : pool(u); if (!ts.length) return false;
+        let ts = pk.units && cfg.side !== "all" ? pk.units.filter(x => alive(x) || x.down) : pool(u); if (!ts.length) return false;          // «все существа» — без выбора
         ctl.commit();
         const dc = dcOf(u, cfg.abil);
         let total = 0, rolls = null;
@@ -82,7 +82,10 @@
     can(u) { const n = B.S.objs.filter(o => o.by === u.id).length; return n >= 3 ? "уже 3 ловушки" : true; },
     async run(u, pk, ctl) {
       ctl.commit(); const [x, y] = pk.cell;
-      B.S.objs.push({ id: "t" + Math.random().toString(36).slice(2, 7), kind: "trap", x, y, dc: dcOf(u, "dex"), hidden: u.side === "mon", owner: u.side, by: u.id, dmg: "1к6", dt: "pierce" });
+      const trap = { id: "t" + Math.random().toString(36).slice(2, 7), kind: "trap", x, y, dc: dcOf(u, "dex"), hidden: true, owner: u.side, by: u.id, dmg: "1к6", dt: "pierce", noticed: [] };
+      // ловушка скрыта: враги замечают её Восприятием против Сл (пассивным)
+      for (const e of enemiesOf(u)) if (10 + amod(e.abil.wis) + (e.skills.perception || 0) >= trap.dc) { trap.noticed.push(e.id); if (e.side === "hero") trap.hidden = false; }
+      B.S.objs.push(trap);
       log(`${u.name} ставит ловушку.`); ui() && (ui().fxText(u, "ловушка", ""), ui().refresh()); return true;
     },
     ai(u) {
@@ -96,7 +99,7 @@
     },
   };
   A["goblin-archer"] = attackRider({ name: "Пригвоздить", kind: "ranged", abil: "dex", save: "str", tags: ["slow"], aiBonus: 4,
-    onFail: async t => { addStatus(t, "pinned", { k: 1, when: "end", data: { dc: 8 } }); log(`${t.name} пригвождён.`); ui() && ui().fxText(t, "пригвождён", "bad"); },
+    onFail: async (t, u) => { addStatus(t, "pinned", { k: 1, when: "end", data: { dc: dcOf(u, "dex") } }); log(`${t.name} пригвождён.`); ui() && ui().fxText(t, "пригвождён", "bad"); },
     onOk: async t => { addStatus(t, "slowed", { k: 1, when: "end", data: { add: -2 } }); ui() && ui().fxText(t, "замедлен", "bad"); } });
   A["goblin-sword"] = {
     time: "action",
@@ -133,7 +136,7 @@
     ai(u) { const es = enemiesOf(u); if (!es.length || !B.attacksOf(u).some(a => a.kind === "melee")) return null; const near = es.reduce((a, b) => (dist(u, a) < dist(u, b) ? a : b)); if (dist(u, near) <= 1) return null; return { target: near, score: 5 }; },
   };
   A["dark-bear"] = attackRider({ name: "Медвежья хватка", kind: "melee", abil: "str", save: "str", tags: ["grapple"], aiBonus: 5,
-    onFail: async (t, u) => { addStatus(t, "grappled", { k: Infinity, data: { by: u.id, dmg: "1к6", dt: "bludgeon" } }); log(`${u.name} хватает ${t.name} — тот не может двигаться.`); ui() && ui().fxText(t, "схвачен", "bad"); } });
+    onFail: async (t, u) => { addStatus(t, "grappled", { k: Infinity, data: { by: u.id, dc: dcOf(u, "str"), dmg: "1к6", dt: "bludgeon" } }); log(`${u.name} хватает ${t.name} — тот не может двигаться.`); ui() && ui().fxText(t, "схвачен", "bad"); } });
   A["skeleton-warrior"] = { time: "reaction", reaction: true, ai() { return null; }, tgt() { return { type: "self" }; }, run: async () => false };
 
   // Каменный сторож — обвал: куб 3 м (2×2 клетки) в пределах 6 клеток.
@@ -186,11 +189,12 @@
   A.wolf = {
     time: "action",
     tgt(u) { const lines = dashLines(u); return { type: "cell", prompt: "Сквозной рывок: выберите конец прямой", cells: lines.map(l => l.end), kind: "move", lines }; },
-    can(u) { return speedOf(u) > 0 && dashLines(u).length ? true : "некуда бежать"; },
+    can(u) { if (u.side === "hero" && !atkFor(u, "melee", "slash")) return "нужно рубящее оружие"; return speedOf(u) > 0 && dashLines(u).length ? true : "некуда бежать"; },
     async run(u, pk, ctl) {
       const line = dashLines(u).find(l => l.end[0] === pk.cell[0] && l.end[1] === pk.cell[1]); if (!line) return false;
+      const a = atkFor(u, "melee", "slash") || (u.side === "mon" ? atkFor(u, "melee") : null); if (!a) return false;       // урон рубящего оружия или когтей
       ctl.commit();
-      const a = atkFor(u, "melee"); const dd = a ? a.dmg : { n: 1, s: 4, b: 2 }, dt = a ? a.dt : "slash";
+      const dd = a.dmg, dt = a.dt;
       const r = await B.moveAlong(u, line.path, { noProvoke: true }); u.t.move = Math.max(0, u.t.move - r.spent);
       const vs = dashVictims(u, line.path); if (!vs.length) return true;
       const ses = B.session(u, { kind: "damage", u, title: "Сквозной рывок", sub: `${u.name}: когти по ${vs.length} цел.` });
@@ -219,7 +223,7 @@
     },
     ai(u) { const ts = within(u, 6).filter(e => canAct(e)); if (!ts.length) return null; const t = ts.reduce((a, b) => (dist(u, a) < dist(u, b) ? a : b)); return { unit: t, score: 4 }; },
   };
-  A.mouse = saveArea({ name: "Громовой писк", radius: 2, side: "all", abil: "con", save: "con", dmg: "1к4", dt: "thunder", half: true, anim: "thunder", tags: ["sound"],
+  A.mouse = saveArea({ name: "Громовой писк", radius: 2, side: "all", abil: "con", save: "con", dmg: "1к4", dt: "thunder", half: true, anim: "thunder", tags: ["sound", "stun"],
     onFail: async t => { addStatus(t, "shaken", { k: 1, when: "end" }); ui() && ui().fxText(t, "оглушён", "bad"); } });
   A.bat = {
     time: "bonus", tgt() { return { type: "self" }; },
@@ -234,12 +238,12 @@
     async run(u, pk, ctl) {
       ctl.commit(); const t = pk.unit;
       const sv = await save(t, "str", dcOf(u, "str"), "Мёртвая хватка", ["grapple"]);
-      if (!sv.ok) { addStatus(t, "grappled", { k: Infinity, data: { by: u.id, ...durEnd(u, 1) } }); log(`${u.name} вцепляется в ${t.name}.`); ui() && ui().fxText(t, "схвачен", "bad"); }
+      if (!sv.ok) { addStatus(t, "grappled", { k: Infinity, data: { by: u.id, dc: dcOf(u, "str"), ...durEnd(u, 1) } }); log(`${u.name} вцепляется в ${t.name}.`); ui() && ui().fxText(t, "схвачен", "bad"); }
       return true;
     },
     ai(u) { const ts = within(u, 1).filter(t => !has(t, "grappled")); if (!ts.length) return null; return { unit: ts[0], score: 4 }; },
   };
-  A.skeleton = saveArea({ name: "Треск костей", radius: 2, side: "enemies", abil: "con", save: "wis", tags: ["frightened"], choose: false,
+  A.skeleton = saveArea({ name: "Треск костей", radius: 2, side: "enemies", abil: "con", save: "wis", tags: ["frightened"], choose: true,
     onFail: async (t, u) => { addStatus(t, "frightened", { k: 1, when: "end", data: { by: u.id } }); ui() && ui().fxText(t, "испуган", "bad"); } });
   A["skeleton-archer"] = attackRider({ name: "Ледяная стрела", kind: "ranged", abil: "dex", save: "con", tags: ["cold"], aiBonus: 4,
     onFail: async (t, u) => { const r = roll(1, 4).total; log(`Ледяная стрела: +${r} холодом, ${t.name} замедлен.`); await B.applyDamage(u, t, [{ v: r, dt: "cold", label: "Холод" }], {}); if (alive(t) || t.down) { addStatus(t, "slowed", { k: 1, when: "end", data: { add: -2 } }); ui() && ui().fxText(t, "замедлен", "bad"); } } });
@@ -265,14 +269,24 @@
   };
   A.wisp = saveArea({ name: "Вспышка", radius: 2, side: "all", abil: "dex", save: "con", dmg: "1к4", dt: "fire", half: true, anim: "fire",
     onFail: async t => { addStatus(t, "dazzled", { k: 1, when: "end" }); ui() && ui().fxText(t, "ослеплён", "bad"); } });
-  A["green-boulder"] = saveArea({ name: "Цепкий мох", radius: 2, side: "enemies", abil: "con", save: "str", tags: ["slow"], choose: false,
+  A["green-boulder"] = saveArea({ name: "Цепкий мох", radius: 2, side: "enemies", abil: "con", save: "str", tags: ["slow"], choose: true,
     onFail: async t => { addStatus(t, "slowed", { k: 1, when: "end", data: { mult: 0.5 } }); ui() && ui().fxText(t, "замедлен", "bad"); } });
 
   /* ===================== ПАССИВКИ ===================== */
   const P = (B.P = {});
   // Гоблин: ловушки в 3 м замечаются сами.
+  // Простые ловушки (Сл ≤ 12) чужой стороны в 3 м замечаются сами: в начале хода и при каждом шаге.
+  function noticeTraps(u) {
+    for (const t of B.S.objs) {
+      if (t.kind !== "trap" || t.owner === u.side || t.dc > 12 || distCell(u, t.x, t.y) > 2) continue;
+      if (u.side === "hero") { if (!t.hidden) continue; t.hidden = false; }
+      else { t.noticed = t.noticed || []; if (t.noticed.includes(u.id)) continue; t.noticed.push(u.id); }
+      log(`${u.name} замечает ловушку.`); ui() && ui().refresh();
+    }
+  }
   P.goblin = {
-    turnStart(u) { for (const t of B.S.objs) if (t.kind === "trap" && t.hidden && distCell(u, t.x, t.y) <= 2) { t.hidden = false; log(`${u.name} замечает ловушку.`); ui() && ui().refresh(); } },
+    turnStart(u) { noticeTraps(u); },
+    onMoveStep(u) { noticeTraps(u); },
     checkMods(u, ctx) { if (ctx.tags.includes("trapsearch")) ctx.mods.push({ l: "Хитрость", v: 2 }); },
     actions(u) {
       const S = B.S, near = S.objs.filter(t => t.kind === "trap" && !t.hidden && distCell(u, t.x, t.y) <= 1);
@@ -280,11 +294,11 @@
       return [{ id: "disarm", cat: "skill", label: "Обезвредить ловушку", ico: "search", sub: "свободное действие · Ловкость с преимуществом", time: "free", enabled: !u.t.objUsed, why: "уже было", run: async () => {
         const t = near[0]; const r = await B.doCheck(u, "sleight", { title: "Обезвредить ловушку", label: `Сл ${t.dc}`, dc: t.dc, adv: ["Хитрость"], cancel: true });
         if (!r) return false; u.t.objUsed = true;
-        if (r.ok) { S.objs.splice(S.objs.indexOf(t), 1); log(`${u.name} обезвреживает ловушку.`, "good"); } else { log(`${u.name} задевает ловушку!`); await B.trapTrigger({ ...u, x: t.x, y: t.y }); }
+        if (r.ok) { S.objs.splice(S.objs.indexOf(t), 1); log(`${u.name} обезвреживает ловушку.`, "good"); } else { log(`${u.name} задевает ловушку!`); await B.trapTrigger(u, { trap: t }); }
         ui() && ui().refresh(); return true; } }];
     },
   };
-  P["goblin-archer"] = { ignoreHalfCover() { return true; } };
+  P["goblin-archer"] = { ignoreHalfCover(u, ctx) { return !ctx.melee; } };
   P["goblin-sword"] = {
     onHitDealt(att, ctx) { if (ctx.melee && ctx.atk.dt === "slash" && ctx.res.hit && (ctx.tgt.alive || ctx.tgt.down) && !has(ctx.tgt, "bleeding")) { addStatus(ctx.tgt, "bleeding", { k: Infinity, src: att.id }); ui() && ui().fxText(ctx.tgt, "кровотечение", "bad"); } },
   };
@@ -307,11 +321,15 @@
   };
   P.hobgoblin = {
     attackMods(att, ctx) { if (ctx.melee && has(att, "rush")) { ctx.mods.push({ l: "Рывок", v: 2 }); ctx.consume.push([att, "rush"]); } },
-    dmgTotal(u, c) { if (u.flags.hide) return c.total; u.flags.hide = true; if (c.total > 0) { const r = roll(1, 4).total; const nt = Math.max(1, c.total - r); c.notes.push(`толстая шкура −${c.total - nt}`); return nt; } return c.total; },
+    dmgTotal(u, c) { if (u.flags.hide || !(c.o && c.o.ctx) || !(c.total > 0)) return c.total; u.flags.hide = true; if (c.total > 0) { const r = roll(1, 4).total; const nt = Math.max(1, c.total - r); c.notes.push(`толстая шкура −${c.total - nt}`); return nt; } return c.total; },
   };
-  P["dark-bear"] = { checkMods(u, ctx) { if (ctx.skill === "stealth" && (B.S.dark || B.hideSpot(u) === "в тени")) ctx.adv.push("шкура мрака"); } };
+  P["dark-bear"] = { checkMods(u, ctx) { if (ctx.skill === "stealth" && (B.inDark(u) || B.hideSpot(u) === "в тени")) ctx.adv.push("шкура мрака"); } };
   P["skeleton-warrior"] = {
-    acAura(ally, c) { return isShieldHolder(ally) && ally.alive && dist(ally, c.tgt) <= 1 && c.tgt.id !== ally.id ? 1 : 0; },
+    acAura(ally, c) {
+      if (!isShieldHolder(ally) || !canAct(ally) || c.tgt.id === ally.id || dist(ally, c.tgt) > 1) return 0;
+      const near = alliesOf(ally).filter(a => canAct(a) && dist(ally, a) <= 1).sort((a, b) => a.ac - b.ac || (a.id < b.id ? -1 : 1));
+      return near[0] && near[0].id === c.tgt.id ? 1 : 0;                                  // «один союзник»: тот, кому броня нужнее
+    },
     async reactHit(tgt, ctx) {
       if (!ctx.melee || !isShieldHolder(tgt) || !tgt.t.react) return false;
       const eb = ESSENCES["skeleton-warrior"].active;
@@ -331,15 +349,15 @@
   };
   P.mouse = {
     resist(u, c) { return c.dt === "thunder"; },
-    saveMods(u, ctx) { if (ctx.tags.includes("stun") || ctx.tags.includes("deaf")) ctx.adv.push("привычка к грохоту"); },
+    saveMods(u, ctx) { if (ctx.tags.includes("stun") || ctx.tags.includes("deaf") || ctx.tags.includes("sound")) ctx.adv.push("привычка к грохоту"); },
   };
   P.bat = {
     onHitDealt(att, ctx) {
       const ev = has(att, "envenomed"); if (!ev || !ctx.melee || !ctx.res.hit || !(ctx.tgt.alive || ctx.tgt.down)) return;
       removeStatus(att, "envenomed");
-      const t = ctx.tgt; ctx.res.poison = (async () => { const sv = await save(t, "con", dcOf(att, "dex"), "Ядовитый укус"); const r = roll(1, 4).total; await B.applyDamage(att, t, [{ v: r, dt: "poison", label: "Яд" }], {}); if (!sv.ok && (alive(t) || t.down)) { addStatus(t, "poisoned", { k: 1, when: "end" }); ui() && ui().fxText(t, "отравлен", "bad"); } })();
+      const t = ctx.tgt; ctx.res.poison = async () => { const sv = await save(t, "con", dcOf(att, "dex"), "Ядовитый укус"); const r = roll(1, 4).total; await B.applyDamage(att, t, [{ v: r, dt: "poison", label: "Яд" }], {}); if (!sv.ok && (alive(t) || t.down)) { addStatus(t, "poisoned", { k: 1, when: "end" }); ui() && ui().fxText(t, "отравлен", "bad"); } };
     },
-    async afterAttack(att, ctx) { if (ctx.res && ctx.res.poison) await ctx.res.poison; },
+    async afterAttack(att, ctx) { if (ctx.res && ctx.res.poison) await ctx.res.poison(); },
   };
   P.zombie = {
     async beforeZero(u, c) {
@@ -356,11 +374,11 @@
   P.ghoul = {
     onHitDealt(att, ctx) {
       if (!ctx.melee || !ctx.res.hit || !(ctx.tgt.alive || ctx.tgt.down) || !["claws", "bite", "fist"].includes(ctx.atk.id)) return;
-      const t = ctx.tgt; ctx.res.venom = (async () => { const sv = await save(t, "con", 8 + att.pb + amod(att.abil.con), "Трупный яд"); if (!sv.ok) { addStatus(t, "noheal", { k: 0, when: "end", data: { endAtStartOf: att.id } }); ui() && ui().fxText(t, "не лечится", "bad"); } })();
+      const t = ctx.tgt; ctx.res.venom = async () => { const sv = await save(t, "con", 8 + att.pb + amod(att.abil.con), "Трупный яд"); if (!sv.ok) { addStatus(t, "noheal", { k: Infinity, data: { endAtStartOf: att.id } }); ui() && ui().fxText(t, "не лечится", "bad"); } };
     },
-    async afterAttack(att, ctx) { if (ctx.res && ctx.res.venom) await ctx.res.venom; },
+    async afterAttack(att, ctx) { if (ctx.res && ctx.res.venom) await ctx.res.venom(); },
   };
-  P["living-stone"] = { checkMods(u, ctx) { if (ctx.tags.some(t => ["grapple", "shove"].includes(t))) ctx.adv.push("недвижимый"); }, saveMods(u, ctx) { if (ctx.tags.includes("prone")) ctx.adv.push("недвижимый"); } };
+  P["living-stone"] = { checkMods(u, ctx) { if (ctx.tags.some(t => ["grapple", "shove"].includes(t))) ctx.adv.push("недвижимый"); }, saveMods(u, ctx) { if (ctx.tags.some(t => ["prone", "grapple", "shove"].includes(t))) ctx.adv.push("недвижимый"); } };
   P.pixie = {
     turnEnd(u) { if (u.t && u.t.moved >= 2) { addStatus(u, "flicker", { k: 1, when: "start" }); ui() && ui().fxText(u, "мерцание", "good"); } },
   };
@@ -371,7 +389,7 @@
     },
   };
   P["green-boulder"] = {
-    turnStart(u) { if (u.hp >= 1 && u.hp <= u.maxHp / 2 && alive(u)) { B.setHp(u, u.hp + 1); log(`${u.name}: мох затягивает рану (+1 ОЗ).`); ui() && ui().fxHeal(u, 1); } },
+    turnStart(u) { if (u.hp >= 1 && u.hp <= u.maxHp / 2 && alive(u)) { log(`${u.name}: мох затягивает рану.`); B.heal(u, 1, u); } },
   };
   /* ----- тела монстров ----- */
   P["body:stone-guardian"] = { dmgFlat(u, c) { const w = c.o && c.o.ctx && c.o.ctx.atk && c.o.ctx.atk.w; return c.dt === "bludgeon" && w && ["mace", "warhammer"].includes(w.id) ? 2 : 0; } };
@@ -391,6 +409,12 @@
   P["race:dragon"] = { saveMods(u, ctx) { if (ctx.tags.includes("cold") || ctx.tags.includes("slow")) ctx.dis.push("холодная кровь"); } };
 
   // Чувства из эссенций и тела: слепое зрение, чувство вибрации.
+  // Время активки: фабрики (saveArea, attackRider…) его не задают — берём из текста эссенции, иначе активка не тратила бы действие.
+  for (const id of Object.keys(B.A)) {
+    const A = B.A[id]; if (A.time) continue;
+    const t = (ESSENCES[id] && ESSENCES[id].active && ESSENCES[id].active.time) || "";
+    A.time = /^бонус/.test(t) ? "bonus" : /^реакц/.test(t) ? "reaction" : /^свобод/.test(t) ? "free" : "action";
+  }
   B.initUnit = function (u) {
     if (u.ess.includes("bat")) u.blind = Math.max(u.blind || 0, 2);
     if (u.ess.includes("stone-guardian")) u.tremor = Math.max(u.tremor || 0, 2);

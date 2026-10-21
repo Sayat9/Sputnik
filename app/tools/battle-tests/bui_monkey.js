@@ -24,6 +24,7 @@ async function invariants(p, tag) {
 
 async function driveOption(p, log) {
   for (let i = 0; i < 160; i++) {
+    global.__tick = Date.now();
     if ((await L.mode(p)) === 'result') return 'turn-over';
     const sheet = await p.$('.bd-ov:not(.out)');
     if (sheet) { const t = await F.playSheet(p, { mode: rnd() < .5 ? 'drag' : 'button', cancel: rnd() < .12, reroll: rnd() < .3 }); log.push('лист'); continue; }
@@ -53,6 +54,8 @@ async function driveOption(p, log) {
 
 (async () => {
   const { b, p } = await L.launch(400, 860);
+  global.__tick = Date.now();
+  const wd = setInterval(async () => { if (Date.now() - global.__tick > 80000) { try { const d = await Promise.race([p.evaluate(() => { const S = Battle.S; const md = document.querySelector('.bt-modal'); return S ? { mode: Battle.UI.mode, busy: Battle.UI.busy, pick: Battle.UI.pick && Battle.UI.pick.type, modal: md && !md.hidden ? md.innerText.slice(0, 120) : null, sheets: document.querySelectorAll('.bd-ov:not(.out)').length, sheetTitle: (document.querySelector('.bd-ov:not(.out) h3') || {}).textContent, cur: S.order[S.turn], round: S.round, outcome: S.outcome, log: S.log.slice(-8).map(l => l.t) } : 'нет боя'; }), new Promise(r => setTimeout(() => r('evaluate завис'), 5000))]); console.log('WATCHDOG', JSON.stringify(d)); await p.screenshot({ path: `${L.SHOTS}/mk_${seed0}_watchdog.png` }); } catch (e) { console.log('WATCHDOG ошибка', e.message); } process.exit(4); } }, 5000);
   const rec = { seed: seed0, sc: SC, turns: 0, acts: {}, issues: [], outcome: null };
   await L.setup(p, { heroes: SC.heroes || ['barb2', 'archer', 'fairy'], level: SC.level || 1 });
   if (SC.dark) await p.evaluate(() => { /* тьма у портала */ const r = state.run; for (const [x, y] of [[0,0],[0,10],[10,0],[10,10],[1,1],[9,9]]) { if (isDark(x, y)) { r.pos = { x, y }; break; } } r.light = false; });
@@ -63,6 +66,7 @@ async function driveOption(p, log) {
   await p.click('[data-ba="place-go"]');
   const t0 = Date.now();
   for (let guard = 0; guard < 400 && Date.now() - t0 < (SC.maxMs || 420000); guard++) {
+    global.__tick = Date.now();
     const ok = await F.waitHero(p, { tries: 200, prefer: 'yes' });
     const m = await L.mode(p);
     if (!ok && m !== 'result') {
@@ -100,5 +104,6 @@ async function driveOption(p, log) {
   rec.after = await p.evaluate(() => ({ battle: !!document.getElementById('battle'), enc: !!dgUi.enc, running: Battle.running, hp: state.party.map(c => c.hp + '/' + maxHp(c)), dead: state.party.map(c => !!c.dead) }));
   rec.errs = p.errs.slice(0, 8); rec.issues = [...new Set(rec.issues)].slice(0, 12);
   console.log(JSON.stringify(rec));
+  clearInterval(wd);
   await b.close();
 })();

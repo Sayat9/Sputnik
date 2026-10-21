@@ -47,7 +47,10 @@
     const before = u.hp; setHp(u, u.hp + n);
     const got = u.hp - before;
     if (before === 0 && u.hp > 0 && u.down && !u.dead) revive(u);
-    if (got > 0) { log(`${u.name} восстанавливает ${got} ОЗ.`, "good"); const g = ui(); if (g) g.fxHeal(u, got); }
+    if (got > 0) {
+      log(`${u.name} восстанавливает ${got} ОЗ.`, "good"); const g = ui(); if (g) g.fxHeal(u, got);
+      if (removeStatus(u, "bleeding")) log(`${u.name}: кровотечение остановлено.`, "good");              // лечение останавливает кровотечение
+    }
     return got;
   }
   function kill(u, by) {
@@ -56,6 +59,7 @@
     if (u.side === "mon") { S.killed.push(u.idx); log(`${u.name} убит.`, "kill"); }
     else { u.dead = true; u.down = true; if (u.hero) u.hero.dead = true; log(`${u.name} погибает.`, "bad"); }
     for (const o of live()) { const g = has(o, "grappled"); if (g && g.data.by === u.id) removeStatus(o, "grappled"); }
+    for (const o of live()) for (const c of [...o.conds]) if (c.data && c.data.endAtStartOf === u.id) removeStatus(o, c.id);   // «до начала хода» умершего не наступит
     const g = ui(); if (g) g.fxDeath(u);
   }
   async function dropToZero(u, left, o) {
@@ -67,6 +71,7 @@
     removeStatus(u, "hidden");
     addStatus(u, "unconscious", { k: Infinity }); addStatus(u, "prone", { k: Infinity });
     for (const c of [...u.conds]) if (["grappled", "restrained", "pinned", "frightened", "dazzled", "poisoned", "dodging", "guarded", "rush", "envenomed"].includes(c.id)) removeStatus(u, c.id);
+    for (const o of live()) { const gr = has(o, "grappled"); if (gr && gr.data.by === u.id) removeStatus(o, "grappled"); }      // без сознания хватку не держат
     log(`${u.name} падает без сознания!`, "bad");
     const g = ui(); if (g) g.fxText(u, "без сознания", "bad");
   }
@@ -125,17 +130,17 @@
     if (has(att, "prone")) ctx.dis.push("атакует лёжа");
     if (has(att, "poisoned")) ctx.dis.push("отравлен");
     const fr = has(att, "frightened"); if (fr) ctx.dis.push("испуган");
-    if (has(att, "restrained") || has(att, "trapped")) ctx.dis.push("опутан");
+    if (has(att, "restrained")) ctx.dis.push("опутан");
     if (has(att, "dazzled")) { ctx.dis.push("ослеплён вспышкой"); ctx.consume.push([att, "dazzled"]); }
     if (!seesTarget(att, tgt)) ctx.dis.push("потерял цель из виду");
     const hid = has(att, "hidden"); ctx.hiddenData = hid ? { ...hid.data } : null;
-    if (hid && !(tgt.tremor && dist(att, tgt) <= tgt.tremor) && !(tgt.blind && dist(att, tgt) <= tgt.blind)) { ctx.adv.push("атакует из укрытия"); }
+    if (hid && !(tgt.tremor && dist(att, tgt) <= tgt.tremor && !B.isFlying(att)) && !(tgt.blind && dist(att, tgt) <= tgt.blind)) { ctx.adv.push("атакует из укрытия"); }
     if (hid) ctx.consume.push([att, "hidden"]);
     const dtg = has(tgt, "deceived"); if (dtg && dtg.data.by === att.id) ctx.adv.push("цель потеряла вас из виду");
     const slw = has(att, "slowed"); if (slw && slw.data.disAtk) ctx.dis.push("скован");
     // состояния цели
     if (has(tgt, "prone")) { if (d0 <= 1) ctx.adv.push("цель сбита с ног"); else ctx.dis.push("цель лежит, далеко"); }
-    if (has(tgt, "restrained") || has(tgt, "trapped")) ctx.adv.push("цель опутана");
+    if (has(tgt, "restrained")) ctx.adv.push("цель опутана");
     if (has(tgt, "unconscious") || has(tgt, "stable")) { ctx.adv.push("цель без сознания"); if (d0 <= 1) ctx.autoCrit = true; }
     if (has(tgt, "helped")) { ctx.adv.push("помощь союзника"); ctx.consume.push([tgt, "helped"]); }
     if (has(tgt, "dodging") && seesTarget(att, tgt)) ctx.dis.push("цель в обороне");
@@ -223,7 +228,7 @@
     if (has(u, "weakened")) mods.push({ l: "Ослаблен", v: -1 });
     const adv = [...(o.adv || [])], dis = [...(o.dis || [])];
     if (abil === "dex" && has(u, "dodging")) adv.push("оборона");
-    if (abil === "dex" && (has(u, "restrained") || has(u, "trapped"))) dis.push("опутан");
+    if (abil === "dex" && has(u, "restrained")) dis.push("опутан");
     if (abil === "dex" && has(u, "shaken")) { dis.push("оглушён грохотом"); removeStatus(u, "shaken"); }
     const ctx = { u, abil, dc, o, mods, adv, dis, tags: o.tags || [] };
     hookAll(u, "saveMods", ctx);
@@ -244,14 +249,13 @@
     const ab = SKILL_ABIL[skill] || "str";
     let v = amod(u.abil[ab]) + (u.skills[skill] || 0);
     if (u.fat >= 3) v -= 2; else if (u.fat === 2) v -= 1;
-    if (has(u, "weakened")) v -= 1;
     return v;
   }
   async function doCheck(u, skill, o = {}) {
     const mods = [{ l: SKILL_RU[skill] || skill, v: skillMod(u, skill) }];
     const adv = [...(o.adv || [])], dis = [...(o.dis || [])];
     if (has(u, "poisoned")) dis.push("отравлен");
-    if (skill === "acrobatics" || skill === "stealth") { if (has(u, "shaken") && skill === "acrobatics") { dis.push("оглушён грохотом"); removeStatus(u, "shaken"); } }
+    if (has(u, "shaken") && SKILL_ABIL[skill] === "dex") { dis.push("оглушён грохотом"); removeStatus(u, "shaken"); }
     const ctx = { u, skill, o, mods, adv, dis, tags: o.tags || [] }; hookAll(u, "checkMods", ctx);
     const ses = session(u, { kind: "check", u, title: o.title || `Проверка: ${SKILL_RU[skill]}`, sub: `${u.name} · ${o.label || ""}` });
     const r = await ses.d20({ label: "Проверка", mods: ctx.mods, adv: ctx.adv, dis: ctx.dis, vs: o.dc ? { dc: o.dc } : null, reroll: rerollOptions(u, "check"), cancel: !!o.cancel });
@@ -281,7 +285,7 @@
     for (const e of enemiesOf(u)) {
       if (!canAct(e) || !e.t.react || e.t.noReact) continue;
       const r = B.meleeReach(e);
-      if (dist(e, u) <= r && dist(e, u, nx, ny) > r && B.meleeReach(e) >= 1 && !hookAny(u, "noProvoke", { e })) {
+      if (dist(e, u) <= r && B.distAt(e, u, nx, ny) > r && B.meleeReach(e) >= 1 && !hookAny(u, "noProvoke", { e })) {          // distAt: расстояние до u, как если бы он стоял в (nx, ny)
         if (!(await offerOpportunity(e, u))) continue;
         const atk = B.meleeAttackOf ? B.meleeAttackOf(e) : null; if (!atk) continue;
         e.t.react = 0;
@@ -299,9 +303,9 @@
       for (const id of e.pass) { const P = B.P && B.P[id]; if (P && P.reactEnter) { await P.reactEnter(e, u, from); if (!alive(u) || u.down) return; } }
     }
   }
-  async function trapTrigger(u, o) {
-    const S = B.S;
-    const oi = S.objs.findIndex(t => t.kind === "trap" && t.x === u.x && t.y === u.y);
+  async function trapTrigger(u, o = {}) {
+    const S = B.S, cells = footprint(u);
+    const oi = o.trap ? S.objs.indexOf(o.trap) : S.objs.findIndex(t => t.kind === "trap" && cells.some(([x, y]) => t.x === x && t.y === y));      // o.trap — ловушку задел сам герой, обезвреживая
     if (oi < 0) return false;
     const t = S.objs[oi];
     if ((t.owner === "mon" && u.side === "mon") || (t.owner === "hero" && u.side === "hero") || B.isFlying(u)) return false;

@@ -140,7 +140,7 @@
   let uidSeq = 1;
   function baseUnit(side) {
     return { id: "u" + (uidSeq++), side, x: 0, y: 0, size: 1, hp: 1, maxHp: 1, temp: 0, mp: 0, maxMp: 0, ac: 10, speedC: 6, flyC: 0, abil: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 },
-      pb: 2, level: 1, skills: {}, saveB: {}, initB: 0, conds: [], cd: {}, used: {}, turnsTaken: 0, t: { move: 0, action: 0, bonus: 0, react: 0 },
+      pb: 2, level: 1, skills: {}, saveB: {}, initB: 0, conds: [], cd: {}, used: {}, turnsTaken: 0, t: { move: 0, action: 0, bonus: 0, react: 1 },
       alive: true, down: false, dead: false, fled: false, escaped: false, pass: [], ess: [], flags: {}, atk: [], seq: null, vuln: [], resist: [], immune: [], ctl: "auto", blind: 0, tremor: 0, dv: false, deathSaves: { ok: 0, fail: 0 } };
   }
   function heroUnit(c) {
@@ -302,7 +302,7 @@
   /* ===== состояние боя ===== */
   function newBattle(ev) {
     const zone = D.zones[ev.zone] ? ev.zone : "goblin";
-    const S = { ev, zone, ambush: !!ev.ambush, dark: false, torch: false, units: [], order: [], turn: 0, round: 1, phase: "init", log: [], killed: [], objs: [], drops: [], opts: { showMonHp: false, autoSaves: false, autoHeroes: false }, outcome: null, usedArrows: {}, thrown: [], started: Date.now() };
+    const S = { ev, zone, ambush: !!ev.ambush, dark: false, torch: false, units: [], order: [], turn: 0, round: 1, phase: "init", log: [], killed: [], objs: [], drops: [], opts: Object.assign({ showMonHp: false, autoSaves: false }, (state.settings && state.settings.battleOpts) || {}, { autoHeroes: false }), outcome: null, usedArrows: {}, thrown: [], started: Date.now() };
     try { S.dark = typeof inDarkness === "function" && !!(state.run && isDark(state.run.pos.x, state.run.pos.y)) && !(state.run && state.run.light); S.torch = !!(state.run && state.run.light); } catch (e) { S.dark = false; }
     const g = genTerrain(zone); S.cells = g.cells; S.objs = g.objs;
     uidSeq = 1;
