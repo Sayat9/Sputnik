@@ -23,16 +23,16 @@ const HEROES = {
   beast: { name: 'Рык', race: 'beastkin', main: 'spear', base: { str: 14, dex: 14, con: 14, int: 8, wis: 12, cha: 8 }, ess: ['wolf'] },
 };
 
-async function setup(p, { heroes = ['barb2', 'archer', 'fairy'], tactical = true, level = 1 } = {}) {
+async function setup(p, { heroes = ['barb2', 'archer', 'fairy'], tactical = true, level = 1, autoEnd = false } = {}) {
   await p.goto(process.env.APP_URL || 'file:///home/user/app/index.html'); await p.waitForTimeout(500);
-  const ok = await p.evaluate(async ({ heroes, HEROES, tactical, level }) => {
-    state.settings = { tactical };
+  const ok = await p.evaluate(async ({ heroes, HEROES, tactical, level, autoEnd }) => {
+    state.settings = { tactical, battleOpts: { autoEnd } };
     state.party = heroes.map((k, i) => {
       const h = HEROES[k];
       const c = Object.assign(clone(state.example), { id: 'h' + i, example: false, name: h.name, race: h.race, level });
       c.base = { ...h.base }; c.equip = { main: { t: 'w', id: h.main } }; if (h.off) c.equip.off = { t: 'w', id: h.off };
       delete c.bag; delete c.kit; delete c.hp; c.essences = (h.ess || []).slice(); c.insp = 0;
-      ensureKit(c); if (/bow/.test(h.main)) addToBag(c, { t: 'g', id: 'arrow', qty: 20 });
+      ensureKit(c);
       addToBag(c, { t: 'g', id: 'torch', qty: 2 });
       c.mp = maxMp(c); return c;
     });
@@ -41,7 +41,7 @@ async function setup(p, { heroes = ['barb2', 'archer', 'fairy'], tactical = true
     saveChar();
     if (tactical) { const r = await loadBattle(); return r; }
     return true;
-  }, { heroes, HEROES, tactical, level });
+  }, { heroes, HEROES, tactical, level, autoEnd });
   return ok;
 }
 

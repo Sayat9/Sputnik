@@ -142,7 +142,7 @@
         if (B.UI) B.UI.open();
         const S = await start(ev);
         if (S.outcome === "abort") {         // игрок перешёл на обычный экран боя
-          B.End.cleanup(S, "flee");
+          B.End.cleanup(S, "abort");
           if (B.UI) B.UI.close();
           B.running = false; B.S = null; ev.battleStarted = false; ev.tactical = false; ev.killed = S.killed.slice();
           toast("Бой перенесён на обычный экран"); rerender(); return;

@@ -7,9 +7,29 @@
   const ESS_CHANCE = 95;                                              // бросок d100: 95+ (6 %), rules.md → «Эссенции»
 
   // Приводит героев и вещи в порядок после боя: оружие, стрелы, ОЗ, свет.
+  // Брошенное оружие и целые стрелы подбираются, только если отряд остался хозяином поля (победа или монстры бежали).
+  // Отступил или проиграл — они остались на поле (S.gear — строки для экрана итога). Переход на обычный экран ("abort") ничего не отнимает.
   function cleanup(S, outcome) {
-    for (const t of S.thrown) { const c = state.party.find(x => x.id === t.hero); if (c && !c.equip[t.slot]) c.equip[t.slot] = t.item; else if (c) addToBag(c, { t: "w", id: t.item.id, qty: 1 }); }
-    for (const [cid, used] of Object.entries(S.usedArrows)) { const c = state.party.find(x => x.id === cid), back = Math.floor(used / 2); if (c && back > 0) addToBag(c, { t: "g", id: "arrow", qty: back }); }
+    const keeps = outcome === "win" || outcome === "retreat" || outcome === "abort";
+    S.gear = [];
+    for (const u of B.heroes()) {
+      const c = u.hero; if (!c) continue;
+      const w = u.disarmed ? S.drops.find(d => d.kind === "weapon" && d.hero === c.id) : null;
+      if (w) {
+        const nm = ((typeof itemOf === "function" && itemOf(w.item)) || {}).name || "оружие";
+        if (keeps) S.gear.push({ ok: true, t: `${c.name} подбирает ${nm.toLowerCase()}` });
+        else { delete c.equip[w.slot]; S.gear.push({ ok: false, t: `${nm} (${c.name}) осталось на поле` }); }
+      }
+      u.disarmed = false;
+      const lg = S.arrowLog[c.id], lying = S.drops.filter(d => d.kind === "arrow" && d.hero === c.id).length;
+      if (lg && lg.shot) {
+        const back = keeps && lying ? lying - addToBag(c, { t: "g", id: "arrow", qty: lying }) : 0;
+        const brk = lg.broken ? `, сломано ${lg.broken}` : "";
+        S.gear.push(keeps ? { ok: back >= lying, t: `${c.name}: выпущено стрел ${lg.shot}, подобрано ${back}${brk}${back < lying ? `, не влезло в рюкзак ${lying - back}` : ""}` }
+          : { ok: false, t: `${c.name}: выпущено стрел ${lg.shot}, ${lying ? `${lying} осталось на поле` : "все сломаны"}${brk}` });
+      }
+    }
+    S.drops.length = 0;
     for (const u of B.heroes()) {
       const c = u.hero; if (!c) continue;
       c.hp = u.dead ? 0 : Math.max(outcome === "defeat" || u.down ? 1 : 0, Math.min(u.hp, maxHp(c)));
@@ -67,6 +87,7 @@
       <h2 class="bt-title ${cls}">${title}</h2>
       ${fallen.length ? `<p class="bt-bad">Погибли: ${esc(fallen.join(", "))}</p>` : ""}${downed.length && outcome !== "win" ? `<p class="bt-bad">Без сознания, остаётся 1 ОЗ: ${esc(downed.join(", "))}</p>` : ""}
       <div class="bt-rwd"><h5>Награды</h5>${nothing ? `<p class="muted">Никто не убит — награды нет.</p>` : `<ul>${xpLine}${stoneLines}</ul>`}
+        ${S.gear && S.gear.length ? `<h5>Снаряжение</h5><ul class="bt-gearl">${S.gear.map(g => `<li class="${g.ok ? "ok" : "lost"}">${esc(g.t)}</li>`).join("")}</ul>` : ""}
         <div class="bt-hlist">${B.heroes().map(h => `<span class="bt-hchip${h.dead ? " dead" : ""}"><img src="${h.face}" alt="">${esc(h.name)} <b>${h.dead ? "погиб" : Math.max(h.down ? 1 : 0, h.hp) + "/" + h.maxHp}</b></span>`).join("")}</div></div>
       ${nothing ? "" : `<div class="bt-roll" hidden><p>Бросок на эссенцию <small>— нужно ${ESS_CHANCE}+ из 100</small></p><canvas></canvas><div class="bt-roll-res"></div></div>`}
       <div class="bt-essgot" hidden></div>

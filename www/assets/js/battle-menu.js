@@ -99,7 +99,17 @@
     try { await o.run(); } catch (err) { console.error("действие:", err); UI.toast("Ошибка действия"); }
     UI.busy = false; UI.setHl(new Map()); UI.pathPreview = null; UI.targetIds = null; UI.selIds = null;
     UI.refreshNow();
-    if (B.checkEnd() || u.escaped || u.down || !B.alive(u)) endTurn(); else UI.renderPanel();
+    if (B.checkEnd() || u.escaped || u.down || !B.alive(u)) endTurn();
+    else if (B.S.opts.autoEnd && UI.turnUnit === u && B.turnSpent(u)) await autoEnd(u);
+    else UI.renderPanel();
+  }
+  // Действия кончились: коротко показываем это и передаём ход (отключается в меню боя).
+  async function autoEnd(u) {
+    UI.busy = true; UI.renderPanel();
+    UI.banner("Действия закончились — ход завершён", 1100);
+    await sleep(B.cfg.fast ? 0 : 650);
+    UI.busy = false;
+    if (UI.turnUnit === u && UI.mode === "hero" && !UI.pick) endTurn(); else UI.renderPanel();
   }
   function endTurn() { if (UI.endTurn) { const f = UI.endTurn; UI.endTurn = null; UI.pick && UI.pick.cancel && UI.pick.cancel(); f(); } }
   UI.heroTurn = function (u) {
@@ -137,7 +147,7 @@
     const ess = u.ess.map(id => { const e = ESSENCES[id]; return `<li><b>${esc(e.passive.name)} (П).</b> ${esc(e.passive.text)}</li><li><b>${esc(e.active.name)} (А).</b> ${e.active.mana} маны, ${esc(e.active.time)}. ${esc(e.active.text)}</li>`; }).join("");
     const sts = u.conds.filter(c => D.status[c.id]).map(c => `<li><span class="bt-stchip ${D.status[c.id].good ? "good" : "bad"}">${stIco(c.id)}${esc(D.status[c.id].name)}</span> ${esc(D.status[c.id].desc)}</li>`).join("");
     const m = showModal(`<div class="bt-dlg fx-frame insp"><div class="bt-ihead"><div class="bt-cface ${u.side}"><img src="${u.face}" alt=""></div><div><h4>${esc(u.name)}</h4><small>${hero ? esc(raceById(u.race).name) + " · " + u.level + " ур." : esc(u.mon.size) + " · " + u.cls + " класс"}</small></div><button class="bt-x" data-m="close" aria-label="Закрыть">${ico("close")}</button></div>
-      <div class="bt-istats"><span>КД <b>${u.ac}</b></span><span>Скорость <b>${B.speedOf(u) * 1.5} м</b></span>${hero || S.opts.showMonHp ? `<span>ОЗ <b>${u.hp}/${u.maxHp}</b></span>` : `<span>ОЗ <b>скрыты</b></span>`}${hero ? `<span>Мана <b>${u.mp}/${u.maxMp}</b></span>` : ""}</div>
+      <div class="bt-istats"><span>КД <b>${u.ac}</b></span><span title="Клеток хода в бою">Скорость <b>${B.speedOf(u)} кл.</b></span>${hero || S.opts.showMonHp ? `<span>ОЗ <b>${u.hp}/${u.maxHp}</b></span>` : `<span>ОЗ <b>скрыты</b></span>`}${hero ? `<span>Мана <b>${u.mp}/${u.maxMp}</b></span>` : ""}</div>
       <div class="bt-iabil">${["str", "dex", "con", "int", "wis", "cha"].map(k => `<span>${B.ABIL_RU[k].slice(0, 3)} <b>${u.abil[k]}</b></span>`).join("")}</div>
       ${sts ? `<h5>Состояния</h5><ul>${sts}</ul>` : ""}<h5>Атаки</h5><ul>${atk}</ul>${ess ? `<h5>Навыки эссенции</h5><ul>${ess}</ul>` : ""}</div>`);
     m.onclick = e => { if (e.target.closest("[data-m]") || e.target === m) hideModal(); };
@@ -149,6 +159,7 @@
       <div class="bt-switches">
         <button class="fx-btn" data-m="monhp">ОЗ монстров: ${S.opts.showMonHp ? "показаны" : "скрыты"}</button>
         <button class="fx-btn" data-m="autosave">Спасброски героев: ${S.opts.autoSaves ? "авто" : "вручную"}</button>
+        <button class="fx-btn" data-m="autoend">Конец хода сам, когда кончились действия: ${S.opts.autoEnd ? "вкл" : "выкл"}</button>
         <button class="fx-btn" data-m="auto">Авто-бой героев: ${S.opts.autoHeroes ? "вкл" : "выкл"}</button>
         <button class="fx-btn" data-m="gm">Мастер: завершить бой…</button>
         <button class="fx-btn" data-m="legacy">Обычный экран боя (без поля)</button></div>
@@ -156,8 +167,9 @@
     m.onclick = async e => {
       const b = e.target.closest("[data-m]"); if (!b && e.target !== m) return; const k = b && b.dataset.m;
       if (!k || k === "close") { hideModal(); return; }
-      if (k === "monhp") S.opts.showMonHp = !S.opts.showMonHp; if (k === "autosave") S.opts.autoSaves = !S.opts.autoSaves;
-      if (k === "monhp" || k === "autosave") { try { (state.settings ||= {}).battleOpts = { showMonHp: !!S.opts.showMonHp, autoSaves: !!S.opts.autoSaves }; saveChar(); } catch (e) {} }          // эти два переключателя помнятся между боями
+      if (k === "monhp") S.opts.showMonHp = !S.opts.showMonHp; if (k === "autosave") S.opts.autoSaves = !S.opts.autoSaves; if (k === "autoend") S.opts.autoEnd = !S.opts.autoEnd;
+      if (k === "monhp" || k === "autosave" || k === "autoend") { try { (state.settings ||= {}).battleOpts = { showMonHp: !!S.opts.showMonHp, autoSaves: !!S.opts.autoSaves, autoEnd: S.opts.autoEnd !== false }; saveChar(); } catch (e) {} }          // эти переключатели помнятся между боями
+      if (k === "autoend" && S.opts.autoEnd && UI.turnUnit && UI.mode === "hero" && !UI.busy && !UI.pick && B.turnSpent(UI.turnUnit)) { hideModal(); endTurn(); return; }
       if (k === "auto") { S.opts.autoHeroes = !S.opts.autoHeroes; if (S.opts.autoHeroes && UI.endTurn) { hideModal(); endTurn(); return; } }
       if (k === "legacy") { hideModal(); if (await UI.confirm({ title: "Обычный экран боя", text: "Поле закроется: останутся порядок ходов и кнопки «Победа», «Бег», «Монстры убегают». Уже убитых монстров и потери ОЗ сохраним.", yes: "Перейти" })) { B.abort(); if (UI.endTurn) endTurn(); } return; }
       if (k === "gm") { hideModal(); const r = await UI.choose({ title: "Завершить бой как…", options: [{ id: "win", label: "Победа (монстры повержены)" }, { id: "flee", label: "Отряд отступил" }, { id: "retreat", label: "Монстры убежали" }] }); if (r) { S.outcome = r; if (r === "win") B.mons().forEach(mm => { if (mm.alive) { mm.alive = false; mm.hp = 0; S.killed.push(mm.idx); } }); endTurn(); } return; }

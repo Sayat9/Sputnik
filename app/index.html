@@ -984,7 +984,7 @@ const WEAPONS = [
     note: "Тисовая заготовка сохнет годами. В коридорах лабиринта дальность редко пригождается целиком." },
   { id: "arrows", name: "Стрелы, 20 шт.", group: "ranged", kind: "Боеприпасы", dmg: "—", type: "", weight: 0.5, price: 2,
     props: [],
-    note: "Железные наконечники. После боя половину стрел можно собрать." },
+    note: "Железные наконечники. В бою часть стрел ломается; целые подбираются после боя, если отряд не бежал." },
   { id: "shield", name: "Щит", group: "shield", kind: "Щит", dmg: "+2 КД", type: "", weight: 3, price: 10,
     props: ["Занимает руку"],
     note: "Дубовые доски с железной оковкой и умбоном. Надеть или снять — действие." },
@@ -2011,7 +2011,7 @@ const GEAR = {
   ration:  { short: "Паёк", name: "Паёк", weight: 1, stack: 10, use: "eat", note: "Еда и вода на сутки. 1 паёк = сыт 3 действия." },
   potion:  { short: "Зелье", name: "Слабое зелье лечения", weight: 0.25, stack: 5, use: "drink", heal: "1к4 + 2", note: "Восстанавливает 1к4 + 2 ОЗ (3–6, в среднем 4,5): около трети ОЗ героя 1-го уровня." },
   torch:   { short: "Факел", name: "Факел", weight: 0.5, stack: 5, note: "Горит около часа, яркий свет 6 м." },
-  arrow:   { short: "Стрелы", name: "Стрелы", weight: 0.025, stack: 40, note: "Боеприпасы для луков. После боя половину можно собрать." },
+  arrow:   { short: "Стрелы", name: "Стрелы", weight: 0.025, stack: 40, note: "Боеприпасы для луков, колчан на 40. В бою стрела может сломаться; целые остаются на поле и подбираются после боя, если отряд не бежал." },
   shovel:      { short: "Лопата", name: "Лопата", weight: 2.5, stack: 1, uses: 3, note: "Для действия «Копать». Ломается после 3 раскопок." },
   "shovel-good": { short: "Лопата+", name: "Хорошая лопата", weight: 2.5, stack: 1, uses: 5, note: "Для действия «Копать». Ломается после 5 раскопок." },
   "shovel-best": { short: "Лопата++", name: "Отличная лопата", weight: 2, stack: 1, uses: 10, note: "Для действия «Копать». Ломается после 10 раскопок." },
@@ -2086,6 +2086,7 @@ function derived(t, c = char) {
 // больше Сил × 5 — «тяжело нагружен» (−6 м и помеха). Варвар «Великан» считается Большим: всё ×2.
 // По rules.md бежать нельзя, если груз больше половины грузоподъёмности.
 const bagSize = c => c.race === "barbarian" ? 15 : 10;
+const QUIVER = 40;                                   // колчан лучника в начале: 40 обычных стрел (одна ячейка рюкзака)
 const stackMax = e => e.t === "g" ? GEAR[e.id].stack : 1;
 function addToBag(c, e) {
   c.bag ||= [];
@@ -2115,7 +2116,10 @@ function takeGear(c, id, n) {
 }
 function ensureKit(c) {
   c.equip ||= {};
-  if (!c.bag) { c.bag = []; addToBag(c, { t: "g", id: "ration", qty: 7 }); addToBag(c, { t: "g", id: "potion", qty: 2 }); }
+  if (!c.bag) {
+    c.bag = []; addToBag(c, { t: "g", id: "ration", qty: 7 }); addToBag(c, { t: "g", id: "potion", qty: 2 });
+    const mw = c.equip.main && itemOf(c.equip.main); if (mw && mw.group === "ranged" && mw.kind !== "Боеприпасы") addToBag(c, { t: "g", id: "arrow", qty: QUIVER });
+  }
   if (!c.kit) { if (!c.equip.body) c.equip.body = { t: "g", id: "clothes" }; c.kit = true; }
   if (c.hp == null) c.hp = maxHp(c);
   return c;
@@ -2173,7 +2177,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 4;
+const BATTLE_REV = 5;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined) st.tactical = true; return st; }
@@ -2684,7 +2688,7 @@ function finishDraft() {
   if (d.shield && (d.race === "barbarian" || !(isTwoHandedWeapon(wpn) || wpn.group === "ranged"))) c.equip.off = { t: "w", id: "shield" };
   addToBag(c, { t: "g", id: "ration", qty: 7 });
   addToBag(c, { t: "g", id: "potion", qty: 2 });
-  if (WEAPONS.find(x => x.id === d.weapon).group === "ranged") addToBag(c, { t: "g", id: "arrow", qty: 20 });
+  if (WEAPONS.find(x => x.id === d.weapon).group === "ranged") addToBag(c, { t: "g", id: "arrow", qty: QUIVER });          // колчан: 40 обычных стрел
   c.hp = maxHp(c);
   state.party.push(c);
   if (!state.current) state.current = c.id;

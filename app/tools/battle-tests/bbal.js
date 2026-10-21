@@ -19,7 +19,7 @@ const N = +process.argv[2] || 30, LEVEL = +process.argv[3] || 1;
     const mk = (h, i) => {
       const c = Object.assign(clone(state.example), { id: 'p' + i, example: false, name: 'Г' + i, race: h.race, level: LEVEL });
       c.base = { ...h.base }; c.equip = { main: { t: 'w', id: h.main } }; if (h.off) c.equip.off = { t: 'w', id: h.off };
-      delete c.bag; delete c.kit; delete c.hp; c.essences = []; ensureKit(c); if (/bow/.test(h.main)) addToBag(c, { t: 'g', id: 'arrow', qty: 20 }); c.mp = maxMp(c); return c;
+      delete c.bag; delete c.kit; delete c.hp; c.essences = []; ensureKit(c); c.mp = maxMp(c); return c;
     };
     state.run = state.run || { floor: 1, pos: { x: 5, y: 5 }, status: {}, light: false };
     const out = [];

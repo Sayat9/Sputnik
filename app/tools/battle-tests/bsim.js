@@ -24,7 +24,7 @@ const N = +process.argv[2] || 40;
       c.equip = { main: { t: "w", id: pick(weaps) } };
       if (!["greatsword", "shortbow", "longbow"].includes(c.equip.main.id) && Math.random() < .5) c.equip.off = { t: "w", id: "shield" };
       delete c.bag; delete c.kit; delete c.hp; c.essences = []; for (let k = 0; k < Math.floor(Math.random() * 3); k++) { const e = pick(ess1); if (!c.essences.includes(e)) c.essences.push(e); }
-      ensureKit(c); if (/bow/.test(c.equip.main.id)) addToBag(c, { t: "g", id: "arrow", qty: 20 }); if (Math.random() < .4) addToBag(c, { t: "g", id: "torch", qty: 2 });
+      ensureKit(c); if (Math.random() < .4) addToBag(c, { t: "g", id: "torch", qty: 2 });
       c.mp = maxMp(c); return c;
     };
     state.run = state.run || { floor: 1, pos: { x: 5, y: 5 }, status: {}, light: false };

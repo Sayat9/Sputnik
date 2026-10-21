@@ -31,6 +31,12 @@
       '<path d="M54 18 L51 62" stroke="#effeff" stroke-width="3" opacity=".8" stroke-linecap="round"/>',
     bush: sh + '<circle cx="32" cy="62" r="20" fill="#3d7a38" stroke="#1d4420" stroke-width="3"/><circle cx="64" cy="58" r="22" fill="#4a8c42" stroke="#1d4420" stroke-width="3"/>' +
       '<circle cx="48" cy="44" r="18" fill="#58a24e" stroke="#1d4420" stroke-width="3"/><circle cx="38" cy="52" r="3" fill="#c0392b"/><circle cx="60" cy="64" r="3" fill="#c0392b"/><circle cx="52" cy="40" r="3" fill="#c0392b"/>',
+    thorns: sh + '<path d="M12 82 Q16 46 34 26 M28 84 Q34 48 50 18 M46 84 Q50 44 62 14 M64 84 Q68 50 82 24 M82 82 Q84 58 92 40" stroke="#5a4426" stroke-width="5.5" fill="none" stroke-linecap="round"/>' +
+      '<path d="M20 60 l-10 -3 M25 44 l-10 -7 M38 40 l-10 -9 M44 64 l-11 -2 M55 36 l-10 -9 M57 60 l11 -4 M70 42 l11 -7 M68 66 l11 2 M86 54 l8 -6 M40 24 l-9 -2 M60 24 l10 -3" stroke="#35281a" stroke-width="3.2" stroke-linecap="round"/>' +
+      '<ellipse cx="30" cy="34" rx="7" ry="3.6" fill="#8d7c3a" transform="rotate(-35 30 34)"/><ellipse cx="66" cy="30" rx="7" ry="3.6" fill="#7d6d32" transform="rotate(25 66 30)"/><ellipse cx="48" cy="52" rx="6" ry="3.2" fill="#9b8a44" transform="rotate(-10 48 52)"/><ellipse cx="78" cy="58" rx="6" ry="3.2" fill="#85753a" transform="rotate(30 78 58)"/>',
+    shrooms: sh + '<rect x="25" y="52" width="10" height="30" rx="4" fill="#cfd6c6" stroke="#4b5648" stroke-width="2.5"/><path d="M12 58 Q30 18 48 58Z" fill="#7a5cc4" stroke="#3b2a6b" stroke-width="3"/><circle cx="25" cy="46" r="3.2" fill="#e0d6ff"/><circle cx="36" cy="50" r="2.6" fill="#e0d6ff"/>' +
+      '<rect x="58" y="44" width="11" height="38" rx="4" fill="#d6dccb" stroke="#4b5648" stroke-width="2.5"/><path d="M42 50 Q64 4 86 50Z" fill="#46b7a6" stroke="#1d5a50" stroke-width="3"/><circle cx="55" cy="36" r="3.4" fill="#d4fff6"/><circle cx="68" cy="26" r="2.8" fill="#d4fff6"/><circle cx="74" cy="42" r="2.4" fill="#d4fff6"/>' +
+      '<rect x="80" y="64" width="7" height="18" rx="3" fill="#cfd6c6" stroke="#4b5648" stroke-width="2"/><path d="M71 68 Q84 44 97 68Z" fill="#c4607a" stroke="#6b2a3b" stroke-width="2.5"/>',
     puddle: '<ellipse cx="50" cy="56" rx="42" ry="28" fill="#3d7fa8" opacity=".88" stroke="#1d4a66" stroke-width="3"/><ellipse cx="42" cy="50" rx="24" ry="13" fill="#6fb3d6" opacity=".7"/>' +
       '<path d="M28 62 Q40 55 50 62 M54 50 Q62 46 72 53" stroke="#d6f0ff" stroke-width="2.5" fill="none" opacity=".85" stroke-linecap="round"/>',
     mud: '<ellipse cx="50" cy="56" rx="42" ry="28" fill="#5b4326" stroke="#33250f" stroke-width="3"/><ellipse cx="44" cy="52" rx="26" ry="13" fill="#6d5230"/><circle cx="64" cy="60" r="5" fill="#33250f" opacity=".6"/><circle cx="32" cy="62" r="3.5" fill="#33250f" opacity=".6"/>',
@@ -52,7 +58,9 @@
     crate:   { name: "Ящики", obstacle: true, note: "Не пройти. Даёт укрытие." },
     grave:   { name: "Надгробие", obstacle: true, note: "Не пройти. Даёт укрытие." },
     crystal: { name: "Кристалл", obstacle: true, light: 2, note: "Не пройти. Светится: в тьме освещает 2 клетки." },
-    bush:    { name: "Кусты", cost: 2, cover: 2, hide: true, note: "Труднопроходны. +2 КД от дальних атак, можно прятаться." },
+    bush:    { name: "Заросли", cost: 2, cover: 2, hide: true, thicket: true, note: "Труднопроходны (клетка стоит 2). +2 КД от дальних атак, можно прятаться." },
+    thorns:  { name: "Колючие заросли", cost: 2, cover: 2, hide: true, thicket: true, note: "Труднопроходны (клетка стоит 2). +2 КД от дальних атак, можно прятаться." },
+    shrooms: { name: "Грибные заросли", cost: 2, cover: 2, hide: true, thicket: true, note: "Труднопроходны (клетка стоит 2). +2 КД от дальних атак, можно прятаться." },
     puddle:  { name: "Лужа", wet: true, note: "Кто вошёл — промок: холод и молния +1к4, огонь не поджигает." },
     mud:     { name: "Грязь", cost: 2, note: "Труднопроходна." },
     bones:   { name: "Груда костей", cost: 2, note: "Труднопроходна." },
@@ -62,16 +70,30 @@
     fog:     { name: "Туман", cover: 2, hide: true, note: "+2 КД от дальних атак, можно прятаться." },
   };
   // Зоны: фон, перечень препятствий и украшений. [мин, макс] — сколько клеток; blob — пятном; trap — скрытые ловушки гоблинов.
+  // «Подсыпка» местности (battle-core.js → genTerrain): если на поле мало укрытий или нет зарослей, иногда добавляем их.
+  // minCover — сколько клеток с укрытием (препятствия, заросли, туман) хотим иметь; *Chance — вероятность подсыпки; thicketN — размер пятна зарослей.
+  D.gen = { minCover: 5, coverChance: 0.75, thicketChance: 0.6, thicketN: [2, 4] };
   D.zones = {
-    goblin: { name: "Лагерь гоблинов", obst: ["tent", "crate", "rock"], nObst: [3, 5], feats: [["stakes", 1, 2], ["mud", 1, 3, true], ["fire", 0, 1], ["puddle", 0, 2, true]], traps: [0, 2],
+    goblin: { name: "Лагерь гоблинов", obst: ["tent", "crate", "rock"], nObst: [3, 5], thicket: "thorns", feats: [["stakes", 1, 2], ["mud", 1, 3, true], ["fire", 0, 1], ["puddle", 0, 2, true]], traps: [0, 2],
       bg: { base: "#4a4026", base2: "#2b2414", dots: ["#6a5a36", "#3a301a", "#7d6c40"], tufts: "#6b7a2e", label: "Лагерь гоблинов" } },
-    beast: { name: "Звериная чаща", obst: ["tree", "rock"], nObst: [3, 5], feats: [["bush", 2, 4], ["mud", 0, 2, true], ["puddle", 1, 3, true]], traps: [0, 0],
+    beast: { name: "Звериная чаща", obst: ["tree", "rock"], nObst: [3, 5], thicket: "bush", feats: [["bush", 2, 4], ["mud", 0, 2, true], ["puddle", 1, 3, true]], traps: [0, 0],
       bg: { base: "#2f4a24", base2: "#17260f", dots: ["#3f6a30", "#22381a", "#587a3c"], tufts: "#6ea04a", label: "Звериная чаща" } },
-    undead: { name: "Погост", obst: ["grave", "rock"], nObst: [3, 5], feats: [["bones", 2, 3], ["fog", 2, 4, true], ["puddle", 0, 2, true]], traps: [0, 0],
+    undead: { name: "Погост", obst: ["grave", "rock"], nObst: [3, 5], thicket: "thorns", feats: [["bones", 2, 3], ["fog", 2, 4, true], ["puddle", 0, 2, true]], traps: [0, 0],
       bg: { base: "#3a3744", base2: "#1c1a24", dots: ["#55526a", "#2a2834", "#6e6a84"], tufts: "#5b6a4a", label: "Погост" } },
-    stone: { name: "Каменная пещера", obst: ["rock", "crystal"], nObst: [3, 5], feats: [["moss", 1, 3], ["puddle", 1, 3, true]], traps: [0, 0],
+    stone: { name: "Каменная пещера", obst: ["rock", "crystal"], nObst: [3, 5], thicket: "shrooms", feats: [["moss", 1, 3], ["puddle", 1, 3, true]], traps: [0, 0],
       bg: { base: "#3b4650", base2: "#1c2228", dots: ["#556573", "#2b343c", "#6f8394"], tufts: "#4f7a3a", label: "Каменная пещера" } },
   };
+
+  /* ---------- скорость в бою ---------- */
+  // Все, и герои и монстры, двигаются в бою медленнее: от обычных клеток скорости (1 клетка = 1,5 м) отнимается speedCut клеток.
+  // 9 м = 4 клетки; всё поле (6 клеток) без рывка пересекают только от 12 м (две эссенции «+1,5 м», волк, лиса, тёмный медведь).
+  D.speedCut = 2;
+
+  /* ---------- стрелы ---------- */
+  // Исход выстрела героя (от худшего к лучшему): 1 на кубике — промах и стрела ломается; промах — стрела упала на поле;
+  // попадание впритык (бросок не выше КД цели + breakMargin) — стрела ломается; попадание и критическое попадание — стрела цела.
+  // Целые стрелы подбираются в конце боя, если отряд не бежал.
+  D.arrow = { breakMargin: 1 };
 
   /* ---------- статусы ---------- */
   // ico — путь в сетке 24×24 (stroke), good — полезный статус. Эффекты прописаны в battle-core.js.
@@ -191,6 +213,7 @@
     torch: '<path d="M12 3c2 2 3 3.500 3 5.500A3 3 0 019 8.500C9 6.500 10 5 12 3z"/><path d="M9.500 11h5l-1.500 10h-2z"/>',
     shield: '<path d="M5 4h14v8c0 5-3 7.500-7 9-4-1.500-7-4-7-9z"/><path d="M12 4v17"/>',
     fist: '<path d="M7 11V8a1.500 1.500 0 013 0v-1a1.500 1.500 0 013 0v1a1.500 1.500 0 013 0v3.500c0 4-2 6.500-5.500 6.500S7 15 7 12z"/>',
+    arrow: '<path d="M4 20L18 6M18 6h-5M18 6v5M4 20l1-4M4 20l4-1"/>',
     throwing: '<path d="M4 20L16 8M16 8l-5 .5M16 8l-.5 5M18 4l2 2"/>',
     bow: '<path d="M6 3c8 3 8 15 0 18M6 3v18M6 12h13M16 9l3 3-3 3"/>',
     wait: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',

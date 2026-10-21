@@ -83,19 +83,23 @@
     return seen.size === free.length;
   }
   function genTerrain(zone) {
-    const zc = D.zones[zone] || D.zones.goblin;
+    const zc = D.zones[zone] || D.zones.goblin, G = D.gen;
     for (let attempt = 0; attempt < 30; attempt++) {
       const cells = Array.from({ length: H }, () => Array(W).fill(null));
       const objs = [];
       // препятствия: не в двух нижних рядах (там герои), в третьем снизу — не больше одного
-      const nObst = rr(zc.nObst[0], zc.nObst[1]);
       let low = 0;
-      for (let i = 0, tries = 0; i < nObst && tries < 60; tries++) {
-        const x = rnd(W), y = rnd(5);
-        if (cells[y][x]) continue;
-        if (y === 4) { if (low >= 1) continue; low++; }
-        cells[y][x] = pick(zc.obst); i++;
-      }
+      const placeObst = n => {
+        let put = 0;
+        for (let tries = 0; put < n && tries < 60; tries++) {
+          const x = rnd(W), y = rnd(5);
+          if (cells[y][x]) continue;
+          if (y === 4) { if (low >= 1) continue; low++; }
+          cells[y][x] = pick(zc.obst); put++;
+        }
+        return put;
+      };
+      placeObst(rr(zc.nObst[0], zc.nObst[1]));
       // украшения и опасности
       for (const [k, lo, hi, blob] of zc.feats) {
         const n = rr(lo, hi); if (!n) continue;
@@ -110,6 +114,23 @@
           cells[y][x] = k; placed++; if (!seed || !blob) seed = [x, y]; else if (blob && rnd(3) === 0) seed = [x, y];
         }
       }
+      // «подсыпка»: иногда, если на поле нет зарослей, добавляем пятно труднопроходных зарослей с укрытием,
+      // а если укрытий мало — ещё препятствий (D.gen)
+      const isThicket = t => !!(t && D.terrain[t].thicket), isCover = t => !!(t && (D.terrain[t].obstacle || D.terrain[t].cover));
+      const count = f => cells.reduce((a, row) => a + row.filter(f).length, 0);
+      if (zc.thicket && !count(isThicket) && rnd(100) < G.thicketChance * 100) {
+        const n = rr(G.thicketN[0], G.thicketN[1]);
+        let placed = 0, seed = null;
+        for (let tries = 0; placed < n && tries < 80; tries++) {
+          let x, y;
+          if (seed && rnd(4)) { const [dx, dy] = pick(DIRS); x = seed[0] + dx; y = seed[1] + dy; if (!inB(x, y) || y < 1 || y > 5) continue; }
+          else { x = rnd(W); y = 1 + rnd(5); }
+          if (cells[y][x]) continue;
+          cells[y][x] = zc.thicket; placed++; seed = [x, y];
+        }
+      }
+      const have = count(isCover);
+      if (have < G.minCover && rnd(100) < G.coverChance * 100) placeObst(G.minCover - have + rnd(2));
       // скрытые ловушки гоблинов в нейтральной зоне
       const nT = rr(zc.traps[0], zc.traps[1]);
       for (let i = 0, tries = 0; i < nT && tries < 40; tries++) {
@@ -129,7 +150,8 @@
     while ((m = re.exec(t))) { const v = parseFloat(m[2].replace(",", ".")); const k = m[1] === "полёт" ? "fly" : m[1] === "лазание" ? "climb" : m[1] === "плавание" ? "swim" : "walk"; out[k] = Math.max(out[k], v); }
     return out;
   }
-  const cellsOfM = m => Math.floor(m / 1.5 + 1e-6);
+  // Метры → клетки хода в бою: обычные клетки минус D.speedCut, но не меньше 1 у того, кто вообще ходит.
+  const cellsOfM = m => (m > 0 ? Math.max(1, Math.floor(m / 1.5 + 1e-6) - D.speedCut) : 0);
   function parseSkills(senses) {
     const out = {}, re = /(Скрытность|Восприятие|Атлетика|Акробатика|Выживание|Медицина|Запугивание) ([+−-]\d+)/g; let m;
     while ((m = re.exec(senses || ""))) { const k = { "Скрытность": "stealth", "Восприятие": "perception", "Атлетика": "athletics", "Акробатика": "acrobatics", "Выживание": "survival", "Медицина": "medicine", "Запугивание": "intimidation" }[m[1]]; out[k] = parseInt(m[2].replace("−", "-"), 10); }
@@ -302,7 +324,7 @@
   /* ===== состояние боя ===== */
   function newBattle(ev) {
     const zone = D.zones[ev.zone] ? ev.zone : "goblin";
-    const S = { ev, zone, ambush: !!ev.ambush, dark: false, torch: false, units: [], order: [], turn: 0, round: 1, phase: "init", log: [], killed: [], objs: [], drops: [], opts: Object.assign({ showMonHp: false, autoSaves: false }, (state.settings && state.settings.battleOpts) || {}, { autoHeroes: false }), outcome: null, usedArrows: {}, thrown: [], started: Date.now() };
+    const S = { ev, zone, ambush: !!ev.ambush, dark: false, torch: false, units: [], order: [], turn: 0, round: 1, phase: "init", log: [], killed: [], objs: [], drops: [], opts: Object.assign({ showMonHp: false, autoSaves: false, autoEnd: true }, (state.settings && state.settings.battleOpts) || {}, { autoHeroes: false }), outcome: null, arrowLog: {}, started: Date.now() };
     try { S.dark = typeof inDarkness === "function" && !!(state.run && isDark(state.run.pos.x, state.run.pos.y)) && !(state.run && state.run.light); S.torch = !!(state.run && state.run.light); } catch (e) { S.dark = false; }
     const g = genTerrain(zone); S.cells = g.cells; S.objs = g.objs;
     uidSeq = 1;
@@ -316,6 +338,8 @@
     return S;
   }
   B.newBattle = newBattle;
+  // Выстрелы героя в этом бою: сколько стрел ушло из колчана и сколько из них сломалось.
+  B.arrowLog = id => { const L = B.S.arrowLog; return (L[id] ||= { shot: 0, broken: 0 }); };
   B.byId = id => units().find(u => u.id === id) || null;
   B.heroes = () => units().filter(u => u.side === "hero");
   B.mons = () => units().filter(u => u.side === "mon");

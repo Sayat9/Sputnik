@@ -177,7 +177,7 @@
         first = false;
         if (!alive(u) || u.down) break;
         faceToward(u, tgt);
-        const r = await B.doAttack(u, tgt, atk, { cancelable: false, onCommit: () => { if (u.side === "hero") B.commitAttack(u, atk); else B.spendTime(u, "action"); } });
+        const r = await B.doAttack(u, tgt, atk, { cancelable: false, onCommit: () => { if (u.side === "hero") B.commitAttack(u, atk, tgt); else B.spendTime(u, "action"); } });
       }
       if (act.atk.thrown && u.side === "mon") { u.atk = u.atk.filter(a => a.id !== "throw" && a.id !== "spear"); u.atk.push({ id: "fist", n: "Кулаки", hit: 2, dmg: B.parseDice("1"), dt: "bludgeon", kind: "melee", reach: 1 }); }
       return true;

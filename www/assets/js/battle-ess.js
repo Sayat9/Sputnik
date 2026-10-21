@@ -30,7 +30,7 @@
       async run(u, pk, ctl) {
         const a = atkFor(u, cfg.kind, cfg.dt); if (!a) return false;
         const dc = dcOf(u, cfg.abil);
-        const r = await B.doAttack(u, pk.unit, a, { onCommit: () => { B.commitAttack(u, a); ctl.commit(); }, rider: async res => {
+        const r = await B.doAttack(u, pk.unit, a, { onCommit: () => { B.commitAttack(u, a, pk.unit); ctl.commit(); }, rider: async res => {
           const t = res.tgt; if (!alive(t) && !t.down) return;
           const sv = await save(t, cfg.save, dc, cfg.name, cfg.tags);
           if (!sv.ok) await cfg.onFail(t, u, sv, res); else if (cfg.onOk) await cfg.onOk(t, u, sv, res);

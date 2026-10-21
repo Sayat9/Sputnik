@@ -34,7 +34,7 @@
     root.innerHTML = `<div class="bt-top"><div class="bt-round"><small>Раунд</small><b>1</b></div><div class="bt-order" aria-label="Порядок ходов"></div>
         <button class="bt-iconbtn" data-bt="menu" aria-label="Меню боя">${ico("menu")}</button></div>
       <div class="bt-banner" aria-live="polite"></div>
-      <div class="bt-boardwrap"><div class="bt-board"><div class="bt-bg"></div><div class="bt-cells"></div><div class="bt-objs"></div><div class="bt-tokens"></div><svg class="bt-pathsvg" aria-hidden="true"></svg><div class="bt-fx"></div></div>
+      <div class="bt-boardwrap"><div class="bt-board"><div class="bt-bg"></div><div class="bt-cells"></div><div class="bt-objs"></div><div class="bt-tokens"></div><div class="bt-marks"></div><svg class="bt-pathsvg" aria-hidden="true"></svg><div class="bt-fx"></div></div>
         <div class="bt-zone"></div><div class="bt-toast" hidden></div></div>
       <div class="bt-panel"></div><div class="bt-modal" hidden></div>`;
     document.body.appendChild(root); document.body.classList.add("forge-open", "bt-active");
@@ -130,8 +130,15 @@
   function renderObjs(S) {
     const l = root.querySelector(".bt-objs"); let h = "";
     for (const o of S.objs) if (o.kind === "trap" && (!o.hidden || o.owner === "hero")) h += `<div class="bt-obj trap" style="left:${o.x * cell}px;top:${o.y * cell}px;width:${cell}px;height:${cell}px"><svg viewBox="0 0 100 100">${D.SVG.trap}</svg></div>`;
-    for (const w of S.drops) h += `<div class="bt-obj drop" style="left:${w.x * cell}px;top:${w.y * cell}px;width:${cell}px;height:${cell}px">${ico("attack")}</div>`;
     l.innerHTML = h;
+    // Брошенное оружие и стрелы на земле: значки в углу клетки поверх фишек.
+    const m = root.querySelector(".bt-marks"), byCell = new Map();
+    for (const w of S.drops) { const k = w.x + "," + w.y, e = byCell.get(k) || { x: w.x, y: w.y, weapons: [], arrows: 0 }; if (w.kind === "weapon") e.weapons.push(w); else e.arrows++; byCell.set(k, e); }
+    m.innerHTML = [...byCell.values()].map(e => {
+      const wp = e.weapons.map(w => { const it = itemOf(w.item), hh = B.byId && B.heroes().find(u => u.hero && u.hero.id === w.hero); return `<span class="mk w" title="${esc((it ? it.name : "Оружие") + (hh ? " — " + hh.name : ""))} лежит на земле">${ico("throwing")}</span>`; }).join("");
+      const ar = e.arrows ? `<span class="mk a" title="Стрелы на земле: ${e.arrows}">${ico("arrow")}<b>${e.arrows}</b></span>` : "";
+      return `<div class="bt-mark" style="left:${e.x * cell}px;top:${e.y * cell}px;width:${cell}px;height:${cell}px">${wp}${ar}</div>`;
+    }).join("");
   }
   function renderOrder(S) {
     const el = root.querySelector(".bt-order"), rd = root.querySelector(".bt-round b"); if (rd) rd.textContent = S.round;

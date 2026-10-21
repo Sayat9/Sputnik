@@ -184,6 +184,18 @@
     }
     return { parts, rolls, sum, total: parts.reduce((a, p) => a + p.v, 0) };
   }
+  // Судьба стрелы героя по броску атаки. Ломается ли она — решает исход (D.arrow); целая стрела остаётся лежать на поле (S.drops)
+  // и возвращается в колчан в конце боя (battle-end.js), если отряд не бежал.
+  function arrowFate(att, tgt, f) {
+    const L = B.arrowLog(att.hero.id), margin = f.total - f.ac;
+    let broken = false, note = "";
+    if (f.nat === 1) { broken = true; note = "стрела сломалась"; }
+    else if (!f.hit) note = "стрела упала на поле";
+    else if (!f.crit && margin <= D.arrow.breakMargin) { broken = true; note = "стрела сломалась"; }
+    if (broken) L.broken++; else B.S.drops.push({ kind: "arrow", hero: att.hero.id, x: tgt.x, y: tgt.y });
+    return { broken, note };
+  }
+  B.arrowFate = arrowFate;
   async function doAttack(att, tgt, atk, o = {}) {
     const S = B.S, ctx = attackCtx(att, tgt, atk, o);
     const ses = session(att, { kind: "attack", att, tgt, atk, title: atk.n, sub: `${att.name} → ${tgt.name}`, anim: animKind(atk) });
@@ -199,13 +211,15 @@
       // реакции цели до урона (парирование щитом и т. п.)
       for (const id of tgt.pass) { const P = B.P && B.P[id]; if (P && P.reactHit && canAct(tgt) && !res.parried) { const rr = await P.reactHit(tgt, { ...ctx, res, total }); if (rr) { res.parried = true; res.hit = false; } } }
     }
+    const ar = atk.ammo && att.side === "hero" && att.hero ? arrowFate(att, tgt, { nat, total, ac: ctx.ac, hit: res.hit, crit }) : null;
+    res.arrow = ar;
     if (!res.hit) {
       hookAll(att, "onMiss", { ...ctx, res });
       const text = res.parried ? "Парировано!" : nat === 1 ? "Критический промах" : "Промах";
       if (g) g.fxText(tgt, res.parried ? "парирует" : "промах", "miss");
-      log(`${att.name}: ${atk.n} по ${tgt.name} — ${text.toLowerCase()} (${nat === total ? nat : `${nat} → ${total}`} против КД ${ctx.ac}).`, "miss");
+      log(`${att.name}: ${atk.n} по ${tgt.name} — ${text.toLowerCase()} (${nat === total ? nat : `${nat} → ${total}`} против КД ${ctx.ac})${ar && ar.note ? ", " + ar.note : ""}.`, "miss");
       if (g && ses.auto) { g.banner(`${att.name} → ${tgt.name}: ${text.toLowerCase()} (${total} против КД ${ctx.ac})`); await sleep(650); }
-      await ses.finish({ text, miss: true, anim: animKind(atk), tgt });
+      await ses.finish({ text: text + (ar && ar.note ? " · " + ar.note : ""), miss: true, anim: animKind(atk), tgt });
       return res;
     }
     const dm = await rollDamage(att, tgt, atk, ctx, crit, ses);
@@ -213,10 +227,10 @@
     const mark = S.log.length;
     const ap = await applyDamage(att, tgt, dm.parts, { melee: ctx.melee, crit, ctx, src: att });
     res.dealt = ap.total; res.killed = !tgt.alive; res.notes = ap.notes;
-    log(`${att.name}: ${atk.n} по ${tgt.name} — ${crit ? "КРИТ! " : ""}${ap.total} урона${ap.notes.length ? " (" + ap.notes.join(", ") + ")" : ""}${res.killed ? ", цель убита" : ""}.`, crit ? "crit" : "hit");
+    log(`${att.name}: ${atk.n} по ${tgt.name} — ${crit ? "КРИТ! " : ""}${ap.total} урона${ap.notes.length ? " (" + ap.notes.join(", ") + ")" : ""}${res.killed ? ", цель убита" : ""}${ar && ar.note ? ", " + ar.note : ""}.`, crit ? "crit" : "hit");
     if (S.log.length - mark > 1) S.log.push(...S.log.splice(mark, S.log.length - mark - 1));        // строки о последствиях (смерть и т. п.) — после строки об ударе
     if (g && ses.auto) { g.banner(`${att.name} → ${tgt.name}: ${crit ? "КРИТ! " : ""}${ap.total} урона${res.killed ? ", цель убита" : ""}`); await sleep(750); }
-    await ses.finish({ text: `${crit ? "Критическое попадание! " : "Попадание! "}${ap.total} урона`, anim: animKind(atk), tgt, dmg: ap.total, crit });
+    await ses.finish({ text: `${crit ? "Критическое попадание! " : "Попадание! "}${ap.total} урона${ar && ar.note ? " · " + ar.note : ""}`, anim: animKind(atk), tgt, dmg: ap.total, crit });
     if (tgt.alive || tgt.down) { hookAll(att, "onHitDealt", { ...ctx, res }); if (o.rider) await o.rider(res); }
     if (att.alive) for (const id of att.pass) { const P = B.P && B.P[id]; if (P && P.afterAttack) await P.afterAttack(att, { ...ctx, res }); }
     return res;

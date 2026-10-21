@@ -30,13 +30,16 @@
     else if (mode === "hand" && ranged) {
       atk.kind = "ranged"; atk.ammo = "arrow";
       const r = f.ammoR || [24, 96]; atk.range = [Math.floor((r[0] + eb.range) / 1.5), Math.floor((r[1] + eb.range) / 1.5)]; atk.sub = "дальний бой, стрела";
-    } else if (mode === "thrown") { atk.kind = "ranged"; atk.thrown = true; atk.n = "Метнуть: " + w.name; atk.range = f.thrown; atk.sub = "бросок, оружие падает"; }
+    } else if (mode === "thrown") { atk.kind = "ranged"; atk.thrown = true; atk.n = "Метнуть: " + w.name; atk.range = f.thrown; atk.sub = "бросок: оружие упадёт у цели, рука будет пуста"; }
     else if (mode === "off") { atk.kind = "melee"; atk.reach = 1; atk.time = "bonus"; atk.offhand = true; atk.dmg.b = Math.min(0, am); atk.n = "Второй рукой: " + w.name; atk.sub = "доп. действие, без модификатора урона"; }
     return atk;
   }
+  // Оружие в основной руке. Пока брошенное оружие лежит на земле (u.disarmed), рука пуста; сам предмет из снаряжения не убирается
+  // (при перезагрузке посреди боя, ошибке или переходе на обычный экран ничего не теряется), насовсем он уходит только в итоге боя (battle-end.js).
+  B.mainOf = u => (u.hero && !u.disarmed && u.hero.equip && u.hero.equip.main ? itemOf(u.hero.equip.main) : null);
   function heroAttacks(u) {
     const c = u.hero, eq = c.equip || {}, out = [];
-    const main = eq.main ? itemOf(eq.main) : null, off = eq.off ? itemOf(eq.off) : null;
+    const main = B.mainOf(u), off = eq.off ? itemOf(eq.off) : null;
     if (main && main.kindOf === "weapon" && main.kind !== "Боеприпасы") {
       out.push(atkFrom(u, main, "hand"));
       const f = wprops(main);
@@ -49,7 +52,7 @@
     return out;
   }
   B.heroAttacks = heroAttacks;
-  B.heroReach = u => { const m = u.hero && u.hero.equip && u.hero.equip.main ? itemOf(u.hero.equip.main) : null; return m && m.id === "spear" && u.pass.includes("goblin-spear") ? 2 : 1; };
+  B.heroReach = u => { const m = B.mainOf(u); return m && m.id === "spear" && u.pass.includes("goblin-spear") ? 2 : 1; };
   B.attacksOf = u => (u.side === "hero" ? heroAttacks(u) : u.atk);
   B.meleeAttackOf = u => {
     const list = B.attacksOf(u).filter(a => a.kind === "melee" && !a.offhand && !a.thrown);
@@ -74,13 +77,17 @@
   const timeWhy = (u, t) => (timeOK(u, t) ? null : t === "bonus" ? "доп. действие потрачено" : "действие потрачено");
   Object.assign(B, { timeOK, spendTime });
 
-  function commitAttack(u, atk) {
+  // tgt — цель атаки: туда падает брошенное оружие.
+  function commitAttack(u, atk, tgt) {
     spendTime(u, atk.time || "action");
     if (!atk.offhand) u.t.attacked = true;
-    if (atk.ammo && u.hero) { takeGear(u.hero, "arrow", 1); const S = B.S; S.usedArrows[u.hero.id] = (S.usedArrows[u.hero.id] || 0) + 1; }
-    if (atk.thrown && u.hero) {
-      const c = u.hero, S = B.S; S.thrown.push({ hero: c.id, slot: "main", item: c.equip.main }); delete c.equip.main;
-      log(`${u.name} бросает ${atk.w.name}.`);
+    if (atk.ammo && u.hero) { takeGear(u.hero, "arrow", 1); const L = B.arrowLog(u.hero.id); L.shot++; }
+    if (atk.thrown && u.hero && !u.disarmed && u.hero.equip.main) {
+      const c = u.hero, S = B.S;
+      S.drops.push({ kind: "weapon", hero: c.id, slot: "main", item: c.equip.main, x: tgt ? tgt.x : u.x, y: tgt ? tgt.y : u.y });
+      u.disarmed = true;
+      log(`${u.name} бросает ${atk.w.name}: рука пуста, оружие падает на землю.`);
+      if (ui()) ui().refresh();
     }
   }
   B.commitAttack = commitAttack;
@@ -89,7 +96,7 @@
     if (!targets.length) { UI().toast("Нет целей в досягаемости"); return false; }
     const tgt = await UI().pickUnit({ prompt: `${atk.n}: выберите цель`, units: targets.map(t => t.id), cells: rangeCells(u, atk), kind: "attack" });
     if (!tgt) return false;
-    const r = await B.doAttack(u, tgt, atk, { onCommit: () => commitAttack(u, atk) });
+    const r = await B.doAttack(u, tgt, atk, { onCommit: () => commitAttack(u, atk, tgt) });
     return !r.cancelled;
   }
 
@@ -152,7 +159,7 @@
     const dc = Math.max(8, ...foes.filter(e => !(e.tremor && dist(e, u) <= e.tremor) && !(e.blind && dist(e, u) <= e.blind)).map(bestPassive));
     const adv = [], dis = [];
     if (u.hero && u.hero.equip && itemOf(u.hero.equip.body) && itemOf(u.hero.equip.body).stealth) dis.push("тяжёлая броня");
-    const main = u.hero && u.hero.equip.main ? itemOf(u.hero.equip.main) : null; if (main && main.id === "tower-shield") dis.push("ростовой щит");
+    const main = B.mainOf(u); if (main && main.id === "tower-shield") dis.push("ростовой щит");
     const r = await B.doCheck(u, "stealth", { title: "Спрятаться", label: `${spot} · Сл ${dc}`, dc, adv, dis, cancel: true, onCommit: () => spendTime(u, "action"), tags: ["hide"] });
     if (!r) return false;
     if (r.ok) { addStatus(u, "hidden", { k: Infinity }); log(`${u.name} прячется (${r.total} против ${dc}).`); UI().fxText(u, "скрыт", "good"); }
@@ -254,12 +261,17 @@
     spendTime(u, "bonus"); addStatus(t, "guarded", { k: Infinity, data: { endAtStartOf: u.id } });
     log(`${u.name} прикрывает ${t.name} ростовым щитом (+2 КД).`, "good"); UI().fxText(t, "+2 КД", "good"); return true;
   }
+  // Своё брошенное оружие, до которого можно дотянуться (в своей клетке или рядом), и лежит ли оно под врагом.
+  function reachableDrops(u) { return B.S.drops.filter(w => w.kind === "weapon" && w.hero === u.hero.id && distCell(u, w.x, w.y) <= 1); }
+  const underFoe = (u, w) => { const o = occupant(w.x, w.y); return !!(o && o.side !== u.side); };
   async function pickUpWeapon(u) {
-    const S = B.S, near = S.drops.filter(w => distCell(u, w.x, w.y) <= 1 && w.hero === u.hero.id);
+    const S = B.S, near = reachableDrops(u).filter(w => !underFoe(u, w));
     if (!near.length) return false;
     const w = near[0]; S.drops.splice(S.drops.indexOf(w), 1);
-    if (!u.hero.equip.main) u.hero.equip.main = w.item; else addToBag(u.hero, { t: "w", id: w.item.id, qty: 1 });
-    u.t.objUsed = true; log(`${u.name} подбирает оружие.`); UI().refresh(); return true;
+    u.disarmed = false;
+    u.t.objUsed = true; log(`${u.name} подбирает ${itemOf(w.item).name.toLowerCase()}.`, "good");
+    const g = ui(); if (g) { g.fxText(u, "оружие в руке", "good"); g.refresh(); }
+    return true;
   }
   async function dragonHeart(u) {
     const c = u.hero; c.flags = c.flags || {};
@@ -335,7 +347,7 @@
     for (const atk of heroAttacks(u)) {
       const why = timeWhy(u, atk.time) || (atk.ammo && countGear(u.hero, "arrow") < 1 ? "нет стрел" : (B.attackTargets(u, atk).length ? null : "нет целей рядом"));
       opts.push({ id: "atk:" + atk.id, cat: "attack", label: atk.n, ico: atk.ammo ? "bow" : atk.thrown ? "throwing" : atk.id === "fist" ? "fist" : atk.id === "torchhit" ? "torch" : "attack",
-        sub: `${atk.kind === "melee" ? "до " + (atk.reach || 1) + " кл." : atk.range[0] >= B.W - 1 ? "дальний · всё поле" : `дальний · ${atk.range[0]} кл., до ${Math.min(atk.range[1], 12)} с помехой`} · ${atk.dmg.n ? fmtDice(atk.dmg) : atk.dmg.b} ${D.DT[atk.dt]}${atk.penalty ? " · " + atk.penaltyLabel : ""}`,
+        sub: `${atk.kind === "melee" ? "до " + (atk.reach || 1) + " кл." : atk.range[0] >= B.W - 1 ? "дальний · всё поле" : `дальний · ${atk.range[0]} кл., до ${Math.min(atk.range[1], 12)} с помехой`} · ${atk.dmg.n ? fmtDice(atk.dmg) : atk.dmg.b} ${D.DT[atk.dt]}${atk.penalty ? " · " + atk.penaltyLabel : ""}${atk.ammo ? " · стрел: " + countGear(u.hero, "arrow") : ""}`,
         time: atk.time, enabled: !why, why, atk, run: () => runAttack(u, atk) });
     }
     // навыки эссенций и особенности пассивок
@@ -357,16 +369,35 @@
     if (B.S.objs.some(o => o.kind === "trap" && o.hidden)) opts.push(simple("search", "Осмотреться", "search", "найти скрытые ловушки", () => doSearch(u), { enabled: !act, why: act }));
     // предметы
     const c = u.hero, bon = timeWhy(u, "bonus");
-    if (countGear(c, "potion") > 0) opts.push({ id: "potion", cat: "item", label: "Зелье лечения", ico: "potion", sub: `1к4 + 2 · осталось ${countGear(c, "potion")}`, time: "bonus", enabled: !bon, why: bon, run: () => usePotion(u) });
+    if (countGear(c, "potion") > 0) {
+      const hurt = [u, ...alliesOf(u).filter(a => dist(u, a) <= 1 && !a.dead)].some(a => a.hp < a.maxHp);       // без раненых рядом зелье бесполезно: автоконец хода его не ждёт
+      opts.push({ id: "potion", cat: "item", label: "Зелье лечения", ico: "potion", sub: `1к4 + 2 · осталось ${countGear(c, "potion")}`, time: "bonus", enabled: !bon, why: bon, useless: !hurt, run: () => usePotion(u) });
+    }
     if (countGear(c, "torch") > 0 && B.S.dark && !B.S.torch) opts.push({ id: "torch", cat: "item", label: "Зажечь факел", ico: "torch", sub: "освещает поле, убирает штрафы тьмы", time: "bonus", enabled: !bon, why: bon, run: () => lightTorch(u) });
-    const off = c.equip.off ? itemOf(c.equip.off) : null, main = c.equip.main ? itemOf(c.equip.main) : null;
+    const off = c.equip.off ? itemOf(c.equip.off) : null, main = B.mainOf(u);
     if (off && off.id === "shield") opts.push({ id: "shieldbash", cat: "item", label: "Удар щитом", ico: "shield", sub: "толчок как доп. действие", time: "bonus", enabled: !bon && enemiesOf(u).some(e => dist(u, e) <= 1), why: bon || "нет врага рядом", run: () => doShove(u, "bonus") });
     if (main && main.id === "tower-shield") opts.push({ id: "cover", cat: "item", label: "Прикрыть союзника", ico: "shield", sub: "+2 КД союзнику рядом до вашего хода", time: "bonus", enabled: !bon && alliesOf(u).some(a => dist(u, a) <= 1 && !a.down), why: bon || "нет союзника рядом", run: () => coverAlly(u) });
-    if (B.S.drops.some(w => w.hero === c.id && distCell(u, w.x, w.y) <= 1) && !u.t.objUsed) opts.push({ id: "pickup", cat: "item", label: "Подобрать оружие", ico: "attack", sub: "свободно, рядом лежит ваше оружие", time: "free", enabled: true, run: () => pickUpWeapon(u) });
+    const mine = reachableDrops(u);
+    if (mine.length) { const blocked = mine.every(w => underFoe(u, w)); opts.push({ id: "pickup", cat: "item", label: "Подобрать оружие", ico: "throwing", sub: "свободно, рядом лежит ваше оружие", time: "free", enabled: !u.t.objUsed && !blocked, why: u.t.objUsed ? "в этот ход вы уже брали предмет" : blocked ? "оружие лежит под врагом" : null, run: () => pickUpWeapon(u) }); }
     if (D.race[u.race] && D.race[u.race].heart) opts.push({ id: "heart", cat: "item", label: "Драконье сердце", ico: "heart", sub: "временные ОЗ = уровень + Тел., раз за отдых", time: "bonus", enabled: !bon && !(c.flags && c.flags.heart), why: bon || "уже использовано", run: () => dragonHeart(u) });
     // побег
     opts.push({ id: "flee", cat: "flee", label: "Побег", ico: "flee", sub: "добежать до нижнего края и покинуть поле", time: "action", enabled: speedOf(u) > 0, why: "скорость 0", run: () => runFlee(u) });
     return opts;
   }
   B.actionsFor = actionsFor;
+
+  // Ход героя закончен, когда не осталось ни действия, ни доп. действия, которое ещё можно потратить (battle-menu.js завершает его сам).
+  // Одно лишь перемещение ход не продлевает; исключение — Рывок и Отход: после них двигаться и есть смысл хода.
+  function canMoveAnywhere(u) {
+    if (!(u.t.move > 0) || speedOf(u) <= 0) return false;
+    return [...B.pathMap(u, u.t.move, {}).values()].some(v => (v.x !== u.x || v.y !== u.y) && B.canStand(u, v.x, v.y));
+  }
+  B.turnSpent = u => {
+    if (!u || !alive(u) || u.down || u.escaped) return true;
+    const t = u.t || {};
+    if (t.action > 0) return false;
+    if (t.bonus > 0 && actionsFor(u).some(o => o.enabled && o.time === "bonus" && !o.useless)) return false;
+    if ((t.dash || t.disengage) && canMoveAnywhere(u)) return false;
+    return true;
+  };
 })();
