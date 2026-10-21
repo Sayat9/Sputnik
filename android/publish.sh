@@ -15,7 +15,7 @@ cd "$R"
 git add -A
 git -c user.name="Claude" -c user.email="noreply@anthropic.com" commit -q -m "${1:-Обновление приложения}
 
-Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_01LqZZvha4EFgFgo5Ve6sugx"
 git push -q origin main
 echo "Опубликована версия $(python3 -c 'import json;print(json.load(open("www/version.json"))["version"])')"

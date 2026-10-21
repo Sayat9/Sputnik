@@ -686,6 +686,12 @@ body.forge-open { overflow: hidden; }
 .meter .bar i { display: block; height: 100%; background: linear-gradient(90deg, #8a6a2a, var(--fx-gold-hi)); }
 .meter .bar i.hp { background: linear-gradient(90deg, #4f7a3a, #9fd27a); }
 .meter .bar i.low { background: linear-gradient(90deg, #7a2a1e, var(--fx-danger)); }
+.meter .bar i.mp, .lbar i.mp { background: linear-gradient(90deg, #2f5f9a, #7bbdf5); }
+.ess-card { padding: 10px 12px; display: grid; gap: 7px; }
+.ess-card .eh { display: flex; gap: 10px; align-items: center; }
+.ess-card .eh img { width: 46px; height: 46px; flex: none; border-radius: 50%; object-fit: cover; object-position: 50% 18%; border: 2px solid var(--fx-gold); background: #120e09; }
+.ess-card .eh b { display: block; font: 400 18px/1.15 var(--f-display); color: var(--fx-gold-hi); } .ess-card .eh small { display: block; color: var(--fx-muted); font-size: 12.5px; line-height: 1.3; }
+.ess-card .btn-row { justify-content: flex-start; } .ess-card.stash { border-style: dashed; }
 .meter .segs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; }
 .meter .segs i { height: 7px; border-radius: 2px; background: rgb(0 0 0 / .45); border: 1px solid rgb(110 86 52 / .6); }
 .meter .segs i.on { background: var(--fx-danger); border-color: var(--fx-danger); }
@@ -727,7 +733,8 @@ body.forge-open { overflow: hidden; }
 .hero-head .grow { flex: 1; min-width: 0; }
 .hero-head h3 { margin: 0; font: 400 22px/1.1 var(--f-display); color: var(--fx-gold-hi); overflow-wrap: anywhere; }
 .hero-head small { color: var(--fx-muted); font-size: 13.5px; }
-.hero-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+.hero-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+.hero-tabs .fx-btn { padding-left: 4px; padding-right: 4px; }
 .hero-tabs .fx-btn[aria-selected="true"] { color: var(--fx-ink); background: linear-gradient(#ECC679, #B3812F); }
 .hero-body { overflow-y: auto; min-height: 0; flex: 1; padding: 12px 2px 14px; display: flex; flex-direction: column; gap: 14px; scrollbar-color: var(--fx-line) transparent; }
 .hs-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
@@ -2066,8 +2073,11 @@ function derived(t, c = char) {
   if (c.giantGrip && c.race === "barbarian" && isTwoHandedWeapon(mainItem(c))) warnings.push(`«${mainItem(c).name}» в одной руке (Великан): −2 к атаке.`);
   if (ld.level !== "ok") warnings.push(LOAD_TEXT[ld.level] + ".");
   const pb = 2 + Math.floor((c.level - 1) / 4);
-  const mana = 10 + 2 * c.level;
-  return { ac, acSrc, pb, mana, weight: ld.w, cap: ld.cap, ld, warnings };
+  const eb = essBonus(c);
+  ac += eb.ac;
+  if (eb.ac) acSrc += ` ${eb.ac > 0 ? "+" : "−"} ${Math.abs(eb.ac)} (эссенция)`;
+  const mana = 10 + 2 * c.level + eb.mp;
+  return { ac, acSrc, pb, mana, speed: heroSpeedM(c, t, ld), weight: ld.w, cap: ld.cap, ld, warnings };
 }
 
 /* ----- рюкзак и вес ----- */
@@ -2126,10 +2136,83 @@ const LOAD_TEXT = {
 };
 const kgf = n => fmt(Math.round(n * 10) / 10);
 
+/* ----- бонусы эссенций из строк other, скорость и мана героя ----- */
+// Строки вида «КД +1», «Скорость −1,5 м», «Инициатива +1», «Максимум ОЗ +2», «Скрытность +1» разбираются в числа,
+// чтобы КД, ОЗ, мана и скорость героя (в том числе в бою) учитывали эссенции.
+const SKILL_KEYS = { "Скрытность": "stealth", "Атлетика": "athletics", "Акробатика": "acrobatics", "Восприятие": "perception", "Выживание": "survival",
+  "Медицина": "medicine", "Запугивание": "intimidation", "Обман": "deception", "Ловкость рук": "sleight", "Расследование": "investigation" };
+const SAVE_KEYS = { "Силы": "str", "Ловкости": "dex", "Телосложения": "con", "Интеллекта": "int", "Мудрости": "wis", "Харизмы": "cha" };
+function essBonus(c) {
+  const out = { ac: 0, speed: 0, init: 0, hp: 0, mp: 0, range: 0, skills: {}, saves: {} };
+  const sg = x => (x === "−" || x === "-") ? -1 : 1, num = x => parseFloat(String(x).replace(",", "."));
+  for (const id of (c && c.essences) || []) for (const o of (ESSENCES[id] && ESSENCES[id].other) || []) {
+    let m;
+    if ((m = /^КД ([+−-])(\d+)/.exec(o))) out.ac += sg(m[1]) * num(m[2]);
+    else if ((m = /^Скорость ([+−-])(\d+(?:[.,]\d+)?) м/.exec(o))) out.speed += sg(m[1]) * num(m[2]);
+    else if ((m = /^Инициатива ([+−-])(\d+)/.exec(o))) out.init += sg(m[1]) * num(m[2]);
+    else if ((m = /^Максимум ОЗ ([+−-])(\d+)/.exec(o))) out.hp += sg(m[1]) * num(m[2]);
+    else if ((m = /^Максимум маны ([+−-])(\d+)/.exec(o))) out.mp += sg(m[1]) * num(m[2]);
+    else if ((m = /^Дальность стрелкового оружия ([+−-])(\d+(?:[.,]\d+)?) м/.exec(o))) out.range += sg(m[1]) * num(m[2]);
+    else if ((m = /^Спасброски (\S+) ([+−-])(\d+)/.exec(o)) && SAVE_KEYS[m[1]]) out.saves[SAVE_KEYS[m[1]]] = (out.saves[SAVE_KEYS[m[1]]] || 0) + sg(m[2]) * num(m[3]);
+    else if ((m = /^(\S+(?: рук)?) ([+−-])(\d+)$/.exec(o)) && SKILL_KEYS[m[1]]) out.skills[SKILL_KEYS[m[1]]] = (out.skills[SKILL_KEYS[m[1]]] || 0) + sg(m[2]) * num(m[3]);
+  }
+  return out;
+}
+// Скорость героя в метрах: 9 м, бонусы эссенций, штрафы груза и брони (rules.md, «Вес», «Броня»).
+function heroSpeedM(c, t = totals(c), ld = load(c, t)) {
+  let sp = 9 + essBonus(c).speed;
+  if (ld.level === "enc") sp -= 3; else if (ld.level === "heavy") sp -= 6; else if (ld.level === "over") return 1.5;
+  const armor = itemOf((c.equip || {}).body), main = itemOf((c.equip || {}).main);
+  if (armor && armor.kindOf === "armor" && armor.str && t.str.total < armor.str) sp -= 3;
+  if (main && main.id === "tower-shield" && t.str.total < 13) sp -= 3;
+  return Math.max(1.5, sp);
+}
+const maxMp = c => derived(totals(c), c).mana;
+const mpOf = c => (c.mp == null ? maxMp(c) : Math.max(0, Math.min(c.mp, maxMp(c))));
+const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); };
+
+/* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
+// Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
+const BATTLE_REV = 3;
+const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js",
+  "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle.js"];
+function settings() { const st = state.settings ||= {}; if (st.tactical === undefined) st.tactical = true; return st; }
+let battleLoad = null;
+function loadBattle() {
+  if (window.Battle && window.Battle.ready) return Promise.resolve(true);
+  if (battleLoad) return battleLoad;
+  const ver = "?v=" + (APP_VERSION || BATTLE_REV);
+  battleLoad = BATTLE_FILES.reduce((p, f) => p.then(() => new Promise((ok, no) => {
+    let el;
+    if (f.endsWith(".css")) { el = document.createElement("link"); el.rel = "stylesheet"; el.href = f + ver; }
+    else { el = document.createElement("script"); el.src = f + ver; }
+    el.onload = ok; el.onerror = () => no(new Error("не загрузился " + f));
+    document.head.appendChild(el);
+  })), Promise.resolve()).then(() => !!(window.Battle && window.Battle.ready), err => {
+    battleLoad = null; console.warn(err);
+    toast("Тактический бой не загрузился: работает старый режим боя");
+    return false;
+  });
+  return battleLoad;
+}
+const tacticalOn = () => !!settings().tactical && !!(window.Battle && window.Battle.ready);
+function setTactical(on) {
+  settings().tactical = !!on; saveChar();
+  if (on) loadBattle().then(ok => { toast(ok ? "Тактический бой включён" : "Не удалось включить тактический бой"); rerender(); });
+  else toast("Тактический бой выключен: старый режим боя");
+  rerender();
+}
+// Бой сообщает итог: outcome — win | flee | retreat, killed — номера убитых в ev.list. Дальше всё как в старом экране боя.
+function battleDone(ev, res) {
+  if (dgUi.enc !== ev) return;
+  ev.outcome = res.outcome; ev.killed = res.killed.slice();
+  finishFight(); dgUi.stat = null; saveChar(); rerender();
+}
+
 /* ----- здоровье ----- */
 // Классов пока нет, поэтому кость хитов у всех к10: на 1-м уровне 10 + мод. ТЕЛ, дальше по 6 + мод. ТЕЛ (не меньше 1).
 const conMod = c => mod(totals(c).con.total);
-const maxHp = c => Math.max(1, 10 + conMod(c)) + (c.level - 1) * Math.max(1, 6 + conMod(c));
+const maxHp = c => Math.max(1, 10 + conMod(c)) + (c.level - 1) * Math.max(1, 6 + conMod(c)) + essBonus(c).hp;
 const hpOf = c => (c.hp == null ? maxHp(c) : Math.max(0, Math.min(c.hp, maxHp(c))));
 // Отдых в лабиринте лечит не полностью: доля от макс. ОЗ зависит от Усталости перед сном, плюс мод. ТЕЛ.
 // Голодный (сутки и больше без еды) лечится вдвое хуже. Караульный не спит и не лечится.
@@ -2141,8 +2224,14 @@ function restHeal(c, fat, hungry) {
 }
 const roll = (n, d) => Array.from({ length: n }, () => 1 + Math.floor(Math.random() * d)).reduce((a, b) => a + b, 0);
 function hpMeter(c) {
+  if (c.dead) return `<div class="meter"><span style="color:var(--fx-danger)">Погиб</span><div class="bar"><i class="hp low" style="width:0"></i></div></div>`;
   const cur = hpOf(c), mx = maxHp(c), w = cur / mx;
   return `<div class="meter"><span>ОЗ ${cur}/${mx}</span><div class="bar"><i class="hp${w < .34 ? " low" : ""}" style="width:${Math.round(w * 100)}%"></i></div></div>`;
+}
+
+function mpMeter(c) {
+  const cur = mpOf(c), mx = maxMp(c);
+  return `<div class="meter"><span>Мана ${cur}/${mx}</span><div class="bar"><i class="mp" style="width:${Math.round(cur / Math.max(1, mx) * 100)}%"></i></div></div>`;
 }
 
 function slotHtml(id) {
@@ -2390,6 +2479,7 @@ function renderMain() {
       <p class="fx-sub">Раз в месяц открываются врата лабиринта. Собери отряд, спустись за камнями и вернись живым.</p>
       <button class="fx-btn primary big" data-action="start-adventure">Начать приключение</button>
       <button class="fx-btn" data-save="open">Сохранения</button>
+      <button class="fx-btn" data-set="tactical" aria-pressed="${!!settings().tactical}">Тактический бой (тест): ${settings().tactical ? "вкл" : "выкл"}</button>
       ${last ? `
         <div class="fx-card fx-frame">
           <span class="fx-eyebrow" style="font-size:12px">Последняя сессия</span>
@@ -2816,14 +2906,14 @@ const seenKeys = (id, keys) => {
 // В засаде монстры ходят первыми.
 function rollInitiative(list, ambush) {
   const rows = [
-    ...state.party.map(c => { const dex = totals(c).dex.total; return { k: "hero", id: c.id, name: c.name, d20: 1 + rnd(20), mod: mod(dex), dex }; }),
+    ...state.party.filter(c => !c.dead).map(c => { const dex = totals(c).dex.total; return { k: "hero", id: c.id, name: c.name, d20: 1 + rnd(20), mod: mod(dex), dex }; }),
     ...list.map((id, i) => { const m = MONSTERS.find(x => x.id === id), dex = m.abil[1]; return { k: "mon", i, name: m.name, d20: 1 + rnd(20), mod: mod(dex), dex }; }),
   ];
   rows.forEach(r => r.total = r.d20 + r.mod);
   return rows.sort((a, b) => (ambush ? (a.k === "mon" ? 0 : 1) - (b.k === "mon" ? 0 : 1) : 0) || b.total - a.total || b.dex - a.dex);
 }
 function startFight(ev, p, enc) {
-  Object.assign(ev, enc, { key: tkey(p.x, p.y), outcome: null, killed: [], turn: 0, round: 1 });
+  Object.assign(ev, enc, { key: tkey(p.x, p.y), outcome: null, killed: [], turn: 0, round: 1, tactical: tacticalOn() });
   enc.list.forEach(id => seenKeys(id, ["area"]));     // встреча открывает портрет, имя и места обитания
 }
 function resolvePass(p) {
@@ -3357,7 +3447,7 @@ function charBars(c) {
   else if (ld.noRun) deb.push("Перегруз: бег невозможен");
   return `<article class="pc fx-frame" data-hero="${c.id}" aria-label="${esc(c.name)}: удерживай, чтобы открыть меню">
     <div class="nm">${esc(c.name)}</div>
-    ${hpMeter(c)}
+    ${hpMeter(c)}${mpMeter(c)}
     <div class="meter"><span>Голод</span><div class="bar" title="${hungry ? "без еды" : "сыт"}"><i class="${satW < .34 ? "low" : ""}" style="width:${Math.round(satW * 100)}%"></i></div></div>
     <div class="meter"><span>Сон</span><div class="bar"><i class="${sleepW < .34 ? "low" : ""}" style="width:${Math.round(sleepW * 100)}%"></i></div></div>
     <div class="meter"><span>Усталость</span><div class="segs">${[1, 2, 3, 4].map(n => `<i class="${st.fat >= n ? "on" : ""}"></i>`).join("")}</div></div>
@@ -3396,7 +3486,7 @@ function restOverlay() {
         <button class="fx-btn" data-dg="cancel" aria-label="Отменить отдых" style="width:42px;height:42px;padding:0;display:grid;place-items:center">${ICO_X}</button></div>
       <p>Караульный не спит и не получает бонусов отдыха. Спящие снимают 2 уровня Усталости (1, если голодны) и восстанавливают ОЗ: доля от максимума по Усталости (0 → 50%, 1 → 40%, 2 → 30%, 3 → 20%, 4 → 10%) плюс мод. ТЕЛ; голодным вдвое меньше. Справа — сколько пайков съест герой.</p>
       <div class="rest-list">${state.party.map(c => `<div class="rest-row">
-        <div><b>${esc(c.name)}</b><small>${rs.guard[c.id] ? "в карауле, не лечится" : (() => { const st = r.status[c.id], hungry = !rs.eat[c.id] && st.starve >= 3;
+        <div><b>${esc(c.name)}</b><small>${c.dead ? "погиб, не лечится" : rs.guard[c.id] ? "в карауле, не лечится" : (() => { const st = r.status[c.id], hungry = !rs.eat[c.id] && st.starve >= 3;
           const h = Math.min(restHeal(c, st.fat, hungry), maxHp(c) - hpOf(c)); return `спит · ОЗ ${hpOf(c)}/${maxHp(c)} <span style="color:#9fd27a">+${h}</span>`; })()}</small></div>
         <button class="fx-btn guard" data-guard="${c.id}" aria-pressed="${!!rs.guard[c.id]}">Караул</button>
         <div class="stepper" aria-label="Пайки для ${esc(c.name)}">
@@ -3413,6 +3503,7 @@ function restOverlay() {
 
 function encounterOverlay() {
   const e = dgUi.enc;
+  if (e.list && e.tactical && window.Battle && window.Battle.ready) { window.Battle.ensure(e); return ""; }
   const rollLine = e.cause === "pass" ? `пробежка · к20 = ${e.raw}` : `к20 = ${e.raw}${e.dark ? ` − 2 (тьма) = ${e.n}` : ""}`;
   if (!e.list) return `<div class="mapov" role="dialog" aria-modal="true" aria-label="${e.title}">
     <div class="panel fx-frame enc-panel">
@@ -3527,6 +3618,7 @@ function renderDungeon() {
         <button class="fx-btn" data-dg="give-mmap"${invItem("mmap").owned ? " disabled" : ""}>Выдать магическую карту</button>
         <button class="fx-btn" data-dg="gm-enc">Бросить встречу</button>
         <button class="fx-btn" data-save="open">Сохранения</button>
+        <button class="fx-btn" data-set="tactical" aria-pressed="${!!settings().tactical}">Тактический бой: ${settings().tactical ? "вкл" : "выкл"}</button>
         <button class="fx-btn" data-dg="leave">${dgUi.confirm === "leave" ? "Точно выйти? Нажми ещё раз" : "Выйти в город"}</button>
         <button class="fx-btn" data-dg="rollback"${state.runSnap ? "" : ` disabled title="Нет снимка: заход начат до обновления"`}>${dgUi.confirm === "rollback" ? "Точно откатить? Нажми ещё раз" : "Откатить заход"}</button>
         ${state.runSnap ? "" : `<small style="color:var(--fx-muted);font-size:11.5px;max-width:200px">Откат доступен для заходов, начатых после обновления.</small>`}
@@ -3648,9 +3740,10 @@ function act(kind) {
     }
     tick(sleepers);
     const healed = [];
-    for (const c of state.party) if (sleepers.has(c.id)) {
+    for (const c of state.party) if (sleepers.has(c.id) && !c.dead) {            // погибший не лечится: его возвращает только мастер
       const st = r.status[c.id], before = hpOf(c);
       c.hp = Math.min(maxHp(c), before + restHeal(c, st.fat, st.starve >= 3));
+      c.mp = maxMp(c); c.flags = {};                       // длинный отдых: мана и дневные способности
       if (c.hp > before) healed.push(`${c.name} +${c.hp - before}`);
       st.fat = Math.max(0, st.fat - (st.starve >= 3 ? 1 : 2)); st.awake = 0;
     }
@@ -3887,7 +3980,7 @@ function townCard(c) {
   return `<article class="pc fx-frame" data-hero="${c.id}" aria-label="${esc(c.name)}: удерживай, чтобы открыть меню">
     <div class="nm">${esc(c.name)}</div>
     <div class="sub">${raceById(c.race).name} · ${c.level} ур.</div>
-    ${hpMeter(c)}
+    ${hpMeter(c)}${mpMeter(c)}
     <div class="meter"><span>Груз</span><div class="bar"><i class="${ld.level !== "ok" ? "low" : ""}" style="width:${Math.min(100, Math.round(ld.w / ld.cap * 100))}%"></i></div></div>
     <div class="meter"><span>Рюкзак</span><span style="color:var(--fx-text);font-family:var(--f-data)">${(c.bag || []).length}/${bagSize(c)}</span></div>
     <div class="meter"><span>Еда</span><span style="color:var(--fx-text);font-family:var(--f-data)">${countGear(c, "ration")} · зелий ${countGear(c, "potion")}</span></div>
@@ -3932,7 +4025,18 @@ function heroStats(c) {
       <div class="btn-row" style="justify-content:center">${[-5, -1, 1, 5].map(dlt => `<button class="fx-btn" data-hx="hp" data-d="${dlt}" aria-label="${dlt < 0 ? "Урон" : "Лечение"} ${Math.abs(dlt)}">${dlt > 0 ? "+" : "−"}${Math.abs(dlt)}</button>`).join("")}</div>
       <p class="trait" style="margin:0;text-align:center">Кость хитов к10: 10 + ТЕЛ на 1-м уровне, дальше 6 + ТЕЛ за уровень.</p>
     </div>
+    ${c.dead ? `<div class="hp-box"><p class="trait neg" style="margin:0;text-align:center"><b>Погиб в бою.</b> Из лабиринта вернётся только по решению мастера.</p>
+      <div class="btn-row" style="justify-content:center"><button class="fx-btn" data-hx="revive">Воскресить (мастер)</button></div></div>` : ""}
+    <div class="hp-box">
+      <div class="lrow"><span>Мана</span><b>${mpOf(c)} / ${maxMp(c)}</b></div>
+      <div class="lbar"><i class="mp" style="width:${Math.round(mpOf(c) / Math.max(1, maxMp(c)) * 100)}%"></i></div>
+      <div class="btn-row" style="justify-content:center">${[-5, -1, 1, 5].map(dlt => `<button class="fx-btn" data-hx="mp" data-d="${dlt}" aria-label="Мана ${dlt > 0 ? "+" : "−"}${Math.abs(dlt)}">${dlt > 0 ? "+" : "−"}${Math.abs(dlt)}</button>`).join("")}</div>
+      <p class="trait" style="margin:0;text-align:center">Мана 10 + 2 × уровень и бонусы эссенций. Тратится на активные навыки в бою, полностью восстанавливается на Отдыхе.</p>
+    </div>
     <dl class="kv"><div><dt>КД</dt><dd>${d.ac}</dd></div><div><dt>Мана</dt><dd>${d.mana}</dd></div><div><dt>БМ</dt><dd>+${d.pb}</dd></div></dl>
+    <div class="lrow luck-row"><span>Вдохновение <b style="color:var(--fx-gold-hi)">${c.insp || 0}</b></span>
+      <span class="btn-row"><button class="fx-btn" data-hx="insp" data-d="-1" aria-label="Вдохновение −1">−</button><button class="fx-btn" data-hx="insp" data-d="1" aria-label="Вдохновение +1">+</button></span></div>
+    <p class="trait" style="margin:0">Вдохновение (выдаёт мастер) даёт перебросить любой бросок кубика в бою: тратится одно за переброс.</p>
     <div class="lrow luck-row"><span>Удача <b style="color:var(--fx-gold-hi)">${signed(luckOf(c))}</b></span>
       <span class="btn-row"><button class="fx-btn" data-hx="luck" data-d="-1" aria-label="Удача −1">−</button><button class="fx-btn" data-hx="luck" data-d="1" aria-label="Удача +1">+</button></span></div>
     <p class="trait" style="margin:0">Удача прибавляется к броску удачи при раскопках и снижает шанс нападения на долгой стоянке. На бой не влияет: крит решает обычный бросок.</p>
@@ -3946,6 +4050,26 @@ function heroStats(c) {
     ${race.minus.map(([n, x]) => `<div class="trait neg"><b>${n}.</b> ${x}</div>`).join("")}
     <div class="fx-section">Эссенции · ${essSlots(c)}</div>
     ${(c.essences || []).length ? c.essences.map(id => ESSENCES[id]).filter(Boolean).map(e => `<div class="trait"><b>${e.name}.</b> ${e.passive.name} (П), ${e.active.name} (А, ${e.active.mana} маны)</div>`).join("") : `<div class="trait">Слотов эссенций: ${c.level} (1 за уровень), заняты: 0.</div>`}`;
+}
+
+/* ----- вкладка «Навыки»: эссенции героя (слоты = уровень) и запас отряда ----- */
+const essStatLine = e => [...Object.entries(e.stats || {}).map(([k, v]) => `${STAT_SHORT[k]} ${signed(v)}`), ...(e.other || [])].join(" · ");
+function essCard(id, extra = "", cls = "") {
+  const e = ESSENCES[id]; if (!e) return "";
+  return `<div class="ess-card fx-frame ${cls}"><div class="eh"><img src="${ART.monsterFace(id)}" alt=""><div><b>${esc(e.name)}</b><small>${e.cls} класс · ${esc(essStatLine(e))}</small></div></div>
+    <div class="trait"><b>${esc(e.passive.name)} (П).</b> ${esc(e.passive.text)}</div>
+    <div class="trait"><b>${esc(e.active.name)} (А, ${e.active.mana} маны, ${esc(e.active.time)}).</b> ${esc(e.active.text)}</div>${extra}</div>`;
+}
+const floor1Essences = () => [...new Set(MONSTERS.filter(m => m.floor === 1 && !m.draft && ESSENCES[m.essence]).map(m => m.essence))];
+function heroSkills(c) {
+  const mine = (c.essences || []).filter(id => ESSENCES[id]), stash = essStash(), free = c.level - mine.length;
+  return `<div class="fx-section">Эссенции героя · ${mine.length}/${c.level}</div>
+    ${mine.length ? mine.map(id => essCard(id, `<div class="btn-row"><button class="fx-btn" data-hx="ess-release" data-essid="${id}">Убрать в запас (мастер)</button></div>`)).join("") : `<div class="trait">Эссенций нет. Слотов: ${c.level} (1 за уровень).</div>`}
+    <div class="fx-section">Запас отряда · ${stash.length}</div>
+    ${stash.length ? stash.map(id => essCard(id, `<div class="btn-row"><button class="fx-btn primary" data-hx="ess-take" data-essid="${id}"${free > 0 && !mine.includes(id) ? "" : " disabled"}>Впитать: ${esc(c.name)}</button></div>${free <= 0 ? `<div class="trait neg">Нет свободных слотов эссенций.</div>` : mine.includes(id) ? `<div class="trait neg">Такая эссенция у героя уже есть.</div>` : ""}`, "stash")).join("") : `<div class="trait">Пусто. Эссенции выпадают с монстров после боя (шанс 6 % за каждого убитого) и попадают в запас отряда.</div>`}
+    <div class="btn-row" style="justify-content:center"><button class="fx-btn" data-hx="ess-add-toggle" aria-expanded="${!!heroUi.essAdd}">${heroUi.essAdd ? "Скрыть список" : "+ Выдать эссенцию в запас (мастер)"}</button></div>
+    ${heroUi.essAdd ? `<div class="add-list">${floor1Essences().map(id => `<button class="fx-btn" data-hx="ess-add" data-essid="${id}">${esc(ESSENCES[id].name.replace(/^Эссенция /, ""))}</button>`).join("")}</div>` : ""}
+    <p class="trait" style="margin:0">Впитанная эссенция даёт герою бонусы, пассивку и активку навсегда (слотов столько, какой уровень). Правило «можно ли избавиться от эссенции» ещё открыто — кнопка «убрать» только для мастера.</p>`;
 }
 
 function selPanel(c) {
@@ -4017,8 +4141,9 @@ function renderHero() {
     <div class="hero-tabs" role="tablist">
       <button class="fx-btn" role="tab" data-hx="tab" data-tab-to="stats" aria-selected="${heroUi.tab === "stats"}">Данные</button>
       <button class="fx-btn" role="tab" data-hx="tab" data-tab-to="inv" aria-selected="${heroUi.tab === "inv"}">Инвентарь</button>
+      <button class="fx-btn" role="tab" data-hx="tab" data-tab-to="skills" aria-selected="${heroUi.tab === "skills"}">Навыки</button>
     </div>
-    <div class="hero-body">${heroUi.tab === "stats" ? heroStats(c) : heroInv(c)}</div>
+    <div class="hero-body">${heroUi.tab === "stats" ? heroStats(c) : heroUi.tab === "skills" ? heroSkills(c) : heroInv(c)}</div>
   </div>`;
   $hero.hidden = false;
   document.body.classList.add("forge-open");
@@ -4052,6 +4177,24 @@ $hero.addEventListener("click", e => {
     case "add-toggle": heroUi.add = !heroUi.add; renderHero(); return;
     case "hp": c.hp = Math.max(0, Math.min(maxHp(c), hpOf(c) + Number(ds.d))); heroAfterChange(); return;
     case "luck": c.luck = luckOf(c) + Number(ds.d); heroAfterChange(); return;
+    case "mp": c.mp = Math.max(0, Math.min(maxMp(c), mpOf(c) + Number(ds.d))); heroAfterChange(); return;
+    case "insp": c.insp = Math.max(0, (c.insp || 0) + Number(ds.d)); heroAfterChange(); return;
+    case "revive": c.dead = false; c.hp = Math.max(1, hpOf(c)); heroAfterChange(`${c.name} воскрешён (1 ОЗ)`); return;
+    case "ess-add-toggle": heroUi.essAdd = !heroUi.essAdd; renderHero(); return;
+    case "ess-add": essStash().push(ds.essid); heroAfterChange(`В запас добавлено: ${ESSENCES[ds.essid].name}`); return;
+    case "ess-take": {
+      const st = essStash(), i = st.indexOf(ds.essid), mine = (c.essences ||= []);
+      if (i < 0) return;
+      if (mine.length >= c.level) { toast("Нет свободного слота эссенций"); return; }
+      if (mine.includes(ds.essid)) { toast("У героя уже есть такая эссенция"); return; }
+      st.splice(i, 1); mine.push(ds.essid); c.mp = Math.min(maxMp(c), mpOf(c));
+      heroAfterChange(`${c.name} впитал: ${ESSENCES[ds.essid].name}`); return;
+    }
+    case "ess-release": {
+      const mine = c.essences || [], i = mine.indexOf(ds.essid); if (i < 0) return;
+      mine.splice(i, 1); essStash().push(ds.essid); c.hp = Math.min(hpOf(c), maxHp(c)); c.mp = Math.min(mpOf(c), maxMp(c));
+      heroAfterChange(`Эссенция убрана в запас отряда`); return;
+    }
     case "give-toggle": heroUi.give = !heroUi.give; renderHero(); return;
     case "eat": {
       takeGear(c, "ration", 1);
@@ -4623,6 +4766,11 @@ document.addEventListener("keydown", e => { if (e.key === "Escape" && !$sheet.hi
 $scrim.addEventListener("click", closeSheet);
 $back.addEventListener("click", () => { location.hash = "ref"; });
 window.addEventListener("hashchange", () => route());
+document.addEventListener("click", e => {
+  const el = e.target.closest("[data-set]");
+  if (el && el.dataset.set === "tactical") setTactical(!settings().tactical);
+});
+if (settings().tactical) loadBattle();
 state.party.forEach(ensureKit);       // старые герои получают стартовый набор
 // Первый запуск со слотами сохранений: текущая партия сохраняется сама, чтобы тесты ничего не испортили.
 if (!readSaves().length && state.party.length) makeSave("Партия до тестов (сохранено автоматически)");
