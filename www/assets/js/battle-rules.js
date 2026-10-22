@@ -165,7 +165,7 @@
     if (o.bonusHit) ctx.mods.push({ l: o.bonusLabel || "Бонус", v: o.bonusHit });
     // состояния атакующего
     if (has(att, "prone")) ctx.dis.push("атакует лёжа");
-    if (has(att, "poisoned")) ctx.dis.push("отравлен");
+    // отравление помех не даёт (решение автора): только урон ядом и метка
     const fr = has(att, "frightened"); if (fr) ctx.dis.push("испуган");
     if (has(att, "restrained")) ctx.dis.push("опутан");
     if (has(att, "dazzled")) { ctx.dis.push("ослеплён вспышкой"); ctx.consume.push([att, "dazzled"]); }
@@ -350,7 +350,6 @@
   async function doCheck(u, skill, o = {}) {
     const mods = [{ l: SKILL_RU[skill] || skill, v: skillMod(u, skill) }];
     const adv = [...(o.adv || [])], dis = [...(o.dis || [])];
-    if (has(u, "poisoned")) dis.push("отравлен");
     if (has(u, "shaken") && SKILL_ABIL[skill] === "dex") { dis.push("оглушён грохотом"); removeStatus(u, "shaken"); }
     const fl = has(u, "fooled"); if (fl && !fl.data.chkUsed && (skill === "perception" || skill === "insight")) { dis.push("обманут"); fl.data.chkUsed = true; }
     const ctx = { u, skill, o, mods, adv, dis, tags: o.tags || [] }; hookAll(u, "checkMods", ctx);

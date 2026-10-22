@@ -131,7 +131,7 @@
     restrained:  { name: "Опутан", ico: '<rect x="2.5" y="9" width="11" height="6" rx="3"/><rect x="10.5" y="9" width="11" height="6" rx="3"/>', desc: "Скорость 0. Атаки по нему — с преимуществом, его атаки и спасброски Ловкости — с помехой." },
     pinned:      { name: "Пригвождён", ico: '<circle cx="12" cy="7" r="3.5"/><path d="M12 10.5V21M8.5 21h7"/>', desc: "Скорость 0." },
     slowed:      { name: "Замедлен", ico: '<path d="M12 4v10M7 11l5 5 5-5M6 20h12"/>', desc: "Скорость снижена." },
-    poisoned:    { name: "Отравлен", ico: '<path d="M12 3c4 5 6 8 6 11a6 6 0 01-12 0c0-3 2-6 6-11z"/><circle cx="10" cy="14" r=".9" fill="currentColor"/><circle cx="14" cy="14" r=".9" fill="currentColor"/><path d="M10.5 17.2h3"/>', desc: "Помеха на атаки и проверки." },
+    poisoned:    { name: "Отравлен", ico: '<path d="M12 3c4 5 6 8 6 11a6 6 0 01-12 0c0-3 2-6 6-11z"/><circle cx="10" cy="14" r=".9" fill="currentColor"/><circle cx="14" cy="14" r=".9" fill="currentColor"/><path d="M10.5 17.2h3"/>', desc: "Яд: помех не даёт (решение автора)." },
     frightened:  { name: "Испуган", ico: '<circle cx="12" cy="12" r="9"/><path d="M12 7v6"/><circle cx="12" cy="16.6" r=".9" fill="currentColor"/>', desc: "Помеха на атаки. Нельзя приближаться к источнику страха." },
     dazzled:     { name: "Ослеплён вспышкой", ico: '<circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4M5 5l3 3M16 16l3 3M19 5l-3 3M8 16l-3 3"/>', desc: "Помеха на следующий бросок атаки." },
     shaken:      { name: "Оглушён грохотом", ico: '<path d="M4 10h3l4-3.5v11L7 14H4zM14 9c2 1.5 2 4.5 0 6M17 7c3 3 3 7 0 10"/>', desc: "Помеха на следующую проверку или спасбросок Ловкости." },

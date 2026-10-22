@@ -407,16 +407,16 @@
     const out = [];
     for (const id of u.ess) {
       const A = B.A && B.A[id]; if (!A) continue;
-      const eb = ESSENCES[id].active, st = A.state ? A.state(u) : {}, name = st.label || eb.name, mana = st.mana != null ? st.mana : eb.mana, cdTxt = D.essCd[id] >= 99 ? " · раз за бой" : D.essCd[id] ? " · КД " + D.essCd[id] : "";
+      const eb = ESSENCES[id].active, st = A.state ? A.state(u) : {}, lvl = typeof essActiveLevel === "function" && u.side === "hero" ? essActiveLevel(id) : 2, name = lvl ? (st.label || eb.name) : "?? (навык эссенции)", mana = st.mana != null ? st.mana : eb.mana, cdTxt = D.essCd[id] >= 99 ? " · раз за бой" : D.essCd[id] ? " · КД " + D.essCd[id] : "";
       let why = null;
       if (A.time === "reaction") {
-        out.push({ id: "skill:" + id, cat: "skill", label: name, ico: "skills", sub: `${eb.mana} маны · реакция${D.essCd[id] ? " · КД " + D.essCd[id] : ""}`, desc: eb.text, time: "reaction", enabled: false,
+        out.push({ id: "skill:" + id, cat: "skill", label: name, ico: "skills", sub: lvl ? `${eb.mana} маны · реакция${D.essCd[id] ? " · КД " + D.essCd[id] : ""}` : "неизвестный навык", desc: lvl === 2 ? eb.text : "??", time: "reaction", enabled: false,
           why: u.cd[id] > 0 ? `перезарядка: ${u.cd[id]} р.` : u.mp < eb.mana ? `нужно ${eb.mana} маны` : "сработает сама: игра спросит, когда можно", ess: id, run: async () => false });
         continue;
       }
       why = timeWhy(u, A.time) || (u.mp < mana ? `нужно ${mana} маны` : (u.cd[id] > 0 ? (st.why || (D.essCd[id] >= 99 ? "уже использовано в этом бою" : `перезарядка: ${u.cd[id]} р.`)) : null));
       if (!why && A.can) { const c = A.can(u); if (c !== true && c) why = c; }
-      out.push({ id: "skill:" + id, cat: "skill", label: name, ico: "skills", sub: `${mana} маны · ${TIME_RU[A.time]}${cdTxt}${st.note ? " · " + st.note : ""}`, desc: eb.text, time: A.time, enabled: !why, why, ess: id,
+      out.push({ id: "skill:" + id, cat: "skill", label: name, ico: "skills", sub: lvl ? `${mana} маны · ${TIME_RU[A.time]}${lvl === 2 ? cdTxt : ""}${lvl === 2 && st.note ? " · " + st.note : ""}` : "неизвестный навык", desc: lvl === 2 ? eb.text : lvl === 1 ? "Остальные эффекты: ??" : "??", time: A.time, enabled: !why, why, ess: id,
         run: async () => { const spec = A.tgt ? A.tgt(u) : { type: "self" }; const picks = await UI().pickFor(u, spec, A); if (!picks) return false; return B.useActive(u, id, picks); } });
     }
     // доп. возможности пассивок
@@ -441,6 +441,7 @@
     if (r === false && !committed) return false;
     if (!committed) commit();
     log(`${u.name}: ${st.label || eb.name}.`, "skill");
+    if (u.side === "hero" && typeof journal === "function") { (journal().essUsed ||= {})[id] = true; }          // после первого применения видны название, мана и урон
     if (B.flushQueue) await B.flushQueue();
     return true;
   }

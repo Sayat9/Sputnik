@@ -49,8 +49,8 @@
     const stones = {}; for (const id of species) { const m = MONSTERS.find(x => x.id === id), key = "stone-" + Math.min(9, Math.max(1, m.cls)); stones[key] = (stones[key] || 0) + 1; }
     // броски на эссенцию считаем заранее; анимация показывает лучший результат
     const rolls = species.map(id => ({ id, r: 1 + B.rnd(100) }));
-    const wins = rolls.filter(x => x.r >= ESS_CHANCE);
-    const best = rolls.length ? rolls.reduce((a, b) => (a.r >= b.r ? a : b)) : null;
+    const wins = S.forceWins ? S.forceWins.map(id => ({ id, r: 99 })) : rolls.filter(x => x.r >= ESS_CHANCE);          // forceWins — только для проверок
+    const best = S.forceWins ? wins[0] : rolls.length ? rolls.reduce((a, b) => (a.r >= b.r ? a : b)) : null;
     return { killed, species, fresh, xp, stones, rolls, wins, best };
   }
   const digits = r => { const v = r % 100; return [Math.floor(v / 10), v % 10]; };
@@ -67,8 +67,7 @@
     const gotLines = [];
     for (const [key, n] of Object.entries(plan.stones)) { if (GEAR[key]) gotLines.push(giveParty({ t: "g", id: key, qty: n })); }
     if (B.deliverFound) gotLines.push(...B.deliverFound(S, outcome === "win" || outcome === "retreat" || outcome === "abort"));
-    for (const w of plan.wins) essStash().push(w.id);
-    if (plan.wins.length) saveChar();
+    if (!(UI && UI.active)) { for (const w of plan.wins) essStash().push(w.id); if (plan.wins.length) saveChar(); }          // без экрана итога — в запас; с экраном игрок выбирает: впитать, сохранить, оставить
     if (UI && UI.active) await showScreens(S, display, plan, gotLines);
     const res = { outcome: mapped, killed: S.killed.slice(), plan };
     if (UI && UI.active) UI.close();
@@ -108,7 +107,23 @@
       resEl.className = "bt-roll-res " + (ok ? "ok" : "no");
       if (ok) {
         const g = modal.querySelector(".bt-essgot"); g.hidden = false;
-        g.innerHTML = plan.wins.map(w => { const e = ESSENCES[w.id]; return `<div class="bt-ess"><img src="${ART.monsterFace(w.id)}" alt=""><div><b>${esc(e ? e.name : w.id)}</b><small>${e ? e.cls + " класс · " + esc(e.passive.name) + " (П), " + esc(e.active.name) + " (А)" : ""}</small></div></div>`; }).join("") + `<p class="muted">Эссенция лежит в запасе отряда: герой впитывает её в меню героя → «Навыки».</p>`;
+        g.innerHTML = plan.wins.map((w, i) => { const e = ESSENCES[w.id]; const pas = essSeen(w.id, "ess-passive"), act = essActiveLevel(w.id) > 0; return `<div class="bt-ess" data-i="${i}"><img src="${ART.monsterFace(w.id)}" alt=""><div><b>${esc(e ? e.name : w.id)}</b><small>${e ? e.cls + " класс · " + (pas ? esc(e.passive.name) : "??") + " (П), " + (act ? esc(e.active.name) : "??") + " (А)" : ""}</small>
+          <div class="bt-esschoice"><button class="fx-btn primary" data-ec="absorb">Впитать</button><button class="fx-btn" data-ec="keep" disabled title="Скоро">Сохранить</button><button class="fx-btn" data-ec="leave">Оставить</button></div><div class="bt-esspick" hidden></div></div></div>`; }).join("");
+        await new Promise(resolve => {
+          let left = plan.wins.length;
+          const decide = (box, text) => { box.querySelector(".bt-esschoice").hidden = true; const pk = box.querySelector(".bt-esspick"); pk.hidden = false; pk.innerHTML = `<small class="muted">${esc(text)}</small>`; if (--left <= 0) resolve(); };
+          g.onclick = ev => {
+            const btn = ev.target.closest("[data-ec],[data-eh]"); if (!btn || btn.disabled) return;
+            const box = btn.closest(".bt-ess"), w = plan.wins[+box.dataset.i], e = ESSENCES[w.id];
+            if (btn.dataset.eh) { const c = state.party.find(x => x.id === btn.dataset.eh); if (!c) return; (c.essences ||= []).push(w.id); c.mp = Math.min(maxMp(c), mpOf(c)); saveChar(); decide(box, `${c.name} впитал эссенцию.`); return; }
+            if (btn.dataset.ec === "leave") { decide(box, "Эссенцию оставили."); return; }
+            if (btn.dataset.ec === "absorb") {
+              const pk = box.querySelector(".bt-esspick"); box.querySelector(".bt-esschoice").hidden = true; pk.hidden = false;
+              pk.innerHTML = `<small>Кому впитать?</small><div class="bt-esschoice">${state.party.filter(c => !c.dead).map(c => { const has = (c.essences || []).includes(w.id), full = (c.essences || []).length >= c.level; return `<button class="fx-btn" data-eh="${c.id}"${has || full ? " disabled" : ""} title="${has ? "уже есть такая эссенция" : full ? "нет свободного слота" : ""}">${esc(c.name)}${has ? " (есть)" : full ? " (слотов нет)" : ""}</button>`; }).join("")}<button class="fx-btn" data-eb="1">Назад</button></div>`;
+              pk.querySelector("[data-eb]").onclick = e2 => { e2.stopPropagation(); pk.hidden = true; box.querySelector(".bt-esschoice").hidden = false; };
+            }
+          };
+        });
       }
     }
     done.hidden = false;

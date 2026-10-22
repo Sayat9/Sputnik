@@ -1639,8 +1639,8 @@ const DISTRICTS = [
 
 // Готовые рисованные картинки (webp) заменяют векторные заглушки.
 // Дата сборки для телефона: build.sh вписывает её сюда, в веб-версии строка пустая.
-const APP_BUILD = "22.10.2026 13:18";
-const APP_VERSION = 1792657124;                 // номер сборки, тоже вписывает build.sh
+const APP_BUILD = "22.10.2026 14:51";
+const APP_VERSION = 1792662708;                 // номер сборки, тоже вписывает build.sh
 const UPDATE_URL = "https://raw.githubusercontent.com/Sayat9/Sputnik/main/www/";
 const RASTER = new Set(["monsters/goblin-king-face", "monsters/goblin-king-full", "monsters/goblin-bomber-face", "monsters/goblin-bomber-full", "monsters/hobgoblin-shield-face", "monsters/hobgoblin-shield-full", "races/barbarian", "races/human", "races/dwarf", "races/beastkin", "races/fairy", "races/dragon", "monsters/goblin-face", "monsters/goblin-full", "monsters/goblin-archer-face", "monsters/goblin-archer-full", "monsters/goblin-sword-face", "monsters/goblin-sword-full", "monsters/goblin-spear-face", "monsters/goblin-spear-full", "monsters/wolf-face", "monsters/wolf-full", "monsters/fox-face", "monsters/fox-full", "monsters/mouse-face", "monsters/mouse-full", "monsters/bat-face", "monsters/bat-full", "monsters/hobgoblin-face", "monsters/hobgoblin-full", "monsters/zombie-face", "monsters/zombie-full", "monsters/skeleton-face", "monsters/skeleton-full", "monsters/skeleton-archer-face", "monsters/skeleton-archer-full", "monsters/ghoul-face", "monsters/ghoul-full", "monsters/dark-bear-face", "monsters/dark-bear-full", "monsters/skeleton-warrior-face", "monsters/skeleton-warrior-full", "monsters/living-stone-face", "monsters/living-stone-full", "monsters/wisp-face", "monsters/wisp-full", "monsters/pixie-face", "monsters/pixie-full", "monsters/green-boulder-face", "monsters/green-boulder-full", "monsters/stone-guardian-face", "monsters/stone-guardian-full"]);
 const artPath = p => `assets/${p}.${RASTER.has(p) ? "webp" : "svg"}`;
@@ -3009,7 +3009,12 @@ const isQuiet = (r, k) => r.cleared?.[k] != null && absAct(r) - r.cleared[k] < Q
 // Состав встречи: максимум дня — 1/2/3 обычных с 1/3/5 дня (один вид на группу).
 // Тяжёлая и засада — максимум, средняя — на 1 меньше, лёгкая — 1 обычный.
 // Редкий: дни 4–5 на броске 1–2 (один), дни 6–7 на 1–4 (+1 / +2 обычных). Первая встреча 4-го дня — всегда редкий.
-function genEncounter(x, y, day, n = 1, forceRare = false) {
+function genEncounter(x, y, day, n = 1, forceRare = false, night = false) {
+  const enc = genEncounterRaw(x, y, day, n, forceRare);
+  if (enc && night && isQuiet(state.run, tkey(x, y)) && enc.list.length > 2) enc.list = enc.list.slice(0, 2);          // ночью на недавно зачищенном квадрате — только маленькая группа
+  return enc;
+}
+function genEncounterRaw(x, y, day, n = 1, forceRare = false) {
   const z = zoneAt(x, y);
   if (z.kind === "safe") return null;
   if (curFloor() >= 2) return genEncounter2(x, y, day, n, z);
@@ -3126,7 +3131,7 @@ function resolveRoll() {
   const rollTxt = `к20 = ${p.pick}${p.dark ? ` − 2 (тьма) = ${n}` : ""}`;
   if (MON_EVENTS.has(kind)) {
     const force = r.day === 4 && !r.rare4;
-    const enc = genEncounter(p.x, p.y, r.day, n, force);
+    const enc = genEncounter(p.x, p.y, r.day, n, force, p.cause === "rest" || p.cause === "rest-noguard");
     if (!enc) return;
     if (r.day === 4 && enc.list.some(id => MONSTERS.find(m => m.id === id).rare)) r.rare4 = true;
     startFight(ev, p, enc);
@@ -3404,14 +3409,15 @@ function finishFight() {
 }
 // Ночная встреча в Отдыхе: к6 = 1 (без караула 1–2, во тьме +1), состав — по броску к20 мастера.
 // Ночная встреча (решение автора): первые 3 дня её нет. Потом бывает только если караула нет или у караульного есть Усталость (с выспавшимся караульным — никогда).
-// Шанс по дням, без караула вдвое, +3 % за уровень Усталости караульного, во тьме +6 % (черновик).
-const NIGHT_P = [0, 0, 0, 0.10, 0.13, 0.17, 0.17, 0.17, 0.17, 0.17, 0.20, 0.20, 0.20, 0.20];
+// Шанс по дням (3–7 %), без караула вдвое, +1 % за уровень Усталости караульного, во тьме +6 % (черновик).
+// Ночная группа маленькая (до 2); полная — только на квадрате, зачищенном больше 2 дней назад. Безопасные зоны (порталы, центр 1 этажа) — никогда.
+const NIGHT_P = [0, 0, 0, 0.03, 0.04, 0.05, 0.06, 0.06, 0.06, 0.06, 0.07, 0.07, 0.07, 0.07];          // очень редко (решение автора)
 function rollEncounter(cause, guardFat = 0) {
   const r = state.run, dark = inDarkness(), guarded = cause === "rest";
   if (zoneAt(r.pos.x, r.pos.y).kind === "safe") return;
   const p0 = NIGHT_P[Math.min(NIGHT_P.length, Math.max(1, r.day)) - 1];
   if (!p0 || (guarded && guardFat <= 0)) return;
-  const base = Math.min(0.6, (guarded ? p0 + 0.03 * guardFat : p0 * 2) + (dark ? 0.06 : 0)), pct = 1 + rnd(100), lim = Math.round(base * 100);
+  const base = Math.min(0.6, (guarded ? p0 + 0.01 * guardFat : p0 * 2) + (dark ? 0.06 : 0)), pct = 1 + rnd(100), lim = Math.round(base * 100);
   if (pct > lim) return;
   logRun(`Ночью кто-то приближается (шанс ${lim} %, выпало ${pct}). Мастер, брось к20.`);
   askRoll(cause, true);
@@ -4299,11 +4305,25 @@ function heroStats(c) {
 
 /* ----- вкладка «Навыки»: эссенции героя (слоты = уровень) и запас отряда ----- */
 const essStatLine = e => [...Object.entries(e.stats || {}).map(([k, v]) => `${STAT_SHORT[k]} ${signed(v)}`), ...(e.other || [])].join(" · ");
+// Сведения об эссенции скрыты («??»), пока их не открыла библиотека (разделы «Эссенция» монстра-источника) или не применён навык:
+// после первого применения видны название, цена маны и урон, остальные эффекты остаются «??» (решение автора).
+const essSource = id => (ESSENCES[id] && ESSENCES[id].source) || id;
+const essSeen = (id, key) => { const j = journal().known[essSource(id)]; return !!(j && j.revealed && j.revealed.includes(key)); };
+const essUsed = id => !!(journal().essUsed && journal().essUsed[id]);
+const essActiveLevel = id => (essSeen(id, "ess-active") ? 2 : essUsed(id) ? 1 : 0);          // 0 — неизвестна, 1 — название, мана, урон, 2 — всё
+function essDamageText(e) {
+  const m = [...String(e.active.text).matchAll(/(\d+к\d+(?:\s*[+−-]\s*\d+)?)\s+(?:урона\s+)?([а-яё]+(?:ого|ом|его|ым)?)/g)].map(x => `${x[1].replace(/\s+/g, "")} ${x[2]}`);
+  return m.length ? [...new Set(m)].slice(0, 3).join(", ") : "урона нет";
+}
 function essCard(id, extra = "", cls = "") {
   const e = ESSENCES[id]; if (!e) return "";
-  return `<div class="ess-card fx-frame ${cls}"><div class="eh"><img src="${ART.monsterFace(id)}" alt=""><div><b>${esc(e.name)}</b><small>${e.cls} класс · ${esc(essStatLine(e))}</small></div></div>
-    <div class="trait"><b>${esc(e.passive.name)} (П).</b> ${esc(e.passive.text)}</div>
-    <div class="trait"><b>${esc(e.active.name)} (А, ${e.active.mana} маны, ${esc(e.active.time)}).</b> ${esc(e.active.text)}</div>${extra}</div>`;
+  const lvl = essActiveLevel(id), stats = essSeen(id, "ess-stats"), pas = essSeen(id, "ess-passive");
+  const act = lvl === 2 ? `<b>${esc(e.active.name)} (А, ${e.active.mana} маны, ${esc(e.active.time)}).</b> ${esc(e.active.text)}`
+    : lvl === 1 ? `<b>${esc(e.active.name)} (А, ${e.active.mana} маны).</b> Урон: ${esc(essDamageText(e))}. Остальные эффекты: ??`
+    : `<b>?? (А).</b> ??`;
+  return `<div class="ess-card fx-frame ${cls}"><div class="eh"><img src="${ART.monsterFace(id)}" alt=""><div><b>${esc(e.name)}</b><small>${e.cls} класс · ${stats ? esc(essStatLine(e)) : "??"}</small></div></div>
+    <div class="trait">${pas ? `<b>${esc(e.passive.name)} (П).</b> ${esc(e.passive.text)}` : `<b>?? (П).</b> ??`}</div>
+    <div class="trait">${act}</div>${extra}</div>`;
 }
 const floor1Essences = () => [...new Set(MONSTERS.filter(m => m.floor === 1 && !m.draft && ESSENCES[m.essence]).map(m => m.essence))];
 function heroSkills(c) {
@@ -4322,7 +4342,7 @@ function selPanel(c) {
     const e = c.equip[heroUi.slot], it = itemOf(e);
     if (!it) return "";
     return `<div class="sel-panel fx-frame"><h4>${esc(it.name)}</h4><p>${kgf(it.weight || 0)} кг · надето: ${HSLOTS.find(([k]) => k === heroUi.slot)[1].toLowerCase()}</p>
-      <div class="btn-row"><button class="fx-btn" data-hx="unequip">Снять в рюкзак</button></div></div>`;
+      <div class="btn-row"><button class="fx-btn" data-hx="unequip">Снять в рюкзак</button><button class="fx-btn" data-hx="drop-eq">Выбросить</button></div></div>`;
   }
   if (heroUi.sel === null) return "";
   const e = c.bag[heroUi.sel], it = itemOf(e, c);
@@ -4337,6 +4357,7 @@ function selPanel(c) {
   const others = state.party.filter(o => o.id !== c.id);
   if (others.length) btns.push(`<button class="fx-btn" data-hx="give-toggle" aria-expanded="${heroUi.give}">Передать</button>`);
   btns.push(`<button class="fx-btn" data-hx="drop">${e.qty > 1 ? "Выбросить 1" : "Выбросить"}</button>`);
+  if (e.qty > 1) btns.push(`<button class="fx-btn" data-hx="drop-all">Выбросить все (${e.qty})</button>`);
   return `<div class="sel-panel fx-frame"><h4>${esc(it.name)}${e.qty > 1 ? ` × ${e.qty}` : ""}</h4>
     <p>${kgf((it.weight || 0) * (e.qty || 1))} кг${e.uses != null ? ` · осталось раскопок: ${e.uses}` : ""}${it.note ? " · " + it.note : ""}${it.kindOf === "weapon" && it.dmg ? ` · ${it.dmg} ${it.type}` : ""}${it.kindOf === "armor" ? ` · КД ${it.ac}` : ""}</p>
     <div class="btn-row">${btns.join("")}</div>
@@ -4502,6 +4523,15 @@ $hero.addEventListener("click", e => {
       entry.qty = left; if (!entry.qty) c.bag.splice(heroUi.sel, 1);
       heroUi.sel = null; heroUi.give = false;
       heroAfterChange(left ? `Передано частично: у ${to.name} не хватило места` : `Передано: ${to.name}`); return;
+    }
+    case "drop-all": {
+      c.bag.splice(heroUi.sel, 1); heroUi.sel = null;
+      heroAfterChange("Выброшено"); return;
+    }
+    case "drop-eq": {
+      if (!c.equip[heroUi.slot]) return;
+      delete c.equip[heroUi.slot]; heroUi.slot = null;
+      heroAfterChange("Выброшено"); return;
     }
     case "drop": {
       entry.qty = (entry.qty || 1) - 1;

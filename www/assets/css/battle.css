@@ -316,3 +316,5 @@ body.bt-active .dice-fab { display: none; }
 .bt-obj.find i { width: 44%; height: 44%; display: block; color: #f4ecd2; filter: drop-shadow(0 1px 3px #000); animation: findBob 1.6s ease-in-out infinite alternate; }
 .bt-obj.find i svg { width: 100%; height: 100%; }
 @keyframes findBob { from { transform: translateY(0); } to { transform: translateY(-3px); } }
+.bt-esschoice { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; } .bt-esschoice .fx-btn { padding: 4px 10px; font-size: 13px; } .bt-esschoice .fx-btn[disabled] { opacity: .45; filter: grayscale(1); }
+.bt-esspick { margin-top: 6px; }

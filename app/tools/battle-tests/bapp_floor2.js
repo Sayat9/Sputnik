@@ -43,7 +43,7 @@ const L = require('./bui_lib.js');
   const n = await p.evaluate(() => { const rr = state.run; rr.floor = 1; rr.pos = { x: 5, y: 3 }; const orig = window.askRoll; let hit = 0; window.askRoll = () => { hit++; }; const tab = {}; for (const [day, guard, gf] of [[2, 'rest-noguard', 0], [4, 'rest', 0], [4, 'rest', 1], [4, 'rest-noguard', 0], [9, 'rest-noguard', 0]]) { rr.day = day; hit = 0; for (let i = 0; i < 3000; i++) rollEncounter(guard === 'rest' ? 'rest' : 'rest-noguard', gf); tab[day + guard + gf] = hit / 3000; } window.askRoll = orig; return tab; });
   ok('дни 1–3: ночных встреч нет совсем', n['2rest-noguard0'] === 0, JSON.stringify(n));
   ok('караульный без усталости: встреч нет', n['4rest0'] === 0, JSON.stringify(n));
-  ok('караульный с усталостью: шанс есть', n['4rest1'] > 0.05 && n['4rest1'] < 0.25, JSON.stringify(n));
+  ok('караульный с усталостью: шанс есть', n['4rest1'] > 0.01 && n['4rest1'] < 0.12, JSON.stringify(n));
   ok('без караула шанс вдвое выше', n['4rest-noguard0'] > n['4rest1'], JSON.stringify(n));
   console.log('errs:', p.errs.length ? p.errs.slice(0, 5) : 'нет');
   ok('нет ошибок страницы', !p.errs.length, p.errs.join(' | '));
