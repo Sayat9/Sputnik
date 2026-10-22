@@ -30,8 +30,8 @@
   const ABIL = ["str", "dex", "con", "int", "wis", "cha"];
   const ABIL_RU = { str: "Сила", dex: "Ловкость", con: "Телосложение", int: "Интеллект", wis: "Мудрость", cha: "Харизма" };
   B.ABIL_RU = ABIL_RU;
-  const SKILL_ABIL = { athletics: "str", acrobatics: "dex", stealth: "dex", perception: "wis", medicine: "wis", survival: "wis", intimidation: "cha", deception: "cha", sleight: "dex", investigation: "int" };
-  const SKILL_RU = { athletics: "Атлетика", acrobatics: "Акробатика", stealth: "Скрытность", perception: "Восприятие", medicine: "Медицина", survival: "Выживание", intimidation: "Запугивание", deception: "Обман", sleight: "Ловкость рук", investigation: "Расследование" };
+  const SKILL_ABIL = { athletics: "str", acrobatics: "dex", stealth: "dex", perception: "wis", medicine: "wis", survival: "wis", intimidation: "cha", deception: "cha", sleight: "dex", investigation: "int", insight: "wis" };
+  const SKILL_RU = { athletics: "Атлетика", acrobatics: "Акробатика", stealth: "Скрытность", perception: "Восприятие", medicine: "Медицина", survival: "Выживание", intimidation: "Запугивание", deception: "Обман", sleight: "Ловкость рук", investigation: "Расследование", insight: "Проницательность" };
   B.SKILL_ABIL = SKILL_ABIL; B.SKILL_RU = SKILL_RU;
 
   /* ===== журнал ===== */
@@ -67,7 +67,7 @@
   const live = () => units().filter(alive);
   const enemiesOf = u => live().filter(o => o.side !== u.side);
   const alliesOf = u => live().filter(o => o.side === u.side && o.id !== u.id);
-  function occupant(x, y, except) { return live().find(u => u !== except && footprint(u).some(([a, b]) => a === x && b === y)) || null; }
+  function occupant(x, y, except) { return live().find(u => u !== except && !(except && except.id === u.id) && footprint(u).some(([a, b]) => a === x && b === y)) || null; }          // except — сам юнит или его копия в другой клетке (проверка путевых точек)
   const terrain = (x, y) => (inB(x, y) ? B.S.cells[y][x] : null);
   const tinfo = (x, y) => { const t = terrain(x, y); return t ? D.terrain[t] : null; };
   const obstacleAt = (x, y) => { const t = tinfo(x, y); return !!(t && t.obstacle); };
@@ -173,10 +173,31 @@
     u.ess = (c.essences || []).filter(id => ESSENCES[id]);
     u.pass = [...u.ess, "race:" + c.race];
     if (u.ess.some(id => (ESSENCES[id].other || []).some(o => /^Тёмное зрение/.test(o)))) u.dv = true;
+    essenceTraits(u);
     u.insp = c.insp || 0;
     if (u.hp <= 0) { u.hp = 0; u.down = true; u.conds.push(mkStatus("unconscious", { k: Infinity }), mkStatus("prone", { k: Infinity })); }
     if (c.dead) { u.dead = true; u.alive = false; u.down = true; }
     return u;
+  }
+  // Строки «иное» эссенций, которые важны в бою: сопротивления, уязвимости, чувства, дальность броска, страх света и огня.
+  const DT_ACC = { "огнём": "fire", "ядом": "poison", "холодом": "cold", "молнией": "lightning", "звуком": "thunder", "излучением": "radiant", "некротическим": "necrotic" };
+  const toCells = txt => Math.floor(parseFloat(String(txt).replace(",", ".")) / 1.5 + 1e-6);
+  function essenceTraits(u) {
+    u.throwBonus = 0; u.sight = 0; u.fearsLight = false; u.poorSight = false; u.extraTaken = {}; u.burrowC = 0;
+    for (const id of u.ess) for (const o of (ESSENCES[id].other || [])) {
+      let m;
+      if ((m = /^Сопротивление урону (\S+)/.exec(o)) && DT_ACC[m[1]]) { if (!u.resist.includes(DT_ACC[m[1]])) u.resist.push(DT_ACC[m[1]]); }
+      else if ((m = /^Уязвимость к урону (\S+)/.exec(o)) && DT_ACC[m[1]]) { if (!u.vuln.includes(DT_ACC[m[1]])) u.vuln.push(DT_ACC[m[1]]); }
+      else if ((m = /^Чувство вибрации (\d+(?:,\d+)?) м/.exec(o))) u.tremor = Math.max(u.tremor || 0, toCells(m[1]));
+      else if ((m = /^Плохое зрение \(видишь только на (\d+(?:,\d+)?) м\)/.exec(o))) u.sight = toCells(m[1]);
+      else if ((m = /^Дальность метательного оружия \+(\d+(?:,\d+)?) м/.exec(o))) u.throwBonus += toCells(m[1]);
+      else if ((m = /^Скорость рытья (\d+(?:,\d+)?) м/.exec(o))) u.burrowC = Math.max(u.burrowC, toCells(m[1]));
+      else if (/^Плохое зрение \(помеха на Восприятие/.test(o)) u.poorSight = true;
+      else if (/^Боится света/.test(o)) u.fearsLight = true;
+      else if ((m = /^Боится огня \(урон огнём \+(\d+к\d+)\)/.exec(o))) u.extraTaken.fire = m[1];
+      else if ((m = /^Холод жжёт \(урон холодом по тебе \+(\d+к\d+)\)/.exec(o)) || (m = /^Холод жжёт \(урон холодом \+(\d+к\d+)\)/.exec(o))) u.extraTaken.cold = m[1];
+      else if ((m = /^Серебро жжёт \(серебряное оружие наносит (?:тебе )?\+(\d+к\d+)/.exec(o))) u.extraTaken.silver = m[1];
+    }
   }
   function monUnit(id, idx) {
     const m = MONSTERS.find(x => x.id === id), cb = D.mon[id] || { atk: [], ai: { int: 1, role: "melee", focus: ["nearest"] } };
@@ -189,7 +210,7 @@
     u.pass = [...u.ess, "body:" + id];
     return u;
   }
-  Object.assign(B, { heroUnit, monUnit, parseSpeed, cellsOfM, genTerrain });
+  Object.assign(B, { heroUnit, monUnit, parseSpeed, cellsOfM, genTerrain, baseUnit, essenceTraits });
 
   /* ===== статусы ===== */
   // k — сколько границ хода владельца пройдёт до снятия (1 = до конца/начала его следующего хода), when — 'start' | 'end'.
@@ -197,6 +218,7 @@
   function has(u, id) { return u.conds.find(c => c.id === id) || null; }
   function addStatus(u, id, o = {}) {
     if (!D.status[id]) throw new Error("статус " + id);
+    if (B.immuneTo && B.immuneTo(u, id, o)) return null;           // иммунитет к состоянию (пассивки и ауры эссенций)
     const ex = has(u, id);
     const st = mkStatus(id, o);
     if (st.k !== Infinity) st.k = u.turnsTaken + st.k;       // абсолютный номер хода владельца, на котором снимется
@@ -211,7 +233,10 @@
     u.conds = u.conds.filter(c => { if (c.when === when && c.k !== Infinity && u.turnsTaken >= c.k) { gone.push(c); return false; } return true; });
     return gone;
   }
-  Object.assign(B, { mkStatus, has, addStatus, removeStatus, tickStatuses });
+  // Перезарядка способности: n раундов, в которые её нельзя применить снова (rules.md, «Перезарядка (КД)»). Счёт идёт в конце своих ходов;
+  // применённая в свой ход не убавляется в конце этого же хода, так что «2 раунда» = недоступна в двух следующих раундах.
+  function setCd(u, id, n) { u.cd[id] = n >= 99 ? n : Math.max(0, n + (D.cdShift || 0)); if (B.S && B.S.curId === u.id) (u.cdFresh ||= {})[id] = true; }          // D.cdShift — как читать N раундов (battle-data.js)
+  Object.assign(B, { mkStatus, has, addStatus, removeStatus, tickStatuses, setCd });
 
   /* ===== пассивки: вызов хуков эссенций, тела монстров и рас ===== */
   // Хук — функция в B.P[id][name](u, ctx). Возвращает значение (для sum-хуков суммируется).
@@ -226,14 +251,20 @@
 
   /* ===== скорость и движение ===== */
   function speedOf(u) {
-    let sp = Math.max(u.speedC, u.flyC);
+    let sp = Math.max(u.speedC, u.flyC) + hookSum(u, "speedBonus", {});                       // бонус к скорости («Лёгкие ноги») — до замедления, как строка статов
     for (const c of u.conds) {
-      if (["grappled", "restrained", "pinned", "trapped", "spearstop", "unconscious", "stable"].includes(c.id)) return 0;
+      if (["grappled", "restrained", "pinned", "trapped", "spearstop", "unconscious", "stable", "buried", "paralyzed", "underground"].includes(c.id)) return 0;
     }
     for (const c of u.conds) if (c.id === "slowed") { if (c.data.mult != null) sp = Math.floor(sp * c.data.mult); if (c.data.add) sp += c.data.add; }
-    sp += hookSum(u, "speedBonus", {});
     return Math.max(0, sp);
   }
+  // Сколько движения стоит встать: половина скорости, а если сбил «Могильщик» («Глубокая яма») — всё оставшееся перемещение.
+  function standCost(u) {
+    const p = has(u, "prone"), by = p && p.data && p.data.by ? B.byId(p.data.by) : null;
+    if (by && alive(by) && by.pass.includes("gravedigger")) return Math.max(1, u.t && u.t.move > 0 ? u.t.move : speedOf(u));
+    return Math.ceil(speedOf(u) / 2);
+  }
+  B.standCost = standCost;
   const isFlying = u => u.flyC > 0 && u.flyC >= u.speedC;
   function stepCost(u, x, y) {
     if (isFlying(u)) return 1;
@@ -242,10 +273,11 @@
     return c;
   }
   function canPass(u, x, y, o = {}) {
+    const through = o.through || (u.pass && u.pass.some(id => B.P && B.P[id] && B.P[id].passThrough));      // «Летучий прах»: сквозь клетки других существ
     for (const [fx, fy] of footprint(u, x, y)) {
       if (!inB(fx, fy) || obstacleAt(fx, fy)) return false;
       const oc = occupant(fx, fy, u);
-      if (oc && oc.side !== u.side && !o.through) return false;
+      if (oc && oc.side !== u.side && !through) return false;
     }
     return true;
   }
@@ -286,7 +318,7 @@
   // Досягаемость ближнего боя юнита в клетках (наибольшая по атакам ближнего боя, не меньше 1).
   function meleeReach(u) {
     let r = 1;
-    if (u.side === "mon") { for (const a of u.atk) if (a.kind === "melee") r = Math.max(r, a.reach || 1); }
+    if (u.side === "mon" || u.summon) { for (const a of u.atk) if (a.kind === "melee") r = Math.max(r, a.reach || 1); }
     else r = Math.max(r, B.heroReach ? B.heroReach(u) : 1);
     return r;
   }
@@ -324,7 +356,7 @@
   /* ===== состояние боя ===== */
   function newBattle(ev) {
     const zone = D.zones[ev.zone] ? ev.zone : "goblin";
-    const S = { ev, zone, ambush: !!ev.ambush, dark: false, torch: false, units: [], order: [], turn: 0, round: 1, phase: "init", log: [], killed: [], objs: [], drops: [], opts: Object.assign({ showMonHp: false, autoSaves: false, autoEnd: true }, (state.settings && state.settings.battleOpts) || {}, { autoHeroes: false }), outcome: null, arrowLog: {}, started: Date.now() };
+    const S = { ev, zone, ambush: !!ev.ambush, dark: false, torch: false, units: [], order: [], turn: 0, round: 1, phase: "init", log: [], killed: [], objs: [], drops: [], opts: Object.assign({ showMonHp: false, autoSaves: false, autoEnd: true }, (state.settings && state.settings.battleOpts) || {}, { autoHeroes: false }), outcome: null, arrowLog: {}, zones: [], bodies: [], q: [], started: Date.now() };
     try { S.dark = typeof inDarkness === "function" && !!(state.run && isDark(state.run.pos.x, state.run.pos.y)) && !(state.run && state.run.light); S.torch = !!(state.run && state.run.light); } catch (e) { S.dark = false; }
     const g = genTerrain(zone); S.cells = g.cells; S.objs = g.objs;
     uidSeq = 1;
@@ -341,7 +373,8 @@
   // Выстрелы героя в этом бою: сколько стрел ушло из колчана и сколько из них сломалось.
   B.arrowLog = id => { const L = B.S.arrowLog; return (L[id] ||= { shot: 0, broken: 0 }); };
   B.byId = id => units().find(u => u.id === id) || null;
-  B.heroes = () => units().filter(u => u.side === "hero");
-  B.mons = () => units().filter(u => u.side === "mon");
+  B.heroes = () => units().filter(u => u.side === "hero" && !u.summon);        // настоящие герои отряда (без призванных волков и двойников)
+  B.mons = () => units().filter(u => u.side === "mon" && !u.summon);
+  B.isHero = u => u.side === "hero" && !u.summon;
   B.cellFree = (u, x, y) => canStand(u, x, y);
 })();

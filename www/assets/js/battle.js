@@ -47,7 +47,7 @@
   /* ===== начало боя ===== */
   function preStart(S) {
     // скрытые ловушки: замечает герой с достаточным пассивным Восприятием
-    const bestPerc = Math.max(0, ...B.heroes().map(h => 10 + amod(h.abil.wis) + (h.skills.perception || 0)));
+    const bestPerc = Math.max(0, ...B.heroes().map(h => B.passivePerceptionOf(h)));                    // с поправками пассивок (плохое зрение землекопа −5)
     for (const t of S.objs) if (t.kind === "trap" && t.hidden && bestPerc >= t.dc) t.hidden = false;
     // скрытные монстры пытаются спрятаться
     for (const m of B.mons()) {
@@ -64,7 +64,8 @@
   async function deathSaveTurn(u) {
     if (has(u, "stable")) return;
     const ses = B.session(u, { kind: "save", u, title: "Спасбросок от смерти", sub: `${u.name}: ${u.deathSaves.ok} успехов, ${u.deathSaves.fail} провалов`, death: true });
-    const r = await ses.d20({ label: "Спасбросок от смерти", mods: [], adv: [], dis: [], vs: { dc: 10 }, reroll: B.rerollOptions(u, "save"), cancel: false, death: true });
+    const au = B.auraSave(u, "death");                                                // аура союзника (+1 «Под защитой духов») действует и на спасбросок от смерти
+    const r = await ses.d20({ label: "Спасбросок от смерти", mods: au.mods, adv: au.adv, dis: au.dis, vs: { dc: 10 }, reroll: B.rerollOptions(u, "save"), cancel: false, death: true });
     let text;
     if (r.nat === 20) { B.setHp(u, 1); B.revive(u); text = "Двадцать! Герой приходит в себя с 1 ОЗ"; }
     else if (r.nat === 1) { u.deathSaves.fail += 2; text = "Единица: два провала"; }
@@ -88,12 +89,13 @@
       await B.startTurn(u);
       if (alive(u)) {
         const g = ui(); if (g) await g.turnStart(u);
-        if (u.side === "hero") {
+        if (u.side === "hero" && !u.summon) {
           if (u.down) { if (!u.dead) await deathSaveTurn(u); }
+          else if (!B.canAct(u)) log(`${u.name} не может действовать.`);
           else if (B.S.opts.autoHeroes || !g) await B.AI.takeTurn(u);
           else await g.heroTurn(u);
         } else if (B.canAct(u)) await B.AI.takeTurn(u);
-        B.endTurn(u);
+        await B.endTurn(u);
         if (g) g.turnEnd(u);
       }
       const out = B.checkEnd(); if (out) break;

@@ -4,7 +4,8 @@
   const B = window.Battle, D = B.D;
   const { rnd, d, roll, parseDice, fmtDice, sleep, amod, sg, clamp, pick, log, dist, distCell, footprint, alive, live, enemiesOf, alliesOf, occupant, has, addStatus, removeStatus,
     hookAll, hookSum, hookAny, speedOf, reachable, pathTo, setMp, setHp, heal, canAct, ABIL_RU, SKILL_RU } = B;
-  const UI = () => B.UI;
+  const NOUI = new Proxy({}, { get: () => () => undefined });                        // без интерфейса (автобой, проверки) все вызовы окна — пустые
+  const UI = () => B.UI || NOUI;
   const ui = () => (B.UI && B.UI.active ? B.UI : null);
   const TIME_RU = { action: "действие", bonus: "доп. действие", reaction: "реакция", free: "свободно", move: "движение" };
   B.TIME_RU = TIME_RU;
@@ -17,7 +18,9 @@
       thrown: thr ? [Math.floor(+thr[1] / 1.5), Math.floor(+thr[2] / 1.5)] : null, ammoR: amm ? [+amm[1], +amm[2]] : null };
   }
   const DT = D.DT_FROM_RU;
-  function atkFrom(u, w, mode) {
+  // «Длинная рука» хобгоблина-загонщика: досягаемость кнута и цепа +1,5 м (такого оружия в каталоге пока нет, правило готово).
+  const longArm = (u, w) => (u.pass.includes("hobgoblin-driver") && w && /whip|flail|кнут|цеп/i.test(`${w.id} ${w.name}`) ? 1 : 0);
+  function atkFrom(u, w, mode, entry) {
     const c = u.hero, f = wprops(w), eq = c.equip || {}, eb = essBonus(c);
     const ranged = w.group === "ranged", strM = amod(u.abil.str), dexM = amod(u.abil.dex);
     const ab = ranged ? "dex" : (mode === "thrown" ? (f.finesse && dexM > strM ? "dex" : "str") : (f.finesse && dexM > strM ? "dex" : "str"));
@@ -26,17 +29,34 @@
     const giant = c.giantGrip && c.race === "barbarian" && f.two && !ranged;
     const atk = { id: mode + ":" + w.id, w, n: w.name, hit: am + u.pb, parts: [{ l: ABIL_RU[ab], v: am }, { l: "Бонус мастерства", v: u.pb }], dmg: { ...dice, b: dice.b + am }, dt: DT[w.type] || "bludgeon", tags: [], mode, time: "action" };
     if (giant) { atk.penalty = -2; atk.penaltyLabel = "Великан: одной рукой"; }
-    if (mode === "hand" && !ranged) { atk.kind = "melee"; atk.reach = w.id === "spear" && u.pass.includes("goblin-spear") ? 2 : 1; atk.sub = atk.reach > 1 ? "досягаемость 3 м" : "ближний бой"; }
+    if (mode === "hand" && !ranged) { atk.kind = "melee"; atk.reach = w.id === "spear" && u.pass.includes("goblin-spear") ? 2 : 1 + longArm(u, w); atk.sub = atk.reach > 1 ? `досягаемость ${atk.reach * 1.5} м`.replace(".", ",") : "ближний бой"; }
     else if (mode === "hand" && ranged) {
       atk.kind = "ranged"; atk.ammo = "arrow";
       const r = f.ammoR || [24, 96]; atk.range = [Math.floor((r[0] + eb.range) / 1.5), Math.floor((r[1] + eb.range) / 1.5)]; atk.sub = "дальний бой, стрела";
-    } else if (mode === "thrown") { atk.kind = "ranged"; atk.thrown = true; atk.n = "Метнуть: " + w.name; atk.range = f.thrown; atk.sub = "бросок: оружие упадёт у цели, рука будет пуста"; }
+    } else if (mode === "thrown") {
+      atk.kind = "ranged"; atk.thrown = true; atk.n = "Метнуть: " + w.name; atk.range = [f.thrown[0] + (u.throwBonus || 0), f.thrown[1] + (u.throwBonus || 0)];          // «Дальность метательного оружия +3 м»
+      atk.sub = entry ? "бросок из рюкзака: оружие упадёт у цели" : "бросок: оружие упадёт у цели, рука будет пуста";
+      if (u.pass.includes("hobgoblin-thrower")) atk.dmgBonus = (atk.dmgBonus || 0) + 1;                                      // «Полная перевязь»: метательное оружие наносит +1 урона
+      if (entry) { atk.bagEntry = entry; atk.id = "thrown:" + w.id + "@" + (u.hero.bag || []).indexOf(entry); atk.n = "Метнуть из рюкзака: " + w.name; }
+    }
     else if (mode === "off") { atk.kind = "melee"; atk.reach = 1; atk.time = "bonus"; atk.offhand = true; atk.dmg.b = Math.min(0, am); atk.n = "Второй рукой: " + w.name; atk.sub = "доп. действие, без модификатора урона"; }
     return atk;
   }
   // Оружие в основной руке. Пока брошенное оружие лежит на земле (u.disarmed), рука пуста; сам предмет из снаряжения не убирается
   // (при перезагрузке посреди боя, ошибке или переходе на обычный экран ничего не теряется), насовсем он уходит только в итоге боя (battle-end.js).
   B.mainOf = u => (u.hero && !u.disarmed && u.hero.equip && u.hero.equip.main ? itemOf(u.hero.equip.main) : null);
+  // Метательное оружие в рюкзаке («Полная перевязь» хобгоблина-метателя): каждая запись, ещё не брошенная в этом бою.
+  function bagThrowEntries(u) {
+    const c = u.hero; if (!c || !u.pass.includes("hobgoblin-thrower")) return [];
+    return (c.bag || []).filter(e => { if (e.t !== "w" || (u.bagThrown || []).includes(e)) return false; const w = itemOf(e); return w && w.kindOf === "weapon" && w.group === "melee" && wprops(w).thrown; });
+  }
+  // Все броски героя, по одному на каждую вещь: то, что в руке, и то, что в рюкзаке (для «Двойного броска»).
+  B.throwEntries = function (u) {
+    const out = [], main = B.mainOf(u);
+    if (main && main.kindOf === "weapon" && wprops(main).thrown) out.push(atkFrom(u, main, "thrown"));
+    for (const e of bagThrowEntries(u)) out.push(atkFrom(u, itemOf(e), "thrown", e));
+    return out;
+  };
   function heroAttacks(u) {
     const c = u.hero, eq = c.equip || {}, out = [];
     const main = B.mainOf(u), off = eq.off ? itemOf(eq.off) : null;
@@ -45,6 +65,9 @@
       const f = wprops(main);
       if (f.thrown) out.push(atkFrom(u, main, "thrown"));
     }
+    const seenBag = new Map();                                                                  // в списке действий одинаковое оружие из рюкзака — одной строкой
+    for (const e of bagThrowEntries(u)) { const k = e.id; if (seenBag.has(k)) { seenBag.get(k).count++; continue; } const a = atkFrom(u, itemOf(e), "thrown", e); a.count = 1; seenBag.set(k, a); out.push(a); }
+    for (const a of seenBag.values()) if (a.count > 1) a.n += ` ×${a.count}`;
     if (off && off.kindOf === "weapon" && off.group === "melee" && off.id !== "tower-shield" && u.t && u.t.attacked && main && main.group === "melee" && !wprops(main).two) out.push(atkFrom(u, off, "off"));
     const strM = amod(u.abil.str);
     out.push({ id: "fist", n: "Кулак", kind: "melee", reach: 1, hit: strM + u.pb, parts: [{ l: "Сила", v: strM }, { l: "Бонус мастерства", v: u.pb }], dmg: { n: 0, s: 0, b: Math.max(1, 1 + strM) }, dt: "bludgeon", tags: [], time: "action", sub: "атака рукой: 1 + Сила" });
@@ -52,8 +75,8 @@
     return out;
   }
   B.heroAttacks = heroAttacks;
-  B.heroReach = u => { const m = B.mainOf(u); return m && m.id === "spear" && u.pass.includes("goblin-spear") ? 2 : 1; };
-  B.attacksOf = u => (u.side === "hero" ? heroAttacks(u) : u.atk);
+  B.heroReach = u => { const m = B.mainOf(u); return m && m.id === "spear" && u.pass.includes("goblin-spear") ? 2 : 1 + longArm(u, m); };
+  B.attacksOf = u => (u.hero ? heroAttacks(u) : u.atk);
   B.meleeAttackOf = u => {
     const list = B.attacksOf(u).filter(a => a.kind === "melee" && !a.offhand && !a.thrown);
     return list.sort((a, b) => B.avgDice(b.dmg) - B.avgDice(a.dmg))[0] || null;
@@ -63,7 +86,7 @@
     if (atk.kind === "melee") return dd <= (atk.reach || 1);
     return dd <= atk.range[1] && !B.lineBlocked(u, t);
   };
-  B.attackTargets = (u, atk) => enemiesOf(u).filter(t => B.inAttackRange(u, t, atk));
+  B.attackTargets = (u, atk) => enemiesOf(u).filter(t => !has(t, "underground") && B.inAttackRange(u, t, atk));          // «Нырок под землю»: закопавшегося атаковать нельзя
   function rangeCells(u, atk) {
     const r = atk.kind === "melee" ? (atk.reach || 1) : atk.range[1], out = [];
     for (let y = 0; y < B.H; y++) for (let x = 0; x < B.W; x++) if (distCell(u, x, y) <= r && distCell(u, x, y) > 0) out.push([x, y]);
@@ -77,17 +100,25 @@
   const timeWhy = (u, t) => (timeOK(u, t) ? null : t === "bonus" ? "доп. действие потрачено" : "действие потрачено");
   Object.assign(B, { timeOK, spendTime });
 
-  // tgt — цель атаки: туда падает брошенное оружие.
-  function commitAttack(u, atk, tgt) {
-    spendTime(u, atk.time || "action");
+  // tgt — цель атаки: туда падает брошенное оружие. o.free — атака входит в способность, отдельного времени не тратит («Двойной бросок»).
+  function commitAttack(u, atk, tgt, o = {}) {
+    if (!o.free) spendTime(u, atk.time || "action");
     if (!atk.offhand) u.t.attacked = true;
     if (atk.ammo && u.hero) { takeGear(u.hero, "arrow", 1); const L = B.arrowLog(u.hero.id); L.shot++; }
-    if (atk.thrown && u.hero && !u.disarmed && u.hero.equip.main) {
-      const c = u.hero, S = B.S;
-      S.drops.push({ kind: "weapon", hero: c.id, slot: "main", item: c.equip.main, x: tgt ? tgt.x : u.x, y: tgt ? tgt.y : u.y });
-      u.disarmed = true;
-      log(`${u.name} бросает ${atk.w.name}: рука пуста, оружие падает на землю.`);
-      if (ui()) ui().refresh();
+    if (atk.thrown && u.hero) {
+      const c = u.hero, S = B.S, x = tgt ? tgt.x : u.x, y = tgt ? tgt.y : u.y;
+      if (atk.bagEntry) {                                                                         // из рюкзака: запись остаётся в рюкзаке до итога боя, как и оружие из руки
+        if (!(u.bagThrown ||= []).includes(atk.bagEntry)) {
+          u.bagThrown.push(atk.bagEntry); S.drops.push({ kind: "weapon", hero: c.id, slot: "bag", item: atk.bagEntry, x, y });
+          log(`${u.name} достаёт и бросает ${atk.w.name.toLowerCase()}: оно падает на землю.`);
+          if (ui()) ui().refresh();
+        }
+      } else if (!u.disarmed && c.equip.main) {
+        S.drops.push({ kind: "weapon", hero: c.id, slot: "main", item: c.equip.main, x, y });
+        u.disarmed = true;
+        log(`${u.name} бросает ${atk.w.name}: рука пуста, оружие падает на землю.`);
+        if (ui()) ui().refresh();
+      }
     }
   }
   B.commitAttack = commitAttack;
@@ -103,7 +134,7 @@
   /* ===== движение ===== */
   async function runMove(u) {
     if (u.t.move <= 0 && !has(u, "prone")) { UI().toast("Движения не осталось"); return false; }
-    const standCost = has(u, "prone") ? Math.ceil(speedOf(u) / 2) : 0;
+    const standCost = has(u, "prone") ? B.standCost(u) : 0;
     const budget = u.t.move - standCost;
     if (speedOf(u) === 0) { UI().toast("Скорость 0: двигаться нельзя"); return false; }
     if (has(u, "prone") && budget < 0) { UI().toast("Не хватает движения, чтобы встать"); return false; }
@@ -116,15 +147,17 @@
     if (!ch) return false;
     if (standCost) { removeStatus(u, "prone"); u.t.move -= standCost; log(`${u.name} встаёт.`); }
     if (ch.stay) return true;
-    const path = pathTo(map, ch.x, ch.y);
+    const path = ch.path && ch.path.length ? ch.path : pathTo(map, ch.x, ch.y);          // ch.path — маршрут через путевые точки
     const r = await B.moveAlong(u, path);
     u.t.move = Math.max(0, u.t.move - r.spent); u.t.moved += r.spent;
     log(`${u.name} перемещается (${r.spent} кл.).`);
+    // остановился на своём оружии — предлагаем подобрать (свободное действие)
+    if (alive(u) && !u.down && dropsHere(u).length && await UI().confirm({ title: "Подобрать оружие?", text: `Вы стоите на клетке, где лежит: ${dropNames(dropsHere(u))}. Подобрать — свободное действие.`, yes: "Подобрать", no: "Оставить" })) await pickUpWeapon(u);
     return true;
   }
   async function runStand(u) {
     if (!has(u, "prone")) return false;
-    const cost = Math.ceil(speedOf(u) / 2);
+    const cost = B.standCost(u);
     if (u.t.move < cost || speedOf(u) === 0) { UI().toast("Не хватает движения, чтобы встать"); return false; }
     u.t.move -= cost; removeStatus(u, "prone"); log(`${u.name} встаёт.`); return true;
   }
@@ -143,29 +176,40 @@
     log(`${u.name} отвлекает ${t.name}: следующая атака по нему с преимуществом.`); UI().fxText(t, "отвлечён", ""); return true;
   }
   function bestPassive(u) { return 10 + amod(u.abil.wis) + (u.skills.perception || 0) + hookSum(u, "passivePerception", {}); }
-  function hideSpot(u) {
+  B.passivePerceptionOf = bestPassive;
+  function hideSpot(u, o = {}) {
+    if (u.pass && u.pass.includes("whisperer")) {                                      // «Шёпот в ухо»: от обманутого можно спрятаться без укрытия — «скрыт» общий, поэтому обмануты должны быть все, кто видит
+      const seers = enemiesOf(u).filter(e => canAct(e) && B.canSeeUnit(e, u));
+      if (seers.length && seers.every(e => has(e, "fooled"))) return "от обманутого";
+    }
     const t = B.tinfo(u.x, u.y);
     if (t && t.hide) return "в укрытии";
+    if (B.inZone && B.inZone(u, "dust")) return "в белой пыли";                         // сильное заслонение, как туман
+    if (o.near) for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { const tn = (dx || dy) && B.tinfo(u.x + dx, u.y + dy); if (tn && tn.hide) return "рядом заросли"; }          // «Уход в тень»: кусты и туман рядом тоже годятся
     for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) if ((dx || dy) && B.obstacleAt(u.x + dx, u.y + dy)) return "у препятствия";
     if (B.inDark(u)) return "в тени";
     return null;
   }
   B.hideSpot = hideSpot;
-  async function doHide(u) {
-    const spot = hideSpot(u);
-    if (!spot) { UI().toast("Спрятаться можно у препятствия, в кустах, тумане или в тени"); return false; }
+  // Попытка спрятаться: Скрытность против лучшего пассивного Восприятия врагов. o: time — чем платит ('action' | 'bonus' | null),
+  // anywhere — укрытие не нужно, seen — можно, даже если враги рядом и видят, cancel — до броска можно отказаться.
+  B.hideRoll = async function (u, o = {}) {
+    const spot = o.anywhere ? "без укрытия" : hideSpot(u, o);
+    if (!spot) { if (o.toast !== false) UI().toast("Спрятаться можно у препятствия, в кустах, тумане или в тени"); return null; }
     const foes = enemiesOf(u).filter(e => canAct(e));
-    if (foes.some(e => dist(e, u) <= 1)) { UI().toast("Враг рядом: спрятаться нельзя"); return false; }
+    if (!o.seen && foes.some(e => dist(e, u) <= 1)) { if (o.toast !== false) UI().toast("Враг рядом: спрятаться нельзя"); return null; }
     const dc = Math.max(8, ...foes.filter(e => !(e.tremor && dist(e, u) <= e.tremor) && !(e.blind && dist(e, u) <= e.blind)).map(bestPassive));
     const adv = [], dis = [];
     if (u.hero && u.hero.equip && itemOf(u.hero.equip.body) && itemOf(u.hero.equip.body).stealth) dis.push("тяжёлая броня");
     const main = B.mainOf(u); if (main && main.id === "tower-shield") dis.push("ростовой щит");
-    const r = await B.doCheck(u, "stealth", { title: "Спрятаться", label: `${spot} · Сл ${dc}`, dc, adv, dis, cancel: true, onCommit: () => spendTime(u, "action"), tags: ["hide"] });
-    if (!r) return false;
-    if (r.ok) { addStatus(u, "hidden", { k: Infinity }); log(`${u.name} прячется (${r.total} против ${dc}).`); UI().fxText(u, "скрыт", "good"); }
-    else { log(`${u.name} не удалось спрятаться (${r.total} против ${dc}).`); UI().fxText(u, "заметили", "bad"); }
-    return true;
-  }
+    if (u.pass.includes("ash-wraith")) dis.push("светится");                                       // «Тлеющее тело»: тусклый свет мешает прятаться
+    const r = await B.doCheck(u, "stealth", { title: o.title || "Спрятаться", label: `${spot} · Сл ${dc}`, dc, adv, dis, cancel: !!o.cancel, onCommit: () => { if (o.time) spendTime(u, o.time); }, tags: ["hide"] });
+    if (!r) return null;
+    if (r.ok) { addStatus(u, "hidden", { k: Infinity }); log(`${u.name} прячется (${r.total} против ${dc}).`); const g = ui(); if (g) g.fxText(u, "скрыт", "good"); }
+    else { log(`${u.name} не удалось спрятаться (${r.total} против ${dc}).`); const g = ui(); if (g) g.fxText(u, "заметили", "bad"); }
+    return r;
+  };
+  async function doHide(u) { return !!(await B.hideRoll(u, { time: "action", cancel: true })); }
   const bestDef = u => (u.skills.acrobatics || 0) + amod(u.abil.dex) > (u.skills.athletics || 0) + amod(u.abil.str) ? "acrobatics" : "athletics";
   B.bestDef = bestDef;
   async function doGrapple(u) {
@@ -188,27 +232,69 @@
     if (!r) return false;
     if (!r.win) { UI().fxText(t, "устоял", ""); return true; }
     const ch = await UI().choose({ title: "Толчок удался", options: [{ id: "push", label: "Оттолкнуть на 1 клетку" }, { id: "prone", label: "Сбить с ног" }] });
-    if (ch === "push") { const n = await B.push(t, u.x, u.y, 1); if (!n) { addStatus(t, "prone", { k: Infinity }); log(`${t.name} сбит с ног (некуда отступать).`); } else log(`${u.name} отталкивает ${t.name}.`); }
-    else { addStatus(t, "prone", { k: Infinity }); log(`${u.name} сбивает ${t.name} с ног.`); UI().fxText(t, "сбит с ног", "bad"); }
+    if (ch === "push") { const n = await B.push(t, u.x, u.y, 1); if (!n) { B.knock(t, u); log(`${t.name} сбит с ног (некуда отступать).`); } else log(`${u.name} отталкивает ${t.name}.`); }
+    else { B.knock(t, u); log(`${u.name} сбивает ${t.name} с ног.`); UI().fxText(t, "сбит с ног", "bad"); }
     return true;
   }
+  // Что держит героя: у каждой хватки, сети, ловушки, засыпания своя проверка — одним действием можно вырваться только из одной.
+  function holdsOf(u) {
+    const out = [], gr = has(u, "grappled"), tr = has(u, "trapped") || has(u, "pinned"), rs = has(u, "restrained"), bu = has(u, "buried");
+    if (gr) out.push({ id: "grappled", label: "Хватка" + (gr.data.by && B.byId(gr.data.by) ? `: ${B.byId(gr.data.by).name}` : "") });
+    if (rs) out.push({ id: "restrained", label: rs.data && rs.data.net ? (rs.data.web ? "Паутина" : "Сеть") : "Путы" });
+    if (tr) out.push({ id: tr.id, label: tr.id === "pinned" ? "Пригвождён" : "Ловушка" });
+    if (bu) out.push({ id: "buried", label: "Засыпан землёй" });
+    return out;
+  }
+  B.holdsOf = holdsOf;
   async function doEscape(u) {
-    const gr = has(u, "grappled"), tr = has(u, "trapped") || has(u, "pinned"), rs = has(u, "restrained");
-    const by = gr ? B.byId(gr.data.by) : null;
+    const holds = holdsOf(u); if (!holds.length) return false;
+    let hold = holds[0];
+    if (holds.length > 1) { const ch = await UI().choose({ title: "Из чего вырваться?", options: holds.map(h => ({ id: h.id, label: h.label })) }); if (!ch) return false; hold = holds.find(h => h.id === ch) || hold; }
+    const st = has(u, hold.id), gr = hold.id === "grappled" ? st : null, by = gr ? B.byId(gr.data.by) : null;
     let ok;
-    if (gr && gr.data.dc) {                                       // хватка эссенции: проверка Силы или Ловкости против её Сл
-      const r = await B.doCheck(u, bestDef(u), { title: "Вырваться из хватки", label: `Сл ${gr.data.dc}`, dc: gr.data.dc, cancel: true, onCommit: () => spendTime(u, "action"), adv: has(u, "wet") ? ["промок: скользкий"] : [], tags: ["grapple"] });
+    if (hold.id === "buried") {                                                                   // «Похоронить заживо»: Атлетика против результата могильщика
+      const r = await B.doCheck(u, "athletics", { title: "Выбраться из земли", label: `нужно больше ${st.data.dc - 1}`, dc: st.data.dc, cancel: true, onCommit: () => spendTime(u, "action") });
       if (!r) return false; ok = r.ok;
-    } else if (by && alive(by)) {
+    } else if (gr && gr.data.dc) {                                                                // хватка эссенции: проверка против её Сл (Силы — если так сказано в тексте, иначе Силы или Ловкости)
+      const r = await B.doCheck(u, gr.data.skill || bestDef(u), { title: "Вырваться из хватки", label: `Сл ${gr.data.dc}`, dc: gr.data.dc, cancel: true, onCommit: () => spendTime(u, "action"), adv: has(u, "wet") ? ["промок: скользкий"] : [], tags: ["grapple"] });
+      if (!r) return false; ok = r.ok;
+    } else if (gr && by && alive(by)) {
       const r = await B.contest(u, bestDef(u), by, "athletics", { title: "Вырваться из захвата", cancel: true, onCommit: () => spendTime(u, "action"), advA: has(u, "wet") ? ["промок: скользкий"] : [], tagsA: ["grapple"] });
       if (!r) return false; ok = r.win;
     } else {
-      const dc = (tr && tr.data.dc) || (rs && rs.data.dc) || 12;
+      const dc = (st.data && st.data.dc) || 12;
       const r = await B.doCheck(u, "athletics", { title: "Вырваться", label: `Сл ${dc}`, dc, cancel: true, onCommit: () => spendTime(u, "action") });
       if (!r) return false; ok = r.ok;
     }
-    if (ok) { for (const id of ["grappled", "trapped", "restrained", "pinned"]) removeStatus(u, id); log(`${u.name} вырывается.`, "good"); UI().fxText(u, "свободен", "good"); }
+    if (ok) { removeStatus(u, hold.id); log(`${u.name} вырывается (${hold.label.toLowerCase()}).`, "good"); UI().fxText(u, "свободен", "good"); }
     else UI().fxText(u, "не вышло", "bad");
+    return true;
+  }
+  // Союзник рядом откапывает засыпанного — действием, без проверки.
+  async function doDigOut(u) {
+    const near = alliesOf(u).filter(a => dist(u, a) <= 1 && has(a, "buried"));
+    if (!near.length) { UI().toast("Откапывать некого"); return false; }
+    const t = near.length === 1 ? near[0] : await UI().pickUnit({ prompt: "Откопать: кого?", units: near.map(a => a.id), cells: [], kind: "help" });
+    if (!t) return false;
+    spendTime(u, "action"); removeStatus(t, "buried"); log(`${u.name} откапывает ${t.name}.`, "good"); UI().fxText(t, "откопан", "good"); return true;
+  }
+  // Сеть и паутина: рубящий урон (для паутины ещё огонь) снимает путы. У сети «5 ОЗ»; урон копится, пока она не порвётся.
+  function netVictims(u) { return [u, ...alliesOf(u).filter(a => dist(u, a) <= 1)].filter(a => { const r = has(a, "restrained"); return r && r.data && r.data.net; }); }
+  function netAttack(u, net) { return B.attacksOf(u).filter(a => a.kind === "melee" && !a.offhand && !a.thrown && (a.dt === "slash" || (net.web && a.dt === "fire")) && (a.id !== "fist")).sort((a, b) => B.avgDice(b.dmg) - B.avgDice(a.dmg))[0] || null; }
+  async function doCutNet(u) {
+    const vs = netVictims(u).filter(a => netAttack(u, has(a, "restrained").data.net));
+    if (!vs.length) { UI().toast("Нужно рубящее оружие (для паутины — ещё огонь)"); return false; }
+    const t = vs.length === 1 ? vs[0] : await UI().pickUnit({ prompt: "Разрезать путы: кого?", units: vs.map(a => a.id), cells: [], kind: "help", includeSelf: true });
+    if (!t) return false;
+    const st = has(t, "restrained"), net = st.data.net, a = netAttack(u, net);
+    const ses = B.session(u, { kind: "damage", u, title: net.web ? "Разрубить паутину" : "Разрезать сеть", sub: `${u.name}: ${a.n} по ${net.web ? "паутине" : "сети"} (осталось ${net.hp})` });
+    const r = await ses.dice({ label: `Урон ${a.dmg.n ? fmtDice(a.dmg) : a.dmg.b}`, n: a.dmg.n, s: a.dmg.s, bonus: a.dmg.b, dt: a.dt, cancel: true, reroll: B.rerollOptions(u, "damage", { melee: true }) });
+    if (!r) { ses.close(); return false; }
+    spendTime(u, "action");
+    const dmg = r.sum + a.dmg.b; net.hp -= dmg;
+    await ses.finish({ text: net.hp <= 0 ? `${dmg} урона — ${net.web ? "паутина" : "сеть"} порвана` : `${dmg} урона, осталось ${net.hp}`, anim: B.animKind(a), dmg, tgt: t });
+    if (net.hp <= 0) { removeStatus(t, "restrained"); log(`${u.name} ${net.web ? "разрубает паутину" : "режет сеть"}: ${t.name} свободен.`, "good"); UI().fxText(t, "свободен", "good"); }
+    else log(`${u.name} режет путы ${t.name}: осталось ${net.hp}.`);
     return true;
   }
   // Перевязка: Медицина Сл 10 останавливает кровотечение у себя или у союзника рядом (текст «Кровопускания»).
@@ -261,23 +347,34 @@
     spendTime(u, "bonus"); addStatus(t, "guarded", { k: Infinity, data: { endAtStartOf: u.id } });
     log(`${u.name} прикрывает ${t.name} ростовым щитом (+2 КД).`, "good"); UI().fxText(t, "+2 КД", "good"); return true;
   }
-  // Своё брошенное оружие, до которого можно дотянуться (в своей клетке или рядом), и лежит ли оно под врагом.
-  function reachableDrops(u) { return B.S.drops.filter(w => w.kind === "weapon" && w.hero === u.hero.id && distCell(u, w.x, w.y) <= 1); }
-  const underFoe = (u, w) => { const o = occupant(w.x, w.y); return !!(o && o.side !== u.side); };
+  // Своё брошенное оружие, которое лежит в клетке героя: подобрать можно только стоя на нём (свободное действие).
+  function dropsHere(u) {
+    if (!u.hero) return [];
+    const cells = footprint(u);
+    return B.S.drops.filter(w => w.kind === "weapon" && w.hero === u.hero.id && (!w.holder || w.holder === u.id) && cells.some(([x, y]) => x === w.x && y === w.y))
+      .sort((a, b) => (a.slot === "main" ? 0 : 1) - (b.slot === "main" ? 0 : 1));
+  }
+  B.dropsHere = dropsHere;
+  const dropNames = list => list.map(w => ((typeof itemOf === "function" && itemOf(w.item)) || { name: "оружие" }).name.toLowerCase()).join(", ");
+  B.dropNames = dropNames;
+  // Подбирает всё своё оружие в этой клетке: из руки — обратно в руку, из рюкзака — обратно в рюкзак. Свободное действие, тратить нечего.
   async function pickUpWeapon(u) {
-    const S = B.S, near = reachableDrops(u).filter(w => !underFoe(u, w));
-    if (!near.length) return false;
-    const w = near[0]; S.drops.splice(S.drops.indexOf(w), 1);
-    u.disarmed = false;
-    u.t.objUsed = true; log(`${u.name} подбирает ${itemOf(w.item).name.toLowerCase()}.`, "good");
-    const g = ui(); if (g) { g.fxText(u, "оружие в руке", "good"); g.refresh(); }
+    const S = B.S, here = dropsHere(u);
+    if (!here.length) return false;
+    for (const w of here) {
+      S.drops.splice(S.drops.indexOf(w), 1);
+      if (w.slot === "bag") u.bagThrown = (u.bagThrown || []).filter(e => e !== w.item); else u.disarmed = false;          // брошенное из рюкзака возвращается в рюкзак
+    }
+    log(`${u.name} подбирает ${dropNames(here)}.`, "good");
+    const g = ui(); if (g) { g.fxText(u, here.some(w => w.slot !== "bag") ? "оружие в руке" : "подобрано", "good"); g.refresh(); }
     return true;
   }
+  B.pickUpWeapon = pickUpWeapon;
   async function dragonHeart(u) {
     const c = u.hero; c.flags = c.flags || {};
     if (c.flags.heart) return false;
     spendTime(u, "bonus"); c.flags.heart = true;
-    const t = Math.max(1, u.level + amod(u.abil.con)); u.temp = Math.max(u.temp || 0, t);
+    const t = Math.max(1, u.level + amod(u.abil.con)); if (t > (u.temp || 0)) { u.temp = t; u.tempSrc = "heart"; }
     log(`${u.name}: драконье сердце — ${t} временных ОЗ.`, "good"); UI().fxText(u, `+${t} врем. ОЗ`, "good"); return true;
   }
 
@@ -298,7 +395,7 @@
     const r = await B.moveAlong(u, pathTo(map, ch[0], ch[1]));
     u.t.move = Math.max(0, u.t.move - r.spent);
     if (!alive(u) || u.down) return true;
-    if (u.y === B.H - 1) { u.escaped = true; log(`${u.name} покидает поле боя.`, "flee"); const g = ui(); if (g) g.fxEscape(u); }
+    if (u.y === B.H - 1) { u.escaped = true; B.dropOwnedStatuses(u); log(`${u.name} покидает поле боя.`, "flee"); const g = ui(); if (g) g.fxEscape(u); }
     return true;
   }
 
@@ -307,16 +404,16 @@
     const out = [];
     for (const id of u.ess) {
       const A = B.A && B.A[id]; if (!A) continue;
-      const eb = ESSENCES[id].active, name = eb.name;
+      const eb = ESSENCES[id].active, st = A.state ? A.state(u) : {}, name = st.label || eb.name, mana = st.mana != null ? st.mana : eb.mana, cdTxt = D.essCd[id] >= 99 ? " · раз за бой" : D.essCd[id] ? " · КД " + D.essCd[id] : "";
       let why = null;
       if (A.time === "reaction") {
         out.push({ id: "skill:" + id, cat: "skill", label: name, ico: "skills", sub: `${eb.mana} маны · реакция${D.essCd[id] ? " · КД " + D.essCd[id] : ""}`, desc: eb.text, time: "reaction", enabled: false,
           why: u.cd[id] > 0 ? `перезарядка: ${u.cd[id]} р.` : u.mp < eb.mana ? `нужно ${eb.mana} маны` : "сработает сама: игра спросит, когда можно", ess: id, run: async () => false });
         continue;
       }
-      why = timeWhy(u, A.time) || (u.mp < eb.mana ? `нужно ${eb.mana} маны` : (u.cd[id] > 0 ? `перезарядка: ${u.cd[id]} р.` : null));
+      why = timeWhy(u, A.time) || (u.mp < mana ? `нужно ${mana} маны` : (u.cd[id] > 0 ? (st.why || (D.essCd[id] >= 99 ? "уже использовано в этом бою" : `перезарядка: ${u.cd[id]} р.`)) : null));
       if (!why && A.can) { const c = A.can(u); if (c !== true && c) why = c; }
-      out.push({ id: "skill:" + id, cat: "skill", label: name, ico: "skills", sub: `${eb.mana} маны · ${TIME_RU[A.time]}${D.essCd[id] ? " · КД " + D.essCd[id] : ""}`, desc: eb.text, time: A.time, enabled: !why, why, ess: id,
+      out.push({ id: "skill:" + id, cat: "skill", label: name, ico: "skills", sub: `${mana} маны · ${TIME_RU[A.time]}${cdTxt}${st.note ? " · " + st.note : ""}`, desc: eb.text, time: A.time, enabled: !why, why, ess: id,
         run: async () => { const spec = A.tgt ? A.tgt(u) : { type: "self" }; const picks = await UI().pickFor(u, spec, A); if (!picks) return false; return B.useActive(u, id, picks); } });
     }
     // доп. возможности пассивок
@@ -324,18 +421,24 @@
     return out;
   }
   // Расход ресурсов и запуск активки. Возвращает true, если способность сработала.
+  // A.state(u) — состояние способности: label (название сейчас), mana (сколько стоит сейчас), cd (перезарядка после применения), note, why.
+  // Так «Самодельная бомба» просит ману только за первую половину, а «Проклятие предков» перезаряжается лишь после конца проклятия.
   async function useActive(u, id, picks, o = {}) {
     const A = B.A[id], eb = ESSENCES[id].active; let committed = false;
+    const st = A.state ? A.state(u) : {};
+    const mana = st.mana != null ? st.mana : eb.mana, cd = st.cd != null ? st.cd : (D.essCd[id] || 1);
     const commit = () => {
       if (committed) return; committed = true;
-      if (u.side === "hero") { setMp(u, u.mp - eb.mana); u.cd[id] = D.essCd[id] || 1; spendTime(u, A.time); }
+      if (u.side === "hero") { setMp(u, u.mp - mana); B.setCd(u, id, cd); spendTime(u, A.time); }
       else { u.used[id] = true; spendTime(u, A.time); }
+      const hv = has(u, "hidden"); if (hv && hv.data.invis && id !== "grey-shade") { removeStatus(u, "hidden"); log(`${u.name}: невидимость пропала.`); }          // «Растворение»: способность снимает невидимость
     };
-    if (u.side === "hero" && u.mp < eb.mana) return false;
+    if (u.side === "hero" && u.mp < mana) return false;
     const r = await A.run(u, picks, { commit, o });
     if (r === false && !committed) return false;
     if (!committed) commit();
-    log(`${u.name}: ${eb.name}.`, "skill");
+    log(`${u.name}: ${st.label || eb.name}.`, "skill");
+    if (B.flushQueue) await B.flushQueue();
     return true;
   }
   B.useActive = useActive;
@@ -354,7 +457,7 @@
     opts.push(...skillOptions(u));
     // движение
     opts.push({ id: "move", cat: "move", label: "Перемещение", ico: "move", sub: `осталось ${t.move} кл.`, time: "move", enabled: t.move > 0 && speedOf(u) > 0, why: speedOf(u) === 0 ? "скорость 0" : "нет движения", run: () => runMove(u) });
-    if (has(u, "prone")) opts.push({ id: "stand", cat: "move", label: "Встать", ico: "move", sub: `стоит ${Math.ceil(speedOf(u) / 2)} кл.`, time: "move", enabled: t.move >= Math.ceil(speedOf(u) / 2), why: "нет движения", run: () => runStand(u) });
+    if (has(u, "prone")) opts.push({ id: "stand", cat: "move", label: "Встать", ico: "move", sub: `стоит ${B.standCost(u)} кл.${B.standCost(u) > Math.ceil(speedOf(u) / 2) ? " (глубокая яма: всё движение)" : ""}`, time: "move", enabled: t.move >= B.standCost(u) && t.move > 0, why: "нет движения", run: () => runStand(u) });
     // оборона и прочие действия
     opts.push({ id: "defend", cat: "defend", label: "Оборона", ico: "defend", sub: "атаки по вам с помехой, преимущество на спасброски Ловкости", time: "action", enabled: timeOK(u, "action"), why: timeWhy(u, "action"), run: () => doDefend(u) });
     const act = timeWhy(u, "action");
@@ -364,7 +467,9 @@
     opts.push(simple("hide", "Спрятаться", "hide", "Скрытность против Восприятия врагов; нужно укрытие", () => doHide(u), { enabled: !act && !!hideSpot(u), why: act || "нет укрытия рядом" }));
     opts.push(simple("grapple", "Захват", "grapple", "Атлетика против Атлетики или Акробатики", () => doGrapple(u), { enabled: !act && enemiesOf(u).some(e => dist(u, e) <= 1), why: act || "нет врага рядом" }));
     opts.push(simple("shove", "Толчок", "shove", "оттолкнуть или сбить с ног", () => doShove(u), { enabled: !act && enemiesOf(u).some(e => dist(u, e) <= 1), why: act || "нет врага рядом" }));
-    if (has(u, "grappled") || has(u, "trapped") || has(u, "restrained") || has(u, "pinned")) opts.push(simple("escape", "Вырваться", "grapple", "проверка Силы или Ловкости", () => doEscape(u), { enabled: !act, why: act }));
+    if (has(u, "grappled") || has(u, "trapped") || has(u, "restrained") || has(u, "pinned") || has(u, "buried")) opts.push(simple("escape", "Вырваться", "grapple", has(u, "buried") ? "Атлетика против результата могильщика" : "проверка Силы или Ловкости", () => doEscape(u), { enabled: !act, why: act }));
+    if (netVictims(u).length) opts.push(simple("cutnet", "Разрезать путы", "attack", "рубящее оружие снимает сеть и паутину (5 урона)", () => doCutNet(u), { enabled: !act && netVictims(u).some(a => netAttack(u, has(a, "restrained").data.net)), why: act || "нужно рубящее оружие (для паутины — ещё огонь)" }));
+    if (alliesOf(u).some(a => dist(u, a) <= 1 && has(a, "buried"))) opts.push(simple("dig", "Откопать союзника", "help", "союзник рядом на свободе", () => doDigOut(u), { enabled: !act, why: act }));
     if ([u, ...alliesOf(u)].some(a => has(a, "bleeding") && dist(u, a) <= 1 && !a.dead)) opts.push(simple("bandage", "Перевязать", "heart", "остановить кровотечение: Медицина Сл 10", () => doBandage(u), { enabled: !act, why: act }));
     if (B.S.objs.some(o => o.kind === "trap" && o.hidden)) opts.push(simple("search", "Осмотреться", "search", "найти скрытые ловушки", () => doSearch(u), { enabled: !act, why: act }));
     // предметы
@@ -377,11 +482,12 @@
     const off = c.equip.off ? itemOf(c.equip.off) : null, main = B.mainOf(u);
     if (off && off.id === "shield") opts.push({ id: "shieldbash", cat: "item", label: "Удар щитом", ico: "shield", sub: "толчок как доп. действие", time: "bonus", enabled: !bon && enemiesOf(u).some(e => dist(u, e) <= 1), why: bon || "нет врага рядом", run: () => doShove(u, "bonus") });
     if (main && main.id === "tower-shield") opts.push({ id: "cover", cat: "item", label: "Прикрыть союзника", ico: "shield", sub: "+2 КД союзнику рядом до вашего хода", time: "bonus", enabled: !bon && alliesOf(u).some(a => dist(u, a) <= 1 && !a.down), why: bon || "нет союзника рядом", run: () => coverAlly(u) });
-    const mine = reachableDrops(u);
-    if (mine.length) { const blocked = mine.every(w => underFoe(u, w)); opts.push({ id: "pickup", cat: "item", label: "Подобрать оружие", ico: "throwing", sub: "свободно, рядом лежит ваше оружие", time: "free", enabled: !u.t.objUsed && !blocked, why: u.t.objUsed ? "в этот ход вы уже брали предмет" : blocked ? "оружие лежит под врагом" : null, run: () => pickUpWeapon(u) }); }
+    const here = dropsHere(u);
+    if (here.length) opts.push({ id: "pickup", cat: "item", label: `Подобрать: ${dropNames(here)}`, ico: "throwing", sub: "свободное действие — вы стоите на нём", time: "free", enabled: true, run: () => pickUpWeapon(u), pop: true });
     if (D.race[u.race] && D.race[u.race].heart) opts.push({ id: "heart", cat: "item", label: "Драконье сердце", ico: "heart", sub: "временные ОЗ = уровень + Тел., раз за отдых", time: "bonus", enabled: !bon && !(c.flags && c.flags.heart), why: bon || "уже использовано", run: () => dragonHeart(u) });
     // побег
     opts.push({ id: "flee", cat: "flee", label: "Побег", ico: "flee", sub: "добежать до нижнего края и покинуть поле", time: "action", enabled: speedOf(u) > 0, why: "скорость 0", run: () => runFlee(u) });
+    if (has(u, "underground")) for (const o of opts) { o.enabled = false; o.why = "под землёй до начала хода"; }          // «Нырок под землю»: до следующего хода ничего не делает
     return opts;
   }
   B.actionsFor = actionsFor;
@@ -393,7 +499,7 @@
     return [...B.pathMap(u, u.t.move, {}).values()].some(v => (v.x !== u.x || v.y !== u.y) && B.canStand(u, v.x, v.y));
   }
   B.turnSpent = u => {
-    if (!u || !alive(u) || u.down || u.escaped) return true;
+    if (!u || !alive(u) || u.down || u.escaped || has(u, "underground")) return true;
     const t = u.t || {};
     if (t.action > 0) return false;
     if (t.bonus > 0 && actionsFor(u).some(o => o.enabled && o.time === "bonus" && !o.useless)) return false;

@@ -14,13 +14,15 @@
     S.gear = [];
     for (const u of B.heroes()) {
       const c = u.hero; if (!c) continue;
-      const w = u.disarmed ? S.drops.find(d => d.kind === "weapon" && d.hero === c.id) : null;
-      if (w) {
+      for (const w of S.drops.filter(d => d.kind === "weapon" && d.hero === c.id)) {          // оружие из руки и из рюкзака («Полная перевязь»), в том числе схваченное вором
         const nm = ((typeof itemOf === "function" && itemOf(w.item)) || {}).name || "оружие";
         if (keeps) S.gear.push({ ok: true, t: `${c.name} подбирает ${nm.toLowerCase()}` });
-        else { delete c.equip[w.slot]; S.gear.push({ ok: false, t: `${nm} (${c.name}) осталось на поле` }); }
+        else {
+          if (w.slot === "bag") { const i = (c.bag || []).indexOf(w.item); if (i >= 0) c.bag.splice(i, 1); } else delete c.equip[w.slot];
+          S.gear.push({ ok: false, t: `${nm} (${c.name}) осталось на поле` });
+        }
       }
-      u.disarmed = false;
+      u.disarmed = false; u.bagThrown = [];
       const lg = S.arrowLog[c.id], lying = S.drops.filter(d => d.kind === "arrow" && d.hero === c.id).length;
       if (lg && lg.shot) {
         const back = keeps && lying ? lying - addToBag(c, { t: "g", id: "arrow", qty: lying }) : 0;

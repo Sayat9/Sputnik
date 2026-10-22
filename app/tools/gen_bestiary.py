@@ -21,6 +21,11 @@ def face(m):
     if m["ph"]: return f"assets/monsters/ph-{m['ph']}-face.svg"
     p = f"monsters/{m['id']}-face"
     return f"assets/{p}.{'webp' if p in RASTER else 'svg'}"
+def full(m):
+    """Портрет в полный рост (рядом с иконкой в записи монстра)."""
+    if m["ph"]: return f"assets/monsters/ph-{m['ph']}-full.svg"
+    p = f"monsters/{m['id']}-full"
+    return f"assets/{p}.{'webp' if p in RASTER else 'svg'}"
 
 ZONES = [("goblin", "Гуманоиды", "зона гоблинов · северо-запад"), ("beast", "Звери", "зона зверей · юго-запад"),
          ("undead", "Нежить", "зона нежити · северо-восток"), ("stone", "Элементали", "зона элементов · юго-восток")]
@@ -97,7 +102,7 @@ for zid, zname, zdesc in ZONES:
         if m["statDraft"]: tags.append('<span class="tag draft">черновик статов</span>')
         cards.append(f'''<article class="mon" hidden id="{m["id"]}" data-zone="{zid}" data-floor=" {" ".join(map(str, m["floors"]))} " data-cls="{m["cls"]}" data-rank="{m["rank"]}" data-rare="{int(m["rare"])}" data-name="{m["name"].lower()}">
   <button class="close" data-close aria-label="Закрыть запись">✕</button>
-  <header><img class="face" src="{face(m)}" alt="{m["name"]}" loading="lazy">
+  <header><div class="pics"><img class="face" src="{face(m)}" alt="Иконка: {m["name"]}" loading="lazy"><img class="full" src="{full(m)}" alt="{m["name"]} в полный рост" loading="lazy"></div>
     <div class="hd"><h3>{m["name"]}</h3><div class="tags">{"".join(tags)}</div>
     <p class="habit">{inline(habit)}</p></div></header>
   {spawn}<div class="body">{md(body)}</div>
@@ -159,7 +164,9 @@ body::before {{ content: ""; position: fixed; inset: 0 0 auto; height: env(safe-
 .mon {{ border: 1px solid var(--line); border-radius: 8px; background: var(--panel); overflow: hidden; scroll-margin-top: 60px; }}
 .mon header {{ display: flex; gap: 14px; align-items: center; padding: 14px; background: var(--panel2); border-bottom: 1px solid var(--line); }}
 .mon .face {{ width: 84px; height: 84px; flex: none; border-radius: 6px; border: 1px solid var(--line); object-fit: cover; background: #0F0C08; }}
-.mon[data-rare="1"] .face {{ border-color: var(--rare); }}
+.mon .full {{ width: 148px; aspect-ratio: 2 / 3; flex: none; border-radius: 6px; border: 1px solid var(--line); object-fit: cover; object-position: 50% 20%; background: #0F0C08; }}
+.pics {{ display: flex; gap: 10px; align-items: flex-start; flex: none; }}
+.mon[data-rare="1"] .face, .mon[data-rare="1"] .full {{ border-color: var(--rare); }}
 .hd {{ min-width: 0; display: flex; flex-direction: column; gap: 6px; }}
 .mon h3 {{ font: 400 24px/1.05 var(--f-display); color: var(--gold-hi); margin: 0; }}
 .tags {{ display: flex; flex-wrap: wrap; gap: 5px; }}
@@ -184,7 +191,8 @@ td {{ text-align: center; padding: 6px 4px; }}
 .fchip[aria-current="true"] img {{ box-shadow: 0 0 0 3px var(--gold); }}
 .hint {{ color: var(--muted); text-align: center; margin: 4px 0 0; font-size: 14px; }}
 .empty {{ color: var(--muted); text-align: center; padding: 30px 0; }}
-@media (max-width: 420px) {{ .mon .face {{ width: 68px; height: 68px; }} .top h1 {{ font-size: 28px; }} }}
+@media (max-width: 560px) {{ .mon header {{ flex-direction: column; align-items: flex-start; }} }}
+@media (max-width: 420px) {{ .mon .face {{ width: 68px; height: 68px; }} .mon .full {{ width: 130px; }} .top h1 {{ font-size: 28px; }} }}
 @media (prefers-reduced-motion: no-preference) {{ html {{ scroll-behavior: smooth; }} }}
 </style>
 <div class="wrap">

@@ -17,6 +17,16 @@ async function waitHero(p, o = {}) {
     global.__tick = Date.now();
     const m = await L.mode(p); if (m === 'hero') return true;
     if (m === 'result') return false;
+    // выбор клетки, начатый до меню хода (вынырнуть из-под земли в начале хода): подсказка должна быть видна, отвечаем касанием клетки или «Отмена»
+    const ip = await p.evaluate(() => (window.Battle && Battle.UI && Battle.UI.pick) ? { type: Battle.UI.pick.type, prompt: !!document.querySelector('.bt-panel .bt-prompt'), hl: [...Battle.UI.hl.entries()].filter(([k, c]) => /hl-(move|flee|ally|danger)/.test(c.join(' '))).map(([k]) => k) } : null);
+    if (ip) {
+      global.__idlePicks = (global.__idlePicks || 0) + 1; if (!ip.prompt) global.__idlePickNoPrompt = true;
+      try {
+        if (ip.hl.length && global.__idlePicks % 2) { const [x, y] = ip.hl[0].split(',').map(Number); await L.tapCell(p, x, y); await L.sleep(150); const okb = await p.$('[data-ba="pick-ok"]:not([disabled])'); if (okb) await okb.click({ timeout: 2000 }); }
+        else { const cb = await p.$('[data-ba="pick-cancel"]'); if (cb) await cb.click({ timeout: 2000 }); }
+      } catch (e) { /* панель перерисовалась между поиском и нажатием — повторим на следующем круге */ }
+      await L.sleep(300); continue;
+    }
     if (o.log) { const md = await handleModal(p, o.prefer || 'no'); if (md) console.log('  модал:', md); } else await handleModal(p, o.prefer || 'no');
     // лист броска (спасбросок героя, смерть и т.п.)
     const sh = await p.$('.bd-ov'); if (sh) await playSheet(p, { quiet: true });

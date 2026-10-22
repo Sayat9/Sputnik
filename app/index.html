@@ -2158,7 +2158,7 @@ function essBonus(c) {
     else if ((m = /^Максимум маны ([+−-])(\d+)/.exec(o))) out.mp += sg(m[1]) * num(m[2]);
     else if ((m = /^Дальность стрелкового оружия ([+−-])(\d+(?:[.,]\d+)?) м/.exec(o))) out.range += sg(m[1]) * num(m[2]);
     else if ((m = /^Спасброски (\S+) ([+−-])(\d+)/.exec(o)) && SAVE_KEYS[m[1]]) out.saves[SAVE_KEYS[m[1]]] = (out.saves[SAVE_KEYS[m[1]]] || 0) + sg(m[2]) * num(m[3]);
-    else if ((m = /^(\S+(?: рук)?) ([+−-])(\d+)$/.exec(o)) && SKILL_KEYS[m[1]]) out.skills[SKILL_KEYS[m[1]]] = (out.skills[SKILL_KEYS[m[1]]] || 0) + sg(m[2]) * num(m[3]);
+    else if ((m = /^(\S+(?: рук)?) ([+−-])(\d+)(?:\s*\([^)]*\))?$/.exec(o)) && SKILL_KEYS[m[1]]) out.skills[SKILL_KEYS[m[1]]] = (out.skills[SKILL_KEYS[m[1]]] || 0) + sg(m[2]) * num(m[3]);       // «Восприятие +1 (нюх)» — пояснение в скобках не мешает
   }
   return out;
 }
@@ -2177,9 +2177,9 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 5;
-const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js",
-  "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle.js"];
+const BATTLE_REV = 7;
+const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
+  "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined) st.tactical = true; return st; }
 let battleLoad = null;
 function loadBattle() {

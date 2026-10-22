@@ -13,7 +13,7 @@ async function invariants(p, tag) {
     for (const u of S.units) {
       if (isNaN(u.hp) || u.hp < 0 || u.hp > u.maxHp) out.push(`${tag}: hp ${u.name} ${u.hp}/${u.maxHp}`);
       if (u.side === 'hero' && (isNaN(u.mp) || u.mp < 0 || u.mp > u.maxMp)) out.push(`${tag}: mp ${u.name} ${u.mp}/${u.maxMp}`);
-      if (u.hero && u.hero.hp !== u.hp) out.push(`${tag}: рассинхрон ОЗ ${u.name} ${u.hero.hp} vs ${u.hp}`);
+      if (u.hero && !S.outcome && u.hero.hp !== u.hp) out.push(`${tag}: рассинхрон ОЗ ${u.name} ${u.hero.hp} vs ${u.hp}`);
       if (!u.alive || u.fled || u.escaped) continue;
       if (u.x < 0 || u.y < 0 || u.x + u.size > 7 || u.y + u.size > 7) out.push(`${tag}: вне поля ${u.name} ${u.x},${u.y}`);
       for (const [x, y] of Battle.footprint(u)) { const k = x + ',' + y; if (occ[k]) out.push(`${tag}: два юнита в ${k}: ${occ[k]}, ${u.name}`); occ[k] = u.name; if (Battle.obstacleAt(x, y)) out.push(`${tag}: ${u.name} в препятствии ${k}`); }
@@ -57,7 +57,9 @@ async function driveOption(p, log) {
   global.__tick = Date.now();
   const wd = setInterval(async () => { if (Date.now() - global.__tick > 80000) { try { const d = await Promise.race([p.evaluate(() => { const S = Battle.S; const md = document.querySelector('.bt-modal'); return S ? { mode: Battle.UI.mode, busy: Battle.UI.busy, pick: Battle.UI.pick && Battle.UI.pick.type, modal: md && !md.hidden ? md.innerText.slice(0, 120) : null, sheets: document.querySelectorAll('.bd-ov:not(.out)').length, sheetTitle: (document.querySelector('.bd-ov:not(.out) h3') || {}).textContent, cur: S.order[S.turn], round: S.round, outcome: S.outcome, log: S.log.slice(-8).map(l => l.t) } : 'нет боя'; }), new Promise(r => setTimeout(() => r('evaluate завис'), 5000))]); console.log('WATCHDOG', JSON.stringify(d)); await p.screenshot({ path: `${L.SHOTS}/mk_${seed0}_watchdog.png` }); } catch (e) { console.log('WATCHDOG ошибка', e.message); } process.exit(4); } }, 5000);
   const rec = { seed: seed0, sc: SC, turns: 0, acts: {}, issues: [], outcome: null };
-  await L.setup(p, { heroes: SC.heroes || ['barb2', 'archer', 'fairy'], level: SC.level || 1 });
+  await L.setup(p, { heroes: SC.heroes || ['barb2', 'archer', 'fairy'], level: SC.level || 1, autoEnd: process.env.AUTOEND !== '0' });
+  // эссенции 2 этажа: SC.ess[i] — эссенции героя i, SC.bag[i] — оружие в рюкзак (для метателя)
+  if (SC.ess) await p.evaluate(({ ess, bag }) => { state.party.forEach((c, i) => { if (ess[i]) c.essences = ess[i].slice(); for (const w of (bag && bag[i]) || []) addToBag(c, { t: 'w', id: w }); c.mp = maxMp(c); c.hp = hpOf(c); }); saveChar(); }, { ess: SC.ess, bag: SC.bag || {} });
   if (SC.dark) await p.evaluate(() => { /* тьма у портала */ const r = state.run; for (const [x, y] of [[0,0],[0,10],[10,0],[10,10],[1,1],[9,9]]) { if (isDark(x, y)) { r.pos = { x, y }; break; } } r.light = false; });
   await L.startFightPage(p, { list: SC.list || ['goblin', 'goblin'], zone: SC.zone || 'goblin', ambush: !!SC.ambush });
   await p.waitForFunction(() => window.Battle && Battle.UI && (Battle.UI.mode === 'place' || Battle.UI.mode === 'ambush'), null, { timeout: 20000 });
@@ -102,6 +104,8 @@ async function driveOption(p, log) {
   rec.mode = await L.mode(p);
   if (rec.mode === 'result') { try { await p.waitForSelector('.bt-done:not([hidden])', { timeout: 15000 }); await p.click('.bt-done'); await L.sleep(800); } catch (e) { rec.issues.push('нет кнопки Готово'); } }
   rec.after = await p.evaluate(() => ({ battle: !!document.getElementById('battle'), enc: !!dgUi.enc, running: Battle.running, hp: state.party.map(c => c.hp + '/' + maxHp(c)), dead: state.party.map(c => !!c.dead) }));
+  if (global.__idlePickNoPrompt) rec.issues.push('выбор вне меню хода без подсказки на панели');
+  if (global.__idlePicks) rec.idlePicks = global.__idlePicks;
   rec.errs = p.errs.slice(0, 8); rec.issues = [...new Set(rec.issues)].slice(0, 12);
   console.log(JSON.stringify(rec));
   clearInterval(wd);

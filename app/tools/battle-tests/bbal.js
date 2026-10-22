@@ -1,6 +1,6 @@
 // Баланс: фиксированный отряд из 3 героев 1 уровня против каждого монстра 1 этажа (1–3 штуки), headless.
 const { chromium } = require('playwright');
-const FILES = ['battle-data','battle-core','battle-rules','battle-act','battle-ess','battle-ai','battle'];
+const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-ext','battle-act','battle-ess','battle-ess2','battle-ai','battle-end','battle'];
 const N = +process.argv[2] || 30, LEVEL = +process.argv[3] || 1;
 (async () => {
   const b = await chromium.launch({ executablePath: process.env.CHROME || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });

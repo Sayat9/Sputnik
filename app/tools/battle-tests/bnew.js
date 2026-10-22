@@ -1,6 +1,6 @@
 // Регрессия правок боя: скорость, местность, автозавершение хода, бросок оружия, колчан и поломка стрел.
 const { chromium } = require('playwright');
-const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-act','battle-ess','battle-ai','battle-end','battle'];
+const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-ext','battle-act','battle-ess','battle-ess2','battle-ai','battle-end','battle'];
 (async () => {
   const b = await chromium.launch({ executablePath: process.env.CHROME || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
   const p = await b.newPage(); const errs = [];
@@ -171,15 +171,18 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
       ok('в снаряжении героя копьё не стёрто (ничего не теряется при сбое)', x.h.hero.equip.main && x.h.hero.equip.main.id === 'spear');
       ok('досягаемость без оружия обычная', Battle.heroReach(x.h) === 1);
       ok('нельзя метнуть дважды: метательных атак нет', !Battle.heroAttacks(x.h).some(a => a.thrown));
-      // подобрать: под живым врагом нельзя, рядом с пустой клеткой — можно
+      // подобрать оружие можно только стоя на клетке, где оно лежит (свободное действие, всплывает в панели)
       x.h.t = { move: 4, action: 1, bonus: 1, react: 1, objUsed: false }; place(x.h, 3, 4);
       let pk = Battle.actionsFor(x.h).find(o => o.id === 'pickup');
-      ok('подобрать оружие, лежащее под врагом, нельзя', pk && !pk.enabled && /под врагом/.test(pk.why), pk && pk.why);
+      ok('из соседней клетки подобрать нельзя — только стоя на оружии', !pk, pk && pk.id);
       x.g.alive = false; x.g.hp = 0;
-      pk = Battle.actionsFor(x.h).find(o => o.id === 'pickup'); ok('цель убита — оружие можно подобрать', pk && pk.enabled, pk && pk.why);
+      pk = Battle.actionsFor(x.h).find(o => o.id === 'pickup'); ok('даже когда цель убита, из соседней клетки не подобрать', !pk, pk && pk.id);
+      place(x.h, 3, 3); pk = Battle.actionsFor(x.h).find(o => o.id === 'pickup');
+      ok('на клетке с оружием есть свободное действие «Подобрать» (всплывающая кнопка)', pk && pk.enabled && pk.time === 'free' && pk.pop === true && /копьё/.test(pk.label), pk && (pk.why || pk.label));
       place(x.h, 3, 5); pk = Battle.actionsFor(x.h).find(o => o.id === 'pickup'); ok('дальше клетки от оружия подобрать нельзя (в 2 клетках)', !pk, pk && pk.id);
-      place(x.h, 3, 4); pk = Battle.actionsFor(x.h).find(o => o.id === 'pickup');
-      await pk.run(); ok('подобрал: оружие в руке, на земле пусто, в этот ход больше предметы не брать', x.h.disarmed === false && x.S.drops.length === 0 && x.h.t.objUsed === true);
+      place(x.h, 3, 3); pk = Battle.actionsFor(x.h).find(o => o.id === 'pickup');
+      await pk.run(); ok('подобрал: оружие в руке, на земле пусто, действие и доп. действие не тронуты', x.h.disarmed === false && x.S.drops.length === 0 && x.h.t.action === 1 && x.h.t.bonus === 1);
+      ok('чужое оружие под героем не подбирается', (() => { x.S.drops.push({ kind: 'weapon', hero: 'чужой', slot: 'main', item: { t: 'w', id: 'spear' }, x: 3, y: 3 }); const r = !Battle.actionsFor(x.h).some(o => o.id === 'pickup'); x.S.drops.length = 0; return r; })());
       ok('снова есть удар копьём и метание', Battle.heroAttacks(x.h).some(a => a.id === 'hand:spear') && Battle.heroAttacks(x.h).some(a => a.thrown), Battle.heroAttacks(x.h).map(a => a.id).join());
       // промах: тоже падает
       x = await throwIt(2); ok('промах: оружие тоже на земле, рука пуста', x.h.disarmed && x.S.drops.length === 1 && !x.r.hit);

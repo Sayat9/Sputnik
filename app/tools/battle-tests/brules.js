@@ -1,6 +1,6 @@
 // Проверка правил атаки статистикой: частота попаданий при разных условиях против ожидаемой.
 const { chromium } = require('playwright');
-const FILES = ['battle-data','battle-core','battle-rules','battle-act','battle-ess','battle-ai','battle'];
+const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-ext','battle-act','battle-ess','battle-ess2','battle-ai','battle-end','battle'];
 (async () => {
   const b = await chromium.launch({ executablePath: process.env.CHROME || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
   const p = await b.newPage({ viewport: { width: 400, height: 860 } }); const errs = [];
@@ -22,6 +22,7 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-act','battle-e
       h.x = 3; h.y = o.hy || 5; t.x = 3; t.y = o.ty || (o.far ? 3 : 4); t.ac = 12; t.maxHp = t.hp = 99999; t.alive = true; h.hp = h.maxHp = 99999;
       if (o.setup) o.setup(S, h, t);
       const atk = Object.assign({ id: 'x', n: 'Тест', kind: o.ranged ? 'ranged' : 'melee', reach: 1, range: [18, 60], hit: o.hit != null ? o.hit : 5, dmg: { n: 1, s: 8, b: 0 }, dt: 'slash', tags: [], time: 'action' }, o.atk || {});
+      if (o.untargetable) { res.push({ name, hit: Battle.attackTargets(h, atk).includes(t) ? 100 : 0, expect: expectHit, crit: 0, avgDmg: 0 }); Battle.S = null; return; }          // цель не видна: запрет в выборе цели, а не в броске
       let hits = 0, crits = 0, dmg = 0, n = 0;
       for (let i = 0; i < N; i++) {
         if (o.reset) o.reset(S, h, t);
@@ -40,7 +41,7 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-act','battle-e
     await trial('дальняя атака с дистанции 2 (обычная)', 70, { ranged: true, far: true });
     await trial('половинное укрытие (+2 КД)', 60, { ranged: true, far: true, setup: (S) => { S.cells[4][3] = 'rock'; } });
     await trial('укрытие три четверти (+5 КД)', 45, { ranged: true, far: true, hy: 6, ty: 3, setup: (S) => { S.cells[5][3] = 'rock'; S.cells[4][3] = 'rock'; } });
-    await trial('три препятствия на линии: цель не видна', 0, { ranged: true, far: true, hy: 6, ty: 2, setup: (S) => { S.cells[5][3] = 'rock'; S.cells[4][3] = 'rock'; S.cells[3][3] = 'rock'; } });
+    await trial('три препятствия на линии: цель не видна (нельзя выбрать целью)', 0, { ranged: true, far: true, hy: 6, ty: 2, untargetable: true, setup: (S) => { S.cells[5][3] = 'rock'; S.cells[4][3] = 'rock'; S.cells[3][3] = 'rock'; } });
     await trial('цель без сознания рядом: преимущество и крит', 91, { setup: (S, h, t) => { Battle.addStatus(t, 'unconscious', { k: Infinity }); } });
     await trial('бонус +30: единица всегда мимо (95 %)', 95, { hit: 30 });
     await trial('бонус −20: только двадцатка (5 %)', 5, { hit: -20 });

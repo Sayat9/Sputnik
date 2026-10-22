@@ -8,15 +8,16 @@
   const AI = (B.AI = {});
 
   const profileOf = u => {
-    if (u.side === "mon") return u.ai || { int: 1, role: "melee", focus: ["nearest"] };
+    if (u.side === "mon" || u.summon) return u.ai || { int: 1, role: "melee", focus: ["nearest"] };
     const ranged = B.attacksOf(u).some(a => a.kind === "ranged" && a.ammo && countGear(u.hero, "arrow") > 0);
     return { int: 2, role: ranged ? "ranged" : "melee", keep: ranged ? 2 : 0, focus: ["wounded", "weak", "nearest"], kite: ranged };
   };
-  const seenBy = (u, t) => !(has(t, "hidden") && dist(u, t) > 1 && !(u.blind && dist(u, t) <= u.blind) && !(u.tremor && dist(u, t) <= u.tremor));
-  const targetsOf = u => enemiesOf(u).filter(t => seenBy(u, t) && !t.dead);
+  const seenBy = (u, t) => !(has(t, "hidden") && (dist(u, t) > 1 || has(t, "hidden").data.invis) && !(u.blind && dist(u, t) <= u.blind) && !(u.tremor && dist(u, t) <= u.tremor && !B.isFlying(t)));
+  const targetsOf = u => enemiesOf(u).filter(t => seenBy(u, t) && !t.dead && !has(t, "underground"));
   const abilityReady = (u, id) => {
     const A = B.A && B.A[id], eb = ESSENCES[id] && ESSENCES[id].active; if (!A || !eb || A.reaction) return false;
     if (!B.timeOK(u, A.time)) return false;
+    if (A.ready) { const r = A.ready(u); if (r != null) return !!r; }                     // способности в два хода: вторая половина доступна без маны и «раз за бой»
     if (u.side === "mon") return !u.used[id];
     return u.mp >= eb.mana && !(u.cd[id] > 0);
   };
@@ -129,7 +130,8 @@
       if (mons.length < 2 || mons.filter(alive).length !== 1) return;
     }
     u.flags.moraleDone = true;
-    const dc = m.dc || 10, mod = (m.mod != null ? m.mod : amod(u.abil.wis)), adv = !!m.adv;
+    const elder = alliesOf(u).some(a => a.pass.includes("goblin-elder") && canAct(a) && dist(a, u) <= 6);          // «Голос старейшины»: рядом с ним на проверку трусости — преимущество
+    const dc = m.dc || 10, mod = (m.mod != null ? m.mod : amod(u.abil.wis)), adv = !!m.adv || elder;
     const d1 = roll(1, 20).total, d2 = adv ? roll(1, 20).total : null, nat = adv ? Math.max(d1, d2) : d1;
     const ok = nat + mod >= dc;
     log(`${u.name}: мораль — ${nat + mod} против Сл ${dc} — ${ok ? "держится" : "бежит!"}`, ok ? "" : "flee");
@@ -152,7 +154,7 @@
     if (dest.cost > u.t.move) { B.spendTime(u, "action"); u.t.move += speedOf(u); }
     const path = B.pathTo(map, dest.x, dest.y);
     const r = await B.moveAlong(u, path, { noProvoke: false }); u.t.move = Math.max(0, u.t.move - r.spent);
-    if (alive(u) && !u.down && u.y === 0) { u.fled = true; log(`${u.name} убегает с поля боя.`, "flee"); ui() && ui().fxEscape(u); }
+    if (alive(u) && !u.down && u.y === 0) { u.fled = true; B.dropOwnedStatuses(u); log(`${u.name} убегает с поля боя.`, "flee"); ui() && ui().fxEscape(u); }
     return true;
   }
 
@@ -212,17 +214,20 @@
 
   AI.takeTurn = async function (u) {
     const S = B.S, pr = profileOf(u);
-    if (!alive(u) || u.down || !canAct(u)) return;
+    if (!alive(u) || u.down || !canAct(u) || has(u, "underground")) return;
     u.startCell = u.startCell || [u.x, u.y];
     ui() && ui().focusUnit(u);
-    if (has(u, "prone")) { const cost = Math.ceil(speedOf(u) / 2); if (u.t.move >= cost && speedOf(u) > 0) { removeStatus(u, "prone"); u.t.move -= cost; log(`${u.name} встаёт.`); await sleep(250); } }
+    if (has(u, "prone")) { const cost = B.standCost(u); if (u.t.move >= cost && speedOf(u) > 0) { removeStatus(u, "prone"); u.t.move -= cost; log(`${u.name} встаёт.`); await sleep(250); } }
+    if (u.side === "hero" && u.hero && B.dropsHere && B.dropsHere(u).length) await B.pickUpWeapon(u);          // стоит на своём оружии — подбирает (свободное действие)
     await moraleCheck(u, pr);
     if (shouldFlee(u, pr)) { if (await fleeTurn(u)) return; }
     if (u.side === "hero") await aiPotion(u);
     // сдавленный/опутанный: пробуем вырваться, если некого бить
-    const stuck = has(u, "grappled") || has(u, "trapped") || has(u, "restrained") || has(u, "pinned");
+    const stuck = has(u, "grappled") || has(u, "trapped") || has(u, "restrained") || has(u, "pinned") || has(u, "buried");
     const es = targetsOf(u); if (!es.length) return;
     await preBonus(u, pr);
+    if (!alive(u) || u.down) return;
+    if (B.hookAllAsync) await B.hookAllAsync(u, "aiBonus", {});                          // доп. действия пассивок: «Пожиратель»
     if (!alive(u) || u.down) return;
     // часовые стоят, пока враг не подошёл
     const nearest = Math.min(...es.map(e => dist(u, e)));
@@ -275,12 +280,15 @@
     }
   };
   AI.tryEscape = async function (u) {
-    const gr = has(u, "grappled"), by = gr ? B.byId(gr.data.by) : null, st = has(u, "trapped") || has(u, "pinned") || has(u, "restrained"); let ok = false;
+    const holds = B.holdsOf(u); if (!holds.length) return;
+    const hold = holds[0], st = has(u, hold.id), gr = hold.id === "grappled" ? st : null, by = gr ? B.byId(gr.data.by) : null; let ok = false;      // за одно действие — одни путы
     B.spendTime(u, "action");
-    if (gr && gr.data.dc) { const r = await B.doCheck(u, B.bestDef(u), { title: "Вырваться", dc: gr.data.dc, tags: ["grapple"] }); ok = r && r.ok; }                    // хватка эссенции: Сл эссенции
-    else if (by && alive(by)) { const r = await B.contest(u, B.bestDef(u), by, "athletics", { title: "Вырваться", tagsA: ["grapple"] }); ok = r && r.win; }
-    else { const r = await B.doCheck(u, B.bestDef(u), { title: "Вырваться", dc: (st && st.data && st.data.dc) || 10 }); ok = r && r.ok; }
-    if (ok) { for (const id of ["grappled", "trapped", "restrained", "pinned"]) removeStatus(u, id); log(`${u.name} вырывается.`); }
+    if (hold.id === "buried") { const r = await B.doCheck(u, "athletics", { title: "Выбраться из земли", dc: st.data.dc }); if (r && r.ok) { removeStatus(u, "buried"); log(`${u.name} выбирается из земли.`); } return; }
+    if (st.data && st.data.net) { const r = await B.doCheck(u, "athletics", { title: "Вырваться из сети", dc: st.data.dc || 10 }); ok = r && r.ok; }                    // сеть и паутина: проверка Силы
+    else if (gr && gr.data.dc) { const r = await B.doCheck(u, gr.data.skill || B.bestDef(u), { title: "Вырваться", dc: gr.data.dc, tags: ["grapple"] }); ok = r && r.ok; }                    // хватка эссенции: Сл эссенции
+    else if (gr && by && alive(by)) { const r = await B.contest(u, B.bestDef(u), by, "athletics", { title: "Вырваться", tagsA: ["grapple"] }); ok = r && r.win; }
+    else { const r = await B.doCheck(u, B.bestDef(u), { title: "Вырваться", dc: (st.data && st.data.dc) || 10 }); ok = r && r.ok; }
+    if (ok) { removeStatus(u, hold.id); log(`${u.name} вырывается.`); }
   };
   AI.profileOf = profileOf; AI.bestAction = bestAction; AI.scoreAttack = scoreAttack;
 })();

@@ -1634,8 +1634,8 @@ const DISTRICTS = [
 
 // Готовые рисованные картинки (webp) заменяют векторные заглушки.
 // Дата сборки для телефона: build.sh вписывает её сюда, в веб-версии строка пустая.
-const APP_BUILD = "21.10.2026 22:32";
-const APP_VERSION = 1792603972;                 // номер сборки, тоже вписывает build.sh
+const APP_BUILD = "22.10.2026 07:37";
+const APP_VERSION = 1792636639;                 // номер сборки, тоже вписывает build.sh
 const UPDATE_URL = "https://raw.githubusercontent.com/Sayat9/Sputnik/main/www/";
 const RASTER = new Set(["monsters/goblin-king-face", "monsters/goblin-king-full", "monsters/goblin-bomber-face", "monsters/goblin-bomber-full", "monsters/hobgoblin-shield-face", "monsters/hobgoblin-shield-full", "races/barbarian", "races/human", "races/dwarf", "races/beastkin", "races/fairy", "races/dragon", "monsters/goblin-face", "monsters/goblin-full", "monsters/goblin-archer-face", "monsters/goblin-archer-full", "monsters/goblin-sword-face", "monsters/goblin-sword-full", "monsters/goblin-spear-face", "monsters/goblin-spear-full", "monsters/wolf-face", "monsters/wolf-full", "monsters/fox-face", "monsters/fox-full", "monsters/mouse-face", "monsters/mouse-full", "monsters/bat-face", "monsters/bat-full", "monsters/hobgoblin-face", "monsters/hobgoblin-full", "monsters/zombie-face", "monsters/zombie-full", "monsters/skeleton-face", "monsters/skeleton-full", "monsters/skeleton-archer-face", "monsters/skeleton-archer-full", "monsters/ghoul-face", "monsters/ghoul-full", "monsters/dark-bear-face", "monsters/dark-bear-full", "monsters/skeleton-warrior-face", "monsters/skeleton-warrior-full", "monsters/living-stone-face", "monsters/living-stone-full", "monsters/wisp-face", "monsters/wisp-full", "monsters/pixie-face", "monsters/pixie-full", "monsters/green-boulder-face", "monsters/green-boulder-full", "monsters/stone-guardian-face", "monsters/stone-guardian-full"]);
 const artPath = p => `assets/${p}.${RASTER.has(p) ? "webp" : "svg"}`;
@@ -2163,7 +2163,7 @@ function essBonus(c) {
     else if ((m = /^Максимум маны ([+−-])(\d+)/.exec(o))) out.mp += sg(m[1]) * num(m[2]);
     else if ((m = /^Дальность стрелкового оружия ([+−-])(\d+(?:[.,]\d+)?) м/.exec(o))) out.range += sg(m[1]) * num(m[2]);
     else if ((m = /^Спасброски (\S+) ([+−-])(\d+)/.exec(o)) && SAVE_KEYS[m[1]]) out.saves[SAVE_KEYS[m[1]]] = (out.saves[SAVE_KEYS[m[1]]] || 0) + sg(m[2]) * num(m[3]);
-    else if ((m = /^(\S+(?: рук)?) ([+−-])(\d+)$/.exec(o)) && SKILL_KEYS[m[1]]) out.skills[SKILL_KEYS[m[1]]] = (out.skills[SKILL_KEYS[m[1]]] || 0) + sg(m[2]) * num(m[3]);
+    else if ((m = /^(\S+(?: рук)?) ([+−-])(\d+)(?:\s*\([^)]*\))?$/.exec(o)) && SKILL_KEYS[m[1]]) out.skills[SKILL_KEYS[m[1]]] = (out.skills[SKILL_KEYS[m[1]]] || 0) + sg(m[2]) * num(m[3]);       // «Восприятие +1 (нюх)» — пояснение в скобках не мешает
   }
   return out;
 }
@@ -2182,9 +2182,9 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 5;
-const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js",
-  "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle.js"];
+const BATTLE_REV = 7;
+const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
+  "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined) st.tactical = true; return st; }
 let battleLoad = null;
 function loadBattle() {

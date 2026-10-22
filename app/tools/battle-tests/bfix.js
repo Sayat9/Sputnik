@@ -1,6 +1,6 @@
 // Регрессия исправлений по аудиту эссенций: каждое поведение проверяется отдельно.
 const { chromium } = require('playwright');
-const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-act','battle-ess','battle-ai','battle'];
+const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-ext','battle-act','battle-ess','battle-ess2','battle-ai','battle-end','battle'];
 (async () => {
   const b = await chromium.launch({ executablePath: process.env.CHROME || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
   const p = await b.newPage(); const errs = [];

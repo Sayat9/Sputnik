@@ -34,7 +34,7 @@
     root.innerHTML = `<div class="bt-top"><div class="bt-round"><small>Раунд</small><b>1</b></div><div class="bt-order" aria-label="Порядок ходов"></div>
         <button class="bt-iconbtn" data-bt="menu" aria-label="Меню боя">${ico("menu")}</button></div>
       <div class="bt-banner" aria-live="polite"></div>
-      <div class="bt-boardwrap"><div class="bt-board"><div class="bt-bg"></div><div class="bt-cells"></div><div class="bt-objs"></div><div class="bt-tokens"></div><div class="bt-marks"></div><svg class="bt-pathsvg" aria-hidden="true"></svg><div class="bt-fx"></div></div>
+      <div class="bt-boardwrap"><div class="bt-board"><div class="bt-bg"></div><div class="bt-cells"></div><div class="bt-zonelay"></div><div class="bt-objs"></div><div class="bt-tokens"></div><div class="bt-marks"></div><svg class="bt-pathsvg" aria-hidden="true"></svg><div class="bt-fx"></div></div>
         <div class="bt-zone"></div><div class="bt-toast" hidden></div></div>
       <div class="bt-panel"></div><div class="bt-modal" hidden></div>`;
     document.body.appendChild(root); document.body.classList.add("forge-open", "bt-active");
@@ -42,6 +42,8 @@
     UI.active = true; UI.mode = "idle"; UI.hl = new Map(); UI.pick = null; UI.busy = false; UI.turnUnit = null; UI.built = false; UI.cat = null;
     window.addEventListener("resize", fit); fit();
     root.addEventListener("click", onClick);
+    board.addEventListener("pointerdown", onHoldDown); board.addEventListener("pointermove", onHoldMove); board.addEventListener("pointerup", onHoldUp); board.addEventListener("pointercancel", onHoldUp);
+    board.addEventListener("contextmenu", e => e.preventDefault());
     // Кнопка «Назад» не выходит из боя: отменяет текущий шаг или открывает меню боя.
     try { history.pushState({ btBattle: 1 }, ""); UI._pushed = true; } catch (e) { UI._pushed = false; }
     window.addEventListener("popstate", onPop);
@@ -94,7 +96,16 @@
     const shown = list.slice(0, 4), extra = list.length - shown.length;
     return shown.map(c => `<i class="bt-st ${D.status[c.id].good ? "good" : "bad"}" title="${esc(D.status[c.id].name)}">${stIco(c.id)}</i>`).join("") + (extra > 0 ? `<i class="bt-st more">+${extra}</i>` : "");
   }
-  function sensedWounded(S, u) { return B.heroes().some(h => B.alive(h) && h.pass.includes("wolf") && B.dist(h, u) <= 6) && u.hp < u.maxHp / 2; }
+  // «Чутьё» волка (6 клеток) и «По следу» костяной гончей (ближайший раненый в 18 м): раненых врагов отмечает сердечком.
+  function sensedWounded(S, u) {
+    if (u.hp >= u.maxHp / 2) return false;
+    if (B.heroes().some(h => B.alive(h) && h.pass.includes("wolf") && B.dist(h, u) <= 6)) return true;
+    return B.heroes().some(h => {
+      if (!B.alive(h) || !h.pass.includes("bone-hound")) return false;
+      const near = B.enemiesOf(h).filter(e => e.hp < e.maxHp / 2).sort((a, b) => B.dist(h, a) - B.dist(h, b))[0];
+      return near === u && B.dist(h, u) <= 12;
+    });
+  }
   function renderTokens(S) {
     const layer = root.querySelector(".bt-tokens"), seen = new Set();
     for (const u of S.units) {
@@ -106,12 +117,12 @@
         el.querySelector("img").src = u.face || ""; layer.appendChild(el); tokenEls.set(u.id, el);
         el.style.left = u.x * cell + "px"; el.style.top = u.y * cell + "px";
       }
-      const gone = u.fled || u.escaped || (!u.alive && u.side === "mon") || (u.side === "mon" && S.hideMons);
+      const gone = u.fled || u.escaped || (!u.alive && (u.side === "mon" || u.summon)) || (u.side === "mon" && S.hideMons);
       el.hidden = gone;
       const sz = u.size * cell;
       el.style.width = sz + "px"; el.style.height = sz + "px"; el.style.left = u.x * cell + "px"; el.style.top = u.y * cell + "px";
       const cur = S.order[S.turn] === u.id && S.phase === "fight";
-      el.className = `bt-token ${u.side}${u.size > 1 ? " big" : ""}${cur ? " cur" : ""}${u.down ? " down" : ""}${u.dead ? " dead" : ""}${has(u, "hidden") ? " hidden-st" : ""}${UI.targetIds && UI.targetIds.has(u.id) ? " target" : ""}${UI.selIds && UI.selIds.has(u.id) ? " sel" : ""}`;
+      el.className = `bt-token ${u.side}${u.size > 1 ? " big" : ""}${cur ? " cur" : ""}${u.down ? " down" : ""}${u.dead ? " dead" : ""}${has(u, "hidden") ? " hidden-st" : ""}${has(u, "underground") ? " under" : ""}${u.summon ? " summon k-" + u.kind : ""}${u.spectral ? " ghost" : ""}${UI.targetIds && UI.targetIds.has(u.id) ? " target" : ""}${UI.selIds && UI.selIds.has(u.id) ? " sel" : ""}`;
       const showHp = u.side === "hero" || S.opts.showMonHp;
       const bars = el.querySelector(".bt-bars"); bars.hidden = !showHp;
       if (showHp) {
@@ -122,14 +133,23 @@
       }
       el.querySelector(".bt-sts").innerHTML = statusIcons(u);
       const w = el.querySelector(".bt-wound"); w.hidden = !(u.side === "mon" && u.alive && !S.opts.showMonHp && sensedWounded(S, u));
-      const nm = el.querySelector(".bt-name"); nm.textContent = u.side === "hero" ? u.name.split(" ")[0] : (/\d$/.test(u.name) ? u.name.slice(-1) : ""); nm.className = "bt-name" + (u.side === "hero" ? "" : " num"); nm.hidden = !nm.textContent;
+      const nm = el.querySelector(".bt-name"); nm.textContent = u.summon ? (u.kind === "double" ? "Д" : "В" + (/\d$/.test(u.name) ? u.name.slice(-1) : "")) : u.side === "hero" ? u.name.split(" ")[0] : (/\d$/.test(u.name) ? u.name.slice(-1) : ""); nm.className = "bt-name" + (u.side === "hero" && !u.summon ? "" : " num"); nm.hidden = !nm.textContent;
     }
     for (const [id, el] of tokenEls) if (!seen.has(id)) { el.remove(); tokenEls.delete(id); }
   }
   const has = (u, id) => B.has(u, id);
+  // Зоны эссенций: рой паучат (куб 3 м) и белая пыль (сфера вокруг пепельника) подсвечивают клетки на поле.
+  function renderZones(S) {
+    const l = root.querySelector(".bt-zonelay"); if (!l) return;
+    let h = "";
+    for (const z of S.zones || []) for (const [x, y] of B.zoneCells(z)) h += `<div class="bt-zcell k-${z.kind}" style="left:${x * cell}px;top:${y * cell}px;width:${cell}px;height:${cell}px"></div>`;
+    l.innerHTML = h;
+  }
   function renderObjs(S) {
     const l = root.querySelector(".bt-objs"); let h = "";
     for (const o of S.objs) if (o.kind === "trap" && (!o.hidden || o.owner === "hero")) h += `<div class="bt-obj trap" style="left:${o.x * cell}px;top:${o.y * cell}px;width:${cell}px;height:${cell}px"><svg viewBox="0 0 100 100">${D.SVG.trap}</svg></div>`;
+    for (const o of S.objs) if (o.kind === "illusion") h += `<div class="bt-obj illusion" title="Иллюзия «Морока»" style="left:${o.x * cell}px;top:${o.y * cell}px;width:${cell}px;height:${cell}px">${ico("eye")}</div>`;
+    for (const b of S.bodies || []) if (!b.eaten) h += `<div class="bt-obj body" title="Павший: ${esc(b.name)}" style="left:${b.x * cell}px;top:${b.y * cell}px;width:${cell}px;height:${cell}px">${ico("skull")}</div>`;
     l.innerHTML = h;
     // Брошенное оружие и стрелы на земле: значки в углу клетки поверх фишек.
     const m = root.querySelector(".bt-marks"), byCell = new Map();
@@ -146,7 +166,7 @@
     el.innerHTML = S.order.map((id, i) => {
       const u = B.byId(id); if (!u || u.fled || u.escaped || (!u.alive && u.side === "mon")) return "";
       const cur = i === S.turn && S.phase === "fight";
-      return `<button class="bt-ord ${u.side}${cur ? " cur" : ""}${u.down ? " down" : ""}" data-bt="inspect" data-id="${u.id}" title="${esc(u.name)}"><img src="${u.face}" alt=""></button>`;
+      return `<button class="bt-ord ${u.side}${cur ? " cur" : ""}${u.down ? " down" : ""}${u.summon ? " sm" : ""}${u.spectral ? " ghost" : ""}" data-bt="inspect" data-id="${u.id}" title="${esc(u.name)}"><img src="${u.face}" alt=""></button>`;
     }).join("");
     const c = el.querySelector(".cur"); if (c && c.scrollIntoView) { try { c.scrollIntoView({ inline: "center", block: "nearest" }); } catch (e) {} }
   }
@@ -159,7 +179,7 @@
     const S = B.S; if (!UI.active || !S || !root) return;
     if (!UI.built) build(S);
     root.classList.toggle("dark", !!S.dark && !S.torch);
-    renderCells(S); renderTokens(S); renderObjs(S); renderOrder(S);
+    renderCells(S); renderZones(S); renderTokens(S); renderObjs(S); renderOrder(S);
     if (UI.renderPanel) UI.renderPanel();
     UI.drawPath();
   };
@@ -167,12 +187,18 @@
   UI.hlAdd = (map, x, y, cls) => { const k = x + "," + y; const a = map.get(k) || []; if (!a.includes(cls)) a.push(cls); map.set(k, a); };
   UI.drawPath = function () {
     const svg = root && root.querySelector(".bt-pathsvg"); if (!svg) return;
-    const p = UI.pathPreview;
-    if (!p || !p.length) { svg.innerHTML = ""; return; }
-    const pts = p.map(([x, y]) => `${(x + 0.5) * cell},${(y + 0.5) * cell}`).join(" ");
-    const last = p[p.length - 1];
+    const p = UI.pathPreview, ways = UI.pathWays || [];
+    if ((!p || !p.length) && !ways.length) { svg.innerHTML = ""; return; }
     svg.setAttribute("viewBox", `0 0 ${cell * 7} ${cell * 7}`);
-    svg.innerHTML = `<polyline points="${pts}" fill="none" stroke="#f4d48e" stroke-width="${Math.max(3, cell * 0.08)}" stroke-dasharray="${cell * 0.12} ${cell * 0.12}" stroke-linecap="round" stroke-linejoin="round" opacity=".95"/><circle cx="${(last[0] + 0.5) * cell}" cy="${(last[1] + 0.5) * cell}" r="${cell * 0.16}" fill="#f4d48e"/>`;
+    let h = "";
+    if (p && p.length) {
+      const start = UI.pathStart ? [UI.pathStart] : [];
+      const pts = [...start, ...p].map(([x, y]) => `${(x + 0.5) * cell},${(y + 0.5) * cell}`).join(" "), last = p[p.length - 1];
+      h += `<polyline points="${pts}" fill="none" stroke="#f4d48e" stroke-width="${Math.max(3, cell * 0.08)}" stroke-dasharray="${cell * 0.12} ${cell * 0.12}" stroke-linecap="round" stroke-linejoin="round" opacity=".95"/><circle cx="${(last[0] + 0.5) * cell}" cy="${(last[1] + 0.5) * cell}" r="${cell * 0.16}" fill="#f4d48e"/>`;
+    }
+    // путевые точки: булавки с номерами — герой обязательно пройдёт через них
+    ways.forEach(([x, y], i) => { h += `<g><circle cx="${(x + 0.5) * cell}" cy="${(y + 0.5) * cell}" r="${cell * 0.24}" fill="#2a6f4a" stroke="#bff0b4" stroke-width="${Math.max(2, cell * 0.05)}"/><text x="${(x + 0.5) * cell}" y="${(y + 0.5) * cell + cell * 0.09}" text-anchor="middle" font-size="${cell * 0.28}" font-weight="700" fill="#effff0" font-family="sans-serif">${i + 1}</text></g>`; });
+    svg.innerHTML = h;
   };
 
   /* ===== позиции клеток по касанию ===== */
@@ -180,9 +206,25 @@
     const r = board.getBoundingClientRect(), x = Math.floor((e.clientX - r.left) / (r.width / B.W)), y = Math.floor((e.clientY - r.top) / (r.height / B.H));
     return B.inB(x, y) ? [x, y] : null;
   }
+  // Долгое нажатие (≈0,45 с) по клетке: в выборе движения — путевая точка, в остальное время — окно с эффектами клетки (battle-menu.js).
+  const HOLD_MS = 450;
+  let hold = null;
+  function onHoldDown(e) {
+    if (!UI.active || (e.pointerType === "mouse" && e.button !== 0) || (B.Dice && B.Dice.isOpen && B.Dice.isOpen())) return;
+    const c = cellAt(e); if (!c) return;
+    clearTimeout(hold && hold.t);
+    hold = { x: e.clientX, y: e.clientY, c, t: setTimeout(() => {
+      if (!hold) return; const [cx, cy] = hold.c; hold = null; UI._noClickUntil = Date.now() + 700;
+      try { if (navigator.vibrate) navigator.vibrate(16); } catch (err) {}
+      if (UI.onCellHold) UI.onCellHold(cx, cy);
+    }, HOLD_MS) };
+  }
+  function onHoldMove(e) { if (hold && Math.hypot(e.clientX - hold.x, e.clientY - hold.y) > 10) { clearTimeout(hold.t); hold = null; } }
+  function onHoldUp() { if (hold) { clearTimeout(hold.t); hold = null; } }
   function onClick(e) {
     const t = e.target;
     if (t.closest(".bt-panel, .bt-modal, .bd-ov")) return;                         // панель и окна обрабатывает battle-menu.js
+    if (UI._noClickUntil && Date.now() < UI._noClickUntil && board && board.contains(t)) { UI._noClickUntil = 0; return; }          // клик после долгого нажатия не считается
     const btn = t.closest("[data-bt]");
     if (btn) { UI.onBtn && UI.onBtn(btn.dataset.bt, btn); return; }
     if (board && board.contains(t)) { const c = cellAt(e); if (c && UI.onCell) UI.onCell(c[0], c[1], e); }

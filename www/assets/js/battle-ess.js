@@ -7,46 +7,55 @@
   const dcOf = (u, ab) => 8 + u.pb + amod(u.abil[ab]);
   B.dcOf = dcOf;
   const isShieldHolder = u => (u.side === "mon" ? !!u.shield : !!(u.hero && ((u.hero.equip.off && itemOf(u.hero.equip.off) && itemOf(u.hero.equip.off).id === "shield") || (u.hero.equip.main && itemOf(u.hero.equip.main) && itemOf(u.hero.equip.main).id === "tower-shield"))));
-  const within = (u, r) => enemiesOf(u).filter(e => dist(u, e) <= r);
-  const around = (u, r) => live().filter(o => o.id !== u.id && dist(u, o) <= r);      // все существа вокруг, включая союзников
+  const within = (u, r) => enemiesOf(u).filter(e => dist(u, e) <= r && !has(e, "underground"));        // закопавшегося в землю выбрать нельзя
+  const around = (u, r) => live().filter(o => o.id !== u.id && dist(u, o) <= r && !has(o, "underground"));      // все существа вокруг, включая союзников
   const cellsAround = (u, r) => { const out = []; for (let y = 0; y < B.H; y++) for (let x = 0; x < B.W; x++) { const dd = distCell(u, x, y); if (dd > 0 && dd <= r) out.push([x, y]); } return out; };
   const durEnd = (u, n = 1) => ({ endAtEndOf: u.id, endTurnNo: u.turnsTaken + n });
   // Подбор атаки для способностей «через атаку»: герой берёт оружие нужного вида, монстр — свою атаку.
-  function atkFor(u, kind, dt) {
+  // needWeapon — только настоящее оружие героя (не кулак): «дробящим оружием», «колющим оружием».
+  function atkFor(u, kind, dt, needWeapon) {
     let list = B.attacksOf(u).filter(a => a.kind === kind && !a.offhand && !a.thrown && !(u.side === "hero" && a.id === "torchhit"));
+    if (needWeapon && u.side === "hero") list = list.filter(a => a.w);
     if (u.side === "hero") list = list.filter(a => !a.ammo || countGear(u.hero, "arrow") > 0);
     if (dt) list = list.filter(a => a.dt === dt);
     if (u.side === "hero" && kind === "melee" && list.length > 1) list = list.filter(a => a.id !== "fist");
     return list.sort((a, b) => B.avgDice(b.dmg) - B.avgDice(a.dmg))[0] || null;
   }
   B.atkFor = atkFor;
-  async function save(t, abil, dc, label, tags) { return B.doSave(t, abil, dc, { label, tags }); }
+  async function save(t, abil, dc, label, tags, from) { return B.doSave(t, abil, dc, { label, tags, from }); }
   const specUnit = (u, prompt, units, cells, kind = "attack") => ({ type: "unit", prompt, units: units.map(x => x.id), cells, kind });
   // Способность «атака + спасбросок цели». cfg: kind, dt, abil (характеристика Сл), save (спасброс цели), onFail(t,u,sv), onOk(t,u,sv), label.
+  // cfg.extra {n, s, label} — дополнительные кости урона при попадании («+2к6»); cfg.weapon — нужно настоящее оружие; без cfg.save — только урон и cfg.onHit.
   function attackRider(cfg) {
+    const atkOf = u => atkFor(u, cfg.kind, cfg.dt, cfg.weapon);
+    const need = cfg.weaponText || (cfg.kind === "ranged" ? "нужен лук и стрелы" : cfg.weapon ? "нужно подходящее оружие" : "нужна атака ближнего боя");
+    // «Дальность: 1,5 м» у всех ближних способностей: копьё с «Длинной рукой» и другое длинное оружие дальше соседней клетки не достают
+    const reachOf = (u, a) => { const ts = B.attackTargets(u, a); return cfg.kind === "melee" ? ts.filter(t => dist(u, t) <= 1) : ts; };
     return {
-      tgt(u) { const a = atkFor(u, cfg.kind, cfg.dt); const ts = a ? B.attackTargets(u, a) : []; return specUnit(u, `${cfg.name}: выберите цель`, ts, a ? B.rangeCells(u, a) : []); },
-      can(u) { const a = atkFor(u, cfg.kind, cfg.dt); if (!a) return cfg.kind === "ranged" ? "нужен лук и стрелы" : "нужна атака ближнего боя"; return B.attackTargets(u, a).length ? true : "нет целей"; },
+      tgt(u) { const a = atkOf(u); const ts = a ? reachOf(u, a) : []; return specUnit(u, `${cfg.name}: выберите цель`, ts, a ? (cfg.kind === "melee" ? B.cellsWithin(u, 1) : B.rangeCells(u, a)) : []); },
+      can(u) { const a = atkOf(u); if (!a) return need; return reachOf(u, a).length ? true : "нет целей"; },
       async run(u, pk, ctl) {
-        const a = atkFor(u, cfg.kind, cfg.dt); if (!a) return false;
-        const dc = dcOf(u, cfg.abil);
-        const r = await B.doAttack(u, pk.unit, a, { onCommit: () => { B.commitAttack(u, a, pk.unit); ctl.commit(); }, rider: async res => {
+        const a = atkOf(u); if (!a) return false;
+        const dc = cfg.abil ? dcOf(u, cfg.abil) : 0;
+        const extra = cfg.extra ? [{ n: cfg.extra.n, s: cfg.extra.s, b: 0, dt: a.dt, label: cfg.extra.label || cfg.name, critDouble: true }] : null;
+        const r = await B.doAttack(u, pk.unit, a, { extra, onCommit: () => { B.commitAttack(u, a, pk.unit); ctl.commit(); }, rider: async res => {
           const t = res.tgt; if (!alive(t) && !t.down) return;
+          if (!cfg.save) { if (cfg.onHit) await cfg.onHit(t, u, res); return; }
           const sv = await save(t, cfg.save, dc, cfg.name, cfg.tags);
           if (!sv.ok) await cfg.onFail(t, u, sv, res); else if (cfg.onOk) await cfg.onOk(t, u, sv, res);
         } });
         return !r.cancelled;
       },
       ai(u) {
-        const a = atkFor(u, cfg.kind, cfg.dt); if (!a) return null;
-        const ts = B.attackTargets(u, a); if (!ts.length) return null;
-        return { atk: a, targets: ts, bonus: cfg.aiBonus || 3, attackAbility: true };
+        const a = atkOf(u); if (!a) return null;
+        const ts = reachOf(u, a); if (!ts.length) return null;
+        return { atk: a, targets: ts, bonus: (cfg.aiBonus || 3) + (cfg.extra ? cfg.extra.n * (cfg.extra.s + 1) / 2 : 0), attackAbility: true };
       },
     };
   }
   // Способность «спасбросок по области/целям». cfg: radius, side:'enemies'|'all', abil, save, dmg:'1к4', dt, half, onFail, onOk.
   function saveArea(cfg) {
-    const pool = u => (cfg.side === "all" ? around(u, cfg.radius) : within(u, cfg.radius));
+    const pool = u => { const l = cfg.side === "all" ? around(u, cfg.radius) : within(u, cfg.radius); return cfg.ground ? l.filter(x => !B.isFlying(x)) : l; };          // ground — «все существа на земле»
     return {
       tgt(u) { return { type: cfg.choose ? "units" : "area", prompt: `${cfg.name}: подтвердите`, units: pool(u).map(x => x.id), cells: cellsAround(u, cfg.radius), min: 0, max: cfg.max || 9, kind: "area" }; },
       can(u) { return pool(u).length ? true : "никого рядом"; },
@@ -58,12 +67,13 @@
         if (cfg.dmg) {
           const dd = parseDice(cfg.dmg), ses = B.session(u, { kind: "damage", u, title: cfg.name, sub: `${u.name}: урон по области` });
           const r = await ses.dice({ label: `Урон ${cfg.dmg}`, n: dd.n, s: dd.s, bonus: dd.b, dt: cfg.dt, cancel: false, reroll: B.rerollOptions(u, "damage", { melee: false }) });
-          total = r.sum + dd.b; await ses.finish({ text: `${total} урона (${D.DT[cfg.dt]})`, anim: cfg.anim || B.animKind({ dt: cfg.dt, kind: "melee" }), dmg: total, tgt: ts[0] });
+          total = r.sum + dd.b + (cfg.dt === "fire" ? B.hookSum(u, "abilityDmg", { dt: "fire" }) : 0);          // «Свои не горят»: +2 к огню способностей
+          await ses.finish({ text: `${total} урона (${D.DT[cfg.dt]})`, anim: cfg.anim || B.animKind({ dt: cfg.dt, kind: "melee" }), dmg: total, tgt: ts[0] });
         }
         ui() && ui().banner(`${u.name}: ${cfg.name}!`);
         for (const t of ts) {
-          const sv = await save(t, cfg.save, dc, cfg.name, cfg.tags);
-          if (cfg.dmg && total > 0) { const v = sv.ok ? (cfg.half ? Math.floor(total / 2) : 0) : total; if (v > 0) await B.applyDamage(u, t, [{ v, dt: cfg.dt, label: cfg.name }], {}); }
+          const sv = await save(t, cfg.save, dc, cfg.name, cfg.tags, u);
+          if (cfg.dmg && total > 0) { const v = sv.ok ? (cfg.half ? Math.floor(total / 2) : 0) : total; if (v > 0) await B.applyDamage(u, t, [{ v, dt: cfg.dt, label: cfg.name }], { skill: true }); }
           if (alive(t) || t.down) { if (!sv.ok && cfg.onFail) await cfg.onFail(t, u, sv); if (sv.ok && cfg.onOk) await cfg.onOk(t, u, sv); }
         }
         return true;
@@ -84,7 +94,7 @@
       ctl.commit(); const [x, y] = pk.cell;
       const trap = { id: "t" + Math.random().toString(36).slice(2, 7), kind: "trap", x, y, dc: dcOf(u, "dex"), hidden: true, owner: u.side, by: u.id, dmg: "1к6", dt: "pierce", noticed: [] };
       // ловушка скрыта: враги замечают её Восприятием против Сл (пассивным)
-      for (const e of enemiesOf(u)) if (10 + amod(e.abil.wis) + (e.skills.perception || 0) >= trap.dc) { trap.noticed.push(e.id); if (e.side === "hero") trap.hidden = false; }
+      for (const e of enemiesOf(u)) if (B.passivePerceptionOf(e) >= trap.dc) { trap.noticed.push(e.id); if (e.side === "hero") trap.hidden = false; }
       B.S.objs.push(trap);
       log(`${u.name} ставит ловушку.`); ui() && (ui().fxText(u, "ловушка", ""), ui().refresh()); return true;
     },
@@ -113,7 +123,7 @@
       ctl.commit(); u.t.attacked = true;
       const total = r.sum + a.dmg.b; await ses.finish({ text: `${total} урона каждой цели при провале`, anim: "slash", dmg: total, tgt: ts[0] });
       const dc = dcOf(u, "str");
-      for (const t of ts) { const sv = await save(t, "dex", dc, "Размашистый удар"); const v = sv.ok ? Math.floor(total / 2) : total; await B.applyDamage(u, t, [{ v, dt: "slash", label: a.n }], { melee: true, src: u }); }
+      for (const t of ts) { const sv = await save(t, "dex", dc, "Размашистый удар"); const v = sv.ok ? Math.floor(total / 2) : total; await B.applyDamage(u, t, [{ v, dt: "slash", label: a.n }], { melee: true, src: u, weapon: true }); }          // weapon: урон оружия (для «Лат из костей»)
       return true;
     },
     ai(u) { const ts = within(u, 1); const a = atkFor(u, "melee", "slash"); if (!a || ts.length < 2) return null; return { units: ts.slice(0, 3), score: ts.length * 3 }; },
@@ -130,7 +140,7 @@
     can(u) { return speedOf(u) >= 2 ? true : "слишком медленный"; },
     async run(u, pk, ctl) {
       ctl.commit();
-      if (pk.cell) { const map = B.pathMap(u, Math.floor(speedOf(u) / 2), {}); const path = B.pathTo(map, pk.cell[0], pk.cell[1]); const r = await B.moveAlong(u, path, { noProvoke: true }); u.t.move = Math.max(0, u.t.move - r.spent); }
+      if (pk.cell) { const map = B.pathMap(u, Math.floor(speedOf(u) / 2), {}); const path = B.pathTo(map, pk.cell[0], pk.cell[1]); const r = await B.moveAlong(u, path, { noProvoke: true }); u.t.move = Math.max(0, u.t.move - r.spent); u.t.moved += r.spent; }
       addStatus(u, "rush", { k: 0, when: "end" }); ui() && ui().fxText(u, "рывок", "good"); return true;
     },
     ai(u) { const es = enemiesOf(u); if (!es.length || !B.attacksOf(u).some(a => a.kind === "melee")) return null; const near = es.reduce((a, b) => (dist(u, a) < dist(u, b) ? a : b)); if (dist(u, near) <= 1) return null; return { target: near, score: 5 }; },
@@ -145,19 +155,19 @@
     tgt(u) {
       const anchors = [];
       for (let y = 0; y < B.H - 1; y++) for (let x = 0; x < B.W - 1; x++) if (distCell(u, x, y) <= 6) anchors.push([x, y]);
-      return { type: "cube", prompt: "Обвал: выберите куб 2×2 клетки", anchors, size: 2, kind: "area" };
+      return { type: "cube", prompt: "Обвал: выберите куб 2×2 клетки", anchors, size: 2, kind: "area", okLabel: "Обвал!" };
     },
     can() { return true; },
     async run(u, pk, ctl) {
       ctl.commit(); const [ax, ay] = pk.cell;
       const inCube = o => footprint(o).some(([x, y]) => x >= ax && x < ax + 2 && y >= ay && y < ay + 2);
-      const ts = live().filter(inCube);
+      const ts = live().filter(o => inCube(o) && !has(o, "underground"));                       // закопавшегося землекопа обвал не задевает
       const dd = parseDice("2к6"), ses = B.session(u, { kind: "damage", u, title: "Обвал", sub: `${u.name}: 2к6 дробящего` });
       const r = await ses.dice({ label: "Урон 2к6", n: 2, s: 6, bonus: 0, dt: "bludgeon", cancel: false, reroll: B.rerollOptions(u, "damage", {}) });
       const total = r.sum; await ses.finish({ text: `${total} урона`, anim: "blunt", dmg: total, tgt: ts[0] || u });
       ui() && ui().fxCube(ax, ay, 2);
       const dc = dcOf(u, "con");
-      for (const t of ts) { const sv = await save(t, "dex", dc, "Обвал"); await B.applyDamage(u, t, [{ v: sv.ok ? Math.floor(total / 2) : total, dt: "bludgeon", label: "Обвал" }], {}); if (!sv.ok && (alive(t) || t.down)) { addStatus(t, "prone", { k: Infinity }); ui() && ui().fxText(t, "сбит с ног", "bad"); } }
+      for (const t of ts) { const sv = await save(t, "dex", dc, "Обвал"); await B.applyDamage(u, t, [{ v: sv.ok ? Math.floor(total / 2) : total, dt: "bludgeon", label: "Обвал" }], {}); if (!sv.ok && (alive(t) || t.down)) { B.knock(t, u); ui() && ui().fxText(t, "сбит с ног", "bad"); } }
       return true;
     },
     ai(u) {
@@ -185,7 +195,7 @@
     }
     return out;
   }
-  const dashVictims = (u, path) => { const seen = new Set(), out = []; for (const [x, y] of path) for (const o of enemiesOf(u)) if (!seen.has(o.id) && distCell(o, x, y) <= 1) { seen.add(o.id); out.push(o); } return out.slice(0, 2); };
+  const dashVictims = (u, path) => { const seen = new Set(), out = []; for (const [x, y] of path) for (const o of enemiesOf(u)) if (!seen.has(o.id) && !has(o, "underground") && distCell(o, x, y) <= 1) { seen.add(o.id); out.push(o); } return out.slice(0, 2); };
   A.wolf = {
     time: "action",
     tgt(u) { const lines = dashLines(u); return { type: "cell", prompt: "Сквозной рывок: выберите конец прямой", cells: lines.map(l => l.end), kind: "move", lines }; },
@@ -195,7 +205,7 @@
       const a = atkFor(u, "melee", "slash") || (u.side === "mon" ? atkFor(u, "melee") : null); if (!a) return false;       // урон рубящего оружия или когтей
       ctl.commit();
       const dd = a.dmg, dt = a.dt;
-      const r = await B.moveAlong(u, line.path, { noProvoke: true }); u.t.move = Math.max(0, u.t.move - r.spent);
+      const r = await B.moveAlong(u, line.path, { noProvoke: true }); u.t.move = Math.max(0, u.t.move - r.spent); u.t.moved += r.spent;
       const vs = dashVictims(u, line.path); if (!vs.length) return true;
       const ses = B.session(u, { kind: "damage", u, title: "Сквозной рывок", sub: `${u.name}: когти по ${vs.length} цел.` });
       const rr = await ses.dice({ label: `Урон ${fmtDice(dd)}`, n: dd.n, s: dd.s, bonus: dd.b, dt, cancel: false, reroll: B.rerollOptions(u, "damage", { melee: true }) });
@@ -250,7 +260,7 @@
   A.ghoul = attackRider({ name: "Сковывающий укус", kind: "melee", abil: "dex", save: "con", tags: ["slow"], aiBonus: 3,
     onFail: async t => { addStatus(t, "slowed", { k: 1, when: "end", data: { mult: 0.5, disAtk: true } }); ui() && ui().fxText(t, "скован", "bad"); } });
   A["living-stone"] = attackRider({ name: "Сокрушающий удар", kind: "melee", abil: "str", save: "str", tags: ["prone"], aiBonus: 3,
-    onFail: async t => { addStatus(t, "prone", { k: Infinity }); ui() && ui().fxText(t, "сбит с ног", "bad"); } });
+    onFail: async (t, u) => { B.knock(t, u); ui() && ui().fxText(t, "сбит с ног", "bad"); } });
   A.pixie = {
     time: "action",
     tgt(u) { return specUnit(u, "Сонная пыльца: на кого?", within(u, 2), cellsAround(u, 2), "debuff"); },
@@ -311,7 +321,7 @@
       if (dist(e, mover) > r || (from && distAt(e, mover, from[0], from[1]) <= r)) return;
       if (e.side === "hero") { if (e.mp < eb.mana || e.cd["goblin-spear"] > 0) return; if (!(await B.promptReaction({ title: "Встречный удар", text: `${mover.name} входит в вашу досягаемость. Ударить копьём? (${eb.mana} маны)` }))) return; }
       else { if (e.used["goblin-spear"]) return; }
-      if (e.side === "hero") { B.setMp(e, e.mp - eb.mana); e.cd["goblin-spear"] = D.essCd["goblin-spear"] || 2; } else e.used["goblin-spear"] = true;
+      if (e.side === "hero") { B.setMp(e, e.mp - eb.mana); B.setCd(e, "goblin-spear", D.essCd["goblin-spear"] || 2); } else e.used["goblin-spear"] = true;
       e.t.react = 0; log(`${e.name}: встречный удар по ${mover.name}.`, "skill"); ui() && ui().banner(`${e.name}: встречный удар!`);
       await B.doAttack(e, mover, atk, { reaction: true, cancelable: false, rider: async res => {
         const sv = await save(res.tgt, "str", dcOf(e, "str"), "Встречный удар");
@@ -334,7 +344,7 @@
       if (!ctx.melee || !isShieldHolder(tgt) || !tgt.t.react) return false;
       const eb = ESSENCES["skeleton-warrior"].active;
       if (ctx.total - ctx.ac > 3) return false;
-      if (tgt.side === "hero") { if (tgt.mp < eb.mana || tgt.cd["skeleton-warrior"] > 0) return false; if (!(await B.promptReaction({ title: "Парирование щитом", text: `${ctx.att.name} попадает по вам. Отразить щитом? (${eb.mana} маны)` }))) return false; B.setMp(tgt, tgt.mp - eb.mana); tgt.cd["skeleton-warrior"] = D.essCd["skeleton-warrior"] || 2; }
+      if (tgt.side === "hero") { if (tgt.mp < eb.mana || tgt.cd["skeleton-warrior"] > 0) return false; if (!(await B.promptReaction({ title: "Парирование щитом", text: `${ctx.att.name} попадает по вам. Отразить щитом? (${eb.mana} маны)` }))) return false; B.setMp(tgt, tgt.mp - eb.mana); B.setCd(tgt, "skeleton-warrior", D.essCd["skeleton-warrior"] || 2); }
       else { if (tgt.used["skeleton-warrior"]) return false; tgt.used["skeleton-warrior"] = true; }
       tgt.t.react = 0; log(`${tgt.name} парирует щитом!`, "skill"); return true;
     },
@@ -410,11 +420,16 @@
 
   // Чувства из эссенций и тела: слепое зрение, чувство вибрации.
   // Время активки: фабрики (saveArea, attackRider…) его не задают — берём из текста эссенции, иначе активка не тратила бы действие.
-  for (const id of Object.keys(B.A)) {
-    const A = B.A[id]; if (A.time) continue;
-    const t = (ESSENCES[id] && ESSENCES[id].active && ESSENCES[id].active.time) || "";
-    A.time = /^бонус/.test(t) ? "bonus" : /^реакц/.test(t) ? "reaction" : /^свобод/.test(t) ? "free" : "action";
-  }
+  B.fillActiveTimes = function () {
+    for (const id of Object.keys(B.A)) {
+      const A = B.A[id]; if (A.time) continue;
+      const t = (ESSENCES[id] && ESSENCES[id].active && ESSENCES[id].active.time) || "";
+      A.time = /^бонус/.test(t) ? "bonus" : /^реакц/.test(t) ? "reaction" : /^свобод/.test(t) ? "free" : "action";
+    }
+  };
+  B.fillActiveTimes();
+  B.isShieldHolder = isShieldHolder;
+  B.ess = { atkFor, attackRider, saveArea, dashLines, dashVictims, specUnit, within, around, cellsAround, durEnd, save, dcOf, isShieldHolder };
   B.initUnit = function (u) {
     if (u.ess.includes("bat")) u.blind = Math.max(u.blind || 0, 2);
     if (u.ess.includes("stone-guardian")) u.tremor = Math.max(u.tremor || 0, 2);

@@ -1,5 +1,5 @@
 {
- "version": 1792603972,
+ "version": 1792636639,
  "files": [
   "assets/css/battle.css",
   "assets/items/armor-chainmail.svg",
@@ -23,6 +23,8 @@
   "assets/js/battle-dice.js",
   "assets/js/battle-end.js",
   "assets/js/battle-ess.js",
+  "assets/js/battle-ess2.js",
+  "assets/js/battle-ext.js",
   "assets/js/battle-menu.js",
   "assets/js/battle-rules.js",
   "assets/js/battle-ui.js",

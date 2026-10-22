@@ -1,6 +1,6 @@
 #!/bin/bash
-# usage: run_monkeys.sh <seed-base>
-cd "$(dirname "$0")"; mkdir -p mk; rm -f mk/*.txt
+# usage: run_monkeys.sh <seed-base>; результаты — в $OUT (по умолчанию /tmp/battle-monkeys)
+cd "$(dirname "$0")"; OUT=${OUT:-/tmp/battle-monkeys}; mkdir -p "$OUT"; rm -f "$OUT"/run*.txt
 B=${1:-100}
 declare -a SCS=(
 '{"list":["goblin","goblin","goblin"],"zone":"goblin"}'
@@ -11,6 +11,7 @@ declare -a SCS=(
 '{"list":["living-stone","green-boulder"],"zone":"stone","dark":true,"heroes":["barb2","archer","fairy"]}'
 )
 for i in 0 1 2 3 4 5; do
-  timeout 560 node bui_monkey.js $((B+i)) "${SCS[$i]}" > mk/run$i.txt 2>&1 &
+  timeout 560 node bui_monkey.js $((B+i)) "${SCS[$i]}" > "$OUT/run$i.txt" 2>&1 &
 done
 wait
+for f in "$OUT"/run*.txt; do tail -1 "$f" | cut -c1-400; done

@@ -13,10 +13,10 @@
   const barHtml = (cls, cur, max) => `<div class="bt-meter ${cls}"><i style="width:${max ? Math.round(Math.max(0, Math.min(1, cur / max)) * 100) : 0}%"></i></div>`;
   function unitCard(u, compact) {
     const sts = u.conds.filter(c => D.status[c.id]).map(c => `<span class="bt-stchip ${D.status[c.id].good ? "good" : "bad"}" title="${esc(D.status[c.id].desc)}">${stIco(c.id)}${esc(D.status[c.id].name)}</span>`).join("");
-    const hero = u.side === "hero";
-    return `<div class="bt-card${compact ? " compact" : ""}"><div class="bt-cface ${u.side}"><img src="${u.face}" alt=""></div>
-      <div class="bt-cinfo"><b>${esc(u.name)}</b><small>${hero ? `${esc(raceById(u.race).name)} · ${u.level} ур. · КД ${u.ac}` : `${esc(u.mon.size)} · КД ${u.ac}`}</small>
-        ${hero || B.S.opts.showMonHp ? `<div class="bt-nums"><span class="hp">ОЗ <b>${u.hp}</b>/${u.maxHp}${u.temp ? ` <em>+${u.temp}</em>` : ""}</span>${hero ? `<span class="mp">Мана <b>${u.mp}</b>/${u.maxMp}</span>` : ""}</div>${barHtml("hp", u.hp, u.maxHp)}${hero ? barHtml("mp", u.mp, u.maxMp) : ""}` : `<div class="bt-nums"><span class="hp">ОЗ скрыты</span></div>`}
+    const hero = !!u.hero, mine = u.side === "hero";
+    return `<div class="bt-card${compact ? " compact" : ""}"><div class="bt-cface ${u.side}${u.spectral ? " ghost" : ""}"><img src="${u.face}" alt=""></div>
+      <div class="bt-cinfo"><b>${esc(u.name)}</b><small>${hero ? `${esc(raceById(u.race).name)} · ${u.level} ур. · КД ${u.ac}` : u.summon ? `${u.kind === "double" ? "Двойник" : "Призванный волк"} · КД ${u.ac}` : `${esc(u.mon.size)} · КД ${u.ac}`}</small>
+        ${mine || B.S.opts.showMonHp ? `<div class="bt-nums"><span class="hp">ОЗ <b>${u.hp}</b>/${u.maxHp}${u.temp ? ` <em>+${u.temp}</em>` : ""}</span>${hero ? `<span class="mp">Мана <b>${u.mp}</b>/${u.maxMp}</span>` : ""}</div>${barHtml("hp", u.hp, u.maxHp)}${hero ? barHtml("mp", u.mp, u.maxMp) : ""}` : `<div class="bt-nums"><span class="hp">ОЗ скрыты</span></div>`}
       </div></div>${sts ? `<div class="bt-stline">${sts}</div>` : ""}`;
   }
   function resChips(u) {
@@ -46,9 +46,10 @@
     if (u && UI.mode === "hero") {
       let h = unitCard(u, !!UI.cat && !UI.pick) + resChips(u);
       if (UI.pick) {
-        h += `<div class="bt-prompt"><p>${esc(UI.pick.prompt || "")}</p><div class="btns">${UI.pick.extraBtns || ""}<button class="fx-btn" data-ba="pick-cancel">Отмена</button>${UI.pick.confirmable ? `<button class="fx-btn primary" data-ba="pick-ok"${UI.pick.canOk ? "" : " disabled"}>${esc(UI.pick.okLabel || "Готово")}</button>` : ""}</div></div>`;
+        h += pickPromptHtml();
       } else {
-        const opts = B.actionsFor(u), noLeft = !(u.t.action > 0) && !(u.t.bonus > 0) && !(u.t.move > 0);
+        const opts = B.actionsFor(u), noLeft = !(u.t.action > 0) && !(u.t.bonus > 0) && !(u.t.move > 0), pop = opts.find(o => o.pop && o.enabled);
+        if (pop) h += `<button class="bt-pickup" data-ba="pickup">${ico("throwing")}<span><b>${esc(pop.label)}</b><small>свободное действие — вы стоите на нём</small></span></button>`;
         h += `<div class="bt-dock">${DOCK.map(([id, label, ic]) => `<button class="bt-dk${UI.cat === id ? " on" : ""}${id === "end" && noLeft ? " pulse" : ""}" data-ba="dock" data-id="${id}"><span>${ico(ic)}</span><small>${label}</small></button>`).join("")}</div>`;
         if (UI.cat && CATS[UI.cat]) {
           const list = opts.filter(o => CATS[UI.cat][1].includes(o.cat) && !(UI.cat === "other" && o.id === "move"));
@@ -59,10 +60,12 @@
       if (UI.cat && !UI.pick) { const l = p.querySelector(".bt-list"); if (l && l.scrollIntoView) { try { l.scrollIntoView({ block: "nearest" }); } catch (e) {} } }
       return;
     }
-    // чужой ход
+    // чужой ход; выбор, начатый до меню хода (вынырнуть из-под земли в начале хода), тоже показывает подсказку и кнопки
     const cu = B.currentUnit();
-    p.innerHTML = (cu ? unitCard(cu) : "") + `<div class="bt-ticker">${(S.log.slice(-5)).reverse().map(l => `<p class="${l.c}">${esc(l.t)}</p>`).join("")}</div>`;
+    p.innerHTML = (cu ? unitCard(cu) : "") + (UI.pick ? pickPromptHtml() : `<div class="bt-ticker">${(S.log.slice(-5)).reverse().map(l => `<p class="${l.c}">${esc(l.t)}</p>`).join("")}</div>`);
   };
+  // Подсказка выбора цели/клетки/пути с кнопками «Отмена» и «Готово».
+  const pickPromptHtml = () => `<div class="bt-prompt"><p>${esc(UI.pick.prompt || "")}</p><div class="btns">${UI.pick.extraBtns || ""}<button class="fx-btn" data-ba="pick-cancel">Отмена</button>${UI.pick.confirmable ? `<button class="fx-btn primary" data-ba="pick-ok"${UI.pick.canOk ? "" : " disabled"}>${esc(UI.pick.okLabel || "Готово")}</button>` : ""}</div></div>`;
   UI.renderLogTicker = function () { if (UI.mode !== "hero" && UI.mode !== "place") UI.renderPanel(); };
   function renderPlace(p) {
     const S = B.S, hs = B.heroes().filter(h => !h.dead), pp = UI.panelPlace || {};
@@ -80,6 +83,7 @@
     if (a === "place-go") { UI.placeDone(); return; }
     if (a === "dock") { dock(id); return; }
     if (a === "opt") { const o = B.actionsFor(u).find(x => x.id === id); if (o) runOption(o); return; }
+    if (a === "pickup") { const o = B.actionsFor(u).find(x => x.id === "pickup"); if (o) runOption(o); return; }
     if (a === "pick-cancel") { if (UI.pick) UI.pick.cancel(); return; }
     if (a === "pick-ok") { if (UI.pick && UI.pick.ok) UI.pick.ok(); return; }
   }
@@ -141,16 +145,53 @@
       m.onclick = e => { const b = e.target.closest("[data-m]"); if (!b) return; hideModal(); resolve(b.dataset.m === "__no" ? null : b.dataset.m); };
     });
   };
-  UI.inspect = function (u) {
-    const S = B.S, hero = u.side === "hero";
-    const atk = B.attacksOf(u).filter(a => !a.offhand).map(a => `<li><b>${esc(a.n)}</b> · ${a.kind === "melee" ? "ближний" : "дальний"} · ${a.hit != null ? "+" + (a.hit) : ""} · ${a.dmg.n ? B.fmtDice(a.dmg) : a.dmg.b} ${D.DT[a.dt] || ""}</li>`).join("");
+  // note — HTML сноски справа с эффектом поля (долгое нажатие на клетку с бойцом).
+  UI.inspect = function (u, note) {
+    const S = B.S, hero = !!u.hero, mine = u.side === "hero";
+    const atk = B.attacksOf(u).filter(a => !a.offhand).map(a => `<li><b>${esc(a.n)}</b> · ${a.kind === "melee" ? "ближний" : "дальний"} · ${a.hit != null ? "+" + (a.hit) : ""} · ${a.dmg.n ? B.fmtDice(a.dmg) : a.dmg.b} ${D.DT[a.dt] || ""}${a.dmgMult === 0.5 ? " (вполсилы)" : ""}</li>`).join("");
     const ess = u.ess.map(id => { const e = ESSENCES[id]; return `<li><b>${esc(e.passive.name)} (П).</b> ${esc(e.passive.text)}</li><li><b>${esc(e.active.name)} (А).</b> ${e.active.mana} маны, ${esc(e.active.time)}. ${esc(e.active.text)}</li>`; }).join("");
     const sts = u.conds.filter(c => D.status[c.id]).map(c => `<li><span class="bt-stchip ${D.status[c.id].good ? "good" : "bad"}">${stIco(c.id)}${esc(D.status[c.id].name)}</span> ${esc(D.status[c.id].desc)}</li>`).join("");
-    const m = showModal(`<div class="bt-dlg fx-frame insp"><div class="bt-ihead"><div class="bt-cface ${u.side}"><img src="${u.face}" alt=""></div><div><h4>${esc(u.name)}</h4><small>${hero ? esc(raceById(u.race).name) + " · " + u.level + " ур." : esc(u.mon.size) + " · " + u.cls + " класс"}</small></div><button class="bt-x" data-m="close" aria-label="Закрыть">${ico("close")}</button></div>
-      <div class="bt-istats"><span>КД <b>${u.ac}</b></span><span title="Клеток хода в бою">Скорость <b>${B.speedOf(u)} кл.</b></span>${hero || S.opts.showMonHp ? `<span>ОЗ <b>${u.hp}/${u.maxHp}</b></span>` : `<span>ОЗ <b>скрыты</b></span>`}${hero ? `<span>Мана <b>${u.mp}/${u.maxMp}</b></span>` : ""}</div>
+    const owner = u.summon ? B.byId(u.owner) : null;
+    const sub = hero ? esc(raceById(u.race).name) + " · " + u.level + " ур." : u.summon ? (u.kind === "double" ? `Двойник · ${esc(owner ? owner.name : "")} · исчезает от любого урона` : `Призванный волк · ${esc(owner ? owner.name : "")}`) : esc(u.mon.size) + " · " + u.cls + " класс";
+    const body = `<div class="bt-dlg fx-frame insp"><div class="bt-ihead"><div class="bt-cface ${u.side}${u.spectral ? " ghost" : ""}"><img src="${u.face}" alt=""></div><div><h4>${esc(u.name)}</h4><small>${sub}</small></div><button class="bt-x" data-m="close" aria-label="Закрыть">${ico("close")}</button></div>
+      <div class="bt-istats"><span>КД <b>${u.ac}</b></span><span title="Клеток хода в бою">Скорость <b>${B.speedOf(u)} кл.</b></span>${mine || S.opts.showMonHp ? `<span>ОЗ <b>${u.hp}/${u.maxHp}</b></span>` : `<span>ОЗ <b>скрыты</b></span>`}${hero ? `<span>Мана <b>${u.mp}/${u.maxMp}</b></span>` : ""}</div>
       <div class="bt-iabil">${["str", "dex", "con", "int", "wis", "cha"].map(k => `<span>${B.ABIL_RU[k].slice(0, 3)} <b>${u.abil[k]}</b></span>`).join("")}</div>
-      ${sts ? `<h5>Состояния</h5><ul>${sts}</ul>` : ""}<h5>Атаки</h5><ul>${atk}</ul>${ess ? `<h5>Навыки эссенции</h5><ul>${ess}</ul>` : ""}</div>`);
+      ${sts ? `<h5>Состояния</h5><ul>${sts}</ul>` : ""}<h5>Атаки</h5><ul>${atk}</ul>${ess ? `<h5>Навыки эссенции</h5><ul>${ess}</ul>` : ""}</div>`;
+    const m = showModal(note ? `<div class="bt-insp-wrap">${body}<aside class="bt-fieldnote fx-frame" aria-label="Эффект поля">${note}</aside></div>` : body);
     m.onclick = e => { if (e.target.closest("[data-m]") || e.target === m) hideModal(); };
+  };
+  /* ===== эффекты клетки: долгое нажатие по полю ===== */
+  // Список строк «что здесь»: местность, свет, ловушка, зона, иллюзия, тело, лежащее оружие.
+  UI.cellEffects = function (x, y) {
+    const S = B.S, t = B.tinfo(x, y), tid = B.terrain(x, y), out = [];
+    out.push({ h: t ? t.name : "Ровная земля", t: t ? t.note : "Обычная земля: ничего особенного." + ((D.zones[S.zone] || {}).soil ? " Рыхлый грунт: можно закопаться («Нырок под землю»)." : (S.zone === "stone" ? " Каменный пол: закопаться нельзя." : "")) });
+    if (t && t.wet) out.push({ h: "Вода", t: "Холод и молния по вставшему сюда +1к4. Болотный клык бьёт отсюда первым с преимуществом." });
+    if (tid === "mud") out.push({ h: "Топь", t: "Болотный клык бьёт отсюда первым с преимуществом." });
+    if (S.dark) out.push({ h: B.lightAt(x, y) ? "Освещено" : "Тьма", t: B.lightAt(x, y) ? "Свет: штрафов тьмы нет." : "Помеха на Восприятие и дальние атаки у тех, кто без тёмного зрения; в тени можно прятаться." });
+    for (const o of S.objs) if (o.x === x && o.y === y) {
+      if (o.kind === "trap" && (!o.hidden || o.owner === "hero")) out.push({ h: "Ловушка", t: `Сл ${o.dc}, ${o.dmg} ${D.DT[o.dt] || ""}; наступивший спасается Ловкостью, при провале опутан.` });
+      if (o.kind === "illusion") out.push({ h: "Иллюзия «Морока»", t: "Неподвижная иллюзия: кто её увидел, проверяет Проницательность. Исчезнет через минуту." });
+    }
+    for (const z of S.zones || []) if (B.zoneCells(z).some(([cx, cy]) => cx === x && cy === y)) out.push(z.kind === "swarm" ? { h: "Рой паучат", t: `Начавший ход здесь получает 2к4 колющего и спасается Телосложением (Сл ${z.dc}), провал — отравлен. Огонь уничтожает рой.` } : { h: "Белая пыль", t: `Сильное заслонение: видно на 1,5 м. Начавший ход здесь, кроме пепельника, спасается Телосложением (Сл ${z.dc}), провал — отравлен.` });
+    for (const b of S.bodies || []) if (!b.eaten && b.x === x && b.y === y) out.push({ h: "Павший", t: `${b.name}: тело. Трупоед может его пожрать.` });
+    const w = S.drops.filter(d => d.x === x && d.y === y && d.kind === "weapon"), ar = S.drops.filter(d => d.x === x && d.y === y && d.kind === "arrow").length;
+    if (w.length) out.push({ h: "Лежит оружие", t: w.map(d => { const it = typeof itemOf === "function" && itemOf(d.item), hh = B.heroes().find(q => q.hero && q.hero.id === d.hero); return `${it ? it.name : "оружие"}${hh ? " (" + hh.name + ")" : ""}`; }).join(", ") + ". Хозяин подбирает его, встав на клетку — свободное действие." });
+    if (ar) out.push({ h: "Стрелы", t: `${ar} шт. Подбираются после боя, если отряд не бежал.` });
+    return out;
+  };
+  const effectsHtml = (x, y) => `<small class="bt-eyebrow">Поле ${x + 1}:${y + 1}</small>` + UI.cellEffects(x, y).map(e => `<h6>${esc(e.h)}</h6><p>${esc(e.t)}</p>`).join("");
+  UI.cellInfo = function (x, y) {
+    const u = B.occupant(x, y);
+    if (u) { UI.inspect(u, effectsHtml(x, y)); return; }                                         // боец на клетке: его окно, справа — сноска поля
+    const m = showModal(`<div class="bt-dlg fx-frame cellinfo"><div class="bt-ihead"><h4>Клетка ${x + 1}:${y + 1}</h4><button class="bt-x" data-m="close" aria-label="Закрыть">${ico("close")}</button></div>${UI.cellEffects(x, y).map(e => `<h5>${esc(e.h)}</h5><p class="left">${esc(e.t)}</p>`).join("")}</div>`);
+    m.onclick = e => { if (e.target.closest("[data-m]") || e.target === m) hideModal(); };
+  };
+  // Долгое нажатие: при выборе движения ставит или снимает путевую точку, иначе показывает эффекты клетки.
+  UI.onCellHold = function (x, y) {
+    if (!UI.active || !B.S || UI.mode === "place" || UI.mode === "result") return;
+    const m = q(".bt-modal"); if (m && !m.hidden) return;
+    if (UI.holdHandle) { UI.holdHandle(x, y); return; }
+    UI.cellInfo(x, y);
   };
   UI.menu = function () {
     const S = B.S;
@@ -179,7 +220,7 @@
 
   /* ===== выбор целей и клеток ===== */
   function beginPick(p) { UI.pick = p; UI.renderPanel(); UI.refreshNow(); }
-  function endPick() { UI.pick = null; UI.setHl(new Map()); UI.pathPreview = null; UI.targetIds = null; UI.selIds = null; UI.drawPath(); UI.refreshNow(); }
+  function endPick() { UI.pick = null; UI.holdHandle = null; UI.setHl(new Map()); UI.pathPreview = null; UI.pathWays = null; UI.pathStart = null; UI.targetIds = null; UI.selIds = null; UI.drawPath(); UI.refreshNow(); }
   const unitAtCell = (x, y) => B.occupant(x, y);
   function paintRange(cells, kind) { const map = new Map(); for (const [x, y] of cells || []) UI.hlAdd(map, x, y, kind === "heal" || kind === "help" ? "hl-ally" : "hl-reach"); return map; }
   UI.pickUnit = function (spec) {
@@ -216,9 +257,20 @@
       const done = v => { endPick(); resolve(v); };
       const nodeOf = (x, y) => spec.path && spec.path.get ? spec.path.get(x + "," + y) : null;
       const preview = (x, y) => { const n = nodeOf(x, y); if (!n) return; const path = []; for (let c = n; c && c.prev; c = c.prev) path.unshift([c.x, c.y]); UI.pathPreview = path; UI.drawPath(); };
-      const p = { type: "cell", prompt: spec.prompt, cancel: () => done(null), extraBtns: spec.optional ? `<button class="fx-btn" data-ba="pick-skip">Без перемещения</button>` : "", confirmable: !!spec.path, canOk: false, okLabel: "Подтвердить", ok: () => { if (sel) done(sel); } };
+      const withArea = spec.radius != null;                                                  // область действия: сначала показываем, кого заденет
+      const p = { type: "cell", prompt: spec.prompt, cancel: () => done(null), extraBtns: spec.optional ? `<button class="fx-btn" data-ba="pick-skip">Без перемещения</button>` : "", confirmable: !!spec.path || withArea, canOk: false, okLabel: "Подтвердить", ok: () => { if (sel) done(sel); } };
+      const paintArea = (x, y) => {
+        const m2 = new Map(map); const hit = [];
+        for (let yy = 0; yy < B.H; yy++) for (let xx = 0; xx < B.W; xx++) if (Math.max(Math.abs(xx - x), Math.abs(yy - y)) <= spec.radius) UI.hlAdd(m2, xx, yy, "hl-area");
+        for (const o of B.live()) if (B.distCell(o, x, y) <= spec.radius) hit.push(`${o.name}${o.side === (spec.forSide || "hero") ? " (свой)" : ""}`);
+        UI.setHl(m2); return hit;
+      };
       UI.pickHandle = (x, y) => {
         if (!valid.has(x + "," + y)) return;
+        if (withArea) {
+          if (sel && sel[0] === x && sel[1] === y) { done(sel); return; }
+          sel = [x, y]; p.canOk = true; const hit = paintArea(x, y); p.prompt = `${spec.prompt}. Заденет: ${hit.join(", ") || "никого"}. Нажмите ещё раз или «Подтвердить».`; UI.renderPanel(); return;
+        }
         if (!spec.path) { done([x, y]); return; }
         if (sel && sel[0] === x && sel[1] === y) { done(sel); return; }
         sel = [x, y]; p.canOk = true; preview(x, y); UI.renderPanel();
@@ -227,26 +279,67 @@
       beginPick(p);
     }).then(v => (v && v.skip ? {} : v));
   };
+  // Перемещение. Нажатие выбирает клетку (второе нажатие или «Идти» — идти), долгое нажатие ставит путевую точку: герой обязательно пройдёт
+  // через неё (чтобы обойти ловушки и костёр). Точек может быть несколько, повторное долгое нажатие снимает точку. Путь — ломаная по точкам.
   UI.pickMove = function (spec) {
     return new Promise(resolve => {
-      const u = spec.unit, map = new Map();
-      const reach = new Set([...spec.cells.keys()]);
+      const u = spec.unit, budget = Math.max(0, spec.budget), key = (x, y) => x + "," + y;
       const foes = B.enemiesOf(u).filter(e => B.canAct(e) && e.t.react && !u.t.disengage);
+      const scared = has(u, "frightened"), avoid = (x, y) => scared && B.frightenOK && !B.frightenOK(u, x, y);
       const provokes = path => { let prev = [u.x, u.y]; const who = new Set(); for (const [x, y] of path) { for (const e of foes) { const r = B.meleeReach(e); if (B.distAt(e, u, prev[0], prev[1]) <= r && B.distAt(e, u, x, y) > r) who.add(e.name); } prev = [x, y]; } return [...who]; };
-      for (const [k, n] of spec.cells) { const path = []; for (let c = n; c && c.prev; c = c.prev) path.unshift([c.x, c.y]); n._prov = provokes(path).length > 0; UI.hlAdd(map, n.x, n.y, n._prov ? "hl-danger" : "hl-move"); }
-      UI.setHl(map);
-      let sel = null;
-      const done = v => { endPick(); resolve(v); };
-      const p = { type: "move", prompt: `Перемещение: осталось ${spec.budget} кл.${spec.standCost ? ` (встать: −${spec.standCost})` : ""} Нажмите клетку.`, cancel: () => done(null), confirmable: true, canOk: false, okLabel: "Идти", ok: () => { if (sel) done({ x: sel.x, y: sel.y }); },
-        extraBtns: spec.standCost ? `<button class="fx-btn" data-ba="pick-stand">Только встать</button>` : "" };
-      UI.skipPick = () => done({ stay: true });
-      UI.pickHandle = (x, y) => {
-        const n = spec.cells.get(x + "," + y); if (!n) return;
-        if (sel && sel.x === x && sel.y === y) { done({ x, y }); return; }
-        sel = n; const path = []; for (let c = n; c && c.prev; c = c.prev) path.unshift([c.x, c.y]); UI.pathPreview = path; UI.drawPath();
-        const who = provokes(path); p.prompt = `Идти на ${n.cost} кл.${who.length ? ` ⚠ атака по возможности: ${who.join(", ")}.` : ""} Нажмите ещё раз или «Идти».`; p.canOk = true; UI.renderPanel();
+      const trapsOn = path => path.filter(([x, y]) => B.S.objs.some(o => o.kind === "trap" && o.x === x && o.y === y && (!o.hidden || o.owner === "hero")) || (B.tinfo(x, y) || {}).hazard).length;
+      const nodePath = (m, x, y) => { const out = []; for (let c = m.get(key(x, y)); c && c.prev; c = c.prev) out.unshift([c.x, c.y]); return out; };
+      const mapFrom = (pos, left) => B.pathMap({ ...u, x: pos[0], y: pos[1] }, Math.max(0, left), { avoid });
+      let ways = [], legs = [], pos = [u.x, u.y], left = budget, reach = mapFrom(pos, left), sel = null;
+      const flat = () => legs.flat();
+      // пересчёт после изменения точек: идём по ним по порядку, лишние (недостижимые) отбрасываем
+      const recalc = () => {
+        const old = ways; ways = []; legs = []; pos = [u.x, u.y]; left = budget;
+        for (const w of old) {
+          const m = mapFrom(pos, left), n = m.get(key(w[0], w[1]));
+          if (!n || (w[0] === pos[0] && w[1] === pos[1])) { UI.toast("Точка стала недостижима и снята"); break; }
+          ways.push(w); legs.push(nodePath(m, w[0], w[1])); left -= n.cost; pos = w;
+        }
+        reach = mapFrom(pos, left);
+        if (sel && !(reach.get(key(sel.x, sel.y)) && B.canStand(u, sel.x, sel.y))) sel = null;
       };
-      beginPick(p);
+      const paint = () => {
+        const hl = new Map(), base = flat();
+        for (const [k, n] of reach) {
+          if ((n.x === pos[0] && n.y === pos[1]) || !B.canStand(u, n.x, n.y)) continue;
+          const bad = provokes([...base, ...nodePath(reach, n.x, n.y)]).length > 0;
+          UI.hlAdd(hl, n.x, n.y, bad ? "hl-danger" : "hl-move");
+        }
+        UI.setHl(hl); UI.pathWays = ways.slice(); UI.pathStart = ways.length ? [u.x, u.y] : null;
+        const full = sel ? [...base, ...nodePath(reach, sel.x, sel.y)] : base; UI.pathPreview = full.length ? full : null; UI.drawPath();
+      };
+      const note = () => {
+        if (!sel) return `Перемещение: осталось ${left} кл.${spec.standCost ? ` (встать: −${spec.standCost})` : ""} Нажмите клетку.${ways.length ? ` Точек: ${ways.length}.` : " Зажмите клетку — герой пройдёт через неё."}`;
+        const full = [...flat(), ...nodePath(reach, sel.x, sel.y)], who = provokes(full), tr = trapsOn(full), cost = budget - left + reach.get(key(sel.x, sel.y)).cost;
+        return `Идти на ${cost} кл.${who.length ? ` ⚠ атака по возможности: ${who.join(", ")}.` : ""}${tr ? ` ⚠ на пути ловушка или огонь (${tr}).` : ""} Нажмите ещё раз или «Идти».${ways.length ? "" : " Зажмите клетку — пройдёт через неё."}`;
+      };
+      const extra = () => `${spec.standCost ? `<button class="fx-btn" data-ba="pick-stand">Только встать</button>` : ""}${ways.length ? `<button class="fx-btn" data-ba="pick-clear">Снять точки</button>` : ""}`;
+      const done = v => { endPick(); resolve(v); };
+      const p = { type: "move", prompt: "", cancel: () => done(null), confirmable: true, canOk: false, okLabel: "Идти", ok: () => { if (sel) go(); }, extraBtns: "" };
+      const refresh = () => { paint(); p.prompt = note(); p.canOk = !!sel; p.extraBtns = extra(); UI.renderPanel(); };
+      const go = () => { const path = [...flat(), ...nodePath(reach, sel.x, sel.y)]; done({ x: sel.x, y: sel.y, path }); };
+      UI.skipPick = () => done({ stay: true });
+      UI.clearWays = () => { ways = []; recalc(); refresh(); };
+      UI.pickHandle = (x, y) => {
+        const n = reach.get(key(x, y));
+        if (!n || (x === pos[0] && y === pos[1]) || !B.canStand(u, x, y)) { if (ways.some(w => w[0] === x && w[1] === y)) UI.toast("Это путевая точка — зажмите её, чтобы снять"); return; }
+        if (sel && sel.x === x && sel.y === y) { go(); return; }
+        sel = { x, y }; refresh();
+      };
+      // долгое нажатие: поставить точку (через неё можно проходить, даже если там союзник) или снять
+      UI.holdHandle = (x, y) => {
+        const at = ways.findIndex(w => w[0] === x && w[1] === y);
+        if (at >= 0) { ways.splice(at, 1); recalc(); refresh(); UI.toast("Путевая точка снята"); return; }
+        const n = reach.get(key(x, y));
+        if (!n || (x === pos[0] && y === pos[1])) { UI.toast("Через эту клетку не пройти (далеко или занято)"); return; }
+        ways.push([x, y]); recalc(); refresh(); UI.toast(`Путевая точка ${ways.length}: герой обязательно пройдёт здесь`);
+      };
+      beginPick(p); refresh();
     });
   };
   UI.pickFor = async function (u, spec, A) {
@@ -268,8 +361,8 @@
       const cubeMap = (ax, ay) => { const map = new Map(); for (const [x, y] of spec.anchors) UI.hlAdd(map, x, y, "hl-reach"); if (ax != null) for (let dy = 0; dy < 2; dy++) for (let dx = 0; dx < 2; dx++) UI.hlAdd(map, ax + dx, ay + dy, "hl-area"); return map; };
       UI.setHl(cubeMap());
       const res = await new Promise(resolve => {
-        const p = { type: "cube", prompt: spec.prompt, confirmable: true, canOk: false, okLabel: "Обвал!", cancel: () => resolve(null), ok: () => { if (sel) resolve(sel); } };
-        UI.pickHandle = (x, y) => { let ax = Math.min(x, B.W - 2), ay = Math.min(y, B.H - 2); if (!anchors.has(ax + "," + ay)) return; if (sel && sel[0] === ax && sel[1] === ay) { resolve(sel); return; } sel = [ax, ay]; UI.setHl(cubeMap(ax, ay)); p.canOk = true; const hit = B.live().filter(o => B.footprint(o).some(([fx, fy]) => fx >= ax && fx < ax + 2 && fy >= ay && fy < ay + 2)); p.prompt = `Заденет: ${hit.map(o => o.name).join(", ") || "никого"}. Нажмите ещё раз или «Обвал!».`; UI.renderPanel(); };
+        const okLabel = spec.okLabel || "Применить", p = { type: "cube", prompt: spec.prompt, confirmable: true, canOk: false, okLabel, cancel: () => resolve(null), ok: () => { if (sel) resolve(sel); } };
+        UI.pickHandle = (x, y) => { let ax = Math.min(x, B.W - 2), ay = Math.min(y, B.H - 2); if (!anchors.has(ax + "," + ay)) return; if (sel && sel[0] === ax && sel[1] === ay) { resolve(sel); return; } sel = [ax, ay]; UI.setHl(cubeMap(ax, ay)); p.canOk = true; const hit = B.live().filter(o => B.footprint(o).some(([fx, fy]) => fx >= ax && fx < ax + 2 && fy >= ay && fy < ay + 2)); p.prompt = `Заденет: ${hit.map(o => o.name).join(", ") || "никого"}. Нажмите ещё раз или «${okLabel}».`; UI.renderPanel(); };
         beginPick(p);
       });
       endPick(); return res ? { cell: res } : null;
@@ -313,6 +406,7 @@
       const el = e.target.closest("[data-ba]");
       if (el && el.dataset.ba === "pick-skip") { UI.skipPick && UI.skipPick(); return; }
       if (el && el.dataset.ba === "pick-stand") { UI.skipPick && UI.skipPick(); return; }
+      if (el && el.dataset.ba === "pick-clear") { UI.clearWays && UI.clearWays(); return; }
       panelClick(e);
     }
   });

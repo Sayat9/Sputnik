@@ -74,11 +74,11 @@
   // minCover — сколько клеток с укрытием (препятствия, заросли, туман) хотим иметь; *Chance — вероятность подсыпки; thicketN — размер пятна зарослей.
   D.gen = { minCover: 5, coverChance: 0.75, thicketChance: 0.6, thicketN: [2, 4] };
   D.zones = {
-    goblin: { name: "Лагерь гоблинов", obst: ["tent", "crate", "rock"], nObst: [3, 5], thicket: "thorns", feats: [["stakes", 1, 2], ["mud", 1, 3, true], ["fire", 0, 1], ["puddle", 0, 2, true]], traps: [0, 2],
+    goblin: { name: "Лагерь гоблинов", soil: true, obst: ["tent", "crate", "rock"], nObst: [3, 5], thicket: "thorns", feats: [["stakes", 1, 2], ["mud", 1, 3, true], ["fire", 0, 1], ["puddle", 0, 2, true]], traps: [0, 2],
       bg: { base: "#4a4026", base2: "#2b2414", dots: ["#6a5a36", "#3a301a", "#7d6c40"], tufts: "#6b7a2e", label: "Лагерь гоблинов" } },
-    beast: { name: "Звериная чаща", obst: ["tree", "rock"], nObst: [3, 5], thicket: "bush", feats: [["bush", 2, 4], ["mud", 0, 2, true], ["puddle", 1, 3, true]], traps: [0, 0],
+    beast: { name: "Звериная чаща", soil: true, obst: ["tree", "rock"], nObst: [3, 5], thicket: "bush", feats: [["bush", 2, 4], ["mud", 0, 2, true], ["puddle", 1, 3, true]], traps: [0, 0],
       bg: { base: "#2f4a24", base2: "#17260f", dots: ["#3f6a30", "#22381a", "#587a3c"], tufts: "#6ea04a", label: "Звериная чаща" } },
-    undead: { name: "Погост", obst: ["grave", "rock"], nObst: [3, 5], thicket: "thorns", feats: [["bones", 2, 3], ["fog", 2, 4, true], ["puddle", 0, 2, true]], traps: [0, 0],
+    undead: { name: "Погост", soil: true, obst: ["grave", "rock"], nObst: [3, 5], thicket: "thorns", feats: [["bones", 2, 3], ["fog", 2, 4, true], ["puddle", 0, 2, true]], traps: [0, 0],
       bg: { base: "#3a3744", base2: "#1c1a24", dots: ["#55526a", "#2a2834", "#6e6a84"], tufts: "#5b6a4a", label: "Погост" } },
     stone: { name: "Каменная пещера", obst: ["rock", "crystal"], nObst: [3, 5], thicket: "shrooms", feats: [["moss", 1, 3], ["puddle", 1, 3, true]], traps: [0, 0],
       bg: { base: "#3b4650", base2: "#1c2228", dots: ["#556573", "#2b343c", "#6f8394"], tufts: "#4f7a3a", label: "Каменная пещера" } },
@@ -127,6 +127,20 @@
     sleepy:      { name: "Сонный", ico: '<path d="M20 14.500A8 8 0 019.500 4a8 8 0 1010.500 10.500z"/>', desc: "Усталость +1 до Отдыха (герой) или −1 к атакам и спасброскам (монстр)." },
     trapped:     { name: "В капкане", ico: '<path d="M3 18l3-9 3 9 3-9 3 9 3-9 3 9z"/>', desc: "Скорость 0. Вырваться: действие и проверка Силы против Сл ловушки." },
     unseen:      { name: "Невидим", good: true, ico: '<circle cx="12" cy="12" r="9" stroke-dasharray="3 3"/>', desc: "Не виден противникам." },
+    // состояния эссенций 2 этажа
+    blinded:     { name: "Ослеплён", ico: '<path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6S2 12 2 12z"/><path d="M9 9l6 6M15 9l-6 6"/>', desc: "Не видит. Атаки по нему — с преимуществом, его атаки — с помехой." },
+    paralyzed:   { name: "Парализован", ico: '<circle cx="12" cy="5" r="2.500"/><path d="M12 8v8M6 11h12M9 21l3-5 3 5"/>', desc: "Не действует и не двигается. Атаки по нему — с преимуществом, попадание вблизи — критическое. Спасброски Силы и Ловкости проваливает. Повтор спасброска в конце его хода." },
+    fooled:      { name: "Обманут", ico: '<circle cx="12" cy="12" r="9"/><path d="M9.500 9.500a2.500 2.500 0 114 2c-1 .8-1.500 1.200-1.500 2.500M12 17h.01"/>', desc: "Его следующая атака и следующая проверка Восприятия или Проницательности — с помехой. Снимается в конце его следующего хода." },
+    cursed:      { name: "Проклятие предков", ico: '<path d="M12 3a8 8 0 00-5 14v3h10v-3a8 8 0 00-5-14z"/><circle cx="9" cy="11" r="1.600"/><circle cx="15" cy="11" r="1.600"/>', desc: "Помеха на броски атаки; каждое попадание по нему наносит +1к4 урона. В конце своего хода повторяет спасбросок." },
+    buried:      { name: "Засыпан землёй", ico: '<path d="M3 19h18M5 19c1-5 4-8 7-8s6 3 7 8"/>', desc: "Обездвижен и ослеплён. Освободиться: действие, Атлетика против результата могильщика; союзник рядом может откопать действием." },
+    underground: { name: "Под землёй", good: true, ico: '<path d="M3 15h18M7 15v4M12 15v5M17 15v4"/><path d="M8 11a4 4 0 018 0"/>', desc: "Атаковать нельзя. Вынырнет в начале своего хода." },
+    fuse:        { name: "Фитиль горит", ico: '<circle cx="11" cy="14" r="6"/><path d="M15 9l3-3M18 6l2-1M18 3v1.500"/>', desc: "Бомба в руке: любое попадание по нему взрывает её." },
+    emerged:     { name: "Вынырнул", good: true, ico: '<path d="M13 2L5 14h6l-1 8 8-12h-6z"/>', desc: "Первая атака в этот ход — с преимуществом." },
+    eyepeck:     { name: "Клюв наготове", good: true, ico: '<path d="M4 19L12 7l8 12M9 14h6"/>', desc: "Следующее попадание рукопашной атакой в этот ход даст цели помеху на её следующую атаку." },
+    packmark:    { name: "Отмечен вожаком", ico: '<path d="M12 3l2 6h6l-5 4 2 7-5-4-5 4 2-7-5-4h6z"/>', desc: "Следующая атака союзника вожака по нему — с преимуществом. Снимается в начале хода вожака." },
+    roar:        { name: "Боевой рёв", good: true, ico: '<path d="M4 10h3l4-3.500v11L7 14H4zM14 9c2 1.500 2 4.500 0 6M17 6c3.500 3 3.500 9 0 12"/>', desc: "Временные ОЗ от рёва короля; исчезают в конце его следующего хода." },
+    firstblood:  { name: "Из-под воды", good: true, ico: '<path d="M3 15c3 0 3-2 6-2s3 2 6 2 3-2 6-2M3 20c3 0 3-2 6-2s3 2 6 2 3-2 6-2M12 4v7M9 8l3-4 3 4"/>', desc: "Первая атака в бою — с преимуществом, если стоишь в воде или топи." },
+    lured:       { name: "Манит чужой голос", ico: '<path d="M4 10h3l4-3.500v11L7 14H4zM14 9c2 1.500 2 4.500 0 6"/>', desc: "Тратит перемещение, идя к точке, которую выбрал шептун. Повтор спасброска в конце хода." },
   };
 
   /* ---------- расы в бою ---------- */
@@ -143,6 +157,15 @@
      В rules.md перезарядка указана у 8 класса; для 9 класса она выведена из цены маны (черновик). */
   D.essCd = { goblin: 3, "goblin-archer": 2, "goblin-sword": 2, "goblin-spear": 2, wolf: 3, fox: 2, mouse: 3, bat: 3, zombie: 2, skeleton: 3, "skeleton-archer": 3,
     ghoul: 2, "living-stone": 2, pixie: 3, wisp: 3, "green-boulder": 3, hobgoblin: 2, "dark-bear": 3, "skeleton-warrior": 2, "stone-guardian": 3 };
+  // Эссенции 2 этажа: перезарядки прямо в rules.md. battle 99 — «раз за бой»; «Нож в спину» — перезарядка пассивки.
+  Object.assign(D.essCd, { "goblin-shaman": 2, "goblin-assassin": 3, "goblin-trapper": 3, "goblin-elder": 3, "hobgoblin-brute": 2, "hobgoblin-thrower": 2, "hobgoblin-driver": 3,
+    "hobgoblin-shield": 2, "goblin-king": 4, "goblin-bomber": 1, "goblin-thief": 3, "horned-hare": 2, "swamp-toad": 2, burrower: 3, crow: 1, "dire-wolf": 2, "web-spider": 3,
+    werewolf: 99, "giant-mole": 3, "swamp-fang": 3, "spider-queen": 4, blackwing: 2, "grey-shade": 3, morok: 2, whisperer: 3, "mirror-dead": 3, "faceless-ringer": 6,
+    "dust-crawler": 3, "bone-hound": 2, gravedigger: 3, "plague-fat": 3, "ash-spirit": 3, "bone-knight": 3, "corpse-eater": 4, "ash-wraith": 4 });
+  D.stabCd = 2;                    // «Нож в спину» (пассивка ассасина): перезарядка 2 раунда
+  // Как читать «Перезарядка: N раундов». 0 — буквально по rules.md («сколько раундов после применения способность нельзя применить снова»):
+  // применил в раунде R — недоступна в R+1…R+N. −1 — «снова можно через N раундов» (R+N). Допущение, нужен ответ автора (drafts.md).
+  D.cdShift = 0;
 
   /* ---------- боевая таблица монстров 1 этажа ----------
      ОЗ, КД, скорость, характеристики, чувства берутся из MONSTERS (index.html); здесь — атаки, размер, особенности и ИИ.
