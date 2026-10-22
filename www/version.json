@@ -1,7 +1,8 @@
 {
- "version": 1792693272,
+ "version": 1792699082,
  "files": [
   "assets/css/battle.css",
+  "assets/css/town.css",
   "assets/items/armor-chainmail.svg",
   "assets/items/armor-hide.svg",
   "assets/items/armor-leather.svg",
@@ -53,6 +54,7 @@
   "assets/js/battle-rules.js",
   "assets/js/battle-ui.js",
   "assets/js/battle.js",
+  "assets/js/town.js",
   "assets/monsters/bat-face.webp",
   "assets/monsters/bat-full.webp",
   "assets/monsters/dark-bear-face.webp",

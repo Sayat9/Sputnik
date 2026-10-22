@@ -359,10 +359,12 @@
   const watchers = () => live().filter(u => u.side === "hero" && !u.down && !has(u, "underground"));
   function visionCells() {
     const set = new Set(), ws = watchers();
-    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const pt = { x, y, size: 1, id: "cell" }; if (!ws.length || ws.some(w => hasLOS(w, pt))) set.add(key(x, y)); }
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const pt = { x, y, size: 1, id: "cell" }; if (!ws.length || (ws.some(w => hasLOS(w, pt)) && !fogHides(ws, x, y))) set.add(key(x, y)); }
     return set;
   }
-  const seenByParty = m => { const ws = watchers(); return !ws.length || ws.some(w => hasLOS(w, m)); };
+  // Туман (Туманная часовня): дальше S.fog клеток (3 м = 2) от ближайшего героя ничего не видно.
+  const fogHides = (ws, x, y) => { const f = (B.S && B.S.fog) || 0; return f > 0 && ws.length > 0 && !ws.some(w => distCell(w, x, y) <= f); };
+  const seenByParty = m => { const ws = watchers(); return !ws.length || (ws.some(w => hasLOS(w, m)) && !footprint(m).every(([x, y]) => fogHides(ws, x, y))); };
   Object.assign(B, { visionCells, seenByParty });
   Object.assign(B, { meleeReach, center, lineCells, coverBetween, lineBlocked, hasLOS, sightBlockAt });
 
@@ -380,7 +382,7 @@
   /* ===== состояние боя ===== */
   function newBattle(ev) {
     const zone = D.zones[ev.zone] ? ev.zone : "goblin";
-    const S = { ev, zone, ambush: !!ev.ambush, dark: false, torch: false, units: [], order: [], turn: 0, round: 1, phase: "init", log: [], killed: [], objs: [], drops: [], opts: Object.assign({ showMonHp: false, autoSaves: false, autoEnd: true }, (state.settings && state.settings.battleOpts) || {}, { autoHeroes: false }), outcome: null, arrowLog: {}, zones: [], bodies: [], q: [], started: Date.now() };
+    const S = { ev, zone, fog: ev.fog || 0, ambush: !!ev.ambush, dark: false, torch: false, units: [], order: [], turn: 0, round: 1, phase: "init", log: [], killed: [], objs: [], drops: [], opts: Object.assign({ showMonHp: false, autoSaves: false, autoEnd: true }, (state.settings && state.settings.battleOpts) || {}, { autoHeroes: false }), outcome: null, arrowLog: {}, zones: [], bodies: [], q: [], started: Date.now() };
     try { S.dark = typeof inDarkness === "function" && !!(state.run && isDark(state.run.pos.x, state.run.pos.y)) && !(state.run && state.run.light); S.torch = !!(state.run && state.run.light); } catch (e) { S.dark = false; }
     S.floor = ev.floor || (state.run && state.run.floor) || 1;
     const g = genTerrain(zone, S.floor); S.cells = g.cells; S.objs = g.objs; S.found = []; S.objHp = {};

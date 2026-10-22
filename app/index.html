@@ -527,6 +527,8 @@ body.forge-open { overflow: hidden; }
 .bld .art { aspect-ratio: 1; max-width: 100%; border-radius: 4px; overflow: hidden; border: 1px solid var(--fx-line); background: #0F0C08; position: relative; }
 .bld .art svg { display: block; width: 100%; height: 100%; }
 .bld b { font: 700 13.5px/1.15 var(--f-fancy); letter-spacing: .04em; color: var(--fx-gold-hi); overflow-wrap: break-word; }
+.bld .gate-st { color: var(--fx-muted); font-size: 11.5px; text-align: center; }
+.bld.shut .art { filter: grayscale(.8) brightness(.7); animation: none; }
 .bld.locked { cursor: not-allowed; filter: grayscale(1) brightness(.62); }
 .bld.locked b { color: var(--fx-muted); }
 .bld .lock { position: absolute; inset: 0; display: grid; place-items: center; background: rgb(0 0 0 / .35); }
@@ -761,6 +763,31 @@ dl.kv { margin: 0; }
 .load .ltext { font-size: 13.5px; }
 .load .ltext.bad { color: var(--fx-danger); }
 .load .ltext.ok { color: #9fc48a; }
+/* ----- рюкзак с рисунком, окно предмета, монеты ----- */
+.packwrap { position: relative; padding: 14px 10px 10px; border-radius: 22px 22px 14px 14px; background: linear-gradient(#2c2115, #1a1209); border: 1px solid var(--fx-line); box-shadow: inset 0 0 0 3px #120d07, inset 0 0 0 4px rgb(214 166 76 / .22); }
+.packwrap::before { content: ""; position: absolute; left: 14%; right: 14%; top: -9px; height: 16px; border: 3px solid #4a3822; border-bottom: 0; border-radius: 14px 14px 0 0; background: transparent; }
+.packwrap::after { content: ""; position: absolute; left: 50%; top: 2px; width: 22px; height: 10px; margin-left: -11px; border-radius: 3px; background: linear-gradient(#e9c36a, #a87a2a); border: 1px solid #5a3a0a; box-shadow: 0 1px 3px rgb(0 0 0 / .5); }
+.packwrap .bag { margin-top: 6px; }
+.cell[aria-pressed="true"] { border-color: var(--fx-gold-hi); box-shadow: 0 0 0 2px rgb(244 212 142 / .5); }
+.gold-row { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border: 1px solid var(--fx-line); border-radius: 8px; background: rgb(0 0 0 / .25); }
+.gold-row b { font: 700 18px/1 var(--f-data); color: var(--fx-gold-hi); }
+.gold-row .coin { width: 20px; height: 20px; flex: none; }
+.gold-row small { color: var(--fx-muted); flex: 1; }
+.coin-panel { padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+.coin-panel .btn-row .fx-btn.on { background: var(--fx-gold); color: #1d140a; }
+#iteminfo { position: fixed; inset: 0; z-index: 90; background: rgb(0 0 0 / .66); display: grid; place-items: center; padding: 16px; color: var(--fx-text); }
+#iteminfo[hidden] { display: none; }
+.ii-card { width: min(340px, 100%); padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; animation: iiPop .16s ease-out; }
+.ii-art { width: 150px; height: 150px; border-radius: 8px; overflow: hidden; border: 1px solid var(--fx-line); background: #0F0C08; display: grid; place-items: center; color: var(--fx-gold); }
+.ii-art img, .ii-art svg { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ii-art svg { padding: 26px; box-sizing: border-box; }
+.ii-card h4 { margin: 0; font: 400 22px/1.1 var(--f-display); color: var(--fx-gold-hi); }
+.ii-card p { margin: 0; color: var(--fx-text); font-size: 15px; line-height: 1.35; }
+.ii-card small { color: var(--fx-muted); font-size: 13px; }
+@keyframes iiPop { from { transform: scale(.92); opacity: 0; } to { transform: none; opacity: 1; } }
+#townov { position: fixed; inset: 0; z-index: 34; background: radial-gradient(ellipse at 50% 0%, #3A2B1A 0%, var(--fx-bg) 60%), var(--fx-bg); color: var(--fx-text); color-scheme: dark; display: flex; flex-direction: column; }
+#townov[hidden] { display: none; }
+
 .eq-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .eq { display: flex; align-items: center; gap: 8px; padding: 6px; border: 1px solid var(--fx-line); border-radius: 6px; background: rgb(0 0 0 / .25); cursor: pointer; text-align: left; color: inherit; font: inherit; min-width: 0; }
 .eq[aria-pressed="true"] { border-color: var(--fx-gold-hi); box-shadow: 0 0 10px rgb(244 212 142 / .35); }
@@ -914,6 +941,8 @@ dl.kv { margin: 0; }
 <div class="fx-toast" id="toast" role="status" hidden></div>
 <div id="libov" role="dialog" aria-modal="true" aria-label="Библиотека" hidden></div>
 <div id="heroov" role="dialog" aria-modal="true" aria-label="Меню героя" hidden></div>
+<div id="townov" role="dialog" aria-modal="true" aria-label="Здание города" hidden></div>
+<div id="iteminfo" role="dialog" aria-modal="true" aria-label="Предмет" hidden></div>
 <div id="forge" role="dialog" aria-modal="true" aria-label="Создание героя" hidden></div>
 <button class="dice-fab" id="dice-fab" data-dice="open" aria-label="Бросить кубик">
   <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 3 43 14v20L24 45 5 34V14z" fill="#2a1f12" stroke="#f0c979" stroke-width="2.4" stroke-linejoin="round"/><path d="M24 3 15 19h18zM15 19 5 14M33 19l10-5M15 19l-5 15M33 19l5 15M15 19l9 26 9-26M10 34h28" fill="none" stroke="#d6a64c" stroke-width="1.4" stroke-linejoin="round" opacity=".85"/><text x="24" y="31" text-anchor="middle" font-family="Kelly Slab, Georgia, serif" font-size="11" fill="#fff1c4">20</text></svg>
@@ -1662,7 +1691,7 @@ const RASTER = new Set(["items/shortbow", "items/longbow", "items/rapier", "item
 const artPath = p => `assets/${p}.${RASTER.has(p) ? "webp" : "svg"}`;
 const ART = {
   weapon: id => artPath(`items/${id}`),
-  gear: id => { const k = id === "arrow" ? "arrows" : id; return RASTER.has(`items/${k}`) ? artPath(`items/${k}`) : null; },
+  gear: id => { const k = id === "arrow" ? "arrows" : id === "potion-good" ? "potion" : id; return RASTER.has(`items/${k}`) ? artPath(`items/${k}`) : null; },
   armor: id => `assets/items/armor-${id}.svg`,
   race: id => artPath(`races/${id}`),
   // Монстр без своей картинки (ph: "beast" | "undead" | "elemental") получает силуэт-заглушку по типу.
@@ -2042,9 +2071,10 @@ const GEAR = {
   shovel:      { short: "Лопата", name: "Лопата", weight: 2.5, stack: 1, uses: 3, note: "Для действия «Копать». Ломается после 3 раскопок." },
   "shovel-good": { short: "Лопата+", name: "Хорошая лопата", weight: 2.5, stack: 1, uses: 5, note: "Для действия «Копать». Ломается после 5 раскопок." },
   "shovel-best": { short: "Лопата++", name: "Отличная лопата", weight: 2, stack: 1, uses: 10, note: "Для действия «Копать». Ломается после 10 раскопок." },
-  "stone-9":   { short: "Камни", name: "Магический камень 9-го класса", weight: 0.1, stack: 99, note: "Добыча лабиринта: 1 камень 9-го класса = 1 з. в скупке." },
-  "stone-7":   { short: "Камни 7", name: "Магический камень 7-го класса", weight: 0.1, stack: 99, note: "Добыча 2 этажа: 1 камень 7-го класса = 9 з. в скупке." },
-  "stone-8":   { short: "Камни 8", name: "Магический камень 8-го класса", weight: 0.1, stack: 99, note: "Добыча 2 этажа: 1 камень 8-го класса = 3 з. в скупке." },
+  "stone-9":   { short: "Камни", name: "Магический камень 9-го класса", weight: 0.1, stack: 99, note: "Добыча лабиринта: Магазин скупает по 1 монете." },
+  "stone-7":   { short: "Камни 7", name: "Магический камень 7-го класса", weight: 0.1, stack: 99, note: "Добыча 2 этажа. Магазин скупает по 20 монет." },
+  "potion-good": { short: "Зелье+", name: "Зелье лечения", weight: 0.25, stack: 5, use: "drink", heal: "2к4 + 4", note: "Восстанавливает 2к4 + 4 ОЗ (6–12, в среднем 9). Черновик." },
+  "stone-8":   { short: "Камни 8", name: "Магический камень 8-го класса", weight: 0.1, stack: 99, note: "Добыча 2 этажа: Магазин скупает по 5 монет." },
 };
 const SHOVELS = ["shovel", "shovel-good", "shovel-best"];
 const GEAR_ICON = {
@@ -2059,6 +2089,7 @@ const GEAR_ICON = {
   "stone-9": `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 3l6 5-2 11H8L6 8z" fill="#d6a64c" opacity=".55"/><path d="M12 3l6 5-2 11H8L6 8z"/><path d="M6 8h12M12 3l-2 5 2 11 2-11z" stroke-width="1"/></svg>`,
   custom: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="M9 12h6M12 9v6"/></svg>`,
 };
+GEAR_ICON["potion-good"] = GEAR_ICON.potion;
 
 
 /* ----- находки на поле боя: травы, грибы, особые камни (черновик, см. drafts.md → «Находки») ----- */
@@ -2268,7 +2299,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 10;
+const BATTLE_REV = 11;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined) st.tactical = true; return st; }
@@ -2290,6 +2321,29 @@ function loadBattle() {
   });
   return battleLoad;
 }
+/* ----- здания города (assets/js/town.js грузится при первом входе в здание) ----- */
+const TOWN_REV = 1, TOWN_FILES = ["assets/css/town.css", "assets/js/town.js"];
+let townLoad = null;
+function loadTown() {
+  if (window.Town && window.Town.ready) return Promise.resolve(true);
+  if (townLoad) return townLoad;
+  const ver = "?v=" + (APP_VERSION || TOWN_REV);
+  townLoad = TOWN_FILES.reduce((p, f) => p.then(() => new Promise((ok, no) => {
+    let el;
+    if (f.endsWith(".css")) { el = document.createElement("link"); el.rel = "stylesheet"; el.href = f + ver; }
+    else { el = document.createElement("script"); el.src = f + ver; }
+    el.onload = ok; el.onerror = () => no(new Error("не загрузился " + f));
+    document.head.appendChild(el);
+  })), Promise.resolve()).then(() => !!(window.Town && window.Town.ready), err => { townLoad = null; console.warn(err); return false; });
+  return townLoad;
+}
+function openBuilding(id) { loadTown().then(ok => { if (ok) window.Town.open(id); else toast("Здание не открылось: нет связи с файлами города"); }); }
+// Часы города: после выхода из лабиринта врата закрыты на 5 городских действий, потом открыты на одно; не вошли — снова 5 закрытых.
+function townClock() { return (state.townClock ||= { t: 0, t0: 0, back: false }); }
+function gateInfo() {
+  const c = townClock(); if (!c.back) return { open: true, left: 0 };
+  const k = (c.t - c.t0) % 6; return k === 5 ? { open: true, left: 0 } : { open: false, left: 5 - k };
+}
 const tacticalOn = () => !!settings().tactical && !!(window.Battle && window.Battle.ready);
 function setTactical(on) {
   settings().tactical = !!on; saveChar();
@@ -2306,6 +2360,7 @@ function buryFallen() {
   for (const c of dead) {
     const items = [...Object.values(c.equip || {}), ...(c.bag || [])].filter(e => e && !(e.t === "g" && e.id === "clothes"));
     const got = [], lost = [];
+    if (goldOf(c) > 0) { const g = goldOf(c), k = alive.length; alive.forEach((a, i) => addGold(a, Math.floor(g / k) + (i < g % k ? 1 : 0))); got.push(`${g} монет поровну`); }
     for (const e of items) { const r = giveParty({ ...e, qty: e.qty || 1 }); (/осталось на земле|не поместилось/.test(r) ? lost : got).push(r); }
     (state.fallen ||= []).push({ name: c.name, race: c.race, level: c.level, day: state.run ? state.run.day : null });
     state.party = state.party.filter(x => x.id !== c.id);
@@ -2865,15 +2920,18 @@ $forge.addEventListener("input", e => {
 
 // Здания вокруг Площади измерений. Пока заглушки: картинка-силуэт и кнопка.
 const TOWN = [
-  { id: "tower",   name: "Башня магов",      shape: "tower" },
-  { id: "palace",  name: "Ратуша и налоги",  shape: "palace" },
-  { id: "temple",  name: "Храм",             shape: "temple" },
-  { id: "market",  name: "Рынок",            shape: "market" },
-  { id: "gate",    name: "Лабиринт",         shape: "gate" },
-  { id: "forge",   name: "Кузница",          shape: "smithy" },
-  { id: "tavern",  name: "Таверна",          shape: "tavern" },
-  { id: "buyer",   name: "Скупка камней",    shape: "shop" },
-  { id: "home",    name: "Дом отряда",       shape: "house" },
+  { id: "tower",   name: "Башня магов",          shape: "tower" },
+  { id: "guild",   name: "Гильдия приключений",  shape: "palace" },
+  { id: "church",  name: "Церковь",              shape: "temple" },
+  { id: "library", name: "Библиотека",           shape: "library" },
+  { id: "gate",    name: "Лабиринт",             shape: "gate" },
+  { id: "board",   name: "Доска объявлений",     shape: "board" },
+  { id: "tavern",  name: "Таверна",              shape: "tavern" },
+  { id: "shop",    name: "Магазин",              shape: "shop" },
+  { id: "hall",    name: "Ратуша и налоги",      shape: "house", soon: true },
+  { id: "bank",    name: "Банк",                 shape: "bank", soon: true },
+  { id: "forge",   name: "Кузница",              shape: "smithy", soon: true },
+  { id: "storage", name: "Склад",                shape: "warehouse", soon: true },
 ];
 
 function bldArt(shape) {
@@ -2892,6 +2950,10 @@ function bldArt(shape) {
     smithy: `<path d="M18 86V54h52v32z" ${f}/><path d="M14 54l30-16 30 16z" ${f}/><rect x="62" y="30" width="9" height="24" fill="#4a3a28" stroke="#7d6340"/><circle cx="66" cy="22" r="5" fill="#777" opacity=".35"/><circle cx="70" cy="13" r="6" fill="#777" opacity=".25"/><rect x="30" y="66" width="14" height="20" fill="#e06a2a" opacity=".8"/><path d="M72 80h14v-5H72z" fill="#5a5f63"/>`,
     tavern: `<path d="M18 86V50h64v36z" ${f}/><path d="M14 50l36-22 36 22z" ${f}/>${win(28, 60)}${win(66, 60)}<path d="M44 86V68h12v18z" fill="#1a140d"/><path d="M80 56h10v10H80z" fill="#b07a3a" stroke="#7d6340"/><path d="M78 56h14" stroke="#7d6340" stroke-width="2"/>`,
     shop: `<path d="M20 86V48h60v38z" ${f}/><path d="M16 48h68l-6-12H22z" ${f}/><polygon points="50,58 58,68 50,78 42,68" fill="#f0b443" stroke="#5a3a0a"/><polygon points="32,70 36,75 32,80 28,75" fill="#8fd0ff" opacity=".7"/><polygon points="68,70 72,75 68,80 64,75" fill="#c07ad8" opacity=".7"/>`,
+    library: `<path d="M16 86V46h68v40z" ${f}/><path d="M12 46l38-20 38 20z" ${f}/>${[24, 38, 52, 66].map((x, i) => `<rect x="${x}" y="54" width="9" height="26" fill="${["#7a2f22", "#2f5a7a", "#4a6a2a", "#7a5a22"][i]}" stroke="#2a1a0c"/>`).join("")}<path d="M44 26V16l6 3 6-3v10" stroke="#d6a64c" fill="none"/>`,
+    board: `<rect x="14" y="30" width="72" height="44" rx="3" fill="#4a3720" stroke="#7d6340" stroke-width="1.5"/><rect x="22" y="36" width="20" height="14" fill="#e8d5b0" opacity=".85"/><rect x="48" y="38" width="16" height="18" fill="#e8d5b0" opacity=".75"/><rect x="68" y="36" width="12" height="12" fill="#e8d5b0" opacity=".8"/><rect x="26" y="56" width="22" height="12" fill="#e8d5b0" opacity=".7"/><circle cx="32" cy="38" r="1.6" fill="#a83a2a"/><circle cx="56" cy="40" r="1.6" fill="#a83a2a"/><path d="M26 74v12M74 74v12" stroke="#7d6340" stroke-width="4"/>`,
+    bank: `<path d="M16 86V50h68v36z" ${f}/><path d="M12 50l38-20 38 20z" ${f}/>${[24, 38, 52, 66].map(x => `<rect x="${x}" y="54" width="6" height="30" fill="#6a5438"/>`).join("")}<circle cx="50" cy="40" r="6" fill="#e5b84f" stroke="#7a5412"/><path d="M50 36v8" stroke="#7a5412" stroke-width="1.5"/>`,
+    warehouse: `<path d="M12 86V52l38-18 38 18v34z" ${f}/><rect x="34" y="58" width="32" height="28" fill="#1a140d" stroke="#7d6340"/><path d="M34 58l32 28M66 58L34 86" stroke="#7d6340"/><rect x="18" y="74" width="12" height="12" fill="#6a4a2a" stroke="#2a1a0c"/>`,
     house: `<path d="M24 86V54h52v32z" ${f}/><path d="M18 56l32-24 32 24z" ${f}/><path d="M44 86V68h12v18z" fill="#1a140d"/>${win(30, 62)}${win(64, 62)}<path d="M50 34v-8" stroke="#d6a64c" stroke-width="2"/><path d="M50 26l8 3-8 3z" fill="#a83a2a"/>`,
   };
   return `<svg viewBox="0 0 100 100" aria-hidden="true">${sky}<defs><filter id="gateBlur" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="4"/></filter></defs>${shapes[shape]}</svg>`;
@@ -2910,13 +2972,13 @@ function renderTown() {
       <button class="fx-btn" data-action="library" style="display:flex;align-items:center;gap:6px;margin-top:4px">${ICO_BOOK.replace('class="icon"', 'width="18" height="18"')}Библиотека</button>
     </div>
     <div class="town-map">${TOWN.map(b => {
-      const gate = b.id === "gate", locked = !gate && !open;
-      return `<button class="bld fx-frame${gate ? " gate" : ""}${locked ? " locked" : ""}" data-bld="${b.id}"${locked ? ' aria-disabled="true"' : ""} aria-label="${b.name}${locked ? ": закрыто" : ""}">
+      const gate = b.id === "gate", locked = !gate && !open, gi = gate ? gateInfo() : null, soon = !!b.soon;
+      return `<button class="bld fx-frame${gate ? " gate" : ""}${locked ? " locked" : ""}${gate && !gi.open ? " shut" : ""}" data-bld="${b.id}"${locked ? ' aria-disabled="true"' : ""} aria-label="${b.name}${locked ? ": закрыто" : ""}">
         <div class="art">${bldArt(b.shape)}${locked ? `<span class="lock">${LOCK}</span>` : ""}</div>
-        <b>${b.name}</b>
+        <b>${b.name}</b>${gate && open ? `<small class="gate-st">${gi.open ? "открыт сейчас" : "закрыт: ещё " + gi.left + " д."}</small>` : ""}${soon && open ? `<small class="gate-st">скоро</small>` : ""}
       </button>`; }).join("")}
     </div>
-    <p class="town-note">${open ? "Здания пока заглушки, их содержимое появится позже." : "Остальные места откроются после первого захода в лабиринт."}</p>
+    <p class="town-note">${open ? `Врата лабиринта открываются на одно городское действие после пяти закрытых: ${gateInfo().open ? "сейчас открыты." : "ждите."} Каждое посещение здания с результатом — одно действие.` : "Остальные места откроются после первого захода в лабиринт."}</p>
     ${state.party.length ? `<div class="party-bars" aria-label="Отряд">${state.party.map(townCard).join("")}</div>
     <p class="hold-hint">Удерживай карточку героя, чтобы открыть его меню.</p>` : ""}`;
 }
@@ -3100,10 +3162,8 @@ const SP_TIERS = {
   chapel: { name: "Туманная часовня", exit: "из часовни", dir: "up", rooms: [{ mix: [["grey-shade", 1], ["morok", 1]], n: [2, 4] }, { mix: [["whisperer", 1], ["morok", 1]], n: [2, 3] },
     { mix: [["mirror-dead", 1], ["grey-shade", 1]], n: [2, 3] }, { list: ["faceless-ringer"] }] },
 };
-GEAR["dust-mask"] = { short: "Повязка", name: "Повязка на лицо", weight: 0.1, stack: 1, slot: "head", note: "Мокрая ткань: от белой пыли Могильника. Надетая на голову — не нужен спасбросок Телосложения после суток в пыли. Черновик." };
-GEAR_ICON["dust-mask"] = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M3 9c3 2 15 2 18 0v6c-3 3-15 3-18 0z"/><path d="M3 11L1 8M21 11l2-3" stroke-linecap="round"/></svg>`;
 const spOf = () => {
-  const r = state.run; if (!r || r.floor !== 2) return null;
+  const r = state.run; if (!r || r.floor !== 2 || !SP2[r.variant]) return null;
   if (!r.sp || r.sp.v !== r.variant) r.sp = spInit(r.variant);
   return r.sp;
 };
@@ -3143,7 +3203,7 @@ function tierList(room) {
 // Бой не из броска события: ярусы, гнездо, паучиха, неупокоенные. o.sp — метка для finishFight, o.key — ключ зачистки.
 function startSpecial(title, enc, o = {}) {
   const r = state.run, p = { x: r.pos.x, y: r.pos.y }, ev = { kind: "hard", title, raw: 0, n: 0, cause: "special", sp: o.sp || null, note: o.note || "" };
-  startFight(ev, p, { zone: enc.zone, place: enc.place, list: enc.list, border: false });
+  startFight(ev, p, { zone: enc.zone, place: enc.place, list: enc.list, border: false, fog: enc.fog || 0 });
   if (o.key) ev.key = o.key;
   ev.ambush = !!o.ambush; if (ev.ambush) ev.title += "!";
   ev.init = rollInitiative(ev.list, ev.ambush);
@@ -3166,16 +3226,15 @@ function spCrows(out) {                                              // окно
   for (let i = out.list.length - 1; i >= 0 && have < need; i--) if (out.list[i] !== "crow") { out.list[i] = "crow"; have++; }
 }
 const spBlood = () => { const r = state.run; return !!(r && r.floor === 2 && r.variant === "beast" && state.party.some(c => !c.dead && hpOf(c) * 2 < maxHp(c))); };
-const spMasked = c => !!(c.equip && c.equip.head && c.equip.head.id === "dust-mask");
 // Спасбросок, который бросает приложение само: [{c, t, ok}]
 const spSave = (abil, dc) => state.party.filter(c => !c.dead).map(c => { const d = 1 + rnd(20), t = d + mod(totals(c)[abil].total); return { c, t, d, ok: t >= dc }; });
 function spDawn() {                                                  // новые сутки: белая пыль
   const r = state.run, sp = spOf(); if (!sp || sp.v !== "undead" || r.tier) return;
-  const hot = r.pos.x >= 8 && r.pos.y >= 8, dc = hot ? 13 : 10, res = spSave("con", dc).filter(x => !spMasked(x.c)), lines = [];
-  if (!res.length) { logRun("Белая пыль: у всех повязки, спасбросок не нужен."); return; }
+  const hot = r.pos.x >= 8 && r.pos.y >= 8, dc = hot ? 13 : 10, res = spSave("con", dc), lines = [];
+  if (!res.length) return;
   for (const x of res) { lines.push(`${esc(x.c.name)}: ${x.t} (к20 = ${x.d}) — ${x.ok ? "держится" : "+1 Усталость"}`); if (!x.ok) r.status[x.c.id].fat = Math.min(4, r.status[x.c.id].fat + 1); }
   logRun(`Белая пыль${hot ? " (у печи гуще)" : ""}: спасбросок ТЕЛ Сл ${dc}, провалили: ${res.filter(x => !x.ok).map(x => x.c.name).join(", ") || "никто"}.`);
-  dgUi.res = { title: "Белая пыль", roll: `Телосложение Сл ${dc}`, lines: [...lines, "Повязка на лице (надета на голову) освобождает от спасброска."] };
+  dgUi.res = { title: "Белая пыль", roll: `Телосложение Сл ${dc}`, lines: [...lines] };
 }
 // Вход в тайл: паутина, гнездо, логово паучихи, неупокоенные. true — начался бой, обычный бросок события не нужен.
 function spEnter() {
@@ -3294,7 +3353,7 @@ function spEnterTier() {
   const r = state.run, sp = spOf(), t = r.tier, set = spSet(t.k), key = t.k + t.n;
   logRun(`${set.name}, ярус ${t.n}.`);
   if (sp.tierDone[key]) { logRun("Зачищенный ярус пуст."); return; }
-  startSpecial(`${set.name} · ярус ${t.n}`, { zone: FLOOR2[sp.v].zone, place: `${set.name}, ярус ${t.n}`, list: tierList(tierRoom(t)) }, { sp: { k: "tier", key }, key: tkey(r.pos.x, r.pos.y) + "#" + key });
+  startSpecial(`${set.name} · ярус ${t.n}`, { zone: FLOOR2[sp.v].zone, place: `${set.name}, ярус ${t.n}`, list: tierList(tierRoom(t)), fog: t.k === "chapel" ? 2 : 0 }, { sp: { k: "tier", key }, key: tkey(r.pos.x, r.pos.y) + "#" + key });
 }
 // Одно особое действие; время (tick) уже потрачено в act().
 function spDo(id) {
@@ -3408,7 +3467,7 @@ function resolveRoll() {
     logRun(`${ev.title} (${rollTxt}): ${enc.list.map(id => MONSTERS.find(m => m.id === id).name).join(", ")}.`);
   } else {
     if (kind === "find") {
-      const [id, q] = r.floor === 2 && r.variant === "undead" && Math.random() < .35 ? ["dust-mask", 1] : LOOT[rnd(LOOT.length)];
+      const [id, q] = LOOT[rnd(LOOT.length)];
       const c = [...state.party].sort((a, b) => (bagSize(b) - (b.bag || []).length) - (bagSize(a) - (a.bag || []).length))[0];
       const left = c ? addToBag(c, { t: "g", id, qty: q }) : q;
       ev.loot = `${GEAR[id].name}${q > 1 ? " × " + q : ""}` + (left < q ? ` — забирает ${c.name}` : " — места в рюкзаках нет, осталось на полу");
@@ -3683,7 +3742,7 @@ const NIGHT_P = [0, 0, 0, 0.03, 0.04, 0.05, 0.06, 0.06, 0.06, 0.06, 0.07, 0.07, 
 function rollEncounter(cause, guardFat = 0) {
   const r = state.run, dark = inDarkness(), guarded = cause === "rest";
   if (zoneAt(r.pos.x, r.pos.y).kind === "safe" || r.tier) return;
-  const p0 = NIGHT_P[Math.min(NIGHT_P.length, Math.max(1, r.day)) - 1] * (r.floor === 2 && r.variant === "undead" ? 2 : 1);          // ночь мертвецов: вдвое чаще (черновик)
+  const p0 = NIGHT_P[Math.min(NIGHT_P.length, Math.max(1, r.day)) - 1];
   if (!p0 || (guarded && guardFat <= 0)) return;
   const base = Math.min(0.6, (guarded ? p0 + 0.01 * guardFat : p0 * 2) + (dark ? 0.06 : 0)), pct = 1 + rnd(100), lim = Math.round(base * 100);
   if (pct > lim) return;
@@ -3763,7 +3822,7 @@ function ensureRun() {
   const r = state.run;
   unlockJournal(9);                       // 1 этаж — монстры 9-го класса
   r.status ||= {};
-  for (const c of state.party) r.status[c.id] ||= { sat: 3, starve: 0, awake: 0, fat: 0 };
+  for (const c of state.party) if (!r.status[c.id]) { r.status[c.id] = c.carry ? { sat: 3, starve: 0, awake: 0, fat: 0, ...c.carry } : { sat: 3, starve: 0, awake: 0, fat: 0 }; delete c.carry; }
   return r;
 }
 const viewRot = () => { const r = state.run; return ((r.hidden + r.spin) % 360 + 360) % 360; };
@@ -4207,7 +4266,9 @@ function advanceTime() {
   return false;
 }
 function endRun(early) {
-  const FL_DAYS = FL().days;
+  const FL_DAYS = FL().days, st = state.run && state.run.status;
+  if (st) for (const c of state.party) if (st[c.id]) c.carry = { ...st[c.id] };          // усталость и голод переходят в город и в следующий заход, пока их не снимет таверна
+  const tc = townClock(); tc.back = true; tc.t0 = tc.t;
   state.run = null; state.runSnap = null;
   state.townUnlocked = true;
   dgUi = freshUi();
@@ -4525,6 +4586,40 @@ function itemThumb(e, c) {
   return it.art ? img(it.art, it.name) : (it.icon || GEAR_ICON.custom);
 }
 
+/* ----- монеты: у каждого героя свой кошелёк (c.gold), веса нет, делятся при гибели героя ----- */
+const COIN_SVG = `<svg class="coin" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="#e5b84f" stroke="#7a5412" stroke-width="1.5"/><circle cx="12" cy="12" r="5.5" fill="none" stroke="#9a6d1c" stroke-width="1.2"/><path d="M12 8.5v7M10 10.5h3.2a1.2 1.2 0 010 2.4H10.8" stroke="#7a5412" stroke-width="1.2" fill="none" stroke-linecap="round"/></svg>`;
+const goldOf = c => Math.max(0, Math.floor(c.gold || 0));
+const partyGold = () => state.party.reduce((a, c) => a + goldOf(c), 0);
+const addGold = (c, n) => { c.gold = goldOf(c) + Math.max(0, Math.floor(n)); };
+// Платит prefer, если не хватает — добирают остальные (сначала самые богатые). false — монет в отряде мало.
+function payGold(prefer, cost) {
+  if (partyGold() < cost) return false;
+  let left = cost;
+  for (const c of [prefer, ...state.party.filter(x => x.id !== prefer.id).sort((a, b) => goldOf(b) - goldOf(a))]) {
+    const t = Math.min(left, goldOf(c)); c.gold = goldOf(c) - t; left -= t; if (!left) break;
+  }
+  return true;
+}
+function itemInfoText(it) {
+  const parts = [];
+  const base = it.note || it.desc || "";
+  if (base) parts.push(esc(base));
+  if (it.kindOf === "weapon" && it.dmg) parts.push(`${it.kind || ""}${it.kind ? ", " : ""}${it.dmg} ${it.type || ""}${it.props && it.props.length ? " · " + it.props.join(", ") : ""}`);
+  if (it.kindOf === "armor") parts.push(`КД ${it.ac}`);
+  return parts.map(t => `<p>${t}</p>`).join("");
+}
+// Окно предмета (удержание ячейки): картинка, название, базовое описание, вес. Подсказок по скрытым эффектам не даёт.
+function showItemInfo(e, holder, extra = "", ov = null) {
+  const it = ov || itemOf(e, holder); if (!it) return;
+  const $i = document.getElementById("iteminfo");
+  $i.innerHTML = `<div class="ii-card fx-frame"><div class="ii-art">${it.art ? img(it.art, it.name) : (it.icon || GEAR_ICON.custom)}</div>
+    <h4>${esc(it.name)}${e && e.qty > 1 ? ` × ${e.qty}` : ""}</h4>${itemInfoText(it)}${extra}
+    <small>${it.weight ? kgf(it.weight) + " кг" : "вес не учитывается"}${e && e.uses != null ? ` · раскопок: ${e.uses}` : ""}</small>
+    <button class="fx-btn" data-ii="close">Закрыть</button></div>`;
+  $i.hidden = false;
+}
+document.getElementById("iteminfo").addEventListener("click", e => { if (e.target.closest(".ii-card") && !e.target.closest("[data-ii]")) return; e.currentTarget.hidden = true; });
+
 function openHero(id) { heroUi = { id, tab: heroUi && heroUi.id === id ? heroUi.tab : "stats", sel: null, slot: null, give: false, add: false }; renderHero(); }
 function closeHero() { heroUi = null; $hero.hidden = true; $hero.innerHTML = ""; document.body.classList.remove("forge-open"); }
 
@@ -4585,7 +4680,7 @@ const essStatLine = e => [...Object.entries(e.stats || {}).map(([k, v]) => `${ST
 // Сведения об эссенции скрыты («??»), пока их не открыла библиотека (разделы «Эссенция» монстра-источника) или не применён навык:
 // после первого применения видны название, цена маны и урон, остальные эффекты остаются «??» (решение автора).
 const essSource = id => (ESSENCES[id] && ESSENCES[id].source) || id;
-const essSeen = (id, key) => { const j = journal().known[essSource(id)]; return !!(j && j.revealed && j.revealed.includes(key)); };
+const essSeen = (id, key) => { const j = journal().known[essSource(id)]; return !!(j && j.revealed && j.revealed.includes(key)) || ((journal().essRev || {})[essSource(id)] || []).includes(key); };          // essRev — анализ в Башне магов: открывает эссенцию, не открывая монстра
 const essUsed = id => !!(journal().essUsed && journal().essUsed[id]);
 const essActiveLevel = id => (essSeen(id, "ess-active") ? 2 : essUsed(id) ? 1 : 0);          // 0 — неизвестна, 1 — название, мана, урон, 2 — всё
 function essDamageText(e) {
@@ -4657,6 +4752,12 @@ function applyFindOut(c, id) {
   return out.length > 1 ? `${out[0]}: ${out.slice(1).join(", ")}` : `${out[0]}: ничего не произошло`;
 }
 
+function coinPanel(c) {
+  const g = goldOf(c), amts = [...[1, 5, 10, 50].filter(v => v < g), g].filter(v => v > 0), cur = Math.min(heroUi.coinAmt || 1, Math.max(1, g));
+  return `<div class="coin-panel fx-frame"><b>Передать монеты</b>
+    <div class="btn-row">${amts.map(v => `<button class="fx-btn${cur === v ? " on" : ""}" data-hx="coin-amt" data-n="${v}">${v === g ? "все (" + v + ")" : v}</button>`).join("")}</div>
+    <div class="btn-row">${state.party.filter(o => o.id !== c.id).map(o => `<button class="fx-btn" data-hx="coin-give" data-to="${o.id}"${g < 1 ? " disabled" : ""}>→ ${esc(o.name)} (${goldOf(o)})</button>`).join("")}</div></div>`;
+}
 function heroInv(c) {
   const two = twoHanded(c);
   const slots = HSLOTS.filter(([k]) => ["main", "off", "body"].includes(k) || c.equip[k]);
@@ -4670,17 +4771,20 @@ function heroInv(c) {
         : `<div class="eq empty"><span class="ic"></span><span><small>${label}</small><b>пусто</b></span></div>`;
     }).join("")}</div>
     <div class="fx-section">Рюкзак · ${(c.bag || []).length}/${bagSize(c)}</div>
-    <div class="bag">${Array.from({ length: bagSize(c) }, (_, i) => {
+    <div class="gold-row">${COIN_SVG}<b>${goldOf(c)}</b><small>монет · вес 0</small>${state.party.length > 1 ? `<button class="fx-btn" data-hx="coin-toggle" aria-expanded="${!!heroUi.coin}">Передать</button>` : ""}</div>
+    ${heroUi.coin ? coinPanel(c) : ""}
+    <div class="packwrap"><div class="bag">${Array.from({ length: bagSize(c) }, (_, i) => {
       const e = c.bag[i];
       if (!e) return `<div class="cell empty" aria-hidden="true"></div>`;
       const it = itemOf(e, c);
       return `<button class="cell" data-hbag="${i}" aria-pressed="${heroUi.sel === i}" aria-label="${esc(it.name)}${e.qty > 1 ? ", " + e.qty + " шт." : ""}">
         ${itemThumb(e, c)}${e.qty > 1 ? `<span class="q">${e.qty}</span>` : ""}${e.uses != null ? `<span class="q">${e.uses}</span>` : ""}${it.art ? "" : `<span class="t">${esc(it.short || it.name.split(" ")[0])}</span>`}</button>`;
-    }).join("")}</div>
+    }).join("")}</div></div>
+    <p class="hold-hint">Удерживай предмет: описание.</p>
     ${selPanel(c)}
     <div class="btn-row" style="justify-content:center"><button class="fx-btn" data-hx="add-toggle" aria-expanded="${heroUi.add}">${heroUi.add ? "Скрыть список" : "+ Добавить предмет (мастер)"}</button></div>
     ${heroUi.add ? `<div class="add-list">
-      ${[["ration", 1], ["potion", 1], ["torch", 1], ["arrow", 20], ["clothes", 1], ["shovel", 1], ["shovel-good", 1], ["shovel-best", 1], ["stone-9", 1], ["stone-8", 1], ["stone-7", 1], ["dust-mask", 1], ...Object.keys(FINDS).map(k => [k, 1])].map(([id, q]) => `<button class="fx-btn" data-hadd="g:${id}:${q}">${GEAR[id].name}${q > 1 ? " ×" + q : ""}</button>`).join("")}
+      ${[["ration", 1], ["potion", 1], ["torch", 1], ["arrow", 20], ["clothes", 1], ["shovel", 1], ["shovel-good", 1], ["shovel-best", 1], ["stone-9", 1], ["stone-8", 1], ["stone-7", 1], ...Object.keys(FINDS).map(k => [k, 1])].map(([id, q]) => `<button class="fx-btn" data-hadd="g:${id}:${q}">${GEAR[id].name}${q > 1 ? " ×" + q : ""}</button>`).join("")}
       ${WEAPONS.filter(w => w.kind !== "Боеприпасы").map(w => `<button class="fx-btn" data-hadd="w:${w.id}:1">${w.name}</button>`).join("")}
       ${ARMOR_FLAT.map(a => `<button class="fx-btn" data-hadd="a:${a.id}:1">${a.name}</button>`).join("")}
     </div>` : ""}`;
@@ -4716,7 +4820,20 @@ function heroAfterChange(msg) {
   if (k === "labyrinth" || k === "town" || k === "character") rerender();
 }
 
+let holdInfo = { t: 0, fired: false, x: 0, y: 0 };
+$hero.addEventListener("pointerdown", e => {
+  holdInfo.fired = false;
+  const el = e.target.closest("[data-hbag],[data-hslot]"); if (!el || !heroUi) return; holdInfo.x = e.clientX; holdInfo.y = e.clientY; clearTimeout(holdInfo.t);
+  holdInfo.t = setTimeout(() => {
+    const c = heroById(heroUi.id); if (!c) return;
+    const ent = el.dataset.hbag !== undefined ? c.bag[+el.dataset.hbag] : c.equip[el.dataset.hslot];
+    if (ent) { holdInfo.fired = true; showItemInfo(ent, c); }
+  }, 450);
+});
+for (const ev of ["pointerup", "pointercancel", "pointerleave"]) $hero.addEventListener(ev, () => clearTimeout(holdInfo.t), true);
+$hero.addEventListener("pointermove", e => { if (Math.hypot(e.clientX - holdInfo.x, e.clientY - holdInfo.y) > 10) clearTimeout(holdInfo.t); });
 $hero.addEventListener("click", e => {
+  if (holdInfo.fired) { holdInfo.fired = false; return; }
   if (e.target === $hero) { closeHero(); return; }
   const el = e.target.closest("[data-hx],[data-hbag],[data-hslot],[data-hadd]");
   if (!el) return;
@@ -4753,6 +4870,12 @@ $hero.addEventListener("click", e => {
       mine.splice(i, 1); essStash().push(ds.essid); c.hp = Math.min(hpOf(c), maxHp(c)); c.mp = Math.min(mpOf(c), maxMp(c));
       heroAfterChange(`Эссенция убрана в запас отряда`); return;
     }
+    case "coin-toggle": heroUi.coin = !heroUi.coin; renderHero(); return;
+    case "coin-amt": heroUi.coinAmt = +ds.n; renderHero(); return;
+    case "coin-give": {
+      const to = heroById(ds.to), n = Math.min(heroUi.coinAmt || 1, goldOf(c)); if (!to || n < 1) return;
+      c.gold = goldOf(c) - n; addGold(to, n); heroAfterChange(`${n} монет: ${c.name} → ${to.name}`); return;
+    }
     case "give-toggle": heroUi.give = !heroUi.give; renderHero(); return;
     case "eat": {
       takeGear(c, "ration", 1);
@@ -4770,9 +4893,9 @@ $hero.addEventListener("click", e => {
     }
     case "drink": {
       entry.qty--; if (!entry.qty) { c.bag.splice(heroUi.sel, 1); heroUi.sel = null; }
-      const heal = roll(1, 4) + 2, before = hpOf(c);
+      const good = entry && entry.id === "potion-good", heal = good ? roll(2, 4) + 4 : roll(1, 4) + 2, before = hpOf(c);
       c.hp = Math.min(maxHp(c), before + heal);
-      if (state.run) logRun(`${c.name} выпил слабое зелье лечения: 1к4 + 2 = ${heal}, ОЗ ${before} → ${c.hp}.`);
+      if (state.run) logRun(`${c.name} выпил ${good ? "зелье" : "слабое зелье"} лечения: ${good ? "2к4 + 4" : "1к4 + 2"} = ${heal}, ОЗ ${before} → ${c.hp}.`);
       heroAfterChange(`Зелье: +${heal} ОЗ (${before} → ${c.hp})`); return;
     }
     case "equip": {
@@ -5334,9 +5457,15 @@ document.addEventListener("click", e => {
   if (ds.action === "start-adventure") openForge(state.party.length ? "team" : "race", state.party.length ? "more" : "first");
   if (ds.member) { state.current = ds.member; saveChar(); rerender(); }
   if (ds.bld) {
-    if (ds.bld === "gate") { location.hash = "labyrinth"; return; }
+    if (ds.bld === "gate") {
+      const gi = gateInfo();
+      if (!gi.open) { toast(`Врата закрыты: откроются через ${gi.left} городских действий.`); return; }
+      location.hash = "labyrinth"; return;
+    }
     const b = TOWN.find(x => x.id === ds.bld);
-    toast(state.townUnlocked ? `«${b.name}» — в разработке.` : "Откроется после первого захода в лабиринт.");
+    if (!state.townUnlocked) { toast("Откроется после первого захода в лабиринт."); return; }
+    if (b.soon) { toast(`«${b.name}» — скоро.`); return; }
+    openBuilding(b.id); return;
   }
 
 });

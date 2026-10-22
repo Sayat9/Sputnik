@@ -116,8 +116,6 @@ const L = require('./bui_lib.js');
     dgUi.spDo = 'tier-next'; act('sp'); out.crypt2 = r.tier.n === 2 && dgUi.enc.list[0] === 'corpse-eater' && !spButtons().some(x => x.id === 'tier-next');
     // --- белая пыль
     sp = go('undead', 5, 5, 3, 1); r.day = 3; r.act = 3; advanceTime(); out.dustDay = r.day === 4 && !!dgUi.res && dgUi.res.title === 'Белая пыль';
-    sp = go('undead', 5, 5, 3, 1); state.party.forEach(c => { c.equip = c.equip || {}; c.equip.head = { t: 'g', id: 'dust-mask' }; }); r.act = 3; dgUi.res = null; advanceTime(); out.maskNoSave = !dgUi.res;
-    state.party.forEach(c => { delete c.equip.head; });
     sp = go('undead', 5, 5, 3, 1); Math.random = () => 0; r.act = 3; dgUi.res = null; advanceTime(); Math.random = rnd0; out.dustFatigue = state.party.every(c => r.status[c.id].fat === 1);
     sp = go('undead', 9, 9, 3, 1); out.furnaceDc = (() => { Math.random = () => 0.5; r.act = 3; dgUi.res = null; advanceTime(); Math.random = rnd0; return /Сл 13/.test(dgUi.res && dgUi.res.roll); })();
     sp = go('goblin', 5, 5, 3, 1); r.act = 3; dgUi.res = null; advanceTime(); out.noDustGoblin = !dgUi.res;
@@ -129,7 +127,8 @@ const L = require('./bui_lib.js');
     Math.random = () => 0; out.unqRise = spEnter() && dgUi.enc.sp.k === 'unq' && dgUi.enc.list.join() === 'zombie,skeleton'; Math.random = rnd0; dgUi.enc = null; sp.unq = {};
     sp.unq['4,4'] = ['zombie']; r.light = false; state.party[0].bag = [{ t: 'g', id: 'torch', qty: 2 }]; dgUi.spDo = 'cremate'; act('sp'); out.cremate = !sp.unq['4,4'] && countGear(state.party[0], 'torch') === 1;
     sp.unq['4,4'] = ['zombie']; Math.random = () => 0.99; out.unqNoRise = !spEnter() && !!sp.unq['4,4']; Math.random = rnd0;
-    out.nightx2 = (() => { r.day = 6; const calls = []; const o = window.askRoll; let hit = { u: 0, g: 0 }; window.askRoll = () => { hit.cur++; }; const N = 6000; const m = {}; for (const v of ['undead', 'goblin']) { r.variant = v; r.pos = { x: 4, y: 4 }; hit.cur = 0; for (let i = 0; i < N; i++) rollEncounter('rest-noguard', 0); m[v] = hit.cur / N; } window.askRoll = o; window.__m = m; return m.undead > m.goblin * 1.5; })();
+    out.noMaskItem = !GEAR['dust-mask'];
+    out.nightSame = (() => { r.day = 6; const o = window.askRoll; const hit = { cur: 0 }; window.askRoll = () => { hit.cur++; }; const N = 6000, m = {}; for (const v of ['undead', 'goblin']) { r.variant = v; r.pos = { x: 4, y: 4 }; hit.cur = 0; for (let i = 0; i < N; i++) rollEncounter('rest-noguard', 0); m[v] = hit.cur / N; } window.askRoll = o; return Math.abs(m.undead - m.goblin) < 0.04; })();
     // --- меню рендерится с кнопками особых действий
     sp = go('beast', 0, 0, 3, 1); try { location.hash = 'labyrinth'; route(); out.render = !!document.querySelector('[data-sp="tier-in:cave"]'); } catch (e) { out.render = String(e); }
     r.tier = { k: 'cave', n: 1 }; try { route(); out.renderTier = !!document.querySelector('[data-act="move"][disabled]') && !!document.querySelector('[data-sp="tier-prev"]'); } catch (e) { out.renderTier = String(e); } r.tier = null;
@@ -142,11 +141,11 @@ const L = require('./bui_lib.js');
     lair: 'логово: 4–5 пауков', lairTreasure: 'после логова можно забрать сокровище',
     noBeaconMorning: 'часовни нет не на 3-м действии', beacon: 'на 3-м действии на тайле — маяк', chime: 'звон: расстояние и сторона', chapelIn: 'ярус 1: серые тени и мороки', chapelTiers: 'ярусы 2–4 по таблице', chapelTop: 'вершина: сокровище только украсть, дальше подъёма нет',
     chapelTreasure: 'после звонаря можно забрать', chapelGot: 'сокровище часовни', beaconStays: 'маяк не пропадает', chapelEmpty: 'зачищенные ярусы пусты', crypt1: 'склеп ярус 1: гули и толстяки', crypt2: 'склеп дно: трупоед',
-    dustDay: 'новые сутки: спасбросок пыли', maskNoSave: 'повязка: без спасброска', dustFatigue: 'провал спасброска: +1 Усталость', furnaceDc: 'у печи Сл 13', noDustGoblin: 'в лесу гоблинов пыли нет',
-    tracks: 'следы: зачищенный квадрат через сутки уже не пуст', tracksQuiet: 'следы: внутри суток пуст', quiet1: 'на 1 этаже пуст 2 дня', unqSet: 'убитые зомби и скелет запомнены', cremBtn: 'кнопка «Сжечь останки»', unqRise: 'мёртвые встают (к20 ≤ 5)', cremate: 'сожжение тратит факел', unqNoRise: 'к20 > 5 — не встали, останки ждут', nightx2: 'ночь мертвецов чаще',
+    dustDay: 'новые сутки: спасбросок пыли', dustFatigue: 'провал спасброска: +1 Усталость', furnaceDc: 'у печи Сл 13', noDustGoblin: 'в лесу гоблинов пыли нет',
+    tracks: 'следы: зачищенный квадрат через сутки уже не пуст', tracksQuiet: 'следы: внутри суток пуст', quiet1: 'на 1 этаже пуст 2 дня', unqSet: 'убитые зомби и скелет запомнены', cremBtn: 'кнопка «Сжечь останки»', unqRise: 'мёртвые встают (к20 ≤ 5)', cremate: 'сожжение тратит факел', unqNoRise: 'к20 > 5 — не встали, останки ждут', noMaskItem: 'повязки нет', nightSame: 'ночь мертвецов убрана: шанс как везде',
     render: 'меню: кнопка спуска', renderTier: 'меню яруса: движение отключено', floor1Back: 'возврат на 1 этаж' };
   for (const [k, t] of Object.entries(nm2)) ok(t, res2[k] === true, JSON.stringify(res2[k]));
-  console.log('night', JSON.stringify(await p.evaluate(() => window.__m)));console.log('errs:', p.errs.length ? p.errs.slice(0, 5) : 'нет'); ok('нет ошибок страницы', !p.errs.length, p.errs.join(' | '));
+  console.log('errs:', p.errs.length ? p.errs.slice(0, 5) : 'нет'); ok('нет ошибок страницы', !p.errs.length, p.errs.join(' | '));
   console.log(`проверок: ${R.length}, не прошли: ${R.filter(r => !r.ok).length}`);
   await b.close(); process.exit(R.every(r => r.ok) ? 0 : 1);
 })();

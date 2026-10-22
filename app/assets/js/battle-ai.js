@@ -204,11 +204,12 @@
     }
   }
   async function aiPotion(u) {
-    if (u.side !== "hero" || !u.hero || countGear(u.hero, "potion") < 1 || !B.timeOK(u, "bonus")) return;
+    const pid = u.hero && countGear(u.hero, "potion-good") > 0 ? "potion-good" : "potion";
+    if (u.side !== "hero" || !u.hero || countGear(u.hero, pid) < 1 || !B.timeOK(u, "bonus")) return;
     const needy = [u, ...alliesOf(u).filter(a => dist(u, a) <= 1)].filter(a => a.hp < a.maxHp * 0.35 && !a.dead).sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp)[0];
     if (!needy) return;
-    takeGear(u.hero, "potion", 1); B.spendTime(u, "bonus");
-    const n = roll(1, 4).total + 2; log(`${u.name} даёт зелье ${needy.name}.`); B.heal(needy, n, u);
+    takeGear(u.hero, pid, 1); B.spendTime(u, "bonus");
+    const n = pid === "potion-good" ? roll(2, 4).total + 4 : roll(1, 4).total + 2; log(`${u.name} даёт зелье ${needy.name}.`); B.heal(needy, n, u);
   }
   AI.wantsOpportunity = (e, mover) => { const pr = profileOf(e); if (pr.still && pr.role === "ranged") return true; return true; };
 

@@ -38,6 +38,21 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
       party();
       try { const S = await B.start({ list, zone: list[0] === 'giant-mole' || list[0] === 'dark-bear' ? 'beast' : 'undead', floor: 2, killed: [] }, { sim: true, autoHeroes: true }); ok('ярус ' + list.join('+') + ': есть исход', !!S.outcome); } catch (e) { ok('ярус ' + list.join('+'), false, e && e.message); }
     }
+    // --- туман часовни: видно только на 2 клетки (3 м); полное укрытие — клетки за ним непрозрачны
+    {
+      party(); const hs = state.party; const S = B.newBattle({ list: ['grey-shade', 'morok'], zone: 'undead', floor: 2, fog: 2 });
+      for (const row of S.cells) row.fill(''); S.objs.length = 0; S.phase = 'fight';
+      const H = B.heroes()[0], M = B.mons(); H.x = 3; H.y = 6; M[0].x = 3; M[0].y = 4; M[1].x = 3; M[1].y = 1;
+      for (const h of B.heroes()) { if (h !== H) { h.x = 0; h.y = 6; } }
+      ok('туман: S.fog = 2', S.fog === 2);
+      ok('туман: монстр в 2 клетках виден', B.seenByParty(M[0]) === true);
+      ok('туман: монстр в 5 клетках не виден', B.seenByParty(M[1]) === false);
+      const v = B.visionCells(); ok('туман: клетка в 2 шагах видна, в 4 — нет', v.has('3,4') && !v.has('3,2'), v.size);
+      S.fog = 0; ok('без тумана дальний монстр виден', B.seenByParty(M[1]) === true);
+      S.cells[3][3] = 'palisade'; for (const h of B.heroes()) { h.x = 3; h.y = 6; } M[1].y = 1; const v2 = B.visionCells();
+      ok('частокол: клетки прямо за ним не видны, перед ним видны', !v2.has('3,2') && !v2.has('3,1') && v2.has('3,4'));
+      ok('частокол: монстр за ним не виден', B.seenByParty(M[1]) === false);
+    }
     return R;
   });
   const bad = out.filter(r => !r.ok);

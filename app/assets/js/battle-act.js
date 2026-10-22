@@ -322,16 +322,17 @@
   }
 
   /* ===== предметы ===== */
-  async function usePotion(u) {
-    const c = u.hero;
+  const POTIONS = { potion: { n: 1, s: 4, b: 2, name: "Слабое зелье лечения" }, "potion-good": { n: 2, s: 4, b: 4, name: "Зелье лечения" } };
+  async function usePotion(u, pid = "potion") {
+    const c = u.hero, P = POTIONS[pid];
     const near = [u, ...alliesOf(u).filter(a => dist(u, a) <= 1 && !a.dead)];
     const t = await UI().pickUnit({ prompt: "Зелье лечения: кому?", units: near.map(a => a.id), cells: [], kind: "heal", includeSelf: true });
     if (!t) return false;
-    const ses = B.session(u, { kind: "heal", u, title: "Слабое зелье лечения", sub: `${u.name} → ${t.name}` });
-    const r = await ses.dice({ label: "Лечение 1к4 + 2", n: 1, s: 4, bonus: 2, heal: true, cancel: true, reroll: B.rerollOptions(u, "heal") });
+    const ses = B.session(u, { kind: "heal", u, title: P.name, sub: `${u.name} → ${t.name}` });
+    const r = await ses.dice({ label: `Лечение ${P.n}к${P.s} + ${P.b}`, n: P.n, s: P.s, bonus: P.b, heal: true, cancel: true, reroll: B.rerollOptions(u, "heal") });
     if (!r) { ses.close(); return false; }
-    takeGear(c, "potion", 1); spendTime(u, "bonus");
-    const n = r.sum + 2; const got = heal(t, n, u);
+    takeGear(c, pid, 1); spendTime(u, "bonus");
+    const n = r.sum + P.b; const got = heal(t, n, u);
     await ses.finish({ text: got ? `Восстановлено ${got} ОЗ` : "Лечение не подействовало", heal: true, tgt: t, dmg: got });
     return true;
   }
@@ -492,9 +493,9 @@
     // предметы
     if (B.envActions) opts.push(...B.envActions(u));                                                // находки, сундуки
     const c = u.hero, bon = timeWhy(u, "bonus");
-    if (countGear(c, "potion") > 0) {
-      const hurt = [u, ...alliesOf(u).filter(a => dist(u, a) <= 1 && !a.dead)].some(a => a.hp < a.maxHp);       // без раненых рядом зелье бесполезно: автоконец хода его не ждёт
-      opts.push({ id: "potion", cat: "item", label: "Зелье лечения", ico: "potion", sub: `1к4 + 2 · осталось ${countGear(c, "potion")}`, time: "bonus", enabled: !bon, why: bon, useless: !hurt, run: () => usePotion(u) });
+    for (const pid of ["potion-good", "potion"]) if (countGear(c, pid) > 0) {
+      const P = POTIONS[pid], hurt = [u, ...alliesOf(u).filter(a => dist(u, a) <= 1 && !a.dead)].some(a => a.hp < a.maxHp);       // без раненых рядом зелье бесполезно: автоконец хода его не ждёт
+      opts.push({ id: pid, cat: "item", label: pid === "potion" ? "Слабое зелье лечения" : "Зелье лечения", ico: "potion", sub: `${P.n}к${P.s} + ${P.b} · осталось ${countGear(c, pid)}`, time: "bonus", enabled: !bon, why: bon, useless: !hurt, run: () => usePotion(u, pid) });
     }
     if (countGear(c, "torch") > 0 && B.S.dark && !B.S.torch) opts.push({ id: "torch", cat: "item", label: "Зажечь факел", ico: "torch", sub: "освещает поле, убирает штрафы тьмы", time: "bonus", enabled: !bon, why: bon, run: () => lightTorch(u) });
     const off = c.equip.off ? itemOf(c.equip.off) : null, main = B.mainOf(u);

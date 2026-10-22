@@ -61,3 +61,11 @@
 ### Открытый сундук — `chest-open`
 
 > `an old worn wooden chest with iron bands, lid open, glittering amber magic stones inside, on a stone floor, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Зелье лечения (продвинутое) — `potion-good`
+
+> `a worn glass healing potion flask with a cork stopper and a brass band, glowing bright ruby red liquid, slightly larger than the weak potion, standing on a stone pedestal, scratches and light wear, inside a softly lit stone dungeon alcove, warm amber light, hand-painted fantasy RPG item art, stylized, painterly, square 1:1`
+
+### Лавочник (портрет для магазина)
+
+> `a cunning goblin merchant with green skin, a sly knowing grin showing small teeth, narrow amber eyes, a small gold crown-shaped hat and a red scarf, leaning over a wooden shop counter piled with gold coins, warm lantern light, hand-painted fantasy RPG character art, stylized, painterly, bust portrait, wide 16:9 composition with empty space at the bottom for text`

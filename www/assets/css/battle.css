@@ -38,8 +38,9 @@ body.bt-active .dice-fab { display: none; }
 .bt-ter.t-fire .fl2 { animation: fireFlick .38s ease-in-out infinite alternate-reverse; transform-origin: 50% 90%; }
 @keyframes fireFlick { from { transform: scale(1, .94) rotate(-1.2deg); } to { transform: scale(.96, 1.05) rotate(1.4deg); } }
 .bt-ter.t-crystal { filter: drop-shadow(0 0 5px rgb(120 230 245 / .7)); }
-.bt-cell.fogged { background: rgb(6 6 12 / .62); box-shadow: inset 0 0 14px rgb(0 0 0 / .6); }
-.bt-cell.fogged .bt-ter { opacity: .35; }
+.bt-cell.fogged { background: repeating-linear-gradient(135deg, #07070d 0 7px, #0c0c15 7px 14px); box-shadow: none; border-color: rgb(0 0 0 / .5); }
+.bt-cell.fogged .bt-ter { opacity: 0; }
+.bt-cell.fogged::after { content: ""; position: absolute; inset: 0; background: rgb(4 4 10 / .55); }
 .bt-cell.hl-move { background: rgb(110 205 120 / .24); box-shadow: inset 0 0 0 2px rgb(150 235 150 / .55); }
 .bt-cell.hl-danger { background: rgb(245 165 60 / .28); box-shadow: inset 0 0 0 2px rgb(255 190 90 / .7); }
 .bt-cell.hl-reach { background: rgb(225 95 75 / .13); box-shadow: inset 0 0 0 1px rgb(240 120 100 / .35); }

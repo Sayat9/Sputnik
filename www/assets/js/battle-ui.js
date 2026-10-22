@@ -144,19 +144,21 @@
   function renderZones(S) {
     const l = root.querySelector(".bt-zonelay"); if (!l) return;
     let h = "";
-    for (const z of S.zones || []) for (const [x, y] of B.zoneCells(z)) h += `<div class="bt-zcell k-${z.kind}" style="left:${x * cell}px;top:${y * cell}px;width:${cell}px;height:${cell}px"></div>`;
+    const vis = S.phase === "fight" || S.phase === "result" ? B.visionCells() : null;
+    for (const z of S.zones || []) for (const [x, y] of B.zoneCells(z)) if (!vis || vis.has(x + "," + y)) h += `<div class="bt-zcell k-${z.kind}" style="left:${x * cell}px;top:${y * cell}px;width:${cell}px;height:${cell}px"></div>`;
     l.innerHTML = h;
   }
   function renderObjs(S) {
     const l = root.querySelector(".bt-objs"); let h = "";
-    for (const o of S.objs) if (o.kind === "trap" && (!o.hidden || o.owner === "hero")) h += `<div class="bt-obj trap" style="left:${o.x * cell}px;top:${o.y * cell}px;width:${cell}px;height:${cell}px"><svg viewBox="0 0 100 100">${D.SVG.trap}</svg></div>`;
-    for (const o of S.objs) if (o.kind === "find" && typeof FINDS !== "undefined" && FINDS[o.fid]) { const f = FINDS[o.fid]; h += `<div class="bt-obj find" style="left:${o.x * cell}px;top:${o.y * cell}px;width:${cell}px;height:${cell}px"><i>${FIND_KIND[f.kind].icon(f.color)}</i></div>`; }
-    for (const o of S.objs) if (o.kind === "illusion") h += `<div class="bt-obj illusion" title="Иллюзия «Морока»" style="left:${o.x * cell}px;top:${o.y * cell}px;width:${cell}px;height:${cell}px">${ico("eye")}</div>`;
-    for (const b of S.bodies || []) if (!b.eaten) h += `<div class="bt-obj body" title="Павший: ${esc(b.name)}" style="left:${b.x * cell}px;top:${b.y * cell}px;width:${cell}px;height:${cell}px">${ico("skull")}</div>`;
+    const visAll = S.phase === "fight" || S.phase === "result" ? B.visionCells() : null, seenAt = o => !visAll || visAll.has(o.x + "," + o.y);          // за полным укрытием и в тумане ничего не видно
+    for (const o of S.objs) if (seenAt(o) && o.kind === "trap" && (!o.hidden || o.owner === "hero")) h += `<div class="bt-obj trap" style="left:${o.x * cell}px;top:${o.y * cell}px;width:${cell}px;height:${cell}px"><svg viewBox="0 0 100 100">${D.SVG.trap}</svg></div>`;
+    for (const o of S.objs) if (seenAt(o) && o.kind === "find" && typeof FINDS !== "undefined" && FINDS[o.fid]) { const f = FINDS[o.fid]; h += `<div class="bt-obj find" style="left:${o.x * cell}px;top:${o.y * cell}px;width:${cell}px;height:${cell}px"><i>${FIND_KIND[f.kind].icon(f.color)}</i></div>`; }
+    for (const o of S.objs) if (seenAt(o) && o.kind === "illusion") h += `<div class="bt-obj illusion" title="Иллюзия «Морока»" style="left:${o.x * cell}px;top:${o.y * cell}px;width:${cell}px;height:${cell}px">${ico("eye")}</div>`;
+    for (const b of S.bodies || []) if (!b.eaten && seenAt(b)) h += `<div class="bt-obj body" title="Павший: ${esc(b.name)}" style="left:${b.x * cell}px;top:${b.y * cell}px;width:${cell}px;height:${cell}px">${ico("skull")}</div>`;
     l.innerHTML = h;
     // Брошенное оружие и стрелы на земле: значки в углу клетки поверх фишек.
     const m = root.querySelector(".bt-marks"), byCell = new Map();
-    for (const w of S.drops) { const k = w.x + "," + w.y, e = byCell.get(k) || { x: w.x, y: w.y, weapons: [], arrows: 0 }; if (w.kind === "weapon") e.weapons.push(w); else e.arrows++; byCell.set(k, e); }
+    for (const w of S.drops) { if (!seenAt(w)) continue; const k = w.x + "," + w.y, e = byCell.get(k) || { x: w.x, y: w.y, weapons: [], arrows: 0 }; if (w.kind === "weapon") e.weapons.push(w); else e.arrows++; byCell.set(k, e); }
     m.innerHTML = [...byCell.values()].map(e => {
       const wp = e.weapons.map(w => { const it = itemOf(w.item), hh = B.byId && B.heroes().find(u => u.hero && u.hero.id === w.hero); return `<span class="mk w" title="${esc((it ? it.name : "Оружие") + (hh ? " — " + hh.name : ""))} лежит на земле">${ico("throwing")}</span>`; }).join("");
       const ar = e.arrows ? `<span class="mk a" title="Стрелы на земле: ${e.arrows}">${ico("arrow")}<b>${e.arrows}</b></span>` : "";
