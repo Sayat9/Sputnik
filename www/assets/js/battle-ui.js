@@ -74,6 +74,7 @@
   function build(S) {
     const bg = root.querySelector(".bt-bg"); S.bgSeed = S.bgSeed || Math.floor(Math.random() * 1e9);
     bg.innerHTML = bgSvg(S.zone, S.bgSeed);
+    const have = (D.bgImages || {})[S.zone] || 0; if (have) { const n = 1 + (S.bgSeed % have), im = new Image(), src = `assets/bg/${S.zone}-${n}.webp`; im.onload = () => { bg.style.backgroundImage = `url(${src})`; bg.style.backgroundSize = "cover"; bg.style.backgroundPosition = "center"; const sv = bg.querySelector("svg"); if (sv) sv.style.opacity = "0"; }; im.src = src; }          // нарисованный фон поля (assets/bg/<зона>-1..3.webp), если файл есть; иначе рисуется схемой
     root.querySelector(".bt-zone").textContent = (D.zones[S.zone] || {}).name || "";
     root.dataset.zone = S.zone; root.classList.toggle("dark", !!S.dark && !S.torch);
     const cells = root.querySelector(".bt-cells"); cells.innerHTML = ""; cellEls = [];
