@@ -304,4 +304,26 @@
   D.SVG.chestopen = '<ellipse cx="50" cy="82" rx="38" ry="9" fill="#000" opacity=".3"/><rect x="14" y="46" width="72" height="34" rx="5" fill="#8a5a2a" stroke="#3d2410" stroke-width="3"/><path d="M14 46 L24 18 H76 L86 46Z" fill="#a06a32" stroke="#3d2410" stroke-width="3" stroke-linejoin="round"/><rect x="20" y="48" width="60" height="12" fill="#2a1a0c"/><path d="M32 46 V80 M68 46 V80" stroke="#4a2c12" stroke-width="3"/>';
   D.terrain.chest = { name: "Деревянный сундук", obstacle: true, note: "Не пройти. Откройте его рядом действием: внутри добыча (камни, иногда еда, зелья, карта)." };
   D.terrain.chestopen = { name: "Открытый сундук", obstacle: true, note: "Не пройти. Уже пуст." };
+
+  /* ===== вороны: последняя ворона в гнезде паникует; чернокрыл зовёт новых (rules.md → «Гнездо ворон и чернокрыл») ===== */
+  try {
+    const cm = MONSTERS.find(x => x.id === "crow");
+    if (cm && !D.mon.crow && D.deriveMon) { D.mon.crow = D.deriveMon(cm); D.mon.crow.ai = Object.assign({}, D.mon.crow.ai, { morale: { type: "alone", dc: 99 } }); }          // последняя ворона всегда бежит
+  } catch (e) { /* нет данных вороны — обычная мораль */ }
+  const prevRound = B.onRound;
+  B.onRound = function (round) {
+    if (prevRound) prevRound.apply(this, arguments);
+    const S = B.S; if (!S || !S.ev || !S.ev.sp || S.ev.sp.k !== "blackwing" || round % 3 !== 0) return;          // каждые 3 раунда, пока чернокрыл жив
+    const bw = S.units.find(u => u.ref === "blackwing" && alive(u) && !u.down); if (!bw) return;
+    const have = S.units.filter(u => u.ref === "crow" && alive(u)).length;
+    let added = 0;
+    for (let i = have; i < 4; i++) {
+      const w = B.monUnit("crow", -1);
+      Object.assign(w, { summon: true, kind: "crow", owner: bw.id, side: "mon", idx: null, ess: [], pass: ["body:crow"], name: "Ворона " + (S.units.filter(x => x.ref === "crow").length + 1) });
+      w.ai = Object.assign({}, w.ai, { noFlee: true, fleeHp: null, morale: null });
+      const c = B.freeCellsNear(bw, 8, w)[0]; if (!c) continue;
+      w.x = c[0]; w.y = c[1]; B.addUnit(w, bw.id); added++;
+    }
+    if (added) log(`Прилетают новые вороны: ${added}.`, "skill");
+  };
 })();

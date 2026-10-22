@@ -1583,6 +1583,19 @@ const MON_EXTRA = {"grey-shade": {"spawn": "Только в Туманной ч�
 // Статблоки монстров 2 этажа — черновик (../campaign/drafts.md), эссенции утверждены.
 const MON_STATS2 = {"dust-crawler": {"size": "Маленький гуманоид (нежить)", "sz": "маленький", "ac": "12 (пыльная шкура)", "hp": "11 (2к8+2)", "speed": "6 м", "cr": "1/4", "abil": [10, 13, 12, 3, 8, 5], "senses": "Скрытность +5. Тёмное зрение 18 м.", "traits": [["Из пыли", "Ползает под слоем пыли и хватает за ногу.", "behavior"], ["Цепкие пальцы", "+3 к попаданию, 1к4+1 колющего.", "attacks"]], "statDraft": true}, "bone-hound": {"size": "Средний зверь (нежить)", "sz": "средний", "ac": "12", "hp": "9 (2к8)", "speed": "12 м", "cr": "1/4", "abil": [11, 14, 10, 2, 10, 6], "senses": "Восприятие +4. Тёмное зрение 18 м.", "traits": [["Стая", "Бегут по следам в пыли по 3–5.", "behavior"], ["Укус", "+4 к попаданию, 1к6+2 колющего.", "attacks"]], "statDraft": true}, "gravedigger": {"size": "Средний гуманоид (нежить)", "sz": "средний", "ac": "13 (лохмотья)", "hp": "30 (4к8+12)", "speed": "9 м", "cr": "1", "abil": [15, 9, 14, 6, 10, 6], "senses": "Тёмное зрение 18 м.", "traits": [["Могильщик", "Сбивает с ног и тащит к свежей яме.", "behavior"], ["Лопата", "+4 к попаданию, 1к8+2 дробящего.", "attacks"]], "statDraft": true}, "plague-fat": {"size": "Средний гуманоид (нежить)", "sz": "средний", "ac": "9", "hp": "42 (5к10+15)", "speed": "7,5 м", "cr": "1", "abil": [14, 6, 16, 3, 6, 3], "senses": "Тёмное зрение 18 м.", "traits": [["Раздутый", "Умирая, лопается облаком гнили.", "behavior"], ["Кулак", "+4 к попаданию, 1к8+2 дробящего.", "attacks"]], "statDraft": true}, "ash-spirit": {"size": "Средний элементаль (нежить)", "sz": "средний", "ac": "13", "hp": "27 (6к8)", "speed": "9 м, полёт 9 м", "cr": "1", "abil": [8, 15, 10, 8, 10, 6], "senses": "Тёмное зрение 18 м.", "traits": [["Пепел", "Вьётся вокруг пепельника, рассыпается и собирается в другом месте.", "behavior"], ["Горячий пепел", "+4 к попаданию, 1к6+2 огнём.", "attacks"]], "statDraft": true}, "bone-knight": {"size": "Большой гуманоид (нежить)", "sz": "большой", "ac": "17 (латы из костей)", "hp": "58 (9к8+18)", "speed": "12 м", "cr": "3", "abil": [16, 10, 14, 6, 10, 8], "senses": "Тёмное зрение 18 м.", "traits": [["Вожак полей", "Скелеты стягиваются к нему.", "behavior"], ["Две атаки", "За ход копьё и копыта.", "attacks"], ["Копьё", "+6 к попаданию, 1к10+3 колющего.", "attacks"], ["Копыта", "+5 к попаданию, 1к6+3 дробящего.", "attacks"]], "statDraft": true}, "corpse-eater": {"size": "Большой гуманоид (нежить)", "sz": "большой", "ac": "14 (толстая шкура)", "hp": "68 (8к10+24)", "speed": "9 м", "cr": "3", "abil": [18, 10, 16, 5, 9, 6], "senses": "Восприятие +3. Тёмное зрение 18 м.", "traits": [["Дно склепа", "Гули рядом с ним не бегут.", "behavior"], ["Две атаки", "За ход укус и когти.", "attacks"], ["Укус", "+6 к попаданию, 2к6+4 колющего.", "attacks"], ["Когти", "+6 к попаданию, 1к8+4 рубящего.", "attacks"]], "statDraft": true}, "ash-wraith": {"size": "Средний гуманоид (нежить)", "sz": "средний", "ac": "15", "hp": "52 (8к8+16)", "speed": "9 м", "cr": "3", "abil": [14, 12, 14, 10, 12, 8], "senses": "Тёмное зрение 18 м.", "traits": [["Горит, не сгорая", "От него идёт белая пыль; не выходит из своего угла.", "behavior"], ["Горящий кулак", "+5 к попаданию, 1к8+2 огнём.", "attacks"]], "statDraft": true}};          // черновики статблоков нежити 2 этажа (кроме часовни), см. drafts.md
 const MON_STATS = {"goblin-shaman": {"size": "Маленький гуманоид", "sz": "маленький", "ac": "12 (шкуры и бусы)", "hp": "9 (2к6+2)", "speed": "9 м", "cr": "1/4", "abil": [8, 12, 12, 10, 14, 9], "senses": "Медицина +4. Тёмное зрение 18 м.", "traits": [["За спинами", "Держится позади группы и в ближний бой не лезет.", "behavior"], ["Шёпот духам", "Бормочет над сородичами — рядом с ним гоблины стойче.", "behavior"], ["Лекарь", "Тянется к самому раненому сородичу, пока тот не упал.", "behavior"], ["Посох", "+1 к попаданию, 1к6−1 дробящего.", "attacks"], ["Праща", "+3 к попаданию, 9/36 м, 1к4+1 дробящего.", "attacks"]], "statDraft": true}, "goblin-assassin": {"size": "Маленький гуманоид", "sz": "маленький", "ac": "14 (кожаный доспех)", "hp": "14 (4к6)", "speed": "9 м", "cr": "1/2", "abil": [8, 17, 10, 9, 12, 8], "senses": "Скрытность +7, Акробатика +5. Тёмное зрение 18 м.", "traits": [["Засада", "Ждёт в кустах у троп и бьёт первым.", "behavior"], ["Из тени", "Первый удар из укрытия особенно глубокий.", "behavior"], ["Исчезает", "После удара отскакивает к кустам и пропадает из виду.", "behavior"], ["Две атаки", "За ход две атаки ножами.", "attacks"], ["Нож", "+5 к попаданию, 1к4+3 колющего; метнуть 6/18 м.", "attacks"]], "statDraft": true}, "goblin-trapper": {"size": "Маленький гуманоид", "sz": "маленький", "ac": "13 (кожаный доспех)", "hp": "18 (4к6+4)", "speed": "9 м", "cr": "1/2", "abil": [10, 14, 12, 10, 14, 7], "senses": "Выживание +6, Восприятие +4. Тёмное зрение 18 м.", "traits": [["Ловец одиночек", "Выбирает отставшего или раненого.", "behavior"], ["Свои капканы", "По своим ловушкам ходит свободно, ни одна на нём не срабатывает.", "behavior"], ["Сначала сеть", "Первым делом бросает сеть, потом колет.", "behavior"], ["Копьё", "+4 к попаданию, 1к6+2 колющего.", "attacks"], ["Короткий лук", "+4 к попаданию, 24/96 м, 1к6+2 колющего.", "attacks"]], "statDraft": true}, "goblin-elder": {"size": "Маленький гуманоид", "sz": "маленький", "ac": "11 (шкуры)", "hp": "12 (5к6−5)", "speed": "7,5 м", "cr": "1/2", "abil": [7, 8, 9, 12, 16, 13], "senses": "Медицина +5, Религия +3. Тёмное зрение 18 м.", "traits": [["Старый", "Двигается медленно, кашляет, опирается на посох.", "body"], ["Голос старейшины", "Пока он кричит, гоблины не бегут.", "behavior"], ["Проклинает", "Тычет костяным посохом в самого опасного и шипит.", "behavior"], ["Бережёт себя", "Прячется за хобгоблинами.", "behavior"], ["Костяной посох", "+0 к попаданию, 1к6−2 дробящего (минимум 1).", "attacks"]], "statDraft": true}, "hobgoblin-brute": {"size": "Средний гуманоид", "sz": "средний", "ac": "13 (шкурный доспех)", "hp": "19 (3к8+6)", "speed": "9 м", "cr": "1", "abil": [17, 8, 14, 8, 9, 7], "senses": "Атлетика +5. Тёмное зрение 18 м.", "traits": [["Таран", "Идёт в лоб на самого крупного.", "behavior"], ["Сносит", "Каждый удар дубины отбрасывает назад.", "behavior"], ["Злоба", "Как обычный хобгоблин: не бежит, пока жив хоть один сородич.", "behavior"], ["Большая дубина", "+5 к попаданию, 2к4+3 дробящего.", "attacks"]], "statDraft": true}, "hobgoblin-thrower": {"size": "Средний гуманоид", "sz": "средний", "ac": "14 (проклёпанная кожа)", "hp": "13 (3к8)", "speed": "9 м", "cr": "1/2", "abil": [13, 16, 11, 9, 8, 7], "senses": "Атлетика +3. Тёмное зрение 18 м.", "traits": [["Дистанция", "Отходит, если к нему подошли вплотную.", "behavior"], ["Перевязь", "Обвешан топориками и дротиками, швыряет без паузы, иногда по два сразу.", "behavior"], ["Метательный топорик", "+5 к попаданию, 9/24 м, 1к6+4 рубящего.", "attacks"], ["Дротик", "+5 к попаданию, 9/36 м, 1к4+4 колющего.", "attacks"]], "statDraft": true}, "hobgoblin-driver": {"size": "Средний гуманоид", "sz": "средний", "ac": "14 (проклёпанная кожа)", "hp": "16 (3к8+3)", "speed": "9 м", "cr": "1/2", "abil": [14, 12, 12, 9, 8, 13], "senses": "Запугивание +5. Тёмное зрение 18 м.", "traits": [["Сзади стаи", "Гонит гоблинов кнутом вперёд.", "behavior"], ["Длинный кнут", "Достаёт из второго ряда.", "behavior"], ["Орёт", "От его крика гоблин рядом вдруг бросается в атаку.", "behavior"], ["Кнут", "+4 к попаданию, досягаемость 4,5 м, 1к4+2 рубящего.", "attacks"], ["Цеп", "+4 к попаданию, досягаемость 3 м, 1к8+2 дробящего.", "attacks"]], "statDraft": true}, "hobgoblin-shield": {"size": "Средний гуманоид", "sz": "средний", "ac": "16 (кольчужная рубаха, ростовой щит)", "hp": "26 (4к8+8)", "speed": "9 м", "cr": "1", "abil": [15, 8, 15, 8, 10, 7], "senses": "Атлетика +4. Тёмное зрение 18 м.", "traits": [["Стена", "Стоит перед подрывником и не отходит.", "behavior"], ["Подставляется", "Бросается под удар, предназначенный соседу.", "behavior"], ["Удар щитом", "+4 к попаданию, 1к6+2 дробящего.", "attacks"], ["Короткий меч", "+4 к попаданию, 1к6+2 колющего.", "attacks"]], "statDraft": true}, "goblin-king": {"size": "Маленький гуманоид", "sz": "маленький", "ac": "15 (трофейная кольчуга)", "hp": "45 (10к6+10)", "speed": "7,5 м", "cr": "2", "abil": [16, 8, 13, 10, 11, 16], "senses": "Запугивание +7, Атлетика +5. Тёмное зрение 18 м.", "traits": [["Трон", "Сидит и командует; встаёт, только когда враг вплотную или стая почти перебита.", "behavior"], ["Пока жив король", "Гоблины рядом не боятся и бьют точнее.", "behavior"], ["Рёв", "Встав, ревёт так, что дрожат кости.", "behavior"], ["Две атаки", "За ход две атаки булавой.", "attacks"], ["Тяжёлая булава", "+5 к попаданию, 1к8+3 дробящего.", "attacks"], ["Метательное копьё", "+5 к попаданию, 6/18 м, 1к6+3 колющего.", "attacks"]], "statDraft": true}, "goblin-bomber": {"size": "Маленький гуманоид", "sz": "маленький", "ac": "13 (кожаный фартук)", "hp": "38 (7к6+14)", "speed": "9 м", "cr": "2", "abil": [8, 17, 14, 13, 8, 8], "senses": "Ловкость рук +5, Восприятие −1. Тёмное зрение 18 м.", "traits": [["Обожжённый", "Сопротивление урону огнём.", "body"], ["За щитами", "Прячется за щитоносцами.", "behavior"], ["Шипящий фитиль", "Перед броском целый ход держит горящую бомбу в руке.", "behavior"], ["Глухой", "Не слышит крадущихся.", "behavior"], ["Нож", "+5 к попаданию, 1к4+3 колющего.", "attacks"], ["Праща", "+5 к попаданию, 9/36 м, 1к4+3 дробящего.", "attacks"]], "statDraft": true}, "goblin-thief": {"size": "Маленький гуманоид", "sz": "маленький", "ac": "15 (кожаный доспех)", "hp": "31 (7к6+7)", "speed": "10,5 м", "cr": "2", "abil": [7, 18, 12, 12, 10, 12], "senses": "Скрытность +8, Ловкость рук +8, Акробатика +6. Тёмное зрение 18 м.", "traits": [["Жадность", "Бросается к любой блестящей вещи, даже посреди боя.", "behavior"], ["Срезал и бежит", "Схватив добычу, сразу удирает к логову.", "behavior"], ["Быстрые ноги", "Обгоняет любого гоблина.", "behavior"], ["Две атаки", "За ход две атаки кинжалом.", "attacks"], ["Кинжал", "+6 к попаданию, 1к4+4 колющего.", "attacks"]], "statDraft": true}, "horned-hare": {"size": "Маленький зверь", "sz": "маленький", "ac": "13", "hp": "7 (2к6)", "speed": "13,5 м", "cr": "1/4", "abil": [8, 16, 10, 2, 12, 5], "senses": "Атлетика +1, Восприятие +3.", "traits": [["Разгон", "Отбегает подальше и несётся по прямой.", "behavior"], ["Петляет", "После удара отскакивает в сторону.", "behavior"], ["Долгая рана", "Рана от рога долго кровит.", "behavior"], ["Рог", "+5 к попаданию, 1к6+3 колющего.", "attacks"]], "statDraft": true}, "swamp-toad": {"size": "Средний зверь", "sz": "средний", "ac": "11", "hp": "11 (2к8+2)", "speed": "6 м, плавание 9 м", "cr": "1/4", "abil": [12, 8, 13, 2, 10, 3], "senses": "Скрытность +1 (в воде и топи +2). Задерживает дыхание на 30 минут.", "traits": [["Скользкая", "Схватить её почти невозможно.", "body"], ["Под ряской", "Сидит в топи, видны только глаза.", "behavior"], ["Язык", "Тянет добычу к себе.", "behavior"], ["Укус", "+3 к попаданию, 1к6+1 колющего.", "attacks"]], "statDraft": true}, "burrower": {"size": "Маленький зверь", "sz": "маленький", "ac": "12", "hp": "9 (2к6+2)", "speed": "6 м, рытьё 3 м", "cr": "1/8", "abil": [10, 12, 13, 2, 10, 4], "senses": "Чувство вибрации 3 м. Плохое зрение.", "traits": [["Ямы", "Копает ловушки на тропах пещеры.", "behavior"], ["Из-под земли", "Выскакивает снизу.", "behavior"], ["Ныряет", "Раненый уходит под землю.", "behavior"], ["Когти", "+3 к попаданию, 1к6+1 рубящего.", "attacks"]], "statDraft": true}, "crow": {"size": "Крошечный зверь", "sz": "крошечный", "ac": "12", "hp": "3 (1к4+1)", "speed": "3 м, полёт 15 м", "cr": "1/8", "abil": [4, 14, 12, 3, 12, 6], "senses": "Восприятие +3.", "traits": [["Налёт", "Налетает и сразу отлетает.", "behavior"], ["В глаза", "Целит клювом в лицо.", "behavior"], ["Кричит", "Улетая, кричит о вас.", "behavior"], ["Клюв", "+4 к попаданию, 1к4 колющего.", "attacks"]], "statDraft": true}, "dire-wolf": {"size": "Средний зверь", "sz": "средний", "ac": "13 (природный доспех)", "hp": "18 (4к8)", "speed": "12 м", "cr": "1", "abil": [16, 13, 11, 4, 13, 10], "senses": "Восприятие +5, Скрытность +3.", "traits": [["Старые шрамы", "Весь в рубцах — старый и уже не такой крепкий.", "body"], ["Вожак стаи", "Бьёт того, кого стая уже окружила.", "behavior"], ["Валит", "Первым делом сбивает с ног.", "behavior"], ["Укус", "+5 к попаданию, 2к4+3 колющего.", "attacks"]], "statDraft": true}, "web-spider": {"size": "Средний зверь", "sz": "средний", "ac": "14 (природный доспех)", "hp": "22 (4к8+4)", "speed": "9 м, лазание 9 м", "cr": "1", "abil": [12, 16, 12, 2, 11, 4], "senses": "Скрытность +7, Восприятие +4. Тёмное зрение 18 м.", "traits": [["Сверху", "Ждёт в кронах и спускается на нити.", "behavior"], ["Сначала сеть", "Сначала опутывает, потом кусает.", "behavior"], ["По сетям", "По паутине бегает свободно.", "behavior"], ["Укус", "+5 к попаданию, 1к8+3 колющего.", "attacks"]], "statDraft": true}, "werewolf": {"size": "Большой зверь", "sz": "большой", "ac": "14 (природный доспех)", "hp": "52 (7к10+14)", "speed": "12 м", "cr": "3", "abil": [18, 14, 15, 4, 13, 9], "senses": "Восприятие +6 (нюх), Атлетика +6.", "traits": [["Серебро жжёт", "Серебряное оружие наносит ему +1к6 урона.", "body"], ["Вой", "Начинает бой один или с матёрым волком и сразу воет.", "behavior"], ["Злее со стаей", "Чем больше волков вокруг, тем сильнее бьёт.", "behavior"], ["Две атаки", "За ход укус и когти.", "attacks"], ["Укус", "+6 к попаданию, 1к10+4 колющего.", "attacks"], ["Когти", "+6 к попаданию, 2к6+4 рубящего.", "attacks"]], "statDraft": true}, "giant-mole": {"size": "Большой зверь", "sz": "большой", "ac": "15 (природный доспех)", "hp": "59 (7к10+21)", "speed": "6 м, рытьё 3 м", "cr": "3", "abil": [19, 8, 17, 3, 10, 5], "senses": "Чувство вибрации 18 м. Видит только на 3 м.", "traits": [["Боится света", "В ярком свете атакует с помехой.", "body"], ["Под землёй", "Почти всё время сидит под землёй. В конце хода может закопаться (тратит действие), на следующий ход вылезает.", "behavior"], ["Чует шаги", "Неподвижных не замечает; цель с факелом бьёт первой, но с помехой.", "behavior"], ["Земля дрожит", "Бьёт лапами по земле так, что валит с ног.", "behavior"], ["Две атаки", "За ход две атаки когтями.", "attacks"], ["Когти", "+6 к попаданию, 2к6+4 рубящего.", "attacks"]], "statDraft": true}, "swamp-fang": {"size": "Большой зверь", "sz": "большой", "ac": "14 (природный доспех)", "hp": "57 (6к10+24)", "speed": "6 м, плавание 9 м", "cr": "3", "abil": [19, 9, 18, 2, 10, 5], "senses": "Скрытность +3 (в воде +6). Задерживает дыхание на 15 минут. Инициатива −1.", "traits": [["Из-под воды", "Первый удар — из топи.", "behavior"], ["Хватка", "Схватив, не отпускает и тащит под воду.", "behavior"], ["Неуклюжий", "На берегу поворачивается медленно.", "behavior"], ["Укус", "+6 к попаданию, 1к10+4 колющего.", "attacks"], ["Хвост", "+6 к попаданию, 1к8+4 дробящего (не по схваченной цели).", "attacks"]], "statDraft": true}, "spider-queen": {"size": "Большой зверь", "sz": "большой", "ac": "15 (природный доспех)", "hp": "60 (8к10+16)", "speed": "9 м, лазание 9 м", "cr": "3", "abil": [16, 18, 15, 3, 13, 4], "senses": "Скрытность +7, Восприятие +6. Тёмное зрение 36 м.", "traits": [["Боится огня", "Урон огнём по ней +1к6.", "body"], ["Погоня", "Гонит отряд, пока он в кронах или рядом.", "behavior"], ["Сторожит паутину", "Отстав, ждёт в паутине и нападает на вошедших.", "behavior"], ["Рой", "Из-под брюха сыплются паучата.", "behavior"], ["Две атаки", "За ход укус и лапы.", "attacks"], ["Укус", "+7 к попаданию, 1к10+4 колющего.", "attacks"], ["Лапы", "+7 к попаданию, 2к6+4 рубящего.", "attacks"]], "statDraft": true}, "blackwing": {"size": "Средний зверь", "sz": "средний", "ac": "15", "hp": "38 (7к8+7)", "speed": "3 м, полёт 18 м", "cr": "2", "abil": [10, 18, 12, 8, 16, 10], "senses": "Восприятие +7, Скрытность +6.", "traits": [["Лёгкие кости", "Тонкие птичьи кости.", "body"], ["Стая", "Вороны рядом с ним бьют точнее.", "behavior"], ["Из облака перьев", "Прячется в стае и пикирует внезапно.", "behavior"], ["Не уходит", "Пока жив, прилетают новые вороны.", "behavior"], ["Две атаки", "За ход клюв и когти.", "attacks"], ["Клюв", "+6 к попаданию, 1к8+4 колющего.", "attacks"], ["Когти", "+6 к попаданию, 2к4+4 рубящего.", "attacks"]], "statDraft": true}};
+// Черновики статблоков Туманной часовни (низкое Телосложение: тело из тумана), см. drafts.md → «Особые места 2 этажа»
+Object.assign(MON_STATS2, {
+  "grey-shade": { size: "Средний гуманоид (нежить)", sz: "средний", ac: "13 (туманное тело)", hp: "9 (2к8)", speed: "9 м", cr: "1/4", abil: [8, 15, 6, 6, 10, 5], senses: "Скрытность +6. Тёмное зрение 18 м.",
+    traits: [["Тень в тени", "В тумане и полумраке прячется, даже когда укрытия нет.", "behavior"], ["Из тумана", "Бьёт со спины и тут же растворяется.", "behavior"], ["Холодное касание", "+4 к попаданию, 1к6+2 холодом.", "attacks"]], statDraft: true },
+  "morok": { size: "Средний гуманоид (нежить)", sz: "средний", ac: "12 (туманное тело)", hp: "9 (2к8)", speed: "9 м", cr: "1/4", abil: [6, 14, 6, 10, 10, 11], senses: "Обман +4. Тёмное зрение 18 м.",
+    traits: [["Мираж", "Показывает дрожащую копию себя в стороне.", "behavior"], ["Путает", "Цели верят иллюзии: промахиваются мимо настоящего.", "behavior"], ["Психический удар", "+4 к попаданию, 1к6+2 психическим.", "attacks"]], statDraft: true },
+  "whisperer": { size: "Средний гуманоид (нежить)", sz: "средний", ac: "13 (туманное тело)", hp: "22 (5к8)", speed: "9 м", cr: "1/2", abil: [6, 14, 7, 12, 14, 12], senses: "Восприятие +4, Обман +3. Тёмное зрение 18 м.",
+    traits: [["Шёпот", "Шепчет над ухом: сбивает прицел и внимание.", "behavior"], ["За спинами мороков", "Держится позади и подправляет иллюзии.", "behavior"], ["Шипящий удар", "+5 к попаданию, 1к8+2 психическим.", "attacks"]], statDraft: true },
+  "mirror-dead": { size: "Средний гуманоид (нежить)", sz: "средний", ac: "14 (зеркальная кожа)", hp: "27 (6к8)", speed: "9 м", cr: "1/2", abil: [10, 13, 7, 9, 11, 10], senses: "Восприятие +3. Тёмное зрение 18 м.",
+    traits: [["Отражение", "Копирует облик ближайшего героя и ходит за ним тенью.", "behavior"], ["Зеркальное тело", "Осколки на коже ловят свет и слепят.", "body"], ["Осколочный удар", "+4 к попаданию, 1к8+2 рубящего.", "attacks"]], statDraft: true },
+  "faceless-ringer": { size: "Большой гуманоид (нежить)", sz: "большой", ac: "15 (туман и ржавые цепи)", hp: "58 (9к10+9)", speed: "9 м", cr: "3", abil: [16, 12, 8, 10, 12, 4], senses: "Восприятие +4. Тёмное зрение 18 м.",
+    traits: [["У колокола", "Стоит у колокола на вершине и звонит, пока жив.", "behavior"], ["Без лица", "Лица нет: взгляд не ловит, голоса не слышно.", "body"], ["Звон", "Звон колокола сбивает с ног и пугает.", "behavior"], ["Две атаки", "За ход цепь и язык колокола.", "attacks"], ["Цепь", "+6 к попаданию, досягаемость 3 м, 1к10+3 рубящего.", "attacks"], ["Язык колокола", "+6 к попаданию, 2к6+3 дробящего.", "attacks"]], statDraft: true },
+});
 MONSTERS.forEach(m => {
   const x = MON_EXTRA[m.id] || {};
   Object.assign(m, MON_STATS[m.id] || MON_STATS2[m.id] || {});
@@ -2255,7 +2268,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 9;
+const BATTLE_REV = 10;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined) st.tactical = true; return st; }
@@ -3012,7 +3025,7 @@ const LOOT = [["ration", 2], ["torch", 1], ["potion", 1]];
 // Зачищенный квадрат пуст и не требует броска 2 дня (6 действий), потом бросают снова.
 const absAct = r => (r.day - 1) * FLOOR1.acts + r.act;
 const QUIET_ACTS = 2 * FLOOR1.acts;
-const isQuiet = (r, k) => r.cleared?.[k] != null && absAct(r) - r.cleared[k] < QUIET_ACTS;
+const isQuiet = (r, k) => r.cleared?.[k] != null && absAct(r) - r.cleared[k] < (r.floor === 2 && r.variant === "undead" ? FLOOR1.acts : QUIET_ACTS);          // следы в белой пыли: нежить находит быстрее, квадрат пуст сутки
 // Состав встречи: максимум дня — 1/2/3 обычных с 1/3/5 дня (один вид на группу).
 // Тяжёлая и засада — максимум, средняя — на 1 меньше, лёгкая — 1 обычный.
 // Редкий: дни 4–5 на броске 1–2 (один), дни 6–7 на 1–4 (+1 / +2 обычных). Первая встреча 4-го дня — всегда редкий.
@@ -3059,8 +3072,253 @@ function genEncounter2(x, y, day, n, z) {
   if (pl.shaman && k >= 3 && Math.random() < pl.shaman) list[list.length - 1] = "goblin-shaman";          // шаман — только в группе
   if (pl.pack && (day === 7 || day === 14)) list.push("werewolf");                                        // полнолуние: волколак идёт с каждой волчьей встречей
   else if (pl.pack && k >= 3 && day >= 3 && Math.random() < .3) list[0] = "dire-wolf";                      // матёрый — только со стаей
-  out.list = list;
+  out.list = list; spCrows(out);
   return out;
+}
+/* ----- 2 этаж: особые места (воронье гнездо, Туманная часовня, нижние ярусы, паутина и паучиха, сокровища, белая пыль) -----
+   Всё по rules.md («Волчья чаща», «Могильник белой пыли», «Сокровища»). Механика сокровищ автором не описана — моя версия, черновик
+   в ../campaign/drafts.md → «Особые места 2 этажа». Состояние — state.run.sp (на этаж), ярус — state.run.tier = { k, n }. */
+const SP_BOSS = new Set(["werewolf", "spider-queen", "blackwing", "swamp-fang", "giant-mole", "dark-bear", "bone-knight", "corpse-eater", "ash-wraith", "goblin-bomber", "goblin-king", "faceless-ringer"]);
+const SP_UNQ = new Set(["zombie", "skeleton", "skeleton-archer", "skeleton-warrior"]);
+const SP_LAIR = "10,5", SP_QUEEN_FAR = 2;
+const SP2 = {
+  goblin: { plain: "Поле и кромка леса", treasures: [
+    { id: "g-ruins", name: "руины", at: "10,10", ess: "goblin-bomber" }, { id: "g-den", name: "логово воров", at: "0,0", ess: "goblin-thief" },
+    { id: "g-camp", name: "поселение гоблинов", at: "8,2", ess: "goblin-king" }] },
+  beast: { plain: "Чаща", tiers: "cave", treasures: [
+    { id: "b-hills", name: "волчьи холмы", at: "5,4", ess: "werewolf" }, { id: "b-cave", name: "дно пещеры", tier: "cave3", ess: "giant-mole" },
+    { id: "b-spider", name: "логово паучихи", at: SP_LAIR, ess: "spider-queen" }, { id: "b-swamp", name: "угол топи", at: "10,10", ess: "swamp-fang" },
+    { id: "b-nest", name: "гнездо чернокрыла", drop: true, ess: "blackwing" }] },
+  undead: { plain: "Курганы", tiers: "crypt", treasures: [
+    { id: "u-kurgan", name: "курган костяного рыцаря", at: "7,3", ess: "bone-knight" }, { id: "u-crypt", name: "дно склепа", tier: "crypt2", ess: "corpse-eater" },
+    { id: "u-furnace", name: "Пепельная печь", at: "10,10", ess: "ash-wraith" }, { id: "u-chapel", name: "вершина часовни", tier: "chapel4", ess: "faceless-ringer" }] },
+};
+// Ярусы: dir — куда ведёт следующий ярус; rooms — состав (mix: [id, вес], n: [мин, макс] — сколько монстров; list — фиксированный).
+const SP_TIERS = {
+  cave: { name: "Нижние ярусы пещеры", exit: "в пещеру", dir: "down", rooms: [{ mix: [["bat", 3], ["burrower", 2]], n: [3, 5] }, { list: ["dark-bear"] }, { list: ["giant-mole"] }] },
+  crypt: { name: "Нижние ярусы склепа", exit: "в склеп", dir: "down", rooms: [{ mix: [["ghoul", 3], ["plague-fat", 1]], n: [3, 5], capOf: { "plague-fat": 2 } }, { list: ["corpse-eater", "ghoul", "ghoul"] }] },
+  chapel: { name: "Туманная часовня", exit: "из часовни", dir: "up", rooms: [{ mix: [["grey-shade", 1], ["morok", 1]], n: [2, 4] }, { mix: [["whisperer", 1], ["morok", 1]], n: [2, 3] },
+    { mix: [["mirror-dead", 1], ["grey-shade", 1]], n: [2, 3] }, { list: ["faceless-ringer"] }] },
+};
+GEAR["dust-mask"] = { short: "Повязка", name: "Повязка на лицо", weight: 0.1, stack: 1, slot: "head", note: "Мокрая ткань: от белой пыли Могильника. Надетая на голову — не нужен спасбросок Телосложения после суток в пыли. Черновик." };
+GEAR_ICON["dust-mask"] = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M3 9c3 2 15 2 18 0v6c-3 3-15 3-18 0z"/><path d="M3 11L1 8M21 11l2-3" stroke-linecap="round"/></svg>`;
+const spOf = () => {
+  const r = state.run; if (!r || r.floor !== 2) return null;
+  if (!r.sp || r.sp.v !== r.variant) r.sp = spInit(r.variant);
+  return r.sp;
+};
+function spInit(v) {
+  const V = FLOOR2[v], S = SP2[v], sp = { v, got: {}, guard: {}, tierDone: {}, pen: 0 }, cand = [];
+  if (S.plain) for (let y = 0; y < 11; y++) for (let x = 0; x < 11; x++) {          // тайл гнезда/часовни: не особое место и не вплотную к нему
+    let ok = true;
+    for (let dy = -1; dy <= 1 && ok; dy++) for (let dx = -1; dx <= 1; dx++) {
+      const X = x + dx, Y = y + dy; if (X < 0 || Y < 0 || X > 10 || Y > 10) continue;
+      if (FL().portals[tkey(X, Y)] || V.placeAt(X, Y).name !== S.plain) { ok = false; break; }
+    }
+    if (ok) cand.push(tkey(x, y));
+  }
+  const at = cand.length ? cand[rnd(cand.length)] : "5,8";
+  if (v === "beast") {
+    sp.nest = { at, st: "none", t0: 0, fought: false }; sp.queen = "none"; sp.burned = 0; sp.web = {};
+    for (let y = 4; y <= 6; y++) for (let x = 8; x <= 10; x++) sp.web[tkey(x, y)] = true;          // паутина — на всех тайлах Паучьих крон
+  }
+  if (v === "undead") { sp.chapel = { at, entered: false, chime: 0 }; sp.unq = {}; }
+  return sp;
+}
+const spSide = (x, y) => { const p = state.run.pos, dx = x - p.x, dy = y - p.y; return Math.abs(dx) >= Math.abs(dy) ? (dx > 0 ? "востока" : "запада") : (dy > 0 ? "юга" : "севера"); };
+const spSet = k => SP_TIERS[k];
+function tierRoom(t) { return spSet(t.k).rooms[t.n - 1]; }
+function tierList(room) {
+  if (room.list) return room.list.slice();
+  const tot = room.mix.reduce((a, [, w]) => a + w, 0), k = room.n[0] + rnd(room.n[1] - room.n[0] + 1) + (state.run.day >= 8 ? 1 : 0), out = [];
+  const cnt = {};
+  for (let i = 0; i < k; i++) {
+    let t = Math.random() * tot, id = room.mix[0][0];
+    for (const [m, w] of room.mix) { t -= w; if (t < 0) { id = m; break; } }
+    if ((room.capOf || {})[id] != null && (cnt[id] || 0) >= room.capOf[id]) id = room.mix[0][0];
+    cnt[id] = (cnt[id] || 0) + 1; out.push(id);
+  }
+  return out;
+}
+// Бой не из броска события: ярусы, гнездо, паучиха, неупокоенные. o.sp — метка для finishFight, o.key — ключ зачистки.
+function startSpecial(title, enc, o = {}) {
+  const r = state.run, p = { x: r.pos.x, y: r.pos.y }, ev = { kind: "hard", title, raw: 0, n: 0, cause: "special", sp: o.sp || null, note: o.note || "" };
+  startFight(ev, p, { zone: enc.zone, place: enc.place, list: enc.list, border: false });
+  if (o.key) ev.key = o.key;
+  ev.ambush = !!o.ambush; if (ev.ambush) ev.title += "!";
+  ev.init = rollInitiative(ev.list, ev.ambush);
+  logRun(`${ev.title}: ${ev.list.map(id => MONSTERS.find(m => m.id === id).name).join(", ")}.`);
+  dgUi.enc = ev;
+}
+const spTileKey = () => tkey(state.run.pos.x, state.run.pos.y);
+function spFightStart(ev) {                                         // «Ворона прилетела с …» — из любого боя с вороной вне гнезда
+  const sp = spOf(), r = state.run; if (!sp || !sp.nest || r.tier || sp.nest.st === "done" || ev.sp) return;
+  if (!ev.list.includes("crow")) return;
+  const [x, y] = sp.nest.at.split(",").map(Number);
+  if (tkey(r.pos.x, r.pos.y) === sp.nest.at) return;
+  ev.note = `Ворона прилетела с ${spSide(x, y)}.`; logRun(ev.note); setTimeout(() => toast(ev.note), 200);
+}
+const spWindow = () => { const r = state.run, sp = spOf(); return sp && sp.nest && sp.nest.st === "cd" ? absAct(r) - sp.nest.t0 - 1 : 0; };
+function spCrows(out) {                                              // окно воронов: бой гарантированно с вороной (в последние два действия — с двумя), группа не растёт
+  const j = spWindow(); if (j < 1 || j > 5 || state.run.tier || out.list.some(id => SP_BOSS.has(id))) return;
+  const need = j >= 5 ? 2 : 1;
+  let have = out.list.filter(id => id === "crow").length;
+  for (let i = out.list.length - 1; i >= 0 && have < need; i--) if (out.list[i] !== "crow") { out.list[i] = "crow"; have++; }
+}
+const spBlood = () => { const r = state.run; return !!(r && r.floor === 2 && r.variant === "beast" && state.party.some(c => !c.dead && hpOf(c) * 2 < maxHp(c))); };
+const spMasked = c => !!(c.equip && c.equip.head && c.equip.head.id === "dust-mask");
+// Спасбросок, который бросает приложение само: [{c, t, ok}]
+const spSave = (abil, dc) => state.party.filter(c => !c.dead).map(c => { const d = 1 + rnd(20), t = d + mod(totals(c)[abil].total); return { c, t, d, ok: t >= dc }; });
+function spDawn() {                                                  // новые сутки: белая пыль
+  const r = state.run, sp = spOf(); if (!sp || sp.v !== "undead" || r.tier) return;
+  const hot = r.pos.x >= 8 && r.pos.y >= 8, dc = hot ? 13 : 10, res = spSave("con", dc).filter(x => !spMasked(x.c)), lines = [];
+  if (!res.length) { logRun("Белая пыль: у всех повязки, спасбросок не нужен."); return; }
+  for (const x of res) { lines.push(`${esc(x.c.name)}: ${x.t} (к20 = ${x.d}) — ${x.ok ? "держится" : "+1 Усталость"}`); if (!x.ok) r.status[x.c.id].fat = Math.min(4, r.status[x.c.id].fat + 1); }
+  logRun(`Белая пыль${hot ? " (у печи гуще)" : ""}: спасбросок ТЕЛ Сл ${dc}, провалили: ${res.filter(x => !x.ok).map(x => x.c.name).join(", ") || "никто"}.`);
+  dgUi.res = { title: "Белая пыль", roll: `Телосложение Сл ${dc}`, lines: [...lines, "Повязка на лице (надета на голову) освобождает от спасброска."] };
+}
+// Вход в тайл: паутина, гнездо, логово паучихи, неупокоенные. true — начался бой, обычный бросок события не нужен.
+function spEnter() {
+  const r = state.run, sp = spOf(); if (!sp || r.tier) return false;
+  const k = spTileKey(), [x, y] = [r.pos.x, r.pos.y];
+  if (sp.web && sp.web[k]) {
+    const res = spSave("dex", 12), fail = res.some(v => !v.ok);
+    if (fail) sp.pen = (sp.pen || 0) + 1;
+    logRun(`Паутина: спасбросок ЛОВ Сл 12 — ${fail ? "кто-то увяз, квадрат съел ещё одно действие" : "все прошли"}.`);
+    dgUi.res = { title: "Паутина", roll: "Ловкость Сл 12", lines: [...res.map(v => `${esc(v.c.name)}: ${v.t} — ${v.ok ? "прошёл" : "увяз"}`), fail ? "Квадрат съедает целое действие." : "Все прошли."] };
+    if (sp.queen === "guard") { startSpecial("Паучиха сторожит паутину", { zone: "beast", place: "Паучьи кроны", list: ["spider-queen"] }, { sp: { k: "queen" }, ambush: true }); return true; }
+  }
+  if (sp.nest && sp.nest.at === k && !sp.nest.fought) {
+    startSpecial("Вороны прилетели с гнезда", { zone: "beast", place: "Гнездо ворон", list: Array(3 + rnd(2)).fill("crow") }, { sp: { k: "nest" } }); return true;
+  }
+  if (sp.v === "beast" && k === SP_LAIR && !sp.lairDone) {
+    startSpecial("Логово паучихи", { zone: "beast", place: "Логово паучихи", list: Array(4 + rnd(2)).fill("web-spider") }, { sp: { k: "lair" } }); return true;
+  }
+  if (sp.unq && sp.unq[k]) {
+    const d = 1 + rnd(20); logRun(`Неупокоенные: к20 = ${d} (встают на 1–5).`);
+    if (d <= 5) { const list = sp.unq[k]; delete sp.unq[k]; startSpecial("Мёртвые встают", { zone: "undead", place: "Курганы", list }, { sp: { k: "unq" } }); return true; }
+  }
+  return false;
+}
+// После каждого действия: звон часовни, окно воронов и чернокрыл, погоня паучихи.
+function spAfter() {
+  const r = state.run, sp = spOf(); if (!sp) return;
+  if (sp.chapel && r.act === 3 && sp.chapel.chime !== r.day && !r.tier) {
+    sp.chapel.chime = r.day;
+    const [x, y] = sp.chapel.at.split(",").map(Number);
+    if (tkey(r.pos.x, r.pos.y) === sp.chapel.at) { logRun("Из тумана поднимается маяк — часовня-колокольня. В неё можно войти."); toast("Из тумана поднимается маяк"); }
+    else { const t = `Вы слышите звон ${hintDir(x, y)}.`; logRun(t); toast(t); }
+  }
+  if (sp.nest && sp.nest.st === "cd" && !r.tier) {
+    const j = spWindow(), M = { 2: "Вы слышите далёкие крики.", 4: "Дождь чёрных перьев кружит вокруг.", 5: "Небо смотрит на вас.", 6: "Хор криков покрывает всё вокруг." };
+    if (M[j]) { logRun(M[j]); toast(M[j]); }
+    if (j >= 6 && !dgUi.enc) {
+      r.pending = null; r.queue = []; sp.nest.st = "bw";
+      startSpecial("Чернокрыл и вороны", { zone: "beast", place: "Чаща", list: ["blackwing", "crow", "crow", "crow", "crow"] }, { sp: { k: "blackwing" } });
+    }
+  }
+  if (sp.queen === "chase" && !r.tier) {
+    const p = r.pos, dx = Math.max(0, 8 - p.x), dy = p.y < 4 ? 4 - p.y : p.y > 6 ? p.y - 6 : 0, far = Math.max(dx, dy);
+    if (far > SP_QUEEN_FAR || absAct(r) - sp.chaseT0 >= 3) { sp.queen = "guard"; logRun("Паучиха отстала и сторожит паутину: каждый вход в тайл с паутиной — её засада."); }
+    else if (!dgUi.enc) {
+      const d = 1 + rnd(6); logRun(`Погоня паучихи: к6 = ${d} (догоняет на 1–3).`);
+      if (d <= 3) { r.pending = null; r.queue = []; startSpecial("Паучиха догнала", { zone: "beast", place: "Паучьи кроны", list: ["spider-queen"] }, { sp: { k: "queen" } }); }
+    }
+  }
+}
+// Конец боя: зачистка ярусов, паучиха, гнездо, сокровище чернокрыла, неупокоенные, охрана сокровищ.
+function spFightDone(e, killedIds) {
+  const r = state.run, sp = spOf(); if (!sp) return;
+  const ok = e.outcome === "win" || e.outcome === "retreat", k = e.sp && e.sp.k;
+  if (k === "nest") {
+    sp.nest.fought = true;
+    const crowsLeft = e.list.filter(id => id === "crow").length - killedIds.filter(id => id === "crow").length;
+    if (e.outcome !== "win" && crowsLeft > 0) { sp.nest.st = "cd"; sp.nest.t0 = absAct(r); }          // последняя ворона выжила: тайно начинаются 6 действий
+  } else if (k === "blackwing") {
+    sp.nest.st = "done";
+    const t = SP2.beast.treasures.find(x => x.drop);
+    if (e.outcome === "win" && t && !sp.got[t.id]) setTimeout(() => spTreasureGive(t), 100);
+  } else if (k === "tier") { if (ok) sp.tierDone[e.sp.key] = true; }
+  else if (k === "queen") { sp.queen = e.outcome === "win" ? "dead" : "guard"; if (e.outcome === "win") logRun("Паучиха-матка убита."); }
+  else if (k === "lair") { if (ok) { sp.lairDone = true; sp.guard["b-spider"] = true; } }
+  if (!r.tier) {
+    const key = e.key;
+    for (const t of SP2[sp.v].treasures) if (t.at === key && ok) sp.guard[t.id] = true;
+    if (sp.v === "undead" && ok) {
+      const dead = killedIds.filter(id => SP_UNQ.has(id));
+      if (dead.length) { sp.unq[key] = dead; logRun("Останки лучше сжечь (действие и факел), иначе мёртвые могут встать."); }
+    }
+  }
+}
+function spTreasureHere() {
+  const r = state.run, sp = spOf(); if (!sp) return null;
+  const k = tkey(r.pos.x, r.pos.y), tid = r.tier ? r.tier.k + r.tier.n : null;
+  return SP2[sp.v].treasures.find(t => !sp.got[t.id] && !t.drop && (tid ? t.tier === tid : t.at === k)) || null;
+}
+function spTreasureGive(t) {
+  const sp = spOf(); if (!sp) return;
+  sp.got[t.id] = true;
+  const lines = [giveParty({ t: "g", id: "stone-7", qty: 2 + rnd(2) })], d = 1 + rnd(6);
+  if (d <= 2) lines.push(giveParty({ t: "g", id: "ration", qty: 3 }), giveParty({ t: "g", id: "torch", qty: 2 }));
+  else if (d === 3) lines.push(giveParty({ t: "g", id: "shovel-good", qty: 1 }));
+  else if (d === 4) lines.push(giveParty({ t: "g", id: "potion", qty: 3 }));
+  else if (d === 5) lines.push(giveParty({ t: "g", id: "shovel-best", qty: 1 }));
+  else if (t.ess && ESSENCES[t.ess]) { essStash().push(t.ess); lines.push("Эссенция — в запас отряда (неопознанная)"); }
+  else lines.push(giveParty({ t: "g", id: "stone-7", qty: 1 }));
+  logRun(`Сокровище (${t.name}): ${lines.join("; ")}.`);
+  dgUi.res = { title: "Сокровище", roll: t.name, lines }; saveChar(); rerender();
+}
+// Кнопки особых действий в меню (каждая тратит действие).
+function spButtons() {
+  const r = state.run, sp = spOf(); if (!sp) return [];
+  const out = [], k = spTileKey(), S = SP2[sp.v];
+  if (r.tier) {
+    const set = spSet(r.tier.k), n = r.tier.n, down = set.dir === "down";
+    if (n < set.rooms.length) out.push({ id: "tier-next", label: down ? "Спуститься" : "Подняться", sub: `на ярус ${n + 1}` });
+    out.push({ id: "tier-prev", label: n > 1 ? (down ? "Подняться" : "Спуститься") : "Выйти", sub: n > 1 ? `на ярус ${n - 1}` : set.exit });
+  } else {
+    if (S.tiers && k === "0,0") out.push({ id: "tier-in:" + S.tiers, label: "Спуститься", sub: SP_TIERS[S.tiers].name });
+    if (sp.chapel && sp.chapel.at === k && (sp.chapel.entered || r.act === 3)) out.push({ id: "tier-in:chapel", label: "Войти в часовню", sub: "маяк из тумана" });
+    if (sp.web && sp.web[k]) out.push({ id: "burn", label: "Поджечь паутину", sub: r.light ? "горящий факел" : "нужен горящий факел", disabled: !r.light });
+    if (sp.unq && sp.unq[k]) out.push({ id: "cremate", label: "Сжечь останки", sub: partyTorches() ? "действие и факел" : "нужен факел", disabled: !partyTorches() });
+  }
+  const t = spTreasureHere();
+  if (t) {
+    const free = r.tier ? sp.tierDone[r.tier.k + r.tier.n] : sp.guard[t.id];
+    out.push({ id: free ? "take" : "steal", label: free ? "Забрать сокровище" : "Украсть сокровище", sub: free ? t.name : "скрытность Сл 15, риск боя" });
+  }
+  return out;
+}
+function spBtnHtml() { return spButtons().map(b => `<button class="fx-btn" data-sp="${b.id}"${b.disabled ? " disabled" : ""}>${ICO_ACT.explore}${b.label}<small>${b.sub}</small></button>`).join(""); }
+function spEnterTier() {
+  const r = state.run, sp = spOf(), t = r.tier, set = spSet(t.k), key = t.k + t.n;
+  logRun(`${set.name}, ярус ${t.n}.`);
+  if (sp.tierDone[key]) { logRun("Зачищенный ярус пуст."); return; }
+  startSpecial(`${set.name} · ярус ${t.n}`, { zone: FLOOR2[sp.v].zone, place: `${set.name}, ярус ${t.n}`, list: tierList(tierRoom(t)) }, { sp: { k: "tier", key }, key: tkey(r.pos.x, r.pos.y) + "#" + key });
+}
+// Одно особое действие; время (tick) уже потрачено в act().
+function spDo(id) {
+  const r = state.run, sp = spOf(); if (!sp) return;
+  const k = spTileKey();
+  if (id.startsWith("tier-in:")) { const kind = id.slice(8); r.tier = { k: kind, n: 1 }; if (kind === "chapel") sp.chapel.entered = true; spEnterTier(); }
+  else if (id === "tier-next") { r.tier.n++; spEnterTier(); }
+  else if (id === "tier-prev") { if (r.tier.n > 1) { r.tier.n--; spEnterTier(); } else { logRun(`Отряд вышел ${spSet(r.tier.k).exit}.`); r.tier = null; } }
+  else if (id === "burn") {
+    sp.web[k] = false; sp.burned++; logRun(`Паутина горит (${sp.burned} из 3).`);
+    if (sp.burned >= 3 && sp.queen === "none") { sp.queen = "chase"; sp.chaseT0 = absAct(r); logRun("Из глубины крон доносится шипение: паучиха проснулась и идёт по следу."); setTimeout(() => toast("Паучиха проснулась"), 150); }
+  } else if (id === "cremate") { burnTorch(); delete sp.unq[k]; logRun("Останки сожжены: мёртвые не встанут."); }
+  else if (id === "take" || id === "steal") {
+    const t = spTreasureHere(); if (!t) return;
+    if (id === "steal") {
+      const res = spSave("dex", 15).sort((a, b) => b.t - a.t)[0];
+      logRun(`Кража сокровища: лучший бросок скрытности — ${res ? res.c.name + " " + res.t : "—"} (Сл 15).`);
+      if (!res || !res.ok) {
+        const enc = r.tier ? { list: tierList(tierRoom(r.tier)), zone: FLOOR2[sp.v].zone, place: spSet(r.tier.k).name } : genEncounter(r.pos.x, r.pos.y, r.day, 1);
+        if (enc && enc.list) { startSpecial("Охрана заметила", enc, { sp: { k: "guard" }, ambush: true, key: k }); return; }
+      }
+    }
+    spTreasureGive(t);
+  }
 }
 // Просим мастера ввести к20. monsters — только строки монстров (ночная встреча, кнопка мастера).
 // Если окно броска уже открыто, следующий бросок ждёт в очереди (Бег: сначала пробежка, потом конечный квадрат).
@@ -3070,7 +3328,7 @@ function queueRoll(job) {
 }
 function askRoll(cause, monsters = false) {
   const r = state.run;
-  queueRoll({ cause, monsters, dark: inDarkness(), x: r.pos.x, y: r.pos.y, pick: null });
+  queueRoll({ cause, monsters, dark: inDarkness(), blood: spBlood(), x: r.pos.x, y: r.pos.y, pick: null });
 }
 // Пробежка через первый квадрат Бега: квадрат остаётся неоткрытым, бросок только на засаду.
 // Засада на 1–2, у портала (3 × 3 в углу) на 1–4, во тьме без света на 1–6; в зоне гоблинов следующие 2 числа — ловушка.
@@ -3097,6 +3355,7 @@ function rollInitiative(list, ambush) {
 function startFight(ev, p, enc) {
   Object.assign(ev, enc, { key: tkey(p.x, p.y), outcome: null, killed: [], turn: 0, round: 1, tactical: tacticalOn(), floor: curFloor() });
   enc.list.forEach(id => seenKeys(id, ["area"]));     // встреча открывает портрет, имя и места обитания
+  spFightStart(ev);
 }
 function resolvePass(p) {
   const r = state.run, n = p.pick, rollTxt = `к20 = ${n}`;
@@ -3132,11 +3391,11 @@ function resolveRoll() {
     logRun(`Нападение на стоянку (к20 = ${p.pick} ≤ ${p.thr}): ${enc.list.map(id => MONSTERS.find(m => m.id === id).name).join(", ")}.`);
     dgUi.enc = ev; return;
   }
-  const n = p.pick - (p.dark ? 2 : 0);
+  const n = p.pick - (p.dark ? 2 : 0) - (p.blood ? 2 : 0);
   let [, kind, title] = eventOf(Math.max(1, n));
   if (p.monsters && !MON_EVENTS.has(kind)) [, kind, title] = eventOf(12);
-  const ev = { kind, title, raw: p.pick, n, dark: p.dark, cause: p.cause };
-  const rollTxt = `к20 = ${p.pick}${p.dark ? ` − 2 (тьма) = ${n}` : ""}`;
+  const ev = { kind, title, raw: p.pick, n, dark: p.dark, blood: p.blood, cause: p.cause };
+  const rollTxt = `к20 = ${p.pick}${p.dark ? " − 2 (тьма)" : ""}${p.blood ? " − 2 (чует кровь)" : ""}${p.dark || p.blood ? ` = ${n}` : ""}`;
   if (MON_EVENTS.has(kind)) {
     const force = r.day === 4 && !r.rare4;
     const enc = genEncounter(p.x, p.y, r.day, n, force, p.cause === "rest" || p.cause === "rest-noguard");
@@ -3149,7 +3408,7 @@ function resolveRoll() {
     logRun(`${ev.title} (${rollTxt}): ${enc.list.map(id => MONSTERS.find(m => m.id === id).name).join(", ")}.`);
   } else {
     if (kind === "find") {
-      const [id, q] = LOOT[rnd(LOOT.length)];
+      const [id, q] = r.floor === 2 && r.variant === "undead" && Math.random() < .35 ? ["dust-mask", 1] : LOOT[rnd(LOOT.length)];
       const c = [...state.party].sort((a, b) => (bagSize(b) - (b.bag || []).length) - (bagSize(a) - (a.bag || []).length))[0];
       const left = c ? addToBag(c, { t: "g", id, qty: q }) : q;
       ev.loot = `${GEAR[id].name}${q > 1 ? " × " + q : ""}` + (left < q ? ` — забирает ${c.name}` : " — места в рюкзаках нет, осталось на полу");
@@ -3290,7 +3549,7 @@ function campCheck() {
   const r = state.run, k = tkey(r.pos.x, r.pos.y);
   if (!r.stay || r.stay.k !== k) { r.stay = { k, since: absAct(r) }; return; }
   const stayed = absAct(r) - r.stay.since;
-  if (stayed < CAMP_ACTS || zoneAt(r.pos.x, r.pos.y).kind === "safe") return;
+  if (stayed < CAMP_ACTS || zoneAt(r.pos.x, r.pos.y).kind === "safe" || r.tier) return;
   const fat = Math.max(0, ...state.party.map(c => r.status[c.id].fat));
   const luck = state.party.length ? Math.round(state.party.reduce((a, c) => a + luckOf(c), 0) / state.party.length) : 1;
   const thr = Math.max(1, Math.min(19, CAMP_BASE + (stayed - CAMP_ACTS) + fat - (luck - 1) + (inDarkness() ? 1 : 0)));
@@ -3341,7 +3600,7 @@ function portalOverlay() {
     </div></div>`;
 }
 // Состояние, привязанное к этажу, прячем при переходе и возвращаем при возврате.
-const FLOOR_KEYS = ["pos", "hidden", "spin", "visited", "cleared", "caches", "stay", "rare4", "elite7"];
+const FLOOR_KEYS = ["pos", "hidden", "spin", "visited", "cleared", "caches", "stay", "rare4", "elite7", "sp", "tier"];
 function switchFloor() {
   const r = state.run, pi = portalInfo(); if (!pi.ok) return;
   (r.fs ||= {})[r.floor] = Object.fromEntries(FLOOR_KEYS.map(k => [k, r[k]]));
@@ -3413,6 +3672,7 @@ function finishFight() {
   const names = killed.map(i => MONSTERS.find(m => m.id === e.list[i]).name);
   logRun(e.outcome === "win" ? "Победа." : `${e.outcome === "flee" ? "Отряд сбежал" : "Монстры отступили"}. Убиты: ${names.length ? names.join(", ") : "никто"}.`);
   awardXp(killed.map(i => e.list[i]));
+  spFightDone(e, killed.map(i => e.list[i]));
   dgUi.enc = null;
 }
 // Ночная встреча в Отдыхе: к6 = 1 (без караула 1–2, во тьме +1), состав — по броску к20 мастера.
@@ -3422,8 +3682,8 @@ function finishFight() {
 const NIGHT_P = [0, 0, 0, 0.03, 0.04, 0.05, 0.06, 0.06, 0.06, 0.06, 0.07, 0.07, 0.07, 0.07];          // очень редко (решение автора)
 function rollEncounter(cause, guardFat = 0) {
   const r = state.run, dark = inDarkness(), guarded = cause === "rest";
-  if (zoneAt(r.pos.x, r.pos.y).kind === "safe") return;
-  const p0 = NIGHT_P[Math.min(NIGHT_P.length, Math.max(1, r.day)) - 1];
+  if (zoneAt(r.pos.x, r.pos.y).kind === "safe" || r.tier) return;
+  const p0 = NIGHT_P[Math.min(NIGHT_P.length, Math.max(1, r.day)) - 1] * (r.floor === 2 && r.variant === "undead" ? 2 : 1);          // ночь мертвецов: вдвое чаще (черновик)
   if (!p0 || (guarded && guardFat <= 0)) return;
   const base = Math.min(0.6, (guarded ? p0 + 0.01 * guardFat : p0 * 2) + (dark ? 0.06 : 0)), pct = 1 + rnd(100), lim = Math.round(base * 100);
   if (pct > lim) return;
@@ -3716,11 +3976,12 @@ function stageOverlay() {
       : `<span>Тьма: помехи, −2 к броску${r.torchLeft > 0 ? ` · факела хватит на ${r.torchLeft} д.` : ""}</span><button class="fx-btn primary" data-dg="torch-on"${partyTorches() || r.torchLeft > 0 ? "" : " disabled"}>${r.torchLeft > 0 ? "Зажечь снова" : `Зажечь факел (${partyTorches()})`}</button>`}</div>` : "";
   if (dgUi.phase === "menu") return `
     <div class="dg-over${dark && !r.light ? " dark" : ""}">${torchBar}<div class="dg-menu">
-      <button class="fx-btn" data-act="move">${ICO_ACT.move}Движение<small>1 квадрат</small></button>
+      ${spBtnHtml()}
+      <button class="fx-btn" data-act="move"${r.tier ? " disabled" : ""}>${ICO_ACT.move}Движение<small>${r.tier ? "в ярусе нельзя" : "1 квадрат"}</small></button>
       ${(() => { const heavy = state.party.filter(c => load(c).noRun).map(c => c.name);
-        return `<button class="fx-btn" data-act="run"${heavy.length ? " disabled" : ""}>${ICO_ACT.run}Бег<small>${heavy.length ? "перегруз: " + heavy.map(esc).join(", ") : "2 квадрата, +1 Усталость"}</small></button>`; })()}
+        return `<button class="fx-btn" data-act="run"${heavy.length || r.tier ? " disabled" : ""}>${ICO_ACT.run}Бег<small>${heavy.length ? "перегруз: " + heavy.map(esc).join(", ") : "2 квадрата, +1 Усталость"}</small></button>`; })()}
       <button class="fx-btn" data-act="rest">${ICO_ACT.rest}Отдых<small>сон, караул, еда</small></button>
-      <button class="fx-btn" data-act="explore">${ICO_ACT.explore}Исследовать<small>этот фрагмент, к20</small></button>
+      <button class="fx-btn" data-act="explore"${r.tier ? " disabled" : ""}>${ICO_ACT.explore}Исследовать<small>этот фрагмент, к20</small></button>
       ${tileType(r.pos.x, r.pos.y) === "portal" ? `<button class="fx-btn portal-btn" data-act="portal">${ICO_ACT.run}Войти в портал<small>${portalName(r.pos.x, r.pos.y)}</small></button>` : ""}
       ${(() => { const sh = shovelsOf(); return `<button class="fx-btn dig-btn" data-act="dig"${sh.length ? "" : " disabled"}>${ICO_ACT.dig}Копать<small>${sh.length ? `лопат: ${sh.length}, к20` : "нужна лопата"}</small></button>`; })()}
     </div></div>`;
@@ -3757,7 +4018,7 @@ function restOverlay() {
 function encounterOverlay() {
   const e = dgUi.enc;
   if (e.list && e.tactical && window.Battle && window.Battle.ready) { window.Battle.ensure(e); return ""; }
-  const rollLine = e.cause === "pass" ? `пробежка · к20 = ${e.raw}` : `к20 = ${e.raw}${e.dark ? ` − 2 (тьма) = ${e.n}` : ""}`;
+  const rollLine = e.cause === "special" ? "особое место" : e.cause === "pass" ? `пробежка · к20 = ${e.raw}` : `к20 = ${e.raw}${e.dark ? " − 2 (тьма)" : ""}${e.blood ? " − 2 (чует кровь)" : ""}${e.dark || e.blood ? ` = ${e.n}` : ""}`;
   if (!e.list) return `<div class="mapov" role="dialog" aria-modal="true" aria-label="${e.title}">
     <div class="panel fx-frame enc-panel">
       <div class="ph-head"><h3>${e.title}</h3><span class="fx-eyebrow" style="font-size:11px">${rollLine}</span></div>
@@ -3779,7 +4040,7 @@ function encounterOverlay() {
   return `<div class="mapov" role="dialog" aria-modal="true" aria-label="${e.title}">
     <div class="panel fx-frame enc-panel fight">
       <div class="ph-head"><h3>${e.title}</h3><span class="fx-eyebrow" style="font-size:11px">${ZONE_NAME[e.zone]}${e.border ? " · граница" : ""}</span></div>
-      <p class="enc-roll">${rollLine}</p>
+      <p class="enc-roll">${rollLine}</p>${e.note ? `<p class="enc-warn">${e.note}</p>` : ""}
       <div class="fight-grid">
         ${order}
         <div class="fight-main">
@@ -3817,7 +4078,7 @@ function rollOverlay() {
       <div class="ph-head"><h3>${p.cause === "pass" ? "Пробежка" : p.cause === "camp" ? "Долгая стоянка" : p.monsters ? "Кто пришёл?" : "Что в квадрате?"}</h3>${p.cause === "gm" ? `<button class="fx-btn" data-dg="roll-cancel" aria-label="Отмена" style="width:42px;height:42px;padding:0;display:grid;place-items:center">${ICO_X}</button>` : ""}</div>
       ${p.cause === "pass" ? `<p>Отряд пробегает квадрат, не осматривая его. Брось к20: засада на 1–${p.amb}${p.trap > p.amb ? `, ловушка гоблинов на ${p.amb + 1}–${p.trap}` : ""}.${p.dark ? ` <span class="enc-warn">Тьма без света.</span>` : p.near ? " Рядом портал." : ""}</p>`
         : p.cause === "camp" ? `<p>Отряд стоит здесь ${p.stayed} действий. Брось к20: на 1–${p.thr} нападают монстры (база ${CAMP_BASE}, +${p.stayed - CAMP_ACTS} за лишние действия, +${p.fat} Усталость${p.dk ? ", +1 тьма" : ""}, удача ${signed(p.luck)}: каждое очко выше 1 снижает шанс).</p>`
-        : `<p>Брось к20 и введи результат.${p.dark ? ` <span class="enc-warn">Тьма без света: −2 к броску.</span>` : ""}</p>`}
+        : `<p>Брось к20 и введи результат.${p.dark ? ` <span class="enc-warn">Тьма без света: −2 к броску.</span>` : ""}${p.blood ? ` <span class="enc-warn">Чует кровь: кто-то ранен больше чем наполовину, −2 к броску.</span>` : ""}</p>`}
       <div class="roll-grid">${Array.from({ length: 20 }, (_, i) => `<button class="fx-btn${p.pick === i + 1 ? " on" : ""}" data-dg="roll-n" data-n="${i + 1}">${i + 1}</button>`).join("")}</div>
       <div style="display:flex;justify-content:center"><button class="fx-btn primary big" data-dg="roll-ok"${p.pick ? "" : " disabled"}>Подтвердить</button></div>
     </div></div>`;
@@ -3942,7 +4203,7 @@ function advanceTime() {
   const r = state.run;
   if (r.day >= FL().days && r.act >= FL().acts) { endRun(); return true; }
   r.act++;
-  if (r.act > FL().acts) { r.act = 1; r.day++; logRun(`Начался день ${r.day}.`); }
+  if (r.act > FL().acts) { r.act = 1; r.day++; logRun(`Начался день ${r.day}.`); spDawn(); }
   return false;
 }
 function endRun(early) {
@@ -3984,6 +4245,9 @@ function act(kind) {
     for (const c of state.party) r.status[c.id].fat = Math.min(4, r.status[c.id].fat + 1);
     logRun("Бег на 2 квадрата: всем +1 Усталость, пассивное Восприятие −5." + tileNote(t.x, t.y)
       + (tired.length ? ` Спасбросок ТЕЛ Сл 12 перед Бегом: ${tired.join(", ")}.` : ""));
+  } else if (kind === "sp") {
+    tick();
+    spDo(dgUi.spDo);
   } else if (kind === "explore" || kind === "dig") {
     tick();
     doSearch(kind);
@@ -4014,7 +4278,8 @@ function act(kind) {
     if (inDarkness()) logRun("Тьма: без света помеха на Восприятие и поиск, дальние атаки с помехой, −2 к броску события.");
     const p0 = kind === "run" && dgUi.path.length > 1 ? dgUi.path[0] : null;
     if (p0 && zoneAt(p0.x, p0.y).kind !== "safe" && !isQuiet(r, tkey(p0.x, p0.y))) askPass(p0.x, p0.y, { key: tkey(r.pos.x, r.pos.y), fresh: dgUi.finFresh });
-    if (z.kind !== "safe") {
+    if (z.kind !== "safe" && spEnter()) { /* особое место: бой начат */ }
+    else if (z.kind !== "safe") {
       if (isQuiet(r, tkey(r.pos.x, r.pos.y))) logRun("Квадрат недавно зачищен: пусто, бросок не нужен.");
       else { logRun("Новый квадрат: мастер, брось к20."); askRoll(kind); }
     }
@@ -4030,7 +4295,9 @@ function act(kind) {
   }
   dgUi.phase = "menu"; dgUi.path = []; dgUi.rest = null; dgUi.target = null; dgUi.sr = null;
   if (advanceTime()) return;
+  { const sp = spOf(); while (sp && sp.pen > 0) { sp.pen--; tick(); if (advanceTime()) return; } }          // паутина съела действие
   if (kind !== "move" && kind !== "run") campCheck();
+  spAfter();
   saveChar();
   rerender();
 }
@@ -4156,7 +4423,7 @@ function mountDungeon() {
 }
 
 document.addEventListener("click", e => {
-  const el = e.target.closest("[data-dg],[data-act],[data-inv],[data-sup],[data-guard],[data-eat]");
+  const el = e.target.closest("[data-dg],[data-act],[data-sp],[data-inv],[data-sup],[data-guard],[data-eat]");
   if (!el || !state.run || location.hash !== "#labyrinth") return;
   const ds = el.dataset, inv = inventory(), r = state.run;
   if (ds.inv) {
@@ -4167,6 +4434,7 @@ document.addEventListener("click", e => {
     else { dgUi.map = ds.inv === "mmap" ? "magic" : "plain"; }
     rerender(); return;
   }
+  if (ds.sp) { dgUi.inv = false; dgUi.sup = false; dgUi.gm = false; dgUi.spDo = ds.sp; act("sp"); return; }
   if (ds.act) {
     dgUi.inv = false; dgUi.sup = false; dgUi.gm = false; dgUi.path = [];
     if (ds.act === "rest") {
@@ -4217,6 +4485,7 @@ document.addEventListener("click", e => {
       e.turn = t; break; }
     case "gm-enc": dgUi.gm = false;
       if (zoneAt(r.pos.x, r.pos.y).kind === "safe") { toast("Возле статуи монстры не появляются"); break; }
+      if (r.tier) { toast("В ярусе встречи заданы составом яруса"); break; }
       askRoll("gm", true); saveChar(); break;
     case "roll-n": r.pending.pick = Number(ds.n); break;
     case "roll-ok": resolveRoll(); saveChar(); break;
@@ -4411,7 +4680,7 @@ function heroInv(c) {
     ${selPanel(c)}
     <div class="btn-row" style="justify-content:center"><button class="fx-btn" data-hx="add-toggle" aria-expanded="${heroUi.add}">${heroUi.add ? "Скрыть список" : "+ Добавить предмет (мастер)"}</button></div>
     ${heroUi.add ? `<div class="add-list">
-      ${[["ration", 1], ["potion", 1], ["torch", 1], ["arrow", 20], ["clothes", 1], ["shovel", 1], ["shovel-good", 1], ["shovel-best", 1], ["stone-9", 1], ["stone-8", 1], ["stone-7", 1], ...Object.keys(FINDS).map(k => [k, 1])].map(([id, q]) => `<button class="fx-btn" data-hadd="g:${id}:${q}">${GEAR[id].name}${q > 1 ? " ×" + q : ""}</button>`).join("")}
+      ${[["ration", 1], ["potion", 1], ["torch", 1], ["arrow", 20], ["clothes", 1], ["shovel", 1], ["shovel-good", 1], ["shovel-best", 1], ["stone-9", 1], ["stone-8", 1], ["stone-7", 1], ["dust-mask", 1], ...Object.keys(FINDS).map(k => [k, 1])].map(([id, q]) => `<button class="fx-btn" data-hadd="g:${id}:${q}">${GEAR[id].name}${q > 1 ? " ×" + q : ""}</button>`).join("")}
       ${WEAPONS.filter(w => w.kind !== "Боеприпасы").map(w => `<button class="fx-btn" data-hadd="w:${w.id}:1">${w.name}</button>`).join("")}
       ${ARMOR_FLAT.map(a => `<button class="fx-btn" data-hadd="a:${a.id}:1">${a.name}</button>`).join("")}
     </div>` : ""}`;
