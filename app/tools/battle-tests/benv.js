@@ -120,6 +120,14 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
       F(18, 6, 6, 6); await B.useActive(H, 'hobgoblin-brute', { unit: B.objAt(3, 4) });
       ok('способность ударила по камню: ОЗ камня упали', B.objAt(3, 4) ? B.objAt(3, 4).hp < 20 : true, logs(3));
     }
+    // --- «Знаток трав» ---
+    {
+      const S = setup([{ main: 'sword', ess: ['goblin-shaman'], base: { wis: 14 } }], ['goblin']); const H = B.heroes()[0], G = B.mons()[0]; G.x = 0; G.y = 0; H.x = 3; H.y = 5; T(H); H.hero.bag = [];
+      S.objs.push({ id: 'fx', kind: 'find', fid: 'herb-heal', x: 3, y: 4 }); const opt = B.actionsFor(H).find(o => o.id === 'gather:fx');
+      ok('шаман видит настоящее имя находки', /Целебная трава/.test(opt.label), opt.label);
+      F(20, 1, 1); await opt.run(); const got = H.hero.bag.reduce((a, e) => a + (e.id === 'herb-heal' ? e.qty : 0), 0);
+      ok('собирает сразу 2–3 штуки', got >= 2 && got <= 3, got);
+    }
     return { R };
   });
   const bad = out.R.filter(r => !r.ok);

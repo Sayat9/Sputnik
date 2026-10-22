@@ -64,10 +64,7 @@ const ONLY = (process.argv[2] || '').split(',').filter(Boolean);
       ok(`Целебный наговор: 1к6 (4) + мод. Мудрости (${wm})`, r && A_.hp - before === 4 + wm, A_.hp - before);
       ok('мана 2, перезарядка 2 раунда, бонусное действие потрачено', mp0 - H.mp === 2 && H.cd['goblin-shaman'] === 2 && H.t.bonus === 0, `${mp0 - H.mp} ${H.cd['goblin-shaman']} ${H.t.bonus}`);
       ok('нельзя лечить целого и далёкого', B.A['goblin-shaman'].can(H) !== true || true);
-      // аура: +1 к спасброскам союзников в 3 м
-      F(10); const near = await B.doSave(A_, 'wis', 99, { label: 'тест' }); F(10); place(A_, 3, 1); const far = await B.doSave(A_, 'wis', 99, { label: 'тест' });
-      ok('«Под защитой духов»: союзник в 3 м +1 к спасброскам, дальше — нет', near.total - far.total === 1, `${near.total} vs ${far.total}`);
-      F(10); const self = await B.doSave(H, 'wis', 99, { label: 'тест' }); ok('на самого шамана аура не действует', self.total === 10 + B.amod(H.abil.wis), self.total);
+      ok('«Знаток трав»: опознаёт травы и грибы, камни — нет', findKnown(H.hero, 'herb-heal') && findKnown(H.hero, 'mush-boom') && !findKnown(H.hero, 'sstone-boom') && !findKnown(A_.hero, 'herb-heal'));
       // раненый без сознания встаёт
       const D1 = place(A_, 4, 5); D1.hp = 0; D1.hero.hp = 0; D1.down = true; B.addStatus(D1, 'unconscious', { k: Infinity }); H.cd['goblin-shaman'] = 0; T(H); F(3);
       await act(H, 'goblin-shaman', { unit: D1 }); ok('наговор поднимает павшего с 0 ОЗ', D1.hp === 3 + wm && !D1.down, `${D1.hp} ${D1.down}`);
@@ -840,9 +837,6 @@ const ONLY = (process.argv[2] || '').split(',').filter(Boolean);
     await test('audit-auras', async () => {
       const { hs } = sc([{ ess: ['goblin-shaman'] }, { ess: ['goblin-shaman'] }, {}], ['goblin']);
       const [S1, S2, A_] = hs; place(S1, 2, 5); place(S2, 4, 5); place(A_, 3, 5); T(S1); T(S2); T(A_);
-      ok('два шамана рядом: +1 к спасброску, а не +2', B.auraSave(A_, 'wis').mods.filter(m => m.l === 'Под защитой духов').length === 1);
-      A_.hp = 0; A_.hero.hp = 0; A_.down = true; B.addStatus(A_, 'unconscious', { k: Infinity });
-      ok('аура действует и на спасбросок от смерти', B.auraSave(A_, 'death').mods.some(m => m.l === 'Под защитой духов'));
       // слепой шаман не видит, кого лечить
       A_.hp = A_.hero.hp = 3; A_.down = false; B.removeStatus(A_, 'unconscious'); B.addStatus(S1, 'blinded', { k: Infinity }); ok('слепой шаман лечит только себя (если ранен)', B.A['goblin-shaman'].can(S1) !== true);
       B.removeStatus(S1, 'blinded');

@@ -160,7 +160,7 @@
 
   /* ----- Гоблин-шаман (9): «Под защитой духов», «Целебный наговор» ----- */
   P["goblin-shaman"] = {
-    saveAura(a, c) { if (canAct(a) && c.u.id !== a.id && dist(a, c.u) <= 2 && !c.ctx.mods.some(m => m.l === "Под защитой духов")) c.ctx.mods.push({ l: "Под защитой духов", v: 1 }); },          // два шамана рядом не складываются
+    // «Знаток трав» (решение автора): преимущество и 2–3 штуки при сборе трав и грибов, опознаёт их (battle-env.js, findKnown в index.html); боевых хуков нет          // два шамана рядом не складываются
   };
   const healables = u => live().filter(t => dist(u, t) <= 6 && !t.dead && !t.fled && !has(t, "underground") && !B.lineBlocked(u, t) && (t.hp < t.maxHp || t.down) && (t.side === u.side || t.id === u.id) && (t.id === u.id || B.canSeeUnit(u, t)));          // «которое ты видишь»
   A["goblin-shaman"] = {

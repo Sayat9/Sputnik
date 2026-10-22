@@ -162,10 +162,13 @@
     const S = B.S, c = u.hero, f = FD()[o.fid], k = FK()[f.kind], nm = findLabel(u, o);
     // Проверка: лучший из подходящих навыков (Выживание/Медицина — травы; Выживание — грибы; Атлетика — камни)
     const skill = k.gather.slice().sort((a, b) => B.skillMod(u, b) - B.skillMod(u, a))[0];
-    const r = await B.doCheck(u, skill, { title: `Собрать: ${nm}`, label: `Сл ${k.gdc}`, dc: k.gdc, cancel: true, onCommit: () => { u.t.action = 0; } });
+    const expert = (f.kind === "herb" || f.kind === "mush") && (c.essences || []).includes("goblin-shaman");          // «Знаток трав»: преимущество, 2–3 штуки за раз
+    const r = await B.doCheck(u, skill, { title: `Собрать: ${nm}`, label: `Сл ${k.gdc}`, dc: k.gdc, adv: expert ? ["Знаток трав"] : [], cancel: true, onCommit: () => { u.t.action = 0; } });
     if (!r) return false;
     if (r.ok) {
-      if (typeof addToBag === "function" && addToBag(c, { t: "g", id: o.fid, qty: 1 })) { log(`${u.name}: рюкзак полон, ${nm.toLowerCase()} остаётся на земле.`); u.t.action = 1; ui() && ui().toast("Рюкзак полон"); return false; }
+      const qty = expert ? 2 + rnd(2) : 1, left = typeof addToBag === "function" ? addToBag(c, { t: "g", id: o.fid, qty }) : 0;
+      if (left >= qty) { log(`${u.name}: рюкзак полон, ${nm.toLowerCase()} остаётся на земле.`); u.t.action = 1; ui() && ui().toast("Рюкзак полон"); return false; }
+      if (qty > 1) log(`${u.name} собирает сразу ${qty - left}.`, "good");
       S.objs.splice(S.objs.indexOf(o), 1);
       log(`${u.name} собирает: ${nm.toLowerCase()}.`, "good"); const g = ui(); if (g) { g.fxText(u, "собрано", "good"); g.refresh(); }
     } else if (r.nat === 1) { S.objs.splice(S.objs.indexOf(o), 1); log(`${u.name} портит находку при сборе (${nm.toLowerCase()}).`, "bad"); ui() && ui().refresh(); }

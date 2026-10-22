@@ -1128,7 +1128,7 @@ const ESSENCES = {
   // ===== 2 этаж: Лес гоблинов (rules.md → «2 этаж: эссенции Леса гоблинов»). cd — перезарядка в раундах.
   "goblin-shaman": { id: "goblin-shaman", name: "Эссенция гоблина-шамана", cls: 9, source: "goblin-shaman",
     stats: { wis: 1, str: -1 }, other: ["Медицина +1", "Тёмное зрение +3 м"],
-    passive: { name: "Под защитой духов", text: "Союзники в 3 м от тебя получают +1 к спасброскам." },
+    passive: { name: "Знаток трав", text: "Преимущество на проверки сбора трав и грибов. За один сбор получаешь сразу 2–3 штуки. Опознаёшь травы и грибы: видишь их эффект." },
     active: { name: "Целебный наговор", mana: 2, time: "бонусное действие", text: "Одно существо в 9 м, которое ты видишь, восстанавливает 1к6 + мод. Мудрости ОЗ. Перезарядка 2 раунда." } },
   "goblin-assassin": { id: "goblin-assassin", name: "Эссенция гоблина-ассасина", cls: 8, source: "goblin-assassin",
     stats: { dex: 2, con: -1 }, other: ["КД +1", "Скрытность +1", "Тёмное зрение +3 м"],
@@ -1639,8 +1639,8 @@ const DISTRICTS = [
 
 // Готовые рисованные картинки (webp) заменяют векторные заглушки.
 // Дата сборки для телефона: build.sh вписывает её сюда, в веб-версии строка пустая.
-const APP_BUILD = "22.10.2026 14:51";
-const APP_VERSION = 1792662708;                 // номер сборки, тоже вписывает build.sh
+const APP_BUILD = "22.10.2026 15:13";
+const APP_VERSION = 1792664025;                 // номер сборки, тоже вписывает build.sh
 const UPDATE_URL = "https://raw.githubusercontent.com/Sayat9/Sputnik/main/www/";
 const RASTER = new Set(["monsters/goblin-king-face", "monsters/goblin-king-full", "monsters/goblin-bomber-face", "monsters/goblin-bomber-full", "monsters/hobgoblin-shield-face", "monsters/hobgoblin-shield-full", "races/barbarian", "races/human", "races/dwarf", "races/beastkin", "races/fairy", "races/dragon", "monsters/goblin-face", "monsters/goblin-full", "monsters/goblin-archer-face", "monsters/goblin-archer-full", "monsters/goblin-sword-face", "monsters/goblin-sword-full", "monsters/goblin-spear-face", "monsters/goblin-spear-full", "monsters/wolf-face", "monsters/wolf-full", "monsters/fox-face", "monsters/fox-full", "monsters/mouse-face", "monsters/mouse-full", "monsters/bat-face", "monsters/bat-full", "monsters/hobgoblin-face", "monsters/hobgoblin-full", "monsters/zombie-face", "monsters/zombie-full", "monsters/skeleton-face", "monsters/skeleton-full", "monsters/skeleton-archer-face", "monsters/skeleton-archer-full", "monsters/ghoul-face", "monsters/ghoul-full", "monsters/dark-bear-face", "monsters/dark-bear-full", "monsters/skeleton-warrior-face", "monsters/skeleton-warrior-full", "monsters/living-stone-face", "monsters/living-stone-full", "monsters/wisp-face", "monsters/wisp-full", "monsters/pixie-face", "monsters/pixie-full", "monsters/green-boulder-face", "monsters/green-boulder-full", "monsters/stone-guardian-face", "monsters/stone-guardian-full"]);
 const artPath = p => `assets/${p}.${RASTER.has(p) ? "webp" : "svg"}`;
@@ -2090,6 +2090,7 @@ function findKnown(c, id) {
   const g = GEAR[id]; if (!g || !g.find) return true;
   if (!c) return false;
   if ((c.lore || []).includes(g.find) || (c.lore || []).includes(id)) return true;
+  if ((g.find === "herb" || g.find === "mush") && (c.essences || []).includes("goblin-shaman")) return true;          // «Знаток трав»
   const sk = essBonus(c).skills || {};
   return FIND_KIND[g.find].skills.some(k => (sk[k] || 0) > 0);
 }

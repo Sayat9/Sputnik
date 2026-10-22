@@ -1123,7 +1123,7 @@ const ESSENCES = {
   // ===== 2 этаж: Лес гоблинов (rules.md → «2 этаж: эссенции Леса гоблинов»). cd — перезарядка в раундах.
   "goblin-shaman": { id: "goblin-shaman", name: "Эссенция гоблина-шамана", cls: 9, source: "goblin-shaman",
     stats: { wis: 1, str: -1 }, other: ["Медицина +1", "Тёмное зрение +3 м"],
-    passive: { name: "Под защитой духов", text: "Союзники в 3 м от тебя получают +1 к спасброскам." },
+    passive: { name: "Знаток трав", text: "Преимущество на проверки сбора трав и грибов. За один сбор получаешь сразу 2–3 штуки. Опознаёшь травы и грибы: видишь их эффект." },
     active: { name: "Целебный наговор", mana: 2, time: "бонусное действие", text: "Одно существо в 9 м, которое ты видишь, восстанавливает 1к6 + мод. Мудрости ОЗ. Перезарядка 2 раунда." } },
   "goblin-assassin": { id: "goblin-assassin", name: "Эссенция гоблина-ассасина", cls: 8, source: "goblin-assassin",
     stats: { dex: 2, con: -1 }, other: ["КД +1", "Скрытность +1", "Тёмное зрение +3 м"],
@@ -2085,6 +2085,7 @@ function findKnown(c, id) {
   const g = GEAR[id]; if (!g || !g.find) return true;
   if (!c) return false;
   if ((c.lore || []).includes(g.find) || (c.lore || []).includes(id)) return true;
+  if ((g.find === "herb" || g.find === "mush") && (c.essences || []).includes("goblin-shaman")) return true;          // «Знаток трав»
   const sk = essBonus(c).skills || {};
   return FIND_KIND[g.find].skills.some(k => (sk[k] || 0) > 0);
 }
