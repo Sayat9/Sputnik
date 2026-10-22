@@ -35,7 +35,7 @@ async function driveOption(p, log) {
       log.push('pick:' + st.pick);
       if (rnd() < .12) { await p.click('[data-ba="pick-cancel"]'); await L.sleep(200); continue; }
       const t = st.pick;
-      if (t === 'unit') { const x = pickR(st.ids); await L.tapCell(p, x.x, x.y); }
+      if (t === 'unit') { let x = st.ids.length ? pickR(st.ids) : null; if (!x) { const hs = await p.evaluate(() => [...Battle.UI.hl.entries()].filter(([k, c]) => c.includes('hl-target')).map(([k]) => { const [x, y] = k.split(',').map(Number); return { x, y }; })); x = hs.length ? pickR(hs) : null; } if (x) await L.tapCell(p, x.x, x.y); else { await p.click('[data-ba="pick-cancel"]'); await L.sleep(200); } }
       else if (t === 'units') { for (const x of st.ids.slice(0, 1 + Math.floor(rnd() * 3))) { await L.tapCell(p, x.x, x.y); await L.sleep(60); } const ok = await p.$('[data-ba="pick-ok"]:not([disabled])'); if (ok) await ok.click(); else await p.click('[data-ba="pick-cancel"]'); }
       else if (t === 'cell' || t === 'move') {
         const cells = st.hl.filter(([k, c]) => /hl-(move|flee|ally|danger)/.test(c)); if (!cells.length) { await p.click('[data-ba="pick-cancel"]'); }

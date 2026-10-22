@@ -149,15 +149,23 @@ def rapier():
     return place(g, y=96, rot=38, s=1.02)
 
 
-def dagger():
-    g = """
+def dagger_body():
+    return """
 <polygon points="-6.5,36 -6.5,-52 0,-70 6.5,-52 6.5,36" fill="url(#steel)" stroke="#3d4448" stroke-width="1"/>
 <path d="M0 -62V30" stroke="#6c757a" stroke-width="1.6" opacity=".8"/>""" + nicks([(6.5, -34, 1), (-6.5, -12, -1), (6.5, 8, 1)]) + scratches([(-4, -44, 4, -38), (-4, 0, 4, 6)]) + """
 <rect x="-24" y="36" width="48" height="7" rx="3" fill="url(#brass)" stroke="#4a3410"/>
 <circle cx="-24" cy="39.500" r="4" fill="url(#brass)"/><circle cx="24" cy="39.500" r="4" fill="url(#brass)"/>
 <rect x="-4.5" y="43" width="9" height="26" fill="url(#leather)"/>""" + wrap_lines(0, 44, 68, 9) + """
 <ellipse cx="0" cy="74" rx="6.500" ry="6" fill="url(#brass)" stroke="#4a3410"/>"""
-    return place(g, y=86, rot=40, s=1.12)
+
+
+def dagger():
+    return place(dagger_body(), y=86, rot=40, s=1.12)
+
+
+def twin_daggers():
+    g = dagger_body()
+    return place(g, x=104, y=90, rot=-28, s=.98) + place(g, x=152, y=90, rot=28, s=.98)
 
 
 def spear():
@@ -646,7 +654,7 @@ def ph_full(kind):
 # ---------------------------------------------------------------- сборка
 
 ITEMS = {
-    "spear": spear, "mace": mace, "warhammer": warhammer, "sword": sword, "rapier": rapier, "dagger": dagger,
+    "spear": spear, "mace": mace, "warhammer": warhammer, "sword": sword, "rapier": rapier, "dagger": dagger, "twin-daggers": twin_daggers,
     "greatsword": greatsword, "shortbow": shortbow, "longbow": longbow, "arrows": arrows, "shield": shield, "tower-shield": tower_shield,
 }
 ARMOR = ["leather", "hide", "chainmail"]  # базовая броня каждой группы

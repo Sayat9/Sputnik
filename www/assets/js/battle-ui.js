@@ -83,10 +83,11 @@
 
   /* ===== отрисовка ===== */
   function renderCells(S) {
+    const vis = S.phase === "fight" || S.phase === "result" ? B.visionCells() : null;
     for (let y = 0; y < B.H; y++) for (let x = 0; x < B.W; x++) {
       const el = cellEls[y][x], t = S.cells[y][x] || "";
       if (el.dataset.t !== t) { el.dataset.t = t; el.innerHTML = t ? `<svg class="bt-ter t-${t}" viewBox="0 0 100 100" aria-hidden="true">${D.SVG[t] || ""}</svg>` : ""; }
-      const classes = UI.hl.get(x + "," + y) || [], key = classes.join(" ");
+      const classes = (UI.hl.get(x + "," + y) || []).slice(); if (vis && !vis.has(x + "," + y)) classes.push("fogged"); const key = classes.join(" ");
       if (el.dataset.h !== key) { el.dataset.h = key; el.className = "bt-cell" + (key ? " " + key : ""); }
     }
   }
@@ -117,7 +118,7 @@
         el.querySelector("img").src = u.face || ""; layer.appendChild(el); tokenEls.set(u.id, el);
         el.style.left = u.x * cell + "px"; el.style.top = u.y * cell + "px";
       }
-      const gone = u.fled || u.escaped || (!u.alive && (u.side === "mon" || u.summon)) || (u.side === "mon" && (S.hideMons || B.isUnseen(u)));
+      const gone = u.fled || u.escaped || (!u.alive && (u.side === "mon" || u.summon)) || (u.side === "mon" && (S.hideMons || B.isUnseen(u) || (S.phase === "fight" && !B.seenByParty(u))));
       el.hidden = gone;
       const sz = u.size * cell;
       el.style.width = sz + "px"; el.style.height = sz + "px"; el.style.left = u.x * cell + "px"; el.style.top = u.y * cell + "px";
@@ -148,6 +149,7 @@
   function renderObjs(S) {
     const l = root.querySelector(".bt-objs"); let h = "";
     for (const o of S.objs) if (o.kind === "trap" && (!o.hidden || o.owner === "hero")) h += `<div class="bt-obj trap" style="left:${o.x * cell}px;top:${o.y * cell}px;width:${cell}px;height:${cell}px"><svg viewBox="0 0 100 100">${D.SVG.trap}</svg></div>`;
+    for (const o of S.objs) if (o.kind === "find" && typeof FINDS !== "undefined" && FINDS[o.fid]) { const f = FINDS[o.fid]; h += `<div class="bt-obj find" style="left:${o.x * cell}px;top:${o.y * cell}px;width:${cell}px;height:${cell}px"><i>${FIND_KIND[f.kind].icon(f.color)}</i></div>`; }
     for (const o of S.objs) if (o.kind === "illusion") h += `<div class="bt-obj illusion" title="Иллюзия «Морока»" style="left:${o.x * cell}px;top:${o.y * cell}px;width:${cell}px;height:${cell}px">${ico("eye")}</div>`;
     for (const b of S.bodies || []) if (!b.eaten) h += `<div class="bt-obj body" title="Павший: ${esc(b.name)}" style="left:${b.x * cell}px;top:${b.y * cell}px;width:${cell}px;height:${cell}px">${ico("skull")}</div>`;
     l.innerHTML = h;
@@ -164,7 +166,7 @@
     const el = root.querySelector(".bt-order"), rd = root.querySelector(".bt-round b"); if (rd) rd.textContent = S.round;
     if (!S.order.length) { el.innerHTML = ""; return; }
     el.innerHTML = S.order.map((id, i) => {
-      const u = B.byId(id); if (!u || u.fled || u.escaped || (!u.alive && u.side === "mon") || B.isUnseen(u)) return "";
+      const u = B.byId(id); if (!u || u.fled || u.escaped || (!u.alive && u.side === "mon") || B.isUnseen(u) || (u.side === "mon" && S.phase === "fight" && !B.seenByParty(u))) return "";
       const cur = i === S.turn && S.phase === "fight";
       return `<button class="bt-ord ${u.side}${cur ? " cur" : ""}${u.down ? " down" : ""}${u.summon ? " sm" : ""}${u.spectral ? " ghost" : ""}" data-bt="inspect" data-id="${u.id}" title="${esc(u.name)}"><img src="${u.face}" alt=""></button>`;
     }).join("");
@@ -185,16 +187,26 @@
   };
   UI.setHl = function (map) { UI.hl = map || new Map(); UI.targetIds = UI.targetIds || null; if (B.S && UI.built) { renderCells(B.S); } };
   UI.hlAdd = (map, x, y, cls) => { const k = x + "," + y; const a = map.get(k) || []; if (!a.includes(cls)) a.push(cls); map.set(k, a); };
+  UI.setTraj = list => { UI.traj = list && list.length ? list : null; UI.drawPath(); };
   UI.drawPath = function () {
     const svg = root && root.querySelector(".bt-pathsvg"); if (!svg) return;
-    const p = UI.pathPreview, ways = UI.pathWays || [];
-    if ((!p || !p.length) && !ways.length) { svg.innerHTML = ""; return; }
+    const p = UI.pathPreview, ways = UI.pathWays || [], tr = UI.traj || [];
+    if ((!p || !p.length) && !ways.length && !tr.length) { svg.innerHTML = ""; return; }
     svg.setAttribute("viewBox", `0 0 ${cell * 7} ${cell * 7}`);
     let h = "";
     if (p && p.length) {
       const start = UI.pathStart ? [UI.pathStart] : [];
       const pts = [...start, ...p].map(([x, y]) => `${(x + 0.5) * cell},${(y + 0.5) * cell}`).join(" "), last = p[p.length - 1];
       h += `<polyline points="${pts}" fill="none" stroke="#f4d48e" stroke-width="${Math.max(3, cell * 0.08)}" stroke-dasharray="${cell * 0.12} ${cell * 0.12}" stroke-linecap="round" stroke-linejoin="round" opacity=".95"/><circle cx="${(last[0] + 0.5) * cell}" cy="${(last[1] + 0.5) * cell}" r="${cell * 0.16}" fill="#f4d48e"/>`;
+    }
+    // траектория выстрела: от стрелка к цели; кружки — клетки на пути, где снаряд может кого-то задеть
+    for (const sg of tr) {
+      const [ax, ay] = B.center(sg.a), [bx, by] = B.center(sg.b), X = v => (v + 0.5) * cell;
+      h += `<line x1="${X(ax)}" y1="${X(ay)}" x2="${X(bx)}" y2="${X(by)}" stroke="${sg.faint ? "#f08a6a" : "#ff6a4a"}" stroke-width="${Math.max(2, cell * (sg.faint ? 0.035 : 0.06))}" stroke-dasharray="${cell * 0.1} ${cell * 0.09}" stroke-linecap="round" opacity="${sg.faint ? 0.5 : 0.95}"/>`;
+      if (!sg.faint) {
+        h += `<circle cx="${X(bx)}" cy="${X(by)}" r="${cell * 0.12}" fill="#ff6a4a"/>`;
+        for (const [cx, cy] of B.lineCells(sg.a, sg.b)) { const blk = B.occupant(cx, cy) || B.obstacleAt(cx, cy); if (blk) h += `<circle cx="${(cx + 0.5) * cell}" cy="${(cy + 0.5) * cell}" r="${cell * 0.4}" fill="none" stroke="#ffd36a" stroke-width="${Math.max(2, cell * 0.04)}" stroke-dasharray="${cell * 0.06} ${cell * 0.06}"/>`; }
+      }
     }
     // путевые точки: булавки с номерами — герой обязательно пройдёт через них
     ways.forEach(([x, y], i) => { h += `<g><circle cx="${(x + 0.5) * cell}" cy="${(y + 0.5) * cell}" r="${cell * 0.24}" fill="#2a6f4a" stroke="#bff0b4" stroke-width="${Math.max(2, cell * 0.05)}"/><text x="${(x + 0.5) * cell}" y="${(y + 0.5) * cell + cell * 0.09}" text-anchor="middle" font-size="${cell * 0.28}" font-weight="700" fill="#effff0" font-family="sans-serif">${i + 1}</text></g>`; });

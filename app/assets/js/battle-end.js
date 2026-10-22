@@ -36,7 +36,7 @@
       const c = u.hero; if (!c) continue;
       c.hp = u.dead ? 0 : Math.max(outcome === "defeat" || u.down ? 1 : 0, Math.min(u.hp, maxHp(c)));
       if (u.down && !u.dead) c.hp = Math.max(1, c.hp);
-      c.mp = Math.max(0, Math.min(u.mp, maxMp(c))); c.insp = u.insp || 0; c.dead = !!u.dead;
+      c.mp = Math.max(0, Math.min(u.mp, maxMp(c))); c.insp = u.insp ?? 1; c.dead = !!u.dead;
       if (c.dead) c.hp = 0;
     }
     if (S.torchLit && state.run && !state.run.light) { state.run.light = true; state.run.torchLeft = 4; }
@@ -61,10 +61,12 @@
     let outcome = S.outcome || "flee";
     const display = outcome;                                           // win | retreat | flee | defeat
     const mapped = outcome === "defeat" ? "flee" : outcome;
+    state.fightSnap = null;
     cleanup(S, outcome);
     const plan = rewardsPlan(S, outcome);
     const gotLines = [];
     for (const [key, n] of Object.entries(plan.stones)) { if (GEAR[key]) gotLines.push(giveParty({ t: "g", id: key, qty: n })); }
+    if (B.deliverFound) gotLines.push(...B.deliverFound(S, outcome === "win" || outcome === "retreat" || outcome === "abort"));
     for (const w of plan.wins) essStash().push(w.id);
     if (plan.wins.length) saveChar();
     if (UI && UI.active) await showScreens(S, display, plan, gotLines);

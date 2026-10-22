@@ -423,6 +423,7 @@
     const total = await bombRoll(u, "Самодельная бомба"), dc = dcOf(u, "dex");
     const cells = []; for (let y = 0; y < B.H; y++) for (let x = 0; x < B.W; x++) if (Math.max(Math.abs(x - cx), Math.abs(y - cy)) <= BOMB_R) cells.push([x, y]);
     if (B.fireAtCells) B.fireAtCells(cells);
+    if (B.blastCells) { const bc = []; for (let yy = cy - 2; yy <= cy + 2; yy++) for (let xx = cx - 2; xx <= cx + 2; xx++) if (B.inB(xx, yy) && Math.max(Math.abs(xx - cx), Math.abs(yy - cy)) <= 2) bc.push([xx, yy]); B.blastCells(bc, total, "fire", u); }          // взрыв ломает камни и кристаллы
     for (const t of bombVictims(cx, cy)) {
       if (inHands && t.id === u.id) { await B.applyDamage(u, t, [{ v: total, dt: "fire", label: "Бомба в руках" }], { skill: true }); continue; }          // себе — полный урон без спасброска
       const sv = await save(t, "dex", dc, "Самодельная бомба", ["fire"], { x: cx, y: cy, size: 1, id: "blast" });

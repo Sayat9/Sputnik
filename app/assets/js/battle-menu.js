@@ -164,16 +164,19 @@
   // Список строк «что здесь»: местность, свет, ловушка, зона, иллюзия, тело, лежащее оружие.
   UI.cellEffects = function (x, y) {
     const S = B.S, t = B.tinfo(x, y), tid = B.terrain(x, y), out = [];
-    out.push({ h: t ? t.name : "Ровная земля", t: t ? t.note : "Обычная земля: ничего особенного." + ((D.zones[S.zone] || {}).soil ? " Рыхлый грунт: можно закопаться («Нырок под землю»)." : (S.zone === "stone" ? " Каменный пол: закопаться нельзя." : "")) });
-    if (t && t.wet) out.push({ h: "Вода", t: "Холод и молния по вставшему сюда +1к4. Болотный клык бьёт отсюда первым с преимуществом." });
-    if (tid === "mud") out.push({ h: "Топь", t: "Болотный клык бьёт отсюда первым с преимуществом." });
+    out.push({ h: t ? t.name : "Ровная земля", t: t ? t.note : "Обычная земля: ничего особенного." });
+    const od = B.objAt && B.objAt(x, y); if (od) out.push({ h: "Можно разрушить", t: `КД ${od.ac}, ОЗ ${od.hp}/${od.maxHp}. Бьют оружием (молот и тяжёлое оружие — с преимуществом, обычное по камню может отдать в руку) или областью: взрывом, обвалом.` });
+    if (t && t.block) out.push({ h: "Закрывает обзор", t: "Клетки за ним не видны, туда нельзя стрелять, метать и колдовать." });
+    if (t && t.wet) out.push({ h: "Вода", t: "Холод и молния по вставшему сюда +1к4." });
     if (S.dark) out.push({ h: B.lightAt(x, y) ? "Освещено" : "Тьма", t: B.lightAt(x, y) ? "Свет: штрафов тьмы нет." : "Помеха на Восприятие и дальние атаки у тех, кто без тёмного зрения; в тени можно прятаться." });
     for (const o of S.objs) if (o.x === x && o.y === y) {
       if (o.kind === "trap" && (!o.hidden || o.owner === "hero")) out.push({ h: "Ловушка", t: `Сл ${o.dc}, ${o.dmg} ${D.DT[o.dt] || ""}; наступивший спасается Ловкостью, при провале опутан.` });
+      if (o.kind === "find") { const f = typeof FINDS !== "undefined" && FINDS[o.fid], hero = UI.turnUnit && UI.turnUnit.hero; if (f) { const kn = typeof findKnown === "function" ? findKnown(hero, o.fid) : true; out.push({ h: kn ? f.name : f.alias, t: kn ? findNote(f) : "Эффект неизвестен: нужен навык или знания. Собрать — действием рядом (проверка), одноразовый." }); } }
+      if (o.kind === "chest") out.push({ h: o.opened ? "Сундук пуст" : "Сундук", t: o.opened ? "Уже открыт." : "Откройте рядом действием: внутри добыча." });
       if (o.kind === "illusion") out.push({ h: "Иллюзия «Морока»", t: "Неподвижная иллюзия: кто её увидел, проверяет Проницательность. Исчезнет через минуту." });
     }
     for (const z of S.zones || []) if (B.zoneCells(z).some(([cx, cy]) => cx === x && cy === y)) out.push(z.kind === "swarm" ? { h: "Рой паучат", t: `Начавший ход здесь получает 2к4 колющего и спасается Телосложением (Сл ${z.dc}), провал — отравлен. Огонь уничтожает рой.` } : { h: "Белая пыль", t: `Сильное заслонение: видно на 1,5 м. Начавший ход здесь, кроме пепельника, спасается Телосложением (Сл ${z.dc}), провал — отравлен.` });
-    for (const b of S.bodies || []) if (!b.eaten && b.x === x && b.y === y) out.push({ h: "Павший", t: `${b.name}: тело. Трупоед может его пожрать.` });
+    for (const b of S.bodies || []) if (!b.eaten && b.x === x && b.y === y) out.push({ h: "Павший", t: `${b.name}: тело.` });
     const w = S.drops.filter(d => d.x === x && d.y === y && d.kind === "weapon"), ar = S.drops.filter(d => d.x === x && d.y === y && d.kind === "arrow").length;
     if (w.length) out.push({ h: "Лежит оружие", t: w.map(d => { const it = typeof itemOf === "function" && itemOf(d.item), hh = B.heroes().find(q => q.hero && q.hero.id === d.hero); return `${it ? it.name : "оружие"}${hh ? " (" + hh.name + ")" : ""}`; }).join(", ") + ". Хозяин подбирает его, встав на клетку — свободное действие." });
     if (ar) out.push({ h: "Стрелы", t: `${ar} шт. Подбираются после боя, если отряд не бежал.` });
@@ -220,16 +223,19 @@
 
   /* ===== выбор целей и клеток ===== */
   function beginPick(p) { UI.pick = p; UI.renderPanel(); UI.refreshNow(); }
-  function endPick() { UI.pick = null; UI.holdHandle = null; UI.setHl(new Map()); UI.pathPreview = null; UI.pathWays = null; UI.pathStart = null; UI.targetIds = null; UI.selIds = null; UI.drawPath(); UI.refreshNow(); }
+  function endPick() { UI.setTraj && UI.setTraj(null); UI.pick = null; UI.holdHandle = null; UI.setHl(new Map()); UI.pathPreview = null; UI.pathWays = null; UI.pathStart = null; UI.targetIds = null; UI.selIds = null; UI.drawPath(); UI.refreshNow(); }
   const unitAtCell = (x, y) => B.occupant(x, y);
   function paintRange(cells, kind) { const map = new Map(); for (const [x, y] of cells || []) UI.hlAdd(map, x, y, kind === "heal" || kind === "help" ? "hl-ally" : "hl-reach"); return map; }
   UI.pickUnit = function (spec) {
     return new Promise(resolve => {
       const ids = new Set(spec.units), map = paintRange(spec.cells, spec.kind);
       for (const id of ids) { const u = B.byId(id); if (u) B.footprint(u).forEach(([x, y]) => UI.hlAdd(map, x, y, spec.kind === "heal" || spec.kind === "help" ? "hl-target-ally" : "hl-target")); }
+      const objKeys = new Set(spec.objs || []);
+      for (const k of objKeys) UI.hlAdd(map, ...k.split(",").map(Number), "hl-target");
       UI.setHl(map); UI.targetIds = ids;
+      if (spec.from) UI.setTraj([...ids].map(id => ({ a: spec.from, b: B.byId(id), faint: true })).filter(s => s.b));          // линии полёта к возможным целям
       const done = v => { endPick(); resolve(v); };
-      UI.pickHandle = (x, y) => { const u = unitAtCell(x, y); if (u && ids.has(u.id)) done(u); else if (u) UI.toast("Эта цель недоступна"); };
+      UI.pickHandle = (x, y) => { const u = unitAtCell(x, y); if (u && ids.has(u.id)) done(u); else if (u) UI.toast("Эта цель недоступна"); else if (objKeys.has(x + "," + y)) done(B.objAt(x, y)); };
       beginPick({ type: "unit", prompt: spec.prompt, cancel: () => done(null) });
     });
   };
@@ -286,7 +292,7 @@
       const u = spec.unit, budget = Math.max(0, spec.budget), key = (x, y) => x + "," + y;
       const foes = B.enemiesOf(u).filter(e => B.canAct(e) && e.t.react && !u.t.disengage);
       const scared = has(u, "frightened"), avoid = (x, y) => scared && B.frightenOK && !B.frightenOK(u, x, y);
-      const provokes = path => { let prev = [u.x, u.y]; const who = new Set(); for (const [x, y] of path) { for (const e of foes) { const r = B.meleeReach(e); if (B.distAt(e, u, prev[0], prev[1]) <= r && B.distAt(e, u, x, y) > r) who.add(e.name); } prev = [x, y]; } return [...who]; };
+      const provokes = (path, start) => { let prev = start || [u.x, u.y]; const who = new Set(); for (const [x, y] of path) { for (const e of foes) { const r = B.meleeReach(e); if (B.distAt(e, u, prev[0], prev[1]) <= r && B.distAt(e, u, x, y) > r) who.add(e.name); } prev = [x, y]; } return [...who]; };
       const trapsOn = path => path.filter(([x, y]) => B.S.objs.some(o => o.kind === "trap" && o.x === x && o.y === y && (!o.hidden || o.owner === "hero")) || (B.tinfo(x, y) || {}).hazard).length;
       const nodePath = (m, x, y) => { const out = []; for (let c = m.get(key(x, y)); c && c.prev; c = c.prev) out.unshift([c.x, c.y]); return out; };
       const mapFrom = (pos, left) => B.pathMap({ ...u, x: pos[0], y: pos[1] }, Math.max(0, left), { avoid });
@@ -307,7 +313,7 @@
         const hl = new Map(), base = flat();
         for (const [k, n] of reach) {
           if ((n.x === pos[0] && n.y === pos[1]) || !B.canStand(u, n.x, n.y)) continue;
-          const bad = provokes([...base, ...nodePath(reach, n.x, n.y)]).length > 0;
+          const bad = provokes(nodePath(reach, n.x, n.y), pos).length > 0;          // красим только клетки, до которых сам этот отрезок пути даёт атаку по возможности (уже отмеченное путевыми точками — в подсказке)
           UI.hlAdd(hl, n.x, n.y, bad ? "hl-danger" : "hl-move");
         }
         UI.setHl(hl); UI.pathWays = ways.slice(); UI.pathStart = ways.length ? [u.x, u.y] : null;

@@ -116,6 +116,7 @@
       const u = B.currentUnit();
       if (!u || !alive(u)) { B.advanceTurn(); continue; }
       S.curId = u.id;
+      if (ui()) snapshot(S);                                                                    // автосохранение: в начале каждого хода
       await B.startTurn(u);
       if (u.side === "hero") spotHidden(u);                                                  // враги, затаившиеся в начале боя
       else if (B.isUnseen(u)) reveal(u);                                                     // начал действовать — виден
@@ -137,6 +138,36 @@
     }
     if (!S.outcome) S.outcome = "flee";
   }
+
+  /* ===== автосохранение боя: снимок в начале каждого хода, возврат после перезагрузки страницы ===== */
+  function snapshot(S) {
+    try {
+      const strip = (k, v) => (k === "hero" ? (v && v.id) : typeof v === "function" ? undefined : v);
+      const ev = JSON.parse(JSON.stringify(S.ev)), body = JSON.parse(JSON.stringify(S, (k, v) => (k === "ev" ? undefined : strip(k, v))));
+      state.fightSnap = { ev, S: body, at: Date.now() }; saveChar();
+    } catch (e) { /* без снимка бой идёт как обычно */ }
+  }
+  B.snapshot = snapshot;
+  B.resume = async function (ev, S) {
+    if (B.running) return;
+    B.running = true; ev.battleStarted = true; S.ev = ev;
+    try {
+      let maxId = 0;
+      for (const u of S.units) { if (typeof u.hero === "string") u.hero = (state.party || []).find(c => c.id === u.hero) || null; const m = /^u(\d+)$/.exec(u.id); if (m) maxId = Math.max(maxId, +m[1]); }
+      B.setUid(maxId + 1); B.S = S;
+      if (B.UI) B.UI.open();
+      const g = ui(); S.phase = "fight"; S.hideMons = false;
+      if (g) await g.start(S);
+      log("Бой восстановлен после перезагрузки.", "round");
+      await loop(S);
+      S.phase = "result";
+      await B.End.run(S);
+    } catch (err) {
+      console.error("бой (возврат):", err);
+      try { if (B.UI) B.UI.close(); } catch (e) {}
+      B.running = false; B.S = null; state.fightSnap = null; ev.tactical = false; ev.battleStarted = false; toast("Бой не удалось восстановить — открыт обычный экран"); rerender();
+    }
+  };
 
   /* ===== запуск ===== */
   async function start(ev, o = {}) {
@@ -173,11 +204,13 @@
   B.ensure = function (ev) {
     if (B.running || ev.battleStarted) return;
     ev.battleStarted = true; B.running = true;
+    if (typeof autoSave === "function") autoSave("перед боем");
     (async () => {
       try {
         if (B.UI) B.UI.open();
         const S = await start(ev);
-        if (S.outcome === "abort") {         // игрок перешёл на обычный экран боя
+        if (S.outcome === "abort") {
+          state.fightSnap = null;         // игрок перешёл на обычный экран боя
           B.End.cleanup(S, "abort");
           if (B.UI) B.UI.close();
           B.running = false; B.S = null; ev.battleStarted = false; ev.tactical = false; ev.killed = S.killed.slice();
@@ -185,7 +218,7 @@
         }
         await B.End.run(S);                 // экран итога и наград, затем возврат результата приложению
       } catch (err) {
-        console.error("бой:", err);
+        console.error("бой:", err); state.fightSnap = null;
         try { if (B.UI) B.UI.close(); } catch (e) {}
         B.running = false; B.S = null;
         ev.tactical = false; toast("Ошибка боя — открыт обычный экран боя"); rerender();

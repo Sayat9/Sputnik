@@ -1638,8 +1638,8 @@ const DISTRICTS = [
 
 // Готовые рисованные картинки (webp) заменяют векторные заглушки.
 // Дата сборки для телефона: build.sh вписывает её сюда, в веб-версии строка пустая.
-const APP_BUILD = "22.10.2026 09:17";
-const APP_VERSION = 1792642641;                 // номер сборки, тоже вписывает build.sh
+const APP_BUILD = "22.10.2026 12:28";
+const APP_VERSION = 1792654136;                 // номер сборки, тоже вписывает build.sh
 const UPDATE_URL = "https://raw.githubusercontent.com/Sayat9/Sputnik/main/www/";
 const RASTER = new Set(["monsters/goblin-king-face", "monsters/goblin-king-full", "monsters/goblin-bomber-face", "monsters/goblin-bomber-full", "monsters/hobgoblin-shield-face", "monsters/hobgoblin-shield-full", "races/barbarian", "races/human", "races/dwarf", "races/beastkin", "races/fairy", "races/dragon", "monsters/goblin-face", "monsters/goblin-full", "monsters/goblin-archer-face", "monsters/goblin-archer-full", "monsters/goblin-sword-face", "monsters/goblin-sword-full", "monsters/goblin-spear-face", "monsters/goblin-spear-full", "monsters/wolf-face", "monsters/wolf-full", "monsters/fox-face", "monsters/fox-full", "monsters/mouse-face", "monsters/mouse-full", "monsters/bat-face", "monsters/bat-full", "monsters/hobgoblin-face", "monsters/hobgoblin-full", "monsters/zombie-face", "monsters/zombie-full", "monsters/skeleton-face", "monsters/skeleton-full", "monsters/skeleton-archer-face", "monsters/skeleton-archer-full", "monsters/ghoul-face", "monsters/ghoul-full", "monsters/dark-bear-face", "monsters/dark-bear-full", "monsters/skeleton-warrior-face", "monsters/skeleton-warrior-full", "monsters/living-stone-face", "monsters/living-stone-full", "monsters/wisp-face", "monsters/wisp-full", "monsters/pixie-face", "monsters/pixie-full", "monsters/green-boulder-face", "monsters/green-boulder-full", "monsters/stone-guardian-face", "monsters/stone-guardian-full"]);
 const artPath = p => `assets/${p}.${RASTER.has(p) ? "webp" : "svg"}`;
@@ -1865,7 +1865,7 @@ function renderSurvival() {
     <div class="group"><h3 class="sec-title">Ночной караул</h3>
     <div class="item"><ul class="plain">
       <li>Караульный не спит: +1 Усталость, сон не снимает уровни.</li>
-      <li>Встреча на 1 из к6. Караульный: Восприятие против Скрытности монстров.</li>
+      <li>Встреча на 1 из к6 (в приложении в первые дни реже: 4 % → 17 % к 5-му дню, черновик). Караульный: Восприятие против Скрытности монстров.</li>
       <li>Без караула встреча на 1–2, врасплох вся партия.</li>
       <li>Две смены: оба снимают по 1 уровню, сутки не бессонные.</li>
     </ul></div></div>
@@ -2040,9 +2040,70 @@ const GEAR_ICON = {
   custom: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="M9 12h6M12 9v6"/></svg>`,
 };
 
-function itemOf(v) {
+
+/* ----- находки на поле боя: травы, грибы, особые камни (черновик, см. drafts.md → «Находки») ----- */
+// Одноразовые. Эффект неизвестен герою, у которого нет нужного навыка (бонус эссенции к Медицине/Выживанию/Расследованию) или знаний (c.lore);
+// такие предметы лежат по одному на ячейку и подписаны «Незнакомая…». Знающему эффект подписан, предметы складываются в стопки.
+const FIND_KIND = {
+  herb:   { noun: "трава",  skills: ["medicine", "survival"], gather: ["survival", "medicine"], gdc: 10, zones: ["beast", "undead"], icon: c => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V9" /><path d="M12 14C7 14 5 10 5 6c4 0 7 2 7 8z" fill="${c}" opacity=".75"/><path d="M12 11c0-4 2-7 7-7 0 4-2 7-7 7z" fill="${c}" opacity=".55"/></svg>` },
+  mush:   { noun: "гриб",   skills: ["survival"], gather: ["survival"], gdc: 10, zones: ["goblin"], icon: c => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M3 12a9 8 0 0 1 18 0z" fill="${c}" opacity=".8"/><path d="M10 12v7h4v-7"/><circle cx="8" cy="9" r="1.2" fill="#fff"/><circle cx="14" cy="8" r="1.2" fill="#fff"/></svg>` },
+  sstone: { noun: "камень", skills: ["investigation"], gather: ["athletics"], gdc: 12, zones: ["stone"], icon: c => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 3l7 6-3 11H8L5 9z" fill="${c}" opacity=".7"/><path d="M5 9h14M12 3l-2 6 2 11 2-11z" stroke-width="1"/></svg>` },
+};
+// fx: heal [n, s, b] · mp · poison [n, s, b] · sat (действий сытости) · fat (уровней Усталости) · light (раундов) · boom [n, s, b] (съел — получил, бросил — по площади)
+// throw — применяется броском (в бою): radius, save, dc, dmg, dt, status, rounds. w — вес при выпадении.
+const FINDS = {
+  "herb-heal":   { kind: "herb", name: "Целебная трава",    alias: "Узколистая трава",  color: "#7bc653", w: 4, fx: { heal: [1, 6, 2] } },
+  "herb-mana":   { kind: "herb", name: "Серебрянка",        alias: "Серебристая трава", color: "#9fd4ee", w: 3, fx: { mp: 4 } },
+  "herb-poison": { kind: "herb", name: "Горький корень",    alias: "Тёмная трава",      color: "#6a4d8c", w: 2, fx: { poison: [1, 4, 0] } },
+  "herb-food":   { kind: "herb", name: "Сытный лист",       alias: "Широкая трава",     color: "#c9b04a", w: 4, fx: { sat: 2 } },
+  "herb-rest":   { kind: "herb", name: "Бодрящий пучок",    alias: "Пахучая трава",     color: "#e58bb0", w: 3, fx: { fat: 1 } },
+  "mush-heal":   { kind: "mush", name: "Живой гриб",        alias: "Красный гриб",      color: "#d4543a", w: 3, fx: { heal: [2, 6, 3] } },
+  "mush-mana":   { kind: "mush", name: "Синяя шляпка",      alias: "Синий гриб",        color: "#4a7fd0", w: 3, fx: { mp: 8 } },
+  "mush-poison": { kind: "mush", name: "Бледная поганка",   alias: "Бледный гриб",      color: "#cfd3a8", w: 2, fx: { poison: [2, 4, 0] } },
+  "mush-food":   { kind: "mush", name: "Сытный боровик",    alias: "Бурый гриб",        color: "#9a6a3a", w: 4, fx: { sat: 5 } },
+  "mush-rest":   { kind: "mush", name: "Бодрый груздь",     alias: "Жёлтый гриб",       color: "#e3c04a", w: 3, fx: { fat: 2 } },
+  "mush-light":  { kind: "mush", name: "Светляк",           alias: "Зеленоватый гриб",  color: "#7fe0b0", w: 2, fx: { light: 10 } },
+  "mush-boom":   { kind: "mush", name: "Пороховик",         alias: "Серый гриб",        color: "#8d8d92", w: 2, fx: { boom: [2, 6, 0] }, throw: { radius: 1, save: "dex", dc: 12, dmg: [2, 6, 0], dt: "fire" } },
+  "sstone-boom": { kind: "sstone", name: "Вспыхивающий камень", alias: "Рыжий камень",   color: "#e0743a", w: 3, fx: {}, throw: { radius: 1, save: "dex", dc: 12, dmg: [3, 6, 0], dt: "fire" } },
+  "sstone-para": { kind: "sstone", name: "Оцепеняющий камень",  alias: "Фиолетовый камень", color: "#9b6fd0", w: 2, fx: {}, throw: { radius: 0, save: "con", dc: 12, status: "paralyzed", rounds: 1 } },
+  "sstone-freeze": { kind: "sstone", name: "Морозный камень",   alias: "Голубой камень", color: "#7ad0ec", w: 2, fx: {}, throw: { radius: 1, save: "con", dc: 12, dmg: [2, 6, 0], dt: "cold", status: "slowed", rounds: 2 } },
+};
+const dtxt = d => d[0] + "к" + d[1] + (d[2] ? " + " + d[2] : "");
+function findNote(f) {
+  const x = f.fx || {}, out = [];
+  if (x.heal) out.push(`восстанавливает ${dtxt(x.heal)} ОЗ`);
+  if (x.mp) out.push(`восстанавливает ${x.mp} маны`);
+  if (x.poison) out.push(`отравляет: ${dtxt(x.poison)} урона ядом и отравление`);
+  if (x.sat) out.push(`насыщает: ${x.sat} действий сытости`);
+  if (x.fat) out.push(`снимает ${x.fat} ур. Усталости`);
+  if (x.light) out.push(`светится ${x.light} раундов (в бою освещает поле)`);
+  if (x.boom) out.push(`съесть — получить ${dtxt(x.boom)} урона огнём`);
+  if (f.throw) { const t = f.throw; out.push(`бросок (до 6 клеток, в бою): ${t.radius ? "по площади 3 × 3" : "по одному существу"}, ${t.save === "dex" ? "Ловкость" : "Телосложение"} Сл ${t.dc}${t.dmg ? `, ${dtxt(t.dmg)} ${t.dt === "fire" ? "огня" : "холода"}, при успехе вполовину` : ""}${t.status === "paralyzed" ? ", при провале паралич до конца его следующего хода" : t.status === "slowed" ? ", при провале скорость вдвое меньше " + t.rounds + " раунда" : ""}`); }
+  const s = out.join("; "); return s ? s[0].toUpperCase() + s.slice(1) + "." : "";
+}
+for (const [id, f] of Object.entries(FINDS)) {
+  GEAR[id] = { short: FIND_KIND[f.kind].noun, name: f.name, alias: f.alias, weight: 0.1, stack: 5, find: f.kind, use: f.fx && Object.keys(f.fx).length ? "find" : undefined, note: findNote(f), fnd: f, once: true };
+}
+// Знает ли герой, что это: нужный навык (бонус эссенции) или знания c.lore (вид находки).
+function findKnown(c, id) {
+  const g = GEAR[id]; if (!g || !g.find) return true;
+  if (!c) return false;
+  if ((c.lore || []).includes(g.find) || (c.lore || []).includes(id)) return true;
+  const sk = essBonus(c).skills || {};
+  return FIND_KIND[g.find].skills.some(k => (sk[k] || 0) > 0);
+}
+
+function itemOf(v, holder) {
   if (!v) return null;
-  if (v.t === "g") { const g = GEAR[v.id]; return g && { ...g, id: v.id, kindOf: "gear", icon: GEAR_ICON[v.id] || (SHOVELS.includes(v.id) ? GEAR_ICON.shovel : GEAR_ICON.custom) }; }
+  if (v.t === "g") {
+    const g = GEAR[v.id];
+    if (g && g.find) {                                                                   // трава, гриб, камень: вид известен не всем
+      const known = holder === undefined ? true : findKnown(holder, v.id), ic = FIND_KIND[g.find].icon(g.fnd.color);
+      return known ? { ...g, id: v.id, kindOf: "gear", icon: ic, known }
+        : { ...g, id: v.id, kindOf: "gear", icon: ic, known, name: g.alias, short: "?", use: g.use && "find", note: `Эффект неизвестен: нужен навык (${FIND_KIND[g.find].skills.map(k => Object.keys(SKILL_KEYS).find(n => SKILL_KEYS[n] === k)).join(" или ")}) или знания. Одноразовый.` };
+    }
+    return g && { ...g, id: v.id, kindOf: "gear", icon: GEAR_ICON[v.id] || (SHOVELS.includes(v.id) ? GEAR_ICON.shovel : GEAR_ICON.custom) };
+  }
   if (v.t === "w") { const w = WEAPONS.find(x => x.id === v.id); return w && { ...w, kindOf: "weapon", art: ART.weapon(w.id) }; }
   if (v.t === "a") { const a = ARMOR_FLAT.find(x => x.id === v.id); return a && { ...a, kindOf: "armor", art: ART.armor(a.id) }; }
   if (v.t === "c") return { name: v.name, kindOf: "custom", weight: 0, icon: GEAR_ICON.custom };
@@ -2081,7 +2142,7 @@ function derived(t, c = char) {
   if (tower) { warnings.push("Ростовой щит: помеха к Скрытности."); if (t.str.total < 13) warnings.push(`Сила ${t.str.total} ниже 13, нужной для ростового щита: скорость −3 м.`); }
   if (c.giantGrip && c.race === "barbarian" && isTwoHandedWeapon(mainItem(c))) warnings.push(`«${mainItem(c).name}» в одной руке (Великан): −2 к атаке.`);
   if (ld.level !== "ok") warnings.push(LOAD_TEXT[ld.level] + ".");
-  const pb = 2 + Math.floor((c.level - 1) / 4);
+  const pb = 0;                                                 // бонус мастерства убран: ни у кого нет (решение автора)
   const eb = essBonus(c);
   ac += eb.ac;
   if (eb.ac) acSrc += ` ${eb.ac > 0 ? "+" : "−"} ${Math.abs(eb.ac)} (эссенция)`;
@@ -2096,16 +2157,16 @@ function derived(t, c = char) {
 // По rules.md бежать нельзя, если груз больше половины грузоподъёмности.
 const bagSize = c => c.race === "barbarian" ? 15 : 10;
 const QUIVER = 40;                                   // колчан лучника в начале: 40 обычных стрел (одна ячейка рюкзака)
-const stackMax = e => e.t === "g" ? GEAR[e.id].stack : 1;
+const stackMax = (e, c) => e.t === "g" ? (GEAR[e.id].find && !findKnown(c, e.id) ? 1 : GEAR[e.id].stack) : 1;
 function addToBag(c, e) {
   c.bag ||= [];
   let left = e.qty || 1;
   if (e.t === "g") for (const sl of c.bag) {
     if (left <= 0) break;
-    if (sl.t === "g" && sl.id === e.id && sl.qty < stackMax(sl)) { const n = Math.min(left, stackMax(sl) - sl.qty); sl.qty += n; left -= n; }
+    if (sl.t === "g" && sl.id === e.id && sl.qty < stackMax(sl, c)) { const n = Math.min(left, stackMax(sl, c) - sl.qty); sl.qty += n; left -= n; }
   }
   while (left > 0 && c.bag.length < bagSize(c)) {
-    const n = Math.min(left, stackMax(e));
+    const n = Math.min(left, stackMax(e, c));
     const uses = e.t === "g" && GEAR[e.id].uses ? { uses: e.uses ?? GEAR[e.id].uses } : {};
     c.bag.push(e.t === "c" ? { t: "c", name: e.name, qty: 1 } : { t: e.t, id: e.id, qty: n, ...uses });
     left -= n;
@@ -2186,9 +2247,9 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 8;
+const BATTLE_REV = 9;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
-  "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle.js"];
+  "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined) st.tactical = true; return st; }
 let battleLoad = null;
 function loadBattle() {
@@ -2216,8 +2277,29 @@ function setTactical(on) {
   rerender();
 }
 // Бой сообщает итог: outcome — win | flee | retreat, killed — номера убитых в ev.list. Дальше всё как в старом экране боя.
+// Погибший герой уходит из отряда, его вещи (надетое и рюкзак) делятся между живыми (решение автора). Что не влезло — остаётся на теле.
+function buryFallen() {
+  const alive = state.party.filter(c => !c.dead), dead = state.party.filter(c => c.dead);
+  if (!dead.length || !alive.length) return;
+  const lines = [];
+  for (const c of dead) {
+    const items = [...Object.values(c.equip || {}), ...(c.bag || [])].filter(e => e && !(e.t === "g" && e.id === "clothes"));
+    const got = [], lost = [];
+    for (const e of items) { const r = giveParty({ ...e, qty: e.qty || 1 }); (/осталось на земле|не поместилось/.test(r) ? lost : got).push(r); }
+    (state.fallen ||= []).push({ name: c.name, race: c.race, level: c.level, day: state.run ? state.run.day : null });
+    state.party = state.party.filter(x => x.id !== c.id);
+    if (state.run && state.run.status) delete state.run.status[c.id];
+    if (state.current === c.id) state.current = state.party[0] ? state.party[0].id : null;
+    if (heroUi && heroUi.id === c.id) closeHero();
+    lines.push(`${c.name} погиб. Вещи розданы: ${got.length ? got.join("; ") : "нечего делить"}${lost.length ? ". Не влезло: " + lost.join("; ") : ""}`);
+    if (state.run) logRun(lines[lines.length - 1]);
+  }
+  saveChar(); rerender(); lines.forEach((t, i) => setTimeout(() => toast(t), 400 + i * 2500));
+}
 function battleDone(ev, res) {
   if (dgUi.enc !== ev) return;
+  state.fightSnap = null; autoSave("после боя");
+  setTimeout(buryFallen, 0);
   ev.outcome = res.outcome; ev.killed = res.killed.slice();
   finishFight(); dgUi.stat = null; saveChar(); rerender();
 }
@@ -2288,7 +2370,6 @@ function renderCharacter() {
         <dl class="vitals">
           <div><dt>КД</dt><dd>${d.ac}</dd></div>
           <div><dt>МАНА</dt><dd>${d.mana}</dd></div>
-          <div><dt>БМ</dt><dd>+${d.pb}</dd></div>
           <div class="wide"><dt>ВЕС</dt><dd>${kg(d.weight)} / ${fmt(d.cap)}</dd></div>
         </dl>
       </div>
@@ -2564,14 +2645,18 @@ function forgeWeapon() {
     <h2 class="fx-h">С чем идёшь в лабиринт?</h2>
     <p class="fx-p">Выбери стартовое оружие. Оно сразу окажется в руке героя.</p>
     <div class="wpn-grid">${START_WEAPONS().map(x => `
-      <button class="race-card fx-frame" data-fx-weapon="${x.id}" aria-pressed="${d.weapon === x.id}">
-        <div class="wpn-art">${img(ART.weapon(x.id), x.name)}${d.weapon === x.id ? `<span class="tick">${TICK}</span>` : ""}</div>
+      <button class="race-card fx-frame" data-fx-weapon="${x.id}" aria-pressed="${d.weapon === x.id && !(x.id === "dagger" && d.knife)}">
+        <div class="wpn-art">${img(ART.weapon(x.id), x.name)}${d.weapon === x.id && !(x.id === "dagger" && d.knife) ? `<span class="tick">${TICK}</span>` : ""}</div>
         <h3>${x.name}</h3>
         <div class="bonus-box">
           <div class="st">${x.dmg} ${x.type} · ${kgf(x.weight)} кг</div>
           <ul>${(x.props.length ? x.props : ["Без особых свойств"]).map(p => `<li>${p}</li>`).join("")}</ul>
         </div>
       </button>`).join("")}
+      ${(() => { const dg = WEAPONS.find(x => x.id === "dagger"), on = d.weapon === "dagger" && d.knife; return `<button class="race-card fx-frame" data-fx-twin aria-pressed="${on}">
+        <div class="wpn-art">${img(ART.weapon("twin-daggers"), "Парные кинжалы")}${on ? `<span class="tick">${TICK}</span>` : ""}</div>
+        <h3>Парные кинжалы</h3>
+        <div class="bonus-box"><div class="st">${dg.dmg} ${dg.type} ×2 · ${kgf(dg.weight * 2)} кг</div><ul><li>Лёгкое</li><li>По кинжалу в каждой руке</li></ul></div></button>`; })()}
     </div>
     ${(() => { const sh = WEAPONS.find(x => x.id === "shield"), block = w && (isTwoHandedWeapon(w) || w.group === "ranged") && !(d.race === "barbarian");
       const light = w && (w.props || []).includes("Лёгкое"), kn = light && d.knife;
@@ -2721,12 +2806,13 @@ function completeTeam() {
 }
 
 $forge.addEventListener("click", e => {
-  const el = e.target.closest("[data-fx],[data-fx-race],[data-fx-gender],[data-fx-weapon],[data-fx-shield],[data-fx-knife]");
+  const el = e.target.closest("[data-fx],[data-fx-race],[data-fx-gender],[data-fx-weapon],[data-fx-shield],[data-fx-knife],[data-fx-twin]");
   if (!el) return;
   const ds = el.dataset;
   if (ds.fxRace) { forge.draft.race = ds.fxRace; renderForge(true); return; }
   if (ds.fxWeapon) { forge.draft.weapon = ds.fxWeapon; forge.draft.knife = false; renderForge(true); return; }
   if (ds.fxShield !== undefined) { forge.draft.shield = !forge.draft.shield; renderForge(true); return; }
+  if (ds.fxTwin !== undefined) { forge.draft.weapon = "dagger"; forge.draft.knife = true; forge.draft.shield = false; renderForge(true); return; }
   if (ds.fxKnife !== undefined) { forge.draft.knife = !forge.draft.knife; if (forge.draft.knife) forge.draft.shield = false; renderForge(true); return; }
   if (ds.fxGender) { forge.draft.gender = ds.fxGender; forge.errors = forge.errors.filter(x => x.f !== "gender"); renderForge(true); return; }
   switch (ds.fx) {
@@ -3027,12 +3113,12 @@ const shovelsOf = () => state.party.flatMap(c => (c.bag || []).map((e, i) => ({ 
 const pickShovel = () => shovelsOf().sort((a, b) => a.e.uses - b.e.uses)[0] || null;
 const pickOne = arr => arr[rnd(arr.length)];
 function giveParty(e) {
-  const name = (itemOf(e) || {}).name || e.id, q = e.qty || 1;
+  let name = (itemOf(e) || {}).name || e.id; const q = e.qty || 1;
   let left = q, got = [];
-  for (const c of [...state.party].sort((a, b) => (bagSize(b) - (b.bag || []).length) - (bagSize(a) - (a.bag || []).length))) {
+  for (const c of [...state.party].filter(x => !x.dead || state.party.every(y => y.dead)).sort((a, b) => (bagSize(b) - (b.bag || []).length) - (bagSize(a) - (a.bag || []).length))) {
     if (left <= 0) break;
     const before = left; left = addToBag(c, { ...e, qty: left });
-    if (left < before) got.push(c.name);
+    if (left < before) { if (!got.length) name = (itemOf(e, c) || {}).name || e.id; got.push(c.name); }          // название — глазами того, кто получил
   }
   return `${name}${q > 1 ? " × " + q : ""}` + (left === q ? " — места в рюкзаках нет, осталось на земле" : `${left ? ` (не поместилось ${left})` : ""} — забирает ${got.join(", ")}`);
 }
@@ -3147,7 +3233,20 @@ function searchOverlay() {
       <p class="sr-table">${table.map(([max, k], i) => `<span>${i ? table[i - 1][0] + 1 : 1}–${max} ${SEARCH_ROWS_TEXT[k]}</span>`).join("")}</p>
       ${grid("sr-n", sr.pick)}
       ${needLuck ? `<p><b style="color:var(--fx-gold-hi)">20! Бросок удачи:</b> брось к20 ещё раз, к нему прибавится удача ${esc(sh ? sh.c.name : "")} (${signed(sh ? luckOf(sh.c) : 1)}).</p>${grid("sr-l", sr.luck)}` : ""}
-      <div class="row2"><button class="fx-btn" data-dg="cancel">Отмена</button><button class="fx-btn primary" data-dg="sr-ok"${sr.pick && (!needLuck || sr.luck) ? "" : " disabled"}>Подтвердить</button></div>
+      <div style="display:flex;justify-content:center"><button class="fx-btn primary big" data-dg="sr-ok"${sr.pick && (!needLuck || sr.luck) ? "" : " disabled"}>Подтвердить</button></div>
+    </div></div>`;
+}
+// Портал в углу этажа ведёт на 2 этаж, в вариант, связанный с зоной портала. Сам 2 этаж в приложении ещё не построен: переход пока только показывает, куда ведёт.
+const PORTAL_FLOOR2 = { goblin: "Лес гоблинов", wolf: "Волчья чаща", zombie: "Могильник белой пыли", stone: "каменный вариант (ещё не описан)" };
+function portalOverlay() {
+  const r = state.run, kind = FLOOR1.portals[tkey(r.pos.x, r.pos.y)];
+  return `<div class="mapov" role="dialog" aria-modal="true" aria-label="Портал">
+    <div class="panel fx-frame enc-panel">
+      <div class="ph-head"><h3>${PORTAL_NAME[kind] || "Портал"}</h3>
+        <button class="fx-btn" data-dg="cancel" aria-label="Закрыть" style="width:42px;height:42px;padding:0;display:grid;place-items:center">${ICO_X}</button></div>
+      <p>Портал ведёт на 2 этаж: <b style="color:var(--fx-gold-hi)">${PORTAL_FLOOR2[kind]}</b>. Войти можно только всем отрядом.</p>
+      <p class="enc-warn">Переход на 2 этаж ещё в разработке: пока портал только показывает, куда он ведёт. Отряд остаётся на этаже.</p>
+      <div style="display:flex;justify-content:center"><button class="fx-btn primary big" data-dg="portal-go">Войти</button></div>
     </div></div>`;
 }
 function resultOverlay() {
@@ -3199,12 +3298,14 @@ function finishFight() {
   dgUi.enc = null;
 }
 // Ночная встреча в Отдыхе: к6 = 1 (без караула 1–2, во тьме +1), состав — по броску к20 мастера.
+const NIGHT_P = [0.04, 0.06, 0.10, 0.13, 0.17, 0.17, 0.17];        // шанс ночной встречи с караулом по дням 1–7; без караула ×2 (черновик)
 function rollEncounter(cause, chanceOn = 1) {
   const r = state.run, dark = inDarkness();
   if (zoneAt(r.pos.x, r.pos.y).kind === "safe") return;
-  const d6 = 1 + rnd(6);
-  if (d6 > chanceOn + (dark ? 1 : 0)) return;
-  logRun(`Ночью кто-то приближается (к6 = ${d6}). Мастер, брось к20.`);
+  // Шанс ночной встречи (решение автора: только шанс, в первые дни ниже). rules.md: 1 из к6 с караулом, 1–2 без; здесь первые дни мягче, к 5-му дню — как в правилах.
+  const base = NIGHT_P[Math.min(NIGHT_P.length, Math.max(1, r.day)) - 1] * chanceOn + (dark ? 0.06 : 0), pct = 1 + rnd(100);
+  if (pct > Math.round(Math.min(0.6, base) * 100)) return;
+  logRun(`Ночью кто-то приближается (шанс ${Math.round(Math.min(0.6, base) * 100)} %, выпало ${pct}). Мастер, брось к20.`);
   askRoll(cause, true);
 }
 
@@ -3393,7 +3494,7 @@ function stageSvg() {
   }
   if (dgUi.phase === "move" || dgUi.phase === "run") {
     for (const p of dgUi.path) parts.push(sq(p.x, p.y, 'fill="rgb(244 212 142 / .18)" stroke="#f4d48e" stroke-width="2.4"'));
-    for (const t of candidates()) {
+    for (const t of candidates().filter(t => inBounds(t.x, t.y))) {          // за краем карты клетку не рисуем: там просто пусто
       const known = inBounds(t.x, t.y) && vis.has(tkey(t.x, t.y));
       parts.push(`<g class="tile-hit" data-tx="${t.x}" data-ty="${t.y}">${sq(t.x, t.y, `fill="${known ? "rgb(214 166 76 / .14)" : "rgb(120 110 95 / .22)"}" stroke="#f4d48e" stroke-width="1.8" stroke-dasharray="6 5"`)}
         ${known ? "" : up((t.x - px) * T, (t.y - py) * T, `<text text-anchor="middle" dominant-baseline="central" font-family="Kelly Slab, Georgia, serif" font-size="22" fill="#f4d48e" opacity=".75">?</text>`)}</g>`);
@@ -3488,6 +3589,7 @@ function stageOverlay() {
         return `<button class="fx-btn" data-act="run"${heavy.length ? " disabled" : ""}>${ICO_ACT.run}Бег<small>${heavy.length ? "перегруз: " + heavy.map(esc).join(", ") : "2 квадрата, +1 Усталость"}</small></button>`; })()}
       <button class="fx-btn" data-act="rest">${ICO_ACT.rest}Отдых<small>сон, караул, еда</small></button>
       <button class="fx-btn" data-act="explore">${ICO_ACT.explore}Исследовать<small>этот фрагмент, к20</small></button>
+      ${tileType(r.pos.x, r.pos.y) === "portal" ? `<button class="fx-btn portal-btn" data-act="portal">${ICO_ACT.run}Войти в портал<small>${PORTAL_NAME[FLOOR1.portals[tkey(r.pos.x, r.pos.y)]]}</small></button>` : ""}
       ${(() => { const sh = shovelsOf(); return `<button class="fx-btn dig-btn" data-act="dig"${sh.length ? "" : " disabled"}>${ICO_ACT.dig}Копать<small>${sh.length ? `лопат: ${sh.length}, к20` : "нужна лопата"}</small></button>`; })()}
     </div></div>`;
   return "";
@@ -3537,7 +3639,7 @@ function encounterOverlay() {
   const order = `<ol class="init" aria-label="Порядок ходов">
       <li class="init-h">Ход · раунд ${e.round || 1}</li>
       ${init.map((r, n) => { const gone = r.k === "mon" && dead(r.i); return `
-      <li><button class="init-row ${r.k}${n === e.turn ? " now" : ""}${gone ? " gone" : ""}" data-dg="${r.k === "hero" ? "enc-hero" : "enc-stat"}" data-id="${r.k === "hero" ? r.id : e.list[r.i]}" aria-current="${n === e.turn}">
+      <li><button class="init-row ${r.k}${n === e.turn ? " now" : ""}${gone ? " gone" : ""}" data-dg="${r.k === "hero" ? "enc-hero" : (monInfoOn() ? "enc-stat" : "enc-noop")}" data-id="${r.k === "hero" ? r.id : e.list[r.i]}" aria-current="${n === e.turn}">
         <b>${esc(r.name)}${r.k === "mon" ? num(r.i) : ""}</b>${r.k === "hero" ? (c => c ? `<small class="hp">ОЗ ${hpOf(c)}/${maxHp(c)}</small>` : "")(state.party.find(x => x.id === r.id)) : ""}
         <small>${r.total} <i>(${r.d20}${r.mod ? signed(r.mod) : ""})</i></small></button></li>`; }).join("")}
       <li><button class="fx-btn init-next" data-dg="enc-next">Дальше ▸</button></li>
@@ -3550,8 +3652,8 @@ function encounterOverlay() {
         ${order}
         <div class="fight-main">
           <div class="enc-list">${e.list.map((id, i) => { const m = MONSTERS.find(x => x.id === id); return `
-            <div class="enc-mon-wrap"><button class="enc-mon${dead(i) ? " dead" : ""}" data-dg="enc-kill" data-i="${i}"${pickable ? "" : " disabled"} aria-pressed="${dead(i)}"><span class="face">${img(ART.monsterFace(id), m.name)}</span><div><b>${m.name}${num(i)}</b><small>${m.rare ? "редкий" : "обычный"} · КД ${m.ac} · ОЗ ${m.hp.split(" ")[0]}</small></div>${dead(i) ? `<span class="kill">убит</span>` : ""}</button>
-            <button class="fx-btn stat-btn" data-dg="enc-stat" data-id="${id}" aria-label="Статы: ${m.name}">Статы</button></div>`; }).join("")}</div>
+            <div class="enc-mon-wrap"><button class="enc-mon${dead(i) ? " dead" : ""}" data-dg="enc-kill" data-i="${i}"${pickable ? "" : " disabled"} aria-pressed="${dead(i)}"><span class="face">${img(ART.monsterFace(id), m.name)}</span><div><b>${m.name}${num(i)}</b><small>${m.rare ? "редкий" : "обычный"} ${monInfoOn() ? `· КД ${m.ac} · ОЗ ${m.hp.split(" ")[0]}` : ""}</small></div>${dead(i) ? `<span class="kill">убит</span>` : ""}</button>
+            ${monInfoOn() ? `<button class="fx-btn stat-btn" data-dg="enc-stat" data-id="${id}" aria-label="Статы: ${m.name}">Статы</button>` : ""}</div>`; }).join("")}</div>
           ${e.outcome ? (pickable ? `<p>Отметь монстров, которых успели убить${e.outcome === "flee" ? " до побега" : " до их отступления"}.</p>` : "") : e.ambush ? `<p class="enc-warn">Отряд застигнут врасплох${e.cause === "rest-noguard" ? " (никто не стоял в карауле)" : ""}. Монстры ходят первыми.</p>` : `<p>Монстры применяют активку эссенции 1 раз за бой. Нажми на героя слева — его данные и инвентарь.</p>`}
         </div>
       </div>
@@ -3562,6 +3664,8 @@ function encounterOverlay() {
 }
 
 // Полный статблок монстра для мастера (без тумана библиотеки).
+// Характеристики монстров игрокам не показываются (решение автора); мастер включает их в меню боя («ОЗ монстров») или настройкой battleOpts.showMonHp.
+const monInfoOn = () => !!((state.settings || {}).battleOpts || {}).showMonHp;
 function monStatOverlay(id) {
   const m = MONSTERS.find(x => x.id === id);
   return `<div class="mapov stat-ov" role="dialog" aria-modal="true" aria-label="Статы: ${m.name}">
@@ -3652,6 +3756,7 @@ function renderDungeon() {
   ${dgUi.map ? floorMapOverlay() : ""}
   ${dgUi.phase === "rest" ? restOverlay() : ""}
   ${dgUi.phase === "explore" || dgUi.phase === "dig" ? searchOverlay() : ""}
+  ${dgUi.phase === "portal" ? portalOverlay() : ""}
   ${dgUi.res ? resultOverlay() : ""}
   ${r.pending && !dgUi.enc && !dgUi.res ? rollOverlay() : ""}
   ${dgUi.enc ? encounterOverlay() : ""}`;
@@ -3763,6 +3868,7 @@ function act(kind) {
       const st = r.status[c.id], before = hpOf(c);
       c.hp = Math.min(maxHp(c), before + restHeal(c, st.fat, st.starve >= 3));
       c.mp = maxMp(c); c.flags = {};                       // длинный отдых: мана и дневные способности
+      c.insp = 1;                                          // переброс возвращает только сон
       if (c.hp > before) healed.push(`${c.name} +${c.hp - before}`);
       st.fat = Math.max(0, st.fat - (st.starve >= 3 ? 1 : 2)); st.awake = 0;
     }
@@ -3956,6 +4062,7 @@ document.addEventListener("click", e => {
     case "sr-l": dgUi.sr.luck = Number(ds.n); break;
     case "sr-ok": act(dgUi.phase); return;
     case "res-done": dgUi.res = null; break;
+    case "portal-go": toast("Переход на 2 этаж ещё не готов"); logRun("Отряд подошёл к порталу: переход на 2 этаж пока недоступен."); dgUi.phase = "menu"; break;
     case "rest-go": act("rest"); return;
     case "zoom-in": dgUi.zoom = clampZoom(dgUi.zoom * 1.25); applyRotation(); return;
     case "zoom-out": dgUi.zoom = clampZoom(dgUi.zoom / 1.25); applyRotation(); return;
@@ -4011,8 +4118,8 @@ let heroUi = null;
 const HSLOTS = [["main", "Правая рука"], ["off", "Левая рука"], ["body", "Тело"], ["head", "Шлем"], ["hands", "Перчатки"], ["feet", "Ботинки"],
   ["ring1", "Кольцо"], ["ring2", "Кольцо"], ["accessory", "Аксессуар"], ["charm", "Талисман"]];
 const heroById = id => state.party.find(c => c.id === id);
-function itemThumb(e) {
-  const it = itemOf(e); if (!it) return "";
+function itemThumb(e, c) {
+  const it = itemOf(e, c); if (!it) return "";
   return it.art ? img(it.art, it.name) : (it.icon || GEAR_ICON.custom);
 }
 
@@ -4052,10 +4159,10 @@ function heroStats(c) {
       <div class="btn-row" style="justify-content:center">${[-5, -1, 1, 5].map(dlt => `<button class="fx-btn" data-hx="mp" data-d="${dlt}" aria-label="Мана ${dlt > 0 ? "+" : "−"}${Math.abs(dlt)}">${dlt > 0 ? "+" : "−"}${Math.abs(dlt)}</button>`).join("")}</div>
       <p class="trait" style="margin:0;text-align:center">Мана 10 + 2 × уровень и бонусы эссенций. Тратится на активные навыки в бою, полностью восстанавливается на Отдыхе.</p>
     </div>
-    <dl class="kv"><div><dt>КД</dt><dd>${d.ac}</dd></div><div><dt>Мана</dt><dd>${d.mana}</dd></div><div><dt>БМ</dt><dd>+${d.pb}</dd></div></dl>
-    <div class="lrow luck-row"><span>Вдохновение <b style="color:var(--fx-gold-hi)">${c.insp || 0}</b></span>
-      <span class="btn-row"><button class="fx-btn" data-hx="insp" data-d="-1" aria-label="Вдохновение −1">−</button><button class="fx-btn" data-hx="insp" data-d="1" aria-label="Вдохновение +1">+</button></span></div>
-    <p class="trait" style="margin:0">Вдохновение (выдаёт мастер) даёт перебросить любой бросок кубика в бою: тратится одно за переброс.</p>
+    <dl class="kv"><div><dt>КД</dt><dd>${d.ac}</dd></div><div><dt>Мана</dt><dd>${d.mana}</dd></div></dl>
+    <div class="lrow luck-row"><span>Переброс <b style="color:var(--fx-gold-hi)">${c.insp ?? 1}</b><small style="display:block;opacity:.7">1 на героя; не при тяжёлой усталости; возвращает только сон</small></span>
+      <span class="btn-row"><button class="fx-btn" data-hx="insp" data-d="-1" aria-label="Переброс −1">−</button><button class="fx-btn" data-hx="insp" data-d="1" aria-label="Переброс +1">+</button></span></div>
+    <p class="trait" style="margin:0">Переброс: один на героя, перебрасывает любой бросок кубика в бою. Недоступен при тяжёлой усталости (3–4), потраченный возвращается только после сна.</p>
     <div class="lrow luck-row"><span>Удача <b style="color:var(--fx-gold-hi)">${signed(luckOf(c))}</b></span>
       <span class="btn-row"><button class="fx-btn" data-hx="luck" data-d="-1" aria-label="Удача −1">−</button><button class="fx-btn" data-hx="luck" data-d="1" aria-label="Удача +1">+</button></span></div>
     <p class="trait" style="margin:0">Удача прибавляется к броску удачи при раскопках и снижает шанс нападения на долгой стоянке. На бой не влияет: крит решает обычный бросок.</p>
@@ -4099,11 +4206,12 @@ function selPanel(c) {
       <div class="btn-row"><button class="fx-btn" data-hx="unequip">Снять в рюкзак</button></div></div>`;
   }
   if (heroUi.sel === null) return "";
-  const e = c.bag[heroUi.sel], it = itemOf(e);
+  const e = c.bag[heroUi.sel], it = itemOf(e, c);
   if (!it) return "";
   const btns = [];
   if (it.use === "eat") btns.push(`<button class="fx-btn primary" data-hx="eat">Съесть 1</button>`);
   if (it.use === "drink") btns.push(`<button class="fx-btn primary" data-hx="drink">Выпить</button>`);
+  if (it.use === "find") btns.push(`<button class="fx-btn primary" data-hx="usefind">${it.find === "mush" ? "Съесть" : "Применить"}</button>`);
   if (it.kindOf === "weapon" && it.group !== "shield" && it.kind !== "Боеприпасы") btns.push(`<button class="fx-btn" data-hx="equip" data-slot-to="main">В правую руку</button>`);
   if (it.kindOf === "weapon" && (it.group === "shield" || (it.group === "melee" && !isTwoHandedWeapon(it)))) btns.push(`<button class="fx-btn" data-hx="equip" data-slot-to="off"${twoHanded(c) ? " disabled" : ""}>В левую руку</button>`);
   if (it.kindOf === "armor" || it.slot === "body") btns.push(`<button class="fx-btn" data-hx="equip" data-slot-to="body">Надеть</button>`);
@@ -4116,6 +4224,20 @@ function selPanel(c) {
     ${heroUi.give ? `<div class="btn-row">${others.map(o => `<button class="fx-btn" data-hx="give" data-to="${o.id}">${esc(o.name)} (${(o.bag || []).length}/${bagSize(o)})</button>`).join("")}</div>
       ${e.qty > 1 ? `<p>Передаётся вся стопка.</p>` : ""}` : ""}
   </div>`;
+}
+
+// Применение находки вне боя (в бою — battle-env.js). Возвращает текст результата.
+function applyFindOut(c, id) {
+  const g = GEAR[id], f = g.fnd, x = f.fx, st = state.run && state.run.status && state.run.status[c.id], out = [`${f.name}`];
+  const hurt = n => { c.hp = Math.max(0, hpOf(c) - n); if (c.hp <= 0) c.hp = 1; };          // вне боя находка не убивает
+  if (x.heal) { const h = roll(x.heal[0], x.heal[1]) + x.heal[2], b = hpOf(c); c.hp = Math.min(maxHp(c), b + h); out.push(`ОЗ ${b} → ${c.hp}`); }
+  if (x.mp) { const b = mpOf(c); c.mp = Math.min(maxMp(c), b + x.mp); out.push(`мана ${b} → ${c.mp}`); }
+  if (x.poison) { const d = roll(x.poison[0], x.poison[1]) + x.poison[2]; hurt(d); out.push(`яд: −${d} ОЗ`); }
+  if (x.boom) { const d = roll(x.boom[0], x.boom[1]) + x.boom[2]; hurt(d); out.push(`взрыв во рту: −${d} ОЗ`); }
+  if (x.sat) { if (st) { st.sat = Math.min(9, st.sat + x.sat); st.starve = 0; out.push(`сытость +${x.sat}`); } else out.push("сытость (вне захода не считается)"); }
+  if (x.fat) { if (st) { const b = st.fat || 0; st.fat = Math.max(0, b - x.fat); out.push(`Усталость ${b} → ${st.fat}`); } }
+  if (x.light) { const r = state.run; if (r) { r.light = true; r.torchLeft = Math.max(r.torchLeft || 0, 3); out.push("светит как факел (3 действия)"); } }
+  return out.length > 1 ? `${out[0]}: ${out.slice(1).join(", ")}` : `${out[0]}: ничего не произошло`;
 }
 
 function heroInv(c) {
@@ -4134,14 +4256,14 @@ function heroInv(c) {
     <div class="bag">${Array.from({ length: bagSize(c) }, (_, i) => {
       const e = c.bag[i];
       if (!e) return `<div class="cell empty" aria-hidden="true"></div>`;
-      const it = itemOf(e);
+      const it = itemOf(e, c);
       return `<button class="cell" data-hbag="${i}" aria-pressed="${heroUi.sel === i}" aria-label="${esc(it.name)}${e.qty > 1 ? ", " + e.qty + " шт." : ""}">
-        ${itemThumb(e)}${e.qty > 1 ? `<span class="q">${e.qty}</span>` : ""}${e.uses != null ? `<span class="q">${e.uses}</span>` : ""}${it.art ? "" : `<span class="t">${esc(it.short || it.name.split(" ")[0])}</span>`}</button>`;
+        ${itemThumb(e, c)}${e.qty > 1 ? `<span class="q">${e.qty}</span>` : ""}${e.uses != null ? `<span class="q">${e.uses}</span>` : ""}${it.art ? "" : `<span class="t">${esc(it.short || it.name.split(" ")[0])}</span>`}</button>`;
     }).join("")}</div>
     ${selPanel(c)}
     <div class="btn-row" style="justify-content:center"><button class="fx-btn" data-hx="add-toggle" aria-expanded="${heroUi.add}">${heroUi.add ? "Скрыть список" : "+ Добавить предмет (мастер)"}</button></div>
     ${heroUi.add ? `<div class="add-list">
-      ${[["ration", 1], ["potion", 1], ["torch", 1], ["arrow", 20], ["clothes", 1], ["shovel", 1], ["shovel-good", 1], ["shovel-best", 1], ["stone-9", 1], ["stone-8", 1]].map(([id, q]) => `<button class="fx-btn" data-hadd="g:${id}:${q}">${GEAR[id].name}${q > 1 ? " ×" + q : ""}</button>`).join("")}
+      ${[["ration", 1], ["potion", 1], ["torch", 1], ["arrow", 20], ["clothes", 1], ["shovel", 1], ["shovel-good", 1], ["shovel-best", 1], ["stone-9", 1], ["stone-8", 1], ...Object.keys(FINDS).map(k => [k, 1])].map(([id, q]) => `<button class="fx-btn" data-hadd="g:${id}:${q}">${GEAR[id].name}${q > 1 ? " ×" + q : ""}</button>`).join("")}
       ${WEAPONS.filter(w => w.kind !== "Боеприпасы").map(w => `<button class="fx-btn" data-hadd="w:${w.id}:1">${w.name}</button>`).join("")}
       ${ARMOR_FLAT.map(a => `<button class="fx-btn" data-hadd="a:${a.id}:1">${a.name}</button>`).join("")}
     </div>` : ""}`;
@@ -4197,7 +4319,7 @@ $hero.addEventListener("click", e => {
     case "hp": c.hp = Math.max(0, Math.min(maxHp(c), hpOf(c) + Number(ds.d))); heroAfterChange(); return;
     case "luck": c.luck = luckOf(c) + Number(ds.d); heroAfterChange(); return;
     case "mp": c.mp = Math.max(0, Math.min(maxMp(c), mpOf(c) + Number(ds.d))); heroAfterChange(); return;
-    case "insp": c.insp = Math.max(0, (c.insp || 0) + Number(ds.d)); heroAfterChange(); return;
+    case "insp": c.insp = Math.max(0, (c.insp ?? 1) + Number(ds.d)); heroAfterChange(); return;
     case "revive": c.dead = false; c.hp = Math.max(1, hpOf(c)); heroAfterChange(`${c.name} воскрешён (1 ОЗ)`); return;
     case "ess-add-toggle": heroUi.essAdd = !heroUi.essAdd; renderHero(); return;
     case "ess-add": essStash().push(ds.essid); heroAfterChange(`В запас добавлено: ${ESSENCES[ds.essid].name}`); return;
@@ -4221,6 +4343,13 @@ $hero.addEventListener("click", e => {
       if (st) { st.sat = Math.min(9, st.sat + 3); st.starve = 0; logRun(`${c.name} съел паёк.`); }
       heroUi.sel = c.bag.indexOf(entry) >= 0 ? heroUi.sel : null;
       heroAfterChange(`${c.name} съел паёк`); return;
+    }
+    case "usefind": {
+      const g = GEAR[entry.id]; if (!g || !g.find) return;
+      entry.qty--; if (!entry.qty) { c.bag.splice(heroUi.sel, 1); heroUi.sel = null; }
+      const txt = applyFindOut(c, entry.id);
+      if (state.run) logRun(`${c.name}: ${txt}`);
+      heroAfterChange(txt); return;
     }
     case "drink": {
       entry.qty--; if (!entry.qty) { c.bag.splice(heroUi.sel, 1); heroUi.sel = null; }
@@ -4548,6 +4677,7 @@ function renderHome() {
     </div>`;
 }
 
+let lastFx = "";
 function route(keepScroll) {
   const key = location.hash.slice(1);
   const y = window.scrollY;
@@ -4579,6 +4709,8 @@ function route(keepScroll) {
     $view.innerHTML = renderHome();
     renderResults();
   }
+  if (fx) lastFx = key;                                         // «Главная» вернёт на последний игровой экран (город, подземелье)
+  state.lastHash = key;
   const activeTab = tab ? key : fx ? "" : "ref";
   document.querySelectorAll("nav.tabs [data-tab]").forEach(b =>
     b.dataset.tab === activeTab ? b.setAttribute("aria-current", "page") : b.removeAttribute("aria-current"));
@@ -4680,8 +4812,25 @@ function makeSave(name) {
   const list = readSaves();
   const now = new Date();
   list.unshift({ id: "s" + now.getTime().toString(36), name: name || "Сохранение " + now.toLocaleString("ru-RU", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }),
-    date: now.toISOString(), info: saveSummary(state), data: JSON.stringify(state) });
+    date: now.toISOString(), info: saveSummary(state), data: JSON.stringify(state, (k, v) => (k === "fightSnap" ? undefined : v)) });
   return writeSaves(list.slice(0, 15));
+}
+// Автосохранение: один отдельный слот «Автосохранение», перезаписывается (перед боем, после боя, раз в две минуты в заходе).
+function autoSave(why) {
+  try {
+    const list = readSaves().filter(x => !x.auto), now = new Date();
+    list.unshift({ id: "auto", auto: true, name: "Автосохранение" + (why ? " · " + why : ""), date: now.toISOString(), info: saveSummary(state), data: JSON.stringify(state, (k, v) => (k === "fightSnap" ? undefined : v)) });
+    writeSaves(list.slice(0, 15));
+  } catch (e) { /* не страшно */ }
+}
+setInterval(() => { if (state.run) autoSave(); }, 120000);
+document.addEventListener("visibilitychange", () => { if (document.hidden) { try { saveChar(); } catch (e) {} if (state.run) autoSave("свёрнуто"); } });
+window.addEventListener("pagehide", () => { try { saveChar(); } catch (e) {} });
+// Возврат боя после перезагрузки страницы (снимок в начале каждого хода, battle.js → snapshot).
+function resumeFight() {
+  const sn = state.fightSnap; if (!sn || !state.run || !window.Battle || !window.Battle.ready) return;
+  dgUi.enc = sn.ev; location.hash = "labyrinth"; rerender();
+  window.Battle.resume(sn.ev, sn.S);
 }
 function loadSave(id) {
   const sv = readSaves().find(x => x.id === id); if (!sv) return;
@@ -4729,7 +4878,7 @@ document.addEventListener("click", e => {
   if (!el) return;
   const ds = el.dataset;
   if (ds.go !== undefined) { location.hash = ds.go; return; }
-  if (ds.tab !== undefined) { location.hash = ds.tab; return; }
+  if (ds.tab !== undefined) { const onFx = ["", "town", "labyrinth"].includes(location.hash.slice(1)); location.hash = ds.tab === "" && !onFx && lastFx ? lastFx : ds.tab; return; }          // из справочника «Главная» ведёт обратно в подземелье или город
   if (ds.f) {
     const scope = el.closest("[data-scope]").dataset.scope;
     const st = scope === "w" ? wf : scope === "a" ? af : mf;
@@ -4789,11 +4938,12 @@ document.addEventListener("click", e => {
   const el = e.target.closest("[data-set]");
   if (el && el.dataset.set === "tactical") setTactical(!settings().tactical);
 });
-if (settings().tactical) loadBattle();
+if (settings().tactical) loadBattle().then(ok => { if (ok && state.fightSnap) resumeFight(); }); else state.fightSnap = null;
 state.party.forEach(ensureKit);       // старые герои получают стартовый набор
 // Первый запуск со слотами сохранений: текущая партия сохраняется сама, чтобы тесты ничего не испортили.
 if (!readSaves().length && state.party.length) makeSave("Партия до тестов (сохранено автоматически)");
 if (window.SputnikApp && window.SputnikApp.pending && window.SputnikApp.pending()) updUi = { state: "downloaded", note: "Новая версия скачана. Нажми, чтобы применить — игра сохранится." };
+if (!location.hash && state.lastHash && (state.lastHash !== "labyrinth" || state.run)) location.hash = state.lastHash;          // после перезагрузки — на том же экране
 route();
 </script>
 </body>

@@ -42,7 +42,7 @@
       else if (f === "cluster") s += alliesOf(t).filter(a => dist(a, t) <= 1).length * 1.2;
     }
     if (int >= 2 && t.hp < t.maxHp * 0.75) s += 1.5;                                   // фокус-огонь по уже раненому
-    if (t.down) s -= has(t, "stable") || t.hp === 0 ? 3 : 0;                          // лежачих добивают неохотно
+    if (t.down) s -= 6;                                                                // упавшего добивают в последнюю очередь: сначала те, кто на ногах
     if (int >= 1 && has(t, "dodging")) s -= 1;
     return s;
   }
@@ -51,7 +51,7 @@
     const avg = B.avgDice(atk.dmg) + (ctx.extra || []).reduce((a, e) => a + e.n * (e.s + 1) / 2, 0);
     let dmg = p * (avg + 0.05 * avg), kill = 0;
     if (t.hp <= avg * p) kill = 3 * p; else if (t.hp <= avg) kill = 1;
-    if (t.down && t.hp === 0) dmg *= 0.6;
+    if (t.down && !t.dead) { dmg *= 0.3; kill = 0; }                                    // добить можно, но выгоднее бить тех, кто ещё стоит
     return dmg + kill + focusBonus(u, t, pr) * 0.6;
   }
   // Лучшее действие из текущей позиции юнита: {kind, ...score}

@@ -30,7 +30,7 @@ const W = +process.env.W || 400, H = +process.env.H || 860;
   await L.shot(p, '210_cellinfo_thorns'); await closeModal();
   await hold(4, 3); t = await modalText(); ok('вода: промок, холод и молния', /Лужа/i.test(t) && /Холод и молния/i.test(t), t.slice(0, 200)); await closeModal();
   await hold(2, 3); t = await modalText(); ok('ловушка видна: Сл и урон', /Ловушка/i.test(t) && /Сл 12/.test(t), t.slice(0, 200)); await closeModal();
-  await hold(0, 0); t = await modalText(); ok('пустая земля: «Ровная земля», рыхлый грунт', /Ровная земля/i.test(t) && /Рыхлый грунт/i.test(t), t.slice(0, 200)); await closeModal();
+  await hold(0, 0); t = await modalText(); ok('пустая земля: «Ровная земля» без подсказок про монстров', /Ровная земля/i.test(t) && !/Рыхлый грунт|закопаться/i.test(t), t.slice(0, 200)); await closeModal();
   // клетка с бойцом: окно бойца и справа сноска с эффектом поля
   await p.evaluate(() => { const u = Battle.UI.turnUnit; u.x = 3; u.y = 3; Battle.UI.refreshNow(); });
   await hold(3, 3);

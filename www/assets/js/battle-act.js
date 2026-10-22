@@ -27,7 +27,7 @@
     const am = amod(u.abil[ab]);
     const dice = parseDice(f.versatile && !eq.off && mode === "hand" ? f.versatile : w.dmg);
     const giant = c.giantGrip && c.race === "barbarian" && f.two && !ranged;
-    const atk = { id: mode + ":" + w.id, w, n: w.name, hit: am + u.pb, parts: [{ l: ABIL_RU[ab], v: am }, { l: "Бонус мастерства", v: u.pb }], dmg: { ...dice, b: dice.b + am }, dt: DT[w.type] || "bludgeon", tags: [], mode, time: "action" };
+    const atk = { id: mode + ":" + w.id, w, n: w.name, hit: am + u.pb, parts: [{ l: ABIL_RU[ab], v: am }, ...(u.pb ? [{ l: "Бонус мастерства", v: u.pb }] : [])], dmg: { ...dice, b: dice.b + am }, dt: DT[w.type] || "bludgeon", tags: [], mode, time: "action" };
     if (giant) { atk.penalty = -2; atk.penaltyLabel = "Великан: одной рукой"; }
     if (mode === "hand" && !ranged) { atk.kind = "melee"; atk.reach = w.id === "spear" && u.pass.includes("goblin-spear") ? 2 : 1 + longArm(u, w); atk.sub = atk.reach > 1 ? `досягаемость ${atk.reach * 1.5} м`.replace(".", ",") : "ближний бой"; }
     else if (mode === "hand" && ranged) {
@@ -70,8 +70,8 @@
     for (const a of seenBag.values()) if (a.count > 1) a.n += ` ×${a.count}`;
     if (off && off.kindOf === "weapon" && off.group === "melee" && off.id !== "tower-shield" && u.t && u.t.attacked && main && main.group === "melee" && !wprops(main).two) out.push(atkFrom(u, off, "off"));
     const strM = amod(u.abil.str);
-    out.push({ id: "fist", n: "Кулак", kind: "melee", reach: 1, hit: strM + u.pb, parts: [{ l: "Сила", v: strM }, { l: "Бонус мастерства", v: u.pb }], dmg: { n: 0, s: 0, b: Math.max(1, 1 + strM) }, dt: "bludgeon", tags: [], time: "action", sub: "атака рукой: 1 + Сила" });
-    if (u.hero && countGear(u.hero, "torch") > 0) out.push({ id: "torchhit", n: "Факел", kind: "melee", reach: 1, hit: strM + u.pb, parts: [{ l: "Сила", v: strM }, { l: "Бонус мастерства", v: u.pb }], dmg: { n: 0, s: 0, b: 1 }, dt: "fire", tags: [], time: "action", sub: "1 урона огнём" });
+    out.push({ id: "fist", n: "Кулак", kind: "melee", reach: 1, hit: strM + u.pb, parts: [{ l: "Сила", v: strM }, ...(u.pb ? [{ l: "Бонус мастерства", v: u.pb }] : [])], dmg: { n: 0, s: 0, b: Math.max(1, 1 + strM) }, dt: "bludgeon", tags: [], time: "action", sub: "атака рукой: 1 + Сила" });
+    if (u.hero && countGear(u.hero, "torch") > 0) out.push({ id: "torchhit", n: "Факел", kind: "melee", reach: 1, hit: strM + u.pb, parts: [{ l: "Сила", v: strM }, ...(u.pb ? [{ l: "Бонус мастерства", v: u.pb }] : [])], dmg: { n: 0, s: 0, b: 1 }, dt: "fire", tags: [], time: "action", sub: "1 урона огнём" });
     return out;
   }
   B.heroAttacks = heroAttacks;
@@ -123,10 +123,11 @@
   }
   B.commitAttack = commitAttack;
   async function runAttack(u, atk) {
-    const targets = B.attackTargets(u, atk);
-    if (!targets.length) { UI().toast("Нет целей в досягаемости"); return false; }
-    const tgt = await UI().pickUnit({ prompt: `${atk.n}: выберите цель`, units: targets.map(t => t.id), cells: rangeCells(u, atk), kind: "attack" });
+    const targets = B.attackTargets(u, atk), objs = B.objectTargets ? B.objectTargets(u, atk) : [];
+    if (!targets.length && !objs.length) { UI().toast("Нет целей в досягаемости"); return false; }
+    const tgt = await UI().pickUnit({ prompt: `${atk.n}: выберите цель${objs.length ? " (можно и объект)" : ""}`, units: targets.map(t => t.id), objs: objs.map(o => o.x + "," + o.y), cells: rangeCells(u, atk), kind: "attack", from: atk.kind === "melee" ? null : u });
     if (!tgt) return false;
+    if (tgt.isObj) { const r0 = await B.attackObject(u, atk, tgt, { onCommit: () => commitAttack(u, atk, tgt) }); return !r0.cancelled; }
     const r = await B.doAttack(u, tgt, atk, { onCommit: () => commitAttack(u, atk, tgt) });
     return !r.cancelled;
   }
@@ -463,7 +464,7 @@
     const t = u.t;
     // атаки
     for (const atk of heroAttacks(u)) {
-      const why = timeWhy(u, atk.time) || (atk.ammo && countGear(u.hero, "arrow") < 1 ? "нет стрел" : (B.attackTargets(u, atk).length ? null : "нет целей рядом"));
+      const why = timeWhy(u, atk.time) || (atk.ammo && countGear(u.hero, "arrow") < 1 ? "нет стрел" : ((B.attackTargets(u, atk).length || (B.objectTargets && B.objectTargets(u, atk).length)) ? null : "нет целей рядом"));
       opts.push({ id: "atk:" + atk.id, cat: "attack", label: atk.n, ico: atk.ammo ? "bow" : atk.thrown ? "throwing" : atk.id === "fist" ? "fist" : atk.id === "torchhit" ? "torch" : "attack",
         sub: `${atk.kind === "melee" ? "до " + (atk.reach || 1) + " кл." : atk.range[0] >= B.W - 1 ? "дальний · всё поле" : `дальний · ${atk.range[0]} кл., до ${Math.min(atk.range[1], 12)} с помехой`} · ${atk.dmg.n ? fmtDice(atk.dmg) : atk.dmg.b} ${D.DT[atk.dt]}${atk.penalty ? " · " + atk.penaltyLabel : ""}${atk.ammo ? " · стрел: " + countGear(u.hero, "arrow") : ""}`,
         time: atk.time, enabled: !why, why, atk, run: () => runAttack(u, atk) });
@@ -488,6 +489,7 @@
     if ([u, ...alliesOf(u)].some(a => has(a, "bleeding") && dist(u, a) <= 1 && !a.dead)) opts.push(simple("bandage", "Перевязать", "heart", "остановить кровотечение: Медицина Сл 10", () => doBandage(u), { enabled: !act, why: act }));
     if (B.S.objs.some(o => o.kind === "trap" && o.hidden) || B.mons().some(m => B.isUnseen(m) && alive(m))) opts.push(simple("search", "Осмотреться", "search", "найти скрытые ловушки и затаившихся врагов", () => doSearch(u), { enabled: !act, why: act }));
     // предметы
+    if (B.envActions) opts.push(...B.envActions(u));                                                // находки, сундуки
     const c = u.hero, bon = timeWhy(u, "bonus");
     if (countGear(c, "potion") > 0) {
       const hurt = [u, ...alliesOf(u).filter(a => dist(u, a) <= 1 && !a.dead)].some(a => a.hp < a.maxHp);       // без раненых рядом зелье бесполезно: автоконец хода его не ждёт

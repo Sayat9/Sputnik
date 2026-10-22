@@ -104,6 +104,11 @@
         return put;
       };
       placeObst(rr(zc.nObst[0], zc.nObst[1]));
+      // полное укрытие (D.gen.wallChance): стенка из 1–2 клеток в рядах 1–4 (не в рядах героев), чаще поперёк поля
+      if (zc.wall && rnd(100) < G.wallChance * 100) {
+        const n = rr(G.wallLen[0], G.wallLen[1]); let sx = rnd(W), sy = 1 + rnd(4);
+        for (let i = 0; i < n; i++) { const x = sx + i; if (x < W && !cells[sy][x]) cells[sy][x] = zc.wall; }
+      }
       // украшения и опасности
       for (const [k, lo, hi, blob] of zc.feats) {
         const n = rr(lo, hi); if (!n) continue;
@@ -164,9 +169,10 @@
 
   /* ===== юниты ===== */
   let uidSeq = 1;
+  B.setUid = n => { uidSeq = n; };
   function baseUnit(side) {
     return { id: "u" + (uidSeq++), side, x: 0, y: 0, size: 1, hp: 1, maxHp: 1, temp: 0, mp: 0, maxMp: 0, ac: 10, speedC: 6, flyC: 0, abil: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 },
-      pb: 2, level: 1, skills: {}, saveB: {}, initB: 0, conds: [], cd: {}, used: {}, turnsTaken: 0, t: { move: 0, action: 0, bonus: 0, react: 1 },
+      pb: 0, level: 1, skills: {}, saveB: {}, initB: 0, conds: [], cd: {}, used: {}, turnsTaken: 0, t: { move: 0, action: 0, bonus: 0, react: 1 },
       alive: true, down: false, dead: false, fled: false, escaped: false, pass: [], ess: [], flags: {}, atk: [], seq: null, vuln: [], resist: [], immune: [], ctl: "auto", blind: 0, tremor: 0, dv: false, deathSaves: { ok: 0, fail: 0 } };
   }
   function heroUnit(c) {
@@ -178,7 +184,7 @@
     u.pass = [...u.ess, "race:" + c.race];
     if (u.ess.some(id => (ESSENCES[id].other || []).some(o => /^Тёмное зрение/.test(o)))) u.dv = true;
     essenceTraits(u);
-    u.insp = c.insp || 0;
+    u.insp = c.insp ?? 1;                                                  // переброс: у каждого по одному, пока не потрачен (восстанавливает только сон)
     if (u.hp <= 0) { u.hp = 0; u.down = true; u.conds.push(mkStatus("unconscious", { k: Infinity }), mkStatus("prone", { k: Infinity })); }
     if (c.dead) { u.dead = true; u.alive = false; u.down = true; }
     return u;
@@ -207,7 +213,7 @@
     const m = MONSTERS.find(x => x.id === id), cb = D.mon[id] || { atk: [], ai: { int: 1, role: "melee", focus: ["nearest"] } };
     const u = baseUnit("mon"), sp = parseSpeed(m.speed);
     Object.assign(u, { ref: id, idx, name: m.name, base: m.name, mon: m, cb, ai: cb.ai || {}, size: cb.size || (/^Большой/.test(m.size) ? 2 : 1), hp: parseInt(m.hp, 10), maxHp: parseInt(m.hp, 10), ac: parseInt(m.ac, 10),
-      speedC: cellsOfM(sp.walk), flyC: cellsOfM(sp.fly), climbC: cellsOfM(sp.climb), atk: (cb.atk || []).map(a => ({ ...a, dmg: parseDice(a.dmg) })), seq: cb.seq || null, vuln: cb.vuln || [],
+      speedC: cellsOfM(sp.walk), flyC: cellsOfM(sp.fly), climbC: cellsOfM(sp.climb), atk: (cb.atk || []).map(a => { const dm = parseDice(a.dmg), cut = D.monDmgCut[m.cls] || 0; return { ...a, dmg: { ...dm, b: Math.max(0, dm.b - cut) } }; }), seq: cb.seq || null, vuln: cb.vuln || [],
       skills: parseSkills(m.senses), initB: 0, face: ART.monsterFace(id), blind: cb.blind || 0, tremor: cb.tremor || 0, dv: /Тёмное зрение/.test(m.senses || ""), shield: !!cb.shield, rare: !!m.rare, cls: m.cls });
     ABIL.forEach((k, i) => { u.abil[k] = m.abil[i]; });
     if (m.essence && ESSENCES[m.essence]) u.ess = [m.essence];
@@ -343,8 +349,20 @@
     let n = 0; for (const [x, y] of lineCells(a, b)) if (obstacleAt(x, y)) n++;
     return n >= 2 ? 5 : n === 1 ? 2 : 0;
   }
-  const lineBlocked = (a, b) => lineCells(a, b).filter(([x, y]) => obstacleAt(x, y)).length >= 3;
-  Object.assign(B, { meleeReach, center, lineCells, coverBetween, lineBlocked });
+  // Полное укрытие (terrain.block: частокол, бурелом, стена склепа, скала): за ним ничего не видно, ни стрелять, ни метать, ни колдовать.
+  const sightBlockAt = (x, y) => { const t = tinfo(x, y); return !!(t && t.block); };
+  const hasLOS = (a, b) => !lineCells(a, b).some(([x, y]) => sightBlockAt(x, y));
+  const lineBlocked = (a, b) => !hasLOS(a, b) || lineCells(a, b).filter(([x, y]) => obstacleAt(x, y)).length >= 3;
+    // Что видит отряд: клетка видна, если до неё есть линия обзора хотя бы у одного стоящего героя (или призванного).
+  const watchers = () => live().filter(u => u.side === "hero" && !u.down && !has(u, "underground"));
+  function visionCells() {
+    const set = new Set(), ws = watchers();
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const pt = { x, y, size: 1, id: "cell" }; if (!ws.length || ws.some(w => hasLOS(w, pt))) set.add(key(x, y)); }
+    return set;
+  }
+  const seenByParty = m => { const ws = watchers(); return !ws.length || ws.some(w => hasLOS(w, m)); };
+  Object.assign(B, { visionCells, seenByParty });
+  Object.assign(B, { meleeReach, center, lineCells, coverBetween, lineBlocked, hasLOS, sightBlockAt });
 
   /* ===== свет и тьма ===== */
   function lightAt(x, y) {
@@ -363,7 +381,8 @@
     const S = { ev, zone, ambush: !!ev.ambush, dark: false, torch: false, units: [], order: [], turn: 0, round: 1, phase: "init", log: [], killed: [], objs: [], drops: [], opts: Object.assign({ showMonHp: false, autoSaves: false, autoEnd: true }, (state.settings && state.settings.battleOpts) || {}, { autoHeroes: false }), outcome: null, arrowLog: {}, zones: [], bodies: [], q: [], started: Date.now() };
     try { S.dark = typeof inDarkness === "function" && !!(state.run && isDark(state.run.pos.x, state.run.pos.y)) && !(state.run && state.run.light); S.torch = !!(state.run && state.run.light); } catch (e) { S.dark = false; }
     S.floor = ev.floor || (state.run && state.run.floor) || 1;
-    const g = genTerrain(zone, S.floor); S.cells = g.cells; S.objs = g.objs;
+    const g = genTerrain(zone, S.floor); S.cells = g.cells; S.objs = g.objs; S.found = []; S.objHp = {};
+    if (B.placeEnv) B.placeEnv(S, ev);
     uidSeq = 1;
     B.S = S;
     const heroes = (state.party || []).filter(c => !c.dead).map(heroUnit);

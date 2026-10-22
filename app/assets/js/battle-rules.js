@@ -28,7 +28,7 @@
     const out = [];
     if (u.side !== "hero") return out;
     if (kind === "damage" && ctx.melee && D.race[u.race] && D.race[u.race].reroll === "rite" && !(u.t && u.t.riteUsed)) out.push({ id: "rite", label: "Наследие обряда", spend: () => { u.t.riteUsed = true; } });
-    if ((u.insp || 0) > 0) out.push({ id: "insp", label: "Вдохновение", spend: () => { u.insp--; if (u.hero) u.hero.insp = u.insp; } });
+    if ((u.insp || 0) > 0 && !(u.fat >= 3)) out.push({ id: "insp", label: "Переброс", spend: () => { u.insp--; if (u.hero) u.hero.insp = u.insp; } });
     return out;
   }
   Object.assign(B, { session, ctlOf, d20Core, rerollOptions });
@@ -253,6 +253,10 @@
   }
   B.arrowFate = arrowFate;
   async function doAttack(att, tgt, atk, o = {}) {
+    const g0 = ui(); if (g0 && atk.kind !== "melee" && g0.setTraj) g0.setTraj([{ a: att, b: tgt }]);          // траектория выстрела видна на поле, пока идёт бросок
+    try { return await doAttack0(att, tgt, atk, o); } finally { if (g0 && g0.setTraj) g0.setTraj(null); }
+  }
+  async function doAttack0(att, tgt, atk, o = {}) {
     const S = B.S;
     if (B.redirectAttack && !o.noRedirect) { const nt = await B.redirectAttack(att, tgt, atk, o); if (nt) tgt = nt; }          // двойник, «Принять удар»
     const ctx = attackCtx(att, tgt, atk, o);
@@ -278,7 +282,8 @@
     if (!res.hit) {
       hookAll(att, "onMiss", { ...ctx, res });
       if (!res.parried) hookAll(tgt, "onMissedBy", { ...ctx, res });                                // «Ложный образ»: промахнувшийся обманут
-      const text = res.swapped ? "Подмена: удар пришёлся на двойника" : res.parried ? "Парировано!" : nat === 1 ? "Критический промах" : "Промах";
+      const hitSide = !res.parried && !res.swapped && B.interceptShot ? await B.interceptShot(att, tgt, atk, res, ses) : null;          // низкий бросок: снаряд задевает кого-то на пути
+      const text = (res.swapped ? "Подмена: удар пришёлся на двойника" : res.parried ? "Парировано!" : nat === 1 ? "Критический промах" : "Промах") + (hitSide ? ` (${hitSide})` : "");
       if (g) g.fxText(tgt, res.swapped ? "подмена" : res.parried ? "парирует" : "промах", "miss");
       log(`${att.name}: ${atk.n} по ${tgt.name} — ${text.toLowerCase()} (${nat === total ? nat : `${nat} → ${total}`} против КД ${ctx.ac})${ar && ar.note ? ", " + ar.note : ""}.`, "miss");
       if (g && ses.auto) { g.banner(`${att.name} → ${tgt.name}: ${text.toLowerCase()} (${total} против КД ${ctx.ac})`); await sleep(650); }
@@ -365,7 +370,7 @@
     log(`${a.name} (${SKILL_RU[skillA]} ${ra.total}) против ${b.name} (${SKILL_RU[skillB]} ${rb.total}) — ${win ? "успех" : "провал"}.`);
     return { win, a: ra, b: rb };
   }
-  Object.assign(B, { doAttack, doSave, doCheck, contest, skillMod, animKind, seesTarget });
+  Object.assign(B, { rollDamage, doAttack, doSave, doCheck, contest, skillMod, animKind, seesTarget });
 
   /* ===== движение с реакциями и местностью ===== */
   async function offerOpportunity(e, mover) {

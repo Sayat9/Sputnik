@@ -48,6 +48,10 @@
       '<path class="fl" d="M50 18 C64 38 74 48 67 64 C63 76 37 76 33 64 C27 48 43 42 50 18Z" fill="#f2851f"/><path class="fl2" d="M50 42 C58 52 61 58 57 66 C54 72 46 72 44 66 C40 58 47 54 50 42Z" fill="#ffd54a"/>',
     fog: '<ellipse cx="32" cy="58" rx="32" ry="19" fill="#cdd3dc" opacity=".5"/><ellipse cx="64" cy="48" rx="34" ry="21" fill="#dbe0e8" opacity=".46"/><ellipse cx="50" cy="68" rx="36" ry="15" fill="#c0c7d2" opacity=".44"/>',
     trap: '<ellipse cx="50" cy="70" rx="38" ry="13" fill="#2a1e12"/><path d="M12 68 L25 38 L38 68 L50 38 L62 68 L75 38 L88 68Z" fill="#a3a9af" stroke="#3b3f44" stroke-width="2.5" stroke-linejoin="round"/>',
+    palisade: '<ellipse cx="50" cy="88" rx="46" ry="8" fill="#000" opacity=".3"/>' + [8,26,44,62,80].map((x,i)=>`<path d="M${x} 90 L${x} ${28+(i%2)*8} L${x+9} ${14+(i%2)*8} L${x+18} ${28+(i%2)*8} L${x+18} 90Z" fill="#8a6a3a" stroke="#3d2c14" stroke-width="3" stroke-linejoin="round"/>`).join("") + '<path d="M4 52 H96 M4 72 H96" stroke="#4a3418" stroke-width="5" stroke-linecap="round"/>',
+    deadfall: '<ellipse cx="50" cy="86" rx="46" ry="9" fill="#000" opacity=".3"/><path d="M6 78 L84 40" stroke="#5a4129" stroke-width="16" stroke-linecap="round"/><path d="M14 46 L92 76" stroke="#6b4e30" stroke-width="15" stroke-linecap="round"/><path d="M20 66 L80 24" stroke="#4d3822" stroke-width="13" stroke-linecap="round"/><circle cx="84" cy="40" r="6" fill="#8a6c46"/><circle cx="92" cy="76" r="6" fill="#9a7a52"/><path d="M10 60 Q22 54 30 62 M60 70 Q72 64 82 70" stroke="#4f7a3a" stroke-width="4" fill="none" stroke-linecap="round"/>',
+    cryptwall: '<ellipse cx="50" cy="88" rx="46" ry="8" fill="#000" opacity=".3"/><path d="M4 88 V30 L18 22 L34 30 L50 18 L66 28 L82 20 L96 30 V88Z" fill="#6f6c7c" stroke="#2f2d38" stroke-width="3" stroke-linejoin="round"/><path d="M4 50 H96 M4 68 H96 M28 30 V50 M60 50 V68 M40 68 V88 M78 28 V50" stroke="#403e4c" stroke-width="2.5"/><path d="M12 88 Q18 76 26 88 M70 88 Q78 74 88 88" stroke="#3f6a30" stroke-width="3" fill="none"/>',
+    cliff: '<ellipse cx="50" cy="88" rx="46" ry="8" fill="#000" opacity=".3"/><path d="M2 88 L10 38 L24 14 L40 30 L56 8 L74 26 L92 12 L98 88Z" fill="#6d7176" stroke="#2b2e31" stroke-width="3" stroke-linejoin="round"/><path d="M24 14 L28 60 M56 8 L52 52 L66 88 M74 26 L82 70" stroke="#40444a" stroke-width="2.5" fill="none"/><path d="M10 38 L30 46 M40 30 L52 52" stroke="#9aa0a6" stroke-width="3" fill="none" stroke-linecap="round"/>',
     hill: '<ellipse cx="50" cy="74" rx="46" ry="20" fill="#000" opacity=".25"/><path d="M4 74 Q12 40 38 30 Q56 24 70 34 Q92 46 96 74 Q50 90 4 74Z" fill="#8a7a4e" stroke="#4a3f22" stroke-width="3" stroke-linejoin="round"/>' +
       '<path d="M16 66 Q28 44 46 40 Q64 36 78 50" stroke="#b9a874" stroke-width="3.5" fill="none" stroke-linecap="round" opacity=".9"/><path d="M26 70 Q36 62 48 66 M58 64 Q70 58 82 66" stroke="#5f522d" stroke-width="2.5" fill="none" stroke-linecap="round"/>' +
       '<path d="M40 26 L50 12 L60 26" fill="none" stroke="#f1e3b0" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" opacity=".9"/>',
@@ -74,6 +78,10 @@
     stakes:  { name: "Колья", cost: 2, note: "Труднопроходны." },
     fire:    { name: "Костёр", hazard: "fire", light: 3, note: "1к4 урона огнём тому, кто вошёл или начал ход. Освещает 3 клетки." },
     fog:     { name: "Туман", cover: 2, hide: true, note: "+2 КД от дальних атак, можно прятаться." },
+    palisade: { name: "Частокол", obstacle: true, block: true, note: "Полное укрытие: не пройти и не перелезть, закрывает обзор — за ним не видно клеток, туда нельзя стрелять, метать и колдовать." },
+    deadfall: { name: "Бурелом", obstacle: true, block: true, note: "Полное укрытие: не пройти и не перелезть, закрывает обзор — за ним не видно клеток, туда нельзя стрелять, метать и колдовать." },
+    cryptwall: { name: "Стена склепа", obstacle: true, block: true, note: "Полное укрытие: не пройти и не перелезть, закрывает обзор — за ним не видно клеток, туда нельзя стрелять, метать и колдовать." },
+    cliff:   { name: "Скальный выступ", obstacle: true, block: true, note: "Полное укрытие: не пройти и не перелезть, закрывает обзор — за ним не видно клеток, туда нельзя стрелять, метать и колдовать." },
     hill:    { name: "Возвышенность", elevated: true, note: "Высота: +2 к броску атаки тому, кто стоит здесь, и +2 к броскам атак по нему (черновик). Подъём стоит как обычная клетка." },
     tomb:    { name: "Старое надгробие", cost: 2, cover: 2, hide: true, note: "Просевшая могила с покосившимся камнем (клетка стоит 2). +2 КД от дальних атак, под камнем можно прятаться." },
   };
@@ -89,15 +97,15 @@
   // Зоны: фон, перечень препятствий и украшений. [мин, макс] — сколько клеток; blob — пятном; trap — скрытые ловушки гоблинов.
   // «Подсыпка» местности (battle-core.js → genTerrain): если на поле мало укрытий или нет зарослей, иногда добавляем их.
   // minCover — сколько клеток с укрытием (препятствия, заросли, туман) хотим иметь; *Chance — вероятность подсыпки; thicketN — размер пятна зарослей.
-  D.gen = { minCover: 5, coverChance: 0.75, thicketChance: 0.6, thicketN: [2, 4] };
+  D.gen = { wallChance: 0.55, wallLen: [1, 2], minCover: 5, coverChance: 0.75, thicketChance: 0.6, thicketN: [2, 4] };
   D.zones = {
-    goblin: { name: "Лагерь гоблинов", soil: true, obst: ["tent", "crate", "rock"], nObst: [3, 5], thicket: "thorns", feats: [["hill", 0, 3, true], ["stakes", 1, 2], ["mud", 1, 3, true], ["fire", 0, 1], ["puddle", 0, 2, true]], traps: [0, 2],
+    goblin: { name: "Лагерь гоблинов", soil: true, obst: ["tent", "crate", "rock"], nObst: [3, 5], wall: "palisade", thicket: "thorns", feats: [["hill", 0, 3, true], ["stakes", 1, 2], ["mud", 1, 3, true], ["fire", 0, 1], ["puddle", 0, 2, true]], traps: [0, 2],
       bg: { base: "#4a4026", base2: "#2b2414", dots: ["#6a5a36", "#3a301a", "#7d6c40"], tufts: "#6b7a2e", label: "Лагерь гоблинов" } },
-    beast: { name: "Звериная чаща", soil: true, obst: ["tree", "rock"], nObst: [3, 5], thicket: "bush", feats: [["hill", 0, 3, true], ["bush", 2, 4], ["mud", 0, 2, true], ["puddle", 1, 3, true]], traps: [0, 0],
+    beast: { name: "Звериная чаща", soil: true, obst: ["tree", "rock"], nObst: [3, 5], wall: "deadfall", thicket: "bush", feats: [["hill", 0, 3, true], ["bush", 2, 4], ["mud", 0, 2, true], ["puddle", 1, 3, true]], traps: [0, 0],
       bg: { base: "#2f4a24", base2: "#17260f", dots: ["#3f6a30", "#22381a", "#587a3c"], tufts: "#6ea04a", label: "Звериная чаща" } },
-    undead: { name: "Погост", soil: true, obst: ["grave", "rock"], nObst: [3, 5], thicket: "thorns", feats: [["hill", 0, 3, true], ["bones", 2, 3], ["fog", 2, 4, true], ["puddle", 0, 2, true]], traps: [0, 0],
+    undead: { name: "Погост", soil: true, obst: ["grave", "rock"], nObst: [3, 5], wall: "cryptwall", thicket: "thorns", feats: [["hill", 0, 3, true], ["bones", 2, 3], ["fog", 2, 4, true], ["puddle", 0, 2, true]], traps: [0, 0],
       bg: { base: "#3a3744", base2: "#1c1a24", dots: ["#55526a", "#2a2834", "#6e6a84"], tufts: "#5b6a4a", label: "Погост" } },
-    stone: { name: "Каменная пещера", obst: ["rock", "crystal"], nObst: [3, 5], thicket: "shrooms", feats: [["moss", 1, 3], ["puddle", 1, 3, true]], traps: [0, 0],
+    stone: { name: "Каменная пещера", obst: ["rock", "crystal"], nObst: [3, 5], wall: "cliff", thicket: "shrooms", feats: [["moss", 1, 3], ["puddle", 1, 3, true]], traps: [0, 0],
       bg: { base: "#3b4650", base2: "#1c2228", dots: ["#556573", "#2b343c", "#6f8394"], tufts: "#4f7a3a", label: "Каменная пещера" } },
   };
 
@@ -105,6 +113,9 @@
   // Все, и герои и монстры, двигаются в бою медленнее: от обычных клеток скорости (1 клетка = 1,5 м) отнимается speedCut клеток.
   // 9 м = 4 клетки; всё поле (6 клеток) без рывка пересекают только от 12 м (две эссенции «+1,5 м», волк, лиса, тёмный медведь).
   D.speedCut = 2;
+  // Баланс (решение автора): обычный монстр 1 этажа не должен убивать героя за 2 удара. От плоского бонуса к урону отнимается столько, по классу монстра
+  // (9-й: 1к6+2 → 1к6, 8-й: на 1 меньше). Черновик; ОЗ героя 1-го уровня — около 11–13.
+  D.monDmgCut = { 9: 2, 8: 1 };
 
   /* ---------- стрелы ---------- */
   // Исход выстрела героя (от худшего к лучшему): 1 на кубике — промах и стрела ломается; промах — стрела упала на поле;

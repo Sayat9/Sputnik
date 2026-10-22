@@ -1,5 +1,5 @@
 {
- "version": 1792642641,
+ "version": 1792654136,
  "files": [
   "assets/css/battle.css",
   "assets/items/armor-chainmail.svg",
@@ -16,6 +16,7 @@
   "assets/items/spear.svg",
   "assets/items/sword.svg",
   "assets/items/tower-shield.svg",
+  "assets/items/twin-daggers.svg",
   "assets/items/warhammer.svg",
   "assets/js/battle-act.js",
   "assets/js/battle-ai.js",
@@ -23,6 +24,7 @@
   "assets/js/battle-data.js",
   "assets/js/battle-dice.js",
   "assets/js/battle-end.js",
+  "assets/js/battle-env.js",
   "assets/js/battle-ess.js",
   "assets/js/battle-ess2.js",
   "assets/js/battle-ext.js",

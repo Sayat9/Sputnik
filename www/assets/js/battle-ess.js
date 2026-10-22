@@ -70,6 +70,7 @@
           total = r.sum + dd.b + (cfg.dt === "fire" ? B.hookSum(u, "abilityDmg", { dt: "fire" }) : 0);          // «Свои не горят»: +2 к огню способностей
           await ses.finish({ text: `${total} урона (${D.DT[cfg.dt]})`, anim: cfg.anim || B.animKind({ dt: cfg.dt, kind: "melee" }), dmg: total, tgt: ts[0] });
         }
+        if (cfg.dmg && total > 0 && B.blastCells) B.blastCells(cellsAround(u, cfg.radius), total, cfg.dt, u);          // область ломает камни и кристаллы
         ui() && ui().banner(`${u.name}: ${cfg.name}!`);
         for (const t of ts) {
           const sv = await save(t, cfg.save, dc, cfg.name, cfg.tags, u);
@@ -166,6 +167,7 @@
       const r = await ses.dice({ label: "Урон 2к6", n: 2, s: 6, bonus: 0, dt: "bludgeon", cancel: false, reroll: B.rerollOptions(u, "damage", {}) });
       const total = r.sum; await ses.finish({ text: `${total} урона`, anim: "blunt", dmg: total, tgt: ts[0] || u });
       ui() && ui().fxCube(ax, ay, 2);
+      if (B.blastCells) B.blastCells([[ax, ay], [ax + 1, ay], [ax, ay + 1], [ax + 1, ay + 1]], total, "bludgeon", u);          // обвал ломает камни
       const dc = dcOf(u, "con");
       for (const t of ts) { const sv = await save(t, "dex", dc, "Обвал"); await B.applyDamage(u, t, [{ v: sv.ok ? Math.floor(total / 2) : total, dt: "bludgeon", label: "Обвал" }], {}); if (!sv.ok && (alive(t) || t.down)) { B.knock(t, u); ui() && ui().fxText(t, "сбит с ног", "bad"); } }
       return true;

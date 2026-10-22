@@ -1,6 +1,6 @@
 // Регрессия правок боя: скорость, местность, автозавершение хода, бросок оружия, колчан и поломка стрел.
 const { chromium } = require('playwright');
-const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-ext','battle-act','battle-ess','battle-ess2','battle-ai','battle-end','battle'];
+const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-ext','battle-act','battle-ess','battle-ess2','battle-env','battle-ai','battle-end','battle'];
 (async () => {
   const b = await chromium.launch({ executablePath: process.env.CHROME || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
   const p = await b.newPage(); const errs = [];
@@ -106,15 +106,15 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
         const L = Battle.arrowLog(h.hero.id), lying = S.drops.filter(d => d.kind === 'arrow').length, text = Battle.S.log.slice(-2).map(l => l.t).join(' | ');
         return { S, h, g, r, L, lying, left: arrowsIn(h.hero), before, text, bonus: r.ctx ? r.ctx.mods.reduce((a, m) => a + m.v, 0) : null };
       };
-      // атака героя: Лов 16 → +3, БМ +2 = +5; КД 12 → попасть можно с 7 (вровень), 8 — выше на 1, 9 — выше на 2
+      // атака героя: Лов 16 → +3, бонуса мастерства нет; КД 12 → попасть можно с 9 (вровень), 10 — выше на 1, 11 — выше на 2
       let x = await shoot(1);
       ok('1 на кубике: промах и стрела сломана', !x.r.hit && x.L.broken === 1 && x.lying === 0 && x.left === x.before - 1 && /стрела сломалась/.test(x.text), x.text);
-      const bonus = x.bonus; ok('бонус атаки лучника +5', bonus === 5, bonus);
+      const bonus = x.bonus; ok('бонус атаки лучника +3 (бонуса мастерства нет)', bonus === 3, bonus);
       x = await shoot(4); ok('обычный промах: стрела цела и лежит на поле', !x.r.hit && x.L.broken === 0 && x.lying === 1 && /стрела упала на поле/.test(x.text), x.text);
-      x = await shoot(6); ok('промах на 1 ниже КД: стрела цела и лежит на поле', !x.r.hit && x.L.broken === 0 && x.lying === 1, `${x.r.total} против ${x.r.ac}`);
-      x = await shoot(7); ok('попадание вровень с КД: стрела ломается', x.r.hit && x.r.total === x.r.ac && x.L.broken === 1 && x.lying === 0 && /стрела сломалась/.test(x.text), `${x.r.total} против ${x.r.ac}: ${x.text}`);
-      x = await shoot(8); ok('попадание на 1 выше КД: стрела ломается', x.r.hit && x.r.total - x.r.ac === 1 && x.L.broken === 1 && x.lying === 0, `${x.r.total} против ${x.r.ac}`);
-      x = await shoot(9); ok('попадание на 2 выше КД: стрела цела', x.r.hit && x.r.total - x.r.ac === 2 && x.L.broken === 0 && x.lying === 1, `${x.r.total} против ${x.r.ac}`);
+      x = await shoot(8); ok('промах на 1 ниже КД: стрела цела и лежит на поле', !x.r.hit && x.L.broken === 0 && x.lying === 1, `${x.r.total} против ${x.r.ac}`);
+      x = await shoot(9); ok('попадание вровень с КД: стрела ломается', x.r.hit && x.r.total === x.r.ac && x.L.broken === 1 && x.lying === 0 && /стрела сломалась/.test(x.text), `${x.r.total} против ${x.r.ac}: ${x.text}`);
+      x = await shoot(10); ok('попадание на 1 выше КД: стрела ломается', x.r.hit && x.r.total - x.r.ac === 1 && x.L.broken === 1 && x.lying === 0, `${x.r.total} против ${x.r.ac}`);
+      x = await shoot(11); ok('попадание на 2 выше КД: стрела цела', x.r.hit && x.r.total - x.r.ac === 2 && x.L.broken === 0 && x.lying === 1, `${x.r.total} против ${x.r.ac}`);
       x = await shoot(15); ok('хорошее попадание: стрела цела', x.r.hit && x.L.broken === 0 && x.lying === 1 && !/сломалась/.test(x.text));
       x = await shoot(20); ok('критическое попадание: стрела цела', x.r.hit && x.r.crit && x.L.broken === 0 && x.lying === 1);
       x = await shoot(20, 25); ok('20 попадает даже против КД 25 и стрела цела', x.r.hit && x.L.broken === 0 && x.lying === 1);
@@ -143,7 +143,7 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
         return { c, start, L, lying, now: arrowsIn(c), gear: (S.gear || []).map(g => g.t).join(' | ') };
       };
       // выстрелы: 1 (сломана), 4 (упала), 15 (цела), 7 (вровень, сломана), 20 (цела)
-      const shots = [1, 4, 15, 7, 20];
+      const shots = [1, 4, 15, 9, 20];
       let r = await play('win', shots); ok('победа: целые стрелы вернулись, сломанные нет', r.now === r.start - 2 && r.L.broken === 2 && r.lying === 3, `${r.start}→${r.now}; ${r.gear}`);
       ok('итог боя называет выпущенные, подобранные и сломанные стрелы', /выпущено стрел 5, подобрано 3, сломано 2/.test(r.gear), r.gear);
       r = await play('retreat', shots); ok('монстры бежали: стрелы подобраны', r.now === r.start - 2, `${r.start}→${r.now}`);
