@@ -65,12 +65,15 @@
   const units = () => (B.S ? B.S.units : []);
   const alive = u => u.alive && !u.fled && !u.escaped;
   const live = () => units().filter(alive);
-  const enemiesOf = u => live().filter(o => o.side !== u.side);
+  // Враг, затаившийся в начале боя, героям не виден: его нельзя выбрать целью, пока его не заметили (battle.js → spotHidden) или он не начал действовать.
+  const isUnseen = u => { if (u.side !== "mon") return false; const h = u.conds.find(c => c.id === "hidden"); return !!(h && h.data && h.data.unseen); };
+  const enemiesOf = u => live().filter(o => o.side !== u.side && !(u.side === "hero" && isUnseen(o)));
   const alliesOf = u => live().filter(o => o.side === u.side && o.id !== u.id);
   function occupant(x, y, except) { return live().find(u => u !== except && !(except && except.id === u.id) && footprint(u).some(([a, b]) => a === x && b === y)) || null; }          // except — сам юнит или его копия в другой клетке (проверка путевых точек)
   const terrain = (x, y) => (inB(x, y) ? B.S.cells[y][x] : null);
   const tinfo = (x, y) => { const t = terrain(x, y); return t ? D.terrain[t] : null; };
   const obstacleAt = (x, y) => { const t = tinfo(x, y); return !!(t && t.obstacle); };
+  B.isUnseen = isUnseen;
   Object.assign(B, { inB, key, cheb, DIRS, footprint, dist, distAt, distCell, alive, live, enemiesOf, alliesOf, occupant, terrain, tinfo, obstacleAt, units });
 
   /* ===== создание боя ===== */
@@ -82,8 +85,9 @@
     while (q.length) { const [x, y] = q.pop(); for (const [dx, dy] of DIRS) { const nx = x + dx, ny = y + dy; if (inB(nx, ny) && !seen.has(key(nx, ny)) && !(cells[ny][nx] && D.terrain[cells[ny][nx]].obstacle)) { seen.add(key(nx, ny)); q.push([nx, ny]); } } }
     return seen.size === free.length;
   }
-  function genTerrain(zone) {
-    const zc = D.zones[zone] || D.zones.goblin, G = D.gen;
+  function genTerrain(zone, floor) {
+    const base = D.zones[zone] || D.zones.goblin, G = D.gen, deep = floor >= 2 && D.deep[zone];
+    const zc = deep ? Object.assign({}, base, { feats: base.feats.concat(deep.feats) }) : base;
     for (let attempt = 0; attempt < 30; attempt++) {
       const cells = Array.from({ length: H }, () => Array(W).fill(null));
       const objs = [];
@@ -358,7 +362,8 @@
     const zone = D.zones[ev.zone] ? ev.zone : "goblin";
     const S = { ev, zone, ambush: !!ev.ambush, dark: false, torch: false, units: [], order: [], turn: 0, round: 1, phase: "init", log: [], killed: [], objs: [], drops: [], opts: Object.assign({ showMonHp: false, autoSaves: false, autoEnd: true }, (state.settings && state.settings.battleOpts) || {}, { autoHeroes: false }), outcome: null, arrowLog: {}, zones: [], bodies: [], q: [], started: Date.now() };
     try { S.dark = typeof inDarkness === "function" && !!(state.run && isDark(state.run.pos.x, state.run.pos.y)) && !(state.run && state.run.light); S.torch = !!(state.run && state.run.light); } catch (e) { S.dark = false; }
-    const g = genTerrain(zone); S.cells = g.cells; S.objs = g.objs;
+    S.floor = ev.floor || (state.run && state.run.floor) || 1;
+    const g = genTerrain(zone, S.floor); S.cells = g.cells; S.objs = g.objs;
     uidSeq = 1;
     B.S = S;
     const heroes = (state.party || []).filter(c => !c.dead).map(heroUnit);

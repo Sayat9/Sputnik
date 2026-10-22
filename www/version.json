@@ -1,11 +1,12 @@
 {
- "version": 1792636639,
+ "version": 1792642641,
  "files": [
   "assets/css/battle.css",
   "assets/items/armor-chainmail.svg",
   "assets/items/armor-hide.svg",
   "assets/items/armor-leather.svg",
   "assets/items/arrows.svg",
+  "assets/items/dagger.svg",
   "assets/items/greatsword.svg",
   "assets/items/longbow.svg",
   "assets/items/mace.svg",

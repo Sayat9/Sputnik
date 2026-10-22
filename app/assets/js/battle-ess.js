@@ -140,7 +140,7 @@
     can(u) { return speedOf(u) >= 2 ? true : "слишком медленный"; },
     async run(u, pk, ctl) {
       ctl.commit();
-      if (pk.cell) { const map = B.pathMap(u, Math.floor(speedOf(u) / 2), {}); const path = B.pathTo(map, pk.cell[0], pk.cell[1]); const r = await B.moveAlong(u, path, { noProvoke: true }); u.t.move = Math.max(0, u.t.move - r.spent); u.t.moved += r.spent; }
+      if (pk.cell) { const map = B.pathMap(u, Math.floor(speedOf(u) / 2), {}); const path = B.pathTo(map, pk.cell[0], pk.cell[1]); const r = await B.moveAlong(u, path, { noProvoke: true }); u.t.moved += r.spent; }
       addStatus(u, "rush", { k: 0, when: "end" }); ui() && ui().fxText(u, "рывок", "good"); return true;
     },
     ai(u) { const es = enemiesOf(u); if (!es.length || !B.attacksOf(u).some(a => a.kind === "melee")) return null; const near = es.reduce((a, b) => (dist(u, a) < dist(u, b) ? a : b)); if (dist(u, near) <= 1) return null; return { target: near, score: 5 }; },
@@ -205,7 +205,7 @@
       const a = atkFor(u, "melee", "slash") || (u.side === "mon" ? atkFor(u, "melee") : null); if (!a) return false;       // урон рубящего оружия или когтей
       ctl.commit();
       const dd = a.dmg, dt = a.dt;
-      const r = await B.moveAlong(u, line.path, { noProvoke: true }); u.t.move = Math.max(0, u.t.move - r.spent); u.t.moved += r.spent;
+      const r = await B.moveAlong(u, line.path, { noProvoke: true }); u.t.moved += r.spent;
       const vs = dashVictims(u, line.path); if (!vs.length) return true;
       const ses = B.session(u, { kind: "damage", u, title: "Сквозной рывок", sub: `${u.name}: когти по ${vs.length} цел.` });
       const rr = await ses.dice({ label: `Урон ${fmtDice(dd)}`, n: dd.n, s: dd.s, bonus: dd.b, dt, cancel: false, reroll: B.rerollOptions(u, "damage", { melee: true }) });

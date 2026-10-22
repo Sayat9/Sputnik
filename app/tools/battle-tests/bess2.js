@@ -74,9 +74,9 @@ const ONLY = (process.argv[2] || '').split(',').filter(Boolean);
     });
 
     await test('goblin-assassin', async () => {
-      const { hs, ms } = sc([{ ess: ['goblin-assassin'], main: 'rapier', base: { dex: 16 } }], ['goblin']);
+      const { hs, ms } = sc([{ ess: ['goblin-assassin'], main: 'dagger', base: { dex: 16 } }], ['goblin']);
       const [H] = hs, G = ms[0]; place(H, 3, 5); place(G, 3, 4); T(H);
-      const atk = meleeOf(H); ok('рапира — лёгкое оружие (одноручное, не тяжёлое)', atk && atk.w.id === 'rapier');
+      const atk = meleeOf(H); ok('кинжал — лёгкое оружие (одноручное, не тяжёлое)', atk && atk.w.id === 'dagger');
       const hit = async (hidden, target = G) => { if (hidden) B.addStatus(H, 'hidden', { k: Infinity }); T(H); F(15); return B.doAttack(H, target, atk, { cancelable: false, onCommit: () => B.commitAttack(H, atk, target) }); };
       let r = await hit(true); ok('из укрытия: +1к6 «Нож в спину»', r.hit && r.parts.some(p => p.label === 'Нож в спину'), JSON.stringify(r.parts && r.parts.map(p => p.label)));
       ok('перезарядка 2 раунда', H.cd.stab === 2, H.cd.stab);
@@ -768,8 +768,10 @@ const ONLY = (process.argv[2] || '').split(',').filter(Boolean);
       T(G); const hpP = G.hp; F(3); await B.zonesTurnStart(G); ok('начавший ход внутри (не хозяин): спасбросок Тел., слабый провалил — отравлен', has(G, 'poisoned'));
       const before = G2.conds.length; await B.zonesTurnStart(H); ok('сам пепельник пыль не травит', !has(H, 'poisoned'));
       place(H, 1, 5); ok('пыль идёт за ним', B.zoneCells(z).some(([x, y]) => x === 1 && y === 5) && !B.zoneCells(z).some(([x, y]) => x === 5 && y === 5));
-      place(G, 1, 3); place(A_, 1, 1); ok('сильное заслонение: на расстоянии больше 1,5 м внутри пыли — помеха', B.attackCtx(G, A_, G.atk[0]).dis.includes('густая пыль') || B.dist(G, A_) <= 1);
-      place(G, 1, 4); ok('вплотную — без помехи', !B.attackCtx(G, H, G.atk[0]).dis.includes('густая пыль'));
+      place(G, 1, 3); place(A_, 1, 1); B.addStatus(A_, 'restrained', { k: Infinity });
+      const cd = B.attackCtx(G, A_, G.atk[0]); ok('белая пыль гасит преимущество на дальней атаке (решение автора), помехи не вешает', cd.adv.length === 0 && !cd.dis.includes('густая пыль') && cd.notes.some(n => /пыль/.test(n)), JSON.stringify([cd.adv, cd.dis, cd.notes]));
+      place(G, 1, 4); const cc = B.attackCtx(G, H, G.atk[0]); ok('вплотную — без помехи от пыли', !cc.dis.includes('густая пыль'));
+      B.removeStatus(A_, 'restrained');
       await B.applyDamage(G, H, [{ v: 999, dt: 'slash' }], {}); ok('когда пепельник пал, пыль рассеялась', !S.zones.some(q => q.kind === 'dust'));
     });
 
@@ -789,17 +791,17 @@ const ONLY = (process.argv[2] || '').split(',').filter(Boolean);
     });
 
     await test('audit-assassin', async () => {
-      const { S, hs, ms } = sc([{ ess: ['goblin-assassin'], main: 'rapier', base: { dex: 16 } }], ['goblin']);
+      const { S, hs, ms } = sc([{ ess: ['goblin-assassin'], main: 'dagger', base: { dex: 16 } }], ['goblin']);
       const [H] = hs, G = ms[0]; place(H, 3, 5); place(G, 3, 4); T(H); G.hp = 1;
       const atk = meleeOf(H); B.addStatus(H, 'hidden', { k: Infinity }); F(15, 3);
       const r = await B.doAttack(H, G, atk, { cancelable: false, onCommit: () => B.commitAttack(H, atk, G) });
       ok('«Нож в спину» убил цель — перезарядка всё равно пошла', r.killed && H.cd.stab === 2, `${r.killed} ${H.cd.stab}`);
       // промах тоже тратит «первую атаку»
-      const s2 = setup([mk(300, { ess: ['goblin-assassin'], main: 'rapier', base: { dex: 16 } })], ['goblin']); const H2 = B.heroes()[0], G2 = B.mons()[0]; place(H2, 3, 5); place(G2, 3, 4); T(H2); G2.ac = 40;
+      const s2 = setup([mk(300, { ess: ['goblin-assassin'], main: 'dagger', base: { dex: 16 } })], ['goblin']); const H2 = B.heroes()[0], G2 = B.mons()[0]; place(H2, 3, 5); place(G2, 3, 4); T(H2); G2.ac = 40;
       const a2 = meleeOf(H2); B.addStatus(H2, 'hidden', { k: Infinity }); F(2); await B.doAttack(H2, G2, a2, { cancelable: false, onCommit: () => B.commitAttack(H2, a2, G2) });
       ok('промах по неподозревающей цели тоже запускает перезарядку (первая атака, а не первое попадание)', H2.cd.stab === 2, H2.cd.stab);
       // «Уход в тень»: кусты в соседней клетке — укрытие рядом
-      const s3 = setup([mk(301, { ess: ['goblin-assassin'], main: 'rapier', base: { dex: 16 } })], ['goblin']); const H3 = B.heroes()[0], G3 = B.mons()[0]; place(H3, 3, 5); place(G3, 3, 1); T(H3);
+      const s3 = setup([mk(301, { ess: ['goblin-assassin'], main: 'dagger', base: { dex: 16 } })], ['goblin']); const H3 = B.heroes()[0], G3 = B.mons()[0]; place(H3, 3, 5); place(G3, 3, 1); T(H3);
       s3.cells[6][1] = 'bush'; F(20); await act(H3, 'goblin-assassin', { cell: [2, 6] });
       ok('конец пути у зарослей (соседняя клетка) — можно спрятаться', has(H3, 'hidden'), logs(3));
       ok('перемещение способностью засчитано в пройденном за ход', H3.t.moved >= 1, H3.t.moved);

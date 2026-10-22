@@ -14,7 +14,7 @@
   function wprops(w) {
     const p = w.props || [], find = re => p.find(x => re.test(x)) || "";
     const vers = find(/^Универсальное/).match(/\((.+)\)/), thr = find(/^Метательное/).match(/\((\d+)\/(\d+) м\)/), amm = find(/^Боеприпасы/).match(/\((\d+)\/(\d+) м\)/);
-    return { finesse: p.includes("Фехтовальное"), heavy: p.includes("Тяжёлое"), two: p.includes("Двуручное"), versatile: vers ? vers[1] : null,
+    return { finesse: p.includes("Фехтовальное"), light: p.includes("Лёгкое"), heavy: p.includes("Тяжёлое"), two: p.includes("Двуручное"), versatile: vers ? vers[1] : null,
       thrown: thr ? [Math.floor(+thr[1] / 1.5), Math.floor(+thr[2] / 1.5)] : null, ammoR: amm ? [+amm[1], +amm[2]] : null };
   }
   const DT = D.DT_FROM_RU;
@@ -312,9 +312,11 @@
   async function doSearch(u) {
     const traps = B.S.objs.filter(t => t.kind === "trap" && t.hidden);
     spendTime(u, "action");
-    const r = await B.doCheck(u, "perception", { title: "Осмотреться", label: "поиск ловушек", dc: 12, tags: ["trapsearch"] });
-    if (r && r.ok) { traps.forEach(t => { if (dist(u, { x: t.x, y: t.y, size: 1 }) <= 4) t.hidden = false; }); log(`${u.name} замечает ловушки.`, "good"); UI().refresh(); }
-    else log(`${u.name} ничего не замечает.`);
+    const r = await B.doCheck(u, "perception", { title: "Осмотреться", label: "ловушки и затаившиеся враги", dc: 12, tags: ["trapsearch"] });
+    let found = 0;
+    if (r && r.ok) { traps.forEach(t => { if (dist(u, { x: t.x, y: t.y, size: 1 }) <= 4) { t.hidden = false; found++; } }); if (found) log(`${u.name} замечает ловушки.`, "good"); }
+    for (const m of B.mons()) { if (B.isUnseen(m) && alive(m) && dist(u, m) <= 6 && r && r.total >= (has(m, "hidden").data.dc || 0)) { B.revealHidden(m, "осмотр"); found++; } }
+    if (found) UI().refresh(); else log(`${u.name} ничего не замечает.`);
     return true;
   }
 
@@ -443,7 +445,20 @@
   }
   B.useActive = useActive;
 
+  // Призванный волк или двойник героя: атака, перемещение, подъём — играет игрок (решение автора).
+  function summonActions(u) {
+    const opts = [], t = u.t;
+    for (const atk of u.atk) {
+      const why = timeWhy(u, atk.time || "action") || (B.attackTargets(u, atk).length ? null : "нет целей рядом");
+      opts.push({ id: "atk:" + atk.id, cat: "attack", label: atk.n, ico: "attack", sub: `${atk.kind === "melee" ? "до " + (atk.reach || 1) + " кл." : "дальний"} · ${B.fmtDice(atk.dmg)} ${D.DT[atk.dt]}${atk.dmgMult ? " · вполсилы" : ""}`, time: atk.time || "action", enabled: !why, why, atk, run: () => runAttack(u, atk) });
+    }
+    opts.push({ id: "move", cat: "move", label: "Перемещение", ico: "move", sub: `осталось ${t.move} кл.`, time: "move", enabled: t.move > 0 && speedOf(u) > 0, why: "нет движения", run: () => runMove(u) });
+    if (has(u, "prone")) opts.push({ id: "stand", cat: "move", label: "Встать", ico: "move", sub: `стоит ${B.standCost(u)} кл.`, time: "move", enabled: t.move >= B.standCost(u) && t.move > 0, why: "нет движения", run: () => runStand(u) });
+    opts.push(simple("dash", "Рывок", "dash", "ещё столько же клеток движения", () => doDash(u), { enabled: !timeWhy(u, "action") && speedOf(u) > 0, why: timeWhy(u, "action") || "скорость 0" }));
+    return opts;
+  }
   function actionsFor(u) {
+    if (u.summon) return summonActions(u);
     const opts = [];
     const t = u.t;
     // атаки
@@ -471,7 +486,7 @@
     if (netVictims(u).length) opts.push(simple("cutnet", "Разрезать путы", "attack", "рубящее оружие снимает сеть и паутину (5 урона)", () => doCutNet(u), { enabled: !act && netVictims(u).some(a => netAttack(u, has(a, "restrained").data.net)), why: act || "нужно рубящее оружие (для паутины — ещё огонь)" }));
     if (alliesOf(u).some(a => dist(u, a) <= 1 && has(a, "buried"))) opts.push(simple("dig", "Откопать союзника", "help", "союзник рядом на свободе", () => doDigOut(u), { enabled: !act, why: act }));
     if ([u, ...alliesOf(u)].some(a => has(a, "bleeding") && dist(u, a) <= 1 && !a.dead)) opts.push(simple("bandage", "Перевязать", "heart", "остановить кровотечение: Медицина Сл 10", () => doBandage(u), { enabled: !act, why: act }));
-    if (B.S.objs.some(o => o.kind === "trap" && o.hidden)) opts.push(simple("search", "Осмотреться", "search", "найти скрытые ловушки", () => doSearch(u), { enabled: !act, why: act }));
+    if (B.S.objs.some(o => o.kind === "trap" && o.hidden) || B.mons().some(m => B.isUnseen(m) && alive(m))) opts.push(simple("search", "Осмотреться", "search", "найти скрытые ловушки и затаившихся врагов", () => doSearch(u), { enabled: !act, why: act }));
     // предметы
     const c = u.hero, bon = timeWhy(u, "bonus");
     if (countGear(c, "potion") > 0) {

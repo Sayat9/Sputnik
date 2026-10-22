@@ -45,13 +45,14 @@ async function setup(p, { heroes = ['barb2', 'archer', 'fairy'], tactical = true
   return ok;
 }
 
-async function startFightPage(p, { list = ['goblin', 'goblin'], zone = 'goblin', ambush = false } = {}) {
-  await p.evaluate(({ list, zone, ambush }) => {
+async function startFightPage(p, { list = ['goblin', 'goblin'], zone = 'goblin', ambush = false, floor = 1 } = {}) {
+  await p.evaluate(({ list, zone, ambush, floor }) => {
+    state.run.floor = floor;
     location.hash = 'labyrinth'; rerender();
     const ev = { kind: ambush ? 'ambush' : 'hard', title: ambush ? 'Засада!' : 'Тяжёлая встреча', raw: 10, n: 10, cause: 'event', ambush, list, zone, border: false, key: tkey(state.run.pos.x, state.run.pos.y), outcome: null, killed: [], turn: 0, round: 1, tactical: tacticalOn() };
     ev.init = rollInitiative(list, ambush);
     dgUi.enc = ev; rerender();
-  }, { list, zone, ambush });
+  }, { list, zone, ambush, floor });
 }
 
 const shot = (p, name) => p.screenshot({ path: `${SHOTS}/${name}.png` });

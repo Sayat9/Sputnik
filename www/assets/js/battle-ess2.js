@@ -33,8 +33,7 @@
     } else if (o.auto) dest = o.auto(cells);
     if (!dest) return false;
     const r = await B.moveAlong(u, B.pathTo(map, dest.x, dest.y), { noProvoke: o.provoke ? false : true });
-    if (!o.free) u.t.move = Math.max(0, u.t.move - r.spent);                                  // free — отскок сам по себе, обычное перемещение не тратит
-    u.t.moved += r.spent;
+    u.t.moved += r.spent;                                                                    // перемещение способностью — сверх обычного (решение автора), обычное не тратится
     return r.spent > 0;
   }
   // Клетка, дальше всего от врагов (для отхода ИИ), с небольшой любовью к укрытиям.
@@ -98,7 +97,7 @@
         const line = lines(u).find(l => l.end[0] === pk.cell[0] && l.end[1] === pk.cell[1]); if (!line) return false;
         ctl.commit();
         const mv = await B.moveAlong(u, line.path, { noProvoke: !!cfg.noProvoke });
-        u.t.move = Math.max(0, u.t.move - mv.spent); u.t.moved += mv.spent;
+        u.t.moved += mv.spent;
         if (!alive(u) || u.down || !canAct(u)) return true;
         const ts = B.attackTargets(u, a); if (!ts.length) { log(`${u.name} добегает, но цели рядом нет.`); return true; }
         const tgt = await chooseTarget(u, ts, `${cfg.name}: кого бить?`);
@@ -186,8 +185,8 @@
   };
 
   /* ----- Гоблин-ассасин (8): «Нож в спину», «Уход в тень» ----- */
-  // Лёгким считаем одноручное оружие ближнего боя без свойств «Тяжёлое» и «Двуручное» (в каталоге нет свойства «Лёгкое»; вопрос автору — drafts.md).
-  const lightWeapon = a => a.kind === "melee" && !a.thrown && !a.offhand && a.id !== "fist" && a.id !== "torchhit" && (!a.w || !((a.w.props || []).includes("Тяжёлое") || (a.w.props || []).includes("Двуручное")));
+  // Лёгкое оружие — со свойством «Лёгкое» (кинжал; решение автора: ассасин держит максимум два лёгких клинка).
+  const lightWeapon = a => a.kind === "melee" && !a.thrown && !a.offhand && a.id !== "fist" && a.id !== "torchhit" && (!a.w || (a.w.props || []).includes("Лёгкое"));          // у героя — только оружие со свойством «Лёгкое» (кинжал); атаки монстров — любые
   P["goblin-assassin"] = {
     attackMods(att, ctx) {
       if (att.cd.stab > 0 || !lightWeapon(ctx.atk)) return;
@@ -205,7 +204,7 @@
     can(u) { return speedOf(u) >= 2 || B.hideSpot(u, { near: true }) ? true : "слишком медленный"; },
     async run(u, pk, ctl) {
       ctl.commit();
-      if (pk.cell) { const sp = shadowPath(u), path = B.pathTo(sp.map, pk.cell[0], pk.cell[1]); const r = await B.moveAlong(u, path, { noProvoke: true }); u.t.move = Math.max(0, u.t.move - r.spent); u.t.moved += r.spent; }
+      if (pk.cell) { const sp = shadowPath(u), path = B.pathTo(sp.map, pk.cell[0], pk.cell[1]); const r = await B.moveAlong(u, path, { noProvoke: true }); u.t.moved += r.spent; }
       if (alive(u) && !u.down && B.hideSpot(u, { near: true })) await B.hideRoll(u, { seen: true, near: true, cancel: false, toast: false, title: "Уход в тень" });          // укрытие рядом (кусты, деревья, тень); прятаться можно, даже если видели
       else log(`${u.name} уходит в тень, но спрятаться негде.`);
       return true;
@@ -838,7 +837,7 @@
     can(u) { return houndTargets(u).some(t => houndStep(u, t)) ? true : "некуда сближаться"; },
     async run(u, pk, ctl) {
       const st = houndStep(u, pk.unit); if (!st) return false;
-      ctl.commit(); const r = await B.moveAlong(u, B.pathTo(st.map, st.v.x, st.v.y), { noProvoke: true }); u.t.move = Math.max(0, u.t.move - r.spent); u.t.moved += r.spent; return true;
+      ctl.commit(); const r = await B.moveAlong(u, B.pathTo(st.map, st.v.x, st.v.y), { noProvoke: true }); u.t.moved += r.spent; return true;
     },
     ai(u) {
       const es = enemiesOf(u).filter(e => !has(e, "underground") && dist(e, u) > 1 && houndStep(u, e)); if (!es.length) return null;

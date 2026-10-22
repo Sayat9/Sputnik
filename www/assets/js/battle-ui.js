@@ -117,7 +117,7 @@
         el.querySelector("img").src = u.face || ""; layer.appendChild(el); tokenEls.set(u.id, el);
         el.style.left = u.x * cell + "px"; el.style.top = u.y * cell + "px";
       }
-      const gone = u.fled || u.escaped || (!u.alive && (u.side === "mon" || u.summon)) || (u.side === "mon" && S.hideMons);
+      const gone = u.fled || u.escaped || (!u.alive && (u.side === "mon" || u.summon)) || (u.side === "mon" && (S.hideMons || B.isUnseen(u)));
       el.hidden = gone;
       const sz = u.size * cell;
       el.style.width = sz + "px"; el.style.height = sz + "px"; el.style.left = u.x * cell + "px"; el.style.top = u.y * cell + "px";
@@ -164,7 +164,7 @@
     const el = root.querySelector(".bt-order"), rd = root.querySelector(".bt-round b"); if (rd) rd.textContent = S.round;
     if (!S.order.length) { el.innerHTML = ""; return; }
     el.innerHTML = S.order.map((id, i) => {
-      const u = B.byId(id); if (!u || u.fled || u.escaped || (!u.alive && u.side === "mon")) return "";
+      const u = B.byId(id); if (!u || u.fled || u.escaped || (!u.alive && u.side === "mon") || B.isUnseen(u)) return "";
       const cur = i === S.turn && S.phase === "fight";
       return `<button class="bt-ord ${u.side}${cur ? " cur" : ""}${u.down ? " down" : ""}${u.summon ? " sm" : ""}${u.spectral ? " ghost" : ""}" data-bt="inspect" data-id="${u.id}" title="${esc(u.name)}"><img src="${u.face}" alt=""></button>`;
     }).join("");
@@ -301,7 +301,7 @@
     UI.setHl(map);
   };
   UI.placeDone = function () { UI.setHl(new Map()); UI.mode = "idle"; const p = UI.panelPlace; UI.panelPlace = null; if (p) p.done(); };
-  UI.reveal = async function (S) { S.hideMons = false; UI.refreshNow(); const names = B.mons().map(m => m.name).join(", "); UI.banner(`Враги: ${names}`, 2600); await sleep(1000); };
+  UI.reveal = async function (S) { S.hideMons = false; UI.refreshNow(); const names = B.mons().filter(m => !has(m, "hidden")).map(m => m.name).join(", "); UI.banner(`Враги: ${names}`, 2600); await sleep(1000); };
   UI.start = async function (S) { UI.refreshNow(); UI.banner(S.ambush ? "Засада! Монстры ходят первыми" : "Бой начался!", 1600); await sleep(600); };
   UI.turnStart = async function (u) { UI.refreshNow(); UI.banner(u.side === "hero" ? `Ход: ${u.name}` : `Ходит: ${u.name}`, 1100); if (u.side === "mon") await sleep(350); };
   UI.turnEnd = function (u) { UI.refresh(); };

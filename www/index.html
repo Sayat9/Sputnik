@@ -975,6 +975,10 @@ const WEAPONS = [
   { id: "sword", name: "Меч", group: "melee", kind: "Воинское", dmg: "1к8", type: "рубящий", weight: 1.5, price: 25,
     props: ["Универсальное (1к10)"],
     note: "Прямой железный клинок. Стандартное оружие исследователя средней руки." },
+  // Кинжал — лёгкое оружие ассасина («Нож в спину»): два ножа, по одному в каждой руке. Числа — черновик (drafts.md → «Тактический бой»).
+  { id: "dagger", name: "Кинжал", group: "melee", kind: "Простое", dmg: "1к4", type: "колющий", weight: 0.5, price: 8,
+    props: ["Лёгкое", "Фехтовальное"],
+    note: "Короткий клинок с широкой крестовиной: легко прятать, быстро бить. Два кинжала — по одному в каждой руке — любимое оружие засадников." },
   { id: "rapier", name: "Рапира", group: "melee", kind: "Воинское", dmg: "1к8", type: "колющий", weight: 1, price: 30,
     props: ["Фехтовальное"],
     note: "Тонкий клинок требует хорошей стали и долгой ковки, поэтому дороже меча." },
@@ -1634,8 +1638,8 @@ const DISTRICTS = [
 
 // Готовые рисованные картинки (webp) заменяют векторные заглушки.
 // Дата сборки для телефона: build.sh вписывает её сюда, в веб-версии строка пустая.
-const APP_BUILD = "22.10.2026 07:37";
-const APP_VERSION = 1792636639;                 // номер сборки, тоже вписывает build.sh
+const APP_BUILD = "22.10.2026 09:17";
+const APP_VERSION = 1792642641;                 // номер сборки, тоже вписывает build.sh
 const UPDATE_URL = "https://raw.githubusercontent.com/Sayat9/Sputnik/main/www/";
 const RASTER = new Set(["monsters/goblin-king-face", "monsters/goblin-king-full", "monsters/goblin-bomber-face", "monsters/goblin-bomber-full", "monsters/hobgoblin-shield-face", "monsters/hobgoblin-shield-full", "races/barbarian", "races/human", "races/dwarf", "races/beastkin", "races/fairy", "races/dragon", "monsters/goblin-face", "monsters/goblin-full", "monsters/goblin-archer-face", "monsters/goblin-archer-full", "monsters/goblin-sword-face", "monsters/goblin-sword-full", "monsters/goblin-spear-face", "monsters/goblin-spear-full", "monsters/wolf-face", "monsters/wolf-full", "monsters/fox-face", "monsters/fox-full", "monsters/mouse-face", "monsters/mouse-full", "monsters/bat-face", "monsters/bat-full", "monsters/hobgoblin-face", "monsters/hobgoblin-full", "monsters/zombie-face", "monsters/zombie-full", "monsters/skeleton-face", "monsters/skeleton-full", "monsters/skeleton-archer-face", "monsters/skeleton-archer-full", "monsters/ghoul-face", "monsters/ghoul-full", "monsters/dark-bear-face", "monsters/dark-bear-full", "monsters/skeleton-warrior-face", "monsters/skeleton-warrior-full", "monsters/living-stone-face", "monsters/living-stone-full", "monsters/wisp-face", "monsters/wisp-full", "monsters/pixie-face", "monsters/pixie-full", "monsters/green-boulder-face", "monsters/green-boulder-full", "monsters/stone-guardian-face", "monsters/stone-guardian-full"]);
 const artPath = p => `assets/${p}.${RASTER.has(p) ? "webp" : "svg"}`;
@@ -2182,7 +2186,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 7;
+const BATTLE_REV = 8;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined) st.tactical = true; return st; }
@@ -2570,10 +2574,14 @@ function forgeWeapon() {
       </button>`).join("")}
     </div>
     ${(() => { const sh = WEAPONS.find(x => x.id === "shield"), block = w && (isTwoHandedWeapon(w) || w.group === "ranged") && !(d.race === "barbarian");
-      return `<button class="race-card fx-frame shield-pick" data-fx-shield aria-pressed="${!!d.shield && !block}"${block ? " disabled" : ""}>
-        <div class="wpn-art">${img(ART.weapon("shield"), sh.name)}${d.shield && !block ? `<span class="tick">${TICK}</span>` : ""}</div>
+      const light = w && (w.props || []).includes("Лёгкое"), kn = light && d.knife;
+      return (light ? `<button class="race-card fx-frame shield-pick" data-fx-knife aria-pressed="${!!kn}">
+        <div class="wpn-art">${img(ART.weapon(w.id), w.name)}${kn ? `<span class="tick">${TICK}</span>` : ""}</div>
+        <div><h3>Второй клинок в левую руку</h3><div class="bonus-box"><div class="st">${w.dmg} ${w.type} · ${kgf(w.weight)} кг</div>
+        <ul><li>Удар второй рукой — доп. действием; вместо щита</li></ul></div></div></button>` : "") + `<button class="race-card fx-frame shield-pick" data-fx-shield aria-pressed="${!!d.shield && !block && !kn}"${block || kn ? " disabled" : ""}>
+        <div class="wpn-art">${img(ART.weapon("shield"), sh.name)}${d.shield && !block && !kn ? `<span class="tick">${TICK}</span>` : ""}</div>
         <div><h3>Щит в левую руку</h3><div class="bonus-box"><div class="st">${sh.dmg} · ${kgf(sh.weight)} кг</div>
-        <ul><li>${block ? "Не с двуручным оружием и луком" : "Можно взять вместе с оружием"}</li></ul></div></div></button>`; })()}
+        <ul><li>${block ? "Не с двуручным оружием и луком" : kn ? "Занята вторым клинком" : "Можно взять вместе с оружием"}</li></ul></div></div></button>`; })()}
     <div class="kit-note fx-frame">Каждый герой также получает <b>простую одежду</b>, <b>7 пайков</b> и <b>2 слабых зелья лечения</b>${w && w.group === "ranged" ? " и <b>20 стрел</b>" : ""}. Рюкзак: ${d.race === "barbarian" ? 15 : 10} ячеек.</div>
   </div></div>`;
 }
@@ -2690,7 +2698,8 @@ function finishDraft() {
     equip: { main: { t: "w", id: d.weapon }, body: { t: "g", id: "clothes" } }, bag: [],
   };
   const wpn = WEAPONS.find(x => x.id === d.weapon);
-  if (d.shield && (d.race === "barbarian" || !(isTwoHandedWeapon(wpn) || wpn.group === "ranged"))) c.equip.off = { t: "w", id: "shield" };
+  if (d.knife && (wpn.props || []).includes("Лёгкое")) c.equip.off = { t: "w", id: wpn.id };                                   // два клинка вместо щита
+  else if (d.shield && (d.race === "barbarian" || !(isTwoHandedWeapon(wpn) || wpn.group === "ranged"))) c.equip.off = { t: "w", id: "shield" };
   addToBag(c, { t: "g", id: "ration", qty: 7 });
   addToBag(c, { t: "g", id: "potion", qty: 2 });
   if (WEAPONS.find(x => x.id === d.weapon).group === "ranged") addToBag(c, { t: "g", id: "arrow", qty: QUIVER });          // колчан: 40 обычных стрел
@@ -2712,12 +2721,13 @@ function completeTeam() {
 }
 
 $forge.addEventListener("click", e => {
-  const el = e.target.closest("[data-fx],[data-fx-race],[data-fx-gender],[data-fx-weapon],[data-fx-shield]");
+  const el = e.target.closest("[data-fx],[data-fx-race],[data-fx-gender],[data-fx-weapon],[data-fx-shield],[data-fx-knife]");
   if (!el) return;
   const ds = el.dataset;
   if (ds.fxRace) { forge.draft.race = ds.fxRace; renderForge(true); return; }
-  if (ds.fxWeapon) { forge.draft.weapon = ds.fxWeapon; renderForge(true); return; }
+  if (ds.fxWeapon) { forge.draft.weapon = ds.fxWeapon; forge.draft.knife = false; renderForge(true); return; }
   if (ds.fxShield !== undefined) { forge.draft.shield = !forge.draft.shield; renderForge(true); return; }
+  if (ds.fxKnife !== undefined) { forge.draft.knife = !forge.draft.knife; if (forge.draft.knife) forge.draft.shield = false; renderForge(true); return; }
   if (ds.fxGender) { forge.draft.gender = ds.fxGender; forge.errors = forge.errors.filter(x => x.f !== "gender"); renderForge(true); return; }
   switch (ds.fx) {
     case "next": if (forge.draft.race) { forge.step = "weapon"; renderForge(); } break;

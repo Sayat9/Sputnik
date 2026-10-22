@@ -48,6 +48,12 @@
       '<path class="fl" d="M50 18 C64 38 74 48 67 64 C63 76 37 76 33 64 C27 48 43 42 50 18Z" fill="#f2851f"/><path class="fl2" d="M50 42 C58 52 61 58 57 66 C54 72 46 72 44 66 C40 58 47 54 50 42Z" fill="#ffd54a"/>',
     fog: '<ellipse cx="32" cy="58" rx="32" ry="19" fill="#cdd3dc" opacity=".5"/><ellipse cx="64" cy="48" rx="34" ry="21" fill="#dbe0e8" opacity=".46"/><ellipse cx="50" cy="68" rx="36" ry="15" fill="#c0c7d2" opacity=".44"/>',
     trap: '<ellipse cx="50" cy="70" rx="38" ry="13" fill="#2a1e12"/><path d="M12 68 L25 38 L38 68 L50 38 L62 68 L75 38 L88 68Z" fill="#a3a9af" stroke="#3b3f44" stroke-width="2.5" stroke-linejoin="round"/>',
+    hill: '<ellipse cx="50" cy="74" rx="46" ry="20" fill="#000" opacity=".25"/><path d="M4 74 Q12 40 38 30 Q56 24 70 34 Q92 46 96 74 Q50 90 4 74Z" fill="#8a7a4e" stroke="#4a3f22" stroke-width="3" stroke-linejoin="round"/>' +
+      '<path d="M16 66 Q28 44 46 40 Q64 36 78 50" stroke="#b9a874" stroke-width="3.5" fill="none" stroke-linecap="round" opacity=".9"/><path d="M26 70 Q36 62 48 66 M58 64 Q70 58 82 66" stroke="#5f522d" stroke-width="2.5" fill="none" stroke-linecap="round"/>' +
+      '<path d="M40 26 L50 12 L60 26" fill="none" stroke="#f1e3b0" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" opacity=".9"/>',
+    tomb: '<ellipse cx="50" cy="80" rx="40" ry="11" fill="#2a2430" opacity=".7"/><path d="M26 80 L26 40 Q26 22 50 22 Q74 22 74 40 L74 80Z" fill="#7f7c8c" stroke="#2f2d38" stroke-width="3" stroke-linejoin="round" transform="rotate(-6 50 80)"/>' +
+      '<path d="M50 34 V56 M41 43 H59" stroke="#47455a" stroke-width="4" stroke-linecap="round" transform="rotate(-6 50 80)"/><path d="M14 82 Q22 72 30 82 M66 82 Q76 70 86 82" stroke="#3f6a30" stroke-width="3" fill="none" stroke-linecap="round"/>' +
+      '<path d="M34 80 L40 70 L48 80 M54 80 L62 68 L70 80" fill="#1a1720" opacity=".7"/>',
     web: '<path d="M50 8 V92 M8 50 H92 M18 18 L82 82 M82 18 L18 82" stroke="#e6e9ee" stroke-width="2" opacity=".8"/><circle cx="50" cy="50" r="14" fill="none" stroke="#e6e9ee" stroke-width="2" opacity=".8"/><circle cx="50" cy="50" r="28" fill="none" stroke="#e6e9ee" stroke-width="2" opacity=".7"/>',
   };
   // Свойства клеток. cost — стоимость входа (2 = труднопроходная), cover — укрытие для занявшего клетку (дальние атаки +2 КД).
@@ -68,17 +74,28 @@
     stakes:  { name: "Колья", cost: 2, note: "Труднопроходны." },
     fire:    { name: "Костёр", hazard: "fire", light: 3, note: "1к4 урона огнём тому, кто вошёл или начал ход. Освещает 3 клетки." },
     fog:     { name: "Туман", cover: 2, hide: true, note: "+2 КД от дальних атак, можно прятаться." },
+    hill:    { name: "Возвышенность", elevated: true, note: "Высота: +2 к броску атаки тому, кто стоит здесь, и +2 к броскам атак по нему (черновик). Подъём стоит как обычная клетка." },
+    tomb:    { name: "Старое надгробие", cost: 2, cover: 2, hide: true, note: "Просевшая могила с покосившимся камнем (клетка стоит 2). +2 КД от дальних атак, под камнем можно прятаться." },
+  };
+  // Высота (черновик, campaign/drafts.md): бонус к броску атаки, если атакующий стоит на возвышенности, и отдельно — если на ней стоит цель.
+  D.height = { att: 2, tgt: 2 };
+  // 2 этаж и глубже (решение автора): больше кустов, зарослей и надгробий, где часть монстров начинает бой спрятавшись.
+  // feats — добавляются к обычным; hideShare — какая часть врагов пытается занять такую клетку (бросок Скрытности против пассивного Восприятия героев).
+  D.deep = {
+    goblin: { feats: [["thorns", 2, 4, true]], hideShare: 0.4 },
+    beast:  { feats: [["bush", 2, 4, true]], hideShare: 0.4 },
+    undead: { feats: [["tomb", 2, 3]], hideShare: 0.4 },
   };
   // Зоны: фон, перечень препятствий и украшений. [мин, макс] — сколько клеток; blob — пятном; trap — скрытые ловушки гоблинов.
   // «Подсыпка» местности (battle-core.js → genTerrain): если на поле мало укрытий или нет зарослей, иногда добавляем их.
   // minCover — сколько клеток с укрытием (препятствия, заросли, туман) хотим иметь; *Chance — вероятность подсыпки; thicketN — размер пятна зарослей.
   D.gen = { minCover: 5, coverChance: 0.75, thicketChance: 0.6, thicketN: [2, 4] };
   D.zones = {
-    goblin: { name: "Лагерь гоблинов", soil: true, obst: ["tent", "crate", "rock"], nObst: [3, 5], thicket: "thorns", feats: [["stakes", 1, 2], ["mud", 1, 3, true], ["fire", 0, 1], ["puddle", 0, 2, true]], traps: [0, 2],
+    goblin: { name: "Лагерь гоблинов", soil: true, obst: ["tent", "crate", "rock"], nObst: [3, 5], thicket: "thorns", feats: [["hill", 0, 3, true], ["stakes", 1, 2], ["mud", 1, 3, true], ["fire", 0, 1], ["puddle", 0, 2, true]], traps: [0, 2],
       bg: { base: "#4a4026", base2: "#2b2414", dots: ["#6a5a36", "#3a301a", "#7d6c40"], tufts: "#6b7a2e", label: "Лагерь гоблинов" } },
-    beast: { name: "Звериная чаща", soil: true, obst: ["tree", "rock"], nObst: [3, 5], thicket: "bush", feats: [["bush", 2, 4], ["mud", 0, 2, true], ["puddle", 1, 3, true]], traps: [0, 0],
+    beast: { name: "Звериная чаща", soil: true, obst: ["tree", "rock"], nObst: [3, 5], thicket: "bush", feats: [["hill", 0, 3, true], ["bush", 2, 4], ["mud", 0, 2, true], ["puddle", 1, 3, true]], traps: [0, 0],
       bg: { base: "#2f4a24", base2: "#17260f", dots: ["#3f6a30", "#22381a", "#587a3c"], tufts: "#6ea04a", label: "Звериная чаща" } },
-    undead: { name: "Погост", soil: true, obst: ["grave", "rock"], nObst: [3, 5], thicket: "thorns", feats: [["bones", 2, 3], ["fog", 2, 4, true], ["puddle", 0, 2, true]], traps: [0, 0],
+    undead: { name: "Погост", soil: true, obst: ["grave", "rock"], nObst: [3, 5], thicket: "thorns", feats: [["hill", 0, 3, true], ["bones", 2, 3], ["fog", 2, 4, true], ["puddle", 0, 2, true]], traps: [0, 0],
       bg: { base: "#3a3744", base2: "#1c1a24", dots: ["#55526a", "#2a2834", "#6e6a84"], tufts: "#5b6a4a", label: "Погост" } },
     stone: { name: "Каменная пещера", obst: ["rock", "crystal"], nObst: [3, 5], thicket: "shrooms", feats: [["moss", 1, 3], ["puddle", 1, 3, true]], traps: [0, 0],
       bg: { base: "#3b4650", base2: "#1c2228", dots: ["#556573", "#2b343c", "#6f8394"], tufts: "#4f7a3a", label: "Каменная пещера" } },

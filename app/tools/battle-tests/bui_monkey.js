@@ -61,7 +61,7 @@ async function driveOption(p, log) {
   // эссенции 2 этажа: SC.ess[i] — эссенции героя i, SC.bag[i] — оружие в рюкзак (для метателя)
   if (SC.ess) await p.evaluate(({ ess, bag }) => { state.party.forEach((c, i) => { if (ess[i]) c.essences = ess[i].slice(); for (const w of (bag && bag[i]) || []) addToBag(c, { t: 'w', id: w }); c.mp = maxMp(c); c.hp = hpOf(c); }); saveChar(); }, { ess: SC.ess, bag: SC.bag || {} });
   if (SC.dark) await p.evaluate(() => { /* тьма у портала */ const r = state.run; for (const [x, y] of [[0,0],[0,10],[10,0],[10,10],[1,1],[9,9]]) { if (isDark(x, y)) { r.pos = { x, y }; break; } } r.light = false; });
-  await L.startFightPage(p, { list: SC.list || ['goblin', 'goblin'], zone: SC.zone || 'goblin', ambush: !!SC.ambush });
+  await L.startFightPage(p, { list: SC.list || ['goblin', 'goblin'], zone: SC.zone || 'goblin', ambush: !!SC.ambush, floor: SC.floor || 1 });
   await p.waitForFunction(() => window.Battle && Battle.UI && (Battle.UI.mode === 'place' || Battle.UI.mode === 'ambush'), null, { timeout: 20000 });
   // случайная расстановка нескольких героев
   if (!SC.ambush && rnd() < .7) { for (let k = 0; k < 4; k++) { const x = Math.floor(rnd() * 7), y = 4 + Math.floor(rnd() * 3); await L.tapCell(p, x, y); await L.sleep(60); } }

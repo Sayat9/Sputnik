@@ -174,7 +174,7 @@
     if (has(att, "cursed")) ctx.dis.push("проклятие предков");
     if (att.fearsLight && B.brightAt && B.brightAt(att)) ctx.dis.push("боится яркого света");
     if (att.sight && d0 > att.sight && !(att.tremor && d0 <= att.tremor && !B.isFlying(tgt))) ctx.dis.push("плохое зрение");
-    if (B.dustBlocks && B.dustBlocks(att, tgt)) ctx.dis.push("густая пыль");
+    if (B.dustBlocks && B.dustBlocks(att, tgt)) ctx.dust = true;                                       // густая пыль: преимущество на дальние атаки сводится на нет (решение автора), помехи самой по себе нет
     if (!seesTarget(att, tgt)) ctx.dis.push("потерял цель из виду");
     const hid = has(att, "hidden"); ctx.hiddenData = hid ? { ...hid.data } : null;
     if (hid && !(tgt.tremor && dist(att, tgt) <= tgt.tremor && !B.isFlying(att)) && !(tgt.blind && dist(att, tgt) <= tgt.blind)) { ctx.adv.push("атакует из укрытия"); }
@@ -215,6 +215,10 @@
     ctx.ac = ac;
     hookAll(att, "attackMods", ctx); hookAll(tgt, "defendMods", ctx);
     for (const a of alliesOf(att)) hookAll(a, "attackAura", { ally: a, att, tgt, ctx });          // «Пока король жив»
+    const ha = tinfo(att.x, att.y), ht = tinfo(tgt.x, tgt.y);                                              // высота: с возвышенности бьют точнее, и по стоящему на ней тоже (решение автора, черновик)
+    if (ha && ha.elevated) ctx.mods.push({ l: "Высота (атакует сверху)", v: B.D.height.att });
+    if (ht && ht.elevated) ctx.mods.push({ l: "Высота (цель на возвышении)", v: B.D.height.tgt });
+    if (ctx.dust && ctx.adv.length) { ctx.notes.push("густая пыль гасит преимущество"); ctx.adv.length = 0; }
     return ctx;
   }
   Object.assign(B, { attackCtx });
@@ -434,6 +438,7 @@
     if (alive(u) && !B.canStand(u, u.x, u.y) && B.freeCellsNear) {                       // остановили посреди чужой клетки («Летучий прах») — встаём рядом
       const c = B.freeCellsNear(u, 3, u)[0]; if (c) { u.x = c[0]; u.y = c[1]; const g2 = ui(); if (g2) g2.refresh(); }
     }
+    if (u.side === "hero" && B.spotHidden) B.spotHidden(u);
     return { spent, interrupted };
   }
   // Принудительное перемещение на n клеток от точки (без провоцированных атак).

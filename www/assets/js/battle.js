@@ -43,6 +43,36 @@
     }
   }
   B.placeMonsters = placeMonsters;
+  // 2 этаж и глубже: часть врагов переходит в ближайшие кусты, заросли или под надгробия (D.deep) — в preStart они пробуют там затаиться.
+  function placeCoverMonsters(S) {
+    const cfg = B.D.deep[S.zone]; if (!cfg || (S.floor || 1) < 2) return;
+    const mons = shuffle(B.mons().filter(m => m.size === 1 && alive(m) && !B.isFlying(m)));
+    let want = Math.round(B.mons().length * cfg.hideShare + (rnd(3) - 1) * 0.5); want = Math.max(1, Math.min(want, mons.length));
+    const spots = [];
+    for (let y = 0; y <= 3; y++) for (let x = 0; x < B.W; x++) { const t = B.tinfo(x, y); if (t && t.hide && !t.obstacle) spots.push({ x, y }); }
+    let done = 0;
+    for (const m of mons) {
+      if (done >= want) break;
+      const free = spots.filter(c => !B.occupant(c.x, c.y) && B.canStand(m, c.x, c.y)).map(c => ({ c, k: Math.abs(c.x - m.x) + Math.abs(c.y - m.y) })).filter(o => o.k <= 4);
+      if (!free.length) continue;
+      free.sort((a, b) => a.k - b.k || rnd(3) - 1);
+      m.x = free[0].c.x; m.y = free[0].c.y; m.startCell = [m.x, m.y]; m.coverHide = true; done++;
+    }
+  }
+  B.placeCoverMonsters = placeCoverMonsters;
+  B.preStart = (S) => preStart(S);
+  // Затаившийся враг становится виден: вплотную (≤ 1 клетки) сразу, до 3 клеток — если пассивное Восприятие героя не ниже его Скрытности.
+  function reveal(m, why) { const h = has(m, "hidden"); if (!h || !h.data || !h.data.unseen) return; h.data.unseen = false; log(`${m.name} замечен${why ? " (" + why + ")" : ""}.`, "good"); const g = ui(); if (g) { g.fxText(m, "замечен", "good"); g.refresh(); } }
+  function spotHidden(u) {
+    if (u.side !== "hero" || !alive(u) || u.down) return;
+    for (const m of B.mons()) {
+      if (!B.isUnseen(m) || !alive(m)) continue;
+      const dd = dist(u, m);
+      if (dd <= 1) reveal(m, "рядом");
+      else if (dd <= 3 && B.passivePerceptionOf(u) >= (has(m, "hidden").data.dc || 0)) reveal(m, "по шороху");
+    }
+  }
+  B.spotHidden = spotHidden; B.revealHidden = reveal;
 
   /* ===== начало боя ===== */
   function preStart(S) {
@@ -51,11 +81,11 @@
     for (const t of S.objs) if (t.kind === "trap" && t.hidden && bestPerc >= t.dc) t.hidden = false;
     // скрытные монстры пытаются спрятаться
     for (const m of B.mons()) {
-      const pr = m.ai || {}; if (!pr.hide) continue;
+      const pr = m.ai || {}; if (!pr.hide && !m.coverHide) continue;
       const spot = B.hideSpot(m); if (!spot && !pr.still) continue;
       const adv = (m.pass.includes("skeleton-archer") ? 1 : 0), a = d(20), b = adv ? d(20) : 0;
       const stealth = Math.max(a, b) + amod(m.abil.dex) + (m.skills.stealth || 0);
-      if (stealth >= bestPerc) { addStatus(m, "hidden", { k: Infinity }); log(`${m.name} затаился.`); }
+      if (stealth >= bestPerc) { addStatus(m, "hidden", { k: Infinity, data: { unseen: true, dc: stealth } }); }                // героям не виден, пока его не заметят
     }
     S.initialMons = B.mons().length;
   }
@@ -87,6 +117,8 @@
       if (!u || !alive(u)) { B.advanceTurn(); continue; }
       S.curId = u.id;
       await B.startTurn(u);
+      if (u.side === "hero") spotHidden(u);                                                  // враги, затаившиеся в начале боя
+      else if (B.isUnseen(u)) reveal(u);                                                     // начал действовать — виден
       if (alive(u)) {
         const g = ui(); if (g) await g.turnStart(u);
         if (u.side === "hero" && !u.summon) {
@@ -94,7 +126,8 @@
           else if (!B.canAct(u)) log(`${u.name} не может действовать.`);
           else if (B.S.opts.autoHeroes || !g) await B.AI.takeTurn(u);
           else await g.heroTurn(u);
-        } else if (B.canAct(u)) await B.AI.takeTurn(u);
+        } else if (u.side === "hero" && u.summon && g && !B.S.opts.autoHeroes && B.canAct(u)) await g.heroTurn(u);          // волки и двойники героя: за них играет игрок
+        else if (B.canAct(u)) await B.AI.takeTurn(u);
         await B.endTurn(u);
         if (g) g.turnEnd(u);
       }
@@ -109,9 +142,10 @@
   async function start(ev, o = {}) {
     const S = B.newBattle(ev);
     const g = ui();
-    if (o.sim || !g) { placeHeroesDefault(S); placeMonsters(S); }
-    else { placeHeroesDefault(S); await g.placement(S); placeMonsters(S); await g.reveal(S); }
-    preStart(S);
+    if (o.sim || !g) { placeHeroesDefault(S); placeMonsters(S); placeCoverMonsters(S); }
+    else { placeHeroesDefault(S); await g.placement(S); placeMonsters(S); placeCoverMonsters(S); }
+    preStart(S);                                                                                   // затаившиеся враги выбираются до показа поля, чтобы не выдать их
+    if (g && !(o.sim || !g)) await g.reveal(S);
     B.rollInitiative();
     S.phase = "fight"; log(S.ambush ? "Засада! Монстры ходят первыми." : "Бой начался.", "round");
     if (g) await g.start(S);
