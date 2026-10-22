@@ -15,11 +15,11 @@
     rock:     { hp: 20, ac: 12, res: ["slash", "pierce"], drop: [[0.08, 0], [0.12, 0.03]] },
     crystal:  { hp: 10, ac: 11, res: [], drop: [[0.15, 0], [0.22, 0.06]] },
     grave:    { hp: 18, ac: 12, res: ["slash", "pierce"], drop: [[0.05, 0], [0.08, 0.02]] },
-    crate:    { hp: 8, ac: 10, res: [] },
-    tent:     { hp: 8, ac: 9, res: [] },
-    tree:     { hp: 25, ac: 12, res: ["pierce"] },
-    palisade: { hp: 20, ac: 10, res: ["pierce"] },
-    deadfall: { hp: 24, ac: 11, res: ["pierce"] },
+    crate:    { hp: 8, ac: 10, res: [], vuln: ["slash"] },
+    tent:     { hp: 8, ac: 9, res: [], vuln: ["slash"] },
+    tree:     { hp: 25, ac: 12, res: ["pierce"], vuln: ["slash"] },
+    palisade: { hp: 20, ac: 10, res: ["pierce"], vuln: ["slash"] },
+    deadfall: { hp: 24, ac: 11, res: ["pierce"], vuln: ["slash"] },
   };
   D.recoil = { maxNat: 3, dmg: [1, 4] };                          // обычное оружие (не молот и не тяжёлое), натуральное 1–3 по камню: отдача в руку
   const NO_DAMAGE = ["poison", "psychic", "necrotic", "radiant"];  // такие эффекты объектам не вредят
@@ -59,7 +59,7 @@
   // Урон объекту в клетке. dt — тип урона (ядовитому, психическому и т. п. объект не вредит).
   function damageObject(x, y, dmg, dt, src) {
     const S = B.S, t = B.terrain(x, y), def = t && D.obj[t]; if (!def || dmg <= 0 || NO_DAMAGE.includes(dt)) return 0;
-    const v = def.res && def.res.includes(dt) ? Math.floor(dmg / 2) : dmg; if (v <= 0) return 0;
+    const v = def.res && def.res.includes(dt) ? Math.floor(dmg / 2) : def.vuln && def.vuln.includes(dt) ? dmg * 2 : dmg; if (v <= 0) return 0;          // дерево и дерево-подобное боится рубящего: урон вдвое (решение автора)
     const k = key(x, y), left = ((S.objHp ||= {})[k] ?? def.hp) - v; S.objHp[k] = left;
     const g = ui(); if (g) g.fxText({ x, y, size: 1, id: "obj" }, "−" + v, "dmg");
     if (left <= 0) destroyObject(x, y, src); else log(`${D.terrain[t].name}: −${v} (осталось ${left}).`);

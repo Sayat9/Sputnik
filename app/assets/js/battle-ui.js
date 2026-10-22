@@ -96,7 +96,7 @@
   function statusIcons(u) {
     const list = u.conds.filter(c => D.status[c.id]); if (u.dead) return "";
     const shown = list.slice(0, 4), extra = list.length - shown.length;
-    return shown.map(c => `<i class="bt-st ${D.status[c.id].good ? "good" : "bad"}" title="${esc(D.status[c.id].name)}">${stIco(c.id)}</i>`).join("") + (extra > 0 ? `<i class="bt-st more">+${extra}</i>` : "");
+    return shown.map(c => `<i class="bt-st ${D.status[c.id].good ? "good" : "bad"}" data-sid="${c.id}" data-uid="${u.id}" title="${esc(D.status[c.id].name)}">${stIco(c.id)}</i>`).join("") + (extra > 0 ? `<i class="bt-st more">+${extra}</i>` : "");
   }
   // «Чутьё» волка (6 клеток) и «По следу» костяной гончей (ближайший раненый в 18 м): раненых врагов отмечает сердечком.
   function sensedWounded(S, u) {
@@ -232,6 +232,15 @@
       if (UI.onCellHold) UI.onCellHold(cx, cy);
     }, HOLD_MS) };
   }
+  // Зажатие значка состояния (на жетоне, в панели, в окне бойца) — сноска: что делает и сколько осталось.
+  let stHold = null;
+  document.addEventListener("pointerdown", e => {
+    if (!UI.active) return; const el = e.target.closest && e.target.closest("[data-sid]"); if (!el) return;
+    clearTimeout(stHold && stHold.t);
+    stHold = { x: e.clientX, y: e.clientY, t: setTimeout(() => { const h = stHold; stHold = null; if (!h) return; UI._noClickUntil = Date.now() + 700; try { if (navigator.vibrate) navigator.vibrate(16); } catch (err) {} if (UI.statusNote) UI.statusNote(el.dataset.uid, el.dataset.sid); }, HOLD_MS) };
+  }, true);
+  document.addEventListener("pointermove", e => { if (stHold && Math.hypot(e.clientX - stHold.x, e.clientY - stHold.y) > 10) { clearTimeout(stHold.t); stHold = null; } }, true);
+  document.addEventListener("pointerup", () => { if (stHold) { clearTimeout(stHold.t); stHold = null; } }, true);
   function onHoldMove(e) { if (hold && Math.hypot(e.clientX - hold.x, e.clientY - hold.y) > 10) { clearTimeout(hold.t); hold = null; } }
   function onHoldUp() { if (hold) { clearTimeout(hold.t); hold = null; } }
   function onClick(e) {

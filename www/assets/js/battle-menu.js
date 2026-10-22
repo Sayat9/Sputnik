@@ -12,7 +12,7 @@
   /* ===== панель ===== */
   const barHtml = (cls, cur, max) => `<div class="bt-meter ${cls}"><i style="width:${max ? Math.round(Math.max(0, Math.min(1, cur / max)) * 100) : 0}%"></i></div>`;
   function unitCard(u, compact) {
-    const sts = u.conds.filter(c => D.status[c.id]).map(c => `<span class="bt-stchip ${D.status[c.id].good ? "good" : "bad"}" title="${esc(D.status[c.id].desc)}">${stIco(c.id)}${esc(D.status[c.id].name)}</span>`).join("");
+    const sts = u.conds.filter(c => D.status[c.id]).map(c => `<span class="bt-stchip ${D.status[c.id].good ? "good" : "bad"}" data-sid="${c.id}" data-uid="${u.id}" title="Удерживайте: что это">${stIco(c.id)}${esc(D.status[c.id].name)}</span>`).join("");
     const hero = !!u.hero, mine = u.side === "hero";
     return `<div class="bt-card${compact ? " compact" : ""}"><div class="bt-cface ${u.side}${u.spectral ? " ghost" : ""}"><img src="${u.face}" alt=""></div>
       <div class="bt-cinfo"><b>${esc(u.name)}</b><small>${hero ? `${esc(raceById(u.race).name)} · ${u.level} ур. · КД ${u.ac}` : u.summon ? `${u.kind === "double" ? "Двойник" : "Призванный волк"} · КД ${u.ac}` : `${esc(u.mon.size)} · КД ${u.ac}`}</small>
@@ -150,7 +150,7 @@
     const S = B.S, hero = !!u.hero, mine = u.side === "hero";
     const atk = B.attacksOf(u).filter(a => !a.offhand).map(a => `<li><b>${esc(a.n)}</b> · ${a.kind === "melee" ? "ближний" : "дальний"} · ${a.hit != null ? "+" + (a.hit) : ""} · ${a.dmg.n ? B.fmtDice(a.dmg) : a.dmg.b} ${D.DT[a.dt] || ""}${a.dmgMult === 0.5 ? " (вполсилы)" : ""}</li>`).join("");
     const ess = u.ess.map(id => { const e = ESSENCES[id]; return `<li><b>${esc(e.passive.name)} (П).</b> ${esc(e.passive.text)}</li><li><b>${esc(e.active.name)} (А).</b> ${e.active.mana} маны, ${esc(e.active.time)}. ${esc(e.active.text)}</li>`; }).join("");
-    const sts = u.conds.filter(c => D.status[c.id]).map(c => `<li><span class="bt-stchip ${D.status[c.id].good ? "good" : "bad"}">${stIco(c.id)}${esc(D.status[c.id].name)}</span> ${esc(D.status[c.id].desc)}</li>`).join("");
+    const sts = u.conds.filter(c => D.status[c.id]).map(c => `<li><span class="bt-stchip ${D.status[c.id].good ? "good" : "bad"}" data-sid="${c.id}" data-uid="${u.id}">${stIco(c.id)}${esc(D.status[c.id].name)}</span> ${esc(D.status[c.id].desc)}</li>`).join("");
     const owner = u.summon ? B.byId(u.owner) : null;
     const sub = hero ? esc(raceById(u.race).name) + " · " + u.level + " ур." : u.summon ? (u.kind === "double" ? `Двойник · ${esc(owner ? owner.name : "")} · исчезает от любого урона` : `Призванный волк · ${esc(owner ? owner.name : "")}`) : esc(u.mon.size) + " · " + u.cls + " класс";
     const body = `<div class="bt-dlg fx-frame insp"><div class="bt-ihead"><div class="bt-cface ${u.side}${u.spectral ? " ghost" : ""}"><img src="${u.face}" alt=""></div><div><h4>${esc(u.name)}</h4><small>${sub}</small></div><button class="bt-x" data-m="close" aria-label="Закрыть">${ico("close")}</button></div>
@@ -183,6 +183,13 @@
     return out;
   };
   const effectsHtml = (x, y) => `<small class="bt-eyebrow">Поле ${x + 1}:${y + 1}</small>` + UI.cellEffects(x, y).map(e => `<h6>${esc(e.h)}</h6><p>${esc(e.t)}</p>`).join("");
+  // Сноска о состоянии: название, что делает, сколько ещё действует.
+  UI.statusNote = function (uid, sid) {
+    const u = B.byId(uid), st = D.status[sid], c = u && u.conds.find(q => q.id === sid); if (!st) return;
+    const left = c ? (c.k === Infinity ? "пока не снимут" : (() => { const n = c.k - (u.turnsTaken || 0); return n > 0 ? `ещё ${n} ${n === 1 ? "ход" : n < 5 ? "хода" : "ходов"} ${u.name}` : "до конца текущего хода"; })()) : "";
+    const m = showModal(`<div class="bt-dlg fx-frame cellinfo"><div class="bt-ihead"><h4>${esc(st.name)}</h4><button class="bt-x" data-m="close" aria-label="Закрыть">${ico("close")}</button></div><p class="left">${esc(st.desc || "")}</p>${left ? `<p class="left"><small>${esc(u.name)}: ${esc(left)}.</small></p>` : ""}</div>`);
+    m.onclick = e => { if (e.target.closest("[data-m]") || e.target === m) hideModal(); };
+  };
   UI.cellInfo = function (x, y) {
     const u = B.occupant(x, y);
     if (u) { UI.inspect(u, effectsHtml(x, y)); return; }                                         // боец на клетке: его окно, справа — сноска поля
@@ -313,7 +320,7 @@
         const hl = new Map(), base = flat();
         for (const [k, n] of reach) {
           if ((n.x === pos[0] && n.y === pos[1]) || !B.canStand(u, n.x, n.y)) continue;
-          const bad = provokes(nodePath(reach, n.x, n.y), pos).length > 0;          // красим только клетки, до которых сам этот отрезок пути даёт атаку по возможности (уже отмеченное путевыми точками — в подсказке)
+          const bad = foes.some(e => B.distAt(e, u, n.x, n.y) <= B.meleeReach(e));          // оранжевым — клетки в зоне досягаемости врагов, которые могут ударить по возможности (при выходе из неё); путь с выходом из зоны — в подсказке
           UI.hlAdd(hl, n.x, n.y, bad ? "hl-danger" : "hl-move");
         }
         UI.setHl(hl); UI.pathWays = ways.slice(); UI.pathStart = ways.length ? [u.x, u.y] : null;

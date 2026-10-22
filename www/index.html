@@ -1595,6 +1595,14 @@ MONSTERS.forEach(m => {
   if (x.areasAdd) m.areas = [...m.areas, ...x.areasAdd];
   if (x.spawn) m.spawn = x.spawn;
 });
+// КД монстров (решение автора): 9 класс — не больше 10, кроме «заточенных под защиту» (живой камень, зелёный валун — 11); 8 класс — не больше 14.
+// Числа в rules.md пока прежние. Применяется ко всем статблокам, в том числе 2 этажа.
+const AC_CAP = { 9: 10, 8: 14 }, AC_SET = { "living-stone": 11, "green-boulder": 11 };
+MONSTERS.forEach(m => {
+  if (typeof m.ac !== "string" || !/^\d+/.test(m.ac)) return;
+  const cur = parseInt(m.ac, 10), cap = AC_SET[m.id] != null ? AC_SET[m.id] : AC_CAP[m.cls];
+  if (cap != null && (AC_SET[m.id] != null ? cur !== cap : cur > cap)) m.ac = m.ac.replace(/^\d+/, String(cap));
+});
 // Монстры-заготовки, у которых уже есть рисованная картинка: силуэт ph не нужен.
 const STUB_ART = ["goblin-king", "goblin-bomber", "hobgoblin-shield"];
 MONSTERS.forEach(m => { if (STUB_ART.includes(m.id)) delete m.ph; });
@@ -1639,8 +1647,8 @@ const DISTRICTS = [
 
 // Готовые рисованные картинки (webp) заменяют векторные заглушки.
 // Дата сборки для телефона: build.sh вписывает её сюда, в веб-версии строка пустая.
-const APP_BUILD = "22.10.2026 15:43";
-const APP_VERSION = 1792665804;                 // номер сборки, тоже вписывает build.sh
+const APP_BUILD = "22.10.2026 16:26";
+const APP_VERSION = 1792668377;                 // номер сборки, тоже вписывает build.sh
 const UPDATE_URL = "https://raw.githubusercontent.com/Sayat9/Sputnik/main/www/";
 const RASTER = new Set(["items/stone-9", "items/stone-8", "items/stone-7", "items/ration", "items/potion", "items/torch", "items/arrows", "items/clothes", "items/shovel", "items/shovel-good", "items/shovel-best", "items/dagger", "items/sword", "items/greatsword", "items/spear", "monsters/goblin-king-face", "monsters/goblin-king-full", "monsters/goblin-bomber-face", "monsters/goblin-bomber-full", "monsters/hobgoblin-shield-face", "monsters/hobgoblin-shield-full", "races/barbarian", "races/human", "races/dwarf", "races/beastkin", "races/fairy", "races/dragon", "monsters/goblin-face", "monsters/goblin-full", "monsters/goblin-archer-face", "monsters/goblin-archer-full", "monsters/goblin-sword-face", "monsters/goblin-sword-full", "monsters/goblin-spear-face", "monsters/goblin-spear-full", "monsters/wolf-face", "monsters/wolf-full", "monsters/fox-face", "monsters/fox-full", "monsters/mouse-face", "monsters/mouse-full", "monsters/bat-face", "monsters/bat-full", "monsters/hobgoblin-face", "monsters/hobgoblin-full", "monsters/zombie-face", "monsters/zombie-full", "monsters/skeleton-face", "monsters/skeleton-full", "monsters/skeleton-archer-face", "monsters/skeleton-archer-full", "monsters/ghoul-face", "monsters/ghoul-full", "monsters/dark-bear-face", "monsters/dark-bear-full", "monsters/skeleton-warrior-face", "monsters/skeleton-warrior-full", "monsters/living-stone-face", "monsters/living-stone-full", "monsters/wisp-face", "monsters/wisp-full", "monsters/pixie-face", "monsters/pixie-full", "monsters/green-boulder-face", "monsters/green-boulder-full", "monsters/stone-guardian-face", "monsters/stone-guardian-full"]);
 const artPath = p => `assets/${p}.${RASTER.has(p) ? "webp" : "svg"}`;
@@ -3025,7 +3033,8 @@ function genEncounterRaw(x, y, day, n = 1, forceRare = false) {
   const zone = z.zones[rnd(z.zones.length)];
   // 8 класс: с 7-го дня у портала зоны — первая встреча там всегда он, дальше на к20 = 1–2. В одиночку.
   const r = state.run, elite = MONSTERS.find(m => m.zone === zone && m.cls === 8 && m.floor === 1 && !m.draft);
-  if (day >= 7 && elite && isDark(x, y) && (!r.elite7 || n <= 2)) { r.elite7 = true; return { list: [elite.id], zone, border: z.kind === "border" }; }
+  if (day >= 7 && elite && (!r.elite7 || (isDark(x, y) && n <= 2))) { r.elite7 = true;          // первая встреча 7-го дня — всегда 8 класс (где угодно в зоне), дальше только у портала на 1–2
+    return { list: [elite.id], zone, border: z.kind === "border" }; }
   const pool = MONSTERS.filter(m => m.zone === zone && m.cls === 9 && m.floor === 1 && !m.draft);
   const std = pool.filter(m => !m.rare), rare = pool.filter(m => m.rare);
   const max = day >= 5 ? 3 : day >= 3 ? 2 : 1, sev = eventOf(Math.min(n, 12))[1];
