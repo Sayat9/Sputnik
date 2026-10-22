@@ -31,14 +31,15 @@
     const need = cfg.weaponText || (cfg.kind === "ranged" ? "нужен лук и стрелы" : cfg.weapon ? "нужно подходящее оружие" : "нужна атака ближнего боя");
     // «Дальность: 1,5 м» у всех ближних способностей: копьё с «Длинной рукой» и другое длинное оружие дальше соседней клетки не достают
     const reachOf = (u, a) => { const ts = B.attackTargets(u, a); return cfg.kind === "melee" ? ts.filter(t => dist(u, t) <= 1) : ts; };
+    const objsOf = (u, a) => (u.side === "hero" && B.objectTargets && a ? B.objectTargets(u, a).filter(o => cfg.kind !== "melee" || distCell(u, o.x, o.y) <= 1) : []);
     return {
-      tgt(u) { const a = atkOf(u); const ts = a ? reachOf(u, a) : []; return specUnit(u, `${cfg.name}: выберите цель`, ts, a ? (cfg.kind === "melee" ? B.cellsWithin(u, 1) : B.rangeCells(u, a)) : []); },
-      can(u) { const a = atkOf(u); if (!a) return need; return reachOf(u, a).length ? true : "нет целей"; },
+      tgt(u) { const a = atkOf(u); const ts = a ? reachOf(u, a) : []; const sp = specUnit(u, `${cfg.name}: выберите цель`, ts, a ? (cfg.kind === "melee" ? B.cellsWithin(u, 1) : B.rangeCells(u, a)) : []); sp.objs = objsOf(u, a).map(o => o.x + "," + o.y); if (a && cfg.kind !== "melee") sp.from = u; return sp; },
+      can(u) { const a = atkOf(u); if (!a) return need; return reachOf(u, a).length || objsOf(u, a).length ? true : "нет целей"; },
       async run(u, pk, ctl) {
         const a = atkOf(u); if (!a) return false;
         const dc = cfg.abil ? dcOf(u, cfg.abil) : 0;
         const extra = cfg.extra ? [{ n: cfg.extra.n, s: cfg.extra.s, b: 0, dt: a.dt, label: cfg.extra.label || cfg.name, critDouble: true }] : null;
-        const r = await B.doAttack(u, pk.unit, a, { extra, onCommit: () => { B.commitAttack(u, a, pk.unit); ctl.commit(); }, rider: async res => {
+        const r = await B.doAttack(u, pk.unit, a, { extra, dc, onCommit: () => { B.commitAttack(u, a, pk.unit); ctl.commit(); }, rider: async res => {
           const t = res.tgt; if (!alive(t) && !t.down) return;
           if (!cfg.save) { if (cfg.onHit) await cfg.onHit(t, u, res); return; }
           const sv = await save(t, cfg.save, dc, cfg.name, cfg.tags);

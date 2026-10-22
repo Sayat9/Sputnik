@@ -74,7 +74,7 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
       c.bag = []; addToBag(c, { t: 'g', id: 'herb-heal', qty: 3 }); ok('неизвестные лежат по одному на ячейку', c.bag.length === 3, c.bag.length);
       c.bag = []; c.lore = ['herb']; addToBag(c, { t: 'g', id: 'herb-heal', qty: 3 }); ok('известные — стопкой', c.bag.length === 1 && c.bag[0].qty === 3); c.lore = [];
       // зоны размещения
-      const cnt = (zone, N = 150) => { const r = {}; for (let i = 0; i < N; i++) { const s2 = B.newBattle({ list: ['goblin'], zone, floor: 1 }); for (const o of s2.objs) if (o.kind === 'find') r[FINDS[o.fid].kind] = (r[FINDS[o.fid].kind] || 0) + 1; } return r; };
+      const cnt = (zone, N = 150) => { const r = {}; for (let i = 0; i < N; i++) { const s2 = B.newBattle({ list: ['goblin'], zone, floor: 2 }); for (const o of s2.objs) if (o.kind === 'find') r[FINDS[o.fid].kind] = (r[FINDS[o.fid].kind] || 0) + 1; } return r; };
       window.__keepEnv = true;
       const g = cnt('goblin'), bz = cnt('beast'), un = cnt('undead'), st = cnt('stone');
       ok('грибы — только у гоблинов', g.mush > 20 && !g.herb && !g.sstone, JSON.stringify(g));
@@ -111,6 +111,14 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
       let s8 = 0, food = 0, pot = 0, map = 0; const N = 3000; for (let i = 0; i < N; i++) { const L = B.rollChest(2); if (L.some(x => x.id === 'stone-8')) s8++; if (L.some(x => x.id === 'ration')) food++; if (L.some(x => x.id === 'potion')) pot++; if (L.some(x => x.map)) map++; }
       ok('шансы: камни 8 > еда > зелья > карта', s8 > food && food > pot && pot > map && map > 0, [s8, food, pot, map].join('/'));
       window.__keepEnv = false;
+    }
+    // --- способность по одной цели бьёт объект ---
+    {
+      const S = setup([{ ess: ['hobgoblin-brute'], main: 'mace' }], ['goblin']); const H = B.heroes()[0], G = B.mons()[0]; G.x = 0; G.y = 0; H.x = 3; H.y = 5; S.cells[4][3] = 'rock'; T(H); H.mp = 20;
+      const sp = B.A['hobgoblin-brute'].tgt(H); ok('в выборе цели способности есть объект', sp.objs && sp.objs.includes('3,4'), JSON.stringify(sp.objs));
+      ok('способность доступна, когда рядом только камень', B.A['hobgoblin-brute'].can(H) === true);
+      F(18, 6, 6, 6); await B.useActive(H, 'hobgoblin-brute', { unit: B.objAt(3, 4) });
+      ok('способность ударила по камню: ОЗ камня упали', B.objAt(3, 4) ? B.objAt(3, 4).hp < 20 : true, logs(3));
     }
     return { R };
   });

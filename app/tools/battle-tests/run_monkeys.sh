@@ -11,8 +11,10 @@ declare -a SCS=(
 '{"list":["living-stone","green-boulder"],"zone":"stone","dark":true,"heroes":["barb2","archer","fairy"]}'
 '{"list":["goblin","goblin","goblin","goblin","goblin"],"zone":"goblin","floor":2,"heroes":["barb2","archer","fairy","beast"]}'
 '{"list":["zombie","skeleton","skeleton","skeleton-archer"],"zone":"undead","floor":2,"heroes":["barb2","dwarf","fairy"]}'
+'{"list":["goblin-trapper","goblin-assassin","goblin-shaman"],"zone":"goblin","floor":2,"heroes":["barb2","archer","fairy"]}'
+'{"list":["dire-wolf","wolf","wolf","web-spider"],"zone":"beast","floor":2,"heroes":["barb2","dwarf","beast","archer"]}'
 )
-for i in 0 1 2 3 4 5 6 7; do
+for i in 0 1 2 3 4 5 6 7 8 9; do
   timeout 560 node bui_monkey.js $((B+i)) "${SCS[$i]}" > "$OUT/run$i.txt" 2>&1 &
 done
 wait

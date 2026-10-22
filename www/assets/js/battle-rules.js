@@ -258,6 +258,7 @@
   }
   async function doAttack0(att, tgt, atk, o = {}) {
     const S = B.S;
+    if (tgt.isObj) return B.attackObject(att, atk, tgt, o);                            // способность или атака по камню и т. п.: бросок против КД объекта
     if (B.redirectAttack && !o.noRedirect) { const nt = await B.redirectAttack(att, tgt, atk, o); if (nt) tgt = nt; }          // двойник, «Принять удар»
     const ctx = attackCtx(att, tgt, atk, o);
     if (o.extra) ctx.extra.push(...o.extra);

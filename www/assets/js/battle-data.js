@@ -194,6 +194,25 @@
   // Как читать «Перезарядка: N раундов». 0 — буквально по rules.md («сколько раундов после применения способность нельзя применить снова»):
   // применил в раунде R — недоступна в R+1…R+N. −1 — «снова можно через N раундов» (R+N). Допущение, нужен ответ автора (drafts.md).
   D.cdShift = 0;
+  // Боевая запись монстра 2 этажа по его статблоку (traits с видом «attacks»: «+5 к попаданию, 1к4+3 колющего; 6/18 м»). Особые способности монстров — их эссенции.
+  const DT_RU = { "колющего": "pierce", "рубящего": "slash", "дробящего": "bludgeon", "огнём": "fire", "ядом": "poison", "холодом": "cold", "некротическим": "necrotic", "психическим": "psychic", "молнией": "lightning", "звуком": "thunder" };
+  D.deriveMon = m => {
+    const atk = [], names = []; let twice = false;
+    for (const [n, txt, kind] of m.traits || []) {
+      if (kind !== "attacks") continue;
+      if (/^(Две|Три) атаки/.test(n)) { twice = true; continue; }
+      const h = /([+−-]\d+) к попаданию/.exec(txt), dm = /(\d+к\d+(?:\s*[+−-]\s*\d+)?)\s+([а-яё]+)/.exec(txt); if (!h || !dm) continue;
+      const hit = parseInt(h[1].replace("−", "-"), 10), dice = dm[1].replace(/\s+/g, "").replace("−", "-"), dt = DT_RU[dm[2]] || "bludgeon", id = "a" + atk.length;
+      const rg = /(\d+(?:,\d+)?)\/(\d+(?:,\d+)?) м/.exec(txt), th = /метнуть (\d+)\/(\d+) м/.exec(txt);
+      if (rg && !th) atk.push({ id, n, hit, dmg: dice, dt, kind: "ranged", range: [Math.floor(parseFloat(rg[1].replace(",", ".")) / 1.5), Math.floor(parseFloat(rg[2].replace(",", ".")) / 1.5)] });
+      else { atk.push({ id, n, hit, dmg: dice, dt, kind: "melee", reach: /досягаемость 3 м/i.test(txt) ? 2 : 1 }); if (th) atk.push({ id: id + "t", n: n + " (метнуть)", hit, dmg: dice, dt, kind: "ranged", range: [Math.floor(+th[1] / 1.5), Math.floor(+th[2] / 1.5)] }); }
+      names.push(id);
+    }
+    const hasRanged = atk.some(a => a.kind === "ranged" && !/метнуть/.test(a.n)), behind = (m.traits || []).some(t => /позади|за спинами|Прячется за/.test(t[1] || ""));
+    const ai = { int: m.cls <= 8 ? 2 : 1, role: hasRanged ? "ranged" : behind ? "secondLine" : "melee", focus: m.cls <= 8 ? ["weak", "nearest"] : ["nearest"], fleeHp: m.cls >= 9 ? 0.4 : 0, noFlee: m.cls <= 7 };
+    if (hasRanged) { ai.keep = 3; ai.kite = false; }
+    return { atk, seq: twice && atk.length > 1 ? [atk[0].id, atk[1].id] : null, ai, size: /^(Большой|Огромный)/.test(m.size) ? 2 : 1 };
+  };
 
   /* ---------- боевая таблица монстров 1 этажа ----------
      ОЗ, КД, скорость, характеристики, чувства берутся из MONSTERS (index.html); здесь — атаки, размер, особенности и ИИ.

@@ -120,9 +120,9 @@ body.bt-active .dice-fab { display: none; }
 .bt-cinfo { flex: 1; min-width: 0; display: grid; gap: 2px; }
 .bt-cinfo b { font: 400 19px/1.1 var(--f-display); color: var(--fx-gold-hi); }
 .bt-cinfo small { color: var(--fx-muted); font-size: 13px; }
-.bt-nums { display: flex; gap: 12px; font-size: 13px; color: var(--fx-muted); } .bt-nums b { color: var(--fx-text); font-family: var(--f-data); } .bt-nums .hp b { color: #9be07a; } .bt-nums .mp b { color: #86c3f5; } .bt-nums em { color: #e6c46c; font-style: normal; }
+.bt-nums { display: flex; gap: 12px; font-size: 13px; color: var(--fx-muted); } .bt-nums b { color: var(--fx-text); font-family: var(--f-data); } .bt-nums .hp b { color: #ef6a5a; } .bt-nums .mp b { color: #86c3f5; } .bt-nums em { color: #e6c46c; font-style: normal; }
 .bt-meter { height: 6px; border-radius: 3px; background: #2a1f14; overflow: hidden; } .bt-meter i { display: block; height: 100%; transition: width .35s; }
-.bt-meter.hp i { background: linear-gradient(#8fd66a, #4c9a38); } .bt-meter.mp { height: 4px; } .bt-meter.mp i { background: linear-gradient(#7bbdf5, #3a7cc4); }
+.bt-meter.hp i { background: linear-gradient(#e85d4d, #9c2c24); } .bt-meter.mp { height: 4px; } .bt-meter.mp i { background: linear-gradient(#7bbdf5, #3a7cc4); }
 .bt-stline { display: flex; flex-wrap: wrap; gap: 5px; }
 .bt-stchip { display: inline-flex; align-items: center; gap: 4px; border-radius: 999px; padding: 2px 8px 2px 4px; font-size: 12px; border: 1px solid #e38a76; background: #2b1411; color: #ffd3c8; }
 .bt-stchip.good { border-color: #7fd29a; background: #10281a; color: #cffbe0; } .bt-stchip svg { width: 15px; height: 15px; }

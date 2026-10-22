@@ -210,7 +210,9 @@
     }
   }
   function monUnit(id, idx) {
-    const m = MONSTERS.find(x => x.id === id), cb = D.mon[id] || { atk: [], ai: { int: 1, role: "melee", focus: ["nearest"] } };
+    const m = MONSTERS.find(x => x.id === id);
+    if (!D.mon[id] && m && m.abil && m.traits && D.deriveMon) D.mon[id] = D.deriveMon(m);          // 2 этаж: боевая запись из статблока
+    const cb = D.mon[id] || { atk: [], ai: { int: 1, role: "melee", focus: ["nearest"] } };
     const u = baseUnit("mon"), sp = parseSpeed(m.speed);
     Object.assign(u, { ref: id, idx, name: m.name, base: m.name, mon: m, cb, ai: cb.ai || {}, size: cb.size || (/^Большой/.test(m.size) ? 2 : 1), hp: parseInt(m.hp, 10), maxHp: parseInt(m.hp, 10), ac: parseInt(m.ac, 10),
       speedC: cellsOfM(sp.walk), flyC: cellsOfM(sp.fly), climbC: cellsOfM(sp.climb), atk: (cb.atk || []).map(a => { const dm = parseDice(a.dmg), cut = D.monDmgCut[m.cls] || 0; return { ...a, dmg: { ...dm, b: Math.max(0, dm.b - cut) } }; }), seq: cb.seq || null, vuln: cb.vuln || [],

@@ -88,6 +88,7 @@
     if (hit) {
       const dm = await B.rollDamage(att, o, atk, { melee, extra: [] }, crit, ses);
       for (const p of dm.parts) dealt += damageObject(o.x, o.y, p.v, p.dt, att);
+      for (const e of opt.extra || []) { const rr = roll(e.n * (crit && e.critDouble ? 2 : 1), e.s).total + (e.b || 0); dealt += damageObject(o.x, o.y, rr, e.dt || atk.dt, att); }          // «+2к6» способности
       text = `${crit ? "Критическое попадание! " : "Попадание! "}${o.name}: −${dealt}`;
       log(`${att.name}: ${atk.n} по объекту «${o.name}» — ${dealt} урона.`, "hit");
     } else { text = "Мимо"; log(`${att.name}: ${atk.n} по объекту «${o.name}» — промах (${nat === total ? nat : nat + " → " + total} против КД ${o.ac}).`, "miss"); }
@@ -139,6 +140,7 @@
   const findName = (hero, id) => { const f = FD()[id]; return f ? (knows(hero, id) ? f.name : f.alias) : id; };
   D.finds = { none: 0.3, one: 0.4 };                              // шанс 0, 1 или 2 находок на поле: 30 % / 40 % / 30 %
   function placeFinds(S) {
+    if ((S.floor || 1) < 2 && S.zone !== "stone") return;                       // травы и грибы — только на 2 этаже (решение автора); особые камни — у элементалей
     const kind = Object.entries(FK()).find(([, k]) => k.zones.includes(S.zone)); if (!kind) return;
     const ids = Object.keys(FD()).filter(id => FD()[id].kind === kind[0]);
     const r = rnd(100), n = r < D.finds.none * 100 ? 0 : r < (D.finds.none + D.finds.one) * 100 ? 1 : 2;
