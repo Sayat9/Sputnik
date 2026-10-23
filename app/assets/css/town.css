@@ -98,3 +98,7 @@
 .tw-dlg-sum b { color: var(--fx-gold-hi); font: 700 18px var(--f-data); }
 .tw-bag .cell, .tw-bag .cell * { -webkit-user-drag: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 .tw-bag .cell img { pointer-events: none; }
+.tw-npc { position: relative; border: 1px solid var(--fx-line); border-radius: 8px; overflow: hidden; background: #1a120a; flex: none; }
+.tw-npc img { display: block; width: 100%; height: auto; }
+.tw-npc span { position: absolute; left: 8px; right: 8px; bottom: 8px; padding: 6px 10px; border-radius: 8px; background: rgb(244 236 210 / .94); color: #2a1a0c; font: 600 13px/1.25 var(--f-body, inherit); box-shadow: 0 2px 6px rgb(0 0 0 / .5); }
+.tw-keeper img { display: block; width: 100%; height: auto; }

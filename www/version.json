@@ -1,5 +1,5 @@
 {
- "version": 1792732407,
+ "version": 1792735368,
  "files": [
   "assets/css/battle.css",
   "assets/css/town.css",
@@ -29,6 +29,11 @@
   "assets/items/shovel.webp",
   "assets/items/spear.svg",
   "assets/items/spear.webp",
+  "assets/items/steel-dagger.webp",
+  "assets/items/steel-greatsword.webp",
+  "assets/items/steel-shield.webp",
+  "assets/items/steel-sword.webp",
+  "assets/items/steel-tower-shield.webp",
   "assets/items/stone-7.webp",
   "assets/items/stone-8.webp",
   "assets/items/stone-9.webp",
@@ -117,6 +122,8 @@
   "assets/monsters/wolf-full.webp",
   "assets/monsters/zombie-face.webp",
   "assets/monsters/zombie-full.webp",
+  "assets/npc/innkeeper.webp",
+  "assets/npc/smith.webp",
   "assets/races/barbarian.svg",
   "assets/races/barbarian.webp",
   "assets/races/beastkin.svg",
