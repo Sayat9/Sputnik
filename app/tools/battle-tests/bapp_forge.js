@@ -58,10 +58,11 @@ const L = require('./bui_lib.js');
   // шопинг: колчан, паёк, компас по новым ценам
   await p.evaluate(() => { state.party[0].bag = []; state.party[0].gold = 100; rerender(); });
   await p.click('[data-bld="shop"]'); await p.waitForSelector('.tw-stock');
-  await p.click('[data-t="stock"][data-id="arrow"]'); await p.click('[data-t="buy"][data-n="1"]');
+  await p.click('[data-t="stock"][data-id="arrow40"]'); await p.click('[data-t="buy"][data-n="1"]');
+  await p.click('[data-t="stock"][data-id="arrow20"]'); await p.click('[data-t="buy"][data-n="1"]');
   await p.click('[data-t="stock"][data-id="ration"]'); await p.click('[data-t="buy"][data-n="1"]');
   const sh = await p.evaluate(() => ({ g: state.party[0].gold, arrows: countGear(state.party[0], 'arrow'), rations: countGear(state.party[0], 'ration') }));
-  ok('колчан 40 стрел за 20, 5 пайков за 1', sh.g === 79 && sh.arrows === 40 && sh.rations === 5, JSON.stringify(sh));
+  ok('колчан 40 за 10, колчан 20 за 5, 5 пайков за 1', sh.g === 84 && sh.arrows === 60 && sh.rations === 5, JSON.stringify(sh));
   await p.click('[data-t="close"]');
   console.log('errs:', p.errs.length ? p.errs.slice(0, 5) : 'нет'); ok('нет ошибок страницы', !p.errs.length, p.errs.join(' | '));
   console.log(`проверок: ${R.length}, не прошли: ${R.filter(r => !r.ok).length}`);

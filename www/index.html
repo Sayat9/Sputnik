@@ -1689,8 +1689,8 @@ const DISTRICTS = [
 
 // Готовые рисованные картинки (webp) заменяют векторные заглушки.
 // Дата сборки для телефона: build.sh вписывает её сюда, в веб-версии строка пустая.
-const APP_BUILD = "23.10.2026 09:52";
-const APP_VERSION = 1792731158;                 // номер сборки, тоже вписывает build.sh
+const APP_BUILD = "23.10.2026 10:12";
+const APP_VERSION = 1792732372;                 // номер сборки, тоже вписывает build.sh
 const UPDATE_URL = "https://raw.githubusercontent.com/Sayat9/Sputnik/main/www/";
 const RASTER = new Set(["items/shortbow", "items/longbow", "items/rapier", "items/shield", "items/tower-shield", "items/unknown-mushroom", "items/stone-9", "items/stone-8", "items/stone-7", "items/ration", "items/potion", "items/torch", "items/arrows", "items/clothes", "items/shovel", "items/shovel-good", "items/shovel-best", "items/dagger", "items/sword", "items/greatsword", "items/spear", "monsters/goblin-king-face", "monsters/goblin-king-full", "monsters/goblin-bomber-face", "monsters/goblin-bomber-full", "monsters/hobgoblin-shield-face", "monsters/hobgoblin-shield-full", "races/barbarian", "races/human", "races/dwarf", "races/beastkin", "races/fairy", "races/dragon", "monsters/goblin-face", "monsters/goblin-full", "monsters/goblin-archer-face", "monsters/goblin-archer-full", "monsters/goblin-sword-face", "monsters/goblin-sword-full", "monsters/goblin-spear-face", "monsters/goblin-spear-full", "monsters/wolf-face", "monsters/wolf-full", "monsters/fox-face", "monsters/fox-full", "monsters/mouse-face", "monsters/mouse-full", "monsters/bat-face", "monsters/bat-full", "monsters/hobgoblin-face", "monsters/hobgoblin-full", "monsters/zombie-face", "monsters/zombie-full", "monsters/skeleton-face", "monsters/skeleton-full", "monsters/skeleton-archer-face", "monsters/skeleton-archer-full", "monsters/ghoul-face", "monsters/ghoul-full", "monsters/dark-bear-face", "monsters/dark-bear-full", "monsters/skeleton-warrior-face", "monsters/skeleton-warrior-full", "monsters/living-stone-face", "monsters/living-stone-full", "monsters/wisp-face", "monsters/wisp-full", "monsters/pixie-face", "monsters/pixie-full", "monsters/green-boulder-face", "monsters/green-boulder-full", "monsters/stone-guardian-face", "monsters/stone-guardian-full"]);
 const artPath = p => `assets/${p}.${RASTER.has(p) ? "webp" : "svg"}`;
@@ -2318,7 +2318,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 12;
+const BATTLE_REV = 13;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined) st.tactical = true; return st; }
@@ -2341,7 +2341,7 @@ function loadBattle() {
   return battleLoad;
 }
 /* ----- здания города (assets/js/town.js грузится при первом входе в здание) ----- */
-const TOWN_REV = 2, TOWN_FILES = ["assets/css/town.css", "assets/js/town.js"];
+const TOWN_REV = 3, TOWN_FILES = ["assets/css/town.css", "assets/js/town.js"];
 let townLoad = null;
 function loadTown() {
   if (window.Town && window.Town.ready) return Promise.resolve(true);
@@ -4701,6 +4701,12 @@ const essStatLine = e => [...Object.entries(e.stats || {}).map(([k, v]) => `${ST
 const essSource = id => (ESSENCES[id] && ESSENCES[id].source) || id;
 const essSeen = (id, key) => { const j = journal().known[essSource(id)]; return !!(j && j.revealed && j.revealed.includes(key)) || ((journal().essRev || {})[essSource(id)] || []).includes(key); };          // essRev — анализ в Башне магов: открывает эссенцию, не открывая монстра
 const essUsed = id => !!(journal().essUsed && journal().essUsed[id]);
+// Название эссенции известно, если её уже впитал кто-то из отряда, монстр записан в библиотеке или её анализировали; свойства — отдельно (essSeen).
+const essNameKnown = id => { const j = journal(); return !!(j.known[essSource(id)] || (j.essNamed || {})[id] || state.party.some(c => (c.essences || []).includes(id))); };
+const essTitle = id => (essNameKnown(id) && ESSENCES[id] ? ESSENCES[id].name : "Эссенция ??");
+const ESS_UNK_FACE = "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#120e09"/><circle cx="50" cy="50" r="30" fill="#2a2016" stroke="#6e5634" stroke-width="3"/><text x="50" y="64" font-size="42" text-anchor="middle" fill="#d6a64c" font-family="serif">?</text></svg>');
+const essFace = id => (essNameKnown(id) ? ART.monsterFace(essSource(id)) : ESS_UNK_FACE);
+const markEssNamed = id => { (journal().essNamed ||= {})[id] = true; };
 const essActiveLevel = id => (essSeen(id, "ess-active") ? 2 : essUsed(id) ? 1 : 0);          // 0 — неизвестна, 1 — название, мана, урон, 2 — всё
 function essDamageText(e) {
   const m = [...String(e.active.text).matchAll(/(\d+к\d+(?:\s*[+−-]\s*\d+)?)\s+(?:урона\s+)?([а-яё]+(?:ого|ом|его|ым)?)/g)].map(x => `${x[1].replace(/\s+/g, "")} ${x[2]}`);
@@ -4712,7 +4718,7 @@ function essCard(id, extra = "", cls = "") {
   const act = lvl === 2 ? `<b>${esc(e.active.name)} (А, ${e.active.mana} маны, ${esc(e.active.time)}).</b> ${esc(e.active.text)}`
     : lvl === 1 ? `<b>${esc(e.active.name)} (А, ${e.active.mana} маны).</b> Урон: ${esc(essDamageText(e))}. Остальные эффекты: ??`
     : `<b>?? (А).</b> ??`;
-  return `<div class="ess-card fx-frame ${cls}"><div class="eh"><img src="${ART.monsterFace(id)}" alt=""><div><b>${esc(e.name)}</b><small>${e.cls} класс · ${stats ? esc(essStatLine(e)) : "??"}</small></div></div>
+  return `<div class="ess-card fx-frame ${cls}"><div class="eh"><img src="${essFace(id)}" alt=""><div><b>${esc(essTitle(id))}</b><small>${e.cls} класс · ${stats ? esc(essStatLine(e)) : "??"}</small></div></div>
     <div class="trait">${pas ? `<b>${esc(e.passive.name)} (П).</b> ${esc(e.passive.text)}` : `<b>?? (П).</b> ??`}</div>
     <div class="trait">${act}</div>${extra}</div>`;
 }
@@ -4881,7 +4887,7 @@ $hero.addEventListener("click", e => {
       if (i < 0) return;
       if (mine.length >= c.level) { toast("Нет свободного слота эссенций"); return; }
       if (mine.includes(ds.essid)) { toast("У героя уже есть такая эссенция"); return; }
-      st.splice(i, 1); mine.push(ds.essid); c.mp = Math.min(maxMp(c), mpOf(c));
+      st.splice(i, 1); mine.push(ds.essid); markEssNamed(ds.essid); c.mp = Math.min(maxMp(c), mpOf(c));
       heroAfterChange(`${c.name} впитал: ${ESSENCES[ds.essid].name}`); return;
     }
     case "ess-release": {

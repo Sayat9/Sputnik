@@ -107,7 +107,7 @@
       resEl.className = "bt-roll-res " + (ok ? "ok" : "no");
       if (ok) {
         const g = modal.querySelector(".bt-essgot"); g.hidden = false;
-        g.innerHTML = plan.wins.map((w, i) => { const e = ESSENCES[w.id]; const pas = essSeen(w.id, "ess-passive"), act = essActiveLevel(w.id) > 0; return `<div class="bt-ess" data-i="${i}"><img src="${ART.monsterFace(w.id)}" alt=""><div><b>${esc(e ? e.name : w.id)}</b><small>${e ? e.cls + " класс · " + (pas ? esc(e.passive.name) : "??") + " (П), " + (act ? esc(e.active.name) : "??") + " (А)" : ""}</small>
+        g.innerHTML = plan.wins.map((w, i) => { const e = ESSENCES[w.id]; const pas = essSeen(w.id, "ess-passive"), act = essActiveLevel(w.id) > 0; return `<div class="bt-ess" data-i="${i}"><img src="${essFace(w.id)}" alt=""><div><b>${esc(e ? essTitle(w.id) : w.id)}</b><small>${e ? e.cls + " класс · " + (pas ? esc(e.passive.name) : "??") + " (П), " + (act ? esc(e.active.name) : "??") + " (А)" : ""}</small>
           <div class="bt-esschoice"><button class="fx-btn primary" data-ec="absorb">Впитать</button><button class="fx-btn" data-ec="keep" disabled title="Скоро">Сохранить</button><button class="fx-btn" data-ec="leave">Оставить</button></div><div class="bt-esspick" hidden></div></div></div>`; }).join("");
         await new Promise(resolve => {
           let left = plan.wins.length;
@@ -115,7 +115,7 @@
           g.onclick = ev => {
             const btn = ev.target.closest("[data-ec],[data-eh]"); if (!btn || btn.disabled) return;
             const box = btn.closest(".bt-ess"), w = plan.wins[+box.dataset.i], e = ESSENCES[w.id];
-            if (btn.dataset.eh) { const c = state.party.find(x => x.id === btn.dataset.eh); if (!c) return; (c.essences ||= []).push(w.id); c.mp = Math.min(maxMp(c), mpOf(c)); saveChar(); decide(box, `${c.name} впитал эссенцию.`); return; }
+            if (btn.dataset.eh) { const c = state.party.find(x => x.id === btn.dataset.eh); if (!c) return; (c.essences ||= []).push(w.id); markEssNamed(w.id); c.mp = Math.min(maxMp(c), mpOf(c)); saveChar(); decide(box, `${c.name} впитал эссенцию.`); return; }
             if (btn.dataset.ec === "leave") { decide(box, "Эссенцию оставили."); return; }
             if (btn.dataset.ec === "absorb") {
               const pk = box.querySelector(".bt-esspick"); box.querySelector(".bt-esschoice").hidden = true; pk.hidden = false;
