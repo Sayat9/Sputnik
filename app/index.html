@@ -2073,6 +2073,7 @@ const GEAR = {
   "shovel-best": { short: "Лопата++", name: "Отличная лопата", weight: 2, stack: 1, uses: 10, note: "Для действия «Копать». Ломается после 10 раскопок." },
   "stone-9":   { short: "Камни", name: "Магический камень 9-го класса", weight: 0.1, stack: 99, note: "Добыча лабиринта: Магазин скупает по 1 монете." },
   "stone-7":   { short: "Камни 7", name: "Магический камень 7-го класса", weight: 0.1, stack: 99, note: "Добыча 2 этажа. Магазин скупает по 20 монет." },
+  qstone: { short: "Камень задания", name: "Камень задания", weight: 0.1, stack: 99, note: "Охота на монстров с доски объявлений: сдайте нужное число или продайте в магазине по цене камня. Если задание сгорит, станет обычным камнем." },
   "potion-good": { short: "Зелье+", name: "Зелье лечения", weight: 0.25, stack: 5, use: "drink", heal: "2к4 + 4", note: "Восстанавливает 2к4 + 4 ОЗ (6–12, в среднем 9). Черновик." },
   "stone-8":   { short: "Камни 8", name: "Магический камень 8-го класса", weight: 0.1, stack: 99, note: "Добыча 2 этажа: Магазин скупает по 5 монет." },
 };
@@ -2089,7 +2090,7 @@ const GEAR_ICON = {
   "stone-9": `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 3l6 5-2 11H8L6 8z" fill="#d6a64c" opacity=".55"/><path d="M12 3l6 5-2 11H8L6 8z"/><path d="M6 8h12M12 3l-2 5 2 11 2-11z" stroke-width="1"/></svg>`,
   custom: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="M9 12h6M12 9v6"/></svg>`,
 };
-GEAR_ICON["potion-good"] = GEAR_ICON.potion;
+GEAR_ICON["potion-good"] = GEAR_ICON.potion; GEAR_ICON.qstone = GEAR_ICON["stone-9"];
 
 
 /* ----- находки на поле боя: травы, грибы, особые камни (черновик, см. drafts.md → «Находки») ----- */
@@ -2168,6 +2169,7 @@ function itemOf(v, holder) {
       return known ? { ...g, id: v.id, kindOf: "gear", icon: ic, known }
         : { ...g, id: v.id, kindOf: "gear", icon: ic, art: g.find === "mush" ? artPath("items/unknown-mushroom") : undefined, known, name: g.alias, short: "?", use: g.use && "find", note: `Эффект неизвестен: нужен навык (${FIND_KIND[g.find].skills.map(k => Object.keys(SKILL_KEYS).find(n => SKILL_KEYS[n] === k)).join(" или ")}) или знания. Одноразовый.` };
     }
+    if (g && v.id === "qstone") { const qm = MONSTERS.find(m => m.id === v.mon); return { ...g, id: v.id, kindOf: "gear", name: "Камень задания" + (qm ? ": " + qm.name : ""), art: ART.gear("stone-" + (v.cls || 9)) || undefined, icon: GEAR_ICON["stone-" + (v.cls || 9)] }; }
     return g && { ...g, id: v.id, kindOf: "gear", art: ART.gear(v.id) || undefined, icon: GEAR_ICON[v.id] || (SHOVELS.includes(v.id) ? GEAR_ICON.shovel : GEAR_ICON.custom) };
   }
   if (v.t === "w") { const w = WEAPONS.find(x => x.id === v.id); return w && { ...w, kindOf: "weapon", art: v.steel && RASTER.has("items/steel-" + w.id) ? artPath("items/steel-" + w.id) : ART.weapon(w.id), ...(v.steel ? steelWeapon(w) : {}) }; }
@@ -2229,12 +2231,12 @@ function addToBag(c, e) {
   let left = e.qty || 1;
   if (e.t === "g") for (const sl of c.bag) {
     if (left <= 0) break;
-    if (sl.t === "g" && sl.id === e.id && sl.qty < stackMax(sl, c)) { const n = Math.min(left, stackMax(sl, c) - sl.qty); sl.qty += n; left -= n; }
+    if (sl.t === "g" && sl.id === e.id && sl.qid === e.qid && sl.qty < stackMax(sl, c)) { const n = Math.min(left, stackMax(sl, c) - sl.qty); sl.qty += n; left -= n; }
   }
   while (left > 0 && c.bag.length < bagSize(c)) {
     const n = Math.min(left, stackMax(e, c));
     const uses = e.t === "g" && GEAR[e.id].uses ? { uses: e.uses ?? GEAR[e.id].uses } : {};
-    c.bag.push(e.t === "c" ? { t: "c", name: e.name, qty: 1 } : { t: e.t, id: e.id, qty: n, ...uses, ...(e.steel ? { steel: true } : {}) });
+    c.bag.push(e.t === "c" ? { t: "c", name: e.name, qty: 1 } : { t: e.t, id: e.id, qty: n, ...uses, ...(e.steel ? { steel: true } : {}), ...(e.qid ? { qid: e.qid, mon: e.mon, cls: e.cls } : {}) });
     left -= n;
   }
   return left;                                   // сколько не поместилось
@@ -2313,7 +2315,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 13;
+const BATTLE_REV = 14;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined) st.tactical = true; return st; }
@@ -2335,8 +2337,53 @@ function loadBattle() {
   });
   return battleLoad;
 }
+/* ----- цены эссенций (решение автора: 9 класс — 50 монет; остальные по отношению цен камней 1 : 5 : 20; наценка за редких и особых — черновик) ----- */
+const ESS_BASE = { 9: 50, 8: 250, 7: 1000 };
+const ESS_RANK_MULT = { normal: 1, rare: 2, special: 3, guardian: 4, lord: 5 };
+const essBasePrice = id => ESS_BASE[(ESSENCES[id] || {}).cls] || 50;
+function essPrice(id) { const m = MONSTERS.find(x => x.id === essSource(id)); return essBasePrice(id) * (m ? ESS_RANK_MULT[rankOf(m)] || 1 : 1); }
+/* ----- доска объявлений: охота на монстров (черновик, drafts.md → «Доска, арена…») ----- */
+// Каждое возвращение из лабиринта на доске появляются 2 задания. Принятое держится 2 захода (runs), после 2-го — последний шанс сдать в городе; при следующем спуске сгорает.
+const QUEST_RUNS = 2;
+function questBoard() { return (state.quests ||= { list: [], seq: 0 }); }
+const questMons = rare => MONSTERS.filter(m => m.floor === 1 && m.cls === 9 && !m.draft && !!m.rare === rare);
+function postQuests() {
+  const b = questBoard();
+  for (const q of b.list) if (!q.taken) q.age = (q.age || 0) + 1;
+  b.list = b.list.filter(q => q.taken || q.age < 2);
+  for (let i = 0; i < 2; i++) {
+    const rare = Math.random() < .3 && questMons(true).length > 0, pool = questMons(rare), m = pool[Math.floor(Math.random() * pool.length)];
+    const need = rare ? 3 + Math.floor(Math.random() * 3) : 8 + Math.floor(Math.random() * 3);
+    b.list.push({ id: ++b.seq, mon: m.id, rare, need, reward: need * (rare ? 8 : 3), taken: false, runs: 0, age: 0 });
+  }
+}
+const questActive = monId => (state.quests && state.quests.list.find(q => q.taken && q.runs < QUEST_RUNS && q.mon === monId)) || null;
+const questStones = q => state.party.reduce((a, c) => a + (c.bag || []).reduce((x, e) => x + (e.t === "g" && e.id === "qstone" && e.qid === q.id ? e.qty : 0), 0), 0);
+// Камни задания превращаются в обычные камни того же ранга (оставшиеся после сдачи или сгоревшего задания).
+function convertQuestStones(qid) {
+  for (const c of state.party) {
+    const mine = (c.bag || []).filter(e => e.t === "g" && e.id === "qstone" && e.qid === qid);
+    if (!mine.length) continue;
+    c.bag = c.bag.filter(e => !mine.includes(e));
+    for (const e of mine) addToBag(c, { t: "g", id: "stone-" + (e.cls || 9), qty: e.qty });
+  }
+}
+function questTurnIn(q) {
+  let left = q.need;
+  for (const c of state.party) for (const e of [...(c.bag || [])]) if (left > 0 && e.t === "g" && e.id === "qstone" && e.qid === q.id) { const t = Math.min(left, e.qty); e.qty -= t; left -= t; if (e.qty <= 0) c.bag.splice(c.bag.indexOf(e), 1); }
+  const live = state.party.filter(c => !c.dead), k = live.length || 1;
+  live.forEach((c, i) => addGold(c, Math.floor(q.reward / k) + (i < q.reward % k ? 1 : 0)));
+  convertQuestStones(q.id); const b = questBoard(); b.list = b.list.filter(x => x !== q);
+}
+function questsAfterRun() { const b = questBoard(); for (const q of b.list) if (q.taken) q.runs++; postQuests(); }
+function questsBeforeRun() {
+  const b = questBoard(), dead = b.list.filter(q => q.taken && q.runs >= QUEST_RUNS);
+  for (const q of dead) convertQuestStones(q.id);
+  b.list = b.list.filter(q => !dead.includes(q));
+  return dead.length;
+}
 /* ----- здания города (assets/js/town.js грузится при первом входе в здание) ----- */
-const TOWN_REV = 5, TOWN_FILES = ["assets/css/town.css", "assets/js/town.js"];
+const TOWN_REV = 6, TOWN_FILES = ["assets/css/town.css", "assets/js/town.js"];
 let townLoad = null;
 function loadTown() {
   if (window.Town && window.Town.ready) return Promise.resolve(true);
@@ -2387,6 +2434,7 @@ function buryFallen() {
   saveChar(); rerender(); lines.forEach((t, i) => setTimeout(() => toast(t), 400 + i * 2500));
 }
 function battleDone(ev, res) {
+  if (ev.arena) { state.fightSnap = null; ev.outcome = res.outcome; ev.killed = res.killed.slice(); if (window.Town && window.Town.arenaDone) window.Town.arenaDone(ev, res); saveChar(); rerender(); return; }
   if (dgUi.enc !== ev) return;
   state.fightSnap = null; autoSave("после боя");
   setTimeout(buryFallen, 0);
@@ -2942,10 +2990,11 @@ const TOWN = [
   { id: "board",   name: "Доска объявлений",     shape: "board" },
   { id: "tavern",  name: "Таверна",              shape: "tavern" },
   { id: "shop",    name: "Магазин",              shape: "shop" },
-  { id: "hall",    name: "Ратуша и налоги",      shape: "house", soon: true },
-  { id: "bank",    name: "Банк",                 shape: "bank", soon: true },
   { id: "forge",   name: "Кузница",              shape: "smithy" },
+  { id: "arena",   name: "Арена",                shape: "arena" },
+  { id: "bank",    name: "Банк",                 shape: "bank", soon: true },
   { id: "storage", name: "Склад",                shape: "warehouse", soon: true },
+  { id: "hall",    name: "Ратуша и налоги",      shape: "house", soon: true },
 ];
 
 function bldArt(shape) {
@@ -2964,6 +3013,7 @@ function bldArt(shape) {
     smithy: `<path d="M18 86V54h52v32z" ${f}/><path d="M14 54l30-16 30 16z" ${f}/><rect x="62" y="30" width="9" height="24" fill="#4a3a28" stroke="#7d6340"/><circle cx="66" cy="22" r="5" fill="#777" opacity=".35"/><circle cx="70" cy="13" r="6" fill="#777" opacity=".25"/><rect x="30" y="66" width="14" height="20" fill="#e06a2a" opacity=".8"/><path d="M72 80h14v-5H72z" fill="#5a5f63"/>`,
     tavern: `<path d="M18 86V50h64v36z" ${f}/><path d="M14 50l36-22 36 22z" ${f}/>${win(28, 60)}${win(66, 60)}<path d="M44 86V68h12v18z" fill="#1a140d"/><path d="M80 56h10v10H80z" fill="#b07a3a" stroke="#7d6340"/><path d="M78 56h14" stroke="#7d6340" stroke-width="2"/>`,
     shop: `<path d="M20 86V48h60v38z" ${f}/><path d="M16 48h68l-6-12H22z" ${f}/><polygon points="50,58 58,68 50,78 42,68" fill="#f0b443" stroke="#5a3a0a"/><polygon points="32,70 36,75 32,80 28,75" fill="#8fd0ff" opacity=".7"/><polygon points="68,70 72,75 68,80 64,75" fill="#c07ad8" opacity=".7"/>`,
+    arena: `<ellipse cx="50" cy="62" rx="40" ry="22" ${f}/><path d="M10 62v-16a40 22 0 0 1 80 0v16" ${f}/>${[16, 28, 40, 52, 64, 76].map(x => `<path d="M${x} 40v-8a8 6 0 0 1 12 0v8" fill="#120e09" stroke="#7d6340"/>`).join("")}<ellipse cx="50" cy="62" rx="26" ry="11" fill="#8a6a3a" opacity=".7"/><path d="M44 56l12 12M56 56L44 68" stroke="#d8ccb0" stroke-width="2.2" stroke-linecap="round"/>`,
     library: `<path d="M16 86V46h68v40z" ${f}/><path d="M12 46l38-20 38 20z" ${f}/>${[24, 38, 52, 66].map((x, i) => `<rect x="${x}" y="54" width="9" height="26" fill="${["#7a2f22", "#2f5a7a", "#4a6a2a", "#7a5a22"][i]}" stroke="#2a1a0c"/>`).join("")}<path d="M44 26V16l6 3 6-3v10" stroke="#d6a64c" fill="none"/>`,
     board: `<rect x="14" y="30" width="72" height="44" rx="3" fill="#4a3720" stroke="#7d6340" stroke-width="1.5"/><rect x="22" y="36" width="20" height="14" fill="#e8d5b0" opacity=".85"/><rect x="48" y="38" width="16" height="18" fill="#e8d5b0" opacity=".75"/><rect x="68" y="36" width="12" height="12" fill="#e8d5b0" opacity=".8"/><rect x="26" y="56" width="22" height="12" fill="#e8d5b0" opacity=".7"/><circle cx="32" cy="38" r="1.6" fill="#a83a2a"/><circle cx="56" cy="40" r="1.6" fill="#a83a2a"/><path d="M26 74v12M74 74v12" stroke="#7d6340" stroke-width="4"/>`,
     bank: `<path d="M16 86V50h68v36z" ${f}/><path d="M12 50l38-20 38 20z" ${f}/>${[24, 38, 52, 66].map(x => `<rect x="${x}" y="54" width="6" height="30" fill="#6a5438"/>`).join("")}<circle cx="50" cy="40" r="6" fill="#e5b84f" stroke="#7a5412"/><path d="M50 36v8" stroke="#7a5412" stroke-width="1.5"/>`,
@@ -3807,6 +3857,7 @@ function rollbackRun() {
 }
 function newRun() {
   snapshotRun();
+  state.arenaLock = false; const burnt = questsBeforeRun(); if (burnt) setTimeout(() => toast(`Заданий сгорело: ${burnt}. Камни задания стали обычными.`), 400);
   const ring = [];
   for (let y = 0; y < FLOOR1.size; y++) for (let x = 0; x < FLOOR1.size; x++) {
     const d = Math.max(Math.abs(x - CENTER), Math.abs(y - CENTER));
@@ -4282,7 +4333,7 @@ function advanceTime() {
 function endRun(early) {
   const FL_DAYS = FL().days, st = state.run && state.run.status;
   if (st) for (const c of state.party) if (st[c.id]) c.carry = { ...st[c.id] };          // усталость и голод переходят в город и в следующий заход, пока их не снимет таверна
-  const tc = townClock(); tc.back = true; tc.t0 = tc.t;
+  const tc = townClock(); tc.back = true; tc.t0 = tc.t; tc.trips = (tc.trips || 0) + 1; questsAfterRun();
   state.run = null; state.runSnap = null;
   state.townUnlocked = true;
   dgUi = freshUi();

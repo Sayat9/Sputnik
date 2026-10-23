@@ -38,6 +38,7 @@
       if (u.down && !u.dead) c.hp = Math.max(1, c.hp);
       c.mp = Math.max(0, Math.min(u.mp, maxMp(c))); c.insp = u.insp ?? 1; c.dead = !!u.dead;
       if (c.dead) c.hp = 0;
+      if (S.ev && S.ev.arena) { c.dead = false; c.hp = Math.max(1, c.hp); }          // на арене не умирают: упавших поднимают администраторы с 1 ОЗ
     }
     if (S.torchLit && state.run && !state.run.light) { state.run.light = true; state.run.torchLeft = 4; }
   }
@@ -46,15 +47,32 @@
     const ev = S.ev, killed = S.killed.slice(), species = killed.map(i => ev.list[i]);
     const fresh = [...new Set(species)].filter(id => !(journal().known[id] && journal().known[id].xpDone));
     const xp = fresh.reduce((a, id) => a + monXp(MONSTERS.find(m => m.id === id)), 0);
-    const stones = {}; for (const id of species) { const m = MONSTERS.find(x => x.id === id), key = "stone-" + Math.min(9, Math.max(1, m.cls)); stones[key] = (stones[key] || 0) + 1; }
+    const stones = {}, qstones = {};
+    if (!ev.arena) for (const id of species) {
+      const m = MONSTERS.find(x => x.id === id), q = typeof questActive === "function" ? questActive(id) : null;
+      if (q) { qstones[q.id] = qstones[q.id] || { qid: q.id, mon: id, cls: Math.min(9, Math.max(1, m.cls)), n: 0 }; qstones[q.id].n++; continue; }          // задание: вместо камня выпадает камень задания
+      const key = "stone-" + Math.min(9, Math.max(1, m.cls)); stones[key] = (stones[key] || 0) + 1;
+    }
     // броски на эссенцию считаем заранее; анимация показывает лучший результат
     const rolls = species.map(id => ({ id, r: 1 + B.rnd(100) }));
     const wins = S.forceWins ? S.forceWins.map(id => ({ id, r: 99 })) : rolls.filter(x => x.r >= ESS_CHANCE);          // forceWins — только для проверок
     const best = S.forceWins ? wins[0] : rolls.length ? rolls.reduce((a, b) => (a.r >= b.r ? a : b)) : null;
-    return { killed, species, fresh, xp, stones, rolls, wins, best };
+    return { killed, species, fresh, xp, stones, qstones: Object.values(qstones), rolls, wins, best };
   }
   const digits = r => { const v = r % 100; return [Math.floor(v / 10), v % 10]; };
 
+  // Арена: лута нет (камни и находки забирают администраторы), платят по 3 монеты за убитого 9 класса (тройная цена камня); выпавшая эссенция — бонус 20 % её цены.
+  function arenaRewards(S, plan) {
+    const killed = plan.species.length, pay = plan.species.reduce((a, id) => a + 3 * (STONE_PRICE_BY_CLS[Math.min(9, Math.max(7, (MONSTERS.find(m => m.id === id) || {}).cls || 9))] || 1), 0);
+    const essBonus = plan.wins.reduce((a, w) => a + Math.round(essPrice(w.id) * 0.2), 0), total = pay + essBonus;
+    const live = state.party.filter(c => !c.dead), k = live.length || 1;
+    live.forEach((c, i) => addGold(c, Math.floor(total / k) + (i < total % k ? 1 : 0)));
+    const lines = [];
+    if (killed) lines.push(`Арена платит: ${pay} монет за убитых (${killed}), лут забрали администраторы`);
+    if (essBonus) lines.push(`Выпавшую эссенцию забрали: бонус ${essBonus} монет`);
+    return { pay, essBonus, total, killed, lines };
+  }
+  const STONE_PRICE_BY_CLS = { 9: 1, 8: 5, 7: 20 };
   End.cleanup = cleanup;
   End.run = async function (S) {
     const ev = S.ev, UI = B.UI;
@@ -66,8 +84,10 @@
     const plan = rewardsPlan(S, outcome);
     const gotLines = [];
     for (const [key, n] of Object.entries(plan.stones)) { if (GEAR[key]) gotLines.push(giveParty({ t: "g", id: key, qty: n })); }
-    if (B.deliverFound) gotLines.push(...B.deliverFound(S, outcome === "win" || outcome === "retreat" || outcome === "abort"));
-    if (!(UI && UI.active)) { for (const w of plan.wins) essStash().push(w.id); if (plan.wins.length) saveChar(); }          // без экрана итога — в запас; с экраном игрок выбирает: впитать, сохранить, оставить
+    for (const q of plan.qstones) gotLines.push(giveParty({ t: "g", id: "qstone", qid: q.qid, mon: q.mon, cls: q.cls, qty: q.n }));
+    if (ev.arena) { plan.arena = arenaRewards(S, plan); gotLines.push(...plan.arena.lines); plan.wins = plan.wins.map(w => ({ ...w, arena: true })); }          // арена: лута нет, платят монетами
+    if (B.deliverFound && !ev.arena) gotLines.push(...B.deliverFound(S, outcome === "win" || outcome === "retreat" || outcome === "abort"));
+    if (!(UI && UI.active)) { for (const w of plan.wins) if (!w.arena) essStash().push(w.id); if (plan.wins.length) saveChar(); }          // без экрана итога — в запас; с экраном игрок выбирает: впитать, сохранить, оставить
     if (UI && UI.active) await showScreens(S, display, plan, gotLines);
     const res = { outcome: mapped, killed: S.killed.slice(), plan };
     if (UI && UI.active) UI.close();
@@ -105,7 +125,10 @@
       else await B.Dice.spinReveal(cv, dg, { stops: [1500, 2700], glow: ok, glowColor: "#ffe27a" });
       resEl.innerHTML = ok ? `<b class="ok">${String(show).padStart(2, "0") === "00" ? 100 : show}</b> — выпала эссенция!` : `<b>${show}</b> — эссенция не выпала`;
       resEl.className = "bt-roll-res " + (ok ? "ok" : "no");
-      if (ok) {
+      if (ok && S.ev.arena) {
+        const g = modal.querySelector(".bt-essgot"); g.hidden = false;
+        g.innerHTML = `<div class="bt-ess"><div><b>Эссенцию забрали администраторы арены</b><small>Бонус: ${plan.arena ? plan.arena.essBonus : 0} монет (20 % её цены)</small></div></div>`;
+      } else if (ok) {
         const g = modal.querySelector(".bt-essgot"); g.hidden = false;
         g.innerHTML = plan.wins.map((w, i) => { const e = ESSENCES[w.id]; const pas = essSeen(w.id, "ess-passive"), act = essActiveLevel(w.id) > 0; return `<div class="bt-ess" data-i="${i}"><img src="${essFace(w.id)}" alt=""><div><b>${esc(e ? essTitle(w.id) : w.id)}</b><small>${e ? e.cls + " класс · " + (pas ? esc(e.passive.name) : "??") + " (П), " + (act ? esc(e.active.name) : "??") + " (А)" : ""}</small>
           <div class="bt-esschoice"><button class="fx-btn primary" data-ec="absorb">Впитать</button><button class="fx-btn" data-ec="keep" disabled title="Скоро">Сохранить</button><button class="fx-btn" data-ec="leave">Оставить</button></div><div class="bt-esspick" hidden></div></div></div>`; }).join("");

@@ -6,7 +6,7 @@ const L = require('./bui_lib.js');
   await L.setup(p, { heroes: ['barb2', 'archer'], tactical: false });
   await p.evaluate(() => { state.run = null; state.townUnlocked = true; state.journal = null; unlockJournal(9); state.party.forEach(c => { c.gold = 0; }); const c = state.party[0]; addToBag(c, { t: 'g', id: 'stone-9', qty: 6 }); addToBag(c, { t: 'g', id: 'stone-8', qty: 2 }); addToBag(c, { t: 'g', id: 'stone-7', qty: 1 }); location.hash = 'town'; rerender(); });
   await p.waitForTimeout(300);
-  ok('в городе 12 зданий', await p.evaluate(() => document.querySelectorAll('.bld').length) === 12);
+  ok('в городе 13 зданий', await p.evaluate(() => document.querySelectorAll('.bld').length) === 13);
   await L.shot(p, 'town-map');
   // --- магазин
   await p.click('[data-bld="shop"]'); await p.waitForSelector('.tw-shop', { timeout: 5000 });
@@ -43,7 +43,7 @@ const L = require('./bui_lib.js');
   ok('компас за 40 при 26 монетах недоступен', await p.evaluate(() => document.querySelector('[data-t="buy"][data-n="1"]').disabled));
   await p.evaluate(() => { state.party[1].gold = 30; });
   await p.click('[data-t="stock"][data-id="potion-good"]'); await p.click('[data-t="buy"][data-n="1"]');
-  ok('зелье лечения куплено', await p.evaluate(() => countGear(state.party[0], 'potion-good') === 1 && state.party[0].gold === 11));
+  ok('зелье лечения куплено', await p.evaluate(() => countGear(state.party[0], 'potion-good') === 1 && state.party[0].gold === 14));
   // удержание ячейки — окно предмета
   const box = await (await p.$('.tw-bag .cell:not(.empty)')).boundingBox();
   await p.mouse.move(box.x + 10, box.y + 10); await p.mouse.down(); await p.waitForTimeout(650); await p.mouse.up();
@@ -81,7 +81,7 @@ const L = require('./bui_lib.js');
   await p.click('[data-t="lib"][data-n="3"]'); ok('библиотека: низкий бросок — ничего', await p.evaluate(() => /ничего/.test(document.querySelector('.tw-result').innerText)));
   await p.click('[data-t="close"]');
   // --- доска
-  await p.click('[data-bld="board"]'); ok('доска: события и заказы пусты', await p.evaluate(() => /тихо/.test(document.querySelector('.tw-board').innerText) && /Заказов пока нет/.test(document.querySelector('.tw-board').innerText)));
+  await p.click('[data-bld="board"]'); ok('доска: лист событий и крест в углу', await p.evaluate(() => /тихо/.test(document.querySelector('.tw-wall').innerText) && !!document.querySelector('.tw-xc')));
   const c0 = await p.evaluate(() => townClock().t); await p.click('[data-t="close"]'); ok('доска не тратит время', await p.evaluate(c0 => townClock().t === c0, c0));
   // --- гильдия
   await p.evaluate(() => { state.party[0].gold = 500; state.party[1].gold = 0; }); await p.click('[data-bld="guild"]'); await p.waitForSelector('.mon-grid');
@@ -97,21 +97,21 @@ const L = require('./bui_lib.js');
   await p.evaluate(() => { const c = state.party[0]; c.essences = ['goblin']; c.level = 2; c.gold = 100; journal().known = {}; journal().essRev = {}; journal().essNamed = {}; });
   const seen0 = await p.evaluate(() => essSeen('goblin', 'ess-stats'));
   await p.click('[data-bld="tower"]'); await p.waitForSelector('[data-t="analyze"]'); await p.click('[data-t="analyze"]');
-  ok('башня: анализ раскрывает эссенцию и списывает монеты', await p.evaluate(() => essSeen('goblin', 'ess-stats') && essSeen('goblin', 'ess-passive') && essSeen('goblin', 'ess-active') && state.party[0].gold === 90) && !seen0);
+  ok('башня: анализ раскрывает эссенцию и списывает монеты', await p.evaluate(() => essSeen('goblin', 'ess-stats') && essSeen('goblin', 'ess-passive') && essSeen('goblin', 'ess-active') && state.party[0].gold === 83) && !seen0);
   ok('башня: сведения записаны в библиотеку', await p.evaluate(() => journal().known.goblin && ['ess-stats', 'ess-passive', 'ess-active'].every(k => journal().known.goblin.revealed.includes(k))));
   await p.click('[data-t="close"]');
   await p.click('[data-bld="church"]'); await p.waitForSelector('[data-t="purge"]'); await p.click('[data-t="purge"]');
   ok('церковь: нужно подтверждение', await p.evaluate(() => state.party[0].essences.length === 1));
   await p.click('[data-t="purge"]');
-  ok('церковь: эссенция удалена, монеты списаны', await p.evaluate(() => state.party[0].essences.length === 0 && state.party[0].gold === 75));
+  ok('церковь: эссенция удалена, монеты списаны', await p.evaluate(() => state.party[0].essences.length === 0 && state.party[0].gold === 33));
   await p.click('[data-t="close"]');
   // --- монеты в меню героя: передача, смерть
   await p.evaluate(() => { openHero('h0'); heroUi.tab = 'inv'; renderHero(); });
   ok('в инвентаре героя есть кошелёк и рюкзак', await p.evaluate(() => !!document.querySelector('#heroov .gold-row') && !!document.querySelector('#heroov .packwrap')));
   await p.click('#heroov [data-hx="coin-toggle"]'); await p.click('#heroov [data-hx="coin-amt"][data-n="10"]'); await p.click('#heroov [data-hx="coin-give"]');
-  ok('передача 10 монет', await p.evaluate(() => state.party[0].gold === 65 && state.party[1].gold === 10));
+  ok('передача 10 монет', await p.evaluate(() => state.party[0].gold === 23 && state.party[1].gold === 10));
   await p.evaluate(() => { closeHero(); state.party[0].dead = true; state.run = null; buryFallen(); });
-  ok('при гибели монеты делятся', await p.evaluate(() => state.party.length === 1 && state.party[0].gold === 75));
+  ok('при гибели монеты делятся', await p.evaluate(() => state.party.length === 1 && state.party[0].gold === 33));
   await L.shot(p, 'town-end');
   console.log('errs:', p.errs.length ? p.errs.slice(0, 5) : 'нет'); ok('нет ошибок страницы', !p.errs.length, p.errs.join(' | '));
   console.log(`проверок: ${R.length}, не прошли: ${R.filter(r => !r.ok).length}`);

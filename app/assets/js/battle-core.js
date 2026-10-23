@@ -386,7 +386,7 @@
     try { S.dark = typeof inDarkness === "function" && !!(state.run && isDark(state.run.pos.x, state.run.pos.y)) && !(state.run && state.run.light); S.torch = !!(state.run && state.run.light); } catch (e) { S.dark = false; }
     S.floor = ev.floor || (state.run && state.run.floor) || 1;
     const g = genTerrain(zone, S.floor); S.cells = g.cells; S.objs = g.objs; S.found = []; S.objHp = {};
-    if (B.placeEnv) B.placeEnv(S, ev);
+    if (B.placeEnv && !ev.arena) B.placeEnv(S, ev);
     uidSeq = 1;
     B.S = S;
     const heroes = (state.party || []).filter(c => !c.dead).map(heroUnit);

@@ -12,7 +12,7 @@
   // Витрины: key — уникальный ключ позиции, e — предмет (для компаса нет), price — цена за штуку набора, many — можно купить ×5.
   const GOODS = [
     { key: "ration", e: { t: "g", id: "ration", qty: 5 }, price: 1 }, { key: "torch", e: { t: "g", id: "torch", qty: 1 }, price: 2, many: true },
-    { key: "potion", e: { t: "g", id: "potion", qty: 1 }, price: 5, many: true }, { key: "potion-good", e: { t: "g", id: "potion-good", qty: 1 }, price: 15, many: true },
+    { key: "potion", e: { t: "g", id: "potion", qty: 1 }, price: 3, many: true }, { key: "potion-good", e: { t: "g", id: "potion-good", qty: 1 }, price: 12, many: true },
     { key: "arrow40", e: { t: "g", id: "arrow", qty: 40 }, price: 10, label: "Колчан на 40 стрел" }, { key: "arrow20", e: { t: "g", id: "arrow", qty: 20 }, price: 5, label: "Колчан на 20 стрел" },
     { key: "shovel", e: { t: "g", id: "shovel", qty: 1 }, price: 8 }, { key: "shovel-good", e: { t: "g", id: "shovel-good", qty: 1 }, price: 15 },
     { key: "compass", special: "compass", price: 30 },
@@ -25,12 +25,12 @@
     steel: [...FORGE_W.map(id => ({ key: "sw:" + id, e: { t: "w", id, qty: 1, steel: true }, price: FORGE_PRICE.steelWeapon })), ...FORGE_A.map(id => ({ key: "sa:" + id, e: { t: "a", id, qty: 1, steel: true }, price: FORGE_PRICE.steelArmor }))],
   };
   const COMPASS_INFO = () => ({ name: "Компас", icon: ICO_COMPASS, note: "Стрелка показывает север при любом повороте карты. Включается удержанием в инвентаре лабиринта.", weight: 0 });
-  const TAVERN = { sleep: 4, food: 2 };                                                           // за героя
-  const TOWER = { 9: 10, 8: 25, 7: 60 };                                                          // анализ эссенции по классу
-  const CHURCH = { 9: 15, 8: 40, 7: 100 };                                                        // удаление эссенции по классу
-  const INFO_PRICE = { type: 3, portrait: 5, area: 3, spawn: 4, body: 5, stats: 8, "ess-stats": 10, "ess-passive": 15, "ess-active": 20 };
-  const CLS_MULT = { 9: 1, 8: 2, 7: 4 };
-  const INFO_SELL = 0.5;                                                                          // доля цены, которую платит гильдия за изученного монстра
+  const TAVERN = { sleep: 3, food: 1 };                                                           // за героя
+  const towerPrice = id => Math.max(1, Math.round(essPrice(id) / 3));                            // детали эссенции в башне — треть её цены, только для впитанной (решение автора)
+  const churchPrice = id => essBasePrice(id);                                                    // удаление — полная цена обычной эссенции того же ранга (решение автора)
+  const INFO_PRICE = { type: 5, portrait: 8, spawn: 10, body: 10, stats: 15, area: 30, "ess-stats": 45, "ess-passive": 60, "ess-active": 80 };          // сведения дорогие: места обитания — особенно, детали эссенций — ещё дороже
+  const CLS_MULT = { 9: 1, 8: 5, 7: 20 };                                                         // как цена камня
+  const INFO_SELL = 0.25;                                                                          // доля цены, которую платит гильдия за изученного монстра
   const LIB_PASS = 11;                                                                            // порог броска в библиотеке
 
   const INFO_LABEL = { type: "Тип", portrait: "Внешность", area: "Места обитания", spawn: "Условия появления", body: "Особенность тела", stats: "Характеристики", "ess-stats": "Эссенция: статы", "ess-passive": "Эссенция: пассивная", "ess-active": "Эссенция: активная" };
@@ -123,7 +123,7 @@
     if (!sel) return `<span class="tw-hint">Нажми предмет: ${sellsStones() ? "купить или продать" : "купить"}. Удержи: описание.</span>`;
     if (sel.side === "bag") {
       const e = (c.bag || [])[sel.i], it = e && itemOf(e, c); if (!it) return "";
-      const p = sellsStones() && e.t === "g" ? STONE_PRICE[e.id] : 0;
+      const p = priceOf(e);
       if (!p) return `<b>${esc(it.name)}</b><span class="tw-hint">${sellsStones() ? "Магазин скупает только камни." : "Кузнец ничего не скупает."}</span>`;
       return `<b>${esc(it.name)}${e.qty > 1 ? " × " + e.qty : ""}</b><span class="tw-btns"><button class="fx-btn primary" data-t="sellopen">${e.qty > 1 ? "Продать… · по " + p : "Продать · +" + p}</button></span><span class="tw-hint">Можно перетащить на лавочника.</span>`;
     }
@@ -167,7 +167,7 @@
   // Окно «сколько продать»: ползунок от 1 до числа предметов в стопке.
   function dlgHtml() {
     const c = hero(), e = (c.bag || [])[ui.dlg.i]; if (!e) return "";
-    const it = itemOf(e, c), p = STONE_PRICE[e.id] || 0, n = Math.min(ui.dlg.n, e.qty);
+    const it = itemOf(e, c), p = priceOf(e), n = Math.min(ui.dlg.n, e.qty);
     return `<div class="tw-dlg" role="dialog" aria-label="Сколько продать"><div class="tw-dlg-card fx-frame">
       <div class="tw-dlg-top"><span class="tw-dlg-img">${itemThumb(e, c)}</span><div><b>${esc(it.name)}</b><small>В стопке: ${e.qty} · по ${p} монет</small></div></div>
       <div class="tw-dlg-row"><button class="fx-btn" data-t="dlg-step" data-d="-1" aria-label="Меньше">−</button>
@@ -191,15 +191,17 @@
       render() {
         if (!state.party.length) return frame("Таверна", "Рафдония", noParty());
         const live = state.party.filter(c => !c.dead);
+        const locked = !!state.arenaLock;
+        if (locked) ui.sleep = {};
         const total = live.reduce((a, c) => a + (ui.sleep[c.id] ? TAVERN.sleep : 0) + (ui.food[c.id] ? TAVERN.food : 0), 0);
         const rows = live.map(c => { const st = carryOf(c);
           return `<div class="tw-row"><div class="tw-who">${portrait(c)}<div><b>${esc(c.name)}</b><small>Усталость ${st.fat}/4 · ${hungerText(st)} · ОЗ ${hpOf(c)}/${maxHp(c)}</small></div></div>
-            <div class="tw-chk"><button class="fx-btn${ui.sleep[c.id] ? " on" : ""}" data-t="tv" data-k="sleep" data-id="${c.id}" aria-pressed="${!!ui.sleep[c.id]}">Сон · ${TAVERN.sleep}</button>
+            <div class="tw-chk"><button class="fx-btn${ui.sleep[c.id] ? " on" : ""}" data-t="tv" data-k="sleep" data-id="${c.id}" aria-pressed="${!!ui.sleep[c.id]}"${locked ? " disabled" : ""}>Сон · ${TAVERN.sleep}</button>
             <button class="fx-btn${ui.food[c.id] ? " on" : ""}" data-t="tv" data-k="food" data-id="${c.id}" aria-pressed="${!!ui.food[c.id]}">Еда · ${TAVERN.food}</button></div></div>`; }).join("");
-        const body = `<div class="tw-npc">${img("assets/npc/innkeeper.webp", "Хозяин таверны")}<span>Добро пожаловать! Кровать мягкая, эль холодный.</span></div><p class="tw-lead">Ночлег снимает усталость и лечит, ужин и завтрак — сытость на заход. Без них следующий спуск начнётся с усталостью и голодом. Ночь занимает три городских действия, еда — одно.</p>
+        const body = `<div class="tw-npc">${img("assets/npc/innkeeper.webp", "Хозяин таверны")}<span>Добро пожаловать! Кровать мягкая, эль холодный.</span></div>${locked ? `<p class="tw-msg" style="color:var(--fx-danger)">После боя на арене раны не успеют зажить: ночлег недоступен до следующего спуска (еда — можно).</p>` : ""}<p class="tw-lead">Ночлег снимает усталость и лечит, ужин и завтрак — сытость на заход. Без них следующий спуск начнётся с усталостью и голодом. Ночь занимает три городских действия, еда — одно.</p>
           <div class="tw-rows">${rows}</div>${msgLine()}`;
         const sleepers = live.filter(c => ui.sleep[c.id]).length, eaters = live.filter(c => ui.food[c.id]).length;
-        const foot = `<div class="tw-sel"><b>К оплате: ${total}</b><span class="tw-hint">У отряда: ${partyGold()} монет · спят: ${sleepers}, едят: ${eaters}</span><span class="tw-btns"><button class="fx-btn" data-t="tv-all">Всем всё</button><button class="fx-btn primary" data-t="tv-pay"${total > 0 && partyGold() >= total ? "" : " disabled"}>Оплатить</button></span></div>`;
+        const foot = `<div class="tw-sel"><b>К оплате: ${total}</b><span class="tw-hint">У отряда: ${partyGold()} монет · спят: ${sleepers}, едят: ${eaters}</span><span class="tw-btns"><button class="fx-btn" data-t="tv-all">${locked ? "Всем еда" : "Всем всё"}</button><button class="fx-btn primary" data-t="tv-pay"${total > 0 && partyGold() >= total ? "" : " disabled"}>Оплатить</button></span></div>`;
         return frame("Таверна", "Рафдония", body, foot);
       },
     };
@@ -250,12 +252,120 @@
   /* =====================================================================
      ДОСКА ОБЪЯВЛЕНИЙ
      ===================================================================== */
+  const questMon = q => MONSTERS.find(m => m.id === q.mon);
+  function questSheet(q) {
+    const m = questMon(q), have = questStones(q), left = QUEST_RUNS - q.runs, last = q.taken && q.runs >= QUEST_RUNS;
+    const status = !q.taken ? `Висит на доске. Если не взять — сорвут через заход.`
+      : last ? `Последний шанс сдать: после следующего спуска задание сгорит.`
+      : `Заходов осталось: ${left} из ${QUEST_RUNS}.`;
+    const act = !q.taken ? `<button class="fx-btn primary" data-t="qaccept" data-id="${q.id}">Принять</button>`
+      : `<div class="tw-qprog">Камней задания: <b>${have} / ${q.need}</b></div><button class="fx-btn primary" data-t="qdone" data-id="${q.id}"${have >= q.need ? "" : " disabled"}>Сдать</button>`;
+    return `<article class="tw-sheetq${q.rare ? " rare" : ""}${q.taken ? " taken" : ""}" aria-label="Охота: ${esc(m.name)}"><i class="tw-pin"></i>
+      <small class="tw-qk">Охота${q.rare ? " · редкие" : ""}</small>
+      <div class="tw-qmon"><span class="tw-ph sq">${img(monArt(m), m.name)}</span><div><b>${esc(m.name)}</b><small>${m.cls} класс</small></div></div>
+      <p>Принести <b>${q.need}</b> камней задания.<br>Награда: <b>${q.reward}</b> монет отряду.</p>
+      <p class="tw-qnote">${status}</p>${act}</article>`;
+  }
   B.board = {
     render() {
-      return frame("Доска объявлений", "Рафдония", `<div class="tw-board">
-        <section class="fx-frame tw-note"><h4>События</h4><p>Сейчас в городе тихо. Новости появятся здесь.</p></section>
-        <section class="fx-frame tw-note"><h4>Заказы на монстров</h4><p>Заказов пока нет.</p></section></div>`);
+      const list = questBoard().list;
+      return `<div class="tw-panel tw-boardpanel"><button class="fx-btn tw-x tw-xc" data-t="close" aria-label="Закрыть">${ICO_X}</button>
+        <div class="tw-wall"><div class="tw-plank">Доска объявлений</div>
+          <div class="tw-sheets">${list.map(questSheet).join("")}
+            <article class="tw-sheetq news"><i class="tw-pin"></i><small class="tw-qk">События</small><p>Сейчас в городе тихо. Новости появятся здесь.</p></article></div>
+          ${list.length ? "" : `<p class="tw-qempty">Заданий пока нет: они появятся, когда отряд вернётся из лабиринта.</p>`}
+          <p class="tw-msg">${ui.msg || ""}</p></div></div>`;
     },
+  };
+  function questAccept(id) { const q = questBoard().list.find(x => x.id === +id); if (!q || q.taken) return; q.taken = true; q.runs = 0; ui.msg = `Задание принято всем отрядом: ${questMon(q).name}, ${q.need} камней.`; saveChar(); }
+  function questDone(id) {
+    const q = questBoard().list.find(x => x.id === +id); if (!q || !q.taken || questStones(q) < q.need) return;
+    const name = questMon(q).name, reward = q.reward; questTurnIn(q); visit(); ui.msg = `Задание выполнено: «${name}». Награда ${reward} монет поделена на отряд.`; saveChar();
+  }
+
+  /* =====================================================================
+     АРЕНА: ставки на бои монстров и бой отряда
+     ===================================================================== */
+  const ARENA_PAY = 3;                                                                            // монет за убитого 9 класса: тройная цена камня (решение автора)
+  const ARENA_FIGHT_MAX = 6;
+  const arenaPool = rare => MONSTERS.filter(m => m.floor === 1 && m.cls === 9 && !m.draft && !!m.rare === rare);
+  const arenaMon = () => { const rare = Math.random() < .1 && arenaPool(true).length, pool = arenaPool(!!rare); return pool[rnd(pool.length)]; };
+  // Сила монстра для ставок: ОЗ × защита × средний урон (грубо; ставки — не точная наука).
+  function mpower(m) {
+    const hp = parseInt(m.hp, 10) || 5, ac = parseInt(m.ac, 10) || 12; let dmg = 0;
+    for (const [, txt] of m.traits || []) { const d = /(\d+)к(\d+)\s*([+−-]\s*\d+)?/.exec(txt || ""); if (d && /[+−]\d|попадан/.test(txt)) dmg = Math.max(dmg, +d[1] * (+d[2] + 1) / 2 + (d[3] ? parseInt(d[3].replace(/\s/g, "").replace("−", "-"), 10) : 0)); }
+    return Math.max(1, hp) * (0.6 + ac / 20) * Math.max(2, dmg || 3);
+  }
+  function arenaState() {
+    const trips = townClock().trips || 0;
+    let a = state.arena;
+    if (!a || a.trips !== trips) {
+      a = state.arena = { trips, bouts: [] };
+      for (let i = 0; i < 3; i++) {
+        let x = arenaMon(), y = arenaMon(), g = 0; while (y.id === x.id && g++ < 20) y = arenaMon();
+        const pa = Math.pow(mpower(x), 1.4) / (Math.pow(mpower(x), 1.4) + Math.pow(mpower(y), 1.4)), odds = p => Math.round(Math.min(8, Math.max(1.1, 0.9 / p)) * 20) / 20;
+        a.bouts.push({ a: x.id, b: y.id, pa, oa: odds(pa), ob: odds(1 - pa), res: null });
+      }
+      saveChar();
+    }
+    return a;
+  }
+  B.arena = {
+    init: () => ({ tab: "bets", fightN: Math.min(ARENA_FIGHT_MAX, Math.max(2, state.party.length || 2)), stake: 5, pick: null, ok: null }),
+    render() {
+      const c = hero(); if (!c) return frame("Арена", "Рафдония", noParty());
+      const a = arenaState();
+      const tabs = `<div class="tw-tabs" role="tablist"><button class="fx-btn" role="tab" aria-selected="${ui.tab === "bets"}" data-t="atab" data-k="bets">Ставки</button><button class="fx-btn" role="tab" aria-selected="${ui.tab === "fight"}" data-t="atab" data-k="fight">Бой отряда</button></div>`;
+      let body = heroStrip() + tabs;
+      if (ui.tab === "bets") {
+        body += `<p class="tw-lead">Три боя один на один между монстрами одного класса. Ставку делает выбранный герой (при нехватке добавят другие). Выигрыш — ставка × коэффициент, проигрыш — ставка сгорает.</p>
+          <div class="tw-bouts">${a.bouts.map((b, i) => {
+            const A = MONSTERS.find(m => m.id === b.a), Bm = MONSTERS.find(m => m.id === b.b), done = !!b.res;
+            const side = (m, code, odds) => `<button class="tw-fighter${done && b.res.win === code ? " won" : done ? " lost" : ""}${ui.pick && ui.pick.i === i && ui.pick.side === code ? " pick" : ""}" data-t="apick" data-i="${i}" data-s="${code}"${done ? " disabled" : ""}>
+              <span class="tw-ph sq">${img(monArt(m), m.name)}</span><b>${esc(m.name)}</b><small>${m.cls} класс${m.rare ? " · редкий" : ""}</small><i>×${odds.toFixed(2)}</i></button>`;
+            const panel = !done && ui.pick && ui.pick.i === i ? `<div class="tw-stake"><div class="tw-dlg-row"><button class="fx-btn" data-t="astep" data-d="-1">−</button><b class="tw-stk">${ui.stake}</b><button class="fx-btn" data-t="astep" data-d="1">+</button></div>
+              <div class="tw-btns">${[1, 5, 10, 25].map(v => `<button class="fx-btn${ui.stake === v ? " on" : ""}" data-t="achip" data-n="${v}">${v}</button>`).join("")}<button class="fx-btn" data-t="achip" data-n="${partyGold()}">Всё</button></div>
+              <button class="fx-btn primary" data-t="abet"${ui.stake > 0 && partyGold() >= ui.stake ? "" : " disabled"}>Поставить ${ui.stake} на ${esc((ui.pick.side === "a" ? A : Bm).name)} · выигрыш ${Math.floor(ui.stake * (ui.pick.side === "a" ? b.oa : b.ob))}</button></div>` : "";
+            const res = done ? `<p class="tw-bout-res">Победил: <b>${esc(MONSTERS.find(m => m.id === (b.res.win === "a" ? b.a : b.b)).name)}</b>. ${b.res.stake ? (b.res.pay ? `Выигрыш: +${b.res.pay} монет.` : `Ставка ${b.res.stake} проиграна.`) : "Ставку не делали."}</p>` : "";
+            return `<div class="tw-bout fx-frame">${side(A, "a", b.oa)}<span class="tw-vs">VS</span>${side(Bm, "b", b.ob)}${panel}${res}</div>`; }).join("")}</div>${msgLine()}`;
+      } else {
+        const n = ui.fightN;
+        body += `<p class="tw-lead">Отряд выходит на арену сам. Выберите число противников — случайные монстры 9 класса, редкие нечасто. За каждого убитого арена платит ${ARENA_PAY} монеты (тройная цена камня). Лута нет: камни и находки забирают администраторы, выпавшую эссенцию тоже — взамен бонус 20 % её цены.</p>
+          <div class="tw-stake"><div class="tw-dlg-row"><button class="fx-btn" data-t="afn" data-d="-1">−</button><b class="tw-stk">${n}</b><button class="fx-btn" data-t="afn" data-d="1">+</button></div>
+          <p class="tw-lead" style="text-align:center">Награда при победе: <b style="color:var(--fx-gold-hi)">${n * ARENA_PAY}</b> монет · после боя +1 Усталость каждому, раны не заживут и ночлег в таверне будет закрыт до следующего спуска.</p>
+          <button class="fx-btn primary big" data-t="afight">${ui.ok === "fight" ? "Точно выйти? Нажми ещё раз" : "Выйти на арену"}</button></div>${msgLine()}`;
+      }
+      return frame("Арена", "Рафдония", body);
+    },
+  };
+  function arenaBet() {
+    const a = arenaState(), b = a.bouts[ui.pick.i], stake = ui.stake; if (!b || b.res || stake < 1) return;
+    if (!payGold(hero(), stake)) { ui.msg = "Не хватает монет."; return; }
+    const winA = Math.random() < b.pa, win = winA ? "a" : "b", mine = ui.pick.side, odds = mine === "a" ? b.oa : b.ob;
+    const pay = win === mine ? Math.floor(stake * odds) : 0;
+    if (pay) addGold(hero(), pay);
+    b.res = { win, stake, pay, side: mine }; ui.pick = null; visit(); saveChar();
+    ui.msg = pay ? `Ставка сыграла: +${pay} монет.` : `Не повезло: ${stake} монет проиграно.`;
+  }
+  function arenaStart() {
+    if (!(window.settings && settings().tactical)) { ui.msg = "Арена работает только с включённым тактическим боем."; return; }
+    if (ui.ok !== "fight") { ui.ok = "fight"; return; }
+    const n = ui.fightN, list = []; for (let i = 0; i < n; i++) list.push(arenaMon().id);
+    const zone = MONSTERS.find(m => m.id === list[0]).zone;
+    const ev = { kind: "hard", title: "Арена", arena: true, list, zone, floor: 1, key: "arena", outcome: null, killed: [], turn: 0, round: 1, tactical: true, border: false, place: "Арена", cause: "arena", raw: 0, n: 0, ambush: false };
+    ev.init = rollInitiative(list, false);
+    spend(1); T.close();
+    loadBattle().then(ok => { if (!ok || !window.Battle) { toast("Бой не загрузился"); return; } window.Battle.ensure(ev); });
+  }
+  // Итог боя на арене (вызывает battleDone): усталость, запрет ночлега, опыт за новые виды, возврат на арену.
+  T.arenaDone = function (ev, res) {
+    for (const c of state.party) { const st = c.carry || (c.carry = { sat: 3, starve: 0, awake: 0, fat: 0 }); st.fat = Math.min(4, (st.fat || 0) + 1); }
+    state.arenaLock = true;
+    const killed = res.killed.map(i => ev.list[i]);
+    try { for (const id of killed) seenKeys(id, ["type"]); awardXp(killed); } catch (e) { /* опыт не критичен */ }
+    const total = res.plan && res.plan.arena ? res.plan.arena.total : 0;
+    saveChar(); toast(`Арена: убито ${killed.length} из ${ev.list.length}, получено ${total} монет. Усталость +1, ночлег закрыт.`);
+    setTimeout(() => { T.open("arena"); ui.tab = "fight"; ui.msg = `Бой окончен: убито ${killed.length} из ${ev.list.length}, ${total} монет отряду.`; render(); }, 500);
   };
 
   /* =====================================================================
@@ -305,7 +415,7 @@
       render() {
         const c = hero(); if (!c) return frame("Башня магов", "Рафдония", noParty());
         const ess = c.essences || [];
-        const rows = ess.map(id => { const e = ESSENCES[id], n = essLvl(id), price = TOWER[e.cls] || 10;
+        const rows = ess.map(id => { const e = ESSENCES[id], n = essLvl(id), price = towerPrice(id);
           return `<div class="tw-row"><div class="tw-who"><div><b>${esc(essTitle(id))}</b><small>${e.cls} класс · изучено ${n} из 3</small></div></div>
             ${n === 3 ? `<span class="tw-done">${ICO_CHECK}</span>` : `<button class="fx-btn primary" data-t="analyze" data-id="${id}"${partyGold() >= price ? "" : " disabled"}>${price}</button>`}</div>`; }).join("");
         return frame("Башня магов", "Рафдония", `${heroStrip()}<p class="tw-lead">Маг заглянет в героя и расскажет всё о впитанных им эссенциях: статы, пассивную и активную способность. Цена зависит от класса эссенции.</p>
@@ -323,7 +433,7 @@
       render() {
         const c = hero(); if (!c) return frame("Церковь", "Рафдония", noParty());
         const ess = c.essences || [];
-        const rows = ess.map(id => { const e = ESSENCES[id], price = CHURCH[e.cls] || 15, ask = ui.confirm === id, nm = esc(essTitle(id));
+        const rows = ess.map(id => { const e = ESSENCES[id], price = churchPrice(id), ask = ui.confirm === id, nm = esc(essTitle(id));
           return `<div class="tw-row"><div class="tw-who"><div><b>${nm}</b><small>${e.cls} класс · освободит слот</small></div></div>
             <button class="fx-btn${ask ? " danger" : ""}" data-t="purge" data-id="${id}"${partyGold() >= price ? "" : " disabled"}>${ask ? "Точно? " + price : "Удалить · " + price}</button></div>`; }).join("");
         return frame("Церковь", "Рафдония", `${heroStrip()}<p class="tw-lead">Священник очистит героя от впитанной эссенции — она исчезнет безвозвратно, слот освободится. Слотов: ${ess.length}/${c.level}.</p>
@@ -333,7 +443,7 @@
   }
 
   /* ---------- действия ---------- */
-  const priceOf = e => (sellsStones() && e && e.t === "g" ? STONE_PRICE[e.id] : 0) || 0;
+  const priceOf = e => (sellsStones() && e && e.t === "g" ? (e.id === "qstone" ? STONE_PRICE["stone-" + (e.cls || 9)] : STONE_PRICE[e.id]) : 0) || 0;
   function sellN(i, n) {
     const c = hero(), e = (c.bag || [])[i], p = priceOf(e); if (!p) return;
     n = Math.max(1, Math.min(n, e.qty)); const name = itemOf(e, c).name;
@@ -362,6 +472,7 @@
   }
   function tavernPay() {
     const live = state.party.filter(c => !c.dead);
+    if (state.arenaLock) ui.sleep = {};
     const total = live.reduce((a, c) => a + (ui.sleep[c.id] ? TAVERN.sleep : 0) + (ui.food[c.id] ? TAVERN.food : 0), 0);
     if (!total || !payGold(live[0], total)) { ui.msg = "Не хватает монет."; return; }
     let slept = 0, ate = 0;
@@ -374,17 +485,18 @@
     ui.msg = `Оплачено ${total}: спали ${slept}, поели ${ate}.`; saveChar();
   }
   function analyze(id) {
-    const e = ESSENCES[id], price = TOWER[e.cls] || 10;
+    const e = ESSENCES[id], price = towerPrice(id);
     if (!payGold(hero(), price)) { ui.msg = "Не хватает монет."; return; }
     seenKeys(essSource(id), ["ess-stats", "ess-passive", "ess-active"]); markEssNamed(id);          // сведения попадают в библиотеку, и наоборот: прочитанное там открыто при получении
     visit(); ui.msg = `Анализ завершён: ${esc(ESSENCES[id].name)} раскрыта, сведения записаны в библиотеку.`; saveChar();
   }
   function purge(id) {
-    const c = hero(), e = ESSENCES[id], price = CHURCH[e.cls] || 15;
+    const c = hero(), e = ESSENCES[id], price = churchPrice(id);
     if (ui.confirm !== id) { ui.confirm = id; ui.msg = "Эссенция исчезнет навсегда. Нажми ещё раз."; return; }
     if (!payGold(c, price)) { ui.msg = "Не хватает монет."; return; }
     const i = (c.essences || []).indexOf(id); if (i < 0) return;
     c.essences.splice(i, 1); c.hp = Math.min(hpOf(c), maxHp(c)); c.mp = Math.min(mpOf(c), maxMp(c));
+    c.purged = (c.purged || 0) + 1;          // скрытый счётчик удалённых эссенций (позже — штраф, игроку не показывается)
     ui.confirm = null; visit(); ui.msg = `Эссенция удалена: слот свободен (${c.essences.length}/${c.level}).`; saveChar();
   }
   function guildBuy(k) {
@@ -462,7 +574,7 @@
       case "dlg-ok": { const d = ui.dlg; ui.dlg = null; sellN(d.i, d.n); break; }
       case "buy": buy(+ds.n); break;
       case "tv": { const m = ui[ds.k]; m[ds.id] = !m[ds.id]; break; }
-      case "tv-all": for (const c of state.party.filter(x => !x.dead)) { ui.sleep[c.id] = true; ui.food[c.id] = true; } break;
+      case "tv-all": for (const c of state.party.filter(x => !x.dead)) { if (!state.arenaLock) ui.sleep[c.id] = true; ui.food[c.id] = true; } break;
       case "tv-pay": tavernPay(); break;
       case "lib": libRoll(+ds.n); break;
       case "gtab": ui.tab = ds.k; ui.mon = null; break;
@@ -472,6 +584,15 @@
       case "gsell": guildSell(ds.id); break;
       case "analyze": analyze(ds.id); break;
       case "purge": purge(ds.id); break;
+      case "qaccept": questAccept(ds.id); break;
+      case "qdone": questDone(ds.id); break;
+      case "atab": ui.tab = ds.k; ui.pick = null; ui.ok = null; break;
+      case "apick": ui.pick = ui.pick && ui.pick.i === +ds.i && ui.pick.side === ds.s ? null : { i: +ds.i, side: ds.s }; break;
+      case "astep": ui.stake = Math.max(1, ui.stake + +ds.d); break;
+      case "achip": ui.stake = Math.max(1, +ds.n); break;
+      case "abet": arenaBet(); break;
+      case "afn": ui.fightN = Math.max(1, Math.min(ARENA_FIGHT_MAX, ui.fightN + +ds.d)); ui.ok = null; break;
+      case "afight": arenaStart(); break;
     }
     render();
   });

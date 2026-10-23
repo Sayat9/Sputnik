@@ -116,7 +116,7 @@
       const u = B.currentUnit();
       if (!u || !alive(u)) { B.advanceTurn(); continue; }
       S.curId = u.id;
-      if (ui()) snapshot(S);                                                                    // автосохранение: в начале каждого хода
+      if (ui() && !(S.ev && S.ev.arena)) snapshot(S);                                                                    // автосохранение: в начале каждого хода
       await B.startTurn(u);
       if (u.side === "hero") spotHidden(u);                                                  // враги, затаившиеся в начале боя
       else if (B.isUnseen(u)) reveal(u);                                                     // начал действовать — виден
@@ -209,6 +209,7 @@
       try {
         if (B.UI) B.UI.open();
         const S = await start(ev);
+        if (S.outcome === "abort" && ev.arena) S.outcome = "flee";          // арену нельзя перенести на обычный экран
         if (S.outcome === "abort") {
           state.fightSnap = null;         // игрок перешёл на обычный экран боя
           B.End.cleanup(S, "abort");
