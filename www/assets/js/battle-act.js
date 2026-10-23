@@ -27,7 +27,7 @@
     const am = amod(u.abil[ab]);
     const dice = parseDice(f.versatile && !eq.off && mode === "hand" ? f.versatile : w.dmg);
     const giant = c.giantGrip && c.race === "barbarian" && f.two && !ranged;
-    const atk = { id: mode + ":" + w.id, w, n: w.name, hit: am + u.pb, parts: [{ l: ABIL_RU[ab], v: am }, ...(u.pb ? [{ l: "Бонус мастерства", v: u.pb }] : [])], dmg: { ...dice, b: dice.b + am }, dt: DT[w.type] || "bludgeon", tags: [], mode, time: "action" };
+    const atk = { id: mode + ":" + w.id, w, n: w.name, hit: am + u.pb + (w.bonus || 0), parts: [{ l: ABIL_RU[ab], v: am }, ...(u.pb ? [{ l: "Бонус мастерства", v: u.pb }] : []), ...(w.bonus ? [{ l: "Сталь", v: w.bonus }] : [])], dmg: { ...dice, b: dice.b + am + (w.bonus || 0) }, dt: DT[w.type] || "bludgeon", tags: [], mode, time: "action" };
     if (giant) { atk.penalty = -2; atk.penaltyLabel = "Великан: одной рукой"; }
     if (mode === "hand" && !ranged) { atk.kind = "melee"; atk.reach = w.id === "spear" && u.pass.includes("goblin-spear") ? 2 : 1 + longArm(u, w); atk.sub = atk.reach > 1 ? `досягаемость ${atk.reach * 1.5} м`.replace(".", ",") : "ближний бой"; }
     else if (mode === "hand" && ranged) {
@@ -500,7 +500,7 @@
     if (countGear(c, "torch") > 0 && B.S.dark && !B.S.torch) opts.push({ id: "torch", cat: "item", label: "Зажечь факел", ico: "torch", sub: "освещает поле, убирает штрафы тьмы", time: "bonus", enabled: !bon, why: bon, run: () => lightTorch(u) });
     const off = c.equip.off ? itemOf(c.equip.off) : null, main = B.mainOf(u);
     if (off && off.id === "shield") opts.push({ id: "shieldbash", cat: "item", label: "Удар щитом", ico: "shield", sub: "толчок как доп. действие", time: "bonus", enabled: !bon && enemiesOf(u).some(e => dist(u, e) <= 1), why: bon || "нет врага рядом", run: () => doShove(u, "bonus") });
-    if (main && main.id === "tower-shield") opts.push({ id: "cover", cat: "item", label: "Прикрыть союзника", ico: "shield", sub: "+2 КД союзнику рядом до вашего хода", time: "bonus", enabled: !bon && alliesOf(u).some(a => dist(u, a) <= 1 && !a.down), why: bon || "нет союзника рядом", run: () => coverAlly(u) });
+    if (main && main.id === "tower-shield") opts.push({ id: "cover", cat: "other", label: "Прикрыть союзника", ico: "shield", sub: "+2 КД союзнику рядом до вашего хода", time: "bonus", enabled: !bon && alliesOf(u).some(a => dist(u, a) <= 1 && !a.down), why: bon || "нет союзника рядом", run: () => coverAlly(u) });
     const here = dropsHere(u);
     if (here.length) opts.push({ id: "pickup", cat: "item", label: `Подобрать: ${dropNames(here)}`, ico: "throwing", sub: "свободное действие — вы стоите на нём", time: "free", enabled: true, run: () => pickUpWeapon(u), pop: true });
     if (D.race[u.race] && D.race[u.race].heart) opts.push({ id: "heart", cat: "item", label: "Драконье сердце", ico: "heart", sub: "временные ОЗ = уровень + Тел., раз за отдых", time: "bonus", enabled: !bon && !(c.flags && c.flags.heart), why: bon || "уже использовано", run: () => dragonHeart(u) });

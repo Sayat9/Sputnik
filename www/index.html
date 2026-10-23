@@ -1689,8 +1689,8 @@ const DISTRICTS = [
 
 // Готовые рисованные картинки (webp) заменяют векторные заглушки.
 // Дата сборки для телефона: build.sh вписывает её сюда, в веб-версии строка пустая.
-const APP_BUILD = "23.10.2026 00:58";
-const APP_VERSION = 1792699082;                 // номер сборки, тоже вписывает build.sh
+const APP_BUILD = "23.10.2026 09:52";
+const APP_VERSION = 1792731158;                 // номер сборки, тоже вписывает build.sh
 const UPDATE_URL = "https://raw.githubusercontent.com/Sayat9/Sputnik/main/www/";
 const RASTER = new Set(["items/shortbow", "items/longbow", "items/rapier", "items/shield", "items/tower-shield", "items/unknown-mushroom", "items/stone-9", "items/stone-8", "items/stone-7", "items/ration", "items/potion", "items/torch", "items/arrows", "items/clothes", "items/shovel", "items/shovel-good", "items/shovel-best", "items/dagger", "items/sword", "items/greatsword", "items/spear", "monsters/goblin-king-face", "monsters/goblin-king-full", "monsters/goblin-bomber-face", "monsters/goblin-bomber-full", "monsters/hobgoblin-shield-face", "monsters/hobgoblin-shield-full", "races/barbarian", "races/human", "races/dwarf", "races/beastkin", "races/fairy", "races/dragon", "monsters/goblin-face", "monsters/goblin-full", "monsters/goblin-archer-face", "monsters/goblin-archer-full", "monsters/goblin-sword-face", "monsters/goblin-sword-full", "monsters/goblin-spear-face", "monsters/goblin-spear-full", "monsters/wolf-face", "monsters/wolf-full", "monsters/fox-face", "monsters/fox-full", "monsters/mouse-face", "monsters/mouse-full", "monsters/bat-face", "monsters/bat-full", "monsters/hobgoblin-face", "monsters/hobgoblin-full", "monsters/zombie-face", "monsters/zombie-full", "monsters/skeleton-face", "monsters/skeleton-full", "monsters/skeleton-archer-face", "monsters/skeleton-archer-full", "monsters/ghoul-face", "monsters/ghoul-full", "monsters/dark-bear-face", "monsters/dark-bear-full", "monsters/skeleton-warrior-face", "monsters/skeleton-warrior-full", "monsters/living-stone-face", "monsters/living-stone-full", "monsters/wisp-face", "monsters/wisp-full", "monsters/pixie-face", "monsters/pixie-full", "monsters/green-boulder-face", "monsters/green-boulder-full", "monsters/stone-guardian-face", "monsters/stone-guardian-full"]);
 const artPath = p => `assets/${p}.${RASTER.has(p) ? "webp" : "svg"}`;
@@ -2150,6 +2150,20 @@ function findKnown(c, id) {
   return FIND_KIND[g.find].skills.some(k => (sk[k] || 0) > 0);
 }
 
+/* ----- улучшенное (стальное) снаряжение: метка steel у предмета в рюкзаке/руке, id тот же (черновик, drafts.md → «Кузница») ----- */
+const STEEL_W = { spear: "Стальное копьё", mace: "Стальная булава", warhammer: "Стальной боевой молот", sword: "Стальной меч", dagger: "Стальной кинжал", rapier: "Стальная рапира",
+  greatsword: "Стальной двуручный меч", shortbow: "Улучшенный короткий лук", longbow: "Улучшенный длинный лук", shield: "Стальной щит", "tower-shield": "Стальной ростовой щит" };
+const STEEL_A = { leather: "Клёпаный кожаный доспех", hide: "Усиленный шкурный доспех", chainmail: "Стальная кольчуга" };
+const isShieldW = w => w.group === "shield" || w.id === "tower-shield";
+function steelWeapon(w) {
+  const sh = isShieldW(w);
+  return { name: STEEL_W[w.id] || "Стальной " + w.name.toLowerCase(), steel: true, bonus: sh ? 0 : 1, price: 25,
+    note: `${w.note || w.desc || ""} Улучшенная сталь: ${sh ? "+1 КД сверх обычного щита" : "+1 к атаке и к урону"}.`.trim() };
+}
+function steelArmor(a) {
+  return { name: STEEL_A[a.id] || "Усиленный " + a.name.toLowerCase(), steel: true, base: a.base + 1, ac: String(a.ac).replace(/^\d+/, n => +n + 1), price: 40,
+    note: `${a.note || ""} Улучшенная сталь: +1 КД сверх обычного доспеха.`.trim() };
+}
 function itemOf(v, holder) {
   if (!v) return null;
   if (v.t === "g") {
@@ -2161,8 +2175,8 @@ function itemOf(v, holder) {
     }
     return g && { ...g, id: v.id, kindOf: "gear", art: ART.gear(v.id) || undefined, icon: GEAR_ICON[v.id] || (SHOVELS.includes(v.id) ? GEAR_ICON.shovel : GEAR_ICON.custom) };
   }
-  if (v.t === "w") { const w = WEAPONS.find(x => x.id === v.id); return w && { ...w, kindOf: "weapon", art: ART.weapon(w.id) }; }
-  if (v.t === "a") { const a = ARMOR_FLAT.find(x => x.id === v.id); return a && { ...a, kindOf: "armor", art: ART.armor(a.id) }; }
+  if (v.t === "w") { const w = WEAPONS.find(x => x.id === v.id); return w && { ...w, kindOf: "weapon", art: ART.weapon(w.id), ...(v.steel ? steelWeapon(w) : {}) }; }
+  if (v.t === "a") { const a = ARMOR_FLAT.find(x => x.id === v.id); return a && { ...a, kindOf: "armor", art: ART.armor(a.id), ...(v.steel ? steelArmor(a) : {}) }; }
   if (v.t === "c") return { name: v.name, kindOf: "custom", weight: 0, icon: GEAR_ICON.custom };
   return null;
 }
@@ -2190,8 +2204,8 @@ function derived(t, c = char) {
   }
   const off = itemOf(c.equip.off), main = itemOf(c.equip.main);
   const tower = main && main.id === "tower-shield";
-  if (tower) { ac += 3; acSrc += " + ростовой щит"; }
-  else if (off && off.id === "shield" && !twoHanded(c)) ac += 2;
+  if (tower) { ac += 3 + (main.steel ? 1 : 0); acSrc += " + ростовой щит"; }
+  else if (off && off.id === "shield" && !twoHanded(c)) ac += 2 + (off.steel ? 1 : 0);
   const ld = load(c, t);
   const warnings = [];
   if (armor && armor.str && t.str.total < armor.str) warnings.push(`Сила ${t.str.total} ниже ${armor.str}, нужной для доспеха «${armor.name}»: скорость −3 м.`);
@@ -2225,7 +2239,7 @@ function addToBag(c, e) {
   while (left > 0 && c.bag.length < bagSize(c)) {
     const n = Math.min(left, stackMax(e, c));
     const uses = e.t === "g" && GEAR[e.id].uses ? { uses: e.uses ?? GEAR[e.id].uses } : {};
-    c.bag.push(e.t === "c" ? { t: "c", name: e.name, qty: 1 } : { t: e.t, id: e.id, qty: n, ...uses });
+    c.bag.push(e.t === "c" ? { t: "c", name: e.name, qty: 1 } : { t: e.t, id: e.id, qty: n, ...uses, ...(e.steel ? { steel: true } : {}) });
     left -= n;
   }
   return left;                                   // сколько не поместилось
@@ -2304,7 +2318,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 11;
+const BATTLE_REV = 12;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined) st.tactical = true; return st; }
@@ -2327,7 +2341,7 @@ function loadBattle() {
   return battleLoad;
 }
 /* ----- здания города (assets/js/town.js грузится при первом входе в здание) ----- */
-const TOWN_REV = 1, TOWN_FILES = ["assets/css/town.css", "assets/js/town.js"];
+const TOWN_REV = 2, TOWN_FILES = ["assets/css/town.css", "assets/js/town.js"];
 let townLoad = null;
 function loadTown() {
   if (window.Town && window.Town.ready) return Promise.resolve(true);
@@ -2935,7 +2949,7 @@ const TOWN = [
   { id: "shop",    name: "Магазин",              shape: "shop" },
   { id: "hall",    name: "Ратуша и налоги",      shape: "house", soon: true },
   { id: "bank",    name: "Банк",                 shape: "bank", soon: true },
-  { id: "forge",   name: "Кузница",              shape: "smithy", soon: true },
+  { id: "forge",   name: "Кузница",              shape: "smithy" },
   { id: "storage", name: "Склад",                shape: "warehouse", soon: true },
 ];
 
@@ -4907,7 +4921,7 @@ $hero.addEventListener("click", e => {
       const slot = ds.slotTo, it = itemOf(entry);
       c.bag.splice(heroUi.sel, 1); heroUi.sel = null;
       const prev = c.equip[slot];
-      c.equip[slot] = entry.t === "c" ? { t: "c", name: entry.name } : { t: entry.t, id: entry.id };
+      c.equip[slot] = entry.t === "c" ? { t: "c", name: entry.name } : { t: entry.t, id: entry.id, ...(entry.steel ? { steel: true } : {}) };
       if (prev) addToBag(c, { ...prev, qty: 1 });
       if (slot === "main" && isTwoHandedWeapon(it) && !(c.giantGrip && c.race === "barbarian") && c.equip.off) {
         if (addToBag(c, { ...c.equip.off, qty: 1 })) { toast("Нет места для предмета из левой руки"); c.equip.main = prev; c.bag.push(entry); if (prev) takeLast(c, prev); saveChar(); renderHero(); return; }

@@ -37,7 +37,7 @@
     const rows = u.ess.map(id => ESSENCES[id]).filter(Boolean).map(e => `<div class="bt-prow"><b>${esc(e.passive.name)}</b><small>${esc(e.passive.text)}</small></div>`);
     return rows.length ? `<h6 class="bt-ph">Пассивные способности</h6>${rows.join("")}` : "";
   }
-  const CATS = { attack: ["Атака", ["attack"]], skill: ["Навыки", ["skill"]], other: ["Прочие действия", ["other", "move", "defend"]], item: ["Предметы", ["item"]] };
+  const CATS = { attack: ["Атака", ["attack"]], skill: ["Навыки", ["skill"]], other: ["Прочие действия", ["other", "move"]], item: ["Предметы", ["item"]] };
   UI.renderPanel = function () {
     const S = B.S, p = q(".bt-panel"); if (!p || !S) return;
     if (UI.mode === "place" || UI.mode === "ambush") return renderPlace(p);

@@ -9,13 +9,21 @@
 
   /* ---------- цены (черновик) ---------- */
   const STONE_PRICE = { "stone-9": 1, "stone-8": 5, "stone-7": 20 };                              // решение автора
-  const STOCK = [
-    { id: "ration", price: 1, many: true }, { id: "torch", price: 2, many: true },
-    { id: "potion", price: 5, many: true }, { id: "potion-good", price: 15, many: true },
-    { id: "arrow", price: 4, qty: 20 },
-    { id: "shovel", price: 8 }, { id: "shovel-good", price: 25 },
-    { id: "compass", price: 40, special: "compass" },
+  // Витрины: key — уникальный ключ позиции, e — предмет (для компаса нет), price — цена за штуку набора, many — можно купить ×5.
+  const GOODS = [
+    { key: "ration", e: { t: "g", id: "ration", qty: 5 }, price: 1 }, { key: "torch", e: { t: "g", id: "torch", qty: 1 }, price: 2, many: true },
+    { key: "potion", e: { t: "g", id: "potion", qty: 1 }, price: 5, many: true }, { key: "potion-good", e: { t: "g", id: "potion-good", qty: 1 }, price: 15, many: true },
+    { key: "arrow", e: { t: "g", id: "arrow", qty: 40 }, price: 20 },
+    { key: "shovel", e: { t: "g", id: "shovel", qty: 1 }, price: 8 }, { key: "shovel-good", e: { t: "g", id: "shovel-good", qty: 1 }, price: 15 },
+    { key: "compass", special: "compass", price: 30 },
   ];
+  const FORGE_W = ["dagger", "spear", "mace", "warhammer", "sword", "rapier", "greatsword", "shortbow", "longbow", "shield", "tower-shield"];
+  const FORGE_A = ["leather", "hide", "chainmail"];
+  const FORGE_PRICE = { weapon: 10, armor: 15, steelWeapon: 25, steelArmor: 40 };               // решение автора
+  const FORGE = {
+    base: [...FORGE_W.map(id => ({ key: "w:" + id, e: { t: "w", id, qty: 1 }, price: FORGE_PRICE.weapon })), ...FORGE_A.map(id => ({ key: "a:" + id, e: { t: "a", id, qty: 1 }, price: FORGE_PRICE.armor }))],
+    steel: [...FORGE_W.map(id => ({ key: "sw:" + id, e: { t: "w", id, qty: 1, steel: true }, price: FORGE_PRICE.steelWeapon })), ...FORGE_A.map(id => ({ key: "sa:" + id, e: { t: "a", id, qty: 1, steel: true }, price: FORGE_PRICE.steelArmor }))],
+  };
   const COMPASS_INFO = () => ({ name: "Компас", icon: ICO_COMPASS, note: "Стрелка показывает север при любом повороте карты. Включается удержанием в инвентаре лабиринта.", weight: 0 });
   const TAVERN = { sleep: 4, food: 2 };                                                           // за героя
   const TOWER = { 9: 10, 8: 25, 7: 60 };                                                          // анализ эссенции по классу
@@ -104,41 +112,60 @@
   /* =====================================================================
      МАГАЗИН
      ===================================================================== */
-  const stockEntry = s => s.special === "compass" ? null : { t: "g", id: s.id, qty: s.qty || 1 };
-  const owned = s => s.special === "compass" && inventory().compass.owned;
+  // Магазин и кузница — один интерфейс с разной витриной.
+  const goodsOf = () => ui.b === "forge" ? FORGE[ui.tab || "base"] : GOODS;
+  const goodByKey = k => [...GOODS, ...FORGE.base, ...FORGE.steel].find(g => g.key === k);
+  const owned = g => g.special === "compass" && inventory().compass.owned;
+  const goodInfo = g => g.special === "compass" ? COMPASS_INFO() : itemOf(g.e);
+  const sellsStones = () => ui.b === "shop";
   function shopSelInfo() {
     const c = hero(), sel = ui.sel;
-    if (!sel) return `<span class="tw-hint">Нажми предмет: купить или продать. Удержи: описание.</span>`;
+    if (!sel) return `<span class="tw-hint">Нажми предмет: ${sellsStones() ? "купить или продать" : "купить"}. Удержи: описание.</span>`;
     if (sel.side === "bag") {
       const e = (c.bag || [])[sel.i], it = e && itemOf(e, c); if (!it) return "";
-      const p = e.t === "g" ? STONE_PRICE[e.id] : 0;
-      if (!p) return `<b>${esc(it.name)}</b><span class="tw-hint">Магазин скупает только камни.</span>`;
+      const p = sellsStones() && e.t === "g" ? STONE_PRICE[e.id] : 0;
+      if (!p) return `<b>${esc(it.name)}</b><span class="tw-hint">${sellsStones() ? "Магазин скупает только камни." : "Кузнец ничего не скупает."}</span>`;
       return `<b>${esc(it.name)}${e.qty > 1 ? " × " + e.qty : ""}</b><span class="tw-btns"><button class="fx-btn primary" data-t="sell" data-all="0">Продать 1 · +${p}</button>${e.qty > 1 ? `<button class="fx-btn" data-t="sell" data-all="1">Все (${e.qty}) · +${p * e.qty}</button>` : ""}</span>`;
     }
-    const s = STOCK.find(x => x.id === sel.id), it = s.special === "compass" ? COMPASS_INFO() : itemOf(stockEntry(s)), q = s.qty || 1;
-    if (owned(s)) return `<b>${esc(it.name)}</b><span class="tw-hint">Компас у отряда уже есть.</span>`;
-    const can = partyGold() >= s.price, can5 = s.many && partyGold() >= s.price * 5;
-    return `<b>${esc(it.name)}${q > 1 ? " × " + q : ""}</b><span class="tw-btns"><button class="fx-btn primary" data-t="buy" data-n="1"${can ? "" : " disabled"}>Купить · −${s.price}</button>${s.many ? `<button class="fx-btn" data-t="buy" data-n="5"${can5 ? "" : " disabled"}>×5 · −${s.price * 5}</button>` : ""}</span>
-      <span class="tw-hint">Получит и заплатит: ${esc(c.name)}${goldOf(c) < s.price ? " (остальное добавят другие)" : ""}</span>`;
+    const g = goodByKey(sel.key); if (!g) return "";
+    const it = goodInfo(g), q = g.e ? g.e.qty : 1;
+    if (owned(g)) return `<b>${esc(it.name)}</b><span class="tw-hint">Компас у отряда уже есть.</span>`;
+    const can = partyGold() >= g.price, can5 = g.many && partyGold() >= g.price * 5;
+    return `<b>${esc(it.name)}${q > 1 ? " × " + q : ""}</b><span class="tw-btns"><button class="fx-btn primary" data-t="buy" data-n="1"${can ? "" : " disabled"}>Купить · −${g.price}</button>${g.many ? `<button class="fx-btn" data-t="buy" data-n="5"${can5 ? "" : " disabled"}>×5 · −${g.price * 5}</button>` : ""}</span>
+      <span class="tw-hint">Получит и заплатит: ${esc(c.name)}${goldOf(c) < g.price ? " (остальное добавят другие)" : ""}</span>`;
   }
-  B_shop();
-  function B_shop() {
-    B.shop = {
-      render() {
-        const c = hero(); if (!c) return frame("Магазин", "Рафдония", noParty());
-        const left = `<aside class="tw-bagcol">${heroStrip()}<div class="gold-row">${COIN_SVG}<b>${goldOf(c)}</b><small>монет у героя</small></div>${bagGrid(c, ui.sel && ui.sel.side === "bag" ? ui.sel.i : null)}</aside>`;
-        const sheet = `<div class="tw-sheet"><div class="tw-rod"></div><div class="tw-sheet-in"><div class="tw-stock">${STOCK.map(s => {
-          const e = stockEntry(s), it = s.special === "compass" ? COMPASS_INFO() : itemOf(e), sel = ui.sel && ui.sel.side === "shop" && ui.sel.id === s.id, own = owned(s);
-          return `<button class="tw-slot${own ? " own" : ""}" data-t="stock" data-id="${s.id}" aria-pressed="${!!sel}" aria-label="${esc(it.name)}, ${s.price} монет">
-            <span class="tw-img">${it.art ? img(it.art, it.name) : (it.icon || GEAR_ICON.custom)}${s.qty > 1 ? `<span class="q">×${s.qty}</span>` : ""}</span>
-            <span class="tw-name">${esc(it.name)}</span><span class="tw-price${partyGold() < s.price ? " no" : ""}">${COIN_SVG}${own ? "есть" : s.price}</span></button>`; }).join("")}</div>
-          <p class="tw-buyline">Скупаю камни: 9 класс — ${STONE_PRICE["stone-9"]}, 8 класс — ${STONE_PRICE["stone-8"]}, 7 класс — ${STONE_PRICE["stone-7"]} монет.</p></div></div>`;
-        const right = `<section class="tw-shopcol"><div class="tw-keeper">${KEEPER}<div class="tw-bubble">${esc(ui.talk || (ui.talk = talk()))}</div></div>${sheet}</section>`;
-        return `<div class="tw-panel fx-frame">${head("Магазин", "Рафдония")}<div class="tw-shop">${left}${right}</div><footer class="tw-foot">${msgLine()}<div class="tw-sel">${shopSelInfo()}</div></footer></div>`;
-      },
-      init: () => ({ sheet: true }),
-    };
+  const SMITH = `<svg viewBox="0 0 220 128" aria-label="Кузнец">
+    <defs><radialGradient id="fglow" cx=".25" cy=".55" r=".7"><stop offset="0" stop-color="#ff8a2a" stop-opacity=".6"/><stop offset="1" stop-color="#ff8a2a" stop-opacity="0"/></radialGradient>
+      <linearGradient id="sskin" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d9a27a"/><stop offset="1" stop-color="#a8704a"/></linearGradient></defs>
+    <rect width="220" height="128" fill="#1a120a"/><rect width="220" height="128" fill="url(#fglow)"/>
+    <path d="M10 128V70q0-26 28-26t28 26v58z" fill="#2a1a10" stroke="#6e5634" stroke-width="2"/><path d="M22 128v-44q0-14 16-14t16 14v44z" fill="#ff7a1a" opacity=".85"/><path d="M28 128v-30q0-8 10-8t10 8v30z" fill="#ffd24a" opacity=".9"/>
+    <path d="M96 128v-20h28v20z" fill="#3a3a44" stroke="#14141a" stroke-width="2"/><path d="M84 104h52l-6-12H90z" fill="#55555f" stroke="#14141a" stroke-width="2"/><path d="M136 100h22l-6 6h-16z" fill="#55555f" stroke="#14141a"/>
+    <path d="M150 128c2-26 14-40 34-40s32 14 34 40z" fill="#5a3a22" stroke="#2a1a0c" stroke-width="2"/><path d="M168 92h32l-4 36h-24z" fill="#3b2a1a" stroke="#2a1a0c"/>
+    <ellipse cx="184" cy="64" rx="26" ry="28" fill="url(#sskin)" stroke="#5a3a22" stroke-width="2.2"/>
+    <path d="M158 62q0 36 26 40q26-4 26-40q-8 18-26 18t-26-18z" fill="#8a4a22" stroke="#4a260e" stroke-width="2"/>
+    <path d="M160 54q4-26 24-26t24 26q-12-8-24-8t-24 8z" fill="#8a4a22" stroke="#4a260e" stroke-width="2"/>
+    <path d="M168 54l10 3M200 54l-10 3" stroke="#2a1a0c" stroke-width="3" stroke-linecap="round"/><ellipse cx="174" cy="60" rx="3" ry="3.4" fill="#f4ecd2"/><ellipse cx="194" cy="60" rx="3" ry="3.4" fill="#f4ecd2"/><circle cx="174.5" cy="60.5" r="1.4" fill="#120a04"/><circle cx="194.5" cy="60.5" r="1.4" fill="#120a04"/>
+    <path d="M176 78q8 6 16 0" stroke="#2a0e0a" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+    <path d="M60 40l12-14 6 6-12 14z" fill="#8a8a94" stroke="#2a2a30" stroke-width="2"/><path d="M52 52l12 6" stroke="#6a4a2a" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="112" cy="84" r="1.6" fill="#ffd24a"/><circle cx="122" cy="80" r="1.2" fill="#ff9a2a"/><circle cx="104" cy="78" r="1.2" fill="#ff9a2a"/>
+  </svg>`;
+  const SMITH_TALK = ["Сталь не врёт, а вот мастера — бывает.", "Бери, пока горячо!", "Острое — для врагов, не для кошелька.", "Хорошая броня дешевле лекаря."];
+  function renderShop() {
+    const c = hero(), forge = ui.b === "forge", title = forge ? "Кузница" : "Магазин";
+    if (!c) return frame(title, "Рафдония", noParty());
+    const left = `<aside class="tw-bagcol">${heroStrip()}<div class="gold-row">${COIN_SVG}<b>${goldOf(c)}</b><small>монет у героя</small></div>${bagGrid(c, ui.sel && ui.sel.side === "bag" ? ui.sel.i : null)}</aside>`;
+    const tabs = forge ? `<div class="tw-tabs"><button class="fx-btn" role="tab" aria-selected="${(ui.tab || "base") === "base"}" data-t="ftab" data-k="base">Обычное</button><button class="fx-btn" role="tab" aria-selected="${ui.tab === "steel"}" data-t="ftab" data-k="steel">Улучшенное</button></div>` : "";
+    const sheet = `<div class="tw-sheet"><div class="tw-rod"></div><div class="tw-sheet-in">${tabs}<div class="tw-stock">${goodsOf().map(g => {
+      const it = goodInfo(g), sel = ui.sel && ui.sel.side === "shop" && ui.sel.key === g.key, own = owned(g), q = g.e ? g.e.qty : 1;
+      return `<button class="tw-slot${own ? " own" : ""}${it.steel ? " steel" : ""}" data-t="stock" data-id="${g.key}" aria-pressed="${!!sel}" aria-label="${esc(it.name)}, ${g.price} монет">
+        <span class="tw-img">${it.art ? img(it.art, it.name) : (it.icon || GEAR_ICON.custom)}${q > 1 ? `<span class="q">×${q}</span>` : ""}${it.steel ? `<span class="q st">сталь</span>` : ""}</span>
+        <span class="tw-name">${esc(it.name)}</span><span class="tw-price${partyGold() < g.price ? " no" : ""}">${COIN_SVG}${own ? "есть" : g.price}</span></button>`; }).join("")}</div>
+      <p class="tw-buyline">${forge ? "Оружие — 10, броня — 15, улучшенное оружие — 25, улучшенная броня — 40 монет. Сталь: +1 к атаке и урону, +1 КД." : `Скупаю камни: 9 класс — ${STONE_PRICE["stone-9"]}, 8 класс — ${STONE_PRICE["stone-8"]}, 7 класс — ${STONE_PRICE["stone-7"]} монет.`}</p></div></div>`;
+    const right = `<section class="tw-shopcol"><div class="tw-keeper">${forge ? SMITH : KEEPER}<div class="tw-bubble">${esc(ui.talk || (ui.talk = forge ? SMITH_TALK[Math.floor(Math.random() * SMITH_TALK.length)] : talk()))}</div></div>${sheet}</section>`;
+    return `<div class="tw-panel fx-frame">${head(title, "Рафдония")}<div class="tw-shop">${left}${right}</div><footer class="tw-foot">${msgLine()}<div class="tw-sel">${shopSelInfo()}</div></footer></div>`;
   }
+  B.shop = { render: renderShop, init: () => ({ sheet: true }) };
+  B.forge = { render: renderShop, init: () => ({ sheet: true, tab: "base" }) };
 
   /* =====================================================================
      ТАВЕРНА
@@ -301,18 +328,18 @@
     addGold(c, p * n); visit(); ui.talk = talk(); ui.msg = `Продано: ${name} × ${n} за ${p * n} монет — ${c.name}.`; saveChar();
   }
   function buy(n) {
-    const c = hero(), s = STOCK.find(x => x.id === ui.sel.id); if (!s || owned(s)) return;
-    const cost = s.price * n;
-    if (s.special === "compass") {
+    const c = hero(), g = goodByKey(ui.sel.key); if (!g || owned(g)) return;
+    const cost = g.price * n;
+    if (g.special === "compass") {
       if (!payGold(c, cost)) { ui.msg = "Не хватает монет."; return; }
-      inventory().compass.owned = true; visit(); ui.msg = "Куплен компас. Зажги его удержанием в инвентаре лабиринта."; ui.talk = talk(); saveChar(); return;
+      inventory().compass.owned = true; visit(); ui.msg = "Куплен компас. Зажги его удержанием в инвентаре лабиринта."; ui.talk = null; saveChar(); return;
     }
-    const e = stockEntry(s), qty = (s.qty || 1) * n;
+    const qty = g.e.qty * n;
     if (partyGold() < cost) { ui.msg = "Не хватает монет."; return; }
-    const room = (() => { const probe = JSON.parse(JSON.stringify(c.bag || [])); const tmp = { bag: probe, race: c.race, level: c.level, base: c.base, essences: c.essences, equip: c.equip }; return addToBag(tmp, { ...e, qty }) === 0; })();
+    const room = (() => { const probe = JSON.parse(JSON.stringify(c.bag || [])); const tmp = { bag: probe, race: c.race, level: c.level, base: c.base, essences: c.essences, equip: c.equip }; return addToBag(tmp, { ...g.e, qty }) === 0; })();
     if (!room) { ui.msg = `Рюкзак ${c.name} полон.`; return; }
-    payGold(c, cost); addToBag(c, { ...e, qty }); visit(); ui.talk = talk();
-    ui.msg = `Куплено: ${itemOf(e).name} × ${qty} за ${cost} монет.`; saveChar();
+    payGold(c, cost); addToBag(c, { ...g.e, qty }); visit(); ui.talk = null;
+    ui.msg = `Куплено: ${itemOf(g.e).name}${qty > 1 ? " × " + qty : ""} за ${cost} монет.`; saveChar();
   }
   function tavernPay() {
     const live = state.party.filter(c => !c.dead);
@@ -360,7 +387,7 @@
     hold.t = setTimeout(() => {
       hold.fired = true;
       if (el.dataset.t === "bag") { const c = hero(), ent = (c.bag || [])[+el.dataset.i]; if (ent) showItemInfo(ent, c); }
-      else { const s = STOCK.find(x => x.id === el.dataset.id); if (s.special === "compass") showItemInfo(null, null, "", COMPASS_INFO()); else showItemInfo(stockEntry(s), null); }
+      else { const g = goodByKey(el.dataset.id); if (g.special === "compass") showItemInfo(null, null, "", COMPASS_INFO()); else showItemInfo(g.e, null); }
     }, 450);
   });
   for (const ev of ["pointerup", "pointercancel", "pointerleave"]) host.addEventListener(ev, () => clearTimeout(hold.t), true);
@@ -373,7 +400,8 @@
       case "close": T.close(); return;
       case "hero": ui.hero = ds.id; ui.sel = null; ui.confirm = null; break;
       case "bag": ui.sel = ui.sel && ui.sel.side === "bag" && ui.sel.i === +ds.i ? null : { side: "bag", i: +ds.i }; break;
-      case "stock": ui.sel = ui.sel && ui.sel.side === "shop" && ui.sel.id === ds.id ? null : { side: "shop", id: ds.id }; break;
+      case "stock": ui.sel = ui.sel && ui.sel.side === "shop" && ui.sel.key === ds.id ? null : { side: "shop", key: ds.id }; break;
+      case "ftab": ui.tab = ds.k; ui.sel = null; break;
       case "sell": sell(ds.all === "1"); break;
       case "buy": buy(+ds.n); break;
       case "tv": { const m = ui[ds.k]; m[ds.id] = !m[ds.id]; break; }
