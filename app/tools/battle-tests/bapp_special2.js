@@ -51,8 +51,8 @@ const L = require('./bui_lib.js');
     dgUi.spDo = 'tier-next'; act('sp'); out.cave3 = r.tier.n === 3 && dgUi.enc.list.join() === 'giant-mole' && !spButtons().some(x => x.id === 'tier-next');
     out.treasureLocked = spButtons().some(x => x.id === 'steal');
     const c3 = dgUi.enc; c3.outcome = 'win'; c3.killed = [0]; finishFight(); out.treasureOpen = spButtons().some(x => x.id === 'take');
-    const stones0 = state.party.reduce((a, c) => a + countGear(c, 'stone-7'), 0);
-    dgUi.spDo = 'take'; act('sp'); out.stones = state.party.reduce((a, c) => a + countGear(c, 'stone-7'), 0) - stones0 >= 2; out.got = sp.got['b-cave'] === true; dgUi.res = null;
+    const s7 = () => (sack().items['c:7'] || { qty: 0 }).qty, stones0 = s7();
+    dgUi.spDo = 'take'; act('sp'); out.stones = s7() - stones0 >= 2; out.got = sp.got['b-cave'] === true; dgUi.res = null;
     dgUi.spDo = 'tier-prev'; act('sp'); dgUi.enc = null; out.cavePrev = r.tier.n === 2; dgUi.spDo = 'tier-prev'; act('sp'); dgUi.enc = null; dgUi.spDo = 'tier-prev'; act('sp'); out.caveExit = r.tier === null;
     // зачищенный ярус пуст
     dgUi.enc = null; dgUi.spDo = 'tier-in:cave'; act('sp'); out.cave1Empty = !dgUi.enc && r.tier.n === 1; r.tier = null;

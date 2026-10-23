@@ -47,21 +47,20 @@
     const ev = S.ev, killed = S.killed.slice(), species = killed.map(i => ev.list[i]);
     const fresh = [...new Set(species)].filter(id => !(journal().known[id] && journal().known[id].xpDone));
     const xp = fresh.reduce((a, id) => a + monXp(MONSTERS.find(m => m.id === id)), 0);
-    const stones = {}, qstones = {};
+    const stones = {};                                                                  // камни по видам монстров: id → { cls, n }, они идут в сумку для камней
     if (!ev.arena) for (const id of species) {
-      const m = MONSTERS.find(x => x.id === id), q = typeof questActive === "function" ? questActive(id) : null;
-      if (q) { qstones[q.id] = qstones[q.id] || { qid: q.id, mon: id, cls: Math.min(9, Math.max(1, m.cls)), n: 0 }; qstones[q.id].n++; continue; }          // задание: вместо камня выпадает камень задания
-      const key = "stone-" + Math.min(9, Math.max(1, m.cls)); stones[key] = (stones[key] || 0) + 1;
+      const m = MONSTERS.find(x => x.id === id);
+      (stones[id] ||= { cls: Math.min(9, Math.max(1, m.cls)), n: 0 }).n++;
     }
     // броски на эссенцию считаем заранее; анимация показывает лучший результат
     const rolls = species.map(id => ({ id, r: 1 + B.rnd(100) }));
     const wins = S.forceWins ? S.forceWins.map(id => ({ id, r: 99 })) : rolls.filter(x => x.r >= ESS_CHANCE);          // forceWins — только для проверок
     const best = S.forceWins ? wins[0] : rolls.length ? rolls.reduce((a, b) => (a.r >= b.r ? a : b)) : null;
-    return { killed, species, fresh, xp, stones, qstones: Object.values(qstones), rolls, wins, best };
+    return { killed, species, fresh, xp, stones, rolls, wins, best };
   }
   const digits = r => { const v = r % 100; return [Math.floor(v / 10), v % 10]; };
 
-  // Арена: лута нет (камни и находки забирают администраторы), платят по 3 монеты за убитого 9 класса (тройная цена камня); выпавшая эссенция — бонус 20 % её цены.
+  // Арена: лута нет (камни и находки забирают администраторы), платят по 3 монеты за убитого 9 класса (тройная цена камня); выпавшую эссенцию администрация забирает себе, героям — 20 % её цены монетами.
   function arenaRewards(S, plan) {
     const killed = plan.species.length, pay = plan.species.reduce((a, id) => a + 3 * (STONE_PRICE_BY_CLS[Math.min(9, Math.max(7, (MONSTERS.find(m => m.id === id) || {}).cls || 9))] || 1), 0);
     const essBonus = plan.wins.reduce((a, w) => a + Math.round(essPrice(w.id) * 0.2), 0), total = pay + essBonus;
@@ -69,7 +68,7 @@
     live.forEach((c, i) => addGold(c, Math.floor(total / k) + (i < total % k ? 1 : 0)));
     const lines = [];
     if (killed) lines.push(`Арена платит: ${pay} монет за убитых (${killed}), лут забрали администраторы`);
-    if (essBonus) lines.push(`Выпавшую эссенцию забрали: бонус ${essBonus} монет`);
+    if (essBonus) lines.push(`Выпавшую эссенцию забрала администрация, героям — 20 % её цены: ${essBonus} монет`);
     return { pay, essBonus, total, killed, lines };
   }
   const STONE_PRICE_BY_CLS = { 9: 1, 8: 5, 7: 20 };
@@ -83,8 +82,7 @@
     cleanup(S, outcome);
     const plan = rewardsPlan(S, outcome);
     const gotLines = [];
-    for (const [key, n] of Object.entries(plan.stones)) { if (GEAR[key]) gotLines.push(giveParty({ t: "g", id: key, qty: n })); }
-    for (const q of plan.qstones) gotLines.push(giveParty({ t: "g", id: "qstone", qid: q.qid, mon: q.mon, cls: q.cls, qty: q.n }));
+    for (const [id, it] of Object.entries(plan.stones)) { sackAdd(id, it.cls, it.n); gotLines.push(`Сумка для камней: ${MONSTERS.find(m => m.id === id).name} × ${it.n} (${it.cls} класс)`); }
     if (ev.arena) { plan.arena = arenaRewards(S, plan); gotLines.push(...plan.arena.lines); plan.wins = plan.wins.map(w => ({ ...w, arena: true })); }          // арена: лута нет, платят монетами
     if (B.deliverFound && !ev.arena) gotLines.push(...B.deliverFound(S, outcome === "win" || outcome === "retreat" || outcome === "abort"));
     if (!(UI && UI.active)) { for (const w of plan.wins) if (!w.arena) essStash().push(w.id); if (plan.wins.length) saveChar(); }          // без экрана итога — в запас; с экраном игрок выбирает: впитать, сохранить, оставить
@@ -127,7 +125,7 @@
       resEl.className = "bt-roll-res " + (ok ? "ok" : "no");
       if (ok && S.ev.arena) {
         const g = modal.querySelector(".bt-essgot"); g.hidden = false;
-        g.innerHTML = `<div class="bt-ess"><div><b>Эссенцию забрали администраторы арены</b><small>Бонус: ${plan.arena ? plan.arena.essBonus : 0} монет (20 % её цены)</small></div></div>`;
+        g.innerHTML = `<div class="bt-ess"><div><b>Эссенцию забрала администрация арены</b><small>Героям — 20 % её цены: ${plan.arena ? plan.arena.essBonus : 0} монет</small></div></div>`;
       } else if (ok) {
         const g = modal.querySelector(".bt-essgot"); g.hidden = false;
         g.innerHTML = plan.wins.map((w, i) => { const e = ESSENCES[w.id]; const pas = essSeen(w.id, "ess-passive"), act = essActiveLevel(w.id) > 0; return `<div class="bt-ess" data-i="${i}"><img src="${essFace(w.id)}" alt=""><div><b>${esc(e ? essTitle(w.id) : w.id)}</b><small>${e ? e.cls + " класс · " + (pas ? esc(e.passive.name) : "??") + " (П), " + (act ? esc(e.active.name) : "??") + " (А)" : ""}</small>

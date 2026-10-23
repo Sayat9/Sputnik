@@ -34,9 +34,9 @@ const L = require('./bui_lib.js');
     out.killed = S.killed.length; out.outcome = S.outcome;
     S.forceWins = ['goblin'];                                         // выпала эссенция
     const hero0 = Battle.heroes()[0]; hero0.hp = 0; hero0.dead = true;  // погиб — на арене поднимают
-    const trips0 = townClock().trips;
+    const trips0 = townClock().trips; state.sack = null;
     await Battle.End.run(S);
-    out.gold = partyGold(); out.stones = state.party.reduce((a, c) => a + (c.bag || []).filter(e => /stone/.test(e.id)).length, 0);
+    out.gold = partyGold(); out.stones = sackTotal();
     out.stash = essStash().length; out.alive = state.party.every(c => !c.dead && c.hp >= 1); out.lock = state.arenaLock === true;
     out.fat = state.party.map(c => c.carry.fat);
     out.finds = state.party.reduce((a, c) => a + (c.bag || []).length, 0);

@@ -9,17 +9,17 @@ const L = require('./bui_lib.js');
     out.pb = derived(totals(a), a).pb;
     out.insp = [a.insp ?? 1];
     // вещи погибшего
-    addToBag(d, { t: 'g', id: 'stone-9', qty: 5 }); addToBag(d, { t: 'g', id: 'potion', qty: 1 });
+    state.sack = null; addToBag(d, { t: 'g', id: 'stone-9', qty: 5 }); addToBag(d, { t: 'g', id: 'potion', qty: 1 });
     const before = [a, c].map(x => (x.bag || []).reduce((s, e) => s + (e.qty || 1), 0));
     d.dead = true; d.hp = 0; buryFallen();
     out.left = state.party.length; out.fallen = (state.fallen || []).length;
-    out.stones = state.party.reduce((s, x) => s + countGear(x, 'stone-9'), 0);
+    out.stones = sackTotal();
     out.names = state.party.map(x => x.name);
     return out;
   });
   ok('бонус мастерства 0', r.pb === 0, r.pb);
   ok('погибший убран из отряда', r.left === 2 && r.fallen === 1, JSON.stringify(r));
-  ok('его камни разошлись между живыми', r.stones === 5, r.stones);
+  ok('камни лежат в общей сумке и не пропали', r.stones === 5, r.stones);
   // ночной шанс
   const n = await p.evaluate(() => { const rr = state.run; let hit = 0, N = 4000; const orig = askRoll; window.askRoll = () => { hit++; }; rr.day = 1; for (let i = 0; i < N; i++) { try { rollEncounter('rest', 1); } catch (e) {} } window.askRoll = orig; return hit / N; });
   ok('день 1: ночных встреч мало (≤ 10 %)', n <= 0.12, n);

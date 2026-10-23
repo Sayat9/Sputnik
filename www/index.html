@@ -784,6 +784,15 @@ dl.kv { margin: 0; }
 .ii-art { width: 150px; height: 150px; border-radius: 8px; overflow: hidden; border: 1px solid var(--fx-line); background: #0F0C08; display: grid; place-items: center; color: var(--fx-gold); }
 .ii-art img, .ii-art svg { width: 100%; height: 100%; object-fit: cover; display: block; }
 .ii-art svg { padding: 26px; box-sizing: border-box; }
+.sk-card { max-height: 86vh; }
+.sk-card .ii-art { width: 56px; height: 56px; color: var(--fx-gold); }
+.sk-head, .sk-row { display: grid; grid-template-columns: minmax(0, 1fr) 44px 48px 44px; gap: 6px; align-items: center; width: 100%; text-align: left; }
+.sk-head { font: 600 11.5px/1 var(--f-data); color: var(--fx-muted); text-transform: uppercase; letter-spacing: .04em; padding: 0 4px 4px; border-bottom: 1px solid var(--fx-line); }
+.sk-head span:nth-child(n+2), .sk-row span:nth-child(n+2) { text-align: right; font-variant-numeric: tabular-nums; }
+.sk-list { width: 100%; overflow-y: auto; max-height: 46vh; display: flex; flex-direction: column; }
+.sk-row { padding: 6px 4px; border-bottom: 1px solid rgb(255 255 255 / .06); font: 600 14.5px/1.2 var(--f-data); color: var(--fx-text); }
+.sk-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--f-fancy); }
+.sk-price { color: var(--fx-gold-hi); }
 .ii-card h4 { margin: 0; font: 400 22px/1.1 var(--f-display); color: var(--fx-gold-hi); }
 .ii-card p { margin: 0; color: var(--fx-text); font-size: 15px; line-height: 1.35; }
 .ii-card small { color: var(--fx-muted); font-size: 13px; }
@@ -1689,8 +1698,8 @@ const DISTRICTS = [
 
 // Готовые рисованные картинки (webp) заменяют векторные заглушки.
 // Дата сборки для телефона: build.sh вписывает её сюда, в веб-версии строка пустая.
-const APP_BUILD = "23.10.2026 18:19";
-const APP_VERSION = 1792761568;                 // номер сборки, тоже вписывает build.sh
+const APP_BUILD = "23.10.2026 18:54";
+const APP_VERSION = 1792763692;                 // номер сборки, тоже вписывает build.sh
 const UPDATE_URL = "https://raw.githubusercontent.com/Sayat9/Sputnik/main/www/";
 const RASTER = new Set(["items/mace", "items/warhammer", "items/armor-leather", "items/armor-hide", "items/armor-chainmail", "items/steel-dagger", "items/steel-sword", "items/steel-greatsword", "items/steel-shield", "items/steel-tower-shield", "items/shortbow", "items/longbow", "items/rapier", "items/shield", "items/tower-shield", "items/unknown-mushroom", "items/stone-9", "items/stone-8", "items/stone-7", "items/ration", "items/potion", "items/torch", "items/arrows", "items/clothes", "items/shovel", "items/shovel-good", "items/shovel-best", "items/dagger", "items/sword", "items/greatsword", "items/spear", "monsters/goblin-king-face", "monsters/goblin-king-full", "monsters/goblin-bomber-face", "monsters/goblin-bomber-full", "monsters/hobgoblin-shield-face", "monsters/hobgoblin-shield-full", "races/barbarian", "races/human", "races/dwarf", "races/beastkin", "races/fairy", "races/dragon", "monsters/goblin-face", "monsters/goblin-full", "monsters/goblin-archer-face", "monsters/goblin-archer-full", "monsters/goblin-sword-face", "monsters/goblin-sword-full", "monsters/goblin-spear-face", "monsters/goblin-spear-full", "monsters/wolf-face", "monsters/wolf-full", "monsters/fox-face", "monsters/fox-full", "monsters/mouse-face", "monsters/mouse-full", "monsters/bat-face", "monsters/bat-full", "monsters/hobgoblin-face", "monsters/hobgoblin-full", "monsters/zombie-face", "monsters/zombie-full", "monsters/skeleton-face", "monsters/skeleton-full", "monsters/skeleton-archer-face", "monsters/skeleton-archer-full", "monsters/ghoul-face", "monsters/ghoul-full", "monsters/dark-bear-face", "monsters/dark-bear-full", "monsters/skeleton-warrior-face", "monsters/skeleton-warrior-full", "monsters/living-stone-face", "monsters/living-stone-full", "monsters/wisp-face", "monsters/wisp-full", "monsters/pixie-face", "monsters/pixie-full", "monsters/green-boulder-face", "monsters/green-boulder-full", "monsters/stone-guardian-face", "monsters/stone-guardian-full"]);
 const artPath = p => `assets/${p}.${RASTER.has(p) ? "webp" : "svg"}`;
@@ -2078,7 +2087,6 @@ const GEAR = {
   "shovel-best": { short: "Лопата++", name: "Отличная лопата", weight: 2, stack: 1, uses: 10, note: "Для действия «Копать». Ломается после 10 раскопок." },
   "stone-9":   { short: "Камни", name: "Магический камень 9-го класса", weight: 0.1, stack: 99, note: "Добыча лабиринта: Магазин скупает по 1 монете." },
   "stone-7":   { short: "Камни 7", name: "Магический камень 7-го класса", weight: 0.1, stack: 99, note: "Добыча 2 этажа. Магазин скупает по 20 монет." },
-  qstone: { short: "Камень задания", name: "Камень задания", weight: 0.1, stack: 99, note: "Охота на монстров с доски объявлений: сдайте нужное число или продайте в магазине по цене камня. Если задание сгорит, станет обычным камнем." },
   "potion-good": { short: "Зелье+", name: "Зелье лечения", weight: 0.25, stack: 5, use: "drink", heal: "2к4 + 4", note: "Восстанавливает 2к4 + 4 ОЗ (6–12, в среднем 9). Черновик." },
   "stone-8":   { short: "Камни 8", name: "Магический камень 8-го класса", weight: 0.1, stack: 99, note: "Добыча 2 этажа: Магазин скупает по 5 монет." },
 };
@@ -2095,7 +2103,7 @@ const GEAR_ICON = {
   "stone-9": `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 3l6 5-2 11H8L6 8z" fill="#d6a64c" opacity=".55"/><path d="M12 3l6 5-2 11H8L6 8z"/><path d="M6 8h12M12 3l-2 5 2 11 2-11z" stroke-width="1"/></svg>`,
   custom: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="M9 12h6M12 9v6"/></svg>`,
 };
-GEAR_ICON["potion-good"] = GEAR_ICON.potion; GEAR_ICON.qstone = GEAR_ICON["stone-9"];
+GEAR_ICON["potion-good"] = GEAR_ICON.potion;
 
 
 /* ----- находки на поле боя: травы, грибы, особые камни (черновик, см. drafts.md → «Находки») ----- */
@@ -2174,7 +2182,6 @@ function itemOf(v, holder) {
       return known ? { ...g, id: v.id, kindOf: "gear", icon: ic, known }
         : { ...g, id: v.id, kindOf: "gear", icon: ic, art: g.find === "mush" ? artPath("items/unknown-mushroom") : undefined, known, name: g.alias, short: "?", use: g.use && "find", note: `Эффект неизвестен: нужен навык (${FIND_KIND[g.find].skills.map(k => Object.keys(SKILL_KEYS).find(n => SKILL_KEYS[n] === k)).join(" или ")}) или знания. Одноразовый.` };
     }
-    if (g && v.id === "qstone") { const qm = MONSTERS.find(m => m.id === v.mon); return { ...g, id: v.id, kindOf: "gear", name: "Камень задания" + (qm ? ": " + qm.name : ""), art: ART.gear("stone-" + (v.cls || 9)) || undefined, icon: GEAR_ICON["stone-" + (v.cls || 9)] }; }
     return g && { ...g, id: v.id, kindOf: "gear", art: ART.gear(v.id) || undefined, icon: GEAR_ICON[v.id] || (SHOVELS.includes(v.id) ? GEAR_ICON.shovel : GEAR_ICON.custom) };
   }
   if (v.t === "w") { const w = WEAPONS.find(x => x.id === v.id); return w && { ...w, kindOf: "weapon", art: v.steel && RASTER.has("items/steel-" + w.id) ? artPath("items/steel-" + w.id) : ART.weapon(w.id), ...(v.steel ? steelWeapon(w) : {}) }; }
@@ -2232,16 +2239,17 @@ const bagSize = c => c.race === "barbarian" ? 15 : 10;
 const QUIVER = 40;                                   // колчан лучника в начале: 40 обычных стрел (одна ячейка рюкзака)
 const stackMax = (e, c) => e.t === "g" ? (GEAR[e.id].find && !findKnown(c, e.id) ? 1 : GEAR[e.id].stack) : 1;
 function addToBag(c, e) {
+  if (e.t === "g" && /^stone-\d$/.test(e.id)) { sackAdd(null, +e.id.slice(6), e.qty || 1); return 0; }          // камни лежат только в общей сумке
   c.bag ||= [];
   let left = e.qty || 1;
   if (e.t === "g") for (const sl of c.bag) {
     if (left <= 0) break;
-    if (sl.t === "g" && sl.id === e.id && sl.qid === e.qid && sl.qty < stackMax(sl, c)) { const n = Math.min(left, stackMax(sl, c) - sl.qty); sl.qty += n; left -= n; }
+    if (sl.t === "g" && sl.id === e.id && sl.qty < stackMax(sl, c)) { const n = Math.min(left, stackMax(sl, c) - sl.qty); sl.qty += n; left -= n; }
   }
   while (left > 0 && c.bag.length < bagSize(c)) {
     const n = Math.min(left, stackMax(e, c));
     const uses = e.t === "g" && GEAR[e.id].uses ? { uses: e.uses ?? GEAR[e.id].uses } : {};
-    c.bag.push(e.t === "c" ? { t: "c", name: e.name, qty: 1 } : { t: e.t, id: e.id, qty: n, ...uses, ...(e.steel ? { steel: true } : {}), ...(e.qid ? { qid: e.qid, mon: e.mon, cls: e.cls } : {}) });
+    c.bag.push(e.t === "c" ? { t: "c", name: e.name, qty: 1 } : { t: e.t, id: e.id, qty: n, ...uses, ...(e.steel ? { steel: true } : {}) });
     left -= n;
   }
   return left;                                   // сколько не поместилось
@@ -2362,33 +2370,60 @@ function postQuests() {
     b.list.push({ id: ++b.seq, mon: m.id, rare, need, reward: need * (rare ? 8 : 3), taken: false, runs: 0, age: 0 });
   }
 }
-const questActive = monId => (state.quests && state.quests.list.find(q => q.taken && q.runs < QUEST_RUNS && q.mon === monId)) || null;
-const questStones = q => state.party.reduce((a, c) => a + (c.bag || []).reduce((x, e) => x + (e.t === "g" && e.id === "qstone" && e.qid === q.id ? e.qty : 0), 0), 0);
-// Камни задания превращаются в обычные камни того же ранга (оставшиеся после сдачи или сгоревшего задания).
-function convertQuestStones(qid) {
-  for (const c of state.party) {
-    const mine = (c.bag || []).filter(e => e.t === "g" && e.id === "qstone" && e.qid === qid);
-    if (!mine.length) continue;
-    c.bag = c.bag.filter(e => !mine.includes(e));
-    for (const e of mine) addToBag(c, { t: "g", id: "stone-" + (e.cls || 9), qty: e.qty });
-  }
-}
+const questStones = q => sackCount(q.mon);
 function questTurnIn(q) {
-  let left = q.need;
-  for (const c of state.party) for (const e of [...(c.bag || [])]) if (left > 0 && e.t === "g" && e.id === "qstone" && e.qid === q.id) { const t = Math.min(left, e.qty); e.qty -= t; left -= t; if (e.qty <= 0) c.bag.splice(c.bag.indexOf(e), 1); }
+  sackTake(q.mon, q.need);
   const live = state.party.filter(c => !c.dead), k = live.length || 1;
   live.forEach((c, i) => addGold(c, Math.floor(q.reward / k) + (i < q.reward % k ? 1 : 0)));
-  convertQuestStones(q.id); const b = questBoard(); b.list = b.list.filter(x => x !== q);
+  const b = questBoard(); b.list = b.list.filter(x => x !== q);
 }
 function questsAfterRun() { const b = questBoard(); for (const q of b.list) if (q.taken) q.runs++; postQuests(); }
 function questsBeforeRun() {
   const b = questBoard(), dead = b.list.filter(q => q.taken && q.runs >= QUEST_RUNS);
-  for (const q of dead) convertQuestStones(q.id);
   b.list = b.list.filter(q => !dead.includes(q));
   return dead.length;
 }
+/* ----- сумка для камней (решение автора): общая, вес не учитывается; камни учитываются по монстрам, найденные без монстра — отдельной строкой по классу ----- */
+const STONE_PRICE_CLS = { 9: 1, 8: 5, 7: 20 };                                                       // решение автора
+const stonePrice = cls => STONE_PRICE_CLS[Math.max(7, Math.min(9, cls || 9))];
+function sackAddRaw(s, mon, cls, n) { const k = mon ? "m:" + mon : "c:" + cls; const it = (s.items[k] ||= { mon: mon || null, cls, qty: 0 }); it.qty += n; }
+function sack() {
+  const s = (state.sack ||= { items: {} });
+  if (!s.mig) {                                                                                      // старые камни из рюкзаков и камни задания — в сумку
+    s.mig = true;
+    for (const c of state.party || []) c.bag = (c.bag || []).filter(e => {
+      if (e.t !== "g") return true;
+      const m = /^stone-(\d)$/.exec(e.id); if (m) { sackAddRaw(s, null, +m[1], e.qty || 1); return false; }
+      if (e.id === "qstone") { sackAddRaw(s, e.mon, e.cls || 9, e.qty || 1); return false; }
+      return true;
+    });
+  }
+  return s;
+}
+function sackAdd(mon, cls, n) { sackAddRaw(sack(), mon, cls, n); }
+function sackRows() {
+  return Object.entries(sack().items).filter(([, it]) => it.qty > 0).map(([key, it]) => {
+    const m = it.mon && MONSTERS.find(x => x.id === it.mon);
+    return { key, mon: it.mon, cls: it.cls, qty: it.qty, name: m ? m.name : `Находки`, price: stonePrice(it.cls) };
+  }).sort((a, b) => b.cls - a.cls || a.name.localeCompare(b.name, "ru"));
+}
+const sackCount = mon => { const it = sack().items["m:" + mon]; return it ? it.qty : 0; };
+const sackTotal = () => sackRows().reduce((a, r) => a + r.qty, 0);
+function sackTake(mon, n) { const it = sack().items["m:" + mon]; if (it) it.qty = Math.max(0, it.qty - n); }
+const sackLabel = r => r.name;
+const ICO_SACK = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M9 3h6l-1.2 3h-3.6z" fill="currentColor" opacity=".35"/><path d="M9 3h6l-1.2 3h-3.6zM10 6C5 9 4 13 4 16c0 3 3 5 8 5s8-2 8-5c0-3-1-7-6-10"/><path d="M9.5 6.5h5"/><path d="M12 11l2.4 2-1 3.2h-2.8l-1-3.2z" fill="#d6a64c" opacity=".7"/></svg>`;
+// Просмотр сумки (только чтение): строки в сетке — имя, класс, количество, цена за штуку.
+function sackViewHtml() {
+  const rows = sackRows();
+  return `<div class="ii-card fx-frame sk-card"><div class="ii-art">${ICO_SACK}</div><h4>Сумка для камней</h4>
+    ${rows.length ? `<div class="sk-head"><span>Монстр</span><span>Класс</span><span>Штук</span><span>Цена</span></div>
+    <div class="sk-list">${rows.map(r => `<div class="sk-row"><span class="sk-name">${esc(r.name)}</span><span class="sk-cls">${r.cls}</span><span class="sk-qty">${r.qty}</span><span class="sk-price">${r.price}</span></div>`).join("")}</div>
+    <small>Всего камней: ${rows.reduce((a, r) => a + r.qty, 0)}. Продаются в магазине; для заданий сдаются отсюда. Сумка общая, веса нет.</small>` : `<small>Пока пусто: камни с монстров и из находок попадают сюда.</small>`}
+    <button class="fx-btn" data-ii="close">Закрыть</button></div>`;
+}
+function openSack() { const $i = document.getElementById("iteminfo"); $i.innerHTML = sackViewHtml(); $i.hidden = false; }
 /* ----- здания города (assets/js/town.js грузится при первом входе в здание) ----- */
-const TOWN_REV = 6, TOWN_FILES = ["assets/css/town.css", "assets/js/town.js"];
+const TOWN_REV = 7, TOWN_FILES = ["assets/css/town.css", "assets/js/town.js"];
 let townLoad = null;
 function loadTown() {
   if (window.Town && window.Town.ready) return Promise.resolve(true);
@@ -3577,6 +3612,7 @@ const shovelsOf = () => state.party.flatMap(c => (c.bag || []).map((e, i) => ({ 
 const pickShovel = () => shovelsOf().sort((a, b) => a.e.uses - b.e.uses)[0] || null;
 const pickOne = arr => arr[rnd(arr.length)];
 function giveParty(e) {
+  if (e.t === "g" && /^stone-\d$/.test(e.id)) { const n = e.qty || 1, cls = +e.id.slice(6); sackAdd(null, cls, n); return `Камни ${cls}-го класса × ${n} — в сумку для камней`; }
   let name = (itemOf(e) || {}).name || e.id; const q = e.qty || 1;
   let left = q, got = [];
   for (const c of [...state.party].filter(x => !x.dead || state.party.every(y => y.dead)).sort((a, b) => (bagSize(b) - (b.bag || []).length) - (bagSize(a) - (a.bag || []).length))) {
@@ -3862,7 +3898,7 @@ function rollbackRun() {
 }
 function newRun() {
   snapshotRun();
-  state.arenaLock = false; const burnt = questsBeforeRun(); if (burnt) setTimeout(() => toast(`Заданий сгорело: ${burnt}. Камни задания стали обычными.`), 400);
+  state.arenaLock = false; const burnt = questsBeforeRun(); if (burnt) setTimeout(() => toast(`Заданий сгорело: ${burnt}. Камни остались в сумке.`), 400);
   const ring = [];
   for (let y = 0; y < FLOOR1.size; y++) for (let x = 0; x < FLOOR1.size; x++) {
     const d = Math.max(Math.abs(x - CENTER), Math.abs(y - CENTER));
@@ -4118,7 +4154,7 @@ function stageOverlay() {
 }
 
 // Строки «Снаряжения»: показываются только те расходники, что есть хоть у кого-то.
-const SUPPLY_ROWS = [["ration", "Еда (пайки)"], ["potion", "Зелья лечения"], ["torch", "Факелы"], ["arrow", "Стрелы"], ["shovel", "Лопаты"], ["shovel-good", "Хорошие лопаты"], ["shovel-best", "Отличные лопаты"], ["stone-9", "Камни 9-го класса"], ["stone-8", "Камни 8-го класса"], ["stone-7", "Камни 7-го класса"]];
+const SUPPLY_ROWS = [["ration", "Еда (пайки)"], ["potion", "Зелья лечения"], ["torch", "Факелы"], ["arrow", "Стрелы"], ["shovel", "Лопаты"], ["shovel-good", "Хорошие лопаты"], ["shovel-best", "Отличные лопаты"]];
 const partyFood = () => state.party.reduce((a, c) => a + countGear(c, "ration"), 0);
 function restOverlay() {
   const r = state.run, rs = dgUi.rest, eaten = Object.values(rs.eat).reduce((a, b) => a + b, 0), left = partyFood() - eaten;
@@ -4254,6 +4290,7 @@ function renderDungeon() {
         ${(() => { const rows = SUPPLY_ROWS.map(([k, name]) => [k, name, state.party.map(c => [c.name, countGear(c, k)]).filter(([, n]) => n)]).filter(([, , per]) => per.length);
           return rows.length ? rows.map(([k, name, per]) => `<div class="sup-row">${itemOf({ t: "g", id: k }).icon}<span><b>${name}</b><small style="display:block;color:var(--fx-muted);font-size:11.5px">${per.map(([n, q]) => `${esc(n)} ${q}`).join(" · ")}</small></span>
           <output style="font:600 18px/1 var(--f-data);color:var(--fx-gold-hi)">${per.reduce((a, [, q]) => a + q, 0)}</output></div>`).join("") : `<small style="color:var(--fx-muted)">Расходников нет.</small>`; })()}
+        <button class="fx-btn" data-dg="sack" style="display:flex;align-items:center;gap:8px;justify-content:center"><span style="width:22px;height:22px;display:inline-flex">${ICO_SACK}</span>Сумка для камней · ${sackTotal()}</button>
         <small style="color:var(--fx-muted);font-size:12px;max-width:220px">Лежит в рюкзаках героев. Удерживай карточку героя внизу, чтобы открыть его инвентарь.</small>
       </div>` : ""}
       ${dgUi.gm ? `<div class="dd r fx-frame" style="top:8px">
@@ -4588,6 +4625,7 @@ document.addEventListener("click", e => {
   switch (ds.dg) {
     case "inv": dgUi.inv = !dgUi.inv; dgUi.sup = false; break;
     case "sup": dgUi.sup = !dgUi.sup; dgUi.inv = false; break;
+    case "sack": openSack(); return;
     case "gm": dgUi.gm = !dgUi.gm; dgUi.confirm = null; break;
     case "cancel": dgUi.phase = "menu"; dgUi.path = []; dgUi.rest = null; dgUi.sr = null; break;
     case "sr-n": dgUi.sr.pick = Number(ds.n); if (dgUi.sr.pick !== 20) dgUi.sr.luck = null; break;
@@ -4846,6 +4884,7 @@ function heroInv(c) {
       return it ? `<button class="eq" data-hslot="${k}" aria-pressed="${heroUi.slot === k}"><span class="ic">${itemThumb(e)}</span><span><small>${label}</small><b>${esc(it.name)}</b></span></button>`
         : `<div class="eq empty"><span class="ic"></span><span><small>${label}</small><b>пусто</b></span></div>`;
     }).join("")}</div>
+    <button class="fx-btn" data-hx="sack" style="display:flex;align-items:center;gap:8px;justify-content:center;width:100%;margin:6px 0"><span style="width:22px;height:22px;display:inline-flex">${ICO_SACK}</span>Сумка для камней · ${sackTotal()}</button>
     <div class="fx-section">Рюкзак · ${(c.bag || []).length}/${bagSize(c)}</div>
     <div class="gold-row">${COIN_SVG}<b>${goldOf(c)}</b><small>монет · вес 0</small>${state.party.length > 1 ? `<button class="fx-btn" data-hx="coin-toggle" aria-expanded="${!!heroUi.coin}">Передать</button>` : ""}</div>
     ${heroUi.coin ? coinPanel(c) : ""}
@@ -4924,6 +4963,7 @@ $hero.addEventListener("click", e => {
   const entry = heroUi.sel !== null ? c.bag[heroUi.sel] : null;
   switch (ds.hx) {
     case "close": closeHero(); return;
+    case "sack": openSack(); return;
     case "tab": heroUi.tab = ds.tabTo; heroUi.sel = null; heroUi.slot = null; renderHero(); return;
     case "add-toggle": heroUi.add = !heroUi.add; renderHero(); return;
     case "hp": c.hp = Math.max(0, Math.min(maxHp(c), hpOf(c) + Number(ds.d))); heroAfterChange(); return;

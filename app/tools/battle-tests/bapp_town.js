@@ -12,27 +12,14 @@ const L = require('./bui_lib.js');
   await p.click('[data-bld="shop"]'); await p.waitForSelector('.tw-shop', { timeout: 5000 });
   await p.waitForTimeout(1000); await L.shot(p, 'town-shop');
   ok('в магазине витрина и рюкзак', await p.evaluate(() => document.querySelectorAll('.tw-slot').length >= 7 && document.querySelectorAll('.tw-bag .cell').length >= 10));
-  // продажа: камень 9 (1), камень 8 (5), камень 7 (20)
-  await p.click('.tw-bag .cell[aria-label*="9-го класса"]'); await p.click('[data-t="sellopen"]'); ok('у стопки открывается выбор количества', await p.evaluate(() => !!document.querySelector('.tw-dlg .tw-range'))); await p.click('[data-t="dlg-all"]'); await p.click('[data-t="dlg-ok"]');
-  let g = await p.evaluate(() => state.party[0].gold); ok('продано 6 камней 9 класса за 6', g === 6, g);
-  await p.click('.tw-bag .cell[aria-label*="8-го класса"]'); await p.click('[data-t="sellopen"]'); await p.click('[data-t="dlg-all"]'); await p.click('[data-t="dlg-ok"]');
-  g = await p.evaluate(() => state.party[0].gold); ok('2 камня 8 класса за 10', g === 16, g);
-  await p.click('.tw-bag .cell[aria-label*="7-го класса"]'); await p.click('[data-t="sellopen"]');
-  g = await p.evaluate(() => state.party[0].gold); ok('камень 7 класса за 20', g === 36, g);
+  // продажа из сумки: камень 9 (1), камень 8 (5), камень 7 (20) — подробные проверки в bapp_quests.js
+  await p.click('.tw-sacktile'); ok('сумка открывает окно продажи', await p.evaluate(() => !!document.querySelector('.tw-sk .tw-sk-range')));
+  await p.click('[data-t="sk-sell"]');
+  let g = await p.evaluate(() => state.party[0].gold); ok('проданы все камни: 6 + 10 + 20 = 36', g === 36, g);
   ok('деньги легли тому, кто продал', await p.evaluate(() => state.party[1].gold === 0 || state.party[1].gold === undefined));
-  // перетаскивание: камень 9 класса 3 шт. на лавочника, выбор 2
-  await p.evaluate(() => { addToBag(state.party[0], { t: 'g', id: 'stone-9', qty: 3 }); addToBag(state.party[0], { t: 'g', id: 'ration', qty: 1 }); rerender(); }); await p.evaluate(() => { Town.state().sel = null; });
+  await p.evaluate(() => { addToBag(state.party[0], { t: 'g', id: 'ration', qty: 1 }); rerender(); }); await p.evaluate(() => { Town.state().sel = null; });
   await p.click('[data-t="hero"][data-id="h0"]');
   const drag = async sel => { const a = await (await p.$(sel)).boundingBox(), z = await (await p.$('.tw-keeper')).boundingBox(); await p.mouse.move(a.x + a.width / 2, a.y + a.height / 2); await p.mouse.down(); await p.mouse.move(a.x + a.width / 2 + 30, a.y + a.height / 2 + 5, { steps: 4 }); await p.mouse.move(z.x + z.width / 2, z.y + z.height / 2, { steps: 8 }); await p.mouse.up(); };
-  const g0 = await p.evaluate(() => state.party[0].gold);
-  await drag('.tw-bag .cell[aria-label*="9-го класса"]');
-  ok('перетаскивание стопки открывает выбор количества', await p.evaluate(() => !!document.querySelector('.tw-dlg')));
-  await p.evaluate(() => { const r = document.querySelector('.tw-range'); r.value = 2; r.dispatchEvent(new Event('input', { bubbles: true })); });
-  ok('ползунок меняет сумму', await p.evaluate(() => document.querySelector('.tw-dlg-gold').textContent === '+2'));
-  await p.click('[data-t="dlg-ok"]');
-  ok('продано 2 из 3 перетаскиванием', await p.evaluate(g0 => state.party[0].gold === g0 + 2 && countGear(state.party[0], 'stone-9') === 1, g0));
-  await drag('.tw-bag .cell[aria-label*="9-го класса"]');
-  ok('одиночный предмет продаётся сразу при броске', await p.evaluate(g0 => state.party[0].gold === g0 + 3 && countGear(state.party[0], 'stone-9') === 0, g0));
   await drag('.tw-bag .cell[aria-label*="Паёк"]');
   ok('пайки лавочнику не продаются', await p.evaluate(() => /только камни/.test(document.querySelector('.tw-msg').textContent) && countGear(state.party[0], 'ration') >= 1));
   await p.evaluate(() => { state.party[0].gold = 36; });

@@ -8,7 +8,6 @@
   let ui = null;
 
   /* ---------- цены (черновик) ---------- */
-  const STONE_PRICE = { "stone-9": 1, "stone-8": 5, "stone-7": 20 };                              // решение автора
   // Витрины: key — уникальный ключ позиции, e — предмет (для компаса нет), price — цена за штуку набора, many — можно купить ×5.
   const GOODS = [
     { key: "ration", e: { t: "g", id: "ration", qty: 5 }, price: 1 }, { key: "torch", e: { t: "g", id: "torch", qty: 1 }, price: 2, many: true },
@@ -120,12 +119,10 @@
   const sellsStones = () => ui.b === "shop";
   function shopSelInfo() {
     const c = hero(), sel = ui.sel;
-    if (!sel) return `<span class="tw-hint">Нажми предмет: ${sellsStones() ? "купить или продать" : "купить"}. Удержи: описание.</span>`;
+    if (!sel) return `<span class="tw-hint">Нажми предмет, чтобы купить${sellsStones() ? "; камни продаются из сумки" : ""}. Удержи: описание.</span>`;
     if (sel.side === "bag") {
       const e = (c.bag || [])[sel.i], it = e && itemOf(e, c); if (!it) return "";
-      const p = priceOf(e);
-      if (!p) return `<b>${esc(it.name)}</b><span class="tw-hint">${sellsStones() ? "Магазин скупает только камни." : "Кузнец ничего не скупает."}</span>`;
-      return `<b>${esc(it.name)}${e.qty > 1 ? " × " + e.qty : ""}</b><span class="tw-btns"><button class="fx-btn primary" data-t="sellopen">${e.qty > 1 ? "Продать… · по " + p : "Продать · +" + p}</button></span><span class="tw-hint">Можно перетащить на лавочника.</span>`;
+      return `<b>${esc(it.name)}${e.qty > 1 ? " × " + e.qty : ""}</b><span class="tw-hint">${sellsStones() ? "Магазин скупает только камни — они лежат в сумке для камней." : "Кузнец ничего не скупает."}</span>`;
     }
     const g = goodByKey(sel.key); if (!g) return "";
     const it = goodInfo(g), q = g.e ? g.e.qty : 1;
@@ -153,28 +150,43 @@
   function renderShop() {
     const c = hero(), forge = ui.b === "forge", title = forge ? "Кузница" : "Магазин";
     if (!c) return frame(title, "Рафдония", noParty());
-    const left = `<aside class="tw-bagcol">${heroStrip()}<div class="gold-row">${COIN_SVG}<b>${goldOf(c)}</b><small>монет у героя</small></div>${bagGrid(c, ui.sel && ui.sel.side === "bag" ? ui.sel.i : null)}</aside>`;
+    const left = `<aside class="tw-bagcol">${heroStrip()}<div class="gold-row">${COIN_SVG}<b>${goldOf(c)}</b><small>монет у героя</small></div>${bagGrid(c, ui.sel && ui.sel.side === "bag" ? ui.sel.i : null)}${forge ? "" : sackTile()}</aside>`;
     const tabs = forge ? `<div class="tw-tabs"><button class="fx-btn" role="tab" aria-selected="${(ui.tab || "base") === "base"}" data-t="ftab" data-k="base">Обычное</button><button class="fx-btn" role="tab" aria-selected="${ui.tab === "steel"}" data-t="ftab" data-k="steel">Улучшенное</button></div>` : "";
     const sheet = `<div class="tw-sheet"><div class="tw-rod"></div><div class="tw-sheet-in">${tabs}<div class="tw-stock">${goodsOf().map(g => {
       const it = goodInfo(g), sel = ui.sel && ui.sel.side === "shop" && ui.sel.key === g.key, own = owned(g), q = g.e ? g.e.qty : 1;
       return `<button class="tw-slot${own ? " own" : ""}${it.steel ? " steel" : ""}" data-t="stock" data-id="${g.key}" aria-pressed="${!!sel}" aria-label="${esc(it.name)}, ${g.price} монет">
         <span class="tw-img">${it.art ? img(it.art, it.name) : (it.icon || GEAR_ICON.custom)}${q > 1 ? `<span class="q">×${q}</span>` : ""}${it.steel ? `<span class="q st">сталь</span>` : ""}</span>
         <span class="tw-name">${esc(it.name)}</span><span class="tw-price${partyGold() < g.price ? " no" : ""}">${COIN_SVG}${own ? "есть" : g.price}</span></button>`; }).join("")}</div>
-      <p class="tw-buyline">${forge ? "Оружие — 10, броня — 15, улучшенное оружие — 25, улучшенная броня — 40 монет. Сталь: +1 к атаке и урону, +1 КД." : `Скупаю камни: 9 класс — ${STONE_PRICE["stone-9"]}, 8 класс — ${STONE_PRICE["stone-8"]}, 7 класс — ${STONE_PRICE["stone-7"]} монет.`}</p></div></div>`;
+      <p class="tw-buyline">${forge ? "Оружие — 10, броня — 15, улучшенное оружие — 25, улучшенная броня — 40 монет. Сталь: +1 к атаке и урону, +1 КД." : `Скупаю камни из сумки: 9 класс — ${stonePrice(9)}, 8 класс — ${stonePrice(8)}, 7 класс — ${stonePrice(7)} монет. Перетащи сумку на лавочника или нажми на неё.`}</p></div></div>`;
     const right = `<section class="tw-shopcol"><div class="tw-keeper">${forge ? img("assets/npc/smith.webp", "Кузнец") : KEEPER}<div class="tw-bubble">${esc(ui.talk || (ui.talk = forge ? SMITH_TALK[Math.floor(Math.random() * SMITH_TALK.length)] : talk()))}</div></div>${sheet}</section>`;
-    return `<div class="tw-panel fx-frame">${head(title, "Рафдония")}<div class="tw-shop">${left}${right}</div><footer class="tw-foot">${msgLine()}<div class="tw-sel">${shopSelInfo()}</div></footer>${ui.dlg ? dlgHtml() : ""}</div>`;
+    return `<div class="tw-panel fx-frame">${head(title, "Рафдония")}<div class="tw-shop">${left}${right}</div><footer class="tw-foot">${msgLine()}<div class="tw-sel">${shopSelInfo()}</div></footer>${ui.sk ? skHtml() : ""}</div>`;
   }
-  // Окно «сколько продать»: ползунок от 1 до числа предметов в стопке.
-  function dlgHtml() {
-    const c = hero(), e = (c.bag || [])[ui.dlg.i]; if (!e) return "";
-    const it = itemOf(e, c), p = priceOf(e), n = Math.min(ui.dlg.n, e.qty);
-    return `<div class="tw-dlg" role="dialog" aria-label="Сколько продать"><div class="tw-dlg-card fx-frame">
-      <div class="tw-dlg-top"><span class="tw-dlg-img">${itemThumb(e, c)}</span><div><b>${esc(it.name)}</b><small>В стопке: ${e.qty} · по ${p} монет</small></div></div>
-      <div class="tw-dlg-row"><button class="fx-btn" data-t="dlg-step" data-d="-1" aria-label="Меньше">−</button>
-        <input type="range" class="tw-range" min="1" max="${e.qty}" value="${n}" aria-label="Сколько продать">
-        <button class="fx-btn" data-t="dlg-step" data-d="1" aria-label="Больше">+</button></div>
-      <p class="tw-dlg-sum">Продать <b class="tw-dlg-n">${n}</b> из ${e.qty} → <b class="tw-dlg-gold">+${n * p}</b> монет</p>
-      <div class="tw-btns"><button class="fx-btn" data-t="dlg-all">Все</button><button class="fx-btn" data-t="dlg-cancel">Отмена</button><button class="fx-btn primary" data-t="dlg-ok">Продать</button></div></div></div>`;
+  // Сумка для камней в левой колонке: нажатие или перетаскивание на лавочника открывает окно продажи.
+  function sackTile() {
+    const rows = sackRows(), n = rows.reduce((a, r) => a + r.qty, 0), val = rows.reduce((a, r) => a + r.qty * r.price, 0);
+    return `<button class="tw-sacktile" data-t="sacktile" aria-label="Сумка для камней: ${n} камней"><span class="tw-sackico">${ICO_SACK}</span><span><b>Сумка для камней</b><small>${n ? `${n} шт. · продать за ${val}` : "пока пусто"}</small></span></button>`;
+  }
+  // Окно продажи: слева галочка, имя и класс, ползунок количества, справа сумма; кнопка «Продать» закреплена внизу.
+  function skInit() { const sel = {}, num = {}; for (const r of sackRows()) { sel[r.key] = true; num[r.key] = r.qty; } return { sel, num }; }
+  const skRows = () => sackRows().map(r => ({ ...r, take: Math.max(0, Math.min(r.qty, ui.sk.num[r.key] ?? r.qty)), on: ui.sk.sel[r.key] !== false }));
+  const skTotal = () => skRows().filter(r => r.on).reduce((a, r) => ({ n: a.n + r.take, g: a.g + r.take * r.price }), { n: 0, g: 0 });
+  function skHtml() {
+    const rows = skRows(), t = skTotal();
+    return `<div class="tw-dlg" role="dialog" aria-label="Продажа камней"><div class="tw-sk fx-frame">
+      <div class="tw-sk-top"><span class="tw-sackico">${ICO_SACK}</span><b>Сумка для камней</b><button class="fx-btn tw-x" data-t="sk-close" aria-label="Закрыть">${ICO_X}</button></div>
+      ${rows.length ? `<div class="tw-sk-list">${rows.map(r => `<div class="tw-sk-row${r.on ? "" : " off"}" data-key="${r.key}">
+          <input type="checkbox" class="tw-sk-chk" data-t="sk-chk" data-key="${r.key}"${r.on ? " checked" : ""} aria-label="Продать: ${esc(r.name)}">
+          <span class="tw-sk-name"><b>${esc(r.name)}</b><small>${r.cls} класс · по ${r.price}</small></span>
+          <span class="tw-sk-pick"><input type="range" class="tw-range tw-sk-range" min="1" max="${r.qty}" value="${r.take || 1}" data-key="${r.key}"${r.on ? "" : " disabled"} aria-label="Сколько продать: ${esc(r.name)}"><output class="tw-sk-n">${r.take}/${r.qty}</output></span>
+          <span class="tw-sk-sum">${r.on ? "+" + r.take * r.price : "—"}</span></div>`).join("")}</div>` : `<p class="tw-lead" style="padding:14px 4px">В сумке пусто: камни падают с монстров и попадают сюда.</p>`}
+      <div class="tw-sk-foot"><span class="tw-sk-total">Продать <b>${t.n}</b> камней → <b>+${t.g}</b> монет</span><button class="fx-btn primary big" data-t="sk-sell"${t.n ? "" : " disabled"}>Продать</button></div></div></div>`;
+  }
+  function openSell() { if (!sellsStones()) return; ui.sk = skInit(); }
+  function skSell() {
+    const c = hero(), rows = skRows().filter(r => r.on && r.take > 0); if (!rows.length) return;
+    let n = 0, g = 0;
+    for (const r of rows) { const it = sack().items[r.key]; it.qty -= r.take; n += r.take; g += r.take * r.price; }
+    addGold(c, g); visit(); ui.talk = talk(); ui.msg = `Продано камней: ${n} за ${g} монет — ${c.name}.`; ui.sk = sackRows().length ? skInit() : null; saveChar();
   }
   B.shop = { render: renderShop, init: () => ({ sheet: true }) };
   B.forge = { render: renderShop, init: () => ({ sheet: true, tab: "base" }) };
@@ -258,12 +270,12 @@
     const status = !q.taken ? `Висит на доске. Если не взять — сорвут через заход.`
       : last ? `Последний шанс сдать: после следующего спуска задание сгорит.`
       : `Заходов осталось: ${left} из ${QUEST_RUNS}.`;
-    const act = !q.taken ? `<button class="fx-btn primary" data-t="qaccept" data-id="${q.id}">Принять</button>`
-      : `<div class="tw-qprog">Камней задания: <b>${have} / ${q.need}</b></div><button class="fx-btn primary" data-t="qdone" data-id="${q.id}"${have >= q.need ? "" : " disabled"}>Сдать</button>`;
+    const act = (q.taken ? "" : `<button class="fx-btn primary" data-t="qaccept" data-id="${q.id}">Принять</button>`)
+      + `<div class="tw-qprog">В сумке: <b>${have} / ${q.need}</b></div>` + (q.taken ? `<button class="fx-btn primary" data-t="qdone" data-id="${q.id}"${have >= q.need ? "" : " disabled"}>Сдать</button>` : "");
     return `<article class="tw-sheetq${q.rare ? " rare" : ""}${q.taken ? " taken" : ""}" aria-label="Охота: ${esc(m.name)}"><i class="tw-pin"></i>
       <small class="tw-qk">Охота${q.rare ? " · редкие" : ""}</small>
       <div class="tw-qmon"><span class="tw-ph sq">${img(monArt(m), m.name)}</span><div><b>${esc(m.name)}</b><small>${m.cls} класс</small></div></div>
-      <p>Принести <b>${q.need}</b> камней задания.<br>Награда: <b>${q.reward}</b> монет отряду.</p>
+      <p>Принести <b>${q.need}</b> камней: ${esc(m.name)}.<br>Награда: <b>${q.reward}</b> монет отряду.</p>
       <p class="tw-qnote">${status}</p>${act}</article>`;
   }
   B.board = {
@@ -277,7 +289,7 @@
           <p class="tw-msg">${ui.msg || ""}</p></div></div>`;
     },
   };
-  function questAccept(id) { const q = questBoard().list.find(x => x.id === +id); if (!q || q.taken) return; q.taken = true; q.runs = 0; ui.msg = `Задание принято всем отрядом: ${questMon(q).name}, ${q.need} камней.`; saveChar(); }
+  function questAccept(id) { const q = questBoard().list.find(x => x.id === +id); if (!q || q.taken) return; q.taken = true; q.runs = 0; ui.msg = `Задание принято всем отрядом: ${questMon(q).name}, ${q.need} камней (уже лежащие в сумке считаются).`; saveChar(); }
   function questDone(id) {
     const q = questBoard().list.find(x => x.id === +id); if (!q || !q.taken || questStones(q) < q.need) return;
     const name = questMon(q).name, reward = q.reward; questTurnIn(q); visit(); ui.msg = `Задание выполнено: «${name}». Награда ${reward} монет поделена на отряд.`; saveChar();
@@ -443,19 +455,8 @@
   }
 
   /* ---------- действия ---------- */
-  const priceOf = e => (sellsStones() && e && e.t === "g" ? (e.id === "qstone" ? STONE_PRICE["stone-" + (e.cls || 9)] : STONE_PRICE[e.id]) : 0) || 0;
-  function sellN(i, n) {
-    const c = hero(), e = (c.bag || [])[i], p = priceOf(e); if (!p) return;
-    n = Math.max(1, Math.min(n, e.qty)); const name = itemOf(e, c).name;
-    e.qty -= n; if (e.qty <= 0) { c.bag.splice(i, 1); ui.sel = null; }
-    addGold(c, p * n); visit(); ui.talk = talk(); ui.msg = `Продано: ${name} × ${n} за ${p * n} монет — ${c.name}.`; saveChar();
-  }
-  // Предмет предложен лавочнику (кнопкой или перетаскиванием): одиночный продаётся сразу, у стопки спрашиваем количество.
-  function offer(i) {
-    const c = hero(), e = (c.bag || [])[i]; if (!e) return;
-    if (!priceOf(e)) { ui.msg = sellsStones() ? "Магазин скупает только камни." : "Кузнец ничего не скупает."; return; }
-    if (e.qty > 1) ui.dlg = { i, n: 1 }; else sellN(i, 1);
-  }
+  // Предмет предложен лавочнику (перетаскиванием из рюкзака): обычные вещи он не скупает, камни лежат в сумке.
+  function offer(i) { ui.msg = sellsStones() ? "Магазин скупает только камни — они лежат в сумке для камней." : "Кузнец ничего не скупает."; }
   function buy(n) {
     const c = hero(), g = goodByKey(ui.sel.key); if (!g || owned(g)) return;
     const cost = g.price * n;
@@ -523,27 +524,29 @@
   for (const ev of ["pointerup", "pointercancel", "pointerleave"]) host.addEventListener(ev, () => clearTimeout(hold.t), true);
   host.addEventListener("pointermove", e => { if (Math.hypot(e.clientX - hold.x, e.clientY - hold.y) > 10) clearTimeout(hold.t); });
   host.addEventListener("input", e => {
-    if (!e.target.classList.contains("tw-range") || !ui || !ui.dlg) return;
-    const ent = (hero().bag || [])[ui.dlg.i]; if (!ent) return;
-    ui.dlg.n = +e.target.value; const p = priceOf(ent);
-    host.querySelector(".tw-dlg-n").textContent = ui.dlg.n; host.querySelector(".tw-dlg-gold").textContent = "+" + ui.dlg.n * p;
+    const el = e.target; if (!ui || !ui.sk) return;
+    if (el.classList.contains("tw-sk-range")) {
+      ui.sk.num[el.dataset.key] = +el.value; const r = skRows().find(x => x.key === el.dataset.key); if (!r) return;
+      const row = el.closest(".tw-sk-row"); row.querySelector(".tw-sk-n").textContent = `${r.take}/${r.qty}`; row.querySelector(".tw-sk-sum").textContent = "+" + r.take * r.price;
+      const t = skTotal(); host.querySelector(".tw-sk-total").innerHTML = `Продать <b>${t.n}</b> камней → <b>+${t.g}</b> монет`; host.querySelector("[data-t='sk-sell']").disabled = !t.n;
+    }
   });
   // Перетаскивание предмета из рюкзака на лавочника/витрину = продать.
   let drag = null; T.drag = () => drag;
   host.addEventListener("dragstart", e => e.preventDefault());          // браузерное перетаскивание картинки отменяло бы наш жест (pointercancel)
   const dropZone = (x, y) => { const el = document.elementFromPoint(x, y); return el && el.closest(".tw-shopcol"); };
   host.addEventListener("pointerdown", e => {
-    const el = e.target.closest("[data-t='bag']"); if (!el || !ui || !(ui.b === "shop" || ui.b === "forge") || ui.dlg) return;
-    drag = { i: +el.dataset.i, x: e.clientX, y: e.clientY, on: false, ghost: null };
+    const el = e.target.closest("[data-t='bag'],[data-t='sacktile']"); if (!el || !ui || !(ui.b === "shop" || ui.b === "forge") || ui.sk) return;
+    drag = { i: +el.dataset.i, sack: el.dataset.t === "sacktile", x: e.clientX, y: e.clientY, on: false, ghost: null };
   });
   window.addEventListener("pointermove", e => {
     if (!drag) return;
     if (!drag.on) {
       if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 9) return;
       drag.on = true; clearTimeout(hold.t); hold.fired = true;
-      const c = hero(), ent = (c.bag || [])[drag.i]; if (!ent) { drag = null; return; }
-      ui.sel = { side: "bag", i: drag.i };
-      const g = document.createElement("div"); g.className = "tw-ghost"; g.innerHTML = itemThumb(ent, c); host.appendChild(g); drag.ghost = g; host.classList.add("tw-dragging");
+      const c = hero(), ent = drag.sack ? {} : (c.bag || [])[drag.i]; if (!ent) { drag = null; return; }
+      if (!drag.sack) ui.sel = { side: "bag", i: drag.i };
+      const g = document.createElement("div"); g.className = "tw-ghost"; g.innerHTML = drag.sack ? ICO_SACK : itemThumb(ent, c); host.appendChild(g); drag.ghost = g; host.classList.add("tw-dragging");
     }
     drag.ghost.style.transform = `translate(${e.clientX - 28}px, ${e.clientY - 28}px)`;
     const z = host.querySelector(".tw-shopcol"); if (z) z.classList.toggle("drop-ok", !!dropZone(e.clientX, e.clientY));
@@ -552,7 +555,7 @@
     const d = drag; drag = null; if (!d || !d.on) return;
     if (d.ghost) d.ghost.remove(); host.classList.remove("tw-dragging");
     const z = host.querySelector(".tw-shopcol"); if (z) z.classList.remove("drop-ok");
-    if (ok && ui && dropZone(e.clientX, e.clientY)) { ui.msg = ""; offer(d.i); }
+    if (ok && ui && dropZone(e.clientX, e.clientY)) { ui.msg = ""; if (d.sack) openSell(); else offer(d.i); }
     if (ui) render();
   };
   window.addEventListener("pointerup", e => endDrag(e, true));
@@ -568,10 +571,14 @@
       case "stock": ui.sel = ui.sel && ui.sel.side === "shop" && ui.sel.key === ds.id ? null : { side: "shop", key: ds.id }; break;
       case "ftab": ui.tab = ds.k; ui.sel = null; break;
       case "sellopen": if (ui.sel && ui.sel.side === "bag") offer(ui.sel.i); break;
-      case "dlg-step": { const e = (hero().bag || [])[ui.dlg.i]; ui.dlg.n = Math.max(1, Math.min(e ? e.qty : 1, ui.dlg.n + +ds.d)); break; }
-      case "dlg-all": { const e = (hero().bag || [])[ui.dlg.i]; ui.dlg.n = e ? e.qty : 1; break; }
-      case "dlg-cancel": ui.dlg = null; break;
-      case "dlg-ok": { const d = ui.dlg; ui.dlg = null; sellN(d.i, d.n); break; }
+      case "sacktile": openSell(); break;
+      case "sk-close": ui.sk = null; break;
+      case "sk-chk": {
+        ui.sk.sel[ds.key] = el.checked; const row = el.closest(".tw-sk-row"), r = skRows().find(x => x.key === ds.key);
+        row.classList.toggle("off", !el.checked); row.querySelector(".tw-sk-range").disabled = !el.checked; row.querySelector(".tw-sk-sum").textContent = el.checked ? "+" + r.take * r.price : "—";
+        const t = skTotal(); host.querySelector(".tw-sk-total").innerHTML = `Продать <b>${t.n}</b> камней → <b>+${t.g}</b> монет`; host.querySelector("[data-t='sk-sell']").disabled = !t.n; return;
+      }
+      case "sk-sell": skSell(); break;
       case "buy": buy(+ds.n); break;
       case "tv": { const m = ui[ds.k]; m[ds.id] = !m[ds.id]; break; }
       case "tv-all": for (const c of state.party.filter(x => !x.dead)) { if (!state.arenaLock) ui.sleep[c.id] = true; ui.food[c.id] = true; } break;
