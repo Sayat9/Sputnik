@@ -3788,6 +3788,7 @@ function searchOverlay() {
       <p class="sr-table">${table.map(([max, k], i) => `<span>${i ? table[i - 1][0] + 1 : 1}–${max} ${SEARCH_ROWS_TEXT[k]}</span>`).join("")}</p>
       ${grid("sr-n", sr.pick)}
       ${needLuck ? `<p><b style="color:var(--fx-gold-hi)">20! Бросок удачи:</b> брось к20 ещё раз, к нему прибавится удача ${esc(sh ? sh.c.name : "")} (${signed(sh ? luckOf(sh.c) : 1)}).</p>${grid("sr-l", sr.luck)}` : ""}
+      ${searchDiceBlock(sr, table, needLuck, sh)}
       <div style="display:flex;justify-content:center"><button class="fx-btn primary big" data-dg="sr-ok"${sr.pick && (!needLuck || sr.luck) ? "" : " disabled"}>Подтвердить</button></div>
     </div></div>`;
 }
@@ -3992,7 +3993,7 @@ const ARTIFACTS = {
   guard: { cls: 9, name: "Ночной страж", ico: () => ICO_GUARD, text: "Заменяет караульного в Отдыхе: никто не бодрствует, ночной встречи нет. На заход 3 заряда, +2 за первый спуск на новый этаж; после выхода из лабиринта запас сбрасывается." },
   flame: { cls: 9, name: "Огонь, указывающий путь", ico: () => ICO_FLAME, text: "Один заряд за заход. Зажгите в Инвентаре: следующие 3 перемещения подсвечивают соседнюю клетку на кратчайшем пути до ближайшего портала." },
   hearth: { cls: 9, name: "Вечный очаг", ico: () => ICO_HEARTH, text: "Раз за заход: после Отдыха Усталость у всех героев снимается до 0." },
-  dice: { cls: 9, name: "Игральные кубики", ico: () => ICO_DICE, text: "Результат броска на событие квадрата можно перебросить. Откат 6 действий (2 дня) на карте." },
+  dice: { cls: 9, name: "Игральные кубики", ico: () => ICO_DICE, text: "Любой бросок мастера на карте (событие, пробежка, стоянка, Исследование, Раскопки, бросок удачи) можно перебросить до последствий: результат виден до подтверждения. Откат 6 действий (2 дня)." },
   bell: { cls: 9, name: "Серебряный колокольчик", ico: () => ICO_BELL, text: "Предупреждает об опасности: засада вместо неё становится обычной встречей. Откат 6 действий (2 дня)." },
   "once-more": { cls: 9, name: "«Ещё раз»", ico: () => ICO_AGAIN, text: "Одноразовый предмет: позволяет перебросить неудачный бросок на эссенцию после боя." },
   chalice: { cls: 8, name: "Чаша здоровья", ico: () => GEAR_ICON.chalice, text: GEAR.chalice.note },
@@ -4428,14 +4429,30 @@ function rollOverlay() {
     </div></div>`;
 }
 // Игральные кубики: показывают, какое событие выпало, и позволяют перебросить (откат 6 действий).
-function diceBlock(p) {
-  if (!treasure("dice").owned || p.cause === "pass" || p.cause === "camp") return "";
-  const known = artKnown("dice"), ready = trReady("dice");
-  let prev = "";
-  if (p.pick && known) { const n = p.pick - (p.dark ? 2 : 0) - (p.blood ? 2 : 0); let ev = eventOf(Math.max(1, n), isRuins(p.x, p.y)); if (p.monsters && !MON_EVENTS.has(ev[1])) ev = eventOf(12); prev = `<p>Выпало: <b style="color:var(--fx-gold-hi)">${ev[2]}</b></p>`; }
-  return `${prev}<div style="display:flex;justify-content:center;margin:6px 0"><button class="fx-btn" data-dg="dice-reroll"${p.pick && ready ? "" : " disabled"} style="display:flex;align-items:center;gap:8px"><span style="width:22px;height:22px;display:inline-flex">${ICO_DICE}</span>${known ? "Игральные кубики" : "Артефакт ??"} · ${ready ? "перебросить" : cdText("dice")}</button></div>`;
+// Игральные кубики (решение автора): переброс ЛЮБОГО броска мастера на карте (событие, пробежка, стоянка, Исследование, Раскопки, бросок удачи) до последствий.
+// Пока кубики определены, до подтверждения показан результат выбранного числа; кнопка стирает число (откат 6 действий).
+const diceBtn = (has, ready) => `<div style="display:flex;justify-content:center;margin:6px 0"><button class="fx-btn" data-dg="dice-reroll"${has && ready ? "" : " disabled"} style="display:flex;align-items:center;gap:8px"><span style="width:22px;height:22px;display:inline-flex">${ICO_DICE}</span>${artKnown("dice") ? "Игральные кубики" : "Артефакт ??"} · ${ready ? "перебросить" : cdText("dice")}</button></div>`;
+const LUCK_TEXT = { supplies3: "три набора расходников", floorMap: "карта этажа", gear: "оружие или броня", magicMap: "магическая карта", two: "два приза" };
+function rollPreview(p) {
+  if (p.cause === "pass") return p.pick <= p.amb ? "Засада на бегу" : p.pick <= p.trap ? "Ловушка гоблинов" : "Пробежали без происшествий";
+  if (p.cause === "camp") return p.pick <= p.thr ? "Нападение на стоянку" : "Тихо, никто не напал";
+  const n = p.pick - (p.dark ? 2 : 0) - (p.blood ? 2 : 0); let ev = eventOf(Math.max(1, n), isRuins(p.x, p.y)); if (p.monsters && !MON_EVENTS.has(ev[1])) ev = eventOf(12); return ev[2];
 }
-
+function diceBlock(p) {
+  if (!treasure("dice").owned) return "";
+  const prev = p.pick && artKnown("dice") ? `<p>Выпало: <b style="color:var(--fx-gold-hi)">${rollPreview(p)}</b></p>` : "";
+  return prev + diceBtn(!!p.pick, trReady("dice"));
+}
+function searchDiceBlock(sr, table, needLuck, sh) {
+  if (!treasure("dice").owned) return "";
+  let prev = "";
+  if (artKnown("dice")) {
+    if (needLuck && sr.luck) { const total = sr.luck + (sh ? luckOf(sh.c) : 1), lr = LUCK_TABLE.find(([max]) => total <= max); prev = `Бросок удачи: ${LUCK_TEXT[lr[1]]}`; }
+    else if (sr.pick && !needLuck) { const row = table.find(([max]) => sr.pick <= max); prev = row[1] === "stones" ? `камни ${row[2]}–${row[3]}` : SEARCH_ROWS_TEXT[row[1]]; }
+    else if (sr.pick && needLuck) prev = "20: нужен бросок удачи";
+  }
+  return (prev ? `<p>Выпало: <b style="color:var(--fx-gold-hi)">${prev}</b></p>` : "") + diceBtn(!!sr.pick, trReady("dice"));
+}
 // Кнопка «Назад» телефона отменяет Движение, Бег, Отдых и Исследование: на время фазы в историю кладётся запись.
 function syncPhaseHistory() {
   const active = dgUi.phase !== "menu";
@@ -4873,7 +4890,14 @@ document.addEventListener("click", e => {
       trInfo(id); return;
     }
     case "flask-toggle": { const rs = dgUi.rest; if (trReady("flask")) rs.flask = !rs.flask; break; }
-    case "dice-reroll": { const p = state.run.pending; if (p && trReady("dice")) { logRun(`Игральные кубики: бросок ${p.pick} перебрасывается.`); p.pick = null; cdSet("dice"); saveChar(); } break; }
+    case "dice-reroll": {
+      if (!trReady("dice")) break;
+      const rp = state.run.pending;
+      if (rp && rp.pick) { logRun(`Игральные кубики: бросок ${rp.pick} перебрасывается.`); rp.pick = null; }
+      else if (dgUi.sr && dgUi.sr.pick) { logRun(`Игральные кубики: бросок ${dgUi.sr.luck || dgUi.sr.pick} перебрасывается.`); if (dgUi.sr.luck) dgUi.sr.luck = null; else { dgUi.sr.pick = null; dgUi.sr.luck = null; } }
+      else break;
+      cdSet("dice"); saveChar(); break;
+    }
     case "cup-toggle": { const rs = dgUi.rest; rs.cup ||= {}; rs.cup[ds.id] = !rs.cup[ds.id]; break; }
     case "hearth-toggle": { const rs = dgUi.rest; if (!state.run.hearthUsed) rs.hearth = !rs.hearth; break; }
     case "ng-toggle": { const rs = dgUi.rest; if (rs.ng) rs.ng = false; else if (ngCharges() > 0) { rs.ng = true; rs.guard = {}; } break; }

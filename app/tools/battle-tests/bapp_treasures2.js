@@ -98,6 +98,32 @@ const L = require('./bui_lib.js');
   ok('кубики: показывают выпавшее событие и перебрасывают', X.preview && X.btnOn && X.rerollManual, JSON.stringify(X));
   ok('кубики: откат 6 действий на карте', X.cd0 === 0 && X.btnOff && X.cd5 === 1 && X.cd6 === 0 && X.ready, JSON.stringify(X));
   ok('колокольчик: засада становится встречей, откат; без засады не тратится', X.bell1 && X.bell2 && X.bell3 && X.bell4, JSON.stringify(X));
+  // кубики на всех бросках мастера: пробежка, стоянка, Исследование, Раскопки, бросок удачи
+  const Z = await p.evaluate(() => {
+    const out = {}, r = state.run; r.cd = {}; r.pending = null; r.pos = { x: 3, y: 3 }; artState().known.dice = true;
+    const pass = { cause: 'pass', amb: 2, trap: 4, x: 3, y: 3, pick: 1 }; r.pending = pass;
+    out.pass = [1, 3, 9].map(n => { pass.pick = n; return rollPreview(pass); }).join('|');
+    out.passHtml = /Выпало: <b[^>]*>Засада на бегу/.test((pass.pick = 1, rollOverlay())) && /data-dg="dice-reroll"/.test(rollOverlay()) && !/data-dg="dice-reroll" disabled/.test(rollOverlay());
+    const camp = { cause: 'camp', thr: 9, stayed: 7, x: 3, y: 3, pick: 5 }; r.pending = camp; out.camp = [rollPreview(camp), (camp.pick = 15, rollPreview(camp))].join('|');
+    out.campHtml = /Нападение на стоянку/.test((camp.pick = 5, rollOverlay()));
+    r.pending = null;
+    // Исследование
+    dgUi.phase = 'explore'; dgUi.sr = { pick: 14, luck: null }; const h1 = searchOverlay();
+    out.sr = /Выпало: <b[^>]*>(сколько неизвестных монстров|кто здесь водится|камни|где особое место|ничего|расходники|оружие или броня)/.test(h1) && /data-dg="dice-reroll"/.test(h1) && !/data-dg="dice-reroll" disabled/.test(h1);
+    // клик по кнопке: число стирается, откат запускается
+    document.body.insertAdjacentHTML('beforeend', '<div id="tmp" data-dg="dice-reroll"></div>'); document.getElementById('tmp').click(); document.getElementById('tmp').remove();
+    out.cleared = dgUi.sr.pick === null && cdLeft('dice', 6) === 6;
+    out.btnOff = /data-dg="dice-reroll" disabled/.test(searchOverlay());
+    // бросок удачи: сначала стирается он
+    r.cd = {}; r.pos = { x: 5, y: 5 }; r.floor = 1; dgUi.phase = 'dig'; dgUi.sr = { pick: 20, luck: 7 };
+    out.luckPrev = /Выпало: <b[^>]*>Бросок удачи: /.test(searchOverlay());
+    document.body.insertAdjacentHTML('beforeend', '<div id="tmp" data-dg="dice-reroll"></div>'); document.getElementById('tmp').click(); document.getElementById('tmp').remove();
+    out.luckOnly = dgUi.sr.luck === null && dgUi.sr.pick === 20;
+    dgUi.phase = 'menu'; dgUi.sr = null;
+    return out;
+  });
+  ok('кубики: пробежка и стоянка показывают результат и дают переброс', Z.pass === 'Засада на бегу|Ловушка гоблинов|Пробежали без происшествий' && Z.passHtml && /Нападение на стоянку\|Тихо/.test(Z.camp) && Z.campHtml, JSON.stringify(Z));
+  ok('кубики: Исследование и Раскопки показывают результат, перебрасывают число, потом откат; на 20 сперва стирается бросок удачи', Z.sr && Z.cleared && Z.btnOff && Z.luckPrev && Z.luckOnly, JSON.stringify(Z));
   // настоящая засада в событии и в отдыхе без караула
   const Y = await p.evaluate(() => {
     const out = {}, r = state.run; r.cd = {}; r.day = 5; r.act = 1; r.pos = { x: 3, y: 3 };
