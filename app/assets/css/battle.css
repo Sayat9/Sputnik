@@ -33,7 +33,7 @@ body.bt-active .dice-fab { display: none; }
 .bt-cell { position: relative; border: 1px solid rgb(255 255 255 / .07); }
 .bt-cell:nth-child(even) { background: rgb(255 255 255 / .018); }
 .bt-ter { position: absolute; inset: 2%; width: 96%; height: 96%; pointer-events: none; }
-.bt-ter.t-puddle, .bt-ter.t-mud, .bt-ter.t-moss, .bt-ter.t-fog { inset: 0; width: 100%; height: 100%; }
+.bt-ter.t-puddle, .bt-ter.t-mire, .bt-ter.t-mud, .bt-ter.t-moss, .bt-ter.t-fog { inset: 0; width: 100%; height: 100%; }
 .bt-ter.t-fire .fl { animation: fireFlick .5s ease-in-out infinite alternate; transform-origin: 50% 90%; }
 .bt-ter.t-fire .fl2 { animation: fireFlick .38s ease-in-out infinite alternate-reverse; transform-origin: 50% 90%; }
 @keyframes fireFlick { from { transform: scale(1, .94) rotate(-1.2deg); } to { transform: scale(.96, 1.05) rotate(1.4deg); } }

@@ -39,6 +39,7 @@
       '<rect x="80" y="64" width="7" height="18" rx="3" fill="#cfd6c6" stroke="#4b5648" stroke-width="2"/><path d="M71 68 Q84 44 97 68Z" fill="#c4607a" stroke="#6b2a3b" stroke-width="2.5"/>',
     puddle: '<ellipse cx="50" cy="56" rx="42" ry="28" fill="#3d7fa8" opacity=".88" stroke="#1d4a66" stroke-width="3"/><ellipse cx="42" cy="50" rx="24" ry="13" fill="#6fb3d6" opacity=".7"/>' +
       '<path d="M28 62 Q40 55 50 62 M54 50 Q62 46 72 53" stroke="#d6f0ff" stroke-width="2.5" fill="none" opacity=".85" stroke-linecap="round"/>',
+    mire: '<ellipse cx="50" cy="56" rx="44" ry="30" fill="#2f3f26" stroke="#1a2415" stroke-width="3"/><ellipse cx="44" cy="52" rx="28" ry="16" fill="#3d5230" opacity=".85"/><circle cx="34" cy="58" r="4" fill="#7d9a5a" opacity=".7"/><circle cx="60" cy="50" r="3" fill="#7d9a5a" opacity=".7"/><circle cx="68" cy="62" r="5" fill="#7d9a5a" opacity=".6"/><path d="M20 64 Q34 58 46 66 M52 46 Q64 40 78 48" stroke="#9db87a" stroke-width="2" fill="none" opacity=".6"/>',
     mud: '<ellipse cx="50" cy="56" rx="42" ry="28" fill="#5b4326" stroke="#33250f" stroke-width="3"/><ellipse cx="44" cy="52" rx="26" ry="13" fill="#6d5230"/><circle cx="64" cy="60" r="5" fill="#33250f" opacity=".6"/><circle cx="32" cy="62" r="3.5" fill="#33250f" opacity=".6"/>',
     bones: '<path d="M14 72 L50 52" stroke="#e8dec6" stroke-width="7" stroke-linecap="round"/><circle cx="12" cy="74" r="5.5" fill="#e8dec6"/><circle cx="52" cy="50" r="5.5" fill="#e8dec6"/>' +
       '<path d="M30 40 L74 62" stroke="#d9cfb6" stroke-width="6" stroke-linecap="round"/><ellipse cx="68" cy="38" rx="14" ry="12" fill="#efe6d0" stroke="#8a7f68" stroke-width="2.5"/><circle cx="63" cy="37" r="3.4" fill="#2a2a30"/><circle cx="74" cy="37" r="3.4" fill="#2a2a30"/><path d="M62 47h12" stroke="#8a7f68" stroke-width="2.5"/>',
@@ -73,6 +74,7 @@
     shrooms: { name: "Грибные заросли", cost: 2, cover: 2, hide: true, thicket: true, note: "Труднопроходны (клетка стоит 2). +2 КД от дальних атак, можно прятаться." },
     puddle:  { name: "Лужа", wet: true, note: "Кто вошёл — промок: холод и молния +1к4, огонь не поджигает." },
     mud:     { name: "Грязь", cost: 2, note: "Труднопроходна." },
+    mire:    { name: "Топь", cost: 2, wet: true, bog: true, note: "Труднопроходна, промокаешь. Простоять здесь больше двух своих ходов подряд — увязнешь: помеха на следующий бросок, двигаться нельзя, пока не потратишь действие на то, чтобы выбраться." },
     bones:   { name: "Груда костей", cost: 2, note: "Труднопроходна." },
     moss:    { name: "Цепкий мох", cost: 2, note: "Труднопроходен." },
     stakes:  { name: "Колья", cost: 2, note: "Труднопроходны." },
@@ -130,6 +132,8 @@
     grappled:    { name: "Схвачен", ico: '<path d="M8 12V6.5a1.5 1.5 0 013 0V11M11 10V5a1.5 1.5 0 013 0v6M14 10.5V6.5a1.5 1.5 0 013 0V14c0 4-2 6-5 6s-5-2-6-5l-1-3 2 1z"/>', desc: "Скорость 0. Вырваться: действие, Атлетика или Акробатика против Сл." },
     restrained:  { name: "Опутан", ico: '<rect x="2.5" y="9" width="11" height="6" rx="3"/><rect x="10.5" y="9" width="11" height="6" rx="3"/>', desc: "Скорость 0. Атаки по нему — с преимуществом, его атаки и спасброски Ловкости — с помехой." },
     pinned:      { name: "Пригвождён", ico: '<circle cx="12" cy="7" r="3.5"/><path d="M12 10.5V21M8.5 21h7"/>', desc: "Скорость 0." },
+    mired:       { name: "Увяз в топи", ico: '<path d="M3 15h18M7 15v4M12 15v5M17 15v4"/><path d="M8 11a4 4 0 018 0"/>', desc: "Движение 0. Чтобы выбраться, потратьте действие." },
+    miredDis:    { name: "Помеха: топь", ico: '<path d="M12 4v10M7 11l5 5 5-5"/>', desc: "Следующий бросок с помехой." },
     slowed:      { name: "Замедлен", ico: '<path d="M12 4v10M7 11l5 5 5-5M6 20h12"/>', desc: "Скорость снижена." },
     poisoned:    { name: "Отравлен", ico: '<path d="M12 3c4 5 6 8 6 11a6 6 0 01-12 0c0-3 2-6 6-11z"/><circle cx="10" cy="14" r=".9" fill="currentColor"/><circle cx="14" cy="14" r=".9" fill="currentColor"/><path d="M10.5 17.2h3"/>', desc: "Яд: помех не даёт (решение автора)." },
     frightened:  { name: "Испуган", ico: '<circle cx="12" cy="12" r="9"/><path d="M12 7v6"/><circle cx="12" cy="16.6" r=".9" fill="currentColor"/>', desc: "Помеха на атаки. Нельзя приближаться к источнику страха." },

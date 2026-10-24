@@ -19,7 +19,7 @@ const L = require('./bui_lib.js');
       out[portal].dark = [isDark(0, 0), isDark(5, 5)];
       // встречи: каждый тайл, много бросков
       const bad = []; let seen = new Set();
-      for (let yy = 0; yy < 11; yy++) for (let xx = 0; xx < 11; xx++) { if (zoneAt(xx, yy).kind === 'safe') continue; for (let k = 0; k < 6; k++) { const day = 1 + (k * 3), enc = genEncounter(xx, yy, day, 1 + (k * 4) % 12, false); if (!enc || !enc.list.length) { bad.push('пусто ' + xx + ',' + yy); continue; } if (enc.list.length > (enc.list.includes('goblin-king') ? 6 : 5)) bad.push('группа >5'); for (const id of enc.list) { const m = MONSTERS.find(q => q.id === id); seen.add(id); if (!m || !m.abil || !m.traits.some(t => t[2] === 'attacks')) bad.push('нет статблока: ' + id); } } }
+      for (let yy = 0; yy < 11; yy++) for (let xx = 0; xx < 11; xx++) { if (zoneAt(xx, yy).kind === 'safe') continue; for (let k = 0; k < 6; k++) { const day = 1 + (k * 3), enc = genEncounter(xx, yy, day, 1 + (k * 4) % 12, false); if (!enc || !enc.list.length) { bad.push('пусто ' + xx + ',' + yy); continue; } if (enc.list.length > 5) bad.push('группа >5'); for (const id of enc.list) { const m = MONSTERS.find(q => q.id === id); seen.add(id); if (!m || !m.abil || !m.traits.some(t => t[2] === 'attacks')) bad.push('нет статблока: ' + id); } } }
       out[portal].bad = bad.slice(0, 5); out[portal].kinds = seen.size;
       out[portal].render = (() => { try { location.hash = 'labyrinth'; r.pending = null; dgUi.enc = null; route(); return !!document.getElementById('dg-svg'); } catch (e) { return String(e); } })();
       out[portal].clock = document.querySelector('.dg-clock b') ? document.querySelector('.dg-clock b').innerText.replace(/\s+/g, '') : '';

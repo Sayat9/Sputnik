@@ -169,6 +169,7 @@
     // отравление помех не даёт (решение автора): только урон ядом и метка
     const fr = has(att, "frightened"); if (fr) ctx.dis.push("испуган");
     if (has(att, "restrained")) ctx.dis.push("опутан");
+    if (has(att, "miredDis")) { ctx.dis.push("увяз в топи"); ctx.consume.push([att, "miredDis"]); }
     if (has(att, "dazzled")) { ctx.dis.push("ослеплён вспышкой"); ctx.consume.push([att, "dazzled"]); }
     if (has(att, "blinded") || has(att, "buried")) ctx.dis.push("ослеплён");
     const fl = has(att, "fooled"); if (fl && !fl.data.atkUsed) { ctx.dis.push("обманут"); ctx.consume.push([att, "fooled:atk"]); }
@@ -203,7 +204,7 @@
       if (atk.range && d0 > atk.range[0]) ctx.dis.push("дальняя дистанция");
       if (att.side === "hero" && B.inDark(att) && !att.dv) ctx.dis.push("тьма");
     }
-    if (B.S.pitDark && att.side === "hero" && !B.lightAt(att.x, att.y)) ctx.dis.push("кромешная тьма: без света");          // решение автора: на дне пещеры без света герой бьёт с помехой, даже с тёмным зрением
+    if (B.S.pitDark && att.side === "hero" && !att.dv && !B.lightAt(att.x, att.y)) ctx.dis.push("кромешная тьма: без света");          // решение автора: на дне пещеры без света герой бьёт с помехой, даже с тёмным зрением
     // КД: укрытие и бонусы
     let cover = melee ? (d0 > 1 ? coverBetween(att, tgt) : 0) : coverBetween(att, tgt);
     const tc = tinfo(tgt.x, tgt.y); if (!melee && tc && tc.cover) cover = Math.max(cover, tc.cover);
@@ -328,6 +329,7 @@
     if (abil === "dex" && has(u, "dodging")) adv.push("оборона");
     if (abil === "dex" && has(u, "restrained")) dis.push("опутан");
     if (abil === "dex" && has(u, "shaken")) { dis.push("оглушён грохотом"); removeStatus(u, "shaken"); }
+    if (has(u, "miredDis")) { dis.push("увяз в топи"); removeStatus(u, "miredDis"); }
     const ctx = { u, abil, dc, o, mods, adv, dis, tags: o.tags || [] };
     hookAll(u, "saveMods", ctx);
     for (const a of alliesOf(u)) hookAll(a, "saveAura", { ally: a, u, abil, ctx });                // «Под защитой духов», «Голос старейшины»
@@ -380,6 +382,7 @@
     const mods = [{ l: SKILL_RU[skill] || skill, v: skillMod(u, skill) }, ...(o.mods || [])];
     const adv = [...(o.adv || [])], dis = [...(o.dis || [])];
     if (has(u, "shaken") && SKILL_ABIL[skill] === "dex") { dis.push("оглушён грохотом"); removeStatus(u, "shaken"); }
+    if (has(u, "miredDis")) { dis.push("увяз в топи"); removeStatus(u, "miredDis"); }
     const fl = has(u, "fooled"); if (fl && !fl.data.chkUsed && (skill === "perception" || skill === "insight")) { dis.push("обманут"); fl.data.chkUsed = true; }
     const ctx = { u, skill, o, mods, adv, dis, tags: o.tags || [] }; hookAll(u, "checkMods", ctx);
     const ses = session(u, { kind: "check", u, title: o.title || `Проверка: ${SKILL_RU[skill]}`, sub: `${u.name} · ${o.label || ""}` });
@@ -409,7 +412,7 @@
   async function provoke(u, nx, ny) {
     for (const e of enemiesOf(u)) {
       if (!canAct(e) || !e.t.react || e.t.noReact || e.kind === "double" || !canSeeUnit(e, u)) continue;
-      if (B.S.pitDark && e.side === "hero" && !B.lightAt(e.x, e.y)) continue;          // решение автора: без света герои не делают атак по возможности          // атаку по возможности делает только тот, кто видит уходящего; двойник — только своей атакой в свой ход
+      if (B.S.pitDark && e.side === "hero" && !e.dv && !B.lightAt(e.x, e.y)) continue;          // решение автора: без света герои не делают атак по возможности          // атаку по возможности делает только тот, кто видит уходящего; двойник — только своей атакой в свой ход
       const r = B.meleeReach(e);
       if (dist(e, u) <= r && B.distAt(e, u, nx, ny) > r && B.meleeReach(e) >= 1 && !hookAny(u, "noProvoke", { e })) {          // distAt: расстояние до u, как если бы он стоял в (nx, ny)
         if (!(await offerOpportunity(e, u))) continue;
@@ -522,6 +525,10 @@
     const t = tinfo(u.x, u.y);
     if (t && t.hazard === "fire" && alive(u) && !B.isFlying(u)) { const r = roll(1, 4).total; log(`${u.name} стоит в огне: ${r}.`); await applyDamage(null, u, [{ v: r, dt: "fire", label: "Костёр" }], {}); }
     if (t && t.wet && alive(u) && !B.isFlying(u)) addStatus(u, "wet", { k: 3, when: "end" });
+    if (S.bog && u.side === "hero" && alive(u) && !u.down && (u.bogStill || 0) >= 2 && !has(u, "mired") && tinfo(u.x, u.y) && tinfo(u.x, u.y).bog) {          // решение автора: два хода на месте в топи — на третьем увязаешь
+      addStatus(u, "mired", { k: Infinity }); addStatus(u, "miredDis", { k: Infinity });
+      log(`${u.name} увяз в топи: следующий бросок с помехой, выбраться — действие.`, "bad"); const g = ui(); if (g) g.fxText(u, "увяз", "bad");
+    }
     if (alive(u) && !u.down) u.t.move = speedOf(u);
     if (alive(u) && B.zonesTurnStart) await B.zonesTurnStart(u);                               // рой паучат, белая пыль, тлеющее тело
     if (alive(u) && !u.down) await B.hookAllAsync(u, "turnStartAsync", {});                      // вынырнуть из-под земли и т. п.
@@ -532,6 +539,7 @@
     for (const k of Object.keys(u.cd)) { if (u.cdFresh && u.cdFresh[k]) delete u.cdFresh[k]; else if (u.cd[k] > 0) u.cd[k]--; }          // перезарядка: счёт — в конце своих ходов
     if (u.t) u.t.disengage = false;                                                                      // «Отход» действует до конца хода, а не дальше
     for (const o of units()) o.conds = o.conds.filter(c => { const gone = !!(c.data && c.data.endAtEndOf === u.id && u.turnsTaken >= (c.data.endTurnNo || 0)); if (gone && c.id === "roar" && o.tempSrc === "roar") { o.temp = 0; o.tempSrc = null; } return !gone; });        // «Боевой рёв»: временные ОЗ исчезают вместе со статусом
+    if (B.S.bog && u.side === "hero" && u.t) { const tb = tinfo(u.x, u.y); u.bogStill = tb && tb.bog && !u.t.moved && !has(u, "mired") ? (u.bogStill || 0) + 1 : (has(u, "mired") ? u.bogStill : 0); }          // ходов подряд на месте в топи
     if (alive(u) && B.endTurnSaves) await B.endTurnSaves(u);                                    // повторные спасброски: проклятие, паралич, «Чужой голос»
     tickStatuses(u, "end");
     hookAll(u, "turnEnd", {});

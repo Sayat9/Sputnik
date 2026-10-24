@@ -2345,7 +2345,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 23;
+const BATTLE_REV = 24;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined) st.tactical = true; return st; }
@@ -3171,11 +3171,11 @@ const FLOOR2 = {
     } },
 };
 const FLOOR_OF_PORTAL = { goblin: "goblin", wolf: "beast", zombie: "undead", stone: null };
-// Свита короля гоблинов (решение автора): старый шаман, хобгоблин (кубик: 1–4 — один обычный, 5 — два, 6 — один с классом), 2 необычных гоблина 9 класса случайных видов (не ассасины).
+// Свита короля гоблинов (решение автора): всего 5 — король, старый шаман, хобгоблин (кубик: 1–4 — один обычный, 5 — два, 6 — один с классом) и необычные гоблины 9 класса случайных видов (не ассасины).
 const kingEscort = () => {
   const d = 1 + rnd(6), cls = ["hobgoblin-brute", "hobgoblin-thrower", "hobgoblin-driver", "hobgoblin-shield"], pool = ["goblin", "goblin-sword", "goblin-spear", "goblin-archer", "goblin-shaman"];
   const hob = d <= 4 ? ["hobgoblin"] : d === 5 ? ["hobgoblin", "hobgoblin"] : [cls[rnd(cls.length)]];
-  return ["goblin-king", "goblin-elder", ...hob, ...Array.from({ length: 2 }, () => pool[rnd(pool.length)])];
+  return ["goblin-king", "goblin-elder", ...hob, ...Array.from({ length: 5 - 2 - hob.length }, () => pool[rnd(pool.length)])];          // всего 5 существ
 };
 const hobTrio = () => { const ids = ["hobgoblin", "hobgoblin-brute", "hobgoblin-thrower", "hobgoblin-driver"], n = 1 + rnd(3); return Array.from({ length: n }, () => ids[rnd(ids.length)]); };
 // Конфиг текущего этажа: размер, порталы, число дней.

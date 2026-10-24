@@ -634,7 +634,30 @@
 
   /* ----- Болотный клык (7): «Из-под воды», «Мёртвая хватка» ----- */
   P["swamp-fang"] = {
-    attackMods(att, ctx) { const f = has(att, "firstblood"); if (!f) return; ctx.consume.push([att, "firstblood"]); if (inWater(att)) ctx.adv.push("Из-под воды"); },
+    attackMods(att, ctx) {
+      if (has(att, "emerged")) { ctx.adv.push("атака с тыла"); ctx.consume.push([att, "emerged"]); }
+      const f = has(att, "firstblood"); if (!f) return; ctx.consume.push([att, "firstblood"]); if (inWater(att)) ctx.adv.push("Из-под воды");
+    },
+    // Решение автора: в бою в топи клык каждый ход уходит под воду и выныривает у цели с тыла (дальше от остальных героев и ближе к их краю поля), если никого не держит
+    async turnStartAsync(u) {
+      if (!B.S.bog || u.side !== "mon" || live().some(o => has(o, "grappled") && has(o, "grappled").data.by === u.id)) return;
+      const es = enemiesOf(u).filter(e => !e.down && !has(e, "underground")); if (!es.length) return;
+      const best = [];
+      for (let y = 0; y < B.H; y++) for (let x = 0; x < B.W; x++) {
+        if (!B.canStand(u, x, y) || !(B.tinfo(x, y) && B.tinfo(x, y).bog)) continue;
+        const near = es.filter(e => B.distAt(e, { ...u, x, y }, x, y) <= 1 || dist(e, { ...u, x, y }) <= 1); if (!near.length) continue;
+        const t = near[0], others = es.filter(e => e !== t);
+        const behind = (y + 0) - t.y;                                                                                             // «тыл» героев — нижний край поля
+        const sc = behind * 2 + (others.length ? Math.min(...others.map(o => dist(o, { ...u, x, y }))) : 0) + (t.hp < t.maxHp ? 0.5 : 0);
+        best.push({ x, y, sc });
+      }
+      if (!best.length) return;
+      best.sort((a, b) => b.sc - a.sc); const d = best[0];
+      if (d.x === u.x && d.y === u.y) return;
+      log(`${u.name} уходит под воду и выныривает с тыла.`, "skill"); fx(u, "из топи", "good");
+      await B.teleport(u, d.x, d.y); u.t.move = speedOf(u);
+      addStatus(u, "emerged", { k: 0, when: "end" });
+    },
   };
   A["swamp-fang"] = attackRider({ name: "Мёртвая хватка", kind: "melee", weapon: true, weaponText: "нужно оружие", abil: "str", save: "str", tags: ["grapple"], extra: { n: 2, s: 6 }, aiBonus: 4,
     onFail: async (t, u, sv, res) => { addStatus(t, "grappled", { k: Infinity, data: { by: u.id, dc: dcOf(u, "str"), skill: "athletics", dmg: "1к6", dt: res.atk.dt, tick: "holder" } }); log(`${u.name} вцепляется в ${t.name} мёртвой хваткой.`, "skill"); fx(t, "схвачен", "bad"); } });

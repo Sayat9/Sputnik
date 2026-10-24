@@ -85,10 +85,11 @@
     while (q.length) { const [x, y] = q.pop(); for (const [dx, dy] of DIRS) { const nx = x + dx, ny = y + dy; if (inB(nx, ny) && !seen.has(key(nx, ny)) && !(cells[ny][nx] && D.terrain[cells[ny][nx]].obstacle)) { seen.add(key(nx, ny)); q.push([nx, ny]); } } }
     return seen.size === free.length;
   }
-  function genTerrain(zone, floor, water) {
+  function genTerrain(zone, floor, water, bog) {
     const base = D.zones[zone] || D.zones.goblin, G = D.gen, deep = floor >= 2 && D.deep[zone];
     let zc = deep ? Object.assign({}, base, { feats: base.feats.concat(deep.feats) }) : base;
     if (water) zc = Object.assign({}, zc, { feats: zc.feats.concat([["puddle", water > 1 ? 3 : 1, water > 1 ? 5 : 3, true]]) });          // пруд: заметно больше воды; топь — чуть больше
+    if (bog) zc = Object.assign({}, zc, { feats: zc.feats.concat([["mire", 9, 13, true]]) });          // бой с болотным клыком: топь пятнами
     for (let attempt = 0; attempt < 30; attempt++) {
       const cells = Array.from({ length: H }, () => Array(W).fill(null));
       const objs = [];
@@ -270,7 +271,7 @@
   function speedOf(u) {
     let sp = Math.max(u.speedC, u.flyC) + hookSum(u, "speedBonus", {});                       // бонус к скорости («Лёгкие ноги») — до замедления, как строка статов
     for (const c of u.conds) {
-      if (["grappled", "restrained", "pinned", "trapped", "spearstop", "unconscious", "stable", "buried", "paralyzed", "underground"].includes(c.id)) return 0;
+      if (["grappled", "restrained", "pinned", "trapped", "spearstop", "unconscious", "stable", "buried", "paralyzed", "underground", "mired"].includes(c.id)) return 0;
     }
     for (const c of u.conds) if (c.id === "slowed") { if (c.data.mult != null) sp = Math.floor(sp * c.data.mult); if (c.data.add) sp += c.data.add; }
     return Math.max(0, sp);
@@ -403,7 +404,8 @@
     S.torchFixed = S.torch;          // факел, зажжённый на карте, горит весь бой; факел, зажжённый в бою, — 3 раунда (battle-act.js)
     if ((ev.list || []).includes("giant-mole")) { S.dark = true; S.torch = false; S.torchFixed = false; S.pitDark = true; }          // решение автора: дно пещеры крота — кромешная тьма
     S.floor = ev.floor || (state.run && state.run.floor) || 1;
-    const g = genTerrain(zone, S.floor, ev.water); S.cells = g.cells; S.objs = g.objs; S.found = []; S.objHp = {};
+    S.bog = (ev.list || []).includes("swamp-fang");
+    const g = genTerrain(zone, S.floor, ev.water, S.bog); S.cells = g.cells; S.objs = g.objs; S.found = []; S.objHp = {};
     if (B.placeEnv && !ev.arena) B.placeEnv(S, ev);
     uidSeq = 1;
     B.S = S;
