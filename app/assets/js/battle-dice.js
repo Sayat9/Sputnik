@@ -26,6 +26,109 @@
     azure: ["#a9c9ec", "#4a76b0", "#142a4a", "#0d1f3a"],
     gold: ["#ffe9a0", "#d6a64c", "#5a3a0a", "#2b1c08"],
   };
+
+  /* ===================== объёмные кубики: видно, какие грани крутятся ===================== */
+  // Настоящие многогранники (d4, d6, d8, d10, d12, d20) вращаются кватернионом, на видимых гранях — числа. После остановки кубик плавно
+  // поворачивается так, чтобы выпавшая грань смотрела на игрока (число стоит прямо). Невыпуклых граней нет: достаточно отсечь грани, смотрящие от зрителя.
+  const V3 = { sub: (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]], dot: (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2],
+    cross: (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]], len: a => Math.hypot(a[0], a[1], a[2]),
+    norm: a => { const l = Math.hypot(a[0], a[1], a[2]) || 1; return [a[0] / l, a[1] / l, a[2] / l]; } };
+  const Q = {
+    mul: (a, b) => [a[0] * b[0] - a[1] * b[1] - a[2] * b[2] - a[3] * b[3], a[0] * b[1] + a[1] * b[0] + a[2] * b[3] - a[3] * b[2], a[0] * b[2] - a[1] * b[3] + a[2] * b[0] + a[3] * b[1], a[0] * b[3] + a[1] * b[2] - a[2] * b[1] + a[3] * b[0]],
+    axis: (ax, ang) => { const [x, y, z] = V3.norm(ax), h = ang / 2, s = Math.sin(h); return [Math.cos(h), x * s, y * s, z * s]; },
+    norm: q => { const l = Math.hypot(q[0], q[1], q[2], q[3]) || 1; return [q[0] / l, q[1] / l, q[2] / l, q[3] / l]; },
+    rot: (q, v) => { const [w, x, y, z] = q, [vx, vy, vz] = v;
+      const tx = 2 * (y * vz - z * vy), ty = 2 * (z * vx - x * vz), tz = 2 * (x * vy - y * vx);
+      return [vx + w * tx + (y * tz - z * ty), vy + w * ty + (z * tx - x * tz), vz + w * tz + (x * ty - y * tx)]; },
+    slerp: (a, b, t) => { let d = a[0] * b[0] + a[1] * b[1] + a[2] * b[2] + a[3] * b[3]; if (d < 0) { b = b.map(x => -x); d = -d; }
+      if (d > 0.9995) return Q.norm(a.map((x, i) => x + (b[i] - x) * t));
+      const th = Math.acos(d), s = Math.sin(th), A = Math.sin((1 - t) * th) / s, Bk = Math.sin(t * th) / s; return a.map((x, i) => x * A + b[i] * Bk); },
+    between: (a, b) => { const d = V3.dot(a, b); if (d < -0.9999) { const ax = Math.abs(a[0]) < 0.9 ? [1, 0, 0] : [0, 1, 0]; return Q.axis(V3.cross(a, ax), Math.PI); } return Q.norm([1 + d, ...V3.cross(a, b)]); },
+    random: () => Q.norm([rnd(2000) / 1000 - 1, rnd(2000) / 1000 - 1, rnd(2000) / 1000 - 1, rnd(2000) / 1000 - 1]),
+    z: ang => Q.axis([0, 0, 1], ang),
+  };
+  const POLY_OK = { 4: 1, 6: 1, 8: 1, 10: 1, 12: 1, 20: 1, 100: 1 };
+  const POLY_CACHE = {};
+  function hullFaces(vs) {
+    const faces = [], keys = new Set(), n = vs.length;
+    for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) for (let k = j + 1; k < n; k++) {
+      let nm = V3.cross(V3.sub(vs[j], vs[i]), V3.sub(vs[k], vs[i])); if (V3.len(nm) < 1e-6) continue; nm = V3.norm(nm);
+      let d = V3.dot(nm, vs[i]); if (d < 0) { nm = nm.map(x => -x); d = -d; }
+      if (vs.some(p => V3.dot(nm, p) > d + 1e-4)) continue;
+      const key = nm.map(x => Math.round(x * 1000)).join(",") + "|" + Math.round(d * 1000); if (keys.has(key)) continue; keys.add(key);
+      const idx = vs.map((p, m) => (Math.abs(V3.dot(nm, p) - d) < 1e-4 ? m : -1)).filter(m => m >= 0);
+      const c = idx.reduce((a, m) => [a[0] + vs[m][0] / idx.length, a[1] + vs[m][1] / idx.length, a[2] + vs[m][2] / idx.length], [0, 0, 0]);
+      const e1 = V3.norm(V3.sub(vs[idx[0]], c)), e2 = V3.cross(nm, e1);
+      idx.sort((a, b) => Math.atan2(V3.dot(V3.sub(vs[a], c), e2), V3.dot(V3.sub(vs[a], c), e1)) - Math.atan2(V3.dot(V3.sub(vs[b], c), e2), V3.dot(V3.sub(vs[b], c), e1)));
+      faces.push({ idx, n: nm, c, up: V3.norm(V3.sub(vs[idx[0]], c)) });
+    }
+    return faces;
+  }
+  function buildPoly(s) {
+    const t = s === 100 ? 10 : s; if (POLY_CACHE[s]) return POLY_CACHE[s];
+    const PHI = (1 + Math.sqrt(5)) / 2; let vs = [];
+    if (t === 4) vs = [[1, 1, 1], [1, -1, -1], [-1, 1, -1], [-1, -1, 1]];
+    else if (t === 6) { for (const x of [-1, 1]) for (const y of [-1, 1]) for (const z of [-1, 1]) vs.push([x, y, z]); }
+    else if (t === 8) vs = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]];
+    else if (t === 12) { for (const x of [-1, 1]) for (const y of [-1, 1]) for (const z of [-1, 1]) vs.push([x, y, z]); for (const a of [-1, 1]) for (const b of [-1, 1]) vs.push([0, a / PHI, b * PHI], [a / PHI, b * PHI, 0], [a * PHI, 0, b / PHI]); }
+    else if (t === 20) { for (const a of [-1, 1]) for (const b of [-1, 1]) vs.push([0, a, b * PHI], [a, b * PHI, 0], [b * PHI, 0, a]); }
+    else {                                                                                                   // d10: пятиугольный трапецоэдр; высоту колец подбираем так, чтобы воздушные грани были плоскими
+      const h = 1.0, P = a => { const T = [0, 0, h], u0 = [1, 0, a], d0 = [Math.cos(Math.PI / 5), Math.sin(Math.PI / 5), -a], u1 = [Math.cos(2 * Math.PI / 5), Math.sin(2 * Math.PI / 5), a]; return V3.dot(V3.cross(V3.sub(u0, T), V3.sub(d0, T)), V3.sub(u1, T)); };
+      let lo = 0.02, hi = 0.9; for (let i = 0; i < 40; i++) { const mid = (lo + hi) / 2; if (P(lo) * P(mid) <= 0) hi = mid; else lo = mid; }
+      const a = (lo + hi) / 2; vs = [[0, 0, h], [0, 0, -h]];
+      for (let k = 0; k < 5; k++) { vs.push([Math.cos(2 * Math.PI * k / 5), Math.sin(2 * Math.PI * k / 5), a]); vs.push([Math.cos(2 * Math.PI * k / 5 + Math.PI / 5), Math.sin(2 * Math.PI * k / 5 + Math.PI / 5), -a]); }
+    }
+    const R = Math.max(...vs.map(V3.len)); vs = vs.map(v => v.map(x => x / R));
+    const faces = hullFaces(vs), N = faces.length;
+    // числа: противоположные грани в сумме N + 1 (у d4 просто по порядку)
+    const nums = new Array(N).fill(0), order = Array.from({ length: Math.ceil(N / 2) }, (_, i) => i + 1);
+    for (let i = order.length - 1; i > 0; i--) { const j = (i * 7 + 3) % (i + 1); [order[i], order[j]] = [order[j], order[i]]; }          // фиксированная «случайная» раскладка
+    let m = 0; const used = new Array(N).fill(false);
+    for (let i = 0; i < N; i++) {
+      if (used[i]) continue; used[i] = true;
+      if (t === 4) { nums[i] = ++m; continue; }
+      const opp = faces.findIndex((f, j) => !used[j] && V3.dot(f.n, faces[i].n) < -0.999);
+      const v = order[m++]; nums[i] = v; if (opp >= 0) { used[opp] = true; nums[opp] = N + 1 - v; }
+    }
+    const lab = nums.map(v => (s === 100 ? String((v % 10) * 10).padStart(2, "0") : String(v) + (v === 6 || v === 9 ? "." : "")));
+    const clean = nums.map(v => (s === 100 ? String((v % 10) * 10).padStart(2, "0") : String(v)));
+    return (POLY_CACHE[s] = { vs, faces, lab, clean, N });
+  }
+  // Поворот, при котором грань с числом `final` смотрит на зрителя числом вверх.
+  Dice.faceUp = function (s, final) {
+    const P = buildPoly(s), i = P.clean.indexOf(String(final)); if (i < 0) return Q.random();
+    const f = P.faces[i], q0 = Q.between(f.n, [0, 0, 1]), v = Q.rot(q0, f.up), phi = Math.atan2(v[0], v[1]);
+    return Q.norm(Q.mul(Q.z(phi), q0));
+  };
+  Dice.randQ = Q.random; Dice.qAxis = Q.axis; Dice.qMul = Q.mul; Dice.qSlerp = Q.slerp; Dice.qNorm = Q.norm;
+  Dice.polyOK = s => !!POLY_OK[s];
+  Dice._poly = buildPoly; Dice._qrot = Q.rot;          // для проверок
+  function drawPoly(ctx, s, x, y, R, o) {
+    const { q, pal = "ivory", glow = null, scale = 1, dim = 1 } = o, col = PALETTE[pal] || PALETTE.ivory, P = buildPoly(s), K = R * 1.12 * scale;
+    const rv = P.vs.map(v => Q.rot(q, v)), L = V3.norm([-0.45, 0.6, 0.65]);
+    const hex = c => [parseInt(c.slice(1, 3), 16), parseInt(c.slice(3, 5), 16), parseInt(c.slice(5, 7), 16)];
+    const c0 = hex(col[0]), c1 = hex(col[1]);
+    ctx.save(); ctx.translate(x, y); ctx.globalAlpha = dim; ctx.lineJoin = "round";
+    const vis = P.faces.map((f, i) => ({ f, i, n: Q.rot(q, f.n) })).filter(a => a.n[2] > 0.02).sort((a, b) => a.n[2] - b.n[2]);
+    if (glow) { ctx.shadowColor = glow; ctx.shadowBlur = 20; }
+    for (const { f, i, n } of vis) {
+      const lum = Math.max(0, Math.min(1, 0.25 + 0.75 * Math.max(0, V3.dot(n, L)))), mix = c1.map((v, k) => Math.round(v + (c0[k] - v) * lum));
+      ctx.beginPath(); f.idx.forEach((m, j) => { const p = rv[m]; (j ? ctx.lineTo : ctx.moveTo).call(ctx, p[0] * K, -p[1] * K); }); ctx.closePath();
+      ctx.fillStyle = `rgb(${mix[0]},${mix[1]},${mix[2]})`; ctx.fill(); ctx.shadowBlur = 0;
+      ctx.lineWidth = 1.6; ctx.strokeStyle = col[2]; ctx.stroke();
+      // число на грани: плоскость грани проецируется в экран (аффинно), поэтому цифры сжимаются и наклоняются вместе с гранью
+      const c = Q.rot(q, f.c), up = Q.rot(q, f.up), right = V3.cross(up, n);
+      const size = (s === 20 ? 0.62 : s === 12 ? 0.74 : s === 100 || s === 10 ? 0.64 : s === 8 ? 0.62 : s === 6 ? 0.9 : 0.7) * K / 100, tilt = Math.max(0.35, n[2]);
+      ctx.save(); ctx.transform(right[0] * size, -right[1] * size, -up[0] * size, up[1] * size, c[0] * K, -c[1] * K);
+      ctx.globalAlpha = dim * Math.min(1, 0.35 + tilt);
+      ctx.fillStyle = col[3]; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      const label = P.lab[i], fs = label.length > 2 ? 78 : label.length > 1 ? 100 : 118;
+      ctx.font = `700 ${fs}px "Kelly Slab", Georgia, serif`;
+      if (pal === "blood") { ctx.strokeStyle = "rgba(0,0,0,.45)"; ctx.lineWidth = 8; ctx.strokeText(label, 0, 6); }
+      ctx.fillText(label, 0, 6); ctx.restore();
+    }
+    ctx.restore();
+  }
   // Рисует кубик с центром (x, y): z — высота над столом, ang — поворот, sq — «кувырок» (0..1: ширина), glow — свечение результата.
   Dice.drawDie = function (ctx, s, x, y, R, o = {}) {
     const { z = 0, ang = 0, sq = 1, face = "", pal = "ivory", glow = null, scale = 1, dim = 1 } = o;
@@ -34,6 +137,7 @@
     // тень на столе
     const sh = Math.max(0.35, 1 - z / 140);
     ctx.fillStyle = `rgba(0,0,0,${0.32 * sh})`; ctx.beginPath(); ctx.ellipse(x + z * 0.18, y + R * 0.72, R * 0.95 * sh * scale, R * 0.34 * sh * scale, 0, 0, Math.PI * 2); ctx.fill();
+    if (o.q && POLY_OK[s]) { ctx.restore(); drawPoly(ctx, s, x, y - z, R, o); return; }                    // объёмный кубик с числами на гранях
     ctx.translate(x, y - z); ctx.rotate(ang); ctx.scale(scale * (0.8 + 0.2 * sq), scale); ctx.globalAlpha = dim;
     if (glow) { ctx.shadowColor = glow; ctx.shadowBlur = 22; }
     const pts = poly(s, R);
@@ -75,7 +179,8 @@
     setDice(list) {
       this.R = list.length > 4 ? 22 : list.length > 2 ? 26 : 32;
       this.bodies = list.map((d, i) => ({ s: d.s, pal: d.pal || "ivory", x: this.w * (0.5 + (i - (list.length - 1) / 2) * 0.22), y: this.h * 0.55, z: 0, vx: 0, vy: 0, vz: 0, ang: (rnd(100) / 100 - 0.5) * 0.6, w: 0, ph: rnd(628) / 100,
-        face: d.s === 100 ? "00" : "?", state: "idle", final: null, flickT: 0, settleT: 0, glow: null, bounce: 0 }));
+        face: d.s === 100 ? "00" : "?", state: "idle", final: null, flickT: 0, settleT: 0, glow: null, bounce: 0,
+        q: Dice.polyOK(d.s) ? Dice.randQ() : null, axis: [rnd(200) / 100 - 1, rnd(200) / 100 - 1, rnd(200) / 100 - 1] }));
     }
     anyIdle() { return this.bodies.some(b => b.state === "idle"); }
     allDone() { return this.bodies.length > 0 && this.bodies.every(b => b.state === "done"); }
@@ -133,13 +238,14 @@
         if (b.state === "held" && this.held) {
           const tx = Math.max(R, Math.min(this.w - R, this.held.x + b.hx)), ty = Math.max(R, Math.min(this.h - R, this.held.y + b.hy));
           b.x += (tx - b.x) * Math.min(1, dt * 22); b.y += (ty - b.y) * Math.min(1, dt * 22); b.z += (34 - b.z) * Math.min(1, dt * 12); b.ang += Math.sin(performance.now() / 140 + b.ph) * dt * 1.4; b.ph += dt * 5;
+          if (b.q) b.q = Dice.qNorm(Dice.qMul(Dice.qAxis(b.axis, dt * 2.2), b.q));          // в руке кубик медленно поворачивается
           b.sq = 1; continue;
         }
         if (b.state === "rolling") {
           b.x += b.vx * dt; b.y += b.vy * dt; b.z += b.vz * dt; b.vz -= g * dt;
           if (b.z <= 0) {
             b.z = 0;
-            if (b.vz < -90) { b.vz = -b.vz * 0.42; b.bounce++; b.w += (rnd(2) ? 1 : -1) * (2 + rnd(30) / 10); if (this.hooks.onBounce) this.hooks.onBounce(); }
+            if (b.vz < -90) { b.vz = -b.vz * 0.42; b.bounce++; b.w += (rnd(2) ? 1 : -1) * (2 + rnd(30) / 10); b.axis = [rnd(200) / 100 - 1, rnd(200) / 100 - 1, rnd(200) / 100 - 1]; if (this.hooks.onBounce) this.hooks.onBounce(); }
             else b.vz = 0;
           }
           const ground = b.z <= 0.5;
@@ -148,13 +254,15 @@
           if (b.y < R * 0.9) { b.y = R * 0.9; b.vy = Math.abs(b.vy) * 0.58; } else if (b.y > this.h - R * 0.6) { b.y = this.h - R * 0.6; b.vy = -Math.abs(b.vy) * 0.58; }
           const sp = Math.hypot(b.vx, b.vy);
           b.ang += b.w * dt; b.ph += (4 + Math.abs(b.w)) * dt; b.sq = Math.abs(Math.cos(b.ph));
+          if (b.q) b.q = Dice.qNorm(Dice.qMul(Dice.qAxis(b.axis, (Math.abs(b.w) * 1.9 + (b.z > 1 ? 5 : 0)) * dt), b.q));          // кубик кувыркается: видны грани с числами
           b.flickT -= dt;
           if (b.flickT <= 0) { b.face = this.randFace(b.s); b.flickT = 0.05 + (1 - Math.min(1, (sp + Math.abs(b.w) * 20) / 520)) * 0.2; }
-          if (ground && sp < 16 && Math.abs(b.w) < 1.1) { b.settleT += dt; if (b.settleT > 0.14) { b.state = "settling"; b.t = 0; b.final = this.finalFace(b); } } else b.settleT = 0;
+          if (ground && sp < 16 && Math.abs(b.w) < 1.1) { b.settleT += dt; if (b.settleT > 0.14) { b.state = "settling"; b.t = 0; b.final = this.finalFace(b); if (b.q) { b.q0 = b.q; b.qT = Dice.faceUp(b.s, b.final); } } } else b.settleT = 0;
         } else if (b.state === "settling") {
           b.t += dt; b.ang *= Math.exp(-9 * dt); b.sq += (1 - b.sq) * Math.min(1, dt * 12); b.z = Math.max(0, Math.sin(Math.min(1, b.t / 0.22) * Math.PI) * 9);
+          if (b.q) { const u = Math.min(1, b.t / 0.42); b.q = Dice.qSlerp(b.q0, b.qT, u * u * (3 - 2 * u)); }          // докатился: плавно ложится выпавшей гранью вверх
           if (b.t > 0.1) b.face = b.final;
-          if (b.t >= 0.24) { b.state = "done"; b.z = 0; b.ang = 0; b.sq = 1; b.face = b.final; if (this.allDone() && this.hooks.onSettle) this.hooks.onSettle(this.bodies.map(x => x.final)); }
+          if (b.t >= (b.q ? 0.46 : 0.24)) { b.state = "done"; b.z = 0; b.ang = 0; b.sq = 1; b.face = b.final; if (this.allDone() && this.hooks.onSettle) this.hooks.onSettle(this.bodies.map(x => x.final)); }
         }
       }
       // столкновения кубиков друг с другом
@@ -174,7 +282,7 @@
     draw() {
       const c = this.ctx; c.setTransform(this.dpr, 0, 0, this.dpr, 0, 0); c.clearRect(0, 0, this.w, this.h);
       const order = [...this.bodies].sort((a, b) => a.y - b.y);
-      for (const b of order) Dice.drawDie(c, b.s === 100 ? 10 : b.s, b.x, b.y, this.R, { z: b.z, ang: b.ang, sq: b.sq == null ? 1 : b.sq, face: b.face, pal: b.pal, glow: b.glow || (b.state === "held" ? "rgba(244,212,142,.8)" : (b.state === "idle" ? "rgba(244,212,142,.3)" : null)), scale: b.state === "held" ? 1.12 : 1, dim: b.dim == null ? 1 : b.dim });
+      for (const b of order) Dice.drawDie(c, b.q ? b.s : (b.s === 100 ? 10 : b.s), b.x, b.y, this.R, { z: b.z, ang: b.q ? 0 : b.ang, q: b.q, sq: b.sq == null ? 1 : b.sq, face: b.face, s100: b.s === 100, pal: b.pal, glow: b.glow || (b.state === "held" ? "rgba(244,212,142,.8)" : (b.state === "idle" ? "rgba(244,212,142,.3)" : null)), scale: b.state === "held" ? 1.12 : 1, dim: b.dim == null ? 1 : b.dim });
     }
     setResultGlow(i, color) { if (this.bodies[i]) { this.bodies[i].glow = color; this.draw(); } }
     dim(i, v) { /* затемнение отброшенного кубика преимущества */ const b = this.bodies[i]; if (b) { b.dim = v; } }

@@ -34,7 +34,7 @@
     root.innerHTML = `<div class="bt-top"><div class="bt-round"><small>Раунд</small><b>1</b></div><div class="bt-order" aria-label="Порядок ходов"></div>
         <button class="bt-iconbtn" data-bt="menu" aria-label="Меню боя">${ico("menu")}</button></div>
       <div class="bt-banner" aria-live="polite"></div>
-      <div class="bt-boardwrap"><div class="bt-board"><div class="bt-bg"></div><div class="bt-cells"></div><div class="bt-zonelay"></div><div class="bt-objs"></div><div class="bt-tokens"></div><div class="bt-marks"></div><svg class="bt-pathsvg" aria-hidden="true"></svg><div class="bt-fx"></div></div>
+      <div class="bt-boardwrap"><div class="bt-board"><div class="bt-bg"></div><div class="bt-cells"></div><div class="bt-zonelay"></div><div class="bt-objs"></div><canvas class="bt-shadow" aria-hidden="true"></canvas><div class="bt-tokens"></div><div class="bt-marks"></div><svg class="bt-pathsvg" aria-hidden="true"></svg><div class="bt-fx"></div></div>
         <div class="bt-zone"></div><div class="bt-toast" hidden></div></div>
       <div class="bt-panel"></div><div class="bt-modal" hidden></div>`;
     document.body.appendChild(root); document.body.classList.add("forge-open", "bt-active");
@@ -148,6 +148,22 @@
     for (const z of S.zones || []) for (const [x, y] of B.zoneCells(z)) if (!vis || vis.has(x + "," + y)) h += `<div class="bt-zcell k-${z.kind}" style="left:${x * cell}px;top:${y * cell}px;width:${cell}px;height:${cell}px"></div>`;
     l.innerHTML = h;
   }
+  // Мягкая тень от полных укрытий и тумана: тёмный слой по клеткам (чем меньше героев видят клетку, тем гуще), размытый, чтобы края были с полутенью.
+  let shadowKey = "";
+  function renderShadow(S) {
+    const cv = root.querySelector(".bt-shadow"); if (!cv) return;
+    const lv = S.phase === "fight" || S.phase === "result" ? B.visionLevels() : null;
+    const dpr = Math.min(2, window.devicePixelRatio || 1), m = 1, px = cell * (B.W + 2 * m);
+    const sig = (lv ? [...lv.values()].map(v => Math.round(v * 20)).join(",") : "-") + "|" + cell + "|" + dpr;
+    if (sig === shadowKey) return; shadowKey = sig;
+    cv.width = Math.round(px * dpr); cv.height = Math.round(px * dpr); const c = cv.getContext("2d"); c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, px, px);
+    if (!lv) return;
+    for (let y = -m; y < B.H + m; y++) for (let x = -m; x < B.W + m; x++) {
+      const v = lv.get(Math.max(0, Math.min(B.W - 1, x)) + "," + Math.max(0, Math.min(B.H - 1, y))); if (v == null || v >= 1) continue;
+      const a = v <= 0 ? 0.88 : 0.1 + (1 - v) * 0.5;                                              // никто не видит — густая тень, видят не все — полутень
+      c.fillStyle = `rgba(3,3,9,${a.toFixed(3)})`; c.fillRect((x + m) * cell, (y + m) * cell, cell + 0.5, cell + 0.5);
+    }
+  }
   function renderObjs(S) {
     const l = root.querySelector(".bt-objs"); let h = "";
     const visAll = S.phase === "fight" || S.phase === "result" ? B.visionCells() : null, seenAt = o => !visAll || visAll.has(o.x + "," + o.y);          // за полным укрытием и в тумане ничего не видно
@@ -184,7 +200,7 @@
     const S = B.S; if (!UI.active || !S || !root) return;
     if (!UI.built) build(S);
     root.classList.toggle("dark", !!S.dark && !S.torch);
-    renderCells(S); renderZones(S); renderTokens(S); renderObjs(S); renderOrder(S);
+    renderCells(S); renderZones(S); renderTokens(S); renderObjs(S); renderShadow(S); renderOrder(S);
     if (UI.renderPanel) UI.renderPanel();
     UI.drawPath();
   };
@@ -274,6 +290,13 @@
   UI.fxText = (u, text, cls) => defer(() => floatText(u, text, cls || ""));
   UI.fxDeath = u => defer(() => { const el = tokenEls.get(u.id); if (el) el.classList.add("dying"); floatText(u, u.side === "mon" ? "повержен" : "погиб", "dmg", true); setTimeout(() => UI.refresh(), 450); });
   UI.fxEscape = u => defer(() => { floatText(u, "уходит", "good"); UI.refresh(); });
+  // Минимальный эффект способности монстра: кольцо вокруг колдующего, кольца на целях и подпись с названием.
+  UI.fxAbility = (u, name, targets) => defer(() => {
+    const fx = root && root.querySelector(".bt-fx"); if (!fx) return;
+    const mk = (t, cls) => { const el = document.createElement("div"); el.className = cls; el.style.cssText = `left:${t.x * cell}px;top:${t.y * cell}px;width:${(t.size || 1) * cell}px;height:${(t.size || 1) * cell}px`; fx.appendChild(el); setTimeout(() => el.remove(), 1200); };
+    mk(u, "bt-cast"); for (const t of targets || []) if (t && t.id !== u.id) mk(t, "bt-cast tgt");
+    UI.banner(`${u.name}: ${name}`, 1500);
+  });
   UI.fxCube = (ax, ay, size) => defer(() => {
     const fx = root.querySelector(".bt-fx"), el = document.createElement("div"); el.className = "bt-cube"; el.style.cssText = `left:${ax * cell}px;top:${ay * cell}px;width:${size * cell}px;height:${size * cell}px`;
     fx.appendChild(el); setTimeout(() => el.remove(), 900);

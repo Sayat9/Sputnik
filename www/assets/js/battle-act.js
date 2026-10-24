@@ -448,6 +448,7 @@
     const A = B.A[id], eb = ESSENCES[id].active; let committed = false;
     if (u.side === "mon" && picks && A.tgt) picks = fitPicks(A, u, picks);          // монстр бьёт только допустимые цели в зоне: одна цель — одна, область — только внутри
     if (picks === null) return false;
+    if (u.side === "mon") { const g = ui(); if (g && g.fxAbility) { g.fxAbility(u, (A.state ? (A.state(u).label || eb.name) : eb.name), [...(picks && picks.units ? picks.units : []), picks && picks.unit].filter(x => x && typeof x === "object")); if (!B.cfg.fast) await B.sleep(420); } }          // небольшой эффект: монстр колдует
     const st = A.state ? A.state(u) : {};
     const mana = st.mana != null ? st.mana : eb.mana, cd = st.cd != null ? st.cd : (D.essCd[id] || 1);
     const commit = () => {

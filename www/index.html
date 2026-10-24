@@ -1700,8 +1700,8 @@ const DISTRICTS = [
 
 // Готовые рисованные картинки (webp) заменяют векторные заглушки.
 // Дата сборки для телефона: build.sh вписывает её сюда, в веб-версии строка пустая.
-const APP_BUILD = "24.10.2026 21:48";
-const APP_VERSION = 1792860499;                 // номер сборки, тоже вписывает build.sh
+const APP_BUILD = "24.10.2026 22:08";
+const APP_VERSION = 1792861704;                 // номер сборки, тоже вписывает build.sh
 const UPDATE_URL = "https://raw.githubusercontent.com/Sayat9/Sputnik/main/www/";
 const RASTER = new Set(["items/mace", "items/warhammer", "items/armor-leather", "items/armor-hide", "items/armor-chainmail", "items/steel-dagger", "items/steel-sword", "items/steel-greatsword", "items/steel-shield", "items/steel-tower-shield", "items/shortbow", "items/longbow", "items/rapier", "items/shield", "items/tower-shield", "items/unknown-mushroom", "items/stone-9", "items/stone-8", "items/stone-7", "items/ration", "items/potion", "items/torch", "items/arrows", "items/clothes", "items/shovel", "items/shovel-good", "items/shovel-best", "items/dagger", "items/sword", "items/greatsword", "items/spear", "monsters/goblin-king-face", "monsters/goblin-king-full", "monsters/goblin-bomber-face", "monsters/goblin-bomber-full", "monsters/hobgoblin-shield-face", "monsters/hobgoblin-shield-full", "races/barbarian", "races/human", "races/dwarf", "races/beastkin", "races/fairy", "races/dragon", "monsters/goblin-face", "monsters/goblin-full", "monsters/goblin-archer-face", "monsters/goblin-archer-full", "monsters/goblin-sword-face", "monsters/goblin-sword-full", "monsters/goblin-spear-face", "monsters/goblin-spear-full", "monsters/wolf-face", "monsters/wolf-full", "monsters/fox-face", "monsters/fox-full", "monsters/mouse-face", "monsters/mouse-full", "monsters/bat-face", "monsters/bat-full", "monsters/hobgoblin-face", "monsters/hobgoblin-full", "monsters/zombie-face", "monsters/zombie-full", "monsters/skeleton-face", "monsters/skeleton-full", "monsters/skeleton-archer-face", "monsters/skeleton-archer-full", "monsters/ghoul-face", "monsters/ghoul-full", "monsters/dark-bear-face", "monsters/dark-bear-full", "monsters/skeleton-warrior-face", "monsters/skeleton-warrior-full", "monsters/living-stone-face", "monsters/living-stone-full", "monsters/wisp-face", "monsters/wisp-full", "monsters/pixie-face", "monsters/pixie-full", "monsters/green-boulder-face", "monsters/green-boulder-full", "monsters/stone-guardian-face", "monsters/stone-guardian-full"]);
 const artPath = p => `assets/${p}.${RASTER.has(p) ? "webp" : "svg"}`;
@@ -2341,10 +2341,12 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 18;
+const BATTLE_REV = 19;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined) st.tactical = true; return st; }
+// Режим мастера (решение автора): без него приложение не показывает монстров и эссенции, которых отряд ещё не узнал (в поиске и в разделе «Монстры»: вместо них библиотека).
+const masterOn = () => !!settings().master;
 let battleLoad = null;
 function loadBattle() {
   if (window.Battle && window.Battle.ready) return Promise.resolve(true);
@@ -2776,6 +2778,7 @@ function renderMain() {
       <button class="fx-btn primary big" data-action="start-adventure">Начать приключение</button>
       <button class="fx-btn" data-save="open">Сохранения</button>
       <button class="fx-btn" data-set="tactical" aria-pressed="${!!settings().tactical}">Тактический бой (тест): ${settings().tactical ? "вкл" : "выкл"}</button>
+      <button class="fx-btn" data-set="master" aria-pressed="${masterOn()}">Режим мастера (весь бестиарий): ${masterOn() ? "вкл" : "выкл"}</button>
       ${last ? `
         <div class="fx-card fx-frame">
           <span class="fx-eyebrow" style="font-size:12px">Последняя сессия</span>
@@ -3666,7 +3669,19 @@ function giveStones(n, kind) {
   if (n8) out.push(giveParty({ t: "g", id: "stone-8", qty: n8 }));
   return out;
 }
-const tilePool = (x, y) => { const z = zoneAt(x, y); return MONSTERS.filter(m => z.zones.includes(m.zone) && (m.floors || [m.floor]).includes(curFloor()) && !m.draft); };
+// Кто здесь водится: на 1 этаже — монстры зоны, на 2 этаже — именно те, кто живёт на этом тайле (место FLOOR2.placeAt: обычные группы, особые, сочетания).
+function tilePool(x, y) {
+  const z = zoneAt(x, y);
+  if (curFloor() >= 2) {
+    const pl = z.place || {}, ids = new Set();
+    for (const [id] of pl.std || []) ids.add(id);
+    for (const id of pl.special || []) ids.add(id);
+    for (const c of pl.combos || []) (typeof c.list === "function" ? ["hobgoblin", "hobgoblin-brute", "hobgoblin-thrower", "hobgoblin-driver"] : c.list).forEach(id => ids.add(id));
+    if (pl.shaman) ids.add("goblin-shaman");
+    return MONSTERS.filter(m => ids.has(m.id) && !m.draft);
+  }
+  return MONSTERS.filter(m => z.zones.includes(m.zone) && (m.floors || [m.floor]).includes(curFloor()) && !m.draft);
+}
 const shovelsOf = () => state.party.flatMap(c => (c.bag || []).map((e, i) => ({ c, e, i })).filter(x => x.e.t === "g" && SHOVELS.includes(x.e.id)));
 // Копают лопатой, у которой меньше всего прочности, — её хозяин и бросает удачу.
 const pickShovel = () => shovelsOf().sort((a, b) => a.e.uses - b.e.uses)[0] || null;
@@ -4368,6 +4383,10 @@ function restOverlay() {
 function encounterOverlay() {
   const e = dgUi.enc;
   if (e.list && e.tactical && window.Battle && window.Battle.ready) { window.Battle.ensure(e); return ""; }
+  if (e.list && e.tactical && !e.loadTried) {                                                    // файлы боя ещё грузятся: вместо старого окна — заставка, потом бой (или старое окно, если не загрузились)
+    e.loadTried = true; loadBattle().then(ok => { if (!ok) e.tactical = false; if (state.run && dgUi.enc === e) rerender(); });
+    return `<div class="mapov" role="status" aria-label="Загрузка боя"><div class="panel fx-frame enc-panel"><p style="text-align:center">Бой начинается…</p></div></div>`;
+  }
   const rollLine = e.cause === "special" ? "особое место" : e.cause === "pass" ? `пробежка · к20 = ${e.raw}` : `к20 = ${e.raw}${e.dark ? " − 2 (тьма)" : ""}${e.blood ? " − 2 (чует кровь)" : ""}${e.dark || e.blood ? ` = ${e.n}` : ""}`;
   if (!e.list) return `<div class="mapov" role="dialog" aria-modal="true" aria-label="${e.title}">
     <div class="panel fx-frame enc-panel">
@@ -4513,6 +4532,7 @@ function renderDungeon() {
         <button class="fx-btn" data-dg="gm-enc">Бросить встречу</button>
         <button class="fx-btn" data-save="open">Сохранения</button>
         <button class="fx-btn" data-set="tactical" aria-pressed="${!!settings().tactical}">Тактический бой: ${settings().tactical ? "вкл" : "выкл"}</button>
+        <button class="fx-btn" data-set="master" aria-pressed="${masterOn()}">Режим мастера: ${masterOn() ? "вкл" : "выкл"}</button>
         <button class="fx-btn" data-dg="leave">${dgUi.confirm === "leave" ? "Точно выйти? Нажми ещё раз" : "Выйти в город"}</button>
         <button class="fx-btn" data-dg="rollback"${state.runSnap ? "" : ` disabled title="Нет снимка: заход начат до обновления"`}>${dgUi.confirm === "rollback" ? "Точно откатить? Нажми ещё раз" : "Откатить заход"}</button>
         ${state.runSnap ? "" : `<small style="color:var(--fx-muted);font-size:11.5px;max-width:200px">Откат доступен для заходов, начатых после обновления.</small>`}
@@ -5570,7 +5590,7 @@ function renderResults() {
   document.getElementById("groups").hidden = !!q;
   box.hidden = !q;
   if (!q) return;
-  const hits = INDEX.filter(e => e.t.toLowerCase().includes(q) || e.label.toLowerCase().includes(q));
+  const hits = INDEX.filter(e => (masterOn() || e.s !== "bestiary") && (e.t.toLowerCase().includes(q) || e.label.toLowerCase().includes(q)));
   box.innerHTML = hits.length
     ? `<div class="list">${hits.map(h => `<button class="item result" data-go="${h.s}"><span><b>${h.t}</b> · <span style="color:var(--muted)">${h.label}</span></span><small>${h.extra}</small></button>`).join("")}</div>`
     : `<div class="empty">Ничего не нашлось по «${esc(query)}».</div>`;
@@ -5596,7 +5616,8 @@ const TABS = {
 function renderHome() {
   const groups = {};
   Object.entries(SECTIONS).forEach(([k, s]) => (groups[s.group] ||= []).push([k, s]));
-  groups["Лабиринт"].push(["bestiary", { title: "Монстры", sub: "Бестиарий и эссенции", count: () => MONSTERS.length + " монстр" }]);
+  groups["Лабиринт"].push(masterOn() ? ["bestiary", { title: "Монстры", sub: "Бестиарий и эссенции", count: () => MONSTERS.length + " монстр" }]
+    : ["library", { title: "Монстры", sub: "Библиотека: что отряд уже узнал", count: () => Object.keys(journal().known || {}).length + " записей" }]);
   return `
     <div class="hero">
       <h2>Всё, что нужно у входа в лабиринт</h2>
@@ -5620,6 +5641,7 @@ function renderHome() {
 
 let lastFx = "";
 function route(keepScroll) {
+  if (location.hash === "#bestiary" && !masterOn()) { history.replaceState(null, "", "#ref"); setTimeout(openLibrary, 0); }          // без режима мастера полный бестиарий закрыт: вместо него библиотека
   const key = location.hash.slice(1);
   const y = window.scrollY;
   const sec = SECTIONS[key], tab = TABS[key];
@@ -5834,6 +5856,7 @@ document.addEventListener("click", e => {
   const el = e.target.closest("[data-go],[data-tab],[data-f],[data-reset],[data-zoom],[data-slot],[data-equip],[data-unequip],[data-custom],[data-action],[data-member],[data-bld]");
   if (!el) return;
   const ds = el.dataset;
+  if (ds.go === "library") { openLibrary(); return; }
   if (ds.go !== undefined) { location.hash = ds.go; return; }
   if (ds.tab !== undefined) { const onFx = ["", "town", "labyrinth"].includes(location.hash.slice(1)); location.hash = ds.tab === "" && !onFx && lastFx ? lastFx : ds.tab; return; }          // из справочника «Главная» ведёт обратно в подземелье или город
   if (ds.f) {
@@ -5900,6 +5923,7 @@ window.addEventListener("hashchange", () => route());
 document.addEventListener("click", e => {
   const el = e.target.closest("[data-set]");
   if (el && el.dataset.set === "tactical") setTactical(!settings().tactical);
+  if (el && el.dataset.set === "master") { settings().master = !settings().master; saveChar(); toast(settings().master ? "Режим мастера: виден весь бестиарий" : "Режим мастера выключен"); rerender(); }
 });
 if (settings().tactical) loadBattle().then(ok => { if (ok && state.fightSnap) resumeFight(); }); else state.fightSnap = null;
 state.party.forEach(ensureKit);       // старые герои получают стартовый набор

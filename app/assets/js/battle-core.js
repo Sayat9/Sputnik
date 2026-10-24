@@ -366,7 +366,18 @@
   // Туман (Туманная часовня): дальше S.fog клеток (3 м = 2) от ближайшего героя ничего не видно.
   const fogHides = (ws, x, y) => { const f = (B.S && B.S.fog) || 0; return f > 0 && ws.length > 0 && !ws.some(w => distCell(w, x, y) <= f); };
   const seenByParty = m => { const ws = watchers(); return !ws.length || (ws.some(w => hasLOS(w, m)) && !footprint(m).every(([x, y]) => fogHides(ws, x, y))); };
-  Object.assign(B, { visionCells, seenByParty });
+  // Освещённость клеток для тени: доля стоящих героев, у которых до клетки есть линия обзора (0 — никто не видит, 1 — все). Нужна только для картинки: мягкая тень от стен.
+  function visionLevels() {
+    const out = new Map(), ws = watchers();
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      if (!ws.length) { out.set(key(x, y), 1); continue; }
+      const pt = { x, y, size: 1, id: "cell" }; let n = 0;
+      for (const w of ws) if (hasLOS(w, pt) && !fogHides([w], x, y)) n++;
+      out.set(key(x, y), n / ws.length);
+    }
+    return out;
+  }
+  Object.assign(B, { visionCells, seenByParty, visionLevels });
   Object.assign(B, { meleeReach, center, lineCells, coverBetween, lineBlocked, hasLOS, sightBlockAt });
 
   /* ===== свет и тьма ===== */

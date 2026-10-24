@@ -38,9 +38,9 @@ body.bt-active .dice-fab { display: none; }
 .bt-ter.t-fire .fl2 { animation: fireFlick .38s ease-in-out infinite alternate-reverse; transform-origin: 50% 90%; }
 @keyframes fireFlick { from { transform: scale(1, .94) rotate(-1.2deg); } to { transform: scale(.96, 1.05) rotate(1.4deg); } }
 .bt-ter.t-crystal { filter: drop-shadow(0 0 5px rgb(120 230 245 / .7)); }
-.bt-cell.fogged { background: repeating-linear-gradient(135deg, #07070d 0 7px, #0c0c15 7px 14px); box-shadow: none; border-color: rgb(0 0 0 / .5); }
+.bt-cell.fogged { background: transparent; box-shadow: none; border-color: transparent; }
 .bt-cell.fogged .bt-ter { opacity: 0; }
-.bt-cell.fogged::after { content: ""; position: absolute; inset: 0; background: rgb(4 4 10 / .55); }
+.bt-shadow { position: absolute; left: calc(var(--cell) * -1); top: calc(var(--cell) * -1); width: calc(var(--cell) * 9); height: calc(var(--cell) * 9); z-index: 2; pointer-events: none; filter: blur(calc(var(--cell) * .16)); }
 .bt-cell.hl-move { background: rgb(110 205 120 / .24); box-shadow: inset 0 0 0 2px rgb(150 235 150 / .55); }
 .bt-cell.hl-danger { background: rgb(245 165 60 / .28); box-shadow: inset 0 0 0 2px rgb(255 190 90 / .7); }
 .bt-cell.hl-reach { background: rgb(225 95 75 / .13); box-shadow: inset 0 0 0 1px rgb(240 120 100 / .35); }
@@ -319,3 +319,20 @@ body.bt-active .dice-fab { display: none; }
 @keyframes findBob { from { transform: translateY(0); } to { transform: translateY(-3px); } }
 .bt-esschoice { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; } .bt-esschoice .fx-btn { padding: 4px 10px; font-size: 13px; } .bt-esschoice .fx-btn[disabled] { opacity: .45; filter: grayscale(1); }
 .bt-esspick { margin-top: 6px; }
+
+/* список всех бросков на эссенцию под стрелочкой */
+.bt-rolls-btn { justify-self: center; display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border: 1px solid var(--fx-line); border-radius: 999px; background: rgb(0 0 0 / .3); color: var(--fx-muted); font: 600 12.5px var(--f-data); cursor: pointer; }
+.bt-rolls-btn i { font-style: normal; font-size: 14px; color: var(--fx-gold-hi); }
+.bt-rolls { display: grid; gap: 4px; padding: 6px 4px 2px; text-align: left; max-height: 30vh; overflow-y: auto; }
+.bt-rollrow { display: grid; grid-template-columns: minmax(0, 1fr) auto 62px; gap: 8px; align-items: baseline; padding: 4px 6px; border-radius: 6px; font-size: 14px; background: rgb(255 255 255 / .04); }
+.bt-rollrow .n { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bt-rollrow .v b { font: 700 15px var(--f-data); font-variant-numeric: tabular-nums; } .bt-rollrow .v small, .bt-rollrow .m { color: var(--fx-muted); font-size: 11.5px; }
+.bt-rollrow .m { text-align: right; } .bt-rollrow.win { background: rgb(120 200 90 / .16); } .bt-rollrow.win .v b, .bt-rollrow.win .m { color: #b9e597; }
+.bt-rollrow.shown { outline: 1px solid var(--fx-gold-hi); }
+.bt-rollnote { margin: 2px 0 0; color: var(--fx-muted); font-size: 11.5px; text-align: center; }
+
+/* эффект способности монстра */
+.bt-cast { position: absolute; box-sizing: border-box; border-radius: 50%; border: 2px solid rgb(255 150 90 / .95); box-shadow: 0 0 14px rgb(255 120 60 / .75), inset 0 0 12px rgb(255 120 60 / .5); pointer-events: none; animation: btCast .95s ease-out forwards; }
+.bt-cast.tgt { border-color: rgb(244 212 142 / .95); box-shadow: 0 0 12px rgb(244 212 142 / .7), inset 0 0 10px rgb(244 212 142 / .45); opacity: 0; animation-delay: .3s; }
+@keyframes btCast { 0% { transform: scale(.55); opacity: 0; } 25% { opacity: 1; } 100% { transform: scale(1.65); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .bt-cast { animation-duration: .01s; } }

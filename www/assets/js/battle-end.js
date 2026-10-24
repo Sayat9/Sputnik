@@ -118,7 +118,7 @@
       <div class="bt-rwd"><h5>Награды</h5>${nothing ? `<p class="muted">Никто не убит — награды нет.</p>` : `<ul>${xpLine}${stoneLines}</ul>`}
         ${S.gear && S.gear.length ? `<h5>Снаряжение</h5><ul class="bt-gearl">${S.gear.map(g => `<li class="${g.ok ? "ok" : "lost"}">${esc(g.t)}</li>`).join("")}</ul>` : ""}
         <div class="bt-hlist">${B.heroes().map(h => `<span class="bt-hchip${h.dead ? " dead" : ""}"><img src="${h.face}" alt="">${esc(h.name)} <b>${h.dead ? "погиб" : Math.max(h.down ? 1 : 0, h.hp) + "/" + h.maxHp}</b></span>`).join("")}</div></div>
-      ${nothing ? "" : `<div class="bt-roll" hidden><p>Бросок на эссенцию <small>— нужно ${ESS_CHANCE}+ из 100</small></p><canvas></canvas><div class="bt-roll-res"></div></div>`}
+      ${nothing ? "" : `<div class="bt-roll" hidden><p>Бросок на эссенцию <small>— нужно ${ESS_CHANCE}+ из 100</small></p><canvas></canvas><div class="bt-roll-res"></div><button class="bt-rolls-btn" type="button" aria-expanded="false" aria-label="Показать все броски на эссенцию" hidden><span>все броски</span><i aria-hidden="true">▾</i></button><div class="bt-rolls" hidden></div></div>`}
       <div class="bt-essgot" hidden></div>
       <button class="fx-btn primary big bt-done" hidden>Готово</button></div>`;
     const done = modal.querySelector(".bt-done"), finish = new Promise(res => { done.onclick = res; });
@@ -133,6 +133,16 @@
         resEl.innerHTML = ok ? `<b class="ok">${String(show).padStart(2, "0") === "00" ? 100 : show}</b> — выпала эссенция!${luckNote}` : `<b>${show}</b> — эссенция не выпала${luckNote}`;
         resEl.className = "bt-roll-res " + (ok ? "ok" : "no");
       };
+      // Список всех бросков: анимация показывает один (лучший), а кидается по одному броску на каждого убитого монстра.
+      const rbtn = roll.querySelector(".bt-rolls-btn"), rlist = roll.querySelector(".bt-rolls");
+      const drawRolls = () => {
+        const seen = {}, names = plan.species.map(id => { const m = MONSTERS.find(x => x.id === id); seen[id] = (seen[id] || 0) + 1; const tot = plan.species.filter(x => x === id).length; return `${m ? m.name : id}${tot > 1 ? " " + seen[id] : ""}`; });
+        rlist.innerHTML = plan.rolls.map((r, i) => `<div class="bt-rollrow${r.r >= ESS_CHANCE ? " win" : ""}${r === rollShown ? " shown" : ""}"><span class="n">${esc(names[i])}</span><span class="v"><b>${r.r}</b>${r.bonus ? ` <small>(${r.base} +${r.bonus})</small>` : ""}${r.again && r.again.length ? ` <small>«Ещё раз»: было ${r.again.join(", ")}</small>` : ""}</span><span class="m">${r.r >= ESS_CHANCE ? "эссенция" : "нет"}</span></div>`).join("") + `<p class="bt-rollnote">Нужно ${ESS_CHANCE}+ из 100. Анимация показывает лучший бросок.</p>`;
+      };
+      if (plan.rolls.length) {
+        rbtn.hidden = false; drawRolls();
+        rbtn.onclick = () => { const open = rlist.hidden; rlist.hidden = !open; rbtn.setAttribute("aria-expanded", String(open)); rbtn.querySelector("i").textContent = open ? "▴" : "▾"; };
+      }
       await reveal();
       // «Ещё раз»: одноразовый предмет, перебрасывает неудачный бросок (на арене эссенция не достаётся, смысла нет)
       const onceMore = () => state.party.reduce((a, c) => a + countGear(c, "once-more"), 0);
@@ -142,9 +152,9 @@
         btn.remove(); if (choice === "done") break;
         const holder = state.party.find(c => countGear(c, "once-more") > 0); takeGear(holder, "once-more", 1); saveChar();
         const bonus = rollShown.bonus || 0, base = 1 + B.rnd(100), r = Math.min(100, base + bonus);
-        rollShown.r = r; rollShown.base = base; show = r;
+        (rollShown.again ||= []).push(rollShown.r); rollShown.r = r; rollShown.base = base; show = r;
         if (r >= ESS_CHANCE) { plan.wins.push({ id: rollShown.id, r, base, bonus }); ok = true; }
-        await reveal();
+        await reveal(); if (!rbtn.hidden) drawRolls();
       }
       if (ok && S.ev.arena) {
         const g = modal.querySelector(".bt-essgot"); g.hidden = false;
