@@ -98,7 +98,7 @@ const L = require('./bui_lib.js');
     sp = go('undead', 5, 5, 2, 1); const [cx, cy] = sp.chapel.at.split(',').map(Number); r.pos = { x: cx, y: cy }; r.act = 2;
     out.noBeaconMorning = !spButtons().some(x => x.id === 'tier-in:chapel');
     r.act = 3; spAfter(); out.beacon = spButtons().some(x => x.id === 'tier-in:chapel') && r.log.some(l => l.t.includes('маяк'));
-    r.pos = { x: Math.max(0, cx - 3), y: cy }; r.log.length = 0; sp.chapel.chime = 0; r.act = 3; spAfter(); out.chime = r.log.some(l => /Вы слышите звон (близко|недалеко|далеко|очень далеко) на (севере|юге|востоке|западе)/.test(l.t));
+    r.pos = { x: cx >= 3 ? cx - 3 : cx + 3, y: cy }; r.log.length = 0; sp.chapel.chime = 0; r.act = 3; spAfter(); out.chime = r.log.some(l => /Вы слышите звон (близко|недалеко|далеко|очень далеко) на (севере|юге|востоке|западе)/.test(l.t));
     r.pos = { x: cx, y: cy }; r.act = 1; dgUi.spDo = 'tier-in:chapel'; sp.chapel.entered = false; r.act = 3; act('sp'); dgUi.enc && 0;
     out.chapelIn = r.tier && r.tier.k === 'chapel' && r.tier.n === 1 && dgUi.enc && dgUi.enc.list.every(i => i === 'grey-shade' || i === 'morok') && dgUi.enc.list.length >= 2;
     done(dgUi.enc, 'win'); dgUi.enc = null;

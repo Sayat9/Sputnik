@@ -1698,8 +1698,8 @@ const DISTRICTS = [
 
 // Готовые рисованные картинки (webp) заменяют векторные заглушки.
 // Дата сборки для телефона: build.sh вписывает её сюда, в веб-версии строка пустая.
-const APP_BUILD = "24.10.2026 11:38";
-const APP_VERSION = 1792823888;                 // номер сборки, тоже вписывает build.sh
+const APP_BUILD = "24.10.2026 11:47";
+const APP_VERSION = 1792824438;                 // номер сборки, тоже вписывает build.sh
 const UPDATE_URL = "https://raw.githubusercontent.com/Sayat9/Sputnik/main/www/";
 const RASTER = new Set(["items/mace", "items/warhammer", "items/armor-leather", "items/armor-hide", "items/armor-chainmail", "items/steel-dagger", "items/steel-sword", "items/steel-greatsword", "items/steel-shield", "items/steel-tower-shield", "items/shortbow", "items/longbow", "items/rapier", "items/shield", "items/tower-shield", "items/unknown-mushroom", "items/stone-9", "items/stone-8", "items/stone-7", "items/ration", "items/potion", "items/torch", "items/arrows", "items/clothes", "items/shovel", "items/shovel-good", "items/shovel-best", "items/dagger", "items/sword", "items/greatsword", "items/spear", "monsters/goblin-king-face", "monsters/goblin-king-full", "monsters/goblin-bomber-face", "monsters/goblin-bomber-full", "monsters/hobgoblin-shield-face", "monsters/hobgoblin-shield-full", "races/barbarian", "races/human", "races/dwarf", "races/beastkin", "races/fairy", "races/dragon", "monsters/goblin-face", "monsters/goblin-full", "monsters/goblin-archer-face", "monsters/goblin-archer-full", "monsters/goblin-sword-face", "monsters/goblin-sword-full", "monsters/goblin-spear-face", "monsters/goblin-spear-full", "monsters/wolf-face", "monsters/wolf-full", "monsters/fox-face", "monsters/fox-full", "monsters/mouse-face", "monsters/mouse-full", "monsters/bat-face", "monsters/bat-full", "monsters/hobgoblin-face", "monsters/hobgoblin-full", "monsters/zombie-face", "monsters/zombie-full", "monsters/skeleton-face", "monsters/skeleton-full", "monsters/skeleton-archer-face", "monsters/skeleton-archer-full", "monsters/ghoul-face", "monsters/ghoul-full", "monsters/dark-bear-face", "monsters/dark-bear-full", "monsters/skeleton-warrior-face", "monsters/skeleton-warrior-full", "monsters/living-stone-face", "monsters/living-stone-full", "monsters/wisp-face", "monsters/wisp-full", "monsters/pixie-face", "monsters/pixie-full", "monsters/green-boulder-face", "monsters/green-boulder-full", "monsters/stone-guardian-face", "monsters/stone-guardian-full"]);
 const artPath = p => `assets/${p}.${RASTER.has(p) ? "webp" : "svg"}`;
@@ -3791,6 +3791,7 @@ function switchFloor() {
     }
     r.fs[2] = { variant: pi.variant };
     logRun(`Отряд вошёл в портал: 2 этаж, ${FLOOR_NAME[pi.variant]} (день ${r.day}).`);
+    ngEnterFloor(2);
   } else {
     const back = r.fs && r.fs[1];
     r.floor = 1; delete r.variant;
@@ -3887,6 +3888,24 @@ function inventory() {
   return inv;
 }
 const curFloor = () => (state.run && state.run.floor) || 1;
+/* ----- сокровища (черновик, drafts.md → «Сокровища»): по классам, 9 — худший, 1 — лучший ----- */
+const TREASURES = { guard: { cls: 9, name: "Ночной страж", base: 3, perFloor: 2 } };
+function treasure(id) { return ((inventory().treasures ||= {})[id] ||= { owned: false }); }
+// Заряды Ночного стража — на заход: 3, +2 за первый за заход спуск на каждый новый этаж; вернулся и спустился снова — зарядов нет; новый заход сбрасывает.
+function ngState() { const r = state.run; return r ? (r.ng ||= { used: 0, granted: [] }) : { used: 0, granted: [] }; }
+const ngCharges = () => (treasure("guard").owned ? Math.max(0, TREASURES.guard.base + TREASURES.guard.perFloor * ngState().granted.length - ngState().used) : 0);
+function ngEnterFloor(n) {
+  const r = state.run; r.reached ||= [1];
+  if (r.reached.includes(n)) return;
+  r.reached.push(n);
+  if (treasure("guard").owned) { ngState().granted.push(n); logRun(`Ночной страж: +${TREASURES.guard.perFloor} заряда за первый спуск на ${n} этаж (всего ${ngCharges()}).`); }
+}
+const ICO_GUARD = `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M12 3c-4 0-7 3-7 7v5l-1.5 3h17L19 15v-5c0-4-3-7-7-7z" fill="currentColor" opacity=".18"/><path d="M12 3c-4 0-7 3-7 7v5l-1.5 3h17L19 15v-5c0-4-3-7-7-7z"/><path d="M9 21h6"/><circle cx="12" cy="10.5" r="2.4"/><path d="M8.5 10.5C10 8.6 14 8.6 15.5 10.5"/></svg>`;
+function ngInfo() {
+  const g = ngState(), n = ngCharges();
+  showItemInfo(null, null, `<p>Заряды этого захода: <b>${n}</b> (${TREASURES.guard.base} + ${TREASURES.guard.perFloor} за каждый новый этаж, на который отряд спустился в этом заходе${g.granted.length ? `: ${g.granted.map(f => f + "-й").join(", ")}` : ""}; потрачено ${g.used}).</p>`,
+    { name: "Ночной страж", icon: ICO_GUARD, weight: 0, note: "Сокровище 9 класса. Заменяет караульного в Отдыхе: никто не бодрствует, ночной встречи нет. На заход 3 заряда, +2 за первый спуск на новый этаж; после выхода из лабиринта запас сбрасывается." });
+}
 function invItem(id) {
   const inv = inventory();
   if (id === "compass") return inv.compass;
@@ -4180,6 +4199,8 @@ function restOverlay() {
       <div class="ph-head"><h3>Отдых</h3>
         <button class="fx-btn" data-dg="cancel" aria-label="Отменить отдых" style="width:42px;height:42px;padding:0;display:grid;place-items:center">${ICO_X}</button></div>
       <p>Караульный не спит и не получает бонусов отдыха. Спящие снимают 2 уровня Усталости (1, если голодны) и восстанавливают ОЗ: доля от максимума по Усталости (0 → 50%, 1 → 40%, 2 → 30%, 3 → 20%, 4 → 10%) плюс мод. ТЕЛ; голодным вдвое меньше. Справа — сколько пайков съест герой.</p>
+      ${treasure("guard").owned ? `<button class="fx-btn guard" data-dg="ng-toggle" aria-pressed="${!!rs.ng}"${ngCharges() > 0 || rs.ng ? "" : " disabled"} style="display:flex;align-items:center;gap:8px;justify-content:center;width:100%;margin:2px 0 8px"><span style="width:22px;height:22px;display:inline-flex">${ICO_GUARD}</span>Ночной страж · заряды ${ngCharges()}${rs.ng ? " (сторожит эту ночь)" : ""}</button>` : ""}
+      ${rs.ng ? `<p style="color:var(--fx-gold-hi)">Ночной страж сторожит лагерь: все спят, ночной встречи не будет. Потратится 1 заряд.</p>` : ""}
       <div class="rest-list">${state.party.map(c => `<div class="rest-row">
         <div><b>${esc(c.name)}</b><small>${c.dead ? "погиб, не лечится" : rs.guard[c.id] ? "в карауле, не лечится" : (() => { const st = r.status[c.id], hungry = !rs.eat[c.id] && st.starve >= 3;
           const h = Math.min(restHeal(c, st.fat, hungry), maxHp(c) - hpOf(c)); return `спит · ОЗ ${hpOf(c)}/${maxHp(c)} <span style="color:#9fd27a">+${h}</span>`; })()}</small></div>
@@ -4300,6 +4321,7 @@ function renderDungeon() {
         <div class="phase-pill">${pill}</div>
         <div class="zoom"><button class="fx-btn" data-dg="zoom-in" aria-label="Приблизить">+</button><button class="fx-btn" data-dg="zoom-out" aria-label="Отдалить">−</button></div>` : ""}
       ${menu && dgUi.inv ? `<div class="dd l fx-frame">${invItemHtml("compass", "Компас", ICO_COMPASS)}${invItemHtml("map", `Карта ${curFloor()} эт.`, ICO_MAP)}${invItem("mmap").owned ? invItemHtml("mmap", "Магич. карта", ICO_MAP) : ""}
+        ${treasure("guard").owned ? `<button class="inv-item lit" data-dg="ng-info" aria-label="Ночной страж: заряды ${ngCharges()}">${ICO_GUARD}<small>Ночной страж · ${ngCharges()}</small></button>` : ""}
         <button class="inv-item lit" data-dg="library" aria-label="Библиотека: записи о монстрах">${ICO_BOOK}<small>Библиотека</small></button></div>` : ""}
       ${menu && dgUi.sup ? `<div class="dd r fx-frame">
         <span class="fx-eyebrow" style="font-size:11px">Общее снаряжение</span>
@@ -4311,6 +4333,7 @@ function renderDungeon() {
       </div>` : ""}
       ${dgUi.gm ? `<div class="dd r fx-frame" style="top:8px">
         <span class="fx-eyebrow" style="font-size:11px">Мастер</span>
+        <button class="fx-btn" data-dg="give-guard"${treasure("guard").owned ? " disabled" : ""}>Выдать сокровище: Ночной страж</button>
         <button class="fx-btn" data-dg="give-compass"${inv.compass.owned ? " disabled" : ""}>Выдать компас</button>
         <button class="fx-btn" data-dg="give-map"${invItem("map").owned ? " disabled" : ""}>Выдать карту этажа</button>
         <button class="fx-btn" data-dg="give-mmap"${invItem("mmap").owned ? " disabled" : ""}>Выдать магическую карту</button>
@@ -4436,7 +4459,8 @@ function act(kind) {
     tick();
     doSearch(kind);
   } else if (kind === "rest") {
-    const rs = dgUi.rest, sleepers = new Set(state.party.filter(c => !rs.guard[c.id]).map(c => c.id));
+    const rs = dgUi.rest; if (rs.ng && ngCharges() <= 0) rs.ng = false;
+    const sleepers = new Set(state.party.filter(c => !rs.guard[c.id]).map(c => c.id));
     let eaten = 0;
     for (const c of state.party) {
       const n = rs.eat[c.id] || 0, st = r.status[c.id];
@@ -4454,7 +4478,8 @@ function act(kind) {
       st.fat = Math.max(0, st.fat - (st.starve >= 3 ? 1 : 2)); st.awake = 0;
     }
     const guards = state.party.filter(c => rs.guard[c.id]).map(c => c.name);
-    logRun(`Отдых. ${guards.length ? "В карауле: " + guards.join(", ") + ". Ночная встреча на 1 из к6." : "Без караула: встреча на 1–2 из к6, врасплох вся партия."} Съедено пайков: ${eaten}.${healed.length ? " ОЗ: " + healed.join(", ") + "." : ""}`);
+    if (rs.ng) { ngState().used++; logRun(`Отдых. Лагерь сторожит Ночной страж (осталось зарядов: ${ngCharges()}), ночной встречи нет. Съедено пайков: ${eaten}.${healed.length ? " ОЗ: " + healed.join(", ") + "." : ""}`); }
+    else logRun(`Отдых. ${guards.length ? "В карауле: " + guards.join(", ") + ". Ночная встреча на 1 из к6." : "Без караула: встреча на 1–2 из к6, врасплох вся партия."} Съедено пайков: ${eaten}.${healed.length ? " ОЗ: " + healed.join(", ") + "." : ""}`);
   }
   if (kind === "move" || kind === "run") {
     const z = zoneAt(r.pos.x, r.pos.y);
@@ -4469,7 +4494,7 @@ function act(kind) {
     }
   }
   if (kind === "rest") {
-    const guarded = state.party.some(c => dgUi.rest && dgUi.rest.guard[c.id]);
+    const guarded = !!(dgUi.rest && dgUi.rest.ng) || state.party.some(c => dgUi.rest && dgUi.rest.guard[c.id]);
     rollEncounter(guarded ? "rest" : "rest-noguard", Math.max(0, ...state.party.filter(c => dgUi.rest && dgUi.rest.guard[c.id]).map(c => state.run.status[c.id].fat)));
   }
   // Факел горит 4 действия, пока зажжён.
@@ -4631,7 +4656,7 @@ document.addEventListener("click", e => {
     dgUi.phase = ds.act;
     rerender(); return;
   }
-  if (ds.guard) { dgUi.rest.guard[ds.guard] = !dgUi.rest.guard[ds.guard]; rerender(); return; }
+  if (ds.guard) { dgUi.rest.ng = false; dgUi.rest.guard[ds.guard] = !dgUi.rest.guard[ds.guard]; rerender(); return; }
   if (ds.eat) {
     const eaten = Object.values(dgUi.rest.eat).reduce((a, b) => a + b, 0), d = Number(ds.d);
     if (d > 0 && eaten >= partyFood()) return;
@@ -4676,6 +4701,9 @@ document.addEventListener("click", e => {
     case "roll-ok": resolveRoll(); saveChar(); break;
     case "roll-cancel": r.pending = null; saveChar(); break;
     case "library": openLibrary(); return;
+    case "give-guard": treasure("guard").owned = true; saveChar(); toast("Мастер выдал сокровище: Ночной страж"); break;
+    case "ng-info": ngInfo(); return;
+    case "ng-toggle": { const rs = dgUi.rest; if (rs.ng) rs.ng = false; else if (ngCharges() > 0) { rs.ng = true; rs.guard = {}; } break; }
     case "give-compass": inv.compass.owned = true; saveChar(); toast("Мастер выдал компас"); break;
     case "give-map": invItem("map").owned = true; saveChar(); toast("Мастер выдал карту этажа"); break;
     case "give-mmap": invItem("mmap").owned = true; saveChar(); toast("Мастер выдал магическую карту"); break;
