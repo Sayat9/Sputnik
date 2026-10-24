@@ -223,6 +223,9 @@
     await moraleCheck(u, pr);
     if (shouldFlee(u, pr)) { if (await fleeTurn(u)) return; }
     if (u.side === "hero") await aiPotion(u);
+    // Крот гасит факел бонусным действием (решение автора); автобой героев зажигает его снова не более двух раз за бой
+    if (u.side === "mon" && u.pass.includes("giant-mole") && S.torch && B.timeOK(u, "bonus")) { B.spendTime(u, "bonus"); S.torch = false; S.torchLeft = 0; S.torchFixed = false; log(`${u.name} гасит свет: тьма.`, "bad"); ui() && ui().fxText(u, "тьма", "bad"); ui() && ui().refresh(); await sleep(300); }
+    if (u.side === "hero" && u.hero && S.pitDark && !S.torch && (S.torchRelit || 0) < 2 && B.timeOK(u, "action") && (countGear(u.hero, "torch") > 0 || S.torchLeft > 0) && B.lightTorch) { S.torchRelit = (S.torchRelit || 0) + 1; await B.lightTorch(u); }
     // сдавленный/опутанный: пробуем вырваться, если некого бить
     const stuck = has(u, "grappled") || has(u, "trapped") || has(u, "restrained") || has(u, "pinned") || has(u, "buried");
     const es = targetsOf(u); if (!es.length) return;

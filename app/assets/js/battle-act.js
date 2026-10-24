@@ -354,13 +354,28 @@
     await ses.finish({ text: got ? `Восстановлено ${got} ОЗ` : "Лечение не подействовало", heal: true, tgt: t, dmg: got });
     return true;
   }
+  // Факел в бою (решение автора): зажечь — полное действие; один заряд (факел из рюкзака) горит 3 раунда; потушить можно (бонусным действием), остаток раундов сохраняется.
+  const TORCH_ROUNDS = 3;
   async function lightTorch(u) {
     const S = B.S;
-    if (S.torch) { UI().toast("Свет уже есть"); return false; }
-    if (!takeGear(u.hero, "torch", 1)) return false;
-    spendTime(u, "bonus"); S.torch = true; S.torchLit = true;
-    log(`${u.name} зажигает факел: тьма отступает.`, "good"); UI().fxText(u, "свет", "good"); UI().refresh(); return true;
+    if (S.torch) { ui() && ui().toast("Свет уже есть"); return false; }
+    if (!(S.torchLeft > 0) && !takeGear(u.hero, "torch", 1)) return false;
+    if (!(S.torchLeft > 0)) S.torchLeft = TORCH_ROUNDS;
+    spendTime(u, "action"); S.torch = true; S.torchBy = u.id;
+    log(`${u.name} зажигает факел: тьма отступает (раундов света: ${S.torchLeft}).`, "good"); if (ui()) { ui().fxText(u, "свет", "good"); ui().refresh(); } return true;
   }
+  async function douseTorch(u) {
+    const S = B.S; if (!S.torch || S.torchFixed) return false;
+    spendTime(u, "bonus"); S.torch = false;
+    log(`${u.name} тушит факел (осталось раундов света: ${S.torchLeft}).`); if (ui()) { ui().fxText(u, "тьма", "bad"); ui().refresh(); } return true;
+  }
+  B.lightTorch = lightTorch;
+  const prevRoundT = B.onRound;
+  B.onRound = function (round) {
+    if (prevRoundT) prevRoundT.apply(this, arguments);
+    const S = B.S; if (!S || !S.torch || S.torchFixed || typeof S.torchLeft !== "number") return;
+    if (--S.torchLeft <= 0) { S.torch = false; S.torchLeft = 0; log("Факел догорел: тьма возвращается.", "bad"); if (ui()) { ui().banner("Факел догорел"); ui().refresh(); } }
+  };
   async function coverAlly(u) {
     const near = alliesOf(u).filter(a => dist(u, a) <= 1 && !a.down);
     if (!near.length) { UI().toast("Прикрыть можно союзника рядом"); return false; }
@@ -533,7 +548,7 @@
     if (B.S.objs.some(o => o.kind === "trap" && o.hidden) || B.mons().some(m => B.isUnseen(m) && alive(m))) opts.push(simple("search", "Осмотреться", "search", "найти скрытые ловушки и затаившихся врагов", () => doSearch(u), { enabled: !act, why: act }));
     // предметы
     if (B.envActions) opts.push(...B.envActions(u));                                                // находки, сундуки
-    const c = u.hero, bon = timeWhy(u, "bonus");
+    const c = u.hero, bon = timeWhy(u, "bonus"), act0 = timeWhy(u, "action");
     for (const pid of ["potion-good", "potion"]) if (countGear(c, pid) > 0) {
       const P = POTIONS[pid], hurt = [u, ...alliesOf(u).filter(a => dist(u, a) <= 1 && !a.dead)].some(a => a.hp < a.maxHp);       // без раненых рядом зелье бесполезно: автоконец хода его не ждёт
       opts.push({ id: pid, cat: "item", label: pid === "potion" ? "Слабое зелье лечения" : "Зелье лечения", ico: "potion", sub: `${P.n}к${P.s} + ${P.b} · осталось ${countGear(c, pid)}`, time: "bonus", enabled: !bon, why: bon, useless: !hurt, run: () => usePotion(u, pid) });
@@ -542,7 +557,8 @@
       opts.push({ id: "chalice", cat: "item", label: "Чаша здоровья", ico: "potion", sub: `${P.n}к${P.s} + ${P.b} · после питья чаша пуста`, time: "bonus", enabled: !bon, why: bon, useless: !hurt, run: () => usePotion(u, "chalice") }); }
     if (chalicesOf(c, "empty").length) { const wet = (() => { for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { const t = B.tinfo(u.x + dx, u.y + dy); if (t && t.wet) return true; } return false; })();
       opts.push({ id: "chalice-fill", cat: "item", label: "Набрать воды в чашу", ico: "potion", sub: "рядом лужа или пруд: через 2 дня вода станет зельем", time: "bonus", enabled: !bon && wet, why: bon || "нет воды рядом", useless: true, run: async () => { chaliceFill(chalicesOf(c, "empty")[0]); spendTime(u, "bonus"); log(`${u.name} набирает воды в чашу здоровья.`, "good"); return true; } }); }
-    if (countGear(c, "torch") > 0 && B.S.dark && !B.S.torch) opts.push({ id: "torch", cat: "item", label: "Зажечь факел", ico: "torch", sub: "освещает поле, убирает штрафы тьмы", time: "bonus", enabled: !bon, why: bon, run: () => lightTorch(u) });
+    if ((countGear(c, "torch") > 0 || B.S.torchLeft > 0) && B.S.dark && !B.S.torch) opts.push({ id: "torch", cat: "item", label: "Зажечь факел", ico: "torch", sub: B.S.torchLeft > 0 ? `полное действие · догорит через ${B.S.torchLeft} р.` : "полное действие · один факел светит 3 раунда", time: "action", enabled: !act0, why: act0, run: () => lightTorch(u) });
+    if (B.S.dark && B.S.torch && !B.S.torchFixed) opts.push({ id: "douse", cat: "item", label: "Потушить факел", ico: "torch", sub: `доп. действие · остаток света ${B.S.torchLeft} р. сохранится`, time: "bonus", enabled: !bon, why: bon, run: () => douseTorch(u) });
     const off = c.equip.off ? itemOf(c.equip.off) : null, main = B.mainOf(u);
     if (off && off.id === "shield") opts.push({ id: "shieldbash", cat: "attack", label: "Удар щитом", ico: "shield", sub: "щитом · толчок, доп. действие", time: "bonus", enabled: !bon && enemiesOf(u).some(e => dist(u, e) <= 1), why: bon || "нет врага рядом", run: () => doShove(u, "bonus") });
     if (main && main.id === "tower-shield") opts.push({ id: "cover", cat: "other", label: "Прикрыть союзника", ico: "shield", sub: "+2 КД союзнику рядом до вашего хода", time: "bonus", enabled: !bon && alliesOf(u).some(a => dist(u, a) <= 1 && !a.down), why: bon || "нет союзника рядом", run: () => coverAlly(u) });

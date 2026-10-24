@@ -203,6 +203,7 @@
       if (atk.range && d0 > atk.range[0]) ctx.dis.push("дальняя дистанция");
       if (att.side === "hero" && B.inDark(att) && !att.dv) ctx.dis.push("тьма");
     }
+    if (B.S.pitDark && att.side === "hero" && !B.lightAt(att.x, att.y)) ctx.dis.push("кромешная тьма: без света");          // решение автора: на дне пещеры без света герой бьёт с помехой, даже с тёмным зрением
     // КД: укрытие и бонусы
     let cover = melee ? (d0 > 1 ? coverBetween(att, tgt) : 0) : coverBetween(att, tgt);
     const tc = tinfo(tgt.x, tgt.y); if (!melee && tc && tc.cover) cover = Math.max(cover, tc.cover);
@@ -407,7 +408,8 @@
   }
   async function provoke(u, nx, ny) {
     for (const e of enemiesOf(u)) {
-      if (!canAct(e) || !e.t.react || e.t.noReact || e.kind === "double" || !canSeeUnit(e, u)) continue;          // атаку по возможности делает только тот, кто видит уходящего; двойник — только своей атакой в свой ход
+      if (!canAct(e) || !e.t.react || e.t.noReact || e.kind === "double" || !canSeeUnit(e, u)) continue;
+      if (B.S.pitDark && e.side === "hero" && !B.lightAt(e.x, e.y)) continue;          // решение автора: без света герои не делают атак по возможности          // атаку по возможности делает только тот, кто видит уходящего; двойник — только своей атакой в свой ход
       const r = B.meleeReach(e);
       if (dist(e, u) <= r && B.distAt(e, u, nx, ny) > r && B.meleeReach(e) >= 1 && !hookAny(u, "noProvoke", { e })) {          // distAt: расстояние до u, как если бы он стоял в (nx, ny)
         if (!(await offerOpportunity(e, u))) continue;

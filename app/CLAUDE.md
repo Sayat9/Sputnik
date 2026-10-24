@@ -108,3 +108,4 @@
 - `spNotice(title, text)` в index.html — сообщения часовни/гнезда окном (`dgUi.res`). `BATTLE_REV` = 20.
 - Тест: `tools/battle-tests/bnew4.js`. Промпты монстров 2 этажа: `docs/monster-prompts-floor2.md`.
 - Четвёртая пачка: штраф Ловкости от щита/«Великана» — `gearDexPenalty` в `totals()` (index.html); вращающийся удар — `atk.spin`, `SPIN_MAIN/SIDE` в battle-act.js; Сл побега — `fleeDc()`; переброс в `B.massSave`/`UI.summary`; скорость — `cellsOfM`. `BATTLE_REV` = 21. Тест: `bnew5.js`.
+- Пятая пачка: факел в бою — `lightTorch/douseTorch` (battle-act.js), `S.torchLeft`, `S.torchFixed`, `S.pitDark` (бой с кротом: тьма, помеха без света, нет атак по возможности у героев); крот гасит факел в `AI.takeTurn`. Свита короля — `kingEscort()` в index.html. `BATTLE_REV` = 23. Баланс-скрипты: `bbal4.js`, `bbal4b.js`.

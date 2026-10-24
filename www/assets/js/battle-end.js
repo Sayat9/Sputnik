@@ -40,7 +40,6 @@
       if (c.dead) c.hp = 0;
       if (S.ev && S.ev.arena) { c.dead = false; c.hp = Math.max(1, c.hp); }          // на арене не умирают: упавших поднимают администраторы с 1 ОЗ
     }
-    if (S.torchLit && state.run && !state.run.light) { state.run.light = true; state.run.torchLeft = 4; }
   }
 
   function rewardsPlan(S, outcome) {
