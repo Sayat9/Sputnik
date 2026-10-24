@@ -1698,8 +1698,8 @@ const DISTRICTS = [
 
 // Готовые рисованные картинки (webp) заменяют векторные заглушки.
 // Дата сборки для телефона: build.sh вписывает её сюда, в веб-версии строка пустая.
-const APP_BUILD = "23.10.2026 18:54";
-const APP_VERSION = 1792763692;                 // номер сборки, тоже вписывает build.sh
+const APP_BUILD = "24.10.2026 11:38";
+const APP_VERSION = 1792823888;                 // номер сборки, тоже вписывает build.sh
 const UPDATE_URL = "https://raw.githubusercontent.com/Sayat9/Sputnik/main/www/";
 const RASTER = new Set(["items/mace", "items/warhammer", "items/armor-leather", "items/armor-hide", "items/armor-chainmail", "items/steel-dagger", "items/steel-sword", "items/steel-greatsword", "items/steel-shield", "items/steel-tower-shield", "items/shortbow", "items/longbow", "items/rapier", "items/shield", "items/tower-shield", "items/unknown-mushroom", "items/stone-9", "items/stone-8", "items/stone-7", "items/ration", "items/potion", "items/torch", "items/arrows", "items/clothes", "items/shovel", "items/shovel-good", "items/shovel-best", "items/dagger", "items/sword", "items/greatsword", "items/spear", "monsters/goblin-king-face", "monsters/goblin-king-full", "monsters/goblin-bomber-face", "monsters/goblin-bomber-full", "monsters/hobgoblin-shield-face", "monsters/hobgoblin-shield-full", "races/barbarian", "races/human", "races/dwarf", "races/beastkin", "races/fairy", "races/dragon", "monsters/goblin-face", "monsters/goblin-full", "monsters/goblin-archer-face", "monsters/goblin-archer-full", "monsters/goblin-sword-face", "monsters/goblin-sword-full", "monsters/goblin-spear-face", "monsters/goblin-spear-full", "monsters/wolf-face", "monsters/wolf-full", "monsters/fox-face", "monsters/fox-full", "monsters/mouse-face", "monsters/mouse-full", "monsters/bat-face", "monsters/bat-full", "monsters/hobgoblin-face", "monsters/hobgoblin-full", "monsters/zombie-face", "monsters/zombie-full", "monsters/skeleton-face", "monsters/skeleton-full", "monsters/skeleton-archer-face", "monsters/skeleton-archer-full", "monsters/ghoul-face", "monsters/ghoul-full", "monsters/dark-bear-face", "monsters/dark-bear-full", "monsters/skeleton-warrior-face", "monsters/skeleton-warrior-full", "monsters/living-stone-face", "monsters/living-stone-full", "monsters/wisp-face", "monsters/wisp-full", "monsters/pixie-face", "monsters/pixie-full", "monsters/green-boulder-face", "monsters/green-boulder-full", "monsters/stone-guardian-face", "monsters/stone-guardian-full"]);
 const artPath = p => `assets/${p}.${RASTER.has(p) ? "webp" : "svg"}`;
@@ -3123,6 +3123,7 @@ const FLOOR2 = {
       if (x === 10 && y === 10) return { name: "Топь (угол)", special: ["swamp-fang"] };
       if (x <= 1 && y <= 1) return { name: "Медвежья пещера", std: [["bat", 3], ["burrower", 2]] };
       if (x >= 8 && y >= 8) return { name: "Топь", std: [["bat", 3], ["swamp-toad", 3]] };
+      if (x >= 9 && y <= 1) return { name: "Руины зданий", ruins: true, std: [["wolf", 3], ["fox", 2], ["mouse", 1], ["horned-hare", 1], ["crow", 2]] };          // 2 × 2 у выходного портала (сам портал безопасен); чуть больше находок
       if (x >= 8 && y >= 4 && y <= 6) return { name: "Паучьи кроны", cap: 3, std: [["web-spider", 4], ["crow", 1]] };
       if (x >= 4 && x <= 7 && y >= 3 && y <= 6) return { name: "Волчьи холмы", std: [["wolf", 5]], pack: true, combos: [{ p: .12, day: 3, list: ["werewolf"] }] };
       return { name: "Чаща", std: [["wolf", 3], ["fox", 2], ["mouse", 1], ["horned-hare", 1], ["crow", 2]] };
@@ -3178,7 +3179,11 @@ const EVENT_TABLE = [
   [1, "ambush", "Засада"], [4, "hard", "Тяжёлая встреча"], [9, "mid", "Средняя встреча"], [12, "easy", "Лёгкая встреча"],
   [16, "empty", "Пусто"], [17, "bandits", "Бандиты"], [18, "find", "Находка"], [19, "traveler", "Путник"], [99, "good", "Хорошее событие"]];
 const MON_EVENTS = new Set(["ambush", "hard", "mid", "easy"]);
-const eventOf = n => EVENT_TABLE.find(([max]) => n <= max);
+// Руины зданий (Волчья чаща): находка выпадает вдвое чаще (на 16 и 18 вместо 18), пусто — на 13–15.
+const EVENT_RUINS = [[1, "ambush", "Засада"], [4, "hard", "Тяжёлая встреча"], [9, "mid", "Средняя встреча"], [12, "easy", "Лёгкая встреча"],
+  [15, "empty", "Пусто"], [16, "find", "Находка"], [17, "bandits", "Бандиты"], [18, "find", "Находка"], [19, "traveler", "Путник"], [99, "good", "Хорошее событие"]];
+const eventOf = (n, ruins) => (ruins ? EVENT_RUINS : EVENT_TABLE).find(([max]) => n <= max);
+const isRuins = (x, y) => !!(state.run && state.run.floor === 2 && (FL().variant.placeAt(x, y) || {}).ruins);
 const EVENT_TEXT = {
   empty: "Пустой фрагмент: старые следы, кости, ничего полезного.",
   bandits: "Бандиты-выживальщики требуют плату за проход или нападают. Разыгрывает мастер.",
@@ -3555,7 +3560,7 @@ function resolveRoll() {
     dgUi.enc = ev; return;
   }
   const n = p.pick - (p.dark ? 2 : 0) - (p.blood ? 2 : 0);
-  let [, kind, title] = eventOf(Math.max(1, n));
+  let [, kind, title] = eventOf(Math.max(1, n), isRuins(p.x, p.y));
   if (p.monsters && !MON_EVENTS.has(kind)) [, kind, title] = eventOf(12);
   const ev = { kind, title, raw: p.pick, n, dark: p.dark, blood: p.blood, cause: p.cause };
   const rollTxt = `к20 = ${p.pick}${p.dark ? " − 2 (тьма)" : ""}${p.blood ? " − 2 (чует кровь)" : ""}${p.dark || p.blood ? ` = ${n}` : ""}`;
@@ -3591,11 +3596,15 @@ const SEARCH_TABLE = {
   dig: [[2, "none"], [5, "stones", 2, 4], [9, "stones", 4, 7], [13, "monType"], [17, "stones", 5, 8], [20, "stones", 7, 10]],
   "explore-special": [[5, "none"], [8, "stones", 1, 2], [10, "stones", 2, 4], [13, "monName"], [15, "monCount"], [18, "secret"], [20, "secretBig"]],
   "dig-special": [[3, "none"], [6, "stones", 2, 4], [9, "stones", 4, 7], [11, "monType"], [16, "secret"], [19, "supplies"], [20, "luck"]],
+  // Руины зданий: те же подсказки, но вместо части камней — расходники (9–10) и оружие или броня (на 20 / 17–18 раскопок), 15–20 % против 0.
+  "explore-ruins": [[3, "none"], [6, "stones", 1, 2], [8, "stones", 2, 4], [10, "supplies"], [13, "monName"], [16, "monCount"], [19, "special"], [20, "gear"]],
+  "dig-ruins": [[2, "none"], [5, "stones", 2, 4], [8, "stones", 4, 7], [10, "supplies"], [13, "monType"], [16, "stones", 5, 8], [18, "gear"], [20, "stones", 7, 10]],
 };
+const searchKey = (kind, sp) => kind + (sp ? "-special" : isRuins(state.run.pos.x, state.run.pos.y) ? "-ruins" : "");
 // Бросок удачи (к20 + удача копающего) — только при 20 на раскопках в особом месте. Чем выше, тем лучше.
 const LUCK_TABLE = [[10, "supplies3"], [13, "floorMap"], [16, "gear"], [19, "magicMap"], [99, "two"]];
 const SEARCH_ROWS_TEXT = { none: "ничего", stones: "камни", monName: "кто здесь водится", monCount: "сколько неизвестных монстров", special: "где особое место",
-  monType: "тип неизвестного монстра", secret: "подсказка о тайне", secretBig: "крупная подсказка о тайне", supplies: "расходники", luck: "бросок удачи" };
+  monType: "тип неизвестного монстра", secret: "подсказка о тайне", secretBig: "крупная подсказка о тайне", supplies: "расходники", gear: "оружие или броня", luck: "бросок удачи" };
 // Камни: на 1 этаже только 9-го класса; со 2 этажа каждый камень — 8-го класса с шансом STONE8_P (8-й в 3 раза дороже).
 const STONE8_P = { explore: .15, dig: .25 };
 function giveStones(n, kind) {
@@ -3679,6 +3688,7 @@ function searchReward(row, sr, digger, lines) {
   }
   if (kind === "secret" || kind === "secretBig") { lines.push(`${kind === "secretBig" ? "Крупная подсказка" : "Подсказка"} о тайне места «${specialAt(r.pos.x, r.pos.y).name}». Мастер, расскажи её отряду.`); return; }
   if (kind === "supplies") { lines.push(...giveSupplies(2)); return; }
+  if (kind === "gear") { luckReward("gear", lines); return; }
   if (kind === "luck") {
     const luck = digger ? luckOf(digger.c) : 1, total = sr.luck + luck;
     const lr = LUCK_TABLE.find(([max]) => total <= max);
@@ -3696,13 +3706,13 @@ function doSearch(kind) {
       if (digger.e.uses <= 0) { digger.c.bag.splice(digger.i, 1); lines.push(`${GEAR[digger.e.id].name} (${digger.c.name}) сломалась.`); }
     }
   }
-  const row = SEARCH_TABLE[kind + (sp ? "-special" : "")].find(([max]) => sr.pick <= max);
+  const row = SEARCH_TABLE[searchKey(kind, sp)].find(([max]) => sr.pick <= max);
   searchReward(row, sr, digger, lines);
   if (kind === "explore") {                              // тайники с компасом и картой (как раньше)
     const k = tkey(r.pos.x, r.pos.y), found = Object.entries(r.caches || {}).find(([, c]) => c === k);
     if (found && !invItem(found[0]).owned) { invItem(found[0]).owned = true; lines.push(`В тайнике найден${found[0] === "map" ? "а карта этажа" : " компас"}! Удерживай его в инвентаре, чтобы зажечь.`); }
   }
-  const title = (kind === "dig" ? "Раскопки" : "Исследование") + (sp ? ` · ${sp.name}` : "");
+  const title = (kind === "dig" ? "Раскопки" : "Исследование") + (sp ? ` · ${sp.name}` : isRuins(r.pos.x, r.pos.y) ? " · Руины зданий" : "");
   logRun(`${title} (к20 = ${sr.pick}): ${lines.join(" ")}`);
   dgUi.res = { title, roll: `к20 = ${sr.pick}`, lines };
 }
@@ -3724,12 +3734,12 @@ function searchOverlay() {
   const r = state.run, sr = dgUi.sr, kind = dgUi.phase, sp = specialAt(r.pos.x, r.pos.y), sh = kind === "dig" ? pickShovel() : null;
   const needLuck = kind === "dig" && sp && sr.pick === 20;
   const grid = (key, cur) => `<div class="roll-grid">${Array.from({ length: 20 }, (_, i) => `<button class="fx-btn${cur === i + 1 ? " on" : ""}" data-dg="${key}" data-n="${i + 1}">${i + 1}</button>`).join("")}</div>`;
-  const table = SEARCH_TABLE[kind + (sp ? "-special" : "")];
+  const table = SEARCH_TABLE[searchKey(kind, sp)];
   return `<div class="mapov" role="dialog" aria-modal="true" aria-label="${kind === "dig" ? "Копать" : "Исследовать"}">
     <div class="panel fx-frame enc-panel">
       <div class="ph-head"><h3>${kind === "dig" ? "Копать" : "Исследовать"}</h3>
         <button class="fx-btn" data-dg="cancel" aria-label="Отменить" style="width:42px;height:42px;padding:0;display:grid;place-items:center">${ICO_X}</button></div>
-      <p>${sp ? `<b style="color:var(--fx-gold-hi)">Особое место: ${sp.name}.</b> ` : ""}Брось к20 и нажми выпавшее число. Займёт одно действие${kind === "dig" && sh ? `; копает ${esc(sh.c.name)}: ${GEAR[sh.e.id].name.toLowerCase()}, осталось раскопок ${sh.e.uses}` : ""}.</p>
+      <p>${sp ? `<b style="color:var(--fx-gold-hi)">Особое место: ${sp.name}.</b> ` : isRuins(r.pos.x, r.pos.y) ? `<b style="color:var(--fx-gold-hi)">Руины зданий:</b> находок чуть больше. ` : ""}Брось к20 и нажми выпавшее число. Займёт одно действие${kind === "dig" && sh ? `; копает ${esc(sh.c.name)}: ${GEAR[sh.e.id].name.toLowerCase()}, осталось раскопок ${sh.e.uses}` : ""}.</p>
       <p class="sr-table">${table.map(([max, k], i) => `<span>${i ? table[i - 1][0] + 1 : 1}–${max} ${SEARCH_ROWS_TEXT[k]}</span>`).join("")}</p>
       ${grid("sr-n", sr.pick)}
       ${needLuck ? `<p><b style="color:var(--fx-gold-hi)">20! Бросок удачи:</b> брось к20 ещё раз, к нему прибавится удача ${esc(sh ? sh.c.name : "")} (${signed(sh ? luckOf(sh.c) : 1)}).</p>${grid("sr-l", sr.luck)}` : ""}
@@ -3936,6 +3946,12 @@ const viewRot = () => { const r = state.run; return ((r.hidden + r.spin) % 360 +
 /* ----- оформление квадратов: цвет и мелкие рисунки по зоне (гоблины, звери, нежить, элементы) ----- */
 const TILE_TINT = { goblin: ["#4c4426", "#2a2414"], beast: ["#344a26", "#1c2a14"], undead: ["#423e4a", "#221f28"], stone: ["#3c4650", "#1e242a"], safe: ["#5a4c36", "#33291c"] };
 const DECO = {
+  ruins: [
+    `<path d="M-9 6 V-4 h4 v-3 h3 v3 h4 v10Z" fill="#7a7468" stroke="#33302a"/><path d="M-5 6 V0 h2 V6Z" fill="#1a160f"/>`,
+    `<rect x="-3" y="-8" width="6" height="15" fill="#8a8478" stroke="#33302a"/><path d="M-5 -8 h10" stroke="#33302a" stroke-width="2"/><path d="M-1 -2 l2 3" stroke="#33302a"/>`,
+    `<path d="M-8 6 l3 -7 l5 3 l4 -5 l4 9Z" fill="#6a665c" stroke="#33302a"/><path d="M-2 0 l4 2" stroke="#33302a"/>`,
+    `<path d="M-8 7 V1 h5 V-3 h4 v4 h6 V7Z" fill="#5d5a50" stroke="#2a2822"/><path d="M-3 7 V3 h3 v4" fill="#1a160f"/>`,
+  ],
   goblin: [
     `<path d="M-9 6 L0 -9 L9 6Z" fill="#6b4a2a" stroke="#2a1a0c"/><path d="M-2 6 L0 0 L2 6Z" fill="#1a1008"/><path d="M0 -9 L-2 -13 M0 -9 L3 -12" stroke="#8a6a3a"/>`,
     `<circle r="6" fill="none" stroke="#6e6658" stroke-width="2.4" stroke-dasharray="2.5 1.5"/><path d="M0 3 C-3 0 -1 -2 0 -6 C1 -2 3 0 0 3Z" fill="#e8902c"/>`,
@@ -3977,7 +3993,7 @@ const tileFill = (x, y) => `url(#tile-${tileZone(x, y)})`;
 function tileDeco(x, y) {
   const zone = tileZone(x, y);
   if (zone === "safe") return `<g opacity=".5" stroke="#2a2016" stroke-width="1.2" fill="none"><path d="M-28 -9 H28 M-28 9 H28 M-10 -28 V-9 M10 -9 V9 M-10 9 V28 M18 -28 V-9 M-18 -9 V9 M18 9 V28"/></g>`;
-  const set = DECO[zone], n = 2 + tileHash(x, y, 1) % 2, used = new Set(), out = [];
+  const set = isRuins(x, y) ? DECO.ruins : DECO[zone], n = 2 + tileHash(x, y, 1) % 2, used = new Set(), out = [];
   for (let i = 0; i < n; i++) {
     let s = tileHash(x, y, 10 + i) % DECO_SLOTS.length;
     while (used.has(s)) s = (s + 1) % DECO_SLOTS.length;

@@ -56,6 +56,7 @@ const L = require('./bui_lib.js');
   ok('закрытые врата не пускают', await p.evaluate(() => location.hash === '#town'));
   await p.evaluate(() => { townClock().t = 5; rerender(); }); await p.click('[data-bld="gate"]');
   ok('открытые врата пускают', await p.evaluate(() => location.hash === '#labyrinth'));
+  await p.waitForFunction(() => state.run && state.run.status && state.run.status.h0, null, { timeout: 5000 }).catch(() => {});
   ok('усталость и сытость перешли в заход', await p.evaluate(() => state.run && state.run.status.h0.sat === 9 && state.run.status.h0.fat === 0));
   await p.evaluate(() => { state.run.status.h0.fat = 3; state.run.status.h0.sat = 1; endRun(true); });
   ok('endRun сохраняет усталость в carry', await p.evaluate(() => state.party[0].carry && state.party[0].carry.fat === 3 && townClock().back === true));
