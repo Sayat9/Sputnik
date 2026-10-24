@@ -1,167 +1,84 @@
-# Промпты монстров 2 этажа (без портретов)
+# Промпты монстров 2 этажа
 
-Формат: полный рост 1024 × 1536 (2:3); иконку лица автор вырезает из него сам. Общий хвост в каждом промпте — стиль из `docs/art-style.md` (тёмный каменный пол, янтарный контровой свет справа сверху, реалистичная живопись). Описания составлены по названиям и статам; правьте по вкусу.
-Уже есть картинки: Король гоблинов, Гоблин-бомбардир, Хобгоблин-щитовик.
+Формат: полный рост 1024 × 1536 (2:3); иконку лица автор вырезает из него сам (в приложение лица пока кадрирует Claude).
+**Правило (решение автора):** окружение и освещение подбираются под монстра: нежить — кладбище, склеп, часовня, туман и холодный серый свет; гоблины — лагерь или лес, тёплый свет огня; звери — их среда. Единого янтарного контрового света больше нет.
 
-**Первым — Паучиха-матка.**
+Хвост для всех промптов: `full body, 2:3 vertical, 1024x1536, dark moody fantasy, realistic painterly style, highly detailed, no text`
 
-## Паучиха-матка (7) — `spider-queen`
-> `huge matriarch spider, bloated armored abdomen with pale egg-sacs and swarming tiny spiderlings crawling from under its belly, eight long jointed legs, cluster of glowing amber eyes, dark chitin with grey web-dust, torn silk strands hanging from its legs, standing in a ruined canopy of thick webs, afraid of fire (scorched leg tips), full body, standing on a dark stone dungeon floor, dark background with warm amber rim light from the upper right, realistic painterly fantasy style, 2:3 vertical, 1024x1536, no text`
+## Ещё нужны картинки
 
-Файлы: `assets/monsters/spider-queen-full.webp`, `assets/monsters/spider-queen-face.webp` (затем добавить в `RASTER`).
+### Паук-сетепряд (8) — `web-spider`
+> `large web-weaving spider the size of a dog, banded dark-brown legs, spinneret dripping silk, half-wrapped prey cocoon behind it, standing among thick webs between dark tree trunks in a gloomy forest, dim green-amber light through the leaves, full body, 2:3 vertical, 1024x1536, dark moody fantasy, realistic painterly style, highly detailed, no text`
 
-## Паук-сетепряд (8) — `web-spider`
-> `large web-weaving spider the size of a dog, banded dark-brown legs, spinneret dripping sticky silk, several eyes catching light, half-wrapped prey cocoon behind it, full body, standing on a dark stone dungeon floor, dark background with warm amber rim light from the upper right, realistic painterly fantasy style, 2:3 vertical, 1024x1536, no text`
+### Гоблин-шаман (9) — `goblin-shaman`
+> `small hunched goblin shaman, patchwork hide robe with bead and bone necklaces, gnarled staff topped with a skull and feathers, glowing yellow-green eyes, painted face, standing goblin forest camp at dusk with totems, hide tents and a smoldering fire, warm firelight with green forest shadows, full body, 2:3 vertical, 1024x1536, dark moody fantasy, realistic painterly style, highly detailed, no text`
 
-Файлы: `assets/monsters/web-spider-full.webp`, `assets/monsters/web-spider-face.webp` (затем добавить в `RASTER`).
+### Гоблин-ассасин (8) — `goblin-assassin`
+> `lean goblin assassin in dark rags and hood, two curved knives held low, crouching, cloth over lower face, standing shadowy forest undergrowth at night, thin cold moonlight through leaves, full body, 2:3 vertical, 1024x1536, dark moody fantasy, realistic painterly style, highly detailed, no text`
 
-## Гоблин-шаман (9) — `goblin-shaman`
-> `small hunched goblin shaman, patchwork hide robe with bead and bone necklaces, gnarled staff topped with a skull and feathers, glowing yellow-green eyes, painted face, full body, standing on a dark stone dungeon floor, dark background with warm amber rim light from the upper right, realistic painterly fantasy style, 2:3 vertical, 1024x1536, no text`
+### Гоблин-зверолов (8) — `goblin-trapper`
+> `goblin trapper with coils of rope, a net and bear-trap at the belt, patched leather vest, wooden snare-pole, standing forest trail with snares and nets hanging from branches, dappled green-gold daylight, full body, 2:3 vertical, 1024x1536, dark moody fantasy, realistic painterly style, highly detailed, no text`
 
-Файлы: `assets/monsters/goblin-shaman-full.webp`, `assets/monsters/goblin-shaman-face.webp` (затем добавить в `RASTER`).
+### Главный шаман (8) — `goblin-elder`
+> `old goblin elder shaman, white beard braids, heavy totem staff with animal skulls, cloak of crow feathers and bones, cloudy glowing eyes, standing goblin ritual clearing with a bonfire and bone totems, flickering orange firelight and smoke, full body, 2:3 vertical, 1024x1536, dark moody fantasy, realistic painterly style, highly detailed, no text`
 
-## Гоблин-ассасин (8) — `goblin-assassin`
-> `lean goblin assassin in dark rags and hood, two curved knives held low, crouching stance, scarred ears, cloth covering lower face, full body, standing on a dark stone dungeon floor, dark background with warm amber rim light from the upper right, realistic painterly fantasy style, 2:3 vertical, 1024x1536, no text`
+### Хобгоблин-громила (8) — `hobgoblin-brute`
+> `massive hobgoblin brute, scarred muscular body, crude plate scraps strapped on, huge spiked club, red-brown skin, standing goblin war camp in a forest clearing with spiked palisade, warm overcast daylight, full body, 2:3 vertical, 1024x1536, dark moody fantasy, realistic painterly style, highly detailed, no text`
 
-Файлы: `assets/monsters/goblin-assassin-full.webp`, `assets/monsters/goblin-assassin-face.webp` (затем добавить в `RASTER`).
+### Хобгоблин-метатель (8) — `hobgoblin-thrower`
+> `tall hobgoblin thrower with bandolier of throwing axes and javelins, mid-throw pose, leather bracers, standing goblin forest camp edge with stacked spears and a palisade, warm late-afternoon light, full body, 2:3 vertical, 1024x1536, dark moody fantasy, realistic painterly style, highly detailed, no text`
 
-## Гоблин-зверолов (8) — `goblin-trapper`
-> `goblin trapper with coils of rope, a net and bear-trap hanging at the belt, patched leather vest, wooden snare-pole in hand, wary squint, full body, standing on a dark stone dungeon floor, dark background with warm amber rim light from the upper right, realistic painterly fantasy style, 2:3 vertical, 1024x1536, no text`
+### Хобгоблин-загонщик (8) — `hobgoblin-driver`
+> `hobgoblin beast-driver with a long barbed whip and a horn at the belt, spiked shoulder pads, chains at the belt, standing forest path with a wolf pen and wooden stakes, warm dusty evening light, full body, 2:3 vertical, 1024x1536, dark moody fantasy, realistic painterly style, highly detailed, no text`
 
-Файлы: `assets/monsters/goblin-trapper-full.webp`, `assets/monsters/goblin-trapper-face.webp` (затем добавить в `RASTER`).
+### Гоблин-вор (7) — `goblin-thief`
+> `sly goblin thief with a hooked grin, bulging pouch of loot, lockpicks and a short dagger, tiptoeing, stolen jewelry, standing dim thieves' den cellar with crates and chests, warm candle and lantern light, full body, 2:3 vertical, 1024x1536, dark moody fantasy, realistic painterly style, highly detailed, no text`
 
-## Главный шаман (8) — `goblin-elder`
-> `old goblin elder shaman, long white beard braids, heavy totem staff with animal skulls, cloak of crow feathers and bones, cloudy glowing eyes, tribal paint, full body, standing on a dark stone dungeon floor, dark background with warm amber rim light from the upper right, realistic painterly fantasy style, 2:3 vertical, 1024x1536, no text`
+### Рогатый заяц (9) — `horned-hare`
+> `large hare with branching antlers, powerful hind legs, wild eyes, mud-brown fur, ready to charge, standing meadow edge of a dark wild thicket, soft green-gold morning light, full body, 2:3 vertical, 1024x1536, dark moody fantasy, realistic painterly style, highly detailed, no text`
 
-Файлы: `assets/monsters/goblin-elder-full.webp`, `assets/monsters/goblin-elder-face.webp` (затем добавить в `RASTER`).
+### Болотная жаба (9) — `swamp-toad`
+> `huge warty swamp toad, slimy green-brown skin, swollen throat sac, wet glistening eyes, standing swamp pond with reeds and lily pads, hazy greenish light, mist, full body, 2:3 vertical, 1024x1536, dark moody fantasy, realistic painterly style, highly detailed, no text`
 
-## Хобгоблин-громила (8) — `hobgoblin-brute`
-> `massive hobgoblin brute, scarred muscular body, crude plate scraps strapped on, huge spiked club, red-brown skin, heavy underbite, full body, standing on a dark stone dungeon floor, dark background with warm amber rim light from the upper right, realistic painterly fantasy style, 2:3 vertical, 1024x1536, no text`
+### Потайной землекоп (9) — `burrower`
+> `mole-like burrowing beast half out of the soil, broad digging claws, tiny blind eyes, pink star nose, standing forest floor with torn earth and roots, dim cool light, full body, 2:3 vertical, 1024x1536, dark moody fantasy, realistic painterly style, highly detailed, no text`
 
-Файлы: `assets/monsters/hobgoblin-brute-full.webp`, `assets/monsters/hobgoblin-brute-face.webp` (затем добавить в `RASTER`).
+### Ворона (9) — `crow`
+> `big black crow with ragged feathers and sharp beak, glossy eyes, wings half open, standing perched on an old tombstone in a misty thicket, grey overcast light, full body, 2:3 vertical, 1024x1536, dark moody fantasy, realistic painterly style, highly detailed, no text`
 
-## Хобгоблин-метатель (8) — `hobgoblin-thrower`
-> `tall hobgoblin thrower with bandolier of throwing axes and javelins, mid-throw pose, lean muscled arms, leather bracers, full body, standing on a dark stone dungeon floor, dark background with warm amber rim light from the upper right, realistic painterly fantasy style, 2:3 vertical, 1024x1536, no text`
+### Матёрый волк (8) — `dire-wolf`
+> `huge old dire wolf, scarred grey fur, torn ear, thick mane, fangs bared, standing dark pine thicket with rocks and roots, cold blue-grey dusk light, full body, 2:3 vertical, 1024x1536, dark moody fantasy, realistic painterly style, highly detailed, no text`
 
-Файлы: `assets/monsters/hobgoblin-thrower-full.webp`, `assets/monsters/hobgoblin-thrower-face.webp` (затем добавить в `RASTER`).
+### Волколак (7) — `werewolf`
+> `hulking werewolf mid-transformation, wolf head on a muscular humanoid body, tattered clothes, knife-like claws, standing moonlit forest clearing with old stones, cold silver-blue moonlight, full body, 2:3 vertical, 1024x1536, dark moody fantasy, realistic painterly style, highly detailed, no text`
 
-## Хобгоблин-загонщик (8) — `hobgoblin-driver`
-> `hobgoblin beast-driver with a long barbed whip and a horn at the belt, spiked shoulder pads, commanding stance, chains hanging from the belt, full body, standing on a dark stone dungeon floor, dark background with warm amber rim light from the upper right, realistic painterly fantasy style, 2:3 vertical, 1024x1536, no text`
+### Крот-исполин (7) — `giant-mole`
+> `gigantic mole beast bigger than a bear, enormous shovel claws, tiny pale eyes, velvety dark fur caked with earth, standing fresh-dug tunnel mouth in a rocky hillside among rubble, dim cool light, full body, 2:3 vertical, 1024x1536, dark moody fantasy, realistic painterly style, highly detailed, no text`
 
-Файлы: `assets/monsters/hobgoblin-driver-full.webp`, `assets/monsters/hobgoblin-driver-face.webp` (затем добавить в `RASTER`).
+### Костяной рыцарь (7) — `bone-knight`
+> `skeleton knight in rusted plate armor, tattered tabard, notched longsword and dented shield, glowing blue eye sockets, cracked plumed helmet, standing ruined crypt hall with fallen banners and tombs, cold grey light with faint blue glow, full body, 2:3 vertical, 1024x1536, dark moody fantasy, realistic painterly style, highly detailed, no text`
 
-## Гоблин-вор (7) — `goblin-thief`
-> `sly goblin thief with a hooked grin, oversized pouch bulging with loot, lockpicks and a short dagger, nimble tiptoe pose, mismatched stolen jewelry, full body, standing on a dark stone dungeon floor, dark background with warm amber rim light from the upper right, realistic painterly fantasy style, 2:3 vertical, 1024x1536, no text`
+### Трупоед (7) — `corpse-eater`
+> `emaciated hunched ghoul with elongated jaw full of teeth, grey leathery skin, long claws, rags, gnawing a bone, standing open grave pit in a graveyard with scattered bones, cold grey moonlight, fog, full body, 2:3 vertical, 1024x1536, dark moody fantasy, realistic painterly style, highly detailed, no text`
 
-Файлы: `assets/monsters/goblin-thief-full.webp`, `assets/monsters/goblin-thief-face.webp` (затем добавить в `RASTER`).
+### Могильщик (8) — `gravedigger`
+> `hulking undead gravedigger with a rusty shovel, torn work apron, stooped back, hollow dusty face, soil on clothes, standing graveyard at night with freshly dug graves and a wheelbarrow, cold grey moonlight and a dim lantern, full body, 2:3 vertical, 1024x1536, dark moody fantasy, realistic painterly style, highly detailed, no text`
 
-## Рогатый заяц (9) — `horned-hare`
-> `large hare with a pair of sharp branching antlers on its head, lean powerful hind legs, wild eyes, mud-brown fur, ready to charge, full body, standing on a dark stone dungeon floor, dark background with warm amber rim light from the upper right, realistic painterly fantasy style, 2:3 vertical, 1024x1536, no text`
 
-Файлы: `assets/monsters/horned-hare-full.webp`, `assets/monsters/horned-hare-face.webp` (затем добавить в `RASTER`).
+## Уже в приложении (для справки, исправленные промпты)
 
-## Болотная жаба (9) — `swamp-toad`
-> `huge warty swamp toad, slimy green-brown skin, swollen throat sac, wet glistening eyes, algae and mud clinging to it, full body, standing on a dark stone dungeon floor, dark background with warm amber rim light from the upper right, realistic painterly fantasy style, 2:3 vertical, 1024x1536, no text`
+- **Паучиха-матка (7)** — `spider-queen`: `huge matriarch spider, bloated armored abdomen with pale egg-sacs, tiny spiderlings crawling under its belly, eight long jointed legs, cluster of glowing amber eyes, dark chitin, standing inside a ruined forest canopy choked with thick webs, old stone ruins and rotten branches, dim warm amber shafts of light through the web, dust motes`
+- **Пепельник (7)** — `ash-wraith`: `tall wraith of burnt remains, charred body wrapped in smoldering rags, glowing ember cracks, burning eyes, standing burnt graveyard with leaning crosses and scorched tombstones, drifting ash and sparks, dim orange ember glow as the only light`
+- **Пепельный дух (8)** — `ash-spirit`: `humanoid spirit made of drifting grey ash and glowing embers, faint face in the smoke, standing cold ash-covered crypt courtyard with broken pillars, falling ash flakes, a few embers, soft grey-orange light from one side`
+- **Чумной толстяк (8)** — `plague-fat`: `grotesquely bloated undead with swollen sickly green skin, open sores, flies swarming, tattered clothes, small head on a huge belly, standing dank plague pit under a ruined crypt, damp stone, sickly pale green-grey light, mist and flies`
+- **Костяная гончая (9)** — `bone-hound`: `skeletal hound with exposed ribs and fanged skull, scraps of fur, glowing blue eyes, prowling low, standing misty graveyard path between tombstones and crosses, cold grey moonlight, ground fog`
+- **Пыльный ползун (9)** — `dust-crawler`: `low crawling undead of bone and white grave dust, long limbs, dust cloud trailing, standing white-dust burial ground with cracked slabs and broken tombs, cold grey beam of light cutting through dust`
+- **Безликий звонарь (7)** — `faceless-ringer`: `tall robed undead bell-ringer with a bronze bell for a head, rope wound around the arms, cracked handbell in hand, standing foggy ruined chapel bell tower with huge old bells in the dark, cold grey mist and pale light from a high window`
+- **Зеркальный мертвец (8)** — `mirror-dead`: `undead whose body is covered in cracked mirror shards, distorted faces in a broken mirror shield, grave rags, standing dark crypt hall with old tombs, cold grey light glinting off the shards`
+- **Шептун (8)** — `whisperer`: `gaunt pale undead in a hooded robe covered with screaming mouths, hands pressed to its ears, hunched, standing misty cemetery with crumbling mausoleums, pale cold grey light, drifting fog`
+- **Морок (9)** — `morok`: `drifting formless dark mist wraith with half-formed faces within the smoke, tiny white eyes, trailing tendrils, standing night graveyard drowned in black mist, ruined pillars, faint cold grey light from above`
+- **Серая тень (9)** — `grey-shade`: `faint grey humanoid shadow in a ragged shroud, smooth blur of a face with two pale pinpoint eyes, fading edges, standing foggy old cemetery with tombstones and a stone cross, dim grey moonlight`
+- **Чернокрыл (7)** — `blackwing`: `giant black raven-like bird of prey, wide ragged wings, long spear-like beak, razor talons, purple sheen on feathers, standing perched on a dead twisted tree over a dark wild thicket, stormy dusk sky with a dim orange glow on the horizon`
+- **Болотный клык (7)** — `swamp-fang`: `swamp predator with a crocodile-like snout lined with huge fangs, mossy armored back, low powerful body, standing murky swamp with hanging moss and dead trees, mud and black water, pale hazy light through mist`
 
-Файлы: `assets/monsters/swamp-toad-full.webp`, `assets/monsters/swamp-toad-face.webp` (затем добавить в `RASTER`).
-
-## Потайной землекоп (9) — `burrower`
-> `mole-like burrowing beast half emerging from soil, broad digging claws, tiny blind eyes, pink star-shaped nose, dirt falling off its fur, full body, standing on a dark stone dungeon floor, dark background with warm amber rim light from the upper right, realistic painterly fantasy style, 2:3 vertical, 1024x1536, no text`
-
-Файлы: `assets/monsters/burrower-full.webp`, `assets/monsters/burrower-face.webp` (затем добавить в `RASTER`).
-
-## Ворона (9) — `crow`
-> `big black crow with ragged feathers and sharp beak, glossy eyes, perched with wings half-open, a scrap of cloth in its talons, full body, standing on a dark stone dungeon floor, dark background with warm amber rim light from the upper right, realistic painterly fantasy style, 2:3 vertical, 1024x1536, no text`
-
-Файлы: `assets/monsters/crow-full.webp`, `assets/monsters/crow-face.webp` (затем добавить в `RASTER`).
-
-## Матёрый волк (8) — `dire-wolf`
-> `huge old dire wolf, scarred grey fur, torn ear, thick mane, heavy fangs bared, battle-hardened stance, full body, standing on a dark stone dungeon floor, dark background with warm amber rim light from the upper right, realistic painterly fantasy style, 2:3 vertical, 1024x1536, no text`
-
-Файлы: `assets/monsters/dire-wolf-full.webp`, `assets/monsters/dire-wolf-face.webp` (затем добавить в `RASTER`).
-
-## Волколак (7) — `werewolf`
-> `hulking werewolf in mid-transformation, wolf head on a muscular humanoid body, tattered human clothes, claws like knives, moonlit fur, snarling, full body, standing on a dark stone dungeon floor, dark background with warm amber rim light from the upper right, realistic painterly fantasy style, 2:3 vertical, 1024x1536, no text`
-
-Файлы: `assets/monsters/werewolf-full.webp`, `assets/monsters/werewolf-face.webp` (затем добавить в `RASTER`).
-
-## Крот-исполин (7) — `giant-mole`
-> `gigantic mole beast bigger than a bear, enormous shovel claws, tiny pale eyes, thick velvety dark fur covered in earth, rubble around it, full body, standing on a dark stone dungeon floor, dark background with warm amber rim light from the upper right, realistic painterly fantasy style, 2:3 vertical, 1024x1536, no text`
-
-Файлы: `assets/monsters/giant-mole-full.webp`, `assets/monsters/giant-mole-face.webp` (затем добавить в `RASTER`).
-
-## Болотный клык (7) — `swamp-fang`
-> `swamp predator with a crocodile-like long snout lined with huge fangs, mossy armored back, low powerful body, swamp water streaming off it, full body, standing on a dark stone dungeon floor, dark background with warm amber rim light from the upper right, realistic painterly fantasy style, 2:3 vertical, 1024x1536, no text`
-
-Файлы: `assets/monsters/swamp-fang-full.webp`, `assets/monsters/swamp-fang-face.webp` (затем добавить в `RASTER`).
-
-## Чернокрыл (7) — `blackwing`
-> `giant black raven-like bird of prey with wide ragged wings, long spear-like beak, razor talons, ash-black feathers with faint purple sheen, full body, standing on a dark stone dungeon floor, dark background with warm amber rim light from the upper right, realistic painterly fantasy style, 2:3 vertical, 1024x1536, no text`
-
-Файлы: `assets/monsters/blackwing-full.webp`, `assets/monsters/blackwing-face.webp` (затем добавить в `RASTER`).
-
-## Серая тень (9) — `grey-shade`
-> `faint grey humanoid shadow in a ragged shroud, face a smooth blur with two pale pinpoint eyes, fading edges, tombstones behind, full body, standing on a dark stone dungeon floor, dark background with warm amber rim light from the upper right, realistic painterly fantasy style, 2:3 vertical, 1024x1536, no text`
-
-Файлы: `assets/monsters/grey-shade-full.webp`, `assets/monsters/grey-shade-face.webp` (затем добавить в `RASTER`).
-
-## Морок (9) — `morok`
-> `drifting formless dark mist wraith with shifting half-faces inside the smoke, hollow glowing eyes, trailing tendrils, full body, standing on a dark stone dungeon floor, dark background with warm amber rim light from the upper right, realistic painterly fantasy style, 2:3 vertical, 1024x1536, no text`
-
-Файлы: `assets/monsters/morok-full.webp`, `assets/monsters/morok-face.webp` (затем добавить в `RASTER`).
-
-## Шептун (8) — `whisperer`
-> `gaunt pale undead with stitched lips and too many whispering mouths drawn on the robe, long thin fingers by its ears, hunched, hollow eyes, full body, standing on a dark stone dungeon floor, dark background with warm amber rim light from the upper right, realistic painterly fantasy style, 2:3 vertical, 1024x1536, no text`
-
-Файлы: `assets/monsters/whisperer-full.webp`, `assets/monsters/whisperer-face.webp` (затем добавить в `RASTER`).
-
-## Зеркальный мертвец (8) — `mirror-dead`
-> `undead figure whose body is covered with cracked mirror shards, reflecting distorted faces, holding a broken mirror like a shield, grave clothes, full body, standing on a dark stone dungeon floor, dark background with warm amber rim light from the upper right, realistic painterly fantasy style, 2:3 vertical, 1024x1536, no text`
-
-Файлы: `assets/monsters/mirror-dead-full.webp`, `assets/monsters/mirror-dead-face.webp` (затем добавить в `RASTER`).
-
-## Безликий звонарь (7) — `faceless-ringer`
-> `tall robed undead bell-ringer with a smooth featureless face, heavy rope wound around the arms, a cracked bronze handbell, fog at the feet, full body, standing on a dark stone dungeon floor, dark background with warm amber rim light from the upper right, realistic painterly fantasy style, 2:3 vertical, 1024x1536, no text`
-
-Файлы: `assets/monsters/faceless-ringer-full.webp`, `assets/monsters/faceless-ringer-face.webp` (затем добавить в `RASTER`).
-
-## Пыльный ползун (9) — `dust-crawler`
-> `low crawling undead made of bone and white grave dust, long limbs, dust cloud trailing, hollow eye sockets, skeletal hands dragging, full body, standing on a dark stone dungeon floor, dark background with warm amber rim light from the upper right, realistic painterly fantasy style, 2:3 vertical, 1024x1536, no text`
-
-Файлы: `assets/monsters/dust-crawler-full.webp`, `assets/monsters/dust-crawler-face.webp` (затем добавить в `RASTER`).
-
-## Костяная гончая (9) — `bone-hound`
-> `skeletal hound with exposed ribs and fanged skull, a few scraps of fur, glowing pale eyes, running low, full body, standing on a dark stone dungeon floor, dark background with warm amber rim light from the upper right, realistic painterly fantasy style, 2:3 vertical, 1024x1536, no text`
-
-Файлы: `assets/monsters/bone-hound-full.webp`, `assets/monsters/bone-hound-face.webp` (затем добавить в `RASTER`).
-
-## Могильщик (8) — `gravedigger`
-> `hulking undead gravedigger with a rusty shovel, torn work apron, stooped back, hollow dusty face, soil on his clothes, full body, standing on a dark stone dungeon floor, dark background with warm amber rim light from the upper right, realistic painterly fantasy style, 2:3 vertical, 1024x1536, no text`
-
-Файлы: `assets/monsters/gravedigger-full.webp`, `assets/monsters/gravedigger-face.webp` (затем добавить в `RASTER`).
-
-## Чумной толстяк (8) — `plague-fat`
-> `grotesquely bloated undead with swollen sickly green skin, open sores leaking spores, flies swarming, tattered clothes, small head on a huge belly, full body, standing on a dark stone dungeon floor, dark background with warm amber rim light from the upper right, realistic painterly fantasy style, 2:3 vertical, 1024x1536, no text`
-
-Файлы: `assets/monsters/plague-fat-full.webp`, `assets/monsters/plague-fat-face.webp` (затем добавить в `RASTER`).
-
-## Пепельный дух (8) — `ash-spirit`
-> `humanoid spirit made of drifting grey ash and glowing embers, faint face in the smoke, ash flakes falling off it, full body, standing on a dark stone dungeon floor, dark background with warm amber rim light from the upper right, realistic painterly fantasy style, 2:3 vertical, 1024x1536, no text`
-
-Файлы: `assets/monsters/ash-spirit-full.webp`, `assets/monsters/ash-spirit-face.webp` (затем добавить в `RASTER`).
-
-## Костяной рыцарь (7) — `bone-knight`
-> `skeleton knight in rusted plate armor, tattered tabard, notched longsword and dented kite shield, glowing blue eye sockets, plumed helmet cracked, full body, standing on a dark stone dungeon floor, dark background with warm amber rim light from the upper right, realistic painterly fantasy style, 2:3 vertical, 1024x1536, no text`
-
-Файлы: `assets/monsters/bone-knight-full.webp`, `assets/monsters/bone-knight-face.webp` (затем добавить в `RASTER`).
-
-## Трупоед (7) — `corpse-eater`
-> `emaciated hunched ghoul-like creature with elongated jaw full of teeth, grey leathery skin, long claws, rags, gnawing a bone, hungry glowing eyes, full body, standing on a dark stone dungeon floor, dark background with warm amber rim light from the upper right, realistic painterly fantasy style, 2:3 vertical, 1024x1536, no text`
-
-Файлы: `assets/monsters/corpse-eater-full.webp`, `assets/monsters/corpse-eater-face.webp` (затем добавить в `RASTER`).
-
-## Пепельник (7) — `ash-wraith`
-> `tall wraith of burnt remains, charred blackened body wrapped in smoldering rags, cracks glowing orange like embers, ash trailing, burning eyes, full body, standing on a dark stone dungeon floor, dark background with warm amber rim light from the upper right, realistic painterly fantasy style, 2:3 vertical, 1024x1536, no text`
-
-Файлы: `assets/monsters/ash-wraith-full.webp`, `assets/monsters/ash-wraith-face.webp` (затем добавить в `RASTER`).
-
+Уже были: Король гоблинов, Гоблин-бомбардир, Хобгоблин-щитовик.
