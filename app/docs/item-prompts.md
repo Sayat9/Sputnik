@@ -250,3 +250,167 @@
 
 > `a hanging parchment price sheet unrolled from a wooden rod with rope loops, aged warm beige paper with stains and burned corners, subtle ruled grid of empty frames for items with space under each for a price, on a dark wooden shop wall, hand-painted fantasy RPG UI art, stylized, painterly, vertical 3:4, no text`
 
+
+
+## Дополнение 24.10.2026: всё недостающее
+
+Новые предметы, сокровища и артефакты, а также находки, NPC и здания, у которых ещё нет картинки (сводка — `docs/art-index.md`).
+
+### Предметы, сокровища и артефакты
+
+### Флейта — `flute`
+
+> `a worn carved wooden flute with a few finger holes, a bone mouthpiece and a faded red ribbon, small scratches and a chipped end, standing upright against a simple wooden stand, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Чаша здоровья — `chalice`
+
+> `a worn pewter chalice with a faintly glowing pale-green rim and engraved leaf patterns, a few dents, a little clear water inside, standing on a small cloth, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Удача новичка — `beginners-luck`
+
+> `a small worn leather talisman pouch on a thin cord with a four-leaf clover charm and a tiny polished green stone, scuffed leather, resting on a simple wooden stand, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### «Ещё раз» — `once-more`
+
+> `a small cracked ceramic token shaped like a circular arrow with a few glowing amber runes along the edge, chipped glaze, resting on a small cloth, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Ночной страж — `guard`
+
+> `a worn iron watchman's lantern with a small helmeted owl figurine on top, dark glass and a steady pale glow, scratches on the frame, standing on a simple wooden stand, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Огонь, указывающий путь — `flame`
+
+> `a small worn bronze oil lamp with a calm flame bending to one side as if pulled by a breeze, soot marks on the metal, resting on a small cloth, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Вечный очаг — `hearth`
+
+> `a small worn cast-iron hearth brazier with a never-dying gentle orange flame and warm embers, soot-blackened edges, little legs scratched and dented, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Игральные кубики — `dice`
+
+> `a pair of worn bone dice with chipped corners and faded pips, one showing a tiny glint of amber inside, resting on a small leather pouch, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Серебряный колокольчик — `bell`
+
+> `a small tarnished silver bell with a leather strap, dents and green patina in the grooves, a tiny crack, hanging from a short wooden stand, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Фляга странника — `flask`
+
+> `a worn leather-wrapped traveler's flask with a brass stopper on a chain, scuffs and stains on the leather, a faint warm glow around the cork, resting on a small cloth, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Находки после определения (трава, грибы, особые камни)
+
+До определения у всех одна картинка `unknown`; эти — настоящие, показываются после определения в Башне магов.
+
+### Целебная трава — `herb-heal`
+
+> `узколистая светло-зелёная трава с блестящими капельками на листьях, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Серебрянка — `herb-mana`
+
+> `пучок серебристых листьев с тонкой голубой жилкой, светится слабым серебристым светом, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Горький корень — `herb-poison`
+
+> `тёмный фиолетовый узловатый корень с тонкими усиками, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Сытный лист — `herb-food`
+
+> `широкие жёлто-зелёные плотные листья, сложенные пучком, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Бодрящий пучок — `herb-rest`
+
+> `пучок розово-красных стеблей с ароматными цветками, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Живой гриб — `mush-heal`
+
+> `красный гриб с белыми крапинками, мягко светится, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Синяя шляпка — `mush-mana`
+
+> `синий гриб с голубоватым свечением по краю шляпки, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Бледная поганка — `mush-poison`
+
+> `бледный болезненный гриб с юбочкой на ножке, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Сытный боровик — `mush-food`
+
+> `крепкий бурый гриб-боровик с толстой ножкой, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Бодрый груздь — `mush-rest`
+
+> `жёлтый плотный гриб с влажной воронковидной шляпкой, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Светляк — `mush-light`
+
+> `зеленоватый гриб, излучающий мягкий мятный свет, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Пороховик — `mush-boom`
+
+> `серый шарообразный гриб с трещинками, из которых сочится дымок, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Вспыхивающий камень — `sstone-boom`
+
+> `рыжий неровный камень, внутри тлеет огонь, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Оцепеняющий камень — `sstone-para`
+
+> `фиолетовый гладкий камень с тусклым узором паутинки, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Морозный камень — `sstone-freeze`
+
+> `голубой камень, покрытый инеем и ледяными иглами, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### NPC
+
+### Администратор арены — `npc-arena`
+
+> `a heavyset retired gladiator with a shaved head, a scar across his brow and a leather arena master's coat with brass studs, holding a wooden betting ledger, sand and iron bars of an arena behind him, warm lantern light, hand-painted fantasy RPG character art, stylized, painterly, dark fantasy tone, bust portrait, wide 16:9 composition with empty space at the bottom for text, no text`
+
+### Банкир — `npc-banker`
+
+> `a thin precise human banker in a dark velvet coat with a monocle and ink-stained gloves, a heavy ring of keys at his belt, behind a counter with coin stacks and a vault door, warm lantern light, hand-painted fantasy RPG character art, stylized, painterly, dark fantasy tone, bust portrait, wide 16:9 composition with empty space at the bottom for text, no text`
+
+### Староста ратуши — `npc-mayor`
+
+> `a stern middle-aged town clerk in a tall hat and a heavy chain of office, holding a scroll with a wax seal, a town ledger and a stone hall banner behind him, warm lantern light, hand-painted fantasy RPG character art, stylized, painterly, dark fantasy tone, bust portrait, wide 16:9 composition with empty space at the bottom for text, no text`
+
+### Кладовщик — `npc-storage`
+
+> `a broad bald warehouse keeper with a lantern on a hook-hand strap and a leather apron, tallying crates on a wooden board, stacked barrels and ropes behind him, warm lantern light, hand-painted fantasy RPG character art, stylized, painterly, dark fantasy tone, bust portrait, wide 16:9 composition with empty space at the bottom for text, no text`
+
+### Здания
+
+### Арена — `bld-arena`
+
+> `a large round stone arena with arched gates, iron-barred entrances, banners with crossed swords and a sand-colored interior glimpsed over the walls, dark fantasy city at dusk, warm window glow, hand-painted fantasy RPG building icon, stylized, painterly, clean readable silhouette, centered on a dark stone square, square 1:1, no text`
+
+### Портреты рас — женские версии (под выбор пола)
+
+Тот же шаблон, что мужские (`docs/art-style.md`, п. 2): погрудный, 4:5, тёмный фон, свет под стиль расы.
+
+### human (женский) — `races/human-f`
+
+> `bust portrait of a middle-aged human woman adventurer with a braided dark-brown hair, a scar over one eyebrow, a worn leather collar and a calm determined gaze, fantasy, dark background with a warm rim light, realistic painterly style, looking at viewer, 4:5, no text`
+
+### barbarian (женский) — `races/barbarian-f`
+
+> `bust portrait of a tall powerful barbarian woman with long braided red hair, war paint on her cheeks, fur pauldrons and a stern proud look, fantasy, dark background with a warm rim light, realistic painterly style, looking at viewer, 4:5, no text`
+
+### dwarf (женский) — `races/dwarf-f`
+
+> `bust portrait of a sturdy dwarf woman with thick braided auburn hair decorated with small metal rings, soot on her cheek, a leather smith's collar and a confident half-smile, fantasy, dark background with a warm rim light, realistic painterly style, looking at viewer, 4:5, no text`
+
+### beastkin (женский) — `races/beastkin-f`
+
+> `bust portrait of a lithe beastkin woman with a sleek fox-like face, tall pointed ears, amber eyes, short russet fur and a wary alert expression, fantasy, dark background with a warm rim light, realistic painterly style, looking at viewer, 4:5, no text`
+
+### fairy (женский) — `races/fairy-f`
+
+> `bust portrait of a slender fairy woman with long pointed ears, pale luminous skin, silver-green hair with leaves woven in and sharp curious eyes, fantasy, dark background with a warm rim light, realistic painterly style, looking at viewer, 4:5, no text`
+
+### dragon (женский) — `races/dragon-f`
+
+> `bust portrait of a proud dragonborn woman with fine copper scales, a crest of small horns, golden slit eyes and a regal composed face, fantasy, dark background with a warm rim light, realistic painterly style, looking at viewer, 4:5, no text`
+
