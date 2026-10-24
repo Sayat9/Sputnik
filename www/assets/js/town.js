@@ -14,7 +14,7 @@
     { key: "potion", e: { t: "g", id: "potion", qty: 1 }, price: 3, many: true }, { key: "potion-good", e: { t: "g", id: "potion-good", qty: 1 }, price: 12, many: true },
     { key: "arrow40", e: { t: "g", id: "arrow", qty: 40 }, price: 10, label: "Колчан на 40 стрел" }, { key: "arrow20", e: { t: "g", id: "arrow", qty: 20 }, price: 5, label: "Колчан на 20 стрел" },
     { key: "shovel", e: { t: "g", id: "shovel", qty: 1 }, price: 8 }, { key: "shovel-good", e: { t: "g", id: "shovel-good", qty: 1 }, price: 15 },
-    { key: "compass", special: "compass", price: 30 },
+    { key: "flute", e: { t: "g", id: "flute", qty: 1 }, price: 8 }, { key: "compass", special: "compass", price: 30 },
   ];
   const FORGE_W = ["dagger", "spear", "mace", "warhammer", "sword", "rapier", "greatsword", "shortbow", "longbow", "shield", "tower-shield"];
   const FORGE_A = ["leather", "hide", "chainmail"];

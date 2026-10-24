@@ -1224,5 +1224,75 @@
     log(`${u.name}: нестабильность — уязвимость к урону «${dt === "thunder" ? "ветром" : (D.DT[dt] || dt)}».`, "skill");
   };
 
+
+  /* ===================== Лес гоблинов: крысы, крысиный король, гоблин-крысолов (черновик campaign/drafts.md) ===================== */
+  const ratsOf = o => B.summonsOf(o).filter(s => s.kind === "rat");
+  function spawnRat(owner, cell) {
+    const S = B.S, w = B.monUnit("rat", -1); S.ratSeq = (S.ratSeq || 0) + 1;
+    Object.assign(w, { summon: true, kind: "rat", owner: owner.id, side: owner.side, idx: null, ess: [], pass: ["body:rat"], auto: true, name: "Крыса " + S.ratSeq, base: "Крыса" });          // auto: призванные крысы ходят сами (ИИ), игрок их не водит
+    w.ai = Object.assign({}, w.ai, { noFlee: true, fleeHp: null, morale: null, role: "swarm", focus: ["nearest", "weak"] });
+    w.x = cell[0]; w.y = cell[1]; B.addUnit(w, owner.id); return w;
+  }
+  const tmpRat = owner => ({ size: 1, side: owner.side, id: "tmprat" });
+  // n крыс в свободных клетках рядом с хозяином
+  function summonRats(owner, n, r = 2) {
+    const out = [], cells = B.freeCellsNear(owner, r, tmpRat(owner));
+    for (let i = 0; i < n && i < cells.length; i++) out.push(spawnRat(owner, cells[i]));
+    return out;
+  }
+  // «Стена крыс»: три крысы в ряд перед хозяином, лицом к ближайшему врагу
+  function summonWall(owner, n) {
+    const es = enemiesOf(owner); if (!es.length) return [];
+    const e = es.sort((a, b) => dist(owner, a) - dist(owner, b))[0], dx = Math.sign(e.x - owner.x), dy = Math.sign(e.y - owner.y);
+    const fx = owner.x + (dx || 0), fy = owner.y + (dy || 0), px = dy !== 0 && dx === 0 ? 1 : dx !== 0 && dy === 0 ? 0 : -dy, py = dy !== 0 && dx === 0 ? 0 : dx !== 0 && dy === 0 ? 1 : dx;
+    const want = [[fx, fy], [fx + px, fy + py], [fx - px, fy - py]], out = [], t = tmpRat(owner), used = new Set();
+    for (const [x, y] of want) if (out.length < n && B.inB(x, y) && B.canStand(t, x, y) && !live().some(o => o.x === x && o.y === y)) { out.push(spawnRat(owner, [x, y])); used.add(x + "," + y); }
+    for (const c of B.freeCellsNear(owner, 3, t)) { if (out.length >= n) break; if (!used.has(c[0] + "," + c[1])) out.push(spawnRat(owner, c)); }
+    return out;
+  }
+  // Зов дудки (особенность монстра, не часть эссенции): каждый свой ход бонусным действием ещё две крысы, пока рядом их меньше шести
+  B.callRats = async function (u) {
+    const have = ratsOf(u).length; if (have >= 6 || !B.timeOK(u, "bonus")) return false;
+    const got = summonRats(u, Math.min(2, 6 - have), 3); if (!got.length) return false;
+    B.spendTime(u, "bonus"); log(`${u.name} играет на дудке: прибегают крысы (${have + got.length}).`, "skill"); fx(u, "зов дудки", "good");
+    if (ui()) ui().refresh(); return true;
+  };
+
+  /* Крыса (9) */
+  P.rat = { resist(u, c) { return c.dt === "poison"; } };
+  A.rat = {
+    time: "bonus",
+    tgt() { return { type: "self" }; },
+    can(u) { return speedOf(u) > 0 ? true : "не может двигаться"; },
+    async run(u, pk, ctl) { ctl.commit(); const ok = await stepMove(u, 2, { prompt: "Юркий рывок: на 3 м без атак по возможности", auto: cells => farthestSpot(u, cells), free: true }); if (ok) log(`${u.name} юркает в сторону.`, "skill"); return true; },
+    ai(u) { return speedOf(u) > 0 && u.hp < u.maxHp * 0.6 && enemiesOf(u).some(e => dist(e, u) <= 1) ? { score: 2.5 } : null; },
+  };
+  /* Крысиный король (8) */
+  P["rat-king"] = { defendMods(t, ctx) { if (ctx.o && ctx.o.reaction && alliesOf(t).filter(a => dist(a, t) <= 1 && alive(a) && !a.down).length >= 2) ctx.dis.push("Не тронь короля"); } };
+  A["rat-king"] = {
+    time: "action",
+    tgt() { return { type: "self" }; },
+    can(u) { return ratsOf(u).length < 2 ? true : "уже 2 крысы"; },
+    async run(u, pk, ctl) { ctl.commit(); const got = summonRats(u, 2 - ratsOf(u).length); if (ui()) ui().banner(`${u.name}: Призыв стаи!`); log(`${u.name} зовёт крыс (${got.length}).`, "skill"); return true; },
+    ai(u) { return ratsOf(u).length < 2 && enemiesOf(u).length ? { score: 3 } : null; },
+  };
+  /* Гоблин-крысолов (7): «Флейта» — вне боя (приложение), «Стена крыс» */
+  P["rat-catcher"] = {};
+  A["rat-catcher"] = {
+    time: "action",
+    tgt() { return { type: "self" }; },
+    can(u) { return !enemiesOf(u).length ? "нет врагов" : ratsOf(u).length < 3 ? true : "уже 3 крысы"; },
+    async run(u, pk, ctl) { ctl.commit(); const got = summonWall(u, 3 - ratsOf(u).length); if (ui()) ui().banner(`${u.name}: Стена крыс!`); log(`${u.name} выставляет стену крыс (${got.length}).`, "skill"); return true; },
+    ai(u) { return ratsOf(u).length < 3 && enemiesOf(u).length ? { score: 3.5 } : null; },
+  };
+  const prevDownRats = B.onDown;
+  B.onDown = function (u, dead) {
+    if (prevDownRats) prevDownRats.apply(this, arguments);
+    if (u.ref === "rat-catcher" && (dead || !u.alive)) {          // убили крысолова — крысы разбегаются
+      const rs = live().filter(o => o.kind === "rat" && o.owner === u.id); rs.forEach(o => { o.flags.fleeing = true; });
+      if (rs.length) log("Крысы разбегаются без своего крысолова.", "flee");
+    }
+  };
+
   B.fillActiveTimes();
 })();

@@ -195,6 +195,7 @@
   D.essCd = { goblin: 3, "goblin-archer": 2, "goblin-sword": 2, "goblin-spear": 2, wolf: 3, fox: 2, mouse: 3, bat: 3, zombie: 2, skeleton: 3, "skeleton-archer": 3,
     ghoul: 2, "living-stone": 2, pixie: 3, wisp: 3, "green-boulder": 3, hobgoblin: 2, "dark-bear": 3, "skeleton-warrior": 2, "stone-guardian": 3 };
   // Эссенции 2 этажа: перезарядки прямо в rules.md. battle 99 — «раз за бой»; «Нож в спину» — перезарядка пассивки.
+  Object.assign(D.essCd, { rat: 2, "rat-king": 4, "rat-catcher": 3 });
   Object.assign(D.essCd, { drop: 2, "dust-whirl": 2, "magma-hound": 3, crystalloid: 3, "lake-spirit": 3, "magma-golem": 4, "deep-serpent": 2, "crystal-colossus": 4, "storm-spirit": 4, "rift-heart": 4 });
   Object.assign(D.essCd, { "goblin-shaman": 2, "goblin-assassin": 3, "goblin-trapper": 3, "goblin-elder": 3, "hobgoblin-brute": 2, "hobgoblin-thrower": 2, "hobgoblin-driver": 3,
     "hobgoblin-shield": 2, "goblin-king": 4, "goblin-bomber": 1, "goblin-thief": 3, "horned-hare": 2, "swamp-toad": 2, burrower: 3, crow: 1, "dire-wolf": 2, "web-spider": 3,
@@ -210,6 +211,9 @@
   const DT_RU = { "колющего": "pierce", "рубящего": "slash", "дробящего": "bludgeon", "огнём": "fire", "ядом": "poison", "холодом": "cold", "некротическим": "necrotic", "психическим": "psychic", "молнией": "lightning", "звуком": "thunder" };
   // Поведение монстров Кристального разлома (поверх выведенного из статблока).
   D.monTune = {
+    rat: { role: "swarm", circle: true, focus: ["wounded", "weak"], fleeHp: 0.5 },
+    "rat-king": { role: "secondLine", focus: ["weak", "nearest"], fleeHp: 0 },
+    "rat-catcher": { role: "secondLine", focus: ["nearest"], noFlee: true },
     drop: { role: "swarm", circle: true, focus: ["weak", "nearest"], fleeHp: 0.3 },
     "dust-whirl": { role: "skirmisher", hitRun: true, flitter: true, focus: ["weak", "nearest"], fleeHp: 0.3 },
     "magma-hound": { role: "swarm", circle: true, focus: ["torch", "weak"], fleeHp: 0.25 },

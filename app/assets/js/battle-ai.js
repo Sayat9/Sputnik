@@ -140,6 +140,7 @@
   function shouldFlee(u, pr) {
     if (u.flags.fleeing) return true;
     if (pr.noFlee) return false;
+    if (u.ref === "rat" && !u.summon && live().some(o => o.ref === "rat-catcher" && alive(o) && !o.down)) return false;          // пока рядом играет крысолов, крысы не бегут
     if (pr.fleeHp != null && u.hp <= u.maxHp * pr.fleeHp && u.hp < u.maxHp) { u.flags.fleeing = true; log(`${u.name} в панике!`, "flee"); ui() && ui().fxText(u, "бежит!", "bad"); return true; }
     return false;
   }
@@ -224,6 +225,7 @@
     if (shouldFlee(u, pr)) { if (await fleeTurn(u)) return; }
     if (u.side === "hero") await aiPotion(u);
     // Крот гасит факел бонусным действием (решение автора); автобой героев зажигает его снова не более двух раз за бой
+    if (u.side === "mon" && u.ref === "rat-catcher" && B.callRats) await B.callRats(u);
     if (u.side === "mon" && u.pass.includes("giant-mole") && S.torch && B.timeOK(u, "bonus")) { B.spendTime(u, "bonus"); S.torch = false; S.torchLeft = 0; S.torchFixed = false; log(`${u.name} гасит свет: тьма.`, "bad"); ui() && ui().fxText(u, "тьма", "bad"); ui() && ui().refresh(); await sleep(300); }
     if (u.side === "hero" && u.hero && S.pitDark && !S.torch && (S.torchRelit || 0) < 2 && B.timeOK(u, "action") && (countGear(u.hero, "torch") > 0 || S.torchLeft > 0) && B.lightTorch) { S.torchRelit = (S.torchRelit || 0) + 1; await B.lightTorch(u); }
     if (has(u, "burning") && B.timeOK(u, "action") && !(bestAction(u, pr))) { B.spendTime(u, "action"); removeStatus(u, "burning"); log(`${u.name} тушит огонь.`, "good"); }

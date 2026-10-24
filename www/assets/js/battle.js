@@ -127,7 +127,7 @@
           else if (!B.canAct(u)) log(`${u.name} не может действовать.`);
           else if (B.S.opts.autoHeroes || !g) await B.AI.takeTurn(u);
           else await g.heroTurn(u);
-        } else if (u.side === "hero" && u.summon && g && !B.S.opts.autoHeroes && B.canAct(u)) await g.heroTurn(u);          // волки и двойники героя: за них играет игрок
+        } else if (u.side === "hero" && u.summon && !u.auto && g && !B.S.opts.autoHeroes && B.canAct(u)) await g.heroTurn(u);          // волки и двойники героя: за них играет игрок
         else if (B.canAct(u)) await B.AI.takeTurn(u);
         await B.endTurn(u);
         if (g) g.turnEnd(u);

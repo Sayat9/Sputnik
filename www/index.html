@@ -1297,6 +1297,19 @@ const ESSENCES = {
     stats: { cha: 2, wis: 2, con: -2, str: -1 }, other: ["Сопротивление урону огнём", "Сопротивление урону холодом", "Сопротивление урону молнией", "Нестабильность (в начале каждого боя уязвимость к одной из стихий: огонь, холод, молния или ветер; сопротивление к ней не действует)", "Хрупкий кристалл (дробящий урон по тебе +1к6)"],
     passive: { name: "Проводник стихий", text: "Твои атаки оружием могут наносить урон огнём, холодом, молнией или ветром вместо своего типа (выбираешь при каждой атаке). Раз в ход, нанося урон стихией, накладываешь её состояние: огонь — цель горит, холод — скорость цели −3 м до конца её хода, молния — у цели нет реакций до начала её хода и скорость −3 м до конца её хода, ветер — цель отброшена на 1,5 м. Холод и молния по промокшим — ещё +1к4." },
     active: { name: "Шторм стихий", mana: 5, time: "действие", text: "Сфера радиусом 3 м в пределах 18 м, спасбросок Ловкости Сл 8 + БМ + мод. Хар. Провал — 2к6 урона выбранной стихией и её эффект (огонь — горит, вода — промок, молния — нет реакций и скорость −3 м, ветер — отброшен, камень — сбит с ног). Успех — половина урона, без эффекта. Перезарядка 4 раунда." } },
+  // ===== Лес гоблинов: логово крысолова (черновик: campaign/drafts.md) =====
+  "rat": { id: "rat", name: "Эссенция крысы", cls: 9, source: "rat",
+    stats: { dex: 1, str: -1 }, other: ["Восприятие +1 (нюх)"],
+    passive: { name: "Падальщик", text: "Сопротивление урону ядом. Один паёк кормит тебя вдвое дольше (6 действий сытости вместо 3)." },
+    active: { name: "Юркий рывок", mana: 2, time: "бонусное действие", text: "Перемещение на 3 м без атак по возможности. Перезарядка 2 раунда." } },
+  "rat-king": { id: "rat-king", name: "Эссенция крысиного короля", cls: 8, source: "rat-king",
+    stats: { cha: 2, str: -1 }, other: [],
+    passive: { name: "Не тронь короля", text: "Пока рядом с тобой не меньше двух союзников, атаки по возможности против тебя — с помехой." },
+    active: { name: "Призыв стаи", mana: 4, time: "действие", text: "Призываешь 2 крыс в свободные клетки рядом с тобой; они сражаются сами до конца боя. Не больше 2 призванных тобой крыс одновременно. Перезарядка 4 раунда." } },
+  "rat-catcher": { id: "rat-catcher", name: "Эссенция гоблина-крысолова", cls: 7, source: "rat-catcher",
+    stats: { cha: 2, dex: 2, con: -1, str: -1 }, other: [],
+    passive: { name: "Флейта", text: "Ты умеешь играть на флейте (нужна флейта в рюкзаке). Игра на отдыхе — дополнительное действие: спящие снимают ещё 1 уровень Усталости. В карауле с флейтой отряд раньше замечает врагов: ночная засада становится обычной встречей." },
+    active: { name: "Стена крыс", mana: 4, time: "действие", text: "Призываешь перед собой 3 крыс в ряд. Они сами идут вперёд, бросаются на ближайшего врага и по возможности перекрывают проход к тебе; сражаются до конца боя. Не больше 3 призванных тобой крыс одновременно. Перезарядка 3 раунда." } },
   "grey-shade": { id: "grey-shade", name: "Эссенция серой тени", cls: 9, source: "grey-shade",
     stats: { dex: 1, con: -1 }, other: ["Скрытность +1"],
     passive: { name: "Тень в тени", text: "В тусклом свете, тьме или тумане можешь пытаться спрятаться бонусным действием, даже без укрытия." },
@@ -1593,6 +1606,14 @@ const MONSTERS = [
   ].map(([id, cls, rare, rank, name, group, where]) => ({ id, zone: "stone", rare, weight: 1, name, floor: 2, cls, rank, size: "Элементаль", group,
     type: "Элементаль", sz: "", areas: ["2 этаж, Кристальный разлом: " + where], ph: "elemental", stub: true,
     ac: "—", hp: "—", speed: "—", cr: "—", abil: null, senses: "", traits: [], loot: `Камень ${cls}-го класса.`, essence: id })),
+  // ===== 2 этаж: Лес гоблинов — логово крысолова (звери и гоблин-крысолов). Статблоки — черновик, campaign/drafts.md.
+  ...[
+    ["rat", 9, false, "normal", "Крыса", "Только стаей, минимум 3, у логова крысолова", "крысиные норы"],
+    ["rat-king", 8, true, "normal", "Крысиный король", "Редкий: только в стае крыс рядом с логовом крысолова", "крысиные норы"],
+    ["rat-catcher", 7, false, "special", "Гоблин-крысолов", "Особый: в центре логова крысолова, начинает один и зовёт крыс", "логово крысолова"],
+  ].map(([id, cls, rare, rank, name, group, where]) => ({ id, zone: "goblin", rare, weight: 1, name, floor: 2, cls, rank, size: id === "rat-catcher" ? "Гуманоид" : "Зверь", group,
+    type: id === "rat-catcher" ? "Гуманоид, монстр" : "Зверь, монстр", sz: "", areas: ["2 этаж, Лес гоблинов: " + where], ph: id === "rat-catcher" ? "humanoid" : "beast", stub: true,
+    ac: "—", hp: "—", speed: "—", cr: "—", abil: null, senses: "", traits: [], loot: `Камень ${cls}-го класса.`, essence: id })),
   { id: "stone-guardian", zone: "stone", rare: false, weight: 1, name: "Каменный сторож", floor: 1, cls: 8, rank: "normal", size: "Средний элементаль", group: "7-й день, у каменного портала, в одиночку",
     type: "Элементаль", sz: "средний", areas: ["1 этаж: зона элементов, у портала"],
     ac: "16", hp: "30 (4к8+12)", speed: "6 м", cr: "1", abil: [16, 8, 16, 5, 10, 5],
@@ -1720,6 +1741,14 @@ Object.assign(MON_STATS2, {
   "rift-heart": { size: "Большой элементаль (кристалл)", sz: "большой", ac: "15 (кристалл)", hp: "80 (9к10+31)", speed: "3 м", cr: "4", abil: [16, 8, 14, 12, 14, 18], senses: "Тёмное зрение 18 м.",
     traits: [["Пять стихий", "В начале своего хода выбирает стихию — огонь, воду, молнию, ветер или камень; до начала следующего хода его удары несут +1к4 урона этой стихии.", "body"], ["Нестабильность", "В начале боя уязвимость к одной стихии (огонь, холод, молния или ветер).", "body"], ["Зовёт кристаллоидов", "Почти не двигается, каждый ход мстит тому, кто ударил её последним.", "behavior"], ["Осколочный удар", "+7 к попаданию, 2к8+4 колющего.", "attacks"]], statDraft: true },
 });
+Object.assign(MON_STATS2, {
+  "rat": { size: "Крошечный зверь", sz: "крошечный", ac: "9", hp: "3 (1к4+1)", speed: "6 м", cr: "0", abil: [4, 13, 10, 2, 10, 3], senses: "Восприятие +2. Тёмное зрение 18 м.",
+    traits: [["Стая", "Одна не нападает: ходит по 3 и больше, бросается на самого раненого или ближнего.", "behavior"], ["Смелая у крысолова", "Пока рядом играет крысолов, не бежит; без него при ране пищит и пятится.", "behavior"], ["Укус", "+3 к попаданию, 1к4 колющего.", "attacks"]], statDraft: true },
+  "rat-king": { size: "Малый зверь", sz: "малый", ac: "12", hp: "18 (4к6+4)", speed: "7,5 м", cr: "1/2", abil: [9, 14, 12, 4, 11, 14], senses: "Восприятие +3. Тёмное зрение 18 м.",
+    traits: [["За стаей", "Сидит позади стаи и командует писком; бросается в бой, только когда крыс осталось меньше трёх.", "behavior"], ["Рваный укус", "+4 к попаданию, 1к6+2 колющего.", "attacks"]], statDraft: true },
+  "rat-catcher": { size: "Маленький гуманоид", sz: "маленький", ac: "13 (шкуры и бубенцы)", hp: "38 (7к6+14)", speed: "9 м", cr: "2", abil: [8, 14, 14, 10, 12, 14], senses: "Тёмное зрение 18 м.",
+    traits: [["Зов дудки", "Начинает бой один; каждый свой ход зовёт крыс: ещё две, пока рядом их меньше шести.", "behavior"], ["За крысами", "Держится позади своих крыс и играет.", "behavior"], ["Бросают крысы", "Убили крысолова — оставшиеся крысы разбегаются.", "behavior"], ["Костяная дудка", "+4 к попаданию, 1к6+1 дробящего.", "attacks"]], statDraft: true },
+});
 MONSTERS.forEach(m => {
   const x = MON_EXTRA[m.id] || {};
   Object.assign(m, MON_STATS[m.id] || MON_STATS2[m.id] || {});
@@ -1780,8 +1809,8 @@ const DISTRICTS = [
 
 // Готовые рисованные картинки (webp) заменяют векторные заглушки.
 // Дата сборки для телефона: build.sh вписывает её сюда, в веб-версии строка пустая.
-const APP_BUILD = "25.10.2026 03:53";
-const APP_VERSION = 1792882403;                 // номер сборки, тоже вписывает build.sh
+const APP_BUILD = "25.10.2026 04:07";
+const APP_VERSION = 1792883252;                 // номер сборки, тоже вписывает build.sh
 const UPDATE_URL = "https://raw.githubusercontent.com/Sayat9/Sputnik/main/www/";
 const RASTER = new Set(["items/mace", "items/warhammer", "items/armor-leather", "items/armor-hide", "items/armor-chainmail", "items/steel-dagger", "items/steel-sword", "items/steel-greatsword", "items/steel-shield", "items/steel-tower-shield", "items/shortbow", "items/longbow", "items/rapier", "items/shield", "items/tower-shield", "items/unknown-mushroom", "items/stone-9", "items/stone-8", "items/stone-7", "items/ration", "items/potion", "items/torch", "items/arrows", "items/clothes", "items/shovel", "items/shovel-good", "items/shovel-best", "items/dagger", "items/sword", "items/greatsword", "items/spear", "monsters/goblin-king-face", "monsters/goblin-king-full", "monsters/goblin-bomber-face", "monsters/goblin-bomber-full", "monsters/hobgoblin-shield-face", "monsters/hobgoblin-shield-full", "races/barbarian", "races/human", "races/dwarf", "races/beastkin", "races/fairy", "races/dragon", "monsters/goblin-face", "monsters/goblin-full", "monsters/goblin-archer-face", "monsters/goblin-archer-full", "monsters/goblin-sword-face", "monsters/goblin-sword-full", "monsters/goblin-spear-face", "monsters/goblin-spear-full", "monsters/wolf-face", "monsters/wolf-full", "monsters/fox-face", "monsters/fox-full", "monsters/mouse-face", "monsters/mouse-full", "monsters/bat-face", "monsters/bat-full", "monsters/hobgoblin-face", "monsters/hobgoblin-full", "monsters/zombie-face", "monsters/zombie-full", "monsters/skeleton-face", "monsters/skeleton-full", "monsters/skeleton-archer-face", "monsters/skeleton-archer-full", "monsters/ghoul-face", "monsters/ghoul-full", "monsters/dark-bear-face", "monsters/dark-bear-full", "monsters/skeleton-warrior-face", "monsters/skeleton-warrior-full", "monsters/living-stone-face", "monsters/living-stone-full", "monsters/wisp-face", "monsters/wisp-full", "monsters/pixie-face", "monsters/pixie-full", "monsters/green-boulder-face", "monsters/green-boulder-full", "monsters/stone-guardian-face", "monsters/stone-guardian-full", "monsters/spider-queen-face", "monsters/spider-queen-full", "monsters/ash-wraith-face", "monsters/ash-wraith-full", "monsters/ash-spirit-face", "monsters/ash-spirit-full", "monsters/plague-fat-face", "monsters/plague-fat-full", "monsters/bone-hound-face", "monsters/bone-hound-full", "monsters/dust-crawler-face", "monsters/dust-crawler-full", "monsters/faceless-ringer-face", "monsters/faceless-ringer-full", "monsters/mirror-dead-face", "monsters/mirror-dead-full", "monsters/whisperer-face", "monsters/whisperer-full", "monsters/morok-face", "monsters/morok-full", "monsters/grey-shade-face", "monsters/grey-shade-full", "monsters/blackwing-face", "monsters/blackwing-full", "monsters/swamp-fang-face", "monsters/swamp-fang-full", "monsters/web-spider-face", "monsters/web-spider-full", "monsters/goblin-shaman-face", "monsters/goblin-shaman-full", "monsters/goblin-assassin-face", "monsters/goblin-assassin-full", "monsters/goblin-trapper-face", "monsters/goblin-trapper-full", "monsters/goblin-elder-face", "monsters/goblin-elder-full", "monsters/hobgoblin-brute-face", "monsters/hobgoblin-brute-full", "monsters/hobgoblin-thrower-face", "monsters/hobgoblin-thrower-full", "monsters/hobgoblin-driver-face", "monsters/hobgoblin-driver-full", "monsters/goblin-thief-face", "monsters/goblin-thief-full", "monsters/horned-hare-face", "monsters/horned-hare-full", "monsters/swamp-toad-face", "monsters/swamp-toad-full", "monsters/burrower-face", "monsters/burrower-full", "monsters/crow-face", "monsters/crow-full", "monsters/dire-wolf-face", "monsters/dire-wolf-full", "monsters/werewolf-face", "monsters/werewolf-full", "monsters/giant-mole-face", "monsters/giant-mole-full", "monsters/bone-knight-face", "monsters/bone-knight-full", "monsters/gravedigger-face", "monsters/gravedigger-full", "monsters/corpse-eater-face", "monsters/corpse-eater-full", "monsters/drop-face", "monsters/drop-full", "monsters/dust-whirl-face", "monsters/dust-whirl-full", "monsters/magma-hound-face", "monsters/magma-hound-full", "monsters/crystalloid-face", "monsters/crystalloid-full", "monsters/lake-spirit-face", "monsters/lake-spirit-full", "monsters/magma-golem-face", "monsters/magma-golem-full", "monsters/deep-serpent-face", "monsters/deep-serpent-full", "monsters/crystal-colossus-face", "monsters/crystal-colossus-full", "monsters/storm-spirit-face", "monsters/storm-spirit-full", "monsters/rift-heart-face", "monsters/rift-heart-full", "items/compass"]);
 const artPath = p => `assets/${p}.${RASTER.has(p) ? "webp" : "svg"}`;
@@ -2163,6 +2192,7 @@ const GEAR = {
   ration:  { short: "Паёк", name: "Паёк", weight: 1, stack: 10, use: "eat", note: "Еда и вода на сутки. 1 паёк = сыт 3 действия." },
   potion:  { short: "Зелье", name: "Слабое зелье лечения", weight: 0.25, stack: 5, use: "drink", heal: "1к4 + 2", note: "Восстанавливает 1к4 + 2 ОЗ (3–6, в среднем 4,5): около трети ОЗ героя 1-го уровня." },
   torch:   { short: "Факел", name: "Факел", weight: 0.5, stack: 5, note: "Горит около часа, яркий свет 6 м." },
+  flute:   { short: "Флейта", name: "Флейта", weight: 0.25, stack: 1, note: "Музыкальный инструмент. Эссенция гоблина-крысолова даёт умение играть на ней: на отдыхе и в карауле." },
   arrow:   { short: "Стрелы", name: "Стрелы", weight: 0.025, stack: 40, note: "Боеприпасы для луков, колчан на 40. В бою стрела может сломаться; целые остаются на поле и подбираются после боя, если отряд не бежал." },
   shovel:      { short: "Лопата", name: "Лопата", weight: 2.5, stack: 1, uses: 3, note: "Для действия «Копать». Ломается после 3 раскопок." },
   "shovel-good": { short: "Лопата+", name: "Хорошая лопата", weight: 2.5, stack: 1, uses: 5, note: "Для действия «Копать». Ломается после 5 раскопок." },
@@ -2177,6 +2207,7 @@ const GEAR = {
 };
 const SHOVELS = ["shovel", "shovel-good", "shovel-best"];
 const GEAR_ICON = {
+  flute: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M3 18L18 3l3 3L6 21z"/><circle cx="9" cy="15" r=".8" fill="currentColor"/><circle cx="12" cy="12" r=".8" fill="currentColor"/><circle cx="15" cy="9" r=".8" fill="currentColor"/></svg>`,
   clothes: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M8 3l-5 3 2 5 2-1v11h10V10l2 1 2-5-5-3c-.5 1.5-2 2.5-4 2.5S8.5 4.5 8 3z"/></svg>`,
   ration: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M4 11h16a8 8 0 0 1-16 0z"/><path d="M8 7c0-2 2-2 2-4M12 7c0-2 2-2 2-4M16 7c0-2 2-2 2-4"/></svg>`,
   potion: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M10 3h4M10 3v5l-5 8a4 4 0 0 0 3.5 6h7a4 4 0 0 0 3.5-6l-5-8V3"/><path d="M7 15h10" fill="#c8402e"/><path d="M6.5 16l-.5 1a3 3 0 0 0 2.6 4h6.8a3 3 0 0 0 2.6-4l-.5-1z" fill="#c8402e" stroke="none" opacity=".85"/></svg>`,
@@ -2280,6 +2311,8 @@ function itemOf(v, holder) {
   if (v.t === "c") return { name: v.name, kindOf: "custom", weight: 0, icon: GEAR_ICON.custom };
   return null;
 }
+const fluteHeroes = () => state.party.filter(c => !c.dead && (c.essences || []).includes("rat-catcher") && (c.bag || []).some(e => e && e.id === "flute"));
+const hasEssence = (c, id) => (c.essences || []).includes(id);
 const mainItem = (c = char) => itemOf((c.equip || {}).main);
 const twoHanded = (c = char) => isTwoHandedWeapon(mainItem(c)) && !(c.giantGrip && c.race === "barbarian");
 
@@ -2430,7 +2463,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 27;
+const BATTLE_REV = 28;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined) st.tactical = true; return st; }
@@ -3227,6 +3260,8 @@ const FLOOR2 = {
   goblin: { n: 2, name: "Лес гоблинов", zone: "goblin", portalKind: "goblin", dark: [],
     placeAt(x, y) {
       if (x === 10 && y === 10) return { name: "Руины (угол)", special: ["goblin-bomber", "hobgoblin-shield", "hobgoblin-shield"] };
+      if (x === 1 && y === 5) return { name: "Логово крысолова", special: ["rat-catcher"] };          // решение автора: гоблин-крысолов, начинает один и зовёт крыс
+      if (x <= 2 && y >= 4 && y <= 6) return { name: "Крысиные норы", std: [["rat", 5]], minOf: { rat: 3 }, combos: [{ p: .12, day: 4, ids: ["rat-king", "rat"], list: () => ["rat-king", ...Array.from({ length: 3 + rnd(2) }, () => "rat")] }] };
       if (x <= 2 && y <= 2) return { name: "Логово воров", lair: "thieves", cap: 3, std: x <= 1 && y <= 1 ? [["goblin-thief", 3], ["goblin-assassin", 1]] : [["goblin-assassin", 1]], capOf: { "goblin-thief": 2 } };
       if (x >= 8 && y >= 8) return { name: "Руины", cap: 3, std: [["hobgoblin-shield", 2], ["hobgoblin", 3], ["hobgoblin-thrower", 2]] };
       if (x >= 6 && x <= 9 && y >= 1 && y <= 4) return { name: "Поселение гоблинов", std: [["goblin", 4], ["goblin-sword", 1], ["goblin-spear", 1], ["goblin-archer", 1]], shaman: .35,
@@ -3376,7 +3411,7 @@ function genEncounter2(x, y, day, n, z) {
   for (const c of pl.combos || []) if ((!c.day || day >= c.day) && Math.random() < c.p) { out.list = typeof c.list === "function" ? c.list() : c.list.slice(); return out; }
   const tot = pl.std.reduce((a, [, w]) => a + w, 0); let t = Math.random() * tot, id = pl.std[0][0];
   for (const [i, w] of pl.std) { t -= w; if (t < 0) { id = i; break; } }
-  let k = Math.min(cnt, pl.cap || 9, (pl.capOf || {})[id] || 9);
+  let k = Math.min(cnt, pl.cap || 9, (pl.capOf || {})[id] || 9); if ((pl.minOf || {})[id]) k = Math.max(k, pl.minOf[id]);          // крысы — не меньше трёх
   const list = Array(k).fill(id);
   if (pl.shaman && k >= 3 && Math.random() < pl.shaman) list[list.length - 1] = "goblin-shaman";          // шаман — только в группе
   if (pl.pack && (day === 7 || day === 14)) list.push("werewolf");                                        // полнолуние: волколак идёт с каждой волчьей встречей
@@ -3393,7 +3428,7 @@ const SP_LAIR = "10,5", SP_QUEEN_FAR = 2;
 const SP2 = {
   goblin: { plain: "Поле и кромка леса", treasures: [
     { id: "g-ruins", name: "руины", at: "10,10", ess: "goblin-bomber" }, { id: "g-den", name: "логово воров", at: "0,0", ess: "goblin-thief" },
-    { id: "g-camp", name: "поселение гоблинов", at: "8,2", ess: "goblin-king" }] },
+    { id: "g-camp", name: "поселение гоблинов", at: "8,2", ess: "goblin-king" }, { id: "g-rats", name: "логово крысолова", at: "1,5", ess: "rat-catcher" }] },
   beast: { plain: "Чаща", tiers: "cave", treasures: [
     { id: "b-hills", name: "волчьи холмы", at: "5,4", ess: "werewolf" }, { id: "b-cave", name: "дно пещеры", tier: "cave3", ess: "giant-mole" },
     { id: "b-spider", name: "логово паучихи", at: SP_LAIR, ess: "spider-queen" }, { id: "b-swamp", name: "угол топи", at: "10,10", ess: "swamp-fang" },
@@ -3768,6 +3803,7 @@ function resolveRoll() {
     if (r.day === 4 && enc.list.some(id => MONSTERS.find(m => m.id === id).rare)) r.rare4 = true;
     startFight(ev, p, enc);
     ev.ambush = kind === "ambush" || p.cause === "rest-noguard";
+    if (ev.ambush && p.cause === "rest" && r.fluteGuard) { ev.ambush = false; logRun("Караульный с флейтой услышал врагов заранее: засады нет."); }
     if (ev.ambush) ev.title = "Засада!";
     bellSave(ev);
     ev.init = rollInitiative(ev.list, ev.ambush);
@@ -4511,6 +4547,7 @@ function restOverlay() {
       <p>Караульный не спит и не получает бонусов отдыха. Спящие снимают 2 уровня Усталости (1, если голодны) и восстанавливают ОЗ: доля от максимума по Усталости (0 → 50%, 1 → 40%, 2 → 30%, 3 → 20%, 4 → 10%) плюс мод. ТЕЛ; голодным вдвое меньше. Справа — сколько пайков съест герой.</p>
       ${treasure("guard").owned ? `<button class="fx-btn guard" data-dg="ng-toggle" aria-pressed="${!!rs.ng}"${ngCharges() > 0 || rs.ng ? "" : " disabled"} style="display:flex;align-items:center;gap:8px;justify-content:center;width:100%;margin:2px 0 8px"><span style="width:22px;height:22px;display:inline-flex">${ICO_GUARD}</span>${artKnown("guard") ? "Ночной страж · заряды " + ngCharges() : "Артефакт ??"}${rs.ng ? " (сторожит эту ночь)" : ""}</button>` : ""}
       ${treasure("hearth").owned ? `<button class="fx-btn guard" data-dg="hearth-toggle" aria-pressed="${!!rs.hearth}"${r.hearthUsed ? " disabled" : ""} style="display:flex;align-items:center;gap:8px;justify-content:center;width:100%;margin:2px 0 8px"><span style="width:22px;height:22px;display:inline-flex">${ICO_HEARTH}</span>${artKnown("hearth") ? "Вечный очаг" : "Артефакт ??"} · ${r.hearthUsed ? "использован в этом заходе" : rs.hearth ? "применится после сна" : "готов (раз за заход)"}</button>` : ""}
+      ${fluteHeroes().length ? `<button class="fx-btn guard" data-dg="flute-toggle" aria-pressed="${!!rs.flute}" style="display:flex;align-items:center;gap:8px;justify-content:center;width:100%;margin:2px 0 8px">Флейта (${esc(fluteHeroes()[0].name)}): играть, +1 действие, спящие снимают ещё 1 уровень Усталости</button>` : ""}
       ${treasure("flask").owned ? `<button class="fx-btn guard" data-dg="flask-toggle" aria-pressed="${!!rs.flask}"${trReady("flask") ? "" : " disabled"} style="display:flex;align-items:center;gap:8px;justify-content:center;width:100%;margin:2px 0 8px"><span style="width:22px;height:22px;display:inline-flex">${ICO_FLASK}</span>${artKnown("flask") ? "Фляга странника" : "Артефакт ??"} · ${rs.flask ? "один паёк не тратится" : cdText("flask")}</button>` : ""}
       ${rs.ng ? `<p style="color:var(--fx-gold-hi)">Ночной страж сторожит лагерь: все спят, ночной встречи не будет. Потратится 1 заряд.</p>` : ""}
       <div class="rest-list">${state.party.map(c => `<div class="rest-row">
@@ -4810,13 +4847,15 @@ function act(kind) {
     for (const c of state.party) {
       const n = rs.eat[c.id] || 0, st = r.status[c.id];
       const got = eatRations(c, n);
-      if (got > 0) { st.sat = Math.min(9, st.sat + 3 * got); st.starve = 0; eaten += got; }
+      if (got > 0) { st.sat = Math.min(9, st.sat + (hasEssence(c, "rat") ? 6 : 3) * got); st.starve = 0; eaten += got; }          // «Падальщик»: паёк кормит вдвое дольше
     }
     if (rs.flask && trReady("flask") && eaten > 0) {
       const hc = state.party.find(c => (rs.eat[c.id] || 0) > 0);
       if (hc) { addToBag(hc, { t: "g", id: "ration", qty: 1 }); cdSet("flask"); eaten--; logRun(`Фляга странника: один паёк возвращён ${hc.name}.`); }
     }
     tick(sleepers);
+    const fluteOn = !!(rs.flute && fluteHeroes().length);
+    if (fluteOn) { tick(); logRun(`${fluteHeroes()[0].name} играет на флейте: дополнительное действие, отдых глубже.`); }
     for (const [cid, on] of Object.entries(rs.cup || {})) {                      // чаша: паёк превращается в воду, через 2 дня — зелье
       const c = state.party.find(x => x.id === cid), e = c && chalicesOf(c, "empty")[0];
       if (on && e && eatRations(c, 1) > 0) { chaliceFill(e); logRun(`${c.name} наполняет чашу здоровья, потратив паёк.`); }
@@ -4828,7 +4867,7 @@ function act(kind) {
       c.mp = maxMp(c); c.flags = {};                       // длинный отдых: мана и дневные способности
       c.insp = 1;                                          // переброс возвращает только сон
       if (c.hp > before) healed.push(`${c.name} +${c.hp - before}`);
-      if (!stoneAt("lava")) st.fat = Math.max(0, st.fat - (st.starve >= 3 ? 1 : 2));          // «Жар» лавовых трещин: отдых не снимает Усталость
+      if (!stoneAt("lava")) st.fat = Math.max(0, st.fat - (st.starve >= 3 ? 1 : 2) - (fluteOn ? 1 : 0));          // «Жар» лавовых трещин: отдых не снимает Усталость
       st.awake = 0;
     }
     if (rs.hearth && !r.hearthUsed && treasure("hearth").owned) {
@@ -4854,6 +4893,7 @@ function act(kind) {
   }
   if (kind === "rest") {
     const guarded = !!(dgUi.rest && dgUi.rest.ng) || state.party.some(c => dgUi.rest && dgUi.rest.guard[c.id]);
+    state.run.fluteGuard = !!(dgUi.rest && fluteHeroes().some(c => dgUi.rest.guard[c.id]));          // караульный с флейтой: засады не будет
     rollEncounter(guarded ? "rest" : "rest-noguard", Math.max(0, ...state.party.filter(c => dgUi.rest && dgUi.rest.guard[c.id]).map(c => state.run.status[c.id].fat)));
   }
   // Факел горит 4 действия, пока зажжён.
@@ -5076,6 +5116,7 @@ document.addEventListener("click", e => {
       cdSet("dice"); saveChar(); break;
     }
     case "cup-toggle": { const rs = dgUi.rest; rs.cup ||= {}; rs.cup[ds.id] = !rs.cup[ds.id]; break; }
+    case "flute-toggle": { const rs = dgUi.rest; rs.flute = !rs.flute; break; }
     case "hearth-toggle": { const rs = dgUi.rest; if (!state.run.hearthUsed) rs.hearth = !rs.hearth; break; }
     case "ng-toggle": { const rs = dgUi.rest; if (rs.ng) rs.ng = false; else if (ngCharges() > 0) { rs.ng = true; rs.guard = {}; } break; }
     case "give-compass": inv.compass.owned = true; saveChar(); toast("Мастер выдал компас"); break;
