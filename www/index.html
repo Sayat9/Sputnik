@@ -1781,7 +1781,7 @@ const DISTRICTS = [
 // Готовые рисованные картинки (webp) заменяют векторные заглушки.
 // Дата сборки для телефона: build.sh вписывает её сюда, в веб-версии строка пустая.
 const APP_BUILD = "25.10.2026 03:24";
-const APP_VERSION = 1792880673;                 // номер сборки, тоже вписывает build.sh
+const APP_VERSION = 1792880688;                 // номер сборки, тоже вписывает build.sh
 const UPDATE_URL = "https://raw.githubusercontent.com/Sayat9/Sputnik/main/www/";
 const RASTER = new Set(["items/mace", "items/warhammer", "items/armor-leather", "items/armor-hide", "items/armor-chainmail", "items/steel-dagger", "items/steel-sword", "items/steel-greatsword", "items/steel-shield", "items/steel-tower-shield", "items/shortbow", "items/longbow", "items/rapier", "items/shield", "items/tower-shield", "items/unknown-mushroom", "items/stone-9", "items/stone-8", "items/stone-7", "items/ration", "items/potion", "items/torch", "items/arrows", "items/clothes", "items/shovel", "items/shovel-good", "items/shovel-best", "items/dagger", "items/sword", "items/greatsword", "items/spear", "monsters/goblin-king-face", "monsters/goblin-king-full", "monsters/goblin-bomber-face", "monsters/goblin-bomber-full", "monsters/hobgoblin-shield-face", "monsters/hobgoblin-shield-full", "races/barbarian", "races/human", "races/dwarf", "races/beastkin", "races/fairy", "races/dragon", "monsters/goblin-face", "monsters/goblin-full", "monsters/goblin-archer-face", "monsters/goblin-archer-full", "monsters/goblin-sword-face", "monsters/goblin-sword-full", "monsters/goblin-spear-face", "monsters/goblin-spear-full", "monsters/wolf-face", "monsters/wolf-full", "monsters/fox-face", "monsters/fox-full", "monsters/mouse-face", "monsters/mouse-full", "monsters/bat-face", "monsters/bat-full", "monsters/hobgoblin-face", "monsters/hobgoblin-full", "monsters/zombie-face", "monsters/zombie-full", "monsters/skeleton-face", "monsters/skeleton-full", "monsters/skeleton-archer-face", "monsters/skeleton-archer-full", "monsters/ghoul-face", "monsters/ghoul-full", "monsters/dark-bear-face", "monsters/dark-bear-full", "monsters/skeleton-warrior-face", "monsters/skeleton-warrior-full", "monsters/living-stone-face", "monsters/living-stone-full", "monsters/wisp-face", "monsters/wisp-full", "monsters/pixie-face", "monsters/pixie-full", "monsters/green-boulder-face", "monsters/green-boulder-full", "monsters/stone-guardian-face", "monsters/stone-guardian-full", "monsters/spider-queen-face", "monsters/spider-queen-full", "monsters/ash-wraith-face", "monsters/ash-wraith-full", "monsters/ash-spirit-face", "monsters/ash-spirit-full", "monsters/plague-fat-face", "monsters/plague-fat-full", "monsters/bone-hound-face", "monsters/bone-hound-full", "monsters/dust-crawler-face", "monsters/dust-crawler-full", "monsters/faceless-ringer-face", "monsters/faceless-ringer-full", "monsters/mirror-dead-face", "monsters/mirror-dead-full", "monsters/whisperer-face", "monsters/whisperer-full", "monsters/morok-face", "monsters/morok-full", "monsters/grey-shade-face", "monsters/grey-shade-full", "monsters/blackwing-face", "monsters/blackwing-full", "monsters/swamp-fang-face", "monsters/swamp-fang-full", "monsters/web-spider-face", "monsters/web-spider-full", "monsters/goblin-shaman-face", "monsters/goblin-shaman-full", "items/compass"]);
 const artPath = p => `assets/${p}.${RASTER.has(p) ? "webp" : "svg"}`;
@@ -3664,7 +3664,7 @@ function spDo(id) {
   } else if (id.startsWith("altar:")) {
     const el = id.slice(6), st = sp.stone; st.lit[el] = true; const n = Object.values(st.lit).filter(Boolean).length;
     logRun(`Алтарь ${SP_ALTAR_NAME[el]} горит (${n} из 4).`);
-    spNotice("Алтарь пробуждается", `Алтарь ${SP_ALTAR_NAME[el]} вспыхивает. Кристалл в центре разлома вспыхивает: горит алтарей ${n} из 4, разлом просыпается (встречи чаще).${n >= 4 ? " Центр сада ждёт." : ""}`);
+    spNotice("Алтарь пробуждается", `Алтарь ${SP_ALTAR_NAME[el]} вспыхивает. Кристалл в центре разлома вспыхивает: горит алтарей ${n} из 4.${n >= 4 ? " Центр сада ждёт." : ""}`);
   } else if (id === "cremate") { burnTorch(); delete sp.unq[k]; logRun("Останки сожжены: мёртвые не встанут."); }
   else if (id === "take" || id === "steal") {
     const t = spTreasureHere(); if (!t) return;
@@ -4070,14 +4070,14 @@ function finishFight() {
 // Ночная группа маленькая (до 2); полная — только на квадрате, зачищенном больше 2 дней назад. Безопасные зоны (порталы, центр 1 этажа) — никогда.
 const NIGHT_P = [0, 0, 0, 0.03, 0.04, 0.05, 0.06, 0.06, 0.06, 0.06, 0.07, 0.07, 0.07, 0.07];          // очень редко (решение автора)
 const stoneAt = kind => { const r = state.run; if (!r || r.floor !== 2 || r.variant !== "stone") return false; const pl = FL().variant.placeAt(r.pos.x, r.pos.y); return !!(pl && pl[kind]); };
-// Разлом просыпается: каждый зажжённый алтарь повышает шанс ночных встреч на 3 п. п. (моё допущение, drafts.md).
+// Число горящих алтарей (на шанс встреч не влияет — решение автора).
 const spLit = () => { const sp = state.run && state.run.floor === 2 && state.run.sp && state.run.sp.stone; return sp ? Object.values(sp.lit).filter(Boolean).length : 0; };
 function rollEncounter(cause, guardFat = 0) {
   const r = state.run, dark = inDarkness(), guarded = cause === "rest";
   if (zoneAt(r.pos.x, r.pos.y).kind === "safe" || r.tier) return;
   const p0 = NIGHT_P[Math.min(NIGHT_P.length, Math.max(1, r.day)) - 1];
   if (!p0 || (guarded && guardFat <= 0)) return;
-  const base = Math.min(0.6, (guarded ? p0 + 0.01 * guardFat : p0 * 2) + (dark ? 0.06 : 0) + 0.03 * spLit()), pct = 1 + rnd(100), lim = Math.round(base * 100);
+  const base = Math.min(0.6, (guarded ? p0 + 0.01 * guardFat : p0 * 2) + (dark ? 0.06 : 0)), pct = 1 + rnd(100), lim = Math.round(base * 100);
   if (pct > lim) return;
   logRun(`Ночью кто-то приближается (шанс ${lim} %, выпало ${pct}). Мастер, брось к20.`);
   askRoll(cause, true);

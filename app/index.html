@@ -3659,7 +3659,7 @@ function spDo(id) {
   } else if (id.startsWith("altar:")) {
     const el = id.slice(6), st = sp.stone; st.lit[el] = true; const n = Object.values(st.lit).filter(Boolean).length;
     logRun(`Алтарь ${SP_ALTAR_NAME[el]} горит (${n} из 4).`);
-    spNotice("Алтарь пробуждается", `Алтарь ${SP_ALTAR_NAME[el]} вспыхивает. Кристалл в центре разлома вспыхивает: горит алтарей ${n} из 4, разлом просыпается (встречи чаще).${n >= 4 ? " Центр сада ждёт." : ""}`);
+    spNotice("Алтарь пробуждается", `Алтарь ${SP_ALTAR_NAME[el]} вспыхивает. Кристалл в центре разлома вспыхивает: горит алтарей ${n} из 4.${n >= 4 ? " Центр сада ждёт." : ""}`);
   } else if (id === "cremate") { burnTorch(); delete sp.unq[k]; logRun("Останки сожжены: мёртвые не встанут."); }
   else if (id === "take" || id === "steal") {
     const t = spTreasureHere(); if (!t) return;
@@ -4065,14 +4065,14 @@ function finishFight() {
 // Ночная группа маленькая (до 2); полная — только на квадрате, зачищенном больше 2 дней назад. Безопасные зоны (порталы, центр 1 этажа) — никогда.
 const NIGHT_P = [0, 0, 0, 0.03, 0.04, 0.05, 0.06, 0.06, 0.06, 0.06, 0.07, 0.07, 0.07, 0.07];          // очень редко (решение автора)
 const stoneAt = kind => { const r = state.run; if (!r || r.floor !== 2 || r.variant !== "stone") return false; const pl = FL().variant.placeAt(r.pos.x, r.pos.y); return !!(pl && pl[kind]); };
-// Разлом просыпается: каждый зажжённый алтарь повышает шанс ночных встреч на 3 п. п. (моё допущение, drafts.md).
+// Число горящих алтарей (на шанс встреч не влияет — решение автора).
 const spLit = () => { const sp = state.run && state.run.floor === 2 && state.run.sp && state.run.sp.stone; return sp ? Object.values(sp.lit).filter(Boolean).length : 0; };
 function rollEncounter(cause, guardFat = 0) {
   const r = state.run, dark = inDarkness(), guarded = cause === "rest";
   if (zoneAt(r.pos.x, r.pos.y).kind === "safe" || r.tier) return;
   const p0 = NIGHT_P[Math.min(NIGHT_P.length, Math.max(1, r.day)) - 1];
   if (!p0 || (guarded && guardFat <= 0)) return;
-  const base = Math.min(0.6, (guarded ? p0 + 0.01 * guardFat : p0 * 2) + (dark ? 0.06 : 0) + 0.03 * spLit()), pct = 1 + rnd(100), lim = Math.round(base * 100);
+  const base = Math.min(0.6, (guarded ? p0 + 0.01 * guardFat : p0 * 2) + (dark ? 0.06 : 0)), pct = 1 + rnd(100), lim = Math.round(base * 100);
   if (pct > lim) return;
   logRun(`Ночью кто-то приближается (шанс ${lim} %, выпало ${pct}). Мастер, брось к20.`);
   askRoll(cause, true);

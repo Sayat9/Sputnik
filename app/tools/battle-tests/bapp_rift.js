@@ -47,7 +47,7 @@ const L = require('./bui_lib.js');
   ok('подсказка тайла сада — монстры сада', o.pool.includes('crystalloid') && o.pool.includes('pixie') && o.pool.includes('crystal-colossus'), JSON.stringify(o.pool));
   ok('стражи алтарей', o.guards.air[0] === 'storm-spirit' && o.guards.water[0] === 'deep-serpent' && o.guards.fire[0] === 'magma-golem' && o.earthGuard[0] === 'crystal-colossus' && o.earthOk, JSON.stringify(o));
   ok('победа над стражем даёт осколок и страж уходит', o.shardFire && o.guardGoneFire, JSON.stringify(o));
-  ok('алтарь можно зажечь только с осколком; повышает шанс встреч', o.btn.includes('altar:fire') && o.lit1 && o.lit === 1, JSON.stringify(o.btn));
+  ok('алтарь можно зажечь только с осколком', o.btn.includes('altar:fire') && o.lit1 && o.lit === 1, JSON.stringify(o.btn));
   ok('четыре алтаря горят — бой с Сердцем разлома в центре сада', o.heartFight, JSON.stringify(o));
   ok('сокровище Сердца недоступно до победы и доступно после', !o.treasureBeforeHeart && o.heartDone && o.treasureAfter, JSON.stringify(o));
   ok('жар, сырость, резонанс по местам', o.lava && o.lake && o.garden);
