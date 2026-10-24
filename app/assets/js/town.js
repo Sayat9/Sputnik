@@ -422,15 +422,31 @@
      ===================================================================== */
   const essLvl = id => ["ess-stats", "ess-passive", "ess-active"].filter(k => essSeen(id, k)).length;
   B_tower();
+  function identify(id) {
+    const price = artPrice(id);
+    if (!payGold(hero(), price)) { ui.msg = "Не хватает монет."; return; }
+    artState().known[id] = true; visit(); ui.msg = `Артефакт определён: ${ARTIFACTS[id].name}. Сведения записаны в библиотеку артефактов.`; saveChar();
+  }
   function B_tower() {
     B.tower = {
       render() {
         const c = hero(); if (!c) return frame("Башня магов", "Рафдония", noParty());
+        const tab = ui.tab === "art" ? "art" : "ess";
+        const tabs = `<div class="tw-tabs"><button class="fx-btn" role="tab" aria-selected="${tab === "ess"}" data-t="ttab" data-k="ess">Эссенции</button><button class="fx-btn" role="tab" aria-selected="${tab === "art"}" data-t="ttab" data-k="art">Артефакты</button></div>`;
+        if (tab === "art") {
+          artSync();
+          const ids = Object.keys(ARTIFACTS).filter(id => artState().seen[id]);
+          const rows = ids.map(id => { const A = ARTIFACTS[id], known = artKnown(id), price = artPrice(id);
+            return `<div class="tw-row"><div class="tw-who"><span class="tw-ph sq" style="display:grid;place-items:center;color:var(--fx-gold)">${A.ico()}</span><div><b>${esc(artName(id))}</b><small>${known ? `${A.cls} класс · ${esc(A.text)}` : `${A.cls} класс · свойства неизвестны`}</small></div></div>
+              ${known ? `<span class="tw-done">${ICO_CHECK}</span>` : `<button class="fx-btn primary" data-t="aid" data-id="${id}"${partyGold() >= price ? "" : " disabled"}>${price}</button>`}</div>`; }).join("");
+          return frame("Башня магов", "Рафдония", `${heroStrip()}${tabs}<p class="tw-lead">Маг определит артефакт за деньги: откроются название и свойства, сведения попадут в библиотеку артефактов.</p>
+            ${ids.length ? `<div class="tw-rows">${rows}</div>` : `<p class="tw-msg">Артефактов пока нет: они появляются, когда отряд находит сокровища.</p>`}${msgLine()}`);
+        }
         const ess = c.essences || [];
         const rows = ess.map(id => { const e = ESSENCES[id], n = essLvl(id), price = towerPrice(id);
           return `<div class="tw-row"><div class="tw-who"><div><b>${esc(essTitle(id))}</b><small>${e.cls} класс · изучено ${n} из 3</small></div></div>
             ${n === 3 ? `<span class="tw-done">${ICO_CHECK}</span>` : `<button class="fx-btn primary" data-t="analyze" data-id="${id}"${partyGold() >= price ? "" : " disabled"}>${price}</button>`}</div>`; }).join("");
-        return frame("Башня магов", "Рафдония", `${heroStrip()}<p class="tw-lead">Маг заглянет в героя и расскажет всё о впитанных им эссенциях: статы, пассивную и активную способность. Цена зависит от класса эссенции.</p>
+        return frame("Башня магов", "Рафдония", `${heroStrip()}${tabs}<p class="tw-lead">Маг заглянет в героя и расскажет всё о впитанных им эссенциях: статы, пассивную и активную способности. Цена — треть цены эссенции.</p>
           ${ess.length ? `<div class="tw-rows">${rows}</div>` : `<p class="tw-msg">У ${esc(c.name)} нет эссенций.</p>`}${msgLine()}`);
       },
     };
@@ -590,6 +606,8 @@
       case "gbuy": guildBuy(ds.k); break;
       case "gsell": guildSell(ds.id); break;
       case "analyze": analyze(ds.id); break;
+      case "ttab": ui.tab = ds.k; break;
+      case "aid": identify(ds.id); break;
       case "purge": purge(ds.id); break;
       case "qaccept": questAccept(ds.id); break;
       case "qdone": questDone(ds.id); break;

@@ -52,7 +52,7 @@ const L = require('./bui_lib.js');
     out.treasureLocked = spButtons().some(x => x.id === 'steal');
     const c3 = dgUi.enc; c3.outcome = 'win'; c3.killed = [0]; finishFight(); out.treasureOpen = spButtons().some(x => x.id === 'take');
     const s7 = () => (sack().items['c:7'] || { qty: 0 }).qty, stones0 = s7();
-    dgUi.spDo = 'take'; act('sp'); out.stones = s7() - stones0 >= 2; out.got = sp.got['b-cave'] === true; dgUi.res = null;
+    dgUi.spDo = 'take'; act('sp'); out.stones = !!(dgUi.res && dgUi.res.lines.length >= 1 && /к20 = \d+/.test(dgUi.res.roll)); out.got = sp.got['b-cave'] === true; dgUi.res = null;
     dgUi.spDo = 'tier-prev'; act('sp'); dgUi.enc = null; out.cavePrev = r.tier.n === 2; dgUi.spDo = 'tier-prev'; act('sp'); dgUi.enc = null; dgUi.spDo = 'tier-prev'; act('sp'); out.caveExit = r.tier === null;
     // зачищенный ярус пуст
     dgUi.enc = null; dgUi.spDo = 'tier-in:cave'; act('sp'); out.cave1Empty = !dgUi.enc && r.tier.n === 1; r.tier = null;
@@ -68,7 +68,7 @@ const L = require('./bui_lib.js');
     crow1: 'в бою гарантированно одна ворона', crow2: 'в последние действия — две, группа не растёт', crowBoss: 'вороны не идут с особыми', msgs: 'сообщения 2, 4, 5 действия', bw: 'на 6-м действии бой с чернокрылом и 4 воронами',
     bwDone: 'после чернокрыла окно закрыто', nestAllDead: 'все вороны убиты: ничего не запускается', crowDir: '«Ворона прилетела с …»', bloodNo: 'чует кровь выключена у здоровых', bloodYes: 'ранен меньше половины: чует кровь', bloodFlag: 'флаг в броске события', bloodGoblin: 'только в Волчьей чаще',
     caveBtn: 'спуск из угла пещеры', cave1: 'ярус 1: летучки и землекопы', tierNoMove: 'в ярусе только действия яруса', cave1Done: 'ярус зачищен', cave2: 'ярус 2: тёмный медведь', cave3: 'ярус 3: крот-исполин, дальше спуска нет',
-    treasureLocked: 'сокровище пока не отбито — только украсть', treasureOpen: 'после крота можно забрать', stones: 'камни 7 класса получены', got: 'сокровище помечено', cavePrev: 'подъём на ярус 2', caveExit: 'выход из пещеры', cave1Empty: 'зачищенный ярус пуст',
+    treasureLocked: 'сокровище пока не отбито — только украсть', treasureOpen: 'после крота можно забрать', stones: 'сокровище дало награду по таблице к20', got: 'сокровище помечено', cavePrev: 'подъём на ярус 2', caveExit: 'выход из пещеры', cave1Empty: 'зачищенный ярус пуст',
     hillsSteal: 'Волчьи холмы: сокровище в центре — можно украсть', stealFail: 'провал скрытности: засада охраны' };
   for (const [k, t] of Object.entries(nm)) ok(t, flat[k] === true, JSON.stringify(flat[k]));
 

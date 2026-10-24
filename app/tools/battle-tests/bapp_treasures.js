@@ -4,6 +4,7 @@ const L = require('./bui_lib.js');
   const { b, p } = await L.launch(400, 860);
   const R = [], ok = (name, cond, extra) => { R.push({ name, ok: !!cond }); if (!cond) console.log('  ✗', name, '—', extra == null ? '' : extra); };
   await L.setup(p, { heroes: ['barb2', 'archer', 'fairy'], autoEnd: false, tactical: true });
+  await p.evaluate(() => { Object.keys(ARTIFACTS).forEach(id => { artState().known[id] = true; }); });          // определены заранее (проверки без «??»)
   // ---------- Огонь
   const F = await p.evaluate(() => {
     const out = {}, r = state.run;
@@ -43,7 +44,7 @@ const L = require('./bui_lib.js');
     treasure('hearth').owned = true; r.hearthUsed = false;
     state.party.forEach(c => { r.status[c.id].fat = 3; });
     dgUi.phase = 'rest'; dgUi.rest = { guard: { [state.party[0].id]: true }, eat: Object.fromEntries(state.party.map(c => [c.id, 0])), hearth: true, cup: {} };
-    out.btn = /Вечный очаг · согреет/.test(restOverlay());
+    out.btn = /Вечный очаг · применится/.test(restOverlay());
     act('rest');
     out.fat = state.party.map(c => r.status[c.id].fat); out.used = r.hearthUsed;
     // второй раз за заход не работает
@@ -149,7 +150,7 @@ const L = require('./bui_lib.js');
     wearer.equip.charm = { t: 'g', id: 'beginners-luck' };
     pl = Battle.End.plan(craft(['goblin'], { 0: null }), 'win'); out.b4 = pl.rolls[0].bonus; out.k4 = pl.kills.length;     // добит призванным/огнём — не засчитано
     // арена бонуса не даёт
-    const sa = craft(['goblin'], { 0: wearer.id }); sa.ev.arena = true; out.b5 = Battle.End.plan(sa, 'win').rolls[0].bonus;
+    const sa = craft(['goblin'], { 0: wearer.id }); sa.ev.arena = true; out.b5 = Battle.End.plan(sa, 'win').rolls[0].bonus;          // арена: бонус действует (решение автора)
     // настоящий бой: убийства героев записываются
     let credited = 0, expect = 0;
     for (let i = 0; i < 4; i++) {
@@ -172,7 +173,7 @@ const L = require('./bui_lib.js');
   ok('талисман «Удача новичка» экипируется в слот талисмана', K.eq);
   ok('+5 только за первое добивание вида самим носителем (гоблин: +5, второй гоблин и волк чужой: 0)', K.b1 === '5,0,0' && K.eff && K.kills === 3, JSON.stringify(K));
   ok('вид, который носитель уже убивал, бонуса не даёт; новый вид — даёт', K.b2 === '0,5', K.b2);
-  ok('без талисмана, при добивании призванным/огнём и на арене бонуса нет', K.b3 === 0 && K.b4 === 0 && K.k4 === 0 && K.b5 === 0, JSON.stringify(K));
+  ok('без талисмана и без добившего героя бонуса нет; на арене бонус действует', K.b3 === 0 && K.b4 === 0 && K.k4 === 0 && K.b5 === 5, JSON.stringify(K));
   ok('убийства героев записываются в c.kills (в реальном бою)', K.credited === K.expect && K.expect > 0, JSON.stringify([K.credited, K.expect]));
   ok('список убийств героя открывается кнопкой у опыта', K.list && K.xpBtn);
   // ---------- библиотека без метки опыта

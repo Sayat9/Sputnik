@@ -58,7 +58,7 @@
     const rolls = killed.map((idx, i) => {
       const id = species[i], hid = S.killedBy && S.killedBy[idx], c = hid && state.party.find(x => x.id === hid), key = hid + "|" + id;
       let bonus = 0;
-      if (c) { if (!ev.arena && c.equip && c.equip.charm && c.equip.charm.id === "beginners-luck" && !((c.kills || {})[id]) && !firstIn[key]) bonus = 5; firstIn[key] = true; kills.push({ hid, id }); }
+      if (c) { if (c.equip && c.equip.charm && c.equip.charm.id === "beginners-luck" && !((c.kills || {})[id]) && !firstIn[key]) bonus = 5; firstIn[key] = true; kills.push({ hid, id }); }
       const base = 1 + B.rnd(100); return { id, r: Math.min(100, base + bonus), base, bonus };
     });
     const wins = S.forceWins ? S.forceWins.map(id => ({ id, r: 99 })) : rolls.filter(x => x.r >= ESS_CHANCE);          // forceWins — только для проверок
@@ -126,12 +126,26 @@
       await sleep(900);
       const roll = modal.querySelector(".bt-roll"), cv = roll.querySelector("canvas"), resEl = roll.querySelector(".bt-roll-res"); roll.hidden = false;
       await sleep(120);
-      const ok = plan.wins.length > 0, show = ok ? plan.wins.reduce((a, b) => (a.r >= b.r ? a : b)).r : plan.best.r, dg = digits(show);
-      if (B.cfg.fast) { /* без анимации */ }
-      else await B.Dice.spinReveal(cv, dg, { stops: [1500, 2700], glow: ok, glowColor: "#ffe27a" });
-      const shownRoll = ok ? plan.wins.reduce((x, y) => (x.r >= y.r ? x : y)) : plan.best, luckNote = shownRoll && shownRoll.bonus ? ` <small>(выпало ${shownRoll.base}, Удача новичка +${shownRoll.bonus})</small>` : "";
-      resEl.innerHTML = ok ? `<b class="ok">${String(show).padStart(2, "0") === "00" ? 100 : show}</b> — выпала эссенция!${luckNote}` : `<b>${show}</b> — эссенция не выпала${luckNote}`;
-      resEl.className = "bt-roll-res " + (ok ? "ok" : "no");
+      let ok = plan.wins.length > 0, rollShown = ok ? plan.wins.reduce((a, b) => (a.r >= b.r ? a : b)) : plan.best, show = rollShown.r;
+      const reveal = async () => {
+        if (!B.cfg.fast) await B.Dice.spinReveal(cv, digits(show), { stops: [1500, 2700], glow: ok, glowColor: "#ffe27a" });
+        const luckNote = rollShown && rollShown.bonus ? ` <small>(выпало ${rollShown.base}, Удача новичка +${rollShown.bonus})</small>` : "";
+        resEl.innerHTML = ok ? `<b class="ok">${String(show).padStart(2, "0") === "00" ? 100 : show}</b> — выпала эссенция!${luckNote}` : `<b>${show}</b> — эссенция не выпала${luckNote}`;
+        resEl.className = "bt-roll-res " + (ok ? "ok" : "no");
+      };
+      await reveal();
+      // «Ещё раз»: одноразовый предмет, перебрасывает неудачный бросок (на арене эссенция не достаётся, смысла нет)
+      const onceMore = () => state.party.reduce((a, c) => a + countGear(c, "once-more"), 0);
+      while (!ok && !S.ev.arena && onceMore() > 0) {
+        const btn = document.createElement("button"); btn.className = "fx-btn primary"; btn.textContent = `«Ещё раз» — перебросить · осталось ${onceMore()}`; roll.appendChild(btn); done.hidden = false;
+        const choice = await Promise.race([new Promise(res => { btn.onclick = () => res("again"); }), finish.then(() => "done")]);
+        btn.remove(); if (choice === "done") break;
+        const holder = state.party.find(c => countGear(c, "once-more") > 0); takeGear(holder, "once-more", 1); saveChar();
+        const bonus = rollShown.bonus || 0, base = 1 + B.rnd(100), r = Math.min(100, base + bonus);
+        rollShown.r = r; rollShown.base = base; show = r;
+        if (r >= ESS_CHANCE) { plan.wins.push({ id: rollShown.id, r, base, bonus }); ok = true; }
+        await reveal();
+      }
       if (ok && S.ev.arena) {
         const g = modal.querySelector(".bt-essgot"); g.hidden = false;
         g.innerHTML = `<div class="bt-ess"><div><b>Эссенцию забрала администрация арены</b><small>Героям — 20 % её цены: ${plan.arena ? plan.arena.essBonus : 0} монет</small></div></div>`;

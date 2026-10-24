@@ -7,7 +7,7 @@ const L = require('./bui_lib.js');
   const A = await p.evaluate(() => {
     const out = {}, r = state.run;
     out.none = ngCharges() === 0;                                   // сокровища нет — зарядов нет
-    treasure('guard').owned = true; r.ng = null; r.reached = null;
+    treasure('guard').owned = true; artState().known.guard = true; r.ng = null; r.reached = null;
     out.base = ngCharges();                                         // 3
     const goTo2 = () => { r.floor = 1; delete r.variant; r.pos = { x: 0, y: 10 }; r.day = 2; r.act = 2; switchFloor(); };
     goTo2(); out.after2 = ngCharges();                              // 5
