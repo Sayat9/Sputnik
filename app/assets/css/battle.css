@@ -336,3 +336,7 @@ body.bt-active .dice-fab { display: none; }
 .bt-cast.tgt { border-color: rgb(244 212 142 / .95); box-shadow: 0 0 12px rgb(244 212 142 / .7), inset 0 0 10px rgb(244 212 142 / .45); opacity: 0; animation-delay: .3s; }
 @keyframes btCast { 0% { transform: scale(.55); opacity: 0; } 25% { opacity: 1; } 100% { transform: scale(1.65); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .bt-cast { animation-duration: .01s; } }
+.bt-sum { list-style: none; margin: 8px 0; padding: 0; display: grid; gap: 4px; }
+.bt-sum li { display: flex; gap: 8px; align-items: center; padding: 5px 8px; border-radius: 6px; background: rgba(255,255,255,.06); }
+.bt-sum li .n { flex: 1; } .bt-sum li .v { opacity: .7; }
+.bt-sum li.ok b { color: #8fd18f; } .bt-sum li.bad b { color: #e07a6a; }

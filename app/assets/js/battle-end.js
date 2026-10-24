@@ -4,7 +4,7 @@
   const End = (B.End = {});
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const sleep = ms => (B.cfg.fast ? Promise.resolve() : new Promise(r => setTimeout(r, ms)));
-  const ESS_CHANCE = 95;                                              // бросок d100: 95+ (6 %), rules.md → «Эссенции»
+  const ESS_CHANCE = 93;                                              // бросок d100: 93+ (8 %); rules.md говорит 95+ — отклонение записано в drafts.md
 
   // Приводит героев и вещи в порядок после боя: оружие, стрелы, ОЗ, свет.
   // Брошенное оружие и целые стрелы подбираются, только если отряд остался хозяином поля (победа или монстры бежали).

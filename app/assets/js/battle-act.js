@@ -385,6 +385,7 @@
   }
 
   /* ===== побег ===== */
+  const FLEE_DC = 10;
   async function runFlee(u) {
     const sp = speedOf(u);
     if (sp === 0) { UI().toast("Скорость 0: не убежать"); return false; }
@@ -401,7 +402,11 @@
     const r = await B.moveAlong(u, pathTo(map, ch[0], ch[1]));
     u.t.move = Math.max(0, u.t.move - r.spent);
     if (!alive(u) || u.down) return true;
-    if (u.y === B.H - 1) { u.escaped = true; B.dropOwnedStatuses(u); log(`${u.name} покидает поле боя.`, "flee"); const g = ui(); if (g) g.fxEscape(u); }
+    if (u.y === B.H - 1) {
+      const ck = await B.doCheck(u, "acrobatics", { title: "Побег", label: "уйти от преследования · Сл 10", dc: FLEE_DC });          // решение автора: низкая Сл Ловкости
+      if (!ck || !ck.ok) { log(`${u.name} не смог оторваться от врагов.`, "flee"); return true; }
+      u.escaped = true; B.dropOwnedStatuses(u); log(`${u.name} покидает поле боя.`, "flee"); const g = ui(); if (g) g.fxEscape(u);
+    }
     return true;
   }
 

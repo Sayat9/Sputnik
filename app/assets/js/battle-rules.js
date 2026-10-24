@@ -181,6 +181,7 @@
     if (hid && !(tgt.tremor && dist(att, tgt) <= tgt.tremor && !B.isFlying(att)) && !(tgt.blind && dist(att, tgt) <= tgt.blind)) { ctx.adv.push("атакует из укрытия"); }
     if (hid) ctx.consume.push([att, "hidden"]);
     const dtg = has(tgt, "deceived"); if (dtg && dtg.data.by === att.id) ctx.adv.push("цель потеряла вас из виду");
+    if (!o.noFlank && units().filter(x => x !== att && x.side === att.side && alive(x) && !x.down && !x.escaped && dist(x, tgt) <= 1).length >= 2) ctx.adv.push("цель в окружении союзников");          // решение автора: ≥2 союзника атакующего вплотную к цели
     if (isInvisibleTo(att, tgt)) ctx.dis.push("цель невидима");                                           // «Растворение»: бьют наугад, не видя цели
     if (has(tgt, "cursed")) ctx.extra.push({ n: 1, s: 4, b: 0, dt: atk.dt, label: "Проклятие предков", critDouble: true });          // каждое попадание по проклятому — ещё +1к4
     const pm = has(tgt, "packmark");                                                                       // «Вожак стаи»: союзник вожака бьёт отмеченного с преимуществом
@@ -342,6 +343,19 @@
     await ses.finish({ text: ok ? "Спасбросок удался" : "Спасбросок провален", save: true, ok });
     return { ok, nat: r.nat, total: r.total, dice: r.dice, mode: r.mode };
   }
+  // Спасброски сразу нескольких целей: без анимации кубиков, одна сводка (решение автора). Одна цель — обычный doSave.
+  async function massSave(list, abil, dc, o = {}) {
+    if (list.length < 2) return Promise.all(list.map(t => doSave(t, abil, dc, o)));
+    const out = [];
+    for (const t of list) {
+      if ((abil === "str" || abil === "dex") && (has(t, "unconscious") || has(t, "stable") || has(t, "paralyzed"))) { out.push({ ok: false, nat: 0, total: 0, mode: null }); continue; }
+      const ctx = saveCtx(t, abil, dc, o), r = d20Core({ mods: ctx.mods, adv: ctx.adv, dis: ctx.dis }), ok = r.total >= dc;
+      log(`${t.name}: спасбросок ${ABIL_RU[abil]} ${r.nat === r.total ? r.nat : r.nat + " → " + r.total} против Сл ${dc} — ${ok ? "успех" : "провал"}.`, ok ? "save" : "fail");
+      out.push({ ok, nat: r.nat, total: r.total, dice: r.dice, mode: r.mode });
+    }
+    const g = ui(); if (g && g.summary) await g.summary(o.title || o.label || "Спасброски", `${ABIL_RU[abil]}, Сл ${dc}`, list.map((t, i) => ({ name: t.name, side: t.side, total: out[i].total, nat: out[i].nat, ok: out[i].ok })));
+    return out;
+  }
   function skillMod(u, skill) {
     const ab = SKILL_ABIL[skill] || "str";
     let v = amod(u.abil[ab]) + (u.skills[skill] || 0);
@@ -371,7 +385,7 @@
     log(`${a.name} (${SKILL_RU[skillA]} ${ra.total}) против ${b.name} (${SKILL_RU[skillB]} ${rb.total}) — ${win ? "успех" : "провал"}.`);
     return { win, a: ra, b: rb };
   }
-  Object.assign(B, { rollDamage, doAttack, doSave, doCheck, contest, skillMod, animKind, seesTarget, attackCtx });
+  Object.assign(B, { rollDamage, doAttack, doSave, massSave, doCheck, contest, skillMod, animKind, seesTarget, attackCtx });
 
   /* ===== движение с реакциями и местностью ===== */
   async function offerOpportunity(e, mover) {

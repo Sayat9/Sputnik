@@ -198,10 +198,19 @@
   };
   // Долгое нажатие: при выборе движения ставит или снимает путевую точку, иначе показывает эффекты клетки.
   UI.onCellHold = function (x, y) {
-    if (!UI.active || !B.S || UI.mode === "place" || UI.mode === "result") return;
+    if (!UI.active || !B.S || UI.mode === "result") return;          // на расстановке тоже можно узнать особенности клетки
     const m = q(".bt-modal"); if (m && !m.hidden) return;
-    if (UI.holdHandle) { UI.holdHandle(x, y); return; }
+    if (UI.holdHandle && UI.mode !== "place") { UI.holdHandle(x, y); return; }
     UI.cellInfo(x, y);
+  };
+  // Сводка спасбросков по нескольким целям: закрывается кнопкой, бой ждёт.
+  UI.summary = function (title, sub, rows) {
+    return new Promise(res => {
+      const m = showModal(`<div class="bt-dlg fx-frame cellinfo"><div class="bt-ihead"><h4>${esc(title)}</h4></div><p class="bt-sub">${esc(sub)}</p>
+        <ul class="bt-sum">${rows.map(r => `<li class="${r.ok ? "ok" : "bad"}"><span class="n">${esc(r.name)}</span><span class="v">${r.total}</span><b>${r.ok ? "устоял" : "провал"}</b></li>`).join("")}</ul>
+        <div class="bt-btns"><button class="fx-btn primary" data-m="sumok">Готово</button></div></div>`);
+      m.onclick = e => { if (e.target.closest("[data-m=sumok]")) { hideModal(); res(); } };
+    });
   };
   UI.menu = function () {
     const S = B.S;

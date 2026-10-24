@@ -101,3 +101,9 @@
 **Кнопка «Проверить обновление»** (главный экран, только в APK): страница зовёт мост `window.SputnikApp` (`checkUpdate`, `applyUpdate`, `pending`, `version`), ответ приходит в `window.sputnikUpdate(status, version)`; «Применить обновление» сразу перезагружает страницу на новой версии. Без моста (APK до 18.10) — сравнение `APP_VERSION` с `version.json` на GitHub. Запросы к GitHub идут с `?t=`/`?v=`, чтобы обойти кэш.
 
 **Выпуск обновления:** `../android/publish.sh "что изменилось"` — собирает www (`WWW_ONLY=1 build.sh`, вписывает дату в `APP_BUILD` — видна внизу главного экрана) и отправляет проект в https://github.com/Sayat9/Sputnik (рабочая копия `/home/user/repo-stage`, папки `app/`, `android/`, `campaign/`, `www/`). Телефоны берут `www/` с `raw.githubusercontent.com` (кэш до ~5 минут). После каждого изменения приложения — выпускать обновление и публиковать веб-версию.
+
+## Бой: третья пачка правок
+- `ESS_CHANCE = 93` (battle-end.js; в rules.md 95+, отклонение в drafts.md). Окружение (≥2 союзника вплотную) — `attackCtx`. Побег: `runFlee` + проверка Акробатики Сл 10 (`FLEE_DC`).
+- `B.massSave(list, abil, dc, o)` — спасброски нескольких целей без анимации + `UI.summary`. Области монстров 9 класса — радиус 1.
+- `spNotice(title, text)` в index.html — сообщения часовни/гнезда окном (`dgUi.res`). `BATTLE_REV` = 20.
+- Тест: `tools/battle-tests/bnew4.js`. Промпты монстров 2 этажа: `docs/monster-prompts-floor2.md`.

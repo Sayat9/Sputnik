@@ -61,7 +61,7 @@
       tgt(u) { return { type: cfg.choose ? "units" : "area", prompt: `${cfg.name}: подтвердите`, units: pool(u).map(x => x.id), cells: cellsAround(u, cfg.radius), min: 0, max: cfg.max || 9, kind: "area" }; },
       can(u) { return pool(u).length ? true : "никого рядом"; },
       async run(u, pk, ctl) {
-        let ts = pk.units && cfg.side !== "all" ? pk.units.filter(x => alive(x) || x.down) : pool(u); if (!ts.length) return false;          // «все существа» — без выбора
+        let ts = pk.units && cfg.side !== "all" ? pk.units.filter(x => alive(x) || x.down) : pool(u); if (cfg.max && ts.length > cfg.max) ts = ts.slice(0, cfg.max); if (!ts.length) return false;          // «все существа» — без выбора
         ctl.commit();
         const dc = dcOf(u, cfg.abil);
         let total = 0, rolls = null;
@@ -73,14 +73,15 @@
         }
         if (cfg.dmg && total > 0 && B.blastCells) B.blastCells(cellsAround(u, cfg.radius), total, cfg.dt, u);          // область ломает камни и кристаллы
         ui() && ui().banner(`${u.name}: ${cfg.name}!`);
-        for (const t of ts) {
-          const sv = await save(t, cfg.save, dc, cfg.name, cfg.tags, u);
+        const svs = await B.massSave(ts, cfg.save, dc, { label: cfg.name, title: cfg.name, tags: cfg.tags, from: u });
+        for (let i = 0; i < ts.length; i++) {
+          const t = ts[i], sv = svs[i];
           if (cfg.dmg && total > 0) { const v = sv.ok ? (cfg.half ? Math.floor(total / 2) : 0) : total; if (v > 0) await B.applyDamage(u, t, [{ v, dt: cfg.dt, label: cfg.name }], { skill: true }); }
           if (alive(t) || t.down) { if (!sv.ok && cfg.onFail) await cfg.onFail(t, u, sv); if (sv.ok && cfg.onOk) await cfg.onOk(t, u, sv); }
         }
         return true;
       },
-      ai(u) { const ts = pool(u).filter(t => cfg.side !== "all" || t.side !== u.side); if (!ts.length) return null; const bad = cfg.side === "all" ? around(u, cfg.radius).filter(t => t.side === u.side).length : 0; if (bad > ts.length) return null; return { units: ts, score: 2 + ts.length * 2 - bad * 3 }; },
+      ai(u) { const ts = pool(u).filter(t => cfg.side !== "all" || t.side !== u.side); if (!ts.length) return null; const bad = cfg.side === "all" ? around(u, cfg.radius).filter(t => t.side === u.side).length : 0; if (bad > ts.length) return null; return { units: cfg.max ? ts.slice(0, cfg.max) : ts, score: 2 + Math.min(ts.length, cfg.max || 9) * 2 - bad * 3 }; },
     };
   }
 
@@ -125,7 +126,7 @@
       ctl.commit(); u.t.attacked = true;
       const total = r.sum + a.dmg.b; await ses.finish({ text: `${total} урона каждой цели при провале`, anim: "slash", dmg: total, tgt: ts[0] });
       const dc = dcOf(u, "str");
-      for (const t of ts) { const sv = await save(t, "dex", dc, "Размашистый удар"); const v = sv.ok ? Math.floor(total / 2) : total; await B.applyDamage(u, t, [{ v, dt: "slash", label: a.n }], { melee: true, src: u, weapon: true }); }          // weapon: урон оружия (для «Лат из костей»)
+      const svs = await B.massSave(ts, "dex", dc, { label: "Размашистый удар", title: "Размашистый удар", from: u }); for (let i = 0; i < ts.length; i++) { const t = ts[i], sv = svs[i]; const v = sv.ok ? Math.floor(total / 2) : total; await B.applyDamage(u, t, [{ v, dt: "slash", label: a.n }], { melee: true, src: u, weapon: true }); }          // weapon: урон оружия (для «Лат из костей»)
       return true;
     },
     ai(u) { const ts = within(u, 1); const a = atkFor(u, "melee", "slash"); if (!a || ts.length < 2) return null; return { units: ts.slice(0, 3), score: ts.length * 3 }; },
@@ -236,7 +237,7 @@
     },
     ai(u) { const ts = within(u, 6).filter(e => canAct(e)); if (!ts.length) return null; const t = ts.reduce((a, b) => (dist(u, a) < dist(u, b) ? a : b)); return { unit: t, score: 4 }; },
   };
-  A.mouse = saveArea({ name: "Громовой писк", radius: 2, side: "all", abil: "con", save: "con", dmg: "1к4", dt: "thunder", half: true, anim: "thunder", tags: ["sound", "stun"],
+  A.mouse = saveArea({ name: "Громовой писк", radius: 1, side: "all", abil: "con", save: "con", dmg: "1к4", dt: "thunder", half: true, anim: "thunder", tags: ["sound", "stun"],
     onFail: async t => { addStatus(t, "shaken", { k: 1, when: "end" }); ui() && ui().fxText(t, "оглушён", "bad"); } });
   A.bat = {
     time: "bonus", tgt() { return { type: "self" }; },
@@ -256,7 +257,7 @@
     },
     ai(u) { const ts = within(u, 1).filter(t => !has(t, "grappled")); if (!ts.length) return null; return { unit: ts[0], score: 4 }; },
   };
-  A.skeleton = saveArea({ name: "Треск костей", radius: 2, side: "enemies", abil: "con", save: "wis", tags: ["frightened"], choose: true,
+  A.skeleton = saveArea({ name: "Треск костей", radius: 1, side: "enemies", abil: "con", save: "wis", tags: ["frightened"], choose: true, max: 1,
     onFail: async (t, u) => { addStatus(t, "frightened", { k: 1, when: "end", data: { by: u.id } }); ui() && ui().fxText(t, "испуган", "bad"); } });
   A["skeleton-archer"] = attackRider({ name: "Ледяная стрела", kind: "ranged", abil: "dex", save: "con", tags: ["cold"], aiBonus: 4,
     onFail: async (t, u) => { const r = roll(1, 4).total; log(`Ледяная стрела: +${r} холодом, ${t.name} замедлен.`); await B.applyDamage(u, t, [{ v: r, dt: "cold", label: "Холод" }], {}); if (alive(t) || t.down) { addStatus(t, "slowed", { k: 1, when: "end", data: { add: -2 } }); ui() && ui().fxText(t, "замедлен", "bad"); } } });
@@ -280,9 +281,9 @@
     },
     ai(u) { const ts = within(u, 2).filter(t => !has(t, "sleepy")); if (!ts.length) return null; return { unit: ts[0], score: 4 }; },
   };
-  A.wisp = saveArea({ name: "Вспышка", radius: 2, side: "all", abil: "dex", save: "con", dmg: "1к4", dt: "fire", half: true, anim: "fire",
+  A.wisp = saveArea({ name: "Вспышка", radius: 1, side: "all", abil: "dex", save: "con", dmg: "1к4", dt: "fire", half: true, anim: "fire",
     onFail: async t => { addStatus(t, "dazzled", { k: 1, when: "end" }); ui() && ui().fxText(t, "ослеплён", "bad"); } });
-  A["green-boulder"] = saveArea({ name: "Цепкий мох", radius: 2, side: "enemies", abil: "con", save: "str", tags: ["slow"], choose: true,
+  A["green-boulder"] = saveArea({ name: "Цепкий мох", radius: 1, side: "enemies", abil: "con", save: "str", tags: ["slow"], choose: true,
     onFail: async t => { addStatus(t, "slowed", { k: 1, when: "end", data: { mult: 0.5 } }); ui() && ui().fxText(t, "замедлен", "bad"); } });
 
   /* ===================== ПАССИВКИ ===================== */

@@ -1700,8 +1700,8 @@ const DISTRICTS = [
 
 // Готовые рисованные картинки (webp) заменяют векторные заглушки.
 // Дата сборки для телефона: build.sh вписывает её сюда, в веб-версии строка пустая.
-const APP_BUILD = "24.10.2026 22:08";
-const APP_VERSION = 1792861704;                 // номер сборки, тоже вписывает build.sh
+const APP_BUILD = "24.10.2026 22:49";
+const APP_VERSION = 1792864150;                 // номер сборки, тоже вписывает build.sh
 const UPDATE_URL = "https://raw.githubusercontent.com/Sayat9/Sputnik/main/www/";
 const RASTER = new Set(["items/mace", "items/warhammer", "items/armor-leather", "items/armor-hide", "items/armor-chainmail", "items/steel-dagger", "items/steel-sword", "items/steel-greatsword", "items/steel-shield", "items/steel-tower-shield", "items/shortbow", "items/longbow", "items/rapier", "items/shield", "items/tower-shield", "items/unknown-mushroom", "items/stone-9", "items/stone-8", "items/stone-7", "items/ration", "items/potion", "items/torch", "items/arrows", "items/clothes", "items/shovel", "items/shovel-good", "items/shovel-best", "items/dagger", "items/sword", "items/greatsword", "items/spear", "monsters/goblin-king-face", "monsters/goblin-king-full", "monsters/goblin-bomber-face", "monsters/goblin-bomber-full", "monsters/hobgoblin-shield-face", "monsters/hobgoblin-shield-full", "races/barbarian", "races/human", "races/dwarf", "races/beastkin", "races/fairy", "races/dragon", "monsters/goblin-face", "monsters/goblin-full", "monsters/goblin-archer-face", "monsters/goblin-archer-full", "monsters/goblin-sword-face", "monsters/goblin-sword-full", "monsters/goblin-spear-face", "monsters/goblin-spear-full", "monsters/wolf-face", "monsters/wolf-full", "monsters/fox-face", "monsters/fox-full", "monsters/mouse-face", "monsters/mouse-full", "monsters/bat-face", "monsters/bat-full", "monsters/hobgoblin-face", "monsters/hobgoblin-full", "monsters/zombie-face", "monsters/zombie-full", "monsters/skeleton-face", "monsters/skeleton-full", "monsters/skeleton-archer-face", "monsters/skeleton-archer-full", "monsters/ghoul-face", "monsters/ghoul-full", "monsters/dark-bear-face", "monsters/dark-bear-full", "monsters/skeleton-warrior-face", "monsters/skeleton-warrior-full", "monsters/living-stone-face", "monsters/living-stone-full", "monsters/wisp-face", "monsters/wisp-full", "monsters/pixie-face", "monsters/pixie-full", "monsters/green-boulder-face", "monsters/green-boulder-full", "monsters/stone-guardian-face", "monsters/stone-guardian-full"]);
 const artPath = p => `assets/${p}.${RASTER.has(p) ? "webp" : "svg"}`;
@@ -2341,7 +2341,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 19;
+const BATTLE_REV = 20;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined) st.tactical = true; return st; }
@@ -3395,18 +3395,25 @@ function spEnter() {
   }
   return false;
 }
+// Сообщение, которое нужно закрыть (звон часовни, крики воронов): окно результата; если оно уже занято — обычная подсказка.
+function spNotice(title, text) {
+  logRun(text);
+  if (dgUi.res || dgUi.enc) { toast(text); return; }
+  dgUi.res = { title, roll: "", lines: [text] };
+  try { rerender(); } catch (e) {}
+}
 // После каждого действия: звон часовни, окно воронов и чернокрыл, погоня паучихи.
 function spAfter() {
   const r = state.run, sp = spOf(); if (!sp) return;
   if (sp.chapel && r.act === 3 && sp.chapel.chime !== r.day && !r.tier) {
     sp.chapel.chime = r.day;
     const [x, y] = sp.chapel.at.split(",").map(Number);
-    if (tkey(r.pos.x, r.pos.y) === sp.chapel.at) { logRun("Из тумана поднимается маяк — часовня-колокольня. В неё можно войти."); toast("Из тумана поднимается маяк"); }
-    else { const t = `Вы слышите звон ${hintDir(x, y)}.`; logRun(t); toast(t); }
+    if (tkey(r.pos.x, r.pos.y) === sp.chapel.at) { spNotice("Туманная часовня", "Из тумана поднимается маяк — часовня-колокольня. В неё можно войти."); }
+    else { spNotice("Звон колокола", `Вы слышите звон ${hintDir(x, y)}.`); }
   }
   if (sp.nest && sp.nest.st === "cd" && !r.tier) {
     const j = spWindow(), M = { 2: "Вы слышите далёкие крики.", 4: "Дождь чёрных перьев кружит вокруг.", 5: "Небо смотрит на вас.", 6: "Хор криков покрывает всё вокруг." };
-    if (M[j]) { logRun(M[j]); toast(M[j]); }
+    if (M[j]) spNotice("Гнездо чернокрыла", M[j]);
     if (j >= 6 && !dgUi.enc) {
       r.pending = null; r.queue = []; sp.nest.st = "bw";
       startSpecial("Чернокрыл и вороны", { zone: "beast", place: "Чаща", list: ["blackwing", "crow", "crow", "crow", "crow"] }, { sp: { k: "blackwing" } });

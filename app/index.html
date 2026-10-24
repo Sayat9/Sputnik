@@ -2336,7 +2336,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 19;
+const BATTLE_REV = 20;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined) st.tactical = true; return st; }
@@ -3390,18 +3390,25 @@ function spEnter() {
   }
   return false;
 }
+// Сообщение, которое нужно закрыть (звон часовни, крики воронов): окно результата; если оно уже занято — обычная подсказка.
+function spNotice(title, text) {
+  logRun(text);
+  if (dgUi.res || dgUi.enc) { toast(text); return; }
+  dgUi.res = { title, roll: "", lines: [text] };
+  try { rerender(); } catch (e) {}
+}
 // После каждого действия: звон часовни, окно воронов и чернокрыл, погоня паучихи.
 function spAfter() {
   const r = state.run, sp = spOf(); if (!sp) return;
   if (sp.chapel && r.act === 3 && sp.chapel.chime !== r.day && !r.tier) {
     sp.chapel.chime = r.day;
     const [x, y] = sp.chapel.at.split(",").map(Number);
-    if (tkey(r.pos.x, r.pos.y) === sp.chapel.at) { logRun("Из тумана поднимается маяк — часовня-колокольня. В неё можно войти."); toast("Из тумана поднимается маяк"); }
-    else { const t = `Вы слышите звон ${hintDir(x, y)}.`; logRun(t); toast(t); }
+    if (tkey(r.pos.x, r.pos.y) === sp.chapel.at) { spNotice("Туманная часовня", "Из тумана поднимается маяк — часовня-колокольня. В неё можно войти."); }
+    else { spNotice("Звон колокола", `Вы слышите звон ${hintDir(x, y)}.`); }
   }
   if (sp.nest && sp.nest.st === "cd" && !r.tier) {
     const j = spWindow(), M = { 2: "Вы слышите далёкие крики.", 4: "Дождь чёрных перьев кружит вокруг.", 5: "Небо смотрит на вас.", 6: "Хор криков покрывает всё вокруг." };
-    if (M[j]) { logRun(M[j]); toast(M[j]); }
+    if (M[j]) spNotice("Гнездо чернокрыла", M[j]);
     if (j >= 6 && !dgUi.enc) {
       r.pending = null; r.queue = []; sp.nest.st = "bw";
       startSpecial("Чернокрыл и вороны", { zone: "beast", place: "Чаща", list: ["blackwing", "crow", "crow", "crow", "crow"] }, { sp: { k: "blackwing" } });

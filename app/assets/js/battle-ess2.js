@@ -392,9 +392,10 @@
       const ts = (pk.units || []).filter(t => alive(t)); if (!ts.length) return false;
       ctl.commit(); const g = ui(); if (g) g.banner(`${u.name}: Боевой рёв!`);
       const dc = dcOf(u, "cha");
+      const foes = ts.filter(t => t.side !== u.side), fsv = foes.length ? await B.massSave(foes, "wis", dc, { label: "Боевой рёв", title: "Боевой рёв", tags: ["frightened"], from: u }) : [];
       for (const t of ts) {
         if (t.side === u.side) { const r = roll(1, 6).total; if (r > (t.temp || 0)) { t.temp = r; t.tempSrc = "roar"; } addStatus(t, "roar", { k: Infinity, data: durEnd(u, 1) }); log(`${t.name}: ${r} временных ОЗ.`, "good"); fx(t, `+${r} врем. ОЗ`, "good"); }
-        else { const sv = await save(t, "wis", dc, "Боевой рёв", ["frightened"], u); if (!sv.ok) { if (addStatus(t, "frightened", { k: Infinity, data: { by: u.id, ...durEnd(u, 1) } })) fx(t, "испуган", "bad"); } }
+        else { const sv = fsv[foes.indexOf(t)]; if (!sv.ok) { if (addStatus(t, "frightened", { k: Infinity, data: { by: u.id, ...durEnd(u, 1) } })) fx(t, "испуган", "bad"); } }
       }
       return true;
     },
