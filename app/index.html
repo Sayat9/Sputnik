@@ -5779,12 +5779,24 @@ function loadSave(id) {
   rerender();
   setTimeout(() => toast("Загружено: " + sv.name), 50);
 }
+// Начать с нуля: текущая игра сохраняется в слот «Партия до сброса» (её можно загрузить обратно), потом всё стирается — отряд, город, библиотека, инвентарь.
+function startOver() {
+  makeSave("Партия до сброса");
+  state = { party: [], sessions: [], current: null, example: clone(DEFAULT_CHAR) };
+  char = curChar(); dgUi = freshUi(); saveChar();
+  $saves.hidden = true;
+  if (!document.getElementById("libov").hidden) closeLibrary();
+  if (!document.getElementById("heroov").hidden) closeHero();
+  location.hash = ""; rerender();
+  setTimeout(() => toast("Начато с нуля. Прежняя партия — в «Сохранениях»."), 50);
+}
 function renderSaves() {
   const list = readSaves(), c = saveUi.confirm;
   $saves.innerHTML = `<div class="dice-sheet">
     <div class="ph-head"><h3>Сохранения</h3><button class="fx-btn" data-save="close" aria-label="Закрыть" style="width:42px;height:42px;padding:0;display:grid;place-items:center">${ICO_X}</button></div>
     <p class="save-note">Сейчас: ${esc(saveSummary(state))}. Сохранения лежат на этом телефоне. Перед загрузкой текущая игра сохраняется автоматически.</p>
     <button class="fx-btn primary big" data-save="new">Сохранить текущую игру</button>
+    <button class="fx-btn${c === "reset" ? " danger" : ""}" data-save="reset" style="margin-top:8px">${c === "reset" ? "Точно начать с нуля? Ещё раз" : "Начать с нуля (удалить героев)"}</button>
     <div class="save-list">${list.length ? list.map(sv => `<div class="save-row">
       <b>${esc(sv.name)}</b><small>${new Date(sv.date).toLocaleString("ru-RU", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" })} · ${esc(sv.info)}</small>
       <div class="btns"><button class="fx-btn" data-save="load" data-id="${sv.id}">${c === "load:" + sv.id ? "Точно загрузить? Ещё раз" : "Загрузить"}</button>
@@ -5800,6 +5812,10 @@ document.addEventListener("click", e => {
   if (k === "open") { openSaves(); return; }
   if (k === "close") { $saves.hidden = true; return; }
   if (k === "new") { if (makeSave()) toast("Игра сохранена"); saveUi.confirm = null; renderSaves(); return; }
+  if (k === "reset") {
+    if (saveUi.confirm !== "reset") { saveUi.confirm = "reset"; renderSaves(); return; }
+    saveUi.confirm = null; startOver(); return;
+  }
   if (k === "load" || k === "del") {
     if (saveUi.confirm !== k + ":" + id) { saveUi.confirm = k + ":" + id; renderSaves(); return; }
     saveUi.confirm = null;
