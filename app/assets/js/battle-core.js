@@ -89,7 +89,8 @@
     const base = D.zones[zone] || D.zones.goblin, G = D.gen, deep = floor >= 2 && D.deep[zone];
     let zc = deep ? Object.assign({}, base, { feats: base.feats.concat(deep.feats) }) : base;
     if (water) zc = Object.assign({}, zc, { feats: zc.feats.concat([["puddle", water > 1 ? 3 : 1, water > 1 ? 5 : 3, true]]) });          // пруд: заметно больше воды; топь — чуть больше
-    if (bog) zc = Object.assign({}, zc, { feats: zc.feats.concat([["mire", 9, 13, true]]) });          // бой с болотным клыком: топь пятнами
+    if (bog === "lake") zc = Object.assign({}, zc, { feats: zc.feats.concat([["deep", 7, 10, true]]) });          // бой с глубинным змеем: озеро на поле
+    else if (bog) zc = Object.assign({}, zc, { feats: zc.feats.concat([["mire", 9, 13, true]]) });          // бой с болотным клыком: топь пятнами
     for (let attempt = 0; attempt < 30; attempt++) {
       const cells = Array.from({ length: H }, () => Array(W).fill(null));
       const objs = [];
@@ -407,8 +408,8 @@
     S.torchFixed = S.torch;          // факел, зажжённый на карте, горит весь бой; факел, зажжённый в бою, — 3 раунда (battle-act.js)
     if ((ev.list || []).includes("giant-mole")) { S.dark = true; S.torch = false; S.torchFixed = false; S.pitDark = true; }          // решение автора: дно пещеры крота — кромешная тьма
     S.floor = ev.floor || (state.run && state.run.floor) || 1;
-    S.bog = (ev.list || []).includes("swamp-fang");
-    const g = genTerrain(zone, S.floor, ev.water, S.bog); S.cells = g.cells; S.objs = g.objs; S.found = []; S.objHp = {};
+    S.bog = (ev.list || []).includes("swamp-fang"); S.lake = (ev.list || []).includes("deep-serpent");
+    const g = genTerrain(zone, S.floor, ev.water, S.lake ? "lake" : S.bog); S.cells = g.cells; S.objs = g.objs; S.found = []; S.objHp = {};
     if (B.placeEnv && !ev.arena) B.placeEnv(S, ev);
     uidSeq = 1;
     B.S = S;

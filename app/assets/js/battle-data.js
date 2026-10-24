@@ -39,6 +39,7 @@
       '<rect x="80" y="64" width="7" height="18" rx="3" fill="#cfd6c6" stroke="#4b5648" stroke-width="2"/><path d="M71 68 Q84 44 97 68Z" fill="#c4607a" stroke="#6b2a3b" stroke-width="2.5"/>',
     puddle: '<ellipse cx="50" cy="56" rx="42" ry="28" fill="#3d7fa8" opacity=".88" stroke="#1d4a66" stroke-width="3"/><ellipse cx="42" cy="50" rx="24" ry="13" fill="#6fb3d6" opacity=".7"/>' +
       '<path d="M28 62 Q40 55 50 62 M54 50 Q62 46 72 53" stroke="#d6f0ff" stroke-width="2.5" fill="none" opacity=".85" stroke-linecap="round"/>',
+    deep: '<ellipse cx="50" cy="56" rx="44" ry="30" fill="#13324a" stroke="#0a1c2b" stroke-width="3"/><ellipse cx="46" cy="52" rx="30" ry="17" fill="#1c4a6b" opacity=".85"/><path d="M22 58 Q34 50 46 58 T72 56 M30 66 Q42 60 54 66 T80 64" stroke="#6fb4d8" stroke-width="2" fill="none" opacity=".7"/><circle cx="62" cy="46" r="3" fill="#9fd4ee" opacity=".6"/>',
     mire: '<ellipse cx="50" cy="56" rx="44" ry="30" fill="#2f3f26" stroke="#1a2415" stroke-width="3"/><ellipse cx="44" cy="52" rx="28" ry="16" fill="#3d5230" opacity=".85"/><circle cx="34" cy="58" r="4" fill="#7d9a5a" opacity=".7"/><circle cx="60" cy="50" r="3" fill="#7d9a5a" opacity=".7"/><circle cx="68" cy="62" r="5" fill="#7d9a5a" opacity=".6"/><path d="M20 64 Q34 58 46 66 M52 46 Q64 40 78 48" stroke="#9db87a" stroke-width="2" fill="none" opacity=".6"/>',
     mud: '<ellipse cx="50" cy="56" rx="42" ry="28" fill="#5b4326" stroke="#33250f" stroke-width="3"/><ellipse cx="44" cy="52" rx="26" ry="13" fill="#6d5230"/><circle cx="64" cy="60" r="5" fill="#33250f" opacity=".6"/><circle cx="32" cy="62" r="3.5" fill="#33250f" opacity=".6"/>',
     bones: '<path d="M14 72 L50 52" stroke="#e8dec6" stroke-width="7" stroke-linecap="round"/><circle cx="12" cy="74" r="5.5" fill="#e8dec6"/><circle cx="52" cy="50" r="5.5" fill="#e8dec6"/>' +
@@ -74,6 +75,7 @@
     shrooms: { name: "Грибные заросли", cost: 2, cover: 2, hide: true, thicket: true, note: "Труднопроходны (клетка стоит 2). +2 КД от дальних атак, можно прятаться." },
     puddle:  { name: "Лужа", wet: true, note: "Кто вошёл — промок: холод и молния +1к4, огонь не поджигает." },
     mud:     { name: "Грязь", cost: 2, note: "Труднопроходна." },
+    deep:    { name: "Глубокая вода", cost: 2, wet: true, deep: true, note: "Труднопроходна, промокаешь. Глубинный змей быстр в воде. С каждым вторым раундом вода подступает: одна соседняя клетка тоже уходит под воду." },
     mire:    { name: "Топь", cost: 2, wet: true, bog: true, note: "Труднопроходна, промокаешь. Простоять здесь больше двух своих ходов подряд — увязнешь: помеха на следующий бросок, двигаться нельзя, пока не потратишь действие на то, чтобы выбраться." },
     bones:   { name: "Груда костей", cost: 2, note: "Труднопроходна." },
     moss:    { name: "Цепкий мох", cost: 2, note: "Труднопроходен." },

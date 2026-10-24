@@ -1091,7 +1091,7 @@
 
   /* Глубинный змей (7) */
   P["deep-serpent"] = {
-    speedBonus(u) { let b = waterAt(u) ? 0 : -2; if (has(u, "coiled")) b -= Math.floor(Math.max(u.speedC, u.flyC) / 2); return b; },
+    speedBonus(u) { const tt = B.tinfo(u.x, u.y); let b = tt && tt.deep ? 2 : waterAt(u) ? 0 : -2; if (has(u, "coiled")) b -= Math.floor(Math.max(u.speedC, u.flyC) / 2); return b; },
     attackMods(att, ctx) {
       const c = has(att, "coiled"); if (!c || !ctx.atk || ctx.atk.thrown) return;
       ctx.mods.push({ l: "Бросок из кольца", v: 2 }); ctx.extra.push({ n: 1, s: 8, b: 0, dt: ctx.atk.dt, label: "Бросок из кольца", critDouble: true }); ctx.consume.push([att, "coiled"]); att.flags.coilFull = true;
@@ -1107,6 +1107,22 @@
       await B.applyDamage(att, t, [{ v, dt: c.atk.dt, label: "Скользящий удар" }], { melee: true, src: att });
     },
   };
+  // Решение автора: в бою с глубинным змеем на поле озеро; вода подступает (каждый второй раунд одна соседняя клетка уходит под воду); змей, начавший ход в глубокой воде, бьёт внезапно (преимущество).
+  const prevRoundLake = B.onRound;
+  B.onRound = function (round) {
+    if (prevRoundLake) prevRoundLake.apply(this, arguments);
+    const S = B.S; if (!S || !S.lake || round % 2 !== 0) return;
+    const cand = [];
+    for (let y = 0; y < B.H; y++) for (let x = 0; x < B.W; x++) {
+      if (S.cells[y][x] || B.obstacleAt(x, y)) continue;
+      let near = false; for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const X = x + dx, Y = y + dy; if (X >= 0 && Y >= 0 && X < B.W && Y < B.H && S.cells[Y][X] === "deep") near = true; }
+      if (near && !live().some(o => o.x === x && o.y === y)) cand.push([x, y]);
+    }
+    if (!cand.length) return; const [cx, cy] = cand[B.rnd(cand.length)]; S.cells[cy][cx] = "deep";
+    log("Вода подступает: ещё одна клетка уходит под воду.", "skill"); if (ui()) ui().refresh();
+  };
+  P["deep-serpent"].turnStartAsync = async function (u) { const tt = B.tinfo(u.x, u.y); if (u.side === "mon" && tt && tt.deep) { addStatus(u, "emerged", { k: 0, when: "end" }); fx(u, "из воды", "good"); } };
+  P["deep-serpent"].attackMods = (function (old) { return function (att, ctx) { old(att, ctx); if (has(att, "emerged")) { ctx.adv.push("бьёт из воды"); ctx.consume.push([att, "emerged"]); } }; })(P["deep-serpent"].attackMods);
   A["deep-serpent"] = {
     time: "bonus",
     tgt() { return { type: "self" }; },
