@@ -1,5 +1,5 @@
 {
- "version": 1792882062,
+ "version": 1792882403,
  "files": [
   "assets/css/battle.css",
   "assets/css/town.css",
@@ -84,6 +84,8 @@
   "assets/monsters/corpse-eater-full.webp",
   "assets/monsters/crow-face.webp",
   "assets/monsters/crow-full.webp",
+  "assets/monsters/crystal-colossus-face.webp",
+  "assets/monsters/crystal-colossus-full.webp",
   "assets/monsters/crystalloid-face.webp",
   "assets/monsters/crystalloid-full.webp",
   "assets/monsters/dark-bear-face.webp",
@@ -180,6 +182,8 @@
   "assets/monsters/pixie-full.webp",
   "assets/monsters/plague-fat-face.webp",
   "assets/monsters/plague-fat-full.webp",
+  "assets/monsters/rift-heart-face.webp",
+  "assets/monsters/rift-heart-full.webp",
   "assets/monsters/skeleton-archer-face.webp",
   "assets/monsters/skeleton-archer-full.webp",
   "assets/monsters/skeleton-face.webp",
@@ -190,6 +194,8 @@
   "assets/monsters/spider-queen-full.webp",
   "assets/monsters/stone-guardian-face.webp",
   "assets/monsters/stone-guardian-full.webp",
+  "assets/monsters/storm-spirit-face.webp",
+  "assets/monsters/storm-spirit-full.webp",
   "assets/monsters/swamp-fang-face.webp",
   "assets/monsters/swamp-fang-full.webp",
   "assets/monsters/swamp-toad-face.webp",
