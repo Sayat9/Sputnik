@@ -85,9 +85,10 @@
     while (q.length) { const [x, y] = q.pop(); for (const [dx, dy] of DIRS) { const nx = x + dx, ny = y + dy; if (inB(nx, ny) && !seen.has(key(nx, ny)) && !(cells[ny][nx] && D.terrain[cells[ny][nx]].obstacle)) { seen.add(key(nx, ny)); q.push([nx, ny]); } } }
     return seen.size === free.length;
   }
-  function genTerrain(zone, floor) {
+  function genTerrain(zone, floor, water) {
     const base = D.zones[zone] || D.zones.goblin, G = D.gen, deep = floor >= 2 && D.deep[zone];
-    const zc = deep ? Object.assign({}, base, { feats: base.feats.concat(deep.feats) }) : base;
+    let zc = deep ? Object.assign({}, base, { feats: base.feats.concat(deep.feats) }) : base;
+    if (water) zc = Object.assign({}, zc, { feats: zc.feats.concat([["puddle", water > 1 ? 3 : 1, water > 1 ? 5 : 3, true]]) });          // пруд: заметно больше воды; топь — чуть больше
     for (let attempt = 0; attempt < 30; attempt++) {
       const cells = Array.from({ length: H }, () => Array(W).fill(null));
       const objs = [];
@@ -385,7 +386,7 @@
     const S = { ev, zone, fog: ev.fog || 0, ambush: !!ev.ambush, dark: false, torch: false, units: [], order: [], turn: 0, round: 1, phase: "init", log: [], killed: [], objs: [], drops: [], opts: Object.assign({ showMonHp: false, autoSaves: false, autoEnd: true }, (state.settings && state.settings.battleOpts) || {}, { autoHeroes: false }), outcome: null, arrowLog: {}, zones: [], bodies: [], q: [], started: Date.now() };
     try { S.dark = typeof inDarkness === "function" && !!(state.run && isDark(state.run.pos.x, state.run.pos.y)) && !(state.run && state.run.light); S.torch = !!(state.run && state.run.light); } catch (e) { S.dark = false; }
     S.floor = ev.floor || (state.run && state.run.floor) || 1;
-    const g = genTerrain(zone, S.floor); S.cells = g.cells; S.objs = g.objs; S.found = []; S.objHp = {};
+    const g = genTerrain(zone, S.floor, ev.water); S.cells = g.cells; S.objs = g.objs; S.found = []; S.objHp = {};
     if (B.placeEnv && !ev.arena) B.placeEnv(S, ev);
     uidSeq = 1;
     B.S = S;

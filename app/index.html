@@ -2083,6 +2083,8 @@ const GEAR = {
   "stone-9":   { short: "Камни", name: "Магический камень 9-го класса", weight: 0.1, stack: 99, note: "Добыча лабиринта: Магазин скупает по 1 монете." },
   "stone-7":   { short: "Камни 7", name: "Магический камень 7-го класса", weight: 0.1, stack: 99, note: "Добыча 2 этажа. Магазин скупает по 20 монет." },
   "potion-good": { short: "Зелье+", name: "Зелье лечения", weight: 0.25, stack: 5, use: "drink", heal: "2к4 + 4", note: "Восстанавливает 2к4 + 4 ОЗ (6–12, в среднем 9). Черновик." },
+  chalice: { short: "Чаша", name: "Чаша здоровья", weight: 0.5, stack: 1, cls: 8, treasure: true, note: "Сокровище 8 класса. Наполните водой (бесплатно в городе, у воды в лабиринте и в бою, или за паёк на Отдыхе): через 2 дня вода станет улучшенным зельем лечения (2к4 + 4). После питья чаша остаётся." },
+  "beginners-luck": { short: "Удача", name: "Удача новичка", weight: 0, stack: 1, slot: "charm", cls: 8, treasure: true, note: "Сокровище 8 класса, талисман. Когда носитель сам добивает монстра вида, который он ещё не убивал, к броску на эссенцию +5. Один раз на вид для каждого героя." },
   "stone-8":   { short: "Камни 8", name: "Магический камень 8-го класса", weight: 0.1, stack: 99, note: "Добыча 2 этажа: Магазин скупает по 5 монет." },
 };
 const SHOVELS = ["shovel", "shovel-good", "shovel-best"];
@@ -2099,6 +2101,8 @@ const GEAR_ICON = {
   custom: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="M9 12h6M12 9v6"/></svg>`,
 };
 GEAR_ICON["potion-good"] = GEAR_ICON.potion;
+GEAR_ICON.chalice = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M6 4h12c0 5-2 8-6 8S6 9 6 4z" fill="currentColor" opacity=".2"/><path d="M6 4h12c0 5-2 8-6 8S6 9 6 4zM12 12v6M8 20h8"/><path d="M8 7c2 1 6 1 8 0" opacity=".7"/></svg>`;
+GEAR_ICON["beginners-luck"] = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><circle cx="12" cy="12" r="8" fill="currentColor" opacity=".15"/><circle cx="12" cy="12" r="8"/><path d="M12 8v8M8 12h8M9.2 9.2l5.6 5.6M14.8 9.2l-5.6 5.6" opacity=".8"/></svg>`;
 
 
 /* ----- находки на поле боя: травы, грибы, особые камни (черновик, см. drafts.md → «Находки») ----- */
@@ -2177,6 +2181,8 @@ function itemOf(v, holder) {
       return known ? { ...g, id: v.id, kindOf: "gear", icon: ic, known }
         : { ...g, id: v.id, kindOf: "gear", icon: ic, art: g.find === "mush" ? artPath("items/unknown-mushroom") : undefined, known, name: g.alias, short: "?", use: g.use && "find", note: `Эффект неизвестен: нужен навык (${FIND_KIND[g.find].skills.map(k => Object.keys(SKILL_KEYS).find(n => SKILL_KEYS[n] === k)).join(" или ")}) или знания. Одноразовый.` };
     }
+    if (g && v.id === "chalice") { const st = chaliceSt(v); return { ...g, id: v.id, kindOf: "gear", icon: GEAR_ICON.chalice, name: st === "potion" ? "Чаша здоровья (зелье)" : st === "water" ? "Чаша здоровья (вода)" : "Чаша здоровья (пустая)",
+      note: g.note + (st === "water" ? ` Вода настаивается: осталось ${v.wait} действ. из 6.` : st === "potion" ? " Внутри улучшенное зелье лечения: выпейте." : " Сейчас пуста.") }; }
     return g && { ...g, id: v.id, kindOf: "gear", art: ART.gear(v.id) || undefined, icon: GEAR_ICON[v.id] || (SHOVELS.includes(v.id) ? GEAR_ICON.shovel : GEAR_ICON.custom) };
   }
   if (v.t === "w") { const w = WEAPONS.find(x => x.id === v.id); return w && { ...w, kindOf: "weapon", art: v.steel && RASTER.has("items/steel-" + w.id) ? artPath("items/steel-" + w.id) : ART.weapon(w.id), ...(v.steel ? steelWeapon(w) : {}) }; }
@@ -2323,7 +2329,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 14;
+const BATTLE_REV = 16;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined) st.tactical = true; return st; }
@@ -2416,9 +2422,20 @@ function sackViewHtml() {
     <small>Всего камней: ${rows.reduce((a, r) => a + r.qty, 0)}. Продаются в магазине; для заданий сдаются отсюда. Сумка общая, веса нет.</small>` : `<small>Пока пусто: камни с монстров и из находок попадают сюда.</small>`}
     <button class="fx-btn" data-ii="close">Закрыть</button></div>`;
 }
+// Убийства героя (решение автора): считаются только добитые им самим в тактическом бою, `c.kills[id]`; заменяют метку «опыт» в библиотеке.
+function openKills(c) {
+  const rows = Object.entries(c.kills || {}).filter(([, n]) => n > 0).map(([id, n]) => ({ m: MONSTERS.find(x => x.id === id), n })).filter(r => r.m).sort((a, b) => a.m.cls - b.m.cls || a.m.name.localeCompare(b.m.name, "ru")).reverse();
+  const $i = document.getElementById("iteminfo");
+  $i.innerHTML = `<div class="ii-card fx-frame sk-card"><h4>Убийства: ${esc(c.name)}</h4>
+    ${rows.length ? `<div class="sk-head"><span>Монстр</span><span>Класс</span><span>Убито</span><span></span></div>
+    <div class="sk-list">${rows.map(r => `<div class="sk-row"><span class="sk-name">${esc(r.m.name)}</span><span class="sk-cls">${r.m.cls}</span><span class="sk-qty">${r.n}</span><span></span></div>`).join("")}</div>
+    <small>Всего: ${rows.reduce((a, r) => a + r.n, 0)}. Считаются только добитые самим героем в тактическом бою.</small>` : `<small>Пока никого: считаются монстры, которых герой добил сам в тактическом бою.</small>`}
+    <button class="fx-btn" data-ii="close">Закрыть</button></div>`;
+  $i.hidden = false;
+}
 function openSack() { const $i = document.getElementById("iteminfo"); $i.innerHTML = sackViewHtml(); $i.hidden = false; }
 /* ----- здания города (assets/js/town.js грузится при первом входе в здание) ----- */
-const TOWN_REV = 7, TOWN_FILES = ["assets/css/town.css", "assets/js/town.js"];
+const TOWN_REV = 8, TOWN_FILES = ["assets/css/town.css", "assets/js/town.js"];
 let townLoad = null;
 function loadTown() {
   if (window.Town && window.Town.ready) return Promise.resolve(true);
@@ -3516,7 +3533,7 @@ function rollInitiative(list, ambush) {
   return rows.sort((a, b) => (ambush ? (a.k === "mon" ? 0 : 1) - (b.k === "mon" ? 0 : 1) : 0) || b.total - a.total || b.dex - a.dex);
 }
 function startFight(ev, p, enc) {
-  Object.assign(ev, enc, { key: tkey(p.x, p.y), outcome: null, killed: [], turn: 0, round: 1, tactical: tacticalOn(), floor: curFloor() });
+  Object.assign(ev, enc, { key: tkey(p.x, p.y), outcome: null, killed: [], turn: 0, round: 1, tactical: tacticalOn(), floor: curFloor(), water: waterLevel(p.x, p.y) });
   enc.list.forEach(id => seenKeys(id, ["area"]));     // встреча открывает портрет, имя и места обитания
   spFightStart(ev);
 }
@@ -3769,10 +3786,10 @@ function portalOverlay() {
     </div></div>`;
 }
 // Состояние, привязанное к этажу, прячем при переходе и возвращаем при возврате.
-const FLOOR_KEYS = ["pos", "hidden", "spin", "visited", "cleared", "caches", "stay", "rare4", "elite7", "sp", "tier"];
+const FLOOR_KEYS = ["pos", "hidden", "spin", "visited", "cleared", "caches", "stay", "rare4", "elite7", "sp", "tier", "ponds"];
 function switchFloor() {
   const r = state.run, pi = portalInfo(); if (!pi.ok) return;
-  (r.fs ||= {})[r.floor] = Object.fromEntries(FLOOR_KEYS.map(k => [k, r[k]]));
+  (r.fs ||= {})[r.floor] = { ...Object.fromEntries(FLOOR_KEYS.map(k => [k, r[k]])), variant: r.variant };          // вариант тоже помним: при возврате на 2 этаж карта и тайны остаются
   if (pi.to === 2) {
     r.floor = 2; r.variant = pi.variant;
     const saved = r.fs[2] && r.fs[2].variant === pi.variant ? r.fs[2] : null;
@@ -3783,6 +3800,7 @@ function switchFloor() {
       for (let y = 0; y < 11; y++) for (let x = 0; x < 11; x++) if (tileType(x, y) === "floor" && !(x === sx && y === sy)) free.push(tkey(x, y));
       const c1 = free.splice(rnd(free.length), 1)[0], c2 = free.splice(rnd(free.length), 1)[0];
       Object.assign(r, { pos: { x: sx, y: sy }, hidden: [0, 90, 180, 270][rnd(4)], spin: 0, visited: [tkey(sx, sy)], cleared: { [tkey(sx, sy)]: absAct(r) }, caches: { compass: c1, map: c2 }, stay: { k: tkey(sx, sy), since: absAct(r) }, rare4: false, elite7: false });
+      r.ponds = pickPonds(pi.variant, tkey(sx, sy));
     }
     r.fs[2] = { variant: pi.variant };
     logRun(`Отряд вошёл в портал: 2 этаж, ${FLOOR_NAME[pi.variant]} (день ${r.day}).`);
@@ -3827,7 +3845,7 @@ function awardXp(ids) {
   logRun(`Опыт за первых убитых (${fresh.map(id => MONSTERS.find(m => m.id === id).name).join(", ")}): +${total} каждому герою.${ups.length ? " Новый уровень: " + ups.join(", ") + "." : ""}`);
   setTimeout(() => toast(ups.length ? "Новый уровень: " + ups.join(", ") : `+${total} опыта каждому`), 30);
 }
-const xpBar = c => `<div class="xp-box"><div class="lrow"><span>${c.level} уровень · опыт</span><b>${c.xp || 0} / ${XP_STEP}</b></div>
+const xpBar = c => `<div class="xp-box"><div class="lrow"><span>${c.level} уровень · опыт <button class="fx-btn" data-hx="kills" aria-label="Список убийств героя" style="padding:1px 8px;font-size:12px;margin-left:6px">Убийства</button></span><b>${c.xp || 0} / ${XP_STEP}</b></div>
   <div class="lbar"><i style="width:${Math.min(100, Math.round((c.xp || 0) / XP_STEP * 100))}%"></i></div></div>`;
 const essSlots = c => `${(c.essences || []).length}/${c.level}`;
 // Итог боя: победа открывает тип всех монстров, при бегстве и отступлении монстров — только убитых.
@@ -3884,7 +3902,7 @@ function inventory() {
 }
 const curFloor = () => (state.run && state.run.floor) || 1;
 /* ----- сокровища (черновик, drafts.md → «Сокровища»): по классам, 9 — худший, 1 — лучший ----- */
-const TREASURES = { guard: { cls: 9, name: "Ночной страж", base: 3, perFloor: 2 } };
+const TREASURES = { guard: { cls: 9, name: "Ночной страж", base: 3, perFloor: 2 }, flame: { cls: 9, name: "Огонь, указывающий путь" }, hearth: { cls: 2, name: "Вечный очаг" } };
 function treasure(id) { return ((inventory().treasures ||= {})[id] ||= { owned: false }); }
 // Заряды Ночного стража — на заход: 3, +2 за первый за заход спуск на каждый новый этаж; вернулся и спустился снова — зарядов нет; новый заход сбрасывает.
 function ngState() { const r = state.run; return r ? (r.ng ||= { used: 0, granted: [] }) : { used: 0, granted: [] }; }
@@ -3895,7 +3913,44 @@ function ngEnterFloor(n) {
   r.reached.push(n);
   if (treasure("guard").owned) { ngState().granted.push(n); logRun(`Ночной страж: +${TREASURES.guard.perFloor} заряда за первый спуск на ${n} этаж (всего ${ngCharges()}).`); }
 }
+/* ----- чаша здоровья и вода (черновик, drafts.md → «Чаша здоровья и пруды») ----- */
+const CHALICE_WAIT = 6;                                                                              // 2 дня = 6 действий
+const chaliceSt = e => (e.fill === "potion" ? "potion" : e.fill === "water" ? "water" : "empty");
+const chalicesOf = (c, st) => (c.bag || []).filter(e => e.t === "g" && e.id === "chalice" && (!st || chaliceSt(e) === st));
+function chaliceFill(e) { e.fill = "water"; e.wait = CHALICE_WAIT; }
+function chaliceEmpty(c) { const e = chalicesOf(c, "potion")[0]; if (e) { delete e.fill; delete e.wait; } return !!e; }
+function chaliceTick(n) {                                                                            // идёт и в лабиринте (действие), и в городе (действие города)
+  for (const c of state.party || []) for (const e of chalicesOf(c, "water")) { e.wait = (e.wait || 0) - n; if (e.wait <= 0) { e.fill = "potion"; delete e.wait; } }
+}
+const isWaterTile = (x, y) => { const r = state.run; if (!r || r.floor !== 2) return false; if ((r.ponds || []).includes(tkey(x, y))) return true; const pl = FL().variant.placeAt(x, y); return !!(pl && /Топь/.test(pl.name)); };
+// Вода в бою: на тайле пруда лужи в бою заметно больше, в топи — немного больше (допущение).
+const waterLevel = (x, y) => { const r = state.run; if (!r || r.floor !== 2) return 0; if ((r.ponds || []).includes(tkey(x, y))) return 2; const pl = FL().variant.placeAt(x, y); return pl && /Топь/.test(pl.name) ? 1 : 0; };
+const canFillWater = () => !state.run || isWaterTile(state.run.pos.x, state.run.pos.y);
+// Два пруда на обычных тайлах Волчьей чащи и Леса гоблинов (допущение): на ход событий не влияют, в бою больше воды, у них можно набрать воду.
+function pickPonds(variant, startKey) {
+  if (variant !== "beast" && variant !== "goblin") return [];
+  const V = FLOOR2[variant], plain = SP2[variant].plain, free = [];
+  for (let y = 0; y < 11; y++) for (let x = 0; x < 11; x++) { const k = tkey(x, y); if (k !== startKey && tileType(x, y) !== "portal" && V.placeAt(x, y).name === plain) free.push(k); }
+  const out = []; while (out.length < 2 && free.length) out.push(free.splice(rnd(free.length), 1)[0]);
+  return out;
+}
 const ICO_GUARD = `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M12 3c-4 0-7 3-7 7v5l-1.5 3h17L19 15v-5c0-4-3-7-7-7z" fill="currentColor" opacity=".18"/><path d="M12 3c-4 0-7 3-7 7v5l-1.5 3h17L19 15v-5c0-4-3-7-7-7z"/><path d="M9 21h6"/><circle cx="12" cy="10.5" r="2.4"/><path d="M8.5 10.5C10 8.6 14 8.6 15.5 10.5"/></svg>`;
+const ICO_FLAME = `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M12 3c1 4 5 5.5 5 10a5 5 0 0 1-10 0c0-2 1-3.5 2-4.5.3 1.5 1 2.3 2 2.5C10.5 8 11 5.5 12 3z" fill="currentColor" opacity=".25"/><path d="M12 3c1 4 5 5.5 5 10a5 5 0 0 1-10 0c0-2 1-3.5 2-4.5.3 1.5 1 2.3 2 2.5C10.5 8 11 5.5 12 3z"/></svg>`;
+const ICO_HEARTH = `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M4 20h16M6 20v-5a6 6 0 0 1 12 0v5" /><path d="M12 9c.7 2 2.5 2.6 2.5 4.5a2.5 2.5 0 0 1-5 0c0-1 .5-1.8 1-2.3.2.8.6 1.2 1 1.3-.2-1.3-.1-2.5.5-3.5z" fill="currentColor" opacity=".3"/></svg>`;
+// Огонь, указывающий путь: 1 заряд за заход; 3 следующих перемещения показывают соседнюю клетку на кратчайшем пути до ближайшего портала.
+function flameTarget(from) {
+  const f = state.run && state.run.flame; if (!f || !(f.left > 0)) return null;
+  let best = null;
+  for (const k of Object.keys(FL().portals)) { const [px, py] = k.split(",").map(Number), d = Math.abs(px - from.x) + Math.abs(py - from.y); if (!best || d < best.d) best = { px, py, d }; }
+  if (!best || !best.d) return null;
+  const dx = best.px - from.x, dy = best.py - from.y;
+  return dx && Math.abs(dx) >= Math.abs(dy) ? { x: from.x + Math.sign(dx), y: from.y } : { x: from.x, y: from.y + Math.sign(dy) };
+}
+const flameLabel = () => { const f = state.run && state.run.flame; return !f ? "готов" : f.left > 0 ? `ещё ${f.left} перемещ.` : "угас"; };
+function trInfo(id) {
+  if (id === "flame") showItemInfo(null, null, `<p>Сейчас: <b>${flameLabel()}</b>. Один заряд на заход.</p>`, { name: "Огонь, указывающий путь", icon: ICO_FLAME, weight: 0, note: "Сокровище 9 класса. Зажгите в Инвентаре: следующие 3 перемещения подсвечивают соседнюю клетку на кратчайшем пути до ближайшего портала." });
+  else if (id === "hearth") showItemInfo(null, null, `<p>Сейчас: <b>${state.run && state.run.hearthUsed ? "использован в этом заходе" : "готов"}</b>.</p>`, { name: "Вечный очаг", icon: ICO_HEARTH, weight: 0, note: "Сокровище 2 класса. Один раз за заход: после Отдыха Усталость у всех героев снимается до 0." });
+}
 function ngInfo() {
   const g = ngState(), n = ngCharges();
   showItemInfo(null, null, `<p>Заряды этого захода: <b>${n}</b> (${TREASURES.guard.base} + ${TREASURES.guard.perFloor} за каждый новый этаж, на который отряд спустился в этом заходе${g.granted.length ? `: ${g.granted.map(f => f + "-й").join(", ")}` : ""}; потрачено ${g.used}).</p>`,
@@ -3960,6 +4015,11 @@ const viewRot = () => { const r = state.run; return ((r.hidden + r.spin) % 360 +
 /* ----- оформление квадратов: цвет и мелкие рисунки по зоне (гоблины, звери, нежить, элементы) ----- */
 const TILE_TINT = { goblin: ["#4c4426", "#2a2414"], beast: ["#344a26", "#1c2a14"], undead: ["#423e4a", "#221f28"], stone: ["#3c4650", "#1e242a"], safe: ["#5a4c36", "#33291c"] };
 const DECO = {
+  pond: [
+    `<ellipse cy="2" rx="12" ry="7" fill="#3d7fa8" opacity=".9" stroke="#1d4a66" stroke-width="1.6"/><ellipse cx="-3" cy="0" rx="6" ry="3" fill="#6fb3d6" opacity=".7"/>`,
+    `<ellipse cy="3" rx="9" ry="5" fill="#2f6f98" opacity=".9" stroke="#1d4a66" stroke-width="1.4"/><path d="M-5 -6l1 4M0 -7l0 5M5 -6l-1 4" stroke="#3a6a2a" stroke-width="1.4"/>`,
+    `<path d="M-6 3q3-5 6 0t6 0" stroke="#9fd0ea" fill="none" stroke-width="1.6" stroke-linecap="round"/>`,
+  ],
   ruins: [
     `<path d="M-9 6 V-4 h4 v-3 h3 v3 h4 v10Z" fill="#7a7468" stroke="#33302a"/><path d="M-5 6 V0 h2 V6Z" fill="#1a160f"/>`,
     `<rect x="-3" y="-8" width="6" height="15" fill="#8a8478" stroke="#33302a"/><path d="M-5 -8 h10" stroke="#33302a" stroke-width="2"/><path d="M-1 -2 l2 3" stroke="#33302a"/>`,
@@ -4007,7 +4067,7 @@ const tileFill = (x, y) => `url(#tile-${tileZone(x, y)})`;
 function tileDeco(x, y) {
   const zone = tileZone(x, y);
   if (zone === "safe") return `<g opacity=".5" stroke="#2a2016" stroke-width="1.2" fill="none"><path d="M-28 -9 H28 M-28 9 H28 M-10 -28 V-9 M10 -9 V9 M-10 9 V28 M18 -28 V-9 M-18 -9 V9 M18 9 V28"/></g>`;
-  const set = isRuins(x, y) ? DECO.ruins : DECO[zone], n = 2 + tileHash(x, y, 1) % 2, used = new Set(), out = [];
+  const set = isWaterTile(x, y) ? DECO.pond : isRuins(x, y) ? DECO.ruins : DECO[zone], n = 2 + tileHash(x, y, 1) % 2, used = new Set(), out = [];
   for (let i = 0; i < n; i++) {
     let s = tileHash(x, y, 10 + i) % DECO_SLOTS.length;
     while (used.has(s)) s = (s + 1) % DECO_SLOTS.length;
@@ -4086,6 +4146,10 @@ function stageSvg() {
       parts.push(`<g class="tile-hit" data-tx="${t.x}" data-ty="${t.y}">${sq(t.x, t.y, `fill="${known ? "rgb(214 166 76 / .14)" : "rgb(120 110 95 / .22)"}" stroke="#f4d48e" stroke-width="1.8" stroke-dasharray="6 5"`)}
         ${known ? "" : up((t.x - px) * T, (t.y - py) * T, `<text text-anchor="middle" dominant-baseline="central" font-family="Kelly Slab, Georgia, serif" font-size="22" fill="#f4d48e" opacity=".75">?</text>`)}</g>`);
     }
+  }
+  if (dgUi.phase === "move" || dgUi.phase === "run") {
+    const ft = flameTarget(dgUi.phase === "run" && dgUi.path.length ? dgUi.path[0] : r.pos);
+    if (ft && inBounds(ft.x, ft.y)) parts.push(up((ft.x - px) * T, (ft.y - py) * T, `<circle r="26" fill="url(#torchGlow)"/><g style="color:#f4b443" transform="translate(-14 -14) scale(1.15)" pointer-events="none">${ICO_FLAME}</g>`));
   }
   const darkHere = isDark(px, py) && !r.light;
   parts.push(sq(px, py, darkHere ? 'fill="#14100c" stroke="#f4d48e" stroke-width="2.5"' : `fill="${tileFill(px, py)}" stroke="#f4d48e" stroke-width="2.5"`));
@@ -4187,7 +4251,7 @@ function stageOverlay() {
 const SUPPLY_ROWS = [["ration", "Еда (пайки)"], ["potion", "Зелья лечения"], ["torch", "Факелы"], ["arrow", "Стрелы"], ["shovel", "Лопаты"], ["shovel-good", "Хорошие лопаты"], ["shovel-best", "Отличные лопаты"]];
 const partyFood = () => state.party.reduce((a, c) => a + countGear(c, "ration"), 0);
 function restOverlay() {
-  const r = state.run, rs = dgUi.rest, eaten = Object.values(rs.eat).reduce((a, b) => a + b, 0), left = partyFood() - eaten;
+  const r = state.run, rs = dgUi.rest, eaten = Object.values(rs.eat).reduce((a, b) => a + b, 0), cups = Object.values(rs.cup || {}).filter(Boolean).length, left = partyFood() - eaten - cups;
   const sleepers = state.party.filter(c => !rs.guard[c.id]).length;
   return `<div class="mapov" role="dialog" aria-modal="true" aria-label="Отдых">
     <div class="panel fx-frame rest-panel">
@@ -4195,6 +4259,7 @@ function restOverlay() {
         <button class="fx-btn" data-dg="cancel" aria-label="Отменить отдых" style="width:42px;height:42px;padding:0;display:grid;place-items:center">${ICO_X}</button></div>
       <p>Караульный не спит и не получает бонусов отдыха. Спящие снимают 2 уровня Усталости (1, если голодны) и восстанавливают ОЗ: доля от максимума по Усталости (0 → 50%, 1 → 40%, 2 → 30%, 3 → 20%, 4 → 10%) плюс мод. ТЕЛ; голодным вдвое меньше. Справа — сколько пайков съест герой.</p>
       ${treasure("guard").owned ? `<button class="fx-btn guard" data-dg="ng-toggle" aria-pressed="${!!rs.ng}"${ngCharges() > 0 || rs.ng ? "" : " disabled"} style="display:flex;align-items:center;gap:8px;justify-content:center;width:100%;margin:2px 0 8px"><span style="width:22px;height:22px;display:inline-flex">${ICO_GUARD}</span>Ночной страж · заряды ${ngCharges()}${rs.ng ? " (сторожит эту ночь)" : ""}</button>` : ""}
+      ${treasure("hearth").owned ? `<button class="fx-btn guard" data-dg="hearth-toggle" aria-pressed="${!!rs.hearth}"${r.hearthUsed ? " disabled" : ""} style="display:flex;align-items:center;gap:8px;justify-content:center;width:100%;margin:2px 0 8px"><span style="width:22px;height:22px;display:inline-flex">${ICO_HEARTH}</span>Вечный очаг · ${r.hearthUsed ? "использован в этом заходе" : rs.hearth ? "согреет всех после сна" : "готов (раз за заход)"}</button>` : ""}
       ${rs.ng ? `<p style="color:var(--fx-gold-hi)">Ночной страж сторожит лагерь: все спят, ночной встречи не будет. Потратится 1 заряд.</p>` : ""}
       <div class="rest-list">${state.party.map(c => `<div class="rest-row">
         <div><b>${esc(c.name)}</b><small>${c.dead ? "погиб, не лечится" : rs.guard[c.id] ? "в карауле, не лечится" : (() => { const st = r.status[c.id], hungry = !rs.eat[c.id] && st.starve >= 3;
@@ -4206,7 +4271,8 @@ function restOverlay() {
           <button class="fx-btn" data-eat="${c.id}" data-d="1"${left > 0 ? "" : " disabled"} aria-label="Больше">+</button>
         </div>
       </div>`).join("")}</div>
-      <p>Пайков съедят: <b style="color:var(--fx-gold-hi)">${eaten}</b> · останется ${left}. Спят: ${sleepers} из ${state.party.length}.</p>
+      ${state.party.filter(c => chalicesOf(c, "empty").length).map(c => `<button class="fx-btn guard" data-dg="cup-toggle" data-id="${c.id}" aria-pressed="${!!(rs.cup || {})[c.id]}"${(rs.cup || {})[c.id] || left > 0 ? "" : " disabled"} style="display:flex;align-items:center;gap:8px;justify-content:center;width:100%;margin:2px 0"><span style="width:22px;height:22px;display:inline-flex">${GEAR_ICON.chalice}</span>Наполнить чашу: ${esc(c.name)} (−1 паёк)</button>`).join("")}
+      <p>Пайков съедят: <b style="color:var(--fx-gold-hi)">${eaten}</b>${cups ? ` + ${cups} на чаши` : ""} · останется ${left}. Спят: ${sleepers} из ${state.party.length}.</p>
       <div style="display:flex;justify-content:center"><button class="fx-btn primary big" data-dg="rest-go">Отдых</button></div>
     </div>
   </div>`;
@@ -4316,6 +4382,8 @@ function renderDungeon() {
         <div class="phase-pill">${pill}</div>
         <div class="zoom"><button class="fx-btn" data-dg="zoom-in" aria-label="Приблизить">+</button><button class="fx-btn" data-dg="zoom-out" aria-label="Отдалить">−</button></div>` : ""}
       ${menu && dgUi.inv ? `<div class="dd l fx-frame">${invItemHtml("compass", "Компас", ICO_COMPASS)}${invItemHtml("map", `Карта ${curFloor()} эт.`, ICO_MAP)}${invItem("mmap").owned ? invItemHtml("mmap", "Магич. карта", ICO_MAP) : ""}
+        ${treasure("flame").owned ? `<button class="inv-item ${state.run.flame ? "grey" : "lit"}" data-dg="flame-use" aria-label="Огонь, указывающий путь: ${flameLabel()}">${ICO_FLAME}<small>Огонь · ${flameLabel()}</small></button>` : ""}
+        ${treasure("hearth").owned ? `<button class="inv-item lit" data-dg="tr-hearth" aria-label="Вечный очаг">${ICO_HEARTH}<small>Очаг · ${state.run.hearthUsed ? "использован" : "готов"}</small></button>` : ""}
         ${treasure("guard").owned ? `<button class="inv-item lit" data-dg="ng-info" aria-label="Ночной страж: заряды ${ngCharges()}">${ICO_GUARD}<small>Ночной страж · ${ngCharges()}</small></button>` : ""}
         <button class="inv-item lit" data-dg="library" aria-label="Библиотека: записи о монстрах">${ICO_BOOK}<small>Библиотека</small></button></div>` : ""}
       ${menu && dgUi.sup ? `<div class="dd r fx-frame">
@@ -4328,6 +4396,8 @@ function renderDungeon() {
       </div>` : ""}
       ${dgUi.gm ? `<div class="dd r fx-frame" style="top:8px">
         <span class="fx-eyebrow" style="font-size:11px">Мастер</span>
+        <button class="fx-btn" data-dg="give-flame"${treasure("flame").owned ? " disabled" : ""}>Выдать сокровище: Огонь-путеводитель</button>
+        <button class="fx-btn" data-dg="give-hearth"${treasure("hearth").owned ? " disabled" : ""}>Выдать сокровище: Вечный очаг</button>
         <button class="fx-btn" data-dg="give-guard"${treasure("guard").owned ? " disabled" : ""}>Выдать сокровище: Ночной страж</button>
         <button class="fx-btn" data-dg="give-compass"${inv.compass.owned ? " disabled" : ""}>Выдать компас</button>
         <button class="fx-btn" data-dg="give-map"${invItem("map").owned ? " disabled" : ""}>Выдать карту этажа</button>
@@ -4402,7 +4472,7 @@ function tick(sleepers = new Set()) {
 function advanceTime() {
   const r = state.run;
   if (r.day >= FL().days && r.act >= FL().acts) { endRun(); return true; }
-  r.act++;
+  r.act++; chaliceTick(1);
   if (r.act > FL().acts) { r.act = 1; r.day++; logRun(`Начался день ${r.day}.`); spDawn(); }
   return false;
 }
@@ -4433,12 +4503,14 @@ function eatRations(c, n) {
 function act(kind) {
   const r = state.run; if (!r) return;
   if (kind === "move") {
+    if (r.flame && r.flame.left > 0) r.flame.left--;
     const t = dgUi.target; r.pos = { x: t.x, y: t.y }; visit(t.x, t.y);
     r.stay = { k: tkey(t.x, t.y), since: absAct(r) + 1 };
     tick();
     logRun("Движение на 1 квадрат." + tileNote(t.x, t.y));
   } else if (kind === "run") {
     const tired = state.party.filter(c => r.status[c.id].fat >= 3).map(c => c.name);
+    if (r.flame && r.flame.left > 0) r.flame.left--;
     const t = dgUi.path[dgUi.path.length - 1]; r.pos = { x: t.x, y: t.y };
     r.stay = { k: tkey(t.x, t.y), since: absAct(r) + 1 };
     dgUi.finFresh = !r.visited.includes(tkey(t.x, t.y));
@@ -4463,6 +4535,10 @@ function act(kind) {
       if (got > 0) { st.sat = Math.min(9, st.sat + 3 * got); st.starve = 0; eaten += got; }
     }
     tick(sleepers);
+    for (const [cid, on] of Object.entries(rs.cup || {})) {                      // чаша: паёк превращается в воду, через 2 дня — зелье
+      const c = state.party.find(x => x.id === cid), e = c && chalicesOf(c, "empty")[0];
+      if (on && e && eatRations(c, 1) > 0) { chaliceFill(e); logRun(`${c.name} наполняет чашу здоровья, потратив паёк.`); }
+    }
     const healed = [];
     for (const c of state.party) if (sleepers.has(c.id) && !c.dead) {            // погибший не лечится: его возвращает только мастер
       const st = r.status[c.id], before = hpOf(c);
@@ -4471,6 +4547,11 @@ function act(kind) {
       c.insp = 1;                                          // переброс возвращает только сон
       if (c.hp > before) healed.push(`${c.name} +${c.hp - before}`);
       st.fat = Math.max(0, st.fat - (st.starve >= 3 ? 1 : 2)); st.awake = 0;
+    }
+    if (rs.hearth && !r.hearthUsed && treasure("hearth").owned) {
+      r.hearthUsed = true;
+      for (const c of state.party) if (!c.dead) { const st = r.status[c.id]; st.fat = 0; if (sleepers.has(c.id)) st.awake = 0; }
+      logRun("Вечный очаг согревает лагерь: Усталость у всех снята до 0.");
     }
     const guards = state.party.filter(c => rs.guard[c.id]).map(c => c.name);
     if (rs.ng) { ngState().used++; logRun(`Отдых. Лагерь сторожит Ночной страж (осталось зарядов: ${ngCharges()}), ночной встречи нет. Съедено пайков: ${eaten}.${healed.length ? " ОЗ: " + healed.join(", ") + "." : ""}`); }
@@ -4698,6 +4779,16 @@ document.addEventListener("click", e => {
     case "library": openLibrary(); return;
     case "give-guard": treasure("guard").owned = true; saveChar(); toast("Мастер выдал сокровище: Ночной страж"); break;
     case "ng-info": ngInfo(); return;
+    case "give-flame": treasure("flame").owned = true; saveChar(); toast("Мастер выдал сокровище: Огонь, указывающий путь"); break;
+    case "give-hearth": treasure("hearth").owned = true; saveChar(); toast("Мастер выдал сокровище: Вечный очаг"); break;
+    case "tr-hearth": trInfo("hearth"); return;
+    case "flame-use": {
+      const r = state.run;
+      if (r.flame) { trInfo("flame"); return; }
+      r.flame = { left: 3 }; logRun("Огонь, указывающий путь: следующие 3 перемещения подсветят дорогу к ближайшему порталу."); saveChar(); toast("Огонь зажжён: 3 перемещения"); dgUi.inv = false; break;
+    }
+    case "cup-toggle": { const rs = dgUi.rest; rs.cup ||= {}; rs.cup[ds.id] = !rs.cup[ds.id]; break; }
+    case "hearth-toggle": { const rs = dgUi.rest; if (!state.run.hearthUsed) rs.hearth = !rs.hearth; break; }
     case "ng-toggle": { const rs = dgUi.rest; if (rs.ng) rs.ng = false; else if (ngCharges() > 0) { rs.ng = true; rs.guard = {}; } break; }
     case "give-compass": inv.compass.owned = true; saveChar(); toast("Мастер выдал компас"); break;
     case "give-map": invItem("map").owned = true; saveChar(); toast("Мастер выдал карту этажа"); break;
@@ -4875,6 +4966,12 @@ function selPanel(c) {
   const btns = [];
   if (it.use === "eat") btns.push(`<button class="fx-btn primary" data-hx="eat">Съесть 1</button>`);
   if (it.use === "drink") btns.push(`<button class="fx-btn primary" data-hx="drink">Выпить</button>`);
+  if (e.id === "chalice") {
+    const st = chaliceSt(e);
+    if (st === "potion") btns.push(`<button class="fx-btn primary" data-hx="chalice-drink">Выпить (2к4 + 4)</button>`);
+    else if (st === "empty") btns.push(`<button class="fx-btn primary" data-hx="chalice-fill"${canFillWater() ? "" : " disabled"}>Наполнить водой</button>`);
+  }
+  if (it.slot === "charm") btns.push(`<button class="fx-btn" data-hx="equip" data-slot-to="charm">Надеть талисман</button>`);
   if (it.use === "find") btns.push(`<button class="fx-btn primary" data-hx="usefind">${it.find === "mush" ? "Съесть" : "Применить"}</button>`);
   if (it.kindOf === "weapon" && it.group !== "shield" && it.kind !== "Боеприпасы") btns.push(`<button class="fx-btn" data-hx="equip" data-slot-to="main">В правую руку</button>`);
   if (it.kindOf === "weapon" && (it.group === "shield" || (it.group === "melee" && !isTwoHandedWeapon(it)))) btns.push(`<button class="fx-btn" data-hx="equip" data-slot-to="off"${twoHanded(c) ? " disabled" : ""}>В левую руку</button>`);
@@ -4938,7 +5035,7 @@ function heroInv(c) {
     ${selPanel(c)}
     <div class="btn-row" style="justify-content:center"><button class="fx-btn" data-hx="add-toggle" aria-expanded="${heroUi.add}">${heroUi.add ? "Скрыть список" : "+ Добавить предмет (мастер)"}</button></div>
     ${heroUi.add ? `<div class="add-list">
-      ${[["ration", 1], ["potion", 1], ["torch", 1], ["arrow", 20], ["clothes", 1], ["shovel", 1], ["shovel-good", 1], ["shovel-best", 1], ["stone-9", 1], ["stone-8", 1], ["stone-7", 1], ...Object.keys(FINDS).map(k => [k, 1])].map(([id, q]) => `<button class="fx-btn" data-hadd="g:${id}:${q}">${GEAR[id].name}${q > 1 ? " ×" + q : ""}</button>`).join("")}
+      ${[["ration", 1], ["potion", 1], ["torch", 1], ["arrow", 20], ["clothes", 1], ["shovel", 1], ["shovel-good", 1], ["shovel-best", 1], ["stone-9", 1], ["stone-8", 1], ["stone-7", 1], ["chalice", 1], ["beginners-luck", 1], ...Object.keys(FINDS).map(k => [k, 1])].map(([id, q]) => `<button class="fx-btn" data-hadd="g:${id}:${q}">${GEAR[id].name}${q > 1 ? " ×" + q : ""}</button>`).join("")}
       ${WEAPONS.filter(w => w.kind !== "Боеприпасы").map(w => `<button class="fx-btn" data-hadd="w:${w.id}:1">${w.name}</button>`).join("")}
       ${ARMOR_FLAT.map(a => `<button class="fx-btn" data-hadd="a:${a.id}:1">${a.name}</button>`).join("")}
     </div>` : ""}`;
@@ -5045,6 +5142,18 @@ $hero.addEventListener("click", e => {
       const txt = applyFindOut(c, entry.id);
       if (state.run) logRun(`${c.name}: ${txt}`);
       heroAfterChange(txt); return;
+    }
+    case "kills": openKills(c); return;
+    case "chalice-drink": {
+      if (!chaliceEmpty(c)) return;
+      const heal = roll(2, 4) + 4, before = hpOf(c); c.hp = Math.min(maxHp(c), before + heal);
+      if (state.run) logRun(`${c.name} выпил из чаши здоровья: 2к4 + 4 = ${heal}, ОЗ ${before} → ${c.hp}. Чаша пуста.`);
+      heroAfterChange(`Чаша: +${heal} ОЗ (${before} → ${c.hp}), чаша снова пуста`); return;
+    }
+    case "chalice-fill": {
+      if (!entry || chaliceSt(entry) !== "empty" || !canFillWater()) return;
+      chaliceFill(entry); if (state.run) logRun(`${c.name} наполняет чашу здоровья водой: через 2 дня будет зелье.`);
+      heroAfterChange("Чаша наполнена водой: через 2 дня станет зельем"); return;
     }
     case "drink": {
       entry.qty--; if (!entry.qty) { c.bag.splice(heroUi.sel, 1); heroUi.sel = null; }
@@ -5184,7 +5293,7 @@ function libMonstersTab() {
   return `
     ${known.length ? `<div class="lib-sec">Известные · ${known.length}</div>
     <div class="mon-grid">${known.map(m => `<button class="mbox fx-frame${libUi.fresh === m.id ? " new" : ""}" data-lx="open" data-id="${m.id}">
-      <div class="art">${img(monArt(m), m.name)}${j.known[m.id].xpDone ? `<span class="xp-mark" title="Опыт за вид получен">${ICO_CHECK} опыт</span>` : ""}</div><b>${m.name}</b></button>`).join("")}</div>` : ""}
+      <div class="art">${img(monArt(m), m.name)}</div><b>${m.name}</b></button>`).join("")}</div>` : ""}
     ${unknown.length ? `<div class="lib-sec">Неизвестные · ${unknown.length}</div>
     <div class="mon-grid">${unknown.map(m => { const h = j.hints[m.id] || [];
       return `<div class="mbox unknown fx-frame" aria-label="Неизвестный монстр${h.includes("type") ? ": " + m.type : ""}"><div class="art">${h.includes("portrait") ? img(monArt(m), "Портрет неизвестного монстра") : `<div class="mist"><span>?</span></div>`}</div><b>???</b>${h.includes("type") ? `<small class="hint-type">${m.type}</small>` : ""}</div>`; }).join("")}</div>` : ""}
@@ -5212,8 +5321,7 @@ function cardModal() {
     <div class="top"><h4>${libUi.reveal ? "Что узнал отряд?" : "Запись"}</h4>
       <button class="fx-btn sq-btn" data-lx="${libUi.reveal ? "cancel-reveal" : "close-card"}" aria-label="${libUi.reveal ? "Отменить раскрытие" : "Закрыть карточку"}">${ICO_X}</button></div>
     <div class="mcard-body">
-      <div class="mcard-hero"><div class="art">${img(monArt(m, true), m.name)}</div><h4>${m.name}</h4><span class="mcls">${m.cls} класс</span>
-        <span class="xp-state${rec.xpDone ? " done" : ""}">${rec.xpDone ? `${ICO_CHECK} Опыт за вид получен (${monXp(m)})` : `Опыт за вид не получен: ${monXp(m)} за первую убитую особь`}</span></div>
+      <div class="mcard-hero"><div class="art">${img(monArt(m, true), m.name)}</div><h4>${m.name}</h4><span class="mcls">${m.cls} класс</span></div>
       ${libUi.reveal ? `<p class="hold-hint">Отметь разделы, которые отряд узнал в бою или от мастера.</p>` : ""}
       ${secs.map((x, i) => {
         const open = rev.includes(x.k), on = libUi.sel.includes(x.k);

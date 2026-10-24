@@ -72,7 +72,7 @@
     const S = B.S; if (!u.alive) return;
     u.alive = false; setHp(u, 0);
     if (u.summon) log(`${u.name} ${u.kind === "double" ? "рассеивается" : "гибнет"}.`, "kill");
-    else if (u.side === "mon") { S.killed.push(u.idx); log(`${u.name} убит.`, "kill"); }
+    else if (u.side === "mon") { S.killed.push(u.idx); (S.killedBy ||= {})[u.idx] = by && by.hero ? (typeof by.hero === "object" ? by.hero.id : by.hero) : null; log(`${u.name} убит.`, "kill"); }          // кто добил: только сам герой, не призванные
     else { u.dead = true; u.down = true; if (u.hero) u.hero.dead = true; log(`${u.name} погибает.`, "bad"); }
     if (B.onDown) B.onDown(u, true);                                                // тела павших, двойники и зоны хозяина, концентрация
     for (const o of live()) { const g = has(o, "grappled"); if (g && g.data.by === u.id) removeStatus(o, "grappled"); }

@@ -52,7 +52,7 @@
     if (!ui) return;
     const n = ui.cost; host.hidden = true; host.innerHTML = ""; ui = null;
     document.body.classList.remove("forge-open");
-    if (n > 0) { const c = townClock(); c.t += n; saveChar(); const gi = gateInfo(); toast(`Прошло городских действий: ${n}. Врата ${gi.open ? "открыты сейчас" : "закрыты ещё " + gi.left + " д."}.`); }
+    if (n > 0) { const c = townClock(); c.t += n; chaliceTick(n); saveChar(); const gi = gateInfo(); toast(`Прошло городских действий: ${n}. Врата ${gi.open ? "открыты сейчас" : "закрыты ещё " + gi.left + " д."}.`); }
     rerender();
   };
   T.state = () => ui;

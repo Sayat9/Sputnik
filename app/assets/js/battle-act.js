@@ -324,14 +324,15 @@
   /* ===== предметы ===== */
   const POTIONS = { potion: { n: 1, s: 4, b: 2, name: "Слабое зелье лечения" }, "potion-good": { n: 2, s: 4, b: 4, name: "Зелье лечения" } };
   async function usePotion(u, pid = "potion") {
-    const c = u.hero, P = POTIONS[pid];
+    const c = u.hero, chal = pid === "chalice", P = POTIONS[chal ? "potion-good" : pid];
     const near = [u, ...alliesOf(u).filter(a => dist(u, a) <= 1 && !a.dead)];
     const t = await UI().pickUnit({ prompt: "Зелье лечения: кому?", units: near.map(a => a.id), cells: [], kind: "heal", includeSelf: true });
     if (!t) return false;
     const ses = B.session(u, { kind: "heal", u, title: P.name, sub: `${u.name} → ${t.name}` });
     const r = await ses.dice({ label: `Лечение ${P.n}к${P.s} + ${P.b}`, n: P.n, s: P.s, bonus: P.b, heal: true, cancel: true, reroll: B.rerollOptions(u, "heal") });
     if (!r) { ses.close(); return false; }
-    takeGear(c, pid, 1); spendTime(u, "bonus");
+    if (chal) chaliceEmpty(c); else takeGear(c, pid, 1);
+    spendTime(u, "bonus");
     const n = r.sum + P.b; const got = heal(t, n, u);
     await ses.finish({ text: got ? `Восстановлено ${got} ОЗ` : "Лечение не подействовало", heal: true, tgt: t, dmg: got });
     return true;
@@ -497,6 +498,10 @@
       const P = POTIONS[pid], hurt = [u, ...alliesOf(u).filter(a => dist(u, a) <= 1 && !a.dead)].some(a => a.hp < a.maxHp);       // без раненых рядом зелье бесполезно: автоконец хода его не ждёт
       opts.push({ id: pid, cat: "item", label: pid === "potion" ? "Слабое зелье лечения" : "Зелье лечения", ico: "potion", sub: `${P.n}к${P.s} + ${P.b} · осталось ${countGear(c, pid)}`, time: "bonus", enabled: !bon, why: bon, useless: !hurt, run: () => usePotion(u, pid) });
     }
+    if (chalicesOf(c, "potion").length) { const P = POTIONS["potion-good"], hurt = [u, ...alliesOf(u).filter(a => dist(u, a) <= 1 && !a.dead)].some(a => a.hp < a.maxHp);
+      opts.push({ id: "chalice", cat: "item", label: "Чаша здоровья", ico: "potion", sub: `${P.n}к${P.s} + ${P.b} · после питья чаша пуста`, time: "bonus", enabled: !bon, why: bon, useless: !hurt, run: () => usePotion(u, "chalice") }); }
+    if (chalicesOf(c, "empty").length) { const wet = (() => { for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { const t = B.tinfo(u.x + dx, u.y + dy); if (t && t.wet) return true; } return false; })();
+      opts.push({ id: "chalice-fill", cat: "item", label: "Набрать воды в чашу", ico: "potion", sub: "рядом лужа или пруд: через 2 дня вода станет зельем", time: "bonus", enabled: !bon && wet, why: bon || "нет воды рядом", useless: true, run: async () => { chaliceFill(chalicesOf(c, "empty")[0]); spendTime(u, "bonus"); log(`${u.name} набирает воды в чашу здоровья.`, "good"); return true; } }); }
     if (countGear(c, "torch") > 0 && B.S.dark && !B.S.torch) opts.push({ id: "torch", cat: "item", label: "Зажечь факел", ico: "torch", sub: "освещает поле, убирает штрафы тьмы", time: "bonus", enabled: !bon, why: bon, run: () => lightTorch(u) });
     const off = c.equip.off ? itemOf(c.equip.off) : null, main = B.mainOf(u);
     if (off && off.id === "shield") opts.push({ id: "shieldbash", cat: "item", label: "Удар щитом", ico: "shield", sub: "толчок как доп. действие", time: "bonus", enabled: !bon && enemiesOf(u).some(e => dist(u, e) <= 1), why: bon || "нет врага рядом", run: () => doShove(u, "bonus") });
