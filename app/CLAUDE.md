@@ -107,3 +107,4 @@
 - `B.massSave(list, abil, dc, o)` — спасброски нескольких целей без анимации + `UI.summary`. Области монстров 9 класса — радиус 1.
 - `spNotice(title, text)` в index.html — сообщения часовни/гнезда окном (`dgUi.res`). `BATTLE_REV` = 20.
 - Тест: `tools/battle-tests/bnew4.js`. Промпты монстров 2 этажа: `docs/monster-prompts-floor2.md`.
+- Четвёртая пачка: штраф Ловкости от щита/«Великана» — `gearDexPenalty` в `totals()` (index.html); вращающийся удар — `atk.spin`, `SPIN_MAIN/SIDE` в battle-act.js; Сл побега — `fleeDc()`; переброс в `B.massSave`/`UI.summary`; скорость — `cellsOfM`. `BATTLE_REV` = 21. Тест: `bnew5.js`.

@@ -161,7 +161,11 @@
     return out;
   }
   // Метры → клетки хода в бою: обычные клетки минус D.speedCut, но не меньше 1 у того, кто вообще ходит.
-  const cellsOfM = m => (m > 0 ? Math.max(1, Math.floor(m / 1.5 + 1e-6) - D.speedCut) : 0);
+  const cellsOfM = m => {
+    if (!(m > 0)) return 0;
+    const raw = Math.floor(m / 1.5 + 1e-6), v = raw - D.speedCut - 1;          // ещё на клетку медленнее (решение автора), но не ниже 2 клеток там, где было ≥2
+    return Math.max(1, v >= 2 ? v : Math.min(2, raw - D.speedCut));
+  };
   function parseSkills(senses) {
     const out = {}, re = /(Скрытность|Восприятие|Атлетика|Акробатика|Выживание|Медицина|Запугивание) ([+−-]\d+)/g; let m;
     while ((m = re.exec(senses || ""))) { const k = { "Скрытность": "stealth", "Восприятие": "perception", "Атлетика": "athletics", "Акробатика": "acrobatics", "Выживание": "survival", "Медицина": "medicine", "Запугивание": "intimidation" }[m[1]]; out[k] = parseInt(m[2].replace("−", "-"), 10); }

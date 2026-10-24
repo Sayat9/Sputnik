@@ -26,13 +26,11 @@
     const ab = ranged ? "dex" : (mode === "thrown" ? (f.finesse && dexM > strM ? "dex" : "str") : (f.finesse && dexM > strM ? "dex" : "str"));
     const am = amod(u.abil[ab]);
     const dice = parseDice(f.versatile && !eq.off && mode === "hand" ? f.versatile : w.dmg);
-    const giant = c.giantGrip && c.race === "barbarian" && f.two && !ranged;
     const atk = { id: mode + ":" + w.id, w, n: w.name, hit: am + u.pb + (w.bonus || 0), parts: [{ l: ABIL_RU[ab], v: am }, ...(u.pb ? [{ l: "Бонус мастерства", v: u.pb }] : []), ...(w.bonus ? [{ l: "Сталь", v: w.bonus }] : [])], dmg: { ...dice, b: dice.b + am + (w.bonus || 0) }, dt: DT[w.type] || "bludgeon", tags: [], mode, time: "action" };
-    if (giant) { atk.penalty = -2; atk.penaltyLabel = "Великан: одной рукой"; }
     if (mode === "hand" && !ranged) { atk.kind = "melee"; atk.reach = w.id === "spear" ? 2 : 1 + longArm(u, w); if (w.id === "spear" && !u.pass.includes("goblin-spear")) atk.stretch = true; atk.sub = atk.reach > 1 ? `досягаемость ${atk.reach * 1.5} м`.replace(".", ",") : "ближний бой"; }
     else if (mode === "hand" && ranged) {
       atk.kind = "ranged"; atk.ammo = "arrow";
-      const r = f.ammoR || [24, 96]; atk.range = [Math.floor((r[0] + eb.range) / 1.5), Math.floor((r[1] + eb.range) / 1.5)]; atk.sub = "дальний бой, стрела";
+      const r = f.ammoR || [24, 96]; if (w.id === "shortbow" && f.ammoR && f.ammoR[1] > f.ammoR[0]) r[1] = f.ammoR[0]; atk.range = [Math.floor((r[0] + eb.range) / 1.5), Math.floor((r[1] + eb.range) / 1.5)]; atk.sub = "дальний бой, стрела";
     } else if (mode === "thrown") {
       atk.kind = "ranged"; atk.thrown = true; atk.n = "Метнуть: " + w.name; atk.range = [f.thrown[0] + (u.throwBonus || 0), f.thrown[1] + (u.throwBonus || 0)];          // «Дальность метательного оружия +3 м»
       atk.sub = entry ? "бросок из рюкзака: оружие упадёт у цели" : "бросок: оружие упадёт у цели, рука будет пуста";
@@ -40,6 +38,7 @@
       if (entry) { atk.bagEntry = entry; atk.id = "thrown:" + w.id + "@" + (u.hero.bag || []).indexOf(entry); atk.n = "Метнуть из рюкзака: " + w.name; }
     }
     else if (mode === "off") { atk.kind = "melee"; atk.reach = 1; atk.time = "bonus"; atk.offhand = true; atk.dmg.b = Math.min(0, am); atk.n = "Второй рукой: " + w.name; atk.sub = "доп. действие, без модификатора урона"; }
+    if (mode === "hand" && w.id === "greatsword" && !ranged) { atk.spin = true; atk.sub = (atk.sub ? atk.sub + " · " : "") + "вращающийся удар"; }
     return atk;
   }
   // Оружие в основной руке. Пока брошенное оружие лежит на земле (u.disarmed), рука пуста; сам предмет из снаряжения не убирается
@@ -69,6 +68,7 @@
     for (const e of bagThrowEntries(u)) { const k = e.id; if (seenBag.has(k)) { seenBag.get(k).count++; continue; } const a = atkFrom(u, itemOf(e), "thrown", e); a.count = 1; seenBag.set(k, a); out.push(a); }
     for (const a of seenBag.values()) if (a.count > 1) a.n += ` ×${a.count}`;
     if (off && off.kindOf === "weapon" && off.group === "melee" && off.id !== "tower-shield" && u.t && u.t.attacked && main && main.group === "melee" && !wprops(main).two) out.push(atkFrom(u, off, "off"));
+    if (main && main.group === "ranged" && off && off.kindOf === "weapon" && off.group === "melee" && off.id !== "tower-shield") out.push(atkFrom(u, off, "hand"));          // лучник с ножом в другой руке: ближний бой этим оружием
     const strM = amod(u.abil.str);
     out.push({ id: "fist", n: "Кулак", kind: "melee", reach: 1, hit: strM + u.pb, parts: [{ l: "Сила", v: strM }, ...(u.pb ? [{ l: "Бонус мастерства", v: u.pb }] : [])], dmg: { n: 0, s: 0, b: Math.max(1, 1 + strM) }, dt: "bludgeon", tags: [], time: "action", sub: "атака рукой: 1 + Сила" });
     if (u.hero && countGear(u.hero, "torch") > 0) out.push({ id: "torchhit", n: "Факел", kind: "melee", reach: 1, hit: strM + u.pb, parts: [{ l: "Сила", v: strM }, ...(u.pb ? [{ l: "Бонус мастерства", v: u.pb }] : [])], dmg: { n: 0, s: 0, b: 1 }, dt: "fire", tags: [], time: "action", sub: "1 урона огнём" });
@@ -122,13 +122,29 @@
     }
   }
   B.commitAttack = commitAttack;
+  const SPIN_MAIN = 0.75, SPIN_SIDE = 0.5;          // решение автора: двуручный меч — вращающийся удар, цель получает чуть меньше, соседи ещё меньше
+  // Подпись «чем идёт атака» для списка действий.
+  function atkWith(atk) {
+    if (atk.id === "fist") return "кулаком";
+    if (atk.id === "torchhit") return "факелом";
+    if (atk.w) return atk.thrown ? "броском: " + atk.w.name.toLowerCase() : atk.w.name.toLowerCase();
+    return "голыми руками";
+  }
   async function runAttack(u, atk) {
     const targets = B.attackTargets(u, atk), objs = B.objectTargets ? B.objectTargets(u, atk) : [];
     if (!targets.length && !objs.length) { UI().toast("Нет целей в досягаемости"); return false; }
     const tgt = await UI().pickUnit({ prompt: `${atk.n}: выберите цель${objs.length ? " (можно и объект)" : ""}`, units: targets.map(t => t.id), objs: objs.map(o => o.x + "," + o.y), cells: rangeCells(u, atk), kind: "attack", from: atk.kind === "melee" ? null : u });
     if (!tgt) return false;
     if (tgt.isObj) { const r0 = await B.attackObject(u, atk, tgt, { onCommit: () => commitAttack(u, atk, tgt) }); return !r0.cancelled; }
-    const r = await B.doAttack(u, tgt, atk, { onCommit: () => commitAttack(u, atk, tgt) });
+    const r = await B.doAttack(u, tgt, atk, { onCommit: () => commitAttack(u, atk, tgt), scale: atk.spin ? SPIN_MAIN : undefined });
+    if (atk.spin && !r.cancelled && r.hit && r.raw) {          // враги по бокам от цели (рядом и с героем, и с целью) получают ещё меньше
+      const sides = enemiesOf(u).filter(e => e !== tgt && alive(e) && !has(e, "underground") && dist(u, e) <= 1 && dist(e, tgt) <= 1);
+      for (const e of sides) {
+        if (r.nat !== 20 && r.total < e.ac) { log(`${u.name}: вращающийся удар мимо ${e.name} (${r.total} против КД ${e.ac}).`, "miss"); continue; }
+        const v = Math.max(1, Math.floor(r.raw * SPIN_SIDE)), ap = await B.applyDamage(u, e, [{ v, dt: atk.dt, label: atk.n }], { melee: true, src: u, weapon: true });
+        log(`${u.name}: вращающийся удар задевает ${e.name} — ${ap.total} урона.`);
+      }
+    }
     return !r.cancelled;
   }
 
@@ -203,7 +219,7 @@
     const adv = [], dis = [];
     if (u.hero && u.hero.equip && itemOf(u.hero.equip.body) && itemOf(u.hero.equip.body).stealth) dis.push("тяжёлая броня");
     const main = B.mainOf(u); if (main && main.id === "tower-shield") dis.push("ростовой щит");
-    const mods = []; { const off = u.hero && u.hero.equip && u.hero.equip.off ? itemOf(u.hero.equip.off) : null; if (off && off.id === "shield") mods.push({ l: "Щит гремит", v: -2 }); }          // решение автора: одноручный щит — минус к Скрытности
+    const mods = [];          // решение автора: одноручный щит — минус к Скрытности
     if (u.pass.includes("ash-wraith")) dis.push("светится");                                       // «Тлеющее тело»: тусклый свет мешает прятаться
     const r = await B.doCheck(u, "stealth", { title: o.title || "Спрятаться", label: `${spot} · Сл ${dc}`, dc, adv, dis, mods, cancel: !!o.cancel, onCommit: () => { if (o.time) spendTime(u, o.time); }, tags: ["hide"] });
     if (!r) return null;
@@ -385,7 +401,7 @@
   }
 
   /* ===== побег ===== */
-  const FLEE_DC = 10;
+  const fleeDc = () => ((B.S && (B.S.floor || (B.S.ev && B.S.ev.floor))) || 1) >= 2 ? 7 : 5;          // решение автора: Сл побега 5 на 1-м этаже, 7 на 2-м
   async function runFlee(u) {
     const sp = speedOf(u);
     if (sp === 0) { UI().toast("Скорость 0: не убежать"); return false; }
@@ -403,7 +419,7 @@
     u.t.move = Math.max(0, u.t.move - r.spent);
     if (!alive(u) || u.down) return true;
     if (u.y === B.H - 1) {
-      const ck = await B.doCheck(u, "acrobatics", { title: "Побег", label: "уйти от преследования · Сл 10", dc: FLEE_DC });          // решение автора: низкая Сл Ловкости
+      const ck = await B.doCheck(u, "acrobatics", { title: "Побег", label: `уйти от преследования · Сл ${fleeDc()}`, dc: fleeDc() });          // решение автора: низкая Сл Ловкости
       if (!ck || !ck.ok) { log(`${u.name} не смог оторваться от врагов.`, "flee"); return true; }
       u.escaped = true; B.dropOwnedStatuses(u); log(`${u.name} покидает поле боя.`, "flee"); const g = ui(); if (g) g.fxEscape(u);
     }
@@ -493,7 +509,7 @@
     for (const atk of heroAttacks(u)) {
       const why = timeWhy(u, atk.time) || (atk.ammo && countGear(u.hero, "arrow") < 1 ? "нет стрел" : ((B.attackTargets(u, atk).length || (B.objectTargets && B.objectTargets(u, atk).length)) ? null : "нет целей рядом"));
       opts.push({ id: "atk:" + atk.id, cat: "attack", label: atk.n, ico: atk.ammo ? "bow" : atk.thrown ? "throwing" : atk.id === "fist" ? "fist" : atk.id === "torchhit" ? "torch" : "attack",
-        sub: `${atk.kind === "melee" ? "до " + (atk.reach || 1) + " кл." : atk.range[0] >= B.W - 1 ? "дальний · всё поле" : `дальний · ${atk.range[0]} кл., до ${Math.min(atk.range[1], 12)} с помехой`} · ${atk.dmg.n ? fmtDice(atk.dmg) : atk.dmg.b} ${D.DT[atk.dt]}${atk.penalty ? " · " + atk.penaltyLabel : ""}${atk.ammo ? " · стрел: " + countGear(u.hero, "arrow") : ""}`,
+        sub: `${atkWith(atk)} · ${atk.kind === "melee" ? "до " + (atk.reach || 1) + " кл." : atk.range[0] >= B.W - 1 ? "дальний · всё поле" : `дальний · ${atk.range[0]} кл., до ${Math.min(atk.range[1], 12)} с помехой`} · ${atk.dmg.n ? fmtDice(atk.dmg) : atk.dmg.b} ${D.DT[atk.dt]}${atk.penalty ? " · " + atk.penaltyLabel : ""}${atk.spin ? " · вращающийся удар" : ""}${atk.ammo ? " · стрел: " + countGear(u.hero, "arrow") : ""}`,
         time: atk.time, enabled: !why, why, atk, run: () => runAttack(u, atk) });
     }
     // навыки эссенций и особенности пассивок
@@ -528,7 +544,7 @@
       opts.push({ id: "chalice-fill", cat: "item", label: "Набрать воды в чашу", ico: "potion", sub: "рядом лужа или пруд: через 2 дня вода станет зельем", time: "bonus", enabled: !bon && wet, why: bon || "нет воды рядом", useless: true, run: async () => { chaliceFill(chalicesOf(c, "empty")[0]); spendTime(u, "bonus"); log(`${u.name} набирает воды в чашу здоровья.`, "good"); return true; } }); }
     if (countGear(c, "torch") > 0 && B.S.dark && !B.S.torch) opts.push({ id: "torch", cat: "item", label: "Зажечь факел", ico: "torch", sub: "освещает поле, убирает штрафы тьмы", time: "bonus", enabled: !bon, why: bon, run: () => lightTorch(u) });
     const off = c.equip.off ? itemOf(c.equip.off) : null, main = B.mainOf(u);
-    if (off && off.id === "shield") opts.push({ id: "shieldbash", cat: "item", label: "Удар щитом", ico: "shield", sub: "толчок как доп. действие", time: "bonus", enabled: !bon && enemiesOf(u).some(e => dist(u, e) <= 1), why: bon || "нет врага рядом", run: () => doShove(u, "bonus") });
+    if (off && off.id === "shield") opts.push({ id: "shieldbash", cat: "attack", label: "Удар щитом", ico: "shield", sub: "щитом · толчок, доп. действие", time: "bonus", enabled: !bon && enemiesOf(u).some(e => dist(u, e) <= 1), why: bon || "нет врага рядом", run: () => doShove(u, "bonus") });
     if (main && main.id === "tower-shield") opts.push({ id: "cover", cat: "other", label: "Прикрыть союзника", ico: "shield", sub: "+2 КД союзнику рядом до вашего хода", time: "bonus", enabled: !bon && alliesOf(u).some(a => dist(u, a) <= 1 && !a.down), why: bon || "нет союзника рядом", run: () => coverAlly(u) });
     const here = dropsHere(u);
     if (here.length) opts.push({ id: "pickup", cat: "item", label: `Подобрать: ${dropNames(here)}`, ico: "throwing", sub: "свободное действие — вы стоите на нём", time: "free", enabled: true, run: () => pickUpWeapon(u), pop: true });

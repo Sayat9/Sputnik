@@ -340,3 +340,5 @@ body.bt-active .dice-fab { display: none; }
 .bt-sum li { display: flex; gap: 8px; align-items: center; padding: 5px 8px; border-radius: 6px; background: rgba(255,255,255,.06); }
 .bt-sum li .n { flex: 1; } .bt-sum li .v { opacity: .7; }
 .bt-sum li.ok b { color: #8fd18f; } .bt-sum li.bad b { color: #e07a6a; }
+.bt-istats .grey, .bt-istats .grey b { color: #8d8d8d; opacity: .85; }
+.bt-sum li .bt-rr { padding: 2px 8px; font-size: 12px; min-height: 0; }

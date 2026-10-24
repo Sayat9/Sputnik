@@ -181,7 +181,7 @@
     if (hid && !(tgt.tremor && dist(att, tgt) <= tgt.tremor && !B.isFlying(att)) && !(tgt.blind && dist(att, tgt) <= tgt.blind)) { ctx.adv.push("атакует из укрытия"); }
     if (hid) ctx.consume.push([att, "hidden"]);
     const dtg = has(tgt, "deceived"); if (dtg && dtg.data.by === att.id) ctx.adv.push("цель потеряла вас из виду");
-    if (!o.noFlank && units().filter(x => x !== att && x.side === att.side && alive(x) && !x.down && !x.escaped && dist(x, tgt) <= 1).length >= 2) ctx.adv.push("цель в окружении союзников");          // решение автора: ≥2 союзника атакующего вплотную к цели
+    if (!o.noFlank && (melee || d0 <= 1) && units().filter(x => x !== att && x.side === att.side && alive(x) && !x.down && !x.escaped && dist(x, tgt) <= 1).length >= 2) ctx.adv.push("цель в окружении союзников");          // решение автора: ≥2 союзника атакующего вплотную к цели
     if (isInvisibleTo(att, tgt)) ctx.dis.push("цель невидима");                                           // «Растворение»: бьют наугад, не видя цели
     if (has(tgt, "cursed")) ctx.extra.push({ n: 1, s: 4, b: 0, dt: atk.dt, label: "Проклятие предков", critDouble: true });          // каждое попадание по проклятому — ещё +1к4
     const pm = has(tgt, "packmark");                                                                       // «Вожак стаи»: союзник вожака бьёт отмеченного с преимуществом
@@ -297,6 +297,7 @@
       return res;
     }
     const dm = await rollDamage(att, tgt, atk, ctx, crit, ses);
+    if (o.scale) { res.raw = dm.parts.reduce((x, q) => x + q.v, 0); for (const q of dm.parts) q.v = Math.max(0, Math.floor(q.v * o.scale)); }          // вращающийся удар: основная цель получает часть урона
     res.parts = dm.parts;
     const mark = S.log.length;
     const ap = await applyDamage(att, tgt, dm.parts, { melee: ctx.melee, crit, ctx, src: att, reduce: o.reduce });
@@ -346,14 +347,26 @@
   // Спасброски сразу нескольких целей: без анимации кубиков, одна сводка (решение автора). Одна цель — обычный doSave.
   async function massSave(list, abil, dc, o = {}) {
     if (list.length < 2) return Promise.all(list.map(t => doSave(t, abil, dc, o)));
-    const out = [];
+    const out = [], ctxs = [];
     for (const t of list) {
-      if ((abil === "str" || abil === "dex") && (has(t, "unconscious") || has(t, "stable") || has(t, "paralyzed"))) { out.push({ ok: false, nat: 0, total: 0, mode: null }); continue; }
+      if ((abil === "str" || abil === "dex") && (has(t, "unconscious") || has(t, "stable") || has(t, "paralyzed"))) { out.push({ ok: false, nat: 0, total: 0, mode: null }); ctxs.push(null); continue; }
       const ctx = saveCtx(t, abil, dc, o), r = d20Core({ mods: ctx.mods, adv: ctx.adv, dis: ctx.dis }), ok = r.total >= dc;
       log(`${t.name}: спасбросок ${ABIL_RU[abil]} ${r.nat === r.total ? r.nat : r.nat + " → " + r.total} против Сл ${dc} — ${ok ? "успех" : "провал"}.`, ok ? "save" : "fail");
-      out.push({ ok, nat: r.nat, total: r.total, dice: r.dice, mode: r.mode });
+      out.push({ ok, nat: r.nat, total: r.total, dice: r.dice, mode: r.mode }); ctxs.push(ctx);
     }
-    const g = ui(); if (g && g.summary) await g.summary(o.title || o.label || "Спасброски", `${ABIL_RU[abil]}, Сл ${dc}`, list.map((t, i) => ({ name: t.name, side: t.side, total: out[i].total, nat: out[i].nat, ok: out[i].ok })));
+    const g = ui();
+    if (g && g.summary) {
+      // справа от героев — кнопка переброса: тот же счётчик, что и у остальных бросков; результат заменяется новым
+      const rows = () => list.map((t, i) => ({ name: t.name, side: t.side, total: out[i].total, nat: out[i].nat, ok: out[i].ok, canReroll: !!ctxs[i] && !out[i].ok && rerollOptions(t, "save").length > 0 }));
+      const reroll = i => {
+        const t = list[i], opt = rerollOptions(t, "save")[0]; if (!opt || !ctxs[i]) return rows();
+        opt.spend(); const old = out[i].total, r = d20Core({ mods: ctxs[i].mods, adv: ctxs[i].adv, dis: ctxs[i].dis }), ok = r.total >= dc;
+        out[i] = { ok, nat: r.nat, total: r.total, dice: r.dice, mode: r.mode, again: old };
+        log(`${t.name}: переброс — спасбросок ${ABIL_RU[abil]} ${r.total} (было ${old}) против Сл ${dc} — ${ok ? "успех" : "провал"}.`, ok ? "save" : "fail");
+        return rows();
+      };
+      await g.summary(o.title || o.label || "Спасброски", `${ABIL_RU[abil]}, Сл ${dc}`, rows(), reroll);
+    }
     return out;
   }
   function skillMod(u, skill) {

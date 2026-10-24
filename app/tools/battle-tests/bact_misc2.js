@@ -34,14 +34,14 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
   ok('копьё достаёт на 2 клетки, на 3 — нет', o.reach === 2 && o.in2 && o.in1 && !o.in3, JSON.stringify(o));
   ok('копьё помечено «растянутым» (помеха на 2-й клетке)', o.stretch);
   ok('полное укрытие между героем и целью не даёт ударить копьём через клетку', o.blocked);
-  ok('варвар с двуручным в одной руке: −2 к атаке', o.giant === -2, o.giant);
+  ok('варвар с двуручным в одной руке: без штрафа к атаке (штраф теперь −2 Ловкости)', !o.giant, o.giant);
   // помеха считается в броске: проверяем через attackCtx внутри doAttack косвенно — сам контекст
   const c = await p.evaluate(() => { const B = Battle, S = B.S; const [h0] = B.heroes(), [m0] = B.mons(); const spear = B.attacksOf(h0).find(a => a.w && a.w.id === 'spear' && a.kind === 'melee'); h0.x = 3; h0.y = 5; m0.x = 3; m0.y = 3; const far = Battle.attackCtx ? Battle.attackCtx(h0, m0, spear, {}) : null; h0.y = 4; const near = Battle.attackCtx ? Battle.attackCtx(h0, m0, spear, {}) : null; return { far: far && far.dis.join('|'), near: near && near.dis.join('|'), exp: !!Battle.attackCtx }; });
   if (c.exp) { ok('на 2-й клетке помеха «копьё на 2 клетки», вплотную её нет', /копьё на 2 клетки/.test(c.far) && !/копьё/.test(c.near), JSON.stringify(c)); }
   else ok('(attackCtx не экспортируется — помеха проверена по коду)', true);
   const sh = await p.evaluate(async () => { const B = Battle; const [h0, h1, h2] = B.heroes(); let got = null; const orig = B.doCheck; B.doCheck = async (u, skill, o) => { got = { u: u.id, mods: o.mods || [] }; return { total: 10, nat: 10, ok: false }; };
     await B.hideRoll(h2, { anywhere: true, seen: true, toast: false }); const withShield = got; got = null; await B.hideRoll(h0, { anywhere: true, seen: true, toast: false }); const without = got; B.doCheck = orig; return { withShield, without }; });
-  ok('щит: −2 к Скрытности при попытке спрятаться, без щита штрафа нет', sh.withShield && sh.withShield.mods.some(m => m.v === -2) && sh.without && !sh.without.mods.length, JSON.stringify(sh));
+  ok('щит больше не штрафует Скрытность (теперь −2 Ловкости)', sh.withShield && !sh.withShield.mods.length, JSON.stringify(sh));
   console.log('errs:', errs.length ? errs.slice(0, 5) : 'нет'); ok('нет ошибок страницы', !errs.length, errs.join(' | '));
   console.log(`проверок: ${R.length}, не прошли: ${R.filter(x => !x.ok).length}`);
   await b.close(); process.exit(R.every(x => x.ok) ? 0 : 1);

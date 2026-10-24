@@ -154,7 +154,7 @@
     const owner = u.summon ? B.byId(u.owner) : null;
     const sub = hero ? esc(raceById(u.race).name) + " · " + u.level + " ур." : u.summon ? (u.kind === "double" ? `Двойник · ${esc(owner ? owner.name : "")} · исчезает от любого урона` : `Призванный волк · ${esc(owner ? owner.name : "")}`) : esc(u.mon.size) + " · " + u.cls + " класс";
     const body = `<div class="bt-dlg fx-frame insp"><div class="bt-ihead"><div class="bt-cface ${u.side}${u.spectral ? " ghost" : ""}"><img src="${u.face}" alt=""></div><div><h4>${esc(u.name)}</h4><small>${sub}</small></div><button class="bt-x" data-m="close" aria-label="Закрыть">${ico("close")}</button></div>
-      <div class="bt-istats"><span>КД <b>${u.ac}</b></span><span title="Клеток хода в бою">Скорость <b>${B.speedOf(u)} кл.</b></span>${mine || S.opts.showMonHp ? `<span>ОЗ <b>${u.hp}/${u.maxHp}</b></span>` : `<span>ОЗ <b>скрыты</b></span>`}${hero ? `<span>Мана <b>${u.mp}/${u.maxMp}</b></span>` : ""}</div>
+      <div class="bt-istats"><span${hero || u.summon ? "" : ' class="grey" title="КД монстра — по ходу боя"'}>КД <b>${u.ac}</b></span><span title="Клеток хода в бою">Скорость <b>${B.speedOf(u)} кл.</b></span>${mine || S.opts.showMonHp ? `<span>ОЗ <b>${u.hp}/${u.maxHp}</b></span>` : `<span>ОЗ <b>скрыты</b></span>`}${hero ? `<span>Мана <b>${u.mp}/${u.maxMp}</b></span>` : ""}</div>
       <div class="bt-iabil">${["str", "dex", "con", "int", "wis", "cha"].map(k => `<span>${B.ABIL_RU[k].slice(0, 3)} <b>${u.abil[k]}</b></span>`).join("")}</div>
       ${sts ? `<h5>Состояния</h5><ul>${sts}</ul>` : ""}<h5>Атаки</h5><ul>${atk}</ul>${ess ? `<h5>Навыки эссенции</h5><ul>${ess}</ul>` : ""}</div>`;
     const m = showModal(note ? `<div class="bt-insp-wrap">${body}<aside class="bt-fieldnote fx-frame" aria-label="Эффект поля">${note}</aside></div>` : body);
@@ -204,12 +204,16 @@
     UI.cellInfo(x, y);
   };
   // Сводка спасбросков по нескольким целям: закрывается кнопкой, бой ждёт.
-  UI.summary = function (title, sub, rows) {
+  UI.summary = function (title, sub, rows, reroll) {
     return new Promise(res => {
-      const m = showModal(`<div class="bt-dlg fx-frame cellinfo"><div class="bt-ihead"><h4>${esc(title)}</h4></div><p class="bt-sub">${esc(sub)}</p>
-        <ul class="bt-sum">${rows.map(r => `<li class="${r.ok ? "ok" : "bad"}"><span class="n">${esc(r.name)}</span><span class="v">${r.total}</span><b>${r.ok ? "устоял" : "провал"}</b></li>`).join("")}</ul>
-        <div class="bt-btns"><button class="fx-btn primary" data-m="sumok">Готово</button></div></div>`);
-      m.onclick = e => { if (e.target.closest("[data-m=sumok]")) { hideModal(); res(); } };
+      const draw = rs => `<div class="bt-dlg fx-frame cellinfo"><div class="bt-ihead"><h4>${esc(title)}</h4></div><p class="bt-sub">${esc(sub)}</p>
+        <ul class="bt-sum">${rs.map((r, i) => `<li class="${r.ok ? "ok" : "bad"}"><span class="n">${esc(r.name)}</span><span class="v">${r.total}</span><b>${r.ok ? "устоял" : "провал"}</b>${reroll && r.side === "hero" ? `<button class="fx-btn bt-rr" data-rr="${i}"${r.canReroll ? "" : " disabled"} title="Потратить переброс">Переброс</button>` : ""}</li>`).join("")}</ul>
+        <div class="bt-btns"><button class="fx-btn primary" data-m="sumok">Готово</button></div></div>`;
+      const m = showModal(draw(rows));
+      m.onclick = e => {
+        if (e.target.closest("[data-m=sumok]")) { hideModal(); res(); return; }
+        const b = e.target.closest("[data-rr]"); if (b && !b.disabled && reroll) m.innerHTML = draw(reroll(+b.dataset.rr));
+      };
     });
   };
   UI.menu = function () {

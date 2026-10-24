@@ -1024,10 +1024,10 @@ const WEAPONS = [
     note: "Тонкий клинок требует хорошей стали и долгой ковки, поэтому дороже меча." },
   { id: "greatsword", name: "Двуручный меч", group: "melee", kind: "Воинское", dmg: "2к6", type: "рубящий", weight: 3, price: 50,
     props: ["Тяжёлое", "Двуручное"],
-    note: "Много железа и работы. Варвар («Великан») может держать его одной рукой со штрафом −2 к атаке." },
+    note: "Много железа и работы. Варвар («Великан») может держать его одной рукой со штрафом −2 к Ловкости; двумя руками штрафа нет. Удар с разворота: основная цель получает чуть меньше урона, соседние с ней — ещё меньше." },
   { id: "shortbow", name: "Короткий лук", group: "ranged", kind: "Простое", dmg: "1к6", type: "колющий", weight: 1, price: 20,
-    props: ["Боеприпасы (24/96 м)", "Двуручное"],
-    note: "Дерево и жила, железа почти нет, но хорошего лучника-мастера в городе найти трудно." },
+    props: ["Боеприпасы (8/8 м)"],
+    note: "Дерево и жила, железа почти нет. Бьёт недалеко (около 8 м), зато одноручный: в другую руку можно взять нож. Хорошего лучника-мастера в городе найти трудно." },
   { id: "longbow", name: "Длинный лук", group: "ranged", kind: "Воинское", dmg: "1к8", type: "колющий", weight: 1, price: 40,
     props: ["Боеприпасы (45/180 м)", "Тяжёлое", "Двуручное"],
     note: "Тисовая заготовка сохнет годами. В коридорах лабиринта дальность редко пригождается целиком." },
@@ -1035,8 +1035,8 @@ const WEAPONS = [
     props: [],
     note: "Железные наконечники. В бою часть стрел ломается; целые подбираются после боя, если отряд не бежал." },
   { id: "shield", name: "Щит", group: "shield", kind: "Щит", dmg: "+2 КД", type: "", weight: 3, price: 10,
-    props: ["Занимает руку", "−2 к Скрытности"],
-    note: "Дубовые доски с железной оковкой и умбоном: гремит при каждом шаге (−2 к Скрытности). Надеть или снять — действие." },
+    props: ["Занимает руку", "−2 к Ловкости"],
+    note: "Дубовые доски с железной оковкой и умбоном: оттягивает руку и сковывает движения (−2 к Ловкости). Надеть или снять — действие." },
   // Ростовой щит держат двумя руками: +3 КД вместо оружия, бить можно только им самим.
   { id: "tower-shield", name: "Ростовой щит", group: "melee", kind: "Щит", dmg: "1к6", type: "дробящий", weight: 7.5, price: 30, ac: 3, str: 13,
     props: ["+3 КД", "Двуручное", "Тяжёлое", "Сила 13", "Помеха Скрытности"],
@@ -1069,7 +1069,7 @@ const PROPS = [
   ["Универсальное", "Можно бить одной или двумя руками. В скобках урон двумя руками."],
   ["Фехтовальное", "Для атаки и урона можно использовать Ловкость вместо Силы."],
   ["Тяжёлое", "Маленькие существа совершают атаки с помехой."],
-  ["Двуручное", "Нужны обе руки. Исключение: «Великан» у варвара (−2 к атаке)."],
+  ["Двуручное", "Нужны обе руки. Исключение: «Великан» у варвара (одной рукой: −2 к Ловкости)."],
   ["Метательное", "Можно метнуть. В скобках нормальная и максимальная дальность; дальше нормальной — помеха."],
   ["Боеприпасы", "Нужны стрелы. Каждая атака тратит одну; после боя можно собрать половину."],
 ];
@@ -1093,7 +1093,7 @@ const RACES = [
     plus: [["Низкий налог", "Платит базовую ставку."]], minus: [] },
   { id: "barbarian", name: "Варвар", tax: "high", life: "Почти только лабиринт; уходят в него сразу после обряда совершеннолетия",
     mods: { str: 2, con: 2, int: -2 },
-    plus: [["Великан", "Считается Большим для переносимого веса. Двуручное оружие одной рукой со штрафом −2 к атаке."],
+    plus: [["Великан", "Считается Большим для переносимого веса. Двуручное оружие одной рукой со штрафом −2 к Ловкости."],
       ["Дух воина", "Преимущество на спасброски против испуга и очарования."],
       ["Наследие обряда", "Владение всем рукопашным оружием. Раз в ход можно перебросить кости урона рукопашной атаки."],
       ["Слово воина", "Клятва честью воина даёт преимущество к Убеждению."]],
@@ -1700,8 +1700,8 @@ const DISTRICTS = [
 
 // Готовые рисованные картинки (webp) заменяют векторные заглушки.
 // Дата сборки для телефона: build.sh вписывает её сюда, в веб-версии строка пустая.
-const APP_BUILD = "24.10.2026 22:49";
-const APP_VERSION = 1792864150;                 // номер сборки, тоже вписывает build.sh
+const APP_BUILD = "24.10.2026 22:58";
+const APP_VERSION = 1792864739;                 // номер сборки, тоже вписывает build.sh
 const UPDATE_URL = "https://raw.githubusercontent.com/Sayat9/Sputnik/main/www/";
 const RASTER = new Set(["items/mace", "items/warhammer", "items/armor-leather", "items/armor-hide", "items/armor-chainmail", "items/steel-dagger", "items/steel-sword", "items/steel-greatsword", "items/steel-shield", "items/steel-tower-shield", "items/shortbow", "items/longbow", "items/rapier", "items/shield", "items/tower-shield", "items/unknown-mushroom", "items/stone-9", "items/stone-8", "items/stone-7", "items/ration", "items/potion", "items/torch", "items/arrows", "items/clothes", "items/shovel", "items/shovel-good", "items/shovel-best", "items/dagger", "items/sword", "items/greatsword", "items/spear", "monsters/goblin-king-face", "monsters/goblin-king-full", "monsters/goblin-bomber-face", "monsters/goblin-bomber-full", "monsters/hobgoblin-shield-face", "monsters/hobgoblin-shield-full", "races/barbarian", "races/human", "races/dwarf", "races/beastkin", "races/fairy", "races/dragon", "monsters/goblin-face", "monsters/goblin-full", "monsters/goblin-archer-face", "monsters/goblin-archer-full", "monsters/goblin-sword-face", "monsters/goblin-sword-full", "monsters/goblin-spear-face", "monsters/goblin-spear-full", "monsters/wolf-face", "monsters/wolf-full", "monsters/fox-face", "monsters/fox-full", "monsters/mouse-face", "monsters/mouse-full", "monsters/bat-face", "monsters/bat-full", "monsters/hobgoblin-face", "monsters/hobgoblin-full", "monsters/zombie-face", "monsters/zombie-full", "monsters/skeleton-face", "monsters/skeleton-full", "monsters/skeleton-archer-face", "monsters/skeleton-archer-full", "monsters/ghoul-face", "monsters/ghoul-full", "monsters/dark-bear-face", "monsters/dark-bear-full", "monsters/skeleton-warrior-face", "monsters/skeleton-warrior-full", "monsters/living-stone-face", "monsters/living-stone-full", "monsters/wisp-face", "monsters/wisp-full", "monsters/pixie-face", "monsters/pixie-full", "monsters/green-boulder-face", "monsters/green-boulder-full", "monsters/stone-guardian-face", "monsters/stone-guardian-full"]);
 const artPath = p => `assets/${p}.${RASTER.has(p) ? "webp" : "svg"}`;
@@ -2203,13 +2203,22 @@ function itemOf(v, holder) {
 const mainItem = (c = char) => itemOf((c.equip || {}).main);
 const twoHanded = (c = char) => isTwoHandedWeapon(mainItem(c)) && !(c.giantGrip && c.race === "barbarian");
 
+// Решение автора: одноручный щит и двуручное оружие в одной руке у варвара («Великан») дают −2 к Ловкости (каждое).
+function gearDexPenalty(c) {
+  const off = itemOf((c.equip || {}).off), main = itemOf((c.equip || {}).main);
+  let g = 0;
+  if (off && off.id === "shield" && !twoHanded(c)) g -= 2;
+  if (c.giantGrip && c.race === "barbarian" && isTwoHandedWeapon(main)) g -= 2;
+  return g;
+}
 function totals(c = char) {
   const race = raceById(c.race);
   const ess = (c.essences || []).map(id => ESSENCES[id]).filter(Boolean);
   const out = {};
   for (const k of STAT_KEYS) {
     const b = +c.base[k] || 0, r = race.mods[k] || 0, e = ess.reduce((s, x) => s + (x.stats[k] || 0), 0);
-    out[k] = { base: b, race: r, ess: e, total: b + r + e };
+    const g = k === "dex" ? gearDexPenalty(c) : 0;
+    out[k] = { base: b, race: r, ess: e, gear: g, total: b + r + e + g };
   }
   return out;
 }
@@ -2231,8 +2240,8 @@ function derived(t, c = char) {
   if (armor && armor.str && t.str.total < armor.str) warnings.push(`Сила ${t.str.total} ниже ${armor.str}, нужной для доспеха «${armor.name}»: скорость −3 м.`);
   if (armor && armor.stealth) warnings.push(`«${armor.name}»: помеха к Скрытности.`);
   if (tower) { warnings.push("Ростовой щит: помеха к Скрытности."); if (t.str.total < 13) warnings.push(`Сила ${t.str.total} ниже 13, нужной для ростового щита: скорость −3 м.`); }
-  if (off && off.id === "shield" && !twoHanded(c)) warnings.push("Щит гремит: −2 к Скрытности.");
-  if (c.giantGrip && c.race === "barbarian" && isTwoHandedWeapon(mainItem(c))) warnings.push(`«${mainItem(c).name}» в одной руке (Великан): −2 к атаке.`);
+  if (off && off.id === "shield" && !twoHanded(c)) warnings.push("Щит: −2 к Ловкости.");
+  if (c.giantGrip && c.race === "barbarian" && isTwoHandedWeapon(mainItem(c))) warnings.push(`«${mainItem(c).name}» в одной руке (Великан): −2 к Ловкости.`);
   if (ld.level !== "ok") warnings.push(LOAD_TEXT[ld.level] + ".");
   const pb = 0;                                                 // бонус мастерства убран: ни у кого нет (решение автора)
   const eb = essBonus(c);
@@ -2341,7 +2350,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 20;
+const BATTLE_REV = 21;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined) st.tactical = true; return st; }
