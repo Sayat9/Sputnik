@@ -38,7 +38,7 @@
       async run(u, pk, ctl) {
         const a = atkOf(u); if (!a) return false;
         const dc = cfg.abil ? dcOf(u, cfg.abil) : 0;
-        const extra = cfg.extra ? [{ n: cfg.extra.n, s: cfg.extra.s, b: 0, dt: a.dt, label: cfg.extra.label || cfg.name, critDouble: true }] : null;
+        const extra = cfg.extra ? [{ n: cfg.extra.n, s: cfg.extra.s, b: 0, dt: cfg.extra.dt || a.dt, label: cfg.extra.label || cfg.name, critDouble: true }] : null;
         const r = await B.doAttack(u, pk.unit, a, { extra, dc, onCommit: () => { B.commitAttack(u, a, pk.unit); ctl.commit(); }, rider: async res => {
           const t = res.tgt; if (!alive(t) && !t.down) return;
           if (!cfg.save) { if (cfg.onHit) await cfg.onHit(t, u, res); return; }

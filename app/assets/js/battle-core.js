@@ -210,6 +210,9 @@
       else if ((m = /^Скорость рытья (\d+(?:,\d+)?) м/.exec(o))) u.burrowC = Math.max(u.burrowC, toCells(m[1]));
       else if (/^Плохое зрение \(помеха на Восприятие/.test(o)) u.poorSight = true;
       else if (/^Боится света/.test(o)) u.fearsLight = true;
+      else if (/^Холод сковывает/.test(o)) u.coldSlow = true;
+      else if (/^Нестабильность/.test(o)) u.unstable = true;
+      else if ((m = /^Хрупкий кристалл \(дробящий урон по тебе \+(\d+к\d+)\)/.exec(o))) u.extraTaken.bludgeon = m[1];
       else if ((m = /^Боится огня \(урон огнём \+(\d+к\d+)\)/.exec(o))) u.extraTaken.fire = m[1];
       else if ((m = /^Холод жжёт \(урон холодом по тебе \+(\d+к\d+)\)/.exec(o)) || (m = /^Холод жжёт \(урон холодом \+(\d+к\d+)\)/.exec(o))) u.extraTaken.cold = m[1];
       else if ((m = /^Серебро жжёт \(серебряное оружие наносит (?:тебе )?\+(\d+к\d+)/.exec(o))) u.extraTaken.silver = m[1];
@@ -271,7 +274,7 @@
   function speedOf(u) {
     let sp = Math.max(u.speedC, u.flyC) + hookSum(u, "speedBonus", {});                       // бонус к скорости («Лёгкие ноги») — до замедления, как строка статов
     for (const c of u.conds) {
-      if (["grappled", "restrained", "pinned", "trapped", "spearstop", "unconscious", "stable", "buried", "paralyzed", "underground", "mired"].includes(c.id)) return 0;
+      if (["grappled", "restrained", "pinned", "trapped", "spearstop", "unconscious", "stable", "buried", "paralyzed", "underground", "mired", "encased"].includes(c.id)) return 0;
     }
     for (const c of u.conds) if (c.id === "slowed") { if (c.data.mult != null) sp = Math.floor(sp * c.data.mult); if (c.data.add) sp += c.data.add; }
     return Math.max(0, sp);

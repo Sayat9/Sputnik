@@ -36,7 +36,7 @@
   /* ===== здоровье ===== */
   function setHp(u, v) { u.hp = clamp(Math.round(v), 0, u.maxHp); if (u.hero) u.hero.hp = u.hp; }
   function setMp(u, v) { u.mp = clamp(Math.round(v), 0, u.maxMp); if (u.hero) u.hero.mp = u.mp; }
-  const canAct = u => alive(u) && !u.down && !has(u, "unconscious") && !has(u, "stable") && !has(u, "paralyzed") && !has(u, "underground");          // закопавшийся землекоп не действует и не реагирует
+  const canAct = u => alive(u) && !u.down && !has(u, "unconscious") && !has(u, "stable") && !has(u, "paralyzed") && !has(u, "encased") && !has(u, "underground");          // закопавшийся землекоп не действует и не реагирует
   function revive(u) {
     removeStatus(u, "unconscious"); removeStatus(u, "stable"); u.down = false; u.deathSaves = { ok: 0, fail: 0 };
     log(`${u.name} приходит в себя.`, "good"); const g = ui(); if (g) g.fxText(u, "в сознании", "good");
@@ -100,6 +100,14 @@
   }
   /* Урон: parts — [{v, dt, label}]. Учитывает уязвимости, сопротивления, плоские поправки пассивок, мокроту и временные ОЗ. */
   async function applyDamage(src, tgt, parts, o = {}) {
+    const enc = has(tgt, "encased");
+    if (enc && parts.length) {          // «Кристальная тюрьма»: урон бьёт по кристаллу; дробящий — двойной; цель не ранена
+      const dmg = parts.reduce((a, p) => a + (p.v > 0 ? p.v * (p.dt === "bludgeon" ? 2 : 1) : 0), 0);
+      enc.data.hp -= dmg; const g0 = ui(); if (g0) g0.fxText(tgt, "кристалл", "");
+      log(`${tgt.name} в кристалле: удар по кристаллу (${dmg}), осталось ${Math.max(0, enc.data.hp)}.`);
+      if (enc.data.hp <= 0) { removeStatus(tgt, "encased"); log(`Кристалл вокруг ${tgt.name} разбит.`, "good"); }
+      return { total: 0, absorbed: dmg, notes: ["кристалл"] };
+    }
     let total = 0; const notes = [];
     // Плоские прибавки атакующего считаются один раз на всю атаку (к первой части урона): «Стая вокруг» волколака — себе и союзникам рядом.
     let outFlat = 0;
@@ -115,6 +123,7 @@
       if (tgt.resist.includes(p.dt) || hookAny(tgt, "resist", { dt: p.dt })) { v = Math.floor(v / 2); notes.push("сопротивление"); }
       const exd = tgt.extraTaken && tgt.extraTaken[p.dt]; if (exd) { const xd = B.parseDice(exd), xr = roll(xd.n, xd.s).total; v += xr; notes.push(`чувствительность +${xr}`); }       // «Боится огня», «Холод жжёт»
       v += hookSum(tgt, "dmgFlat", { dt: p.dt, melee: o.melee, o, src, v, memo });
+      if (tgt.coldSlow && p.dt === "cold" && v > 0) addStatus(tgt, "slowed", { k: 1, when: "end", data: { add: -2 } });          // «Холод сковывает»: −3 м скорости до конца хода
       v += hookSum(src || { pass: [] }, "dmgBonusVs", { dt: p.dt, tgt, o, melee: o.melee });
       if (v < 1 && p.v > 0 && hookAny(tgt, "dmgMin1", { dt: p.dt })) v = 1;
       total += Math.max(0, v);
@@ -169,6 +178,7 @@
     // отравление помех не даёт (решение автора): только урон ядом и метка
     const fr = has(att, "frightened"); if (fr) ctx.dis.push("испуган");
     if (has(att, "restrained")) ctx.dis.push("опутан");
+    if (has(tgt, "encased")) ctx.dis.push("цель в кристалле");
     if (has(att, "miredDis")) { ctx.dis.push("увяз в топи"); ctx.consume.push([att, "miredDis"]); }
     if (has(att, "dazzled")) { ctx.dis.push("ослеплён вспышкой"); ctx.consume.push([att, "dazzled"]); }
     if (has(att, "blinded") || has(att, "buried")) ctx.dis.push("ослеплён");

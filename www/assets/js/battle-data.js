@@ -95,6 +95,7 @@
     goblin: { feats: [["thorns", 2, 4, true]], hideShare: 0.4 },
     beast:  { feats: [["bush", 2, 4, true]], hideShare: 0.4 },
     undead: { feats: [["tomb", 2, 3]], hideShare: 0.4 },
+    stone:  { feats: [["crystal", 1, 3]], hideShare: 0.2 },
   };
   // Зоны: фон, перечень препятствий и украшений. [мин, макс] — сколько клеток; blob — пятном; trap — скрытые ловушки гоблинов.
   // «Подсыпка» местности (battle-core.js → genTerrain): если на поле мало укрытий или нет зарослей, иногда добавляем их.
@@ -132,6 +133,8 @@
     grappled:    { name: "Схвачен", ico: '<path d="M8 12V6.5a1.5 1.5 0 013 0V11M11 10V5a1.5 1.5 0 013 0v6M14 10.5V6.5a1.5 1.5 0 013 0V14c0 4-2 6-5 6s-5-2-6-5l-1-3 2 1z"/>', desc: "Скорость 0. Вырваться: действие, Атлетика или Акробатика против Сл." },
     restrained:  { name: "Опутан", ico: '<rect x="2.5" y="9" width="11" height="6" rx="3"/><rect x="10.5" y="9" width="11" height="6" rx="3"/>', desc: "Скорость 0. Атаки по нему — с преимуществом, его атаки и спасброски Ловкости — с помехой." },
     pinned:      { name: "Пригвождён", ico: '<circle cx="12" cy="7" r="3.5"/><path d="M12 10.5V21M8.5 21h7"/>', desc: "Скорость 0." },
+    coiled:      { name: "Свёрнут", ico: '<path d="M12 4a8 8 0 100 16 6 6 0 110-12 4 4 0 100 8"/>', desc: "Скорость вдвое меньше. Следующая атака: +2 к попаданию и +1к8 урона." },
+    encased:     { name: "В кристалле", ico: '<path d="M12 2l6 6-2 10-4 4-4-4-2-10z"/>', desc: "Обездвижен, не действует, атаки по нему с помехой. Кристалл разбивается от 10 урона (дробящий — двойной)." },
     mired:       { name: "Увяз в топи", ico: '<path d="M3 15h18M7 15v4M12 15v5M17 15v4"/><path d="M8 11a4 4 0 018 0"/>', desc: "Движение 0. Чтобы выбраться, потратьте действие." },
     miredDis:    { name: "Помеха: топь", ico: '<path d="M12 4v10M7 11l5 5 5-5"/>', desc: "Следующий бросок с помехой." },
     slowed:      { name: "Замедлен", ico: '<path d="M12 4v10M7 11l5 5 5-5M6 20h12"/>', desc: "Скорость снижена." },
@@ -190,6 +193,7 @@
   D.essCd = { goblin: 3, "goblin-archer": 2, "goblin-sword": 2, "goblin-spear": 2, wolf: 3, fox: 2, mouse: 3, bat: 3, zombie: 2, skeleton: 3, "skeleton-archer": 3,
     ghoul: 2, "living-stone": 2, pixie: 3, wisp: 3, "green-boulder": 3, hobgoblin: 2, "dark-bear": 3, "skeleton-warrior": 2, "stone-guardian": 3 };
   // Эссенции 2 этажа: перезарядки прямо в rules.md. battle 99 — «раз за бой»; «Нож в спину» — перезарядка пассивки.
+  Object.assign(D.essCd, { drop: 2, "dust-whirl": 2, "magma-hound": 3, crystalloid: 3, "lake-spirit": 3, "magma-golem": 4, "deep-serpent": 2, "crystal-colossus": 4, "storm-spirit": 4, "rift-heart": 4 });
   Object.assign(D.essCd, { "goblin-shaman": 2, "goblin-assassin": 3, "goblin-trapper": 3, "goblin-elder": 3, "hobgoblin-brute": 2, "hobgoblin-thrower": 2, "hobgoblin-driver": 3,
     "hobgoblin-shield": 2, "goblin-king": 4, "goblin-bomber": 1, "goblin-thief": 3, "horned-hare": 2, "swamp-toad": 2, burrower: 3, crow: 1, "dire-wolf": 2, "web-spider": 3,
     werewolf: 99, "giant-mole": 3, "swamp-fang": 3, "spider-queen": 4, blackwing: 2, "grey-shade": 3, morok: 2, whisperer: 3, "mirror-dead": 3, "faceless-ringer": 6,
@@ -202,6 +206,19 @@
   D.cdShift = 0;
   // Боевая запись монстра 2 этажа по его статблоку (traits с видом «attacks»: «+5 к попаданию, 1к4+3 колющего; 6/18 м»). Особые способности монстров — их эссенции.
   const DT_RU = { "колющего": "pierce", "рубящего": "slash", "дробящего": "bludgeon", "огнём": "fire", "ядом": "poison", "холодом": "cold", "некротическим": "necrotic", "психическим": "psychic", "молнией": "lightning", "звуком": "thunder" };
+  // Поведение монстров Кристального разлома (поверх выведенного из статблока).
+  D.monTune = {
+    drop: { role: "swarm", circle: true, focus: ["weak", "nearest"], fleeHp: 0.3 },
+    "dust-whirl": { role: "skirmisher", hitRun: true, flitter: true, focus: ["weak", "nearest"], fleeHp: 0.3 },
+    "magma-hound": { role: "swarm", circle: true, focus: ["torch", "weak"], fleeHp: 0.25 },
+    crystalloid: { role: "sentinel", wake: 2, noFlee: true, focus: ["nearest"] },
+    "lake-spirit": { role: "skirmisher", hitRun: true, focus: ["weak", "nearest"], fleeHp: 0.35 },
+    "magma-golem": { role: "brute", focus: ["torch", "nearest"], noFlee: true },
+    "deep-serpent": { role: "brute", focus: ["nearest", "weak"], noFlee: true },
+    "crystal-colossus": { role: "guardian", leash: 3, focus: ["nearest"], noFlee: true },
+    "storm-spirit": { role: "skirmisher", hitRun: true, focus: ["weak", "nearest"], noFlee: true },
+    "rift-heart": { role: "guardian", leash: 1, focus: ["nearest", "attacker"], noFlee: true },
+  };
   D.deriveMon = m => {
     const atk = [], names = []; let twice = false;
     for (const [n, txt, kind] of m.traits || []) {
@@ -215,8 +232,10 @@
       names.push(id);
     }
     const hasRanged = atk.some(a => a.kind === "ranged" && !/метнуть/.test(a.n)), behind = (m.traits || []).some(t => /позади|за спинами|Прячется за/.test(t[1] || ""));
+    const tune = (D.monTune || {})[m.id];
     const ai = { int: m.cls <= 8 ? 2 : 1, role: hasRanged ? "ranged" : behind ? "secondLine" : "melee", focus: m.cls <= 8 ? ["weak", "nearest"] : ["nearest"], fleeHp: m.cls >= 9 ? 0.4 : 0, noFlee: m.cls <= 7 };
     if (hasRanged) { ai.keep = 3; ai.kite = false; }
+    if (tune) Object.assign(ai, tune);
     return { atk, seq: twice && atk.length > 1 ? [atk[0].id, atk[1].id] : null, ai, size: /^(Большой|Огромный)/.test(m.size) ? 2 : 1 };
   };
 

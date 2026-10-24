@@ -82,3 +82,58 @@
 - **Болотный клык (7)** — `swamp-fang`: `swamp predator with a crocodile-like snout lined with huge fangs, mossy armored back, low powerful body, standing murky swamp with hanging moss and dead trees, mud and black water, pale hazy light through mist`
 
 Уже были: Король гоблинов, Гоблин-бомбардир, Хобгоблин-щитовик.
+
+## Кристальный разлом (элементали, 2 этаж)
+
+Окружение и свет — по месту обитания стихии (вода — холодный бирюзовый, лава — красно-оранжевый, кристаллы — фиолетово-белый, ветер — серо-голубой). Те же правила кадра и хвост.
+
+### Капля (9) — `drop`
+> `tiny living water droplet creature, translucent teal body with a faint face of ripples, small splashing limbs, glistening, standing on the wet black rock shore of an underground lake with glowing blue crystals, cold teal light reflecting on water, full body, 2:3 vertical, 1024x1536, dark moody fantasy, realistic painterly style, highly detailed, no text`
+
+Файлы: `assets/monsters/drop-full.webp`, `assets/monsters/drop-face.webp` (затем добавить в `RASTER`).
+
+### Пыльный вихрь (9) — `dust-whirl`
+> `small swirling dust devil, spinning column of pale grey dust and tiny glittering grains with two faint pinprick eyes, standing in a dark abandoned mine shaft with old wooden supports, dust hanging in a single beam of pale grey-gold light, full body, 2:3 vertical, 1024x1536, dark moody fantasy, realistic painterly style, highly detailed, no text`
+
+Файлы: `assets/monsters/dust-whirl-full.webp`, `assets/monsters/dust-whirl-face.webp` (затем добавить в `RASTER`).
+
+### Магмовый пёс (8) — `magma-hound`
+> `dog-shaped beast of dark cooled lava crust with glowing orange cracks, ember eyes, smoking breath, prowling, standing in a cavern with lava cracks in the floor, strong orange-red glow from below, heat haze, full body, 2:3 vertical, 1024x1536, dark moody fantasy, realistic painterly style, highly detailed, no text`
+
+Файлы: `assets/monsters/magma-hound-full.webp`, `assets/monsters/magma-hound-face.webp` (затем добавить в `RASTER`).
+
+### Кристаллоид (8) — `crystalloid`
+> `humanoid creature made of faceted gem-like crystal, pale violet and white, sharp shard hands, standing still like a crystal formation, standing in a cavern garden of tall crystals, soft prismatic violet-white light refracting through facets, full body, 2:3 vertical, 1024x1536, dark moody fantasy, realistic painterly style, highly detailed, no text`
+
+Файлы: `assets/monsters/crystalloid-full.webp`, `assets/monsters/crystalloid-face.webp` (затем добавить в `RASTER`).
+
+### Озёрный дух (8) — `lake-spirit`
+> `slender water spirit with a flowing translucent blue body, patches of ice on the shoulders, long dripping fingers, hollow eyes, standing at the shore of a dark underground lake with mist, cold blue-white light from glowing crystals above, full body, 2:3 vertical, 1024x1536, dark moody fantasy, realistic painterly style, highly detailed, no text`
+
+Файлы: `assets/monsters/lake-spirit-full.webp`, `assets/monsters/lake-spirit-face.webp` (затем добавить в `RASTER`).
+
+### Магмовый голем (7) — `magma-golem`
+> `huge golem of dark basalt plates with molten seams glowing between them, heavy fists dripping lava, slow looming pose, standing in a lava cavern with rivers of magma behind it, intense orange rim light and rising heat haze, full body, 2:3 vertical, 1024x1536, dark moody fantasy, realistic painterly style, highly detailed, no text`
+
+Файлы: `assets/monsters/magma-golem-full.webp`, `assets/monsters/magma-golem-face.webp` (затем добавить в `RASTER`).
+
+### Глубинный змей (7) — `deep-serpent`
+> `giant serpent coiled in dark water, blue-green scaled body, broad head with long fangs, water streaming off the coils, standing in an underground lake cavern, black water and glowing algae and crystals, teal-green cold light, full body, 2:3 vertical, 1024x1536, dark moody fantasy, realistic painterly style, highly detailed, no text`
+
+Файлы: `assets/monsters/deep-serpent-full.webp`, `assets/monsters/deep-serpent-face.webp` (затем добавить в `RASTER`).
+
+### Кристальный колосс (7) — `crystal-colossus`
+> `giant humanoid of crystal slabs, rough faceted body with a glowing core, massive fists, rainbow light breaking inside it, standing in the center of a vast crystal garden, giant crystals around, violet and white prismatic light from above, full body, 2:3 vertical, 1024x1536, dark moody fantasy, realistic painterly style, highly detailed, no text`
+
+Файлы: `assets/monsters/crystal-colossus-full.webp`, `assets/monsters/crystal-colossus-face.webp` (затем добавить в `RASTER`).
+
+### Дух бури (7) — `storm-spirit`
+> `floating storm spirit with a swirling grey cloud body, crackling lightning arcs, glowing white eyes, ragged trailing mist, standing at the mouth of a windy mine shaft, dark rock walls, flashes of blue-white lightning as the only light, full body, 2:3 vertical, 1024x1536, dark moody fantasy, realistic painterly style, highly detailed, no text`
+
+Файлы: `assets/monsters/storm-spirit-full.webp`, `assets/monsters/storm-spirit-face.webp` (затем добавить в `RASTER`).
+
+### Сердце разлома (7, особый) — `rift-heart`
+> `enormous floating crystal heart-like formation of many colored shards, fire, ice, lightning and wind swirling around it, cracked and unstable, standing in the center of the rift cavern above a ring of four burning altars, multicolored elemental glow from the shards, full body, 2:3 vertical, 1024x1536, dark moody fantasy, realistic painterly style, highly detailed, no text`
+
+Файлы: `assets/monsters/rift-heart-full.webp`, `assets/monsters/rift-heart-face.webp` (затем добавить в `RASTER`).
+

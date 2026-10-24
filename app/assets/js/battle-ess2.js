@@ -993,5 +993,220 @@
     if (u.ess.includes("ash-wraith")) addStatus(u, "lit", { k: Infinity });               // светится тусклым светом на 3 м
   };
 
+
+  /* ===================== Кристальный разлом (элементали, черновик campaign/drafts.md) ===================== */
+  const ELEM = { fire: { dt: "fire", ru: "огонь" }, water: { dt: "cold", ru: "вода" }, lightning: { dt: "lightning", ru: "молния" }, wind: { dt: "thunder", ru: "ветер" }, earth: { dt: "bludgeon", ru: "камень" } };
+  const ELEM_IDS = Object.keys(ELEM);
+  const ignite = (t, src) => { if (has(t, "wet") || has(t, "burning")) return false; addStatus(t, "burning", { k: Infinity, data: { by: src ? src.id : null } }); fx(t, "горит", "bad"); return true; };
+  const makeWet = t => { addStatus(t, "wet", { k: 1, when: "end" }); fx(t, "промок", ""); removeStatusSafe(t, "burning"); };
+  const removeStatusSafe = (t, id) => { if (has(t, id)) removeStatus(t, id); };
+  const turnKey = () => B.S.round + ":" + B.S.curId;
+  const waterAt = u => { const t = B.tinfo(u.x, u.y); return !!(t && t.wet) || B.terrain(u.x, u.y) === "mud"; };
+  const nearFire = u => {
+    const S = B.S;
+    for (let y = 0; y < B.H; y++) for (let x = 0; x < B.W; x++) { const t = B.tinfo(x, y); if (t && t.hazard === "fire" && distCell(u, x, y) <= 2) return true; }
+    if (S.torch && S.torchBy) { const h = B.byId(S.torchBy); if (h && dist(u, h) <= 2) return true; }
+    return live().some(o => has(o, "burning") && dist(u, o) <= 1);
+  };
+
+  /* Капля (9) */
+  P.drop = { defendMods(t, ctx) { if (ctx.o && ctx.o.reaction && ctx.melee) ctx.dis.push("Текучесть"); } };
+  A.drop = {
+    time: "bonus",
+    tgt(u) { return specUnit(u, "Обливание: на кого?", within(u, 1), cellsAround(u, 1), "debuff"); },
+    can(u) { return within(u, 1).length ? true : "никого рядом"; },
+    async run(u, pk, ctl) {
+      ctl.commit(); const t = pk.unit, sv = await save(t, "dex", dcOf(u, "con"), "Обливание");
+      if (!sv.ok) {
+        makeWet(t); const S = B.S;
+        if (S.torch && !S.torchFixed && S.torchBy === t.id) { S.torch = false; log(`Факел ${t.name} гаснет.`, "bad"); if (ui()) ui().refresh(); }          // горящий факел гаснет
+      }
+      return true;
+    },
+    ai(u) { const ts = within(u, 1).filter(t => !has(t, "wet")); return ts.length ? { unit: ts.sort((a, b) => (B.S.torchBy === b.id) - (B.S.torchBy === a.id))[0], score: 3 } : null; },
+  };
+
+  /* Пыльный вихрь (9) */
+  P["dust-whirl"] = { defendMods(t, ctx) { if (!ctx.melee && t.t && t.t.moved >= 2) ctx.dis.push("Сквозняк"); } };
+  const gustLine = (u, t) => { const dx = Math.sign(t.x - u.x), dy = Math.sign(t.y - u.y), out = []; for (let k = 1; k <= 3; k++) out.push([u.x + dx * k, u.y + dy * k]); return out; };
+  const gustVictims = (u, t) => { const cells = gustLine(u, t); return enemiesOf(u).filter(e => e.size <= 1 && !has(e, "underground") && footprint(e).some(([fx0, fy0]) => cells.some(([cx, cy]) => cx === fx0 && cy === fy0))); };
+  A["dust-whirl"] = {
+    time: "action",
+    tgt(u) { return specUnit(u, "Порыв: в какую сторону?", within(u, 3).filter(e => e.size <= 1), cellsAround(u, 3), "attack"); },
+    can(u) { return within(u, 3).some(e => e.size <= 1) ? true : "никого на линии"; },
+    async run(u, pk, ctl) {
+      ctl.commit(); const cells = gustLine(u, pk.unit), vs = gustVictims(u, pk.unit), dc = dcOf(u, "dex");
+      for (const [cx, cy] of cells) if (B.S.cells[cy] && B.S.cells[cy][cx] === "fire") B.S.cells[cy][cx] = null;          // гасит открытое пламя
+      if (ui()) ui().banner(`${u.name}: Порыв!`);
+      for (const t of vs) { const sv = await save(t, "str", dc, "Порыв", [], u); if (!sv.ok && alive(t)) await B.push(t, u.x, u.y, 2); }
+      return true;
+    },
+    ai(u) { const ts = within(u, 3).filter(e => e.size <= 1); if (!ts.length) return null; const best = ts.map(t => ({ t, n: gustVictims(u, t).length })).sort((a, b) => b.n - a.n)[0]; return { unit: best.t, score: 2.5 + best.n }; },
+  };
+
+  /* Магмовый пёс (8) */
+  P["magma-hound"] = { attackMods(att, ctx) { if (nearFire(att)) ctx.mods.push({ l: "Жаролюб", v: 1 }); } };
+  A["magma-hound"] = attackRider({ name: "Огненный укус", kind: "melee", abil: "con", save: "con", extra: { n: 1, s: 6, dt: "fire", label: "Огненный укус" }, aiBonus: 3,
+    onFail: async (t, u) => { ignite(t, u); } });
+
+  /* Кристаллоид (8) */
+  P.crystalloid = { dmgFlat(u, c) { return c.dt === "fire" || c.dt === "radiant" ? -2 : 0; } };
+  A.crystalloid = saveArea({ name: "Вспышка граней", radius: 2, side: "enemies", abil: "con", save: "con", tags: ["blind"],
+    onFail: async t => { addStatus(t, "blinded", { k: 1, when: "end" }); fx(t, "ослеплён", "bad"); } });
+
+  /* Озёрный дух (8) */
+  P["lake-spirit"] = {
+    attackMods(att, ctx) { if (ctx.melee && att.flags.iceTurn !== turnKey() && ctx.atk && !ctx.atk.thrown) ctx.atk.dt = "cold"; },
+    onHitDealt(att, c) {
+      if (!c.melee || att.flags.iceTurn === turnKey() || !c.res.hit || c.res.hit === false) return;
+      att.flags.iceTurn = turnKey(); const t = c.tgt; if (!t || !(alive(t) || t.down)) return;
+      addStatus(t, "slowed", { k: 1, when: "end", data: { add: -2 } }); fx(t, "холод", "bad");
+    },
+  };
+  const grabTargets = u => within(u, 6).filter(t => !has(t, "restrained") && !B.lineBlocked(u, t));
+  A["lake-spirit"] = {
+    time: "action",
+    tgt(u) { return specUnit(u, "Ледяная хватка: на кого?", grabTargets(u), B.cellsWithin(u, 6), "debuff"); },
+    can(u) { return grabTargets(u).length ? true : "никого в 9 м"; },
+    async run(u, pk, ctl) {
+      ctl.commit(); const t = pk.unit, dc = dcOf(u, "wis");
+      const sv = await B.doSave(t, "str", dc, { label: "Ледяная хватка", dis: has(t, "wet") ? ["промок"] : [], from: u });
+      const d = roll(1, 6).total, v = sv.ok ? Math.floor(d / 2) : d;
+      await B.applyDamage(u, t, [{ v, dt: "cold", label: "Ледяная хватка" }], { skill: true });
+      if (!sv.ok && (alive(t) || t.down)) { addStatus(t, "restrained", { k: Infinity, data: durEnd(t, 1) }); fx(t, "вмёрз", "bad"); }
+      return true;
+    },
+    ai(u) { const ts = grabTargets(u); return ts.length ? { unit: ts.sort((a, b) => a.hp - b.hp)[0], score: 3 } : null; },
+  };
+
+  /* Магмовый голем (7) */
+  P["magma-golem"] = {
+    async hitTaken(u, c) {
+      if (!c.melee || !c.res.hit || !c.atk || !(c.atk.dt === "slash" || c.atk.dt === "pierce") || !alive(c.att)) return;
+      await B.applyDamage(u, c.att, [{ v: roll(1, 4).total, dt: "fire", label: "Брызги лавы" }], {});
+    },
+  };
+  A["magma-golem"] = saveArea({ name: "Извержение", radius: 2, side: "enemies", abil: "con", save: "dex", dmg: "3к6", dt: "fire", half: true, anim: "fire",
+    onFail: async (t, u) => { ignite(t, u); } });
+
+  /* Глубинный змей (7) */
+  P["deep-serpent"] = {
+    speedBonus(u) { let b = waterAt(u) ? 0 : -2; if (has(u, "coiled")) b -= Math.floor(Math.max(u.speedC, u.flyC) / 2); return b; },
+    attackMods(att, ctx) {
+      const c = has(att, "coiled"); if (!c || !ctx.atk || ctx.atk.thrown) return;
+      ctx.mods.push({ l: "Бросок из кольца", v: 2 }); ctx.extra.push({ n: 1, s: 8, b: 0, dt: ctx.atk.dt, label: "Бросок из кольца", critDouble: true }); ctx.consume.push([att, "coiled"]); att.flags.coilFull = true;
+    },
+    async afterAttack(att, c) {
+      if (!c.res || !c.res.hit || !c.atk || c.atk.kind !== "melee" || att.flags.slideTurn === turnKey()) return;
+      const reach = c.atk.reach || 1, ts = enemiesOf(att).filter(e => e.id !== c.tgt.id && alive(e) && !has(e, "underground") && dist(e, c.tgt) <= reach);
+      if (!ts.length) { att.flags.coilFull = false; return; }
+      att.flags.slideTurn = turnKey();
+      const t = ts.sort((a, b) => a.hp - b.hp)[0], full = att.flags.coilFull; att.flags.coilFull = false;
+      const v = Math.max(1, full ? c.res.dealt : Math.floor(c.res.dealt / 2));
+      log(`${att.name}: скользящий удар задевает ${t.name}.`, "skill");
+      await B.applyDamage(att, t, [{ v, dt: c.atk.dt, label: "Скользящий удар" }], { melee: true, src: att });
+    },
+  };
+  A["deep-serpent"] = {
+    time: "bonus",
+    tgt() { return { type: "self" }; },
+    can(u) { return has(u, "coiled") ? "уже свёрнут" : speedOf(u) > 0 ? true : "не может двигаться"; },
+    async run(u, pk, ctl) { ctl.commit(); addStatus(u, "coiled", { k: Infinity }); log(`${u.name} сворачивается в кольца.`, "skill"); fx(u, "свернулся", "good"); return true; },
+    ai(u) { if (has(u, "coiled")) return null; const es = enemiesOf(u); const near = Math.min(...es.map(e => dist(u, e))); return es.length && near >= 2 && near <= 4 ? { score: 3 } : null; },
+  };
+
+  /* Кристальный колосс (7) */
+  P["crystal-colossus"] = { acAura(a, c) { return a.id !== c.tgt.id && dist(a, c.tgt) <= 6 ? 1 : 0; } };
+  const cageTargets = u => within(u, 6).filter(t => !has(t, "encased") && !B.lineBlocked(u, t));
+  A["crystal-colossus"] = {
+    time: "action",
+    tgt(u) { return specUnit(u, "Кристальная тюрьма: на кого?", cageTargets(u), B.cellsWithin(u, 6), "debuff"); },
+    can(u) { return cageTargets(u).length ? true : "никого в 9 м"; },
+    async run(u, pk, ctl) {
+      ctl.commit(); const t = pk.unit, sv = await save(t, "dex", dcOf(u, "con"), "Кристальная тюрьма", [], u);
+      if (!sv.ok) { addStatus(t, "encased", { k: Infinity, data: { hp: 10, ...durEnd(t, 1) } }); log(`${t.name} заключён в кристалл.`, "skill"); fx(t, "в кристалле", "bad"); }
+      else { addStatus(t, "slowed", { k: 1, when: "end", data: { mult: 0.5 } }); fx(t, "замедлен", "bad"); }
+      return true;
+    },
+    ai(u) { const ts = cageTargets(u); return ts.length ? { unit: ts.sort((a, b) => B.avgDice((B.attacksOf(b)[0] || { dmg: { n: 0, s: 0, b: 0 } }).dmg) - B.avgDice((B.attacksOf(a)[0] || { dmg: { n: 0, s: 0, b: 0 } }).dmg))[0], score: 3.5 } : null; },
+  };
+
+  /* Дух бури (7) */
+  P["storm-spirit"] = {
+    async hitTaken(u, c) { if (!c.melee || !c.res.hit || !alive(c.att)) return; await B.applyDamage(u, c.att, [{ v: roll(1, 4).total, dt: "lightning", label: "Грозовой заряд" }], {}); },          // у промокшего «промок» добавит ещё 1к4
+  };
+  const chainTargets = u => enemiesOf(u).filter(t => dist(u, t) <= 12 && !has(t, "underground") && !B.lineBlocked(u, t));
+  A["storm-spirit"] = {
+    time: "action",
+    tgt(u) { return specUnit(u, "Цепная молния: первая цель?", chainTargets(u), B.cellsWithin(u, 12), "attack"); },
+    can(u) { return chainTargets(u).length ? true : "никого в 18 м"; },
+    async run(u, pk, ctl) {
+      ctl.commit(); const first = pk.unit, dc = dcOf(u, "wis"); if (ui()) ui().banner(`${u.name}: Цепная молния!`);
+      const dis = t => (has(t, "wet") ? ["промок"] : []);
+      let sv = await B.doSave(first, "dex", dc, { label: "Цепная молния", dis: dis(first), from: u }), d = roll(2, 8).total;
+      await B.applyDamage(u, first, [{ v: sv.ok ? Math.floor(d / 2) : d, dt: "lightning", label: "Цепная молния" }], { skill: true });
+      const next = enemiesOf(u).filter(t => t.id !== first.id && dist(t, first) <= 2 && !has(t, "underground")).sort((a, b) => dist(a, first) - dist(b, first)).slice(0, 2);
+      for (const t of next) {
+        sv = await B.doSave(t, "dex", dc, { label: "Цепная молния (скачок)", dis: dis(t), from: u });
+        if (!sv.ok) await B.applyDamage(u, t, [{ v: roll(1, 8).total, dt: "lightning", label: "Цепная молния" }], { skill: true });
+      }
+      return true;
+    },
+    ai(u) { const ts = chainTargets(u); if (!ts.length) return null; const sc = ts.map(t => ({ t, n: enemiesOf(u).filter(o => o.id !== t.id && dist(o, t) <= 2).length + (has(t, "wet") ? 1 : 0) })).sort((a, b) => b.n - a.n)[0]; return { unit: sc.t, score: 3 + sc.n }; },
+  };
+
+  /* Сердце разлома (7, особый) */
+  const elemEffect = async (t, el, src, cx, cy) => {
+    if (!(alive(t) || t.down)) return;
+    if (el === "fire") ignite(t, src);
+    else if (el === "water") makeWet(t);
+    else if (el === "lightning") { if (t.t) t.t.noReact = true; fx(t, "без реакций", "bad"); }
+    else if (el === "wind") await B.push(t, cx, cy, 2);
+    else if (el === "earth") { B.knock(t, src); fx(t, "сбит с ног", "bad"); }
+  };
+  P["rift-heart"] = {
+    turnStart(u) { if (u.side === "mon") { const el = ELEM_IDS[B.rnd(5)]; u.flags.heartEl = el; log(`${u.name} выбирает стихию: ${ELEM[el].ru}.`, "skill"); fx(u, ELEM[el].ru, ""); } },
+    attackMods(att, ctx) {
+      if (!ctx.atk || ctx.atk.thrown) return;
+      if (att.side === "mon") { const el = att.flags.heartEl; if (el) { ctx.extra.push({ n: 1, s: 4, b: 0, dt: ELEM[el].dt, label: "Стихия: " + ELEM[el].ru, critDouble: true }); ctx.heartEl = el; } }
+      else { const t = ctx.tgt, vul = ELEM_IDS.find(e => t.vuln.includes(ELEM[e].dt)) || (has(t, "wet") ? "water" : "fire"); ctx.atk.dt = ELEM[vul].dt; ctx.heartEl = vul; }          // у героя игра сама берёт стихию, к которой цель уязвима (иначе огонь; по промокшему — холод)
+    },
+    async onHitDealt(att, c) {
+      if (!c.heartEl || !c.res.hit || att.flags.elemTurn === turnKey()) return; att.flags.elemTurn = turnKey();
+      const t = c.tgt; if (!t || !(alive(t) || t.down)) return;
+      if (c.heartEl === "water") { addStatus(t, "slowed", { k: 1, when: "end", data: { add: -2 } }); fx(t, "холод", "bad"); }
+      else if (c.heartEl === "wind") await B.push(t, att.x, att.y, 1);
+      else if (c.heartEl !== "earth") await elemEffect(t, c.heartEl, att, att.x, att.y);
+    },
+  };
+  const stormTargets = u => enemiesOf(u).filter(t => dist(u, t) <= 12 && !has(t, "underground") && !B.lineBlocked(u, t));
+  A["rift-heart"] = {
+    time: "action",
+    tgt(u) { return specUnit(u, "Шторм стихий: центр сферы?", stormTargets(u), B.cellsWithin(u, 12), "attack"); },
+    can(u) { return stormTargets(u).length ? true : "никого в 18 м"; },
+    async run(u, pk, ctl) {
+      ctl.commit(); const c = pk.unit, el = u.flags.heartEl || ELEM_IDS[B.rnd(5)], dc = dcOf(u, "cha");
+      const vs = live().filter(o => o.id !== u.id && !has(o, "underground") && dist(o, c) <= 2 && (o.side !== u.side || o.id === c.id));
+      if (ui()) ui().banner(`${u.name}: Шторм стихий (${ELEM[el].ru})!`);
+      const d = roll(2, 6).total;
+      for (const t of vs.filter(x => x.side !== u.side)) {
+        const sv = await save(t, "dex", dc, "Шторм стихий", [], u);
+        await B.applyDamage(u, t, [{ v: sv.ok ? Math.floor(d / 2) : d, dt: ELEM[el].dt, label: "Шторм стихий" }], { skill: true });
+        if (!sv.ok) await elemEffect(t, el, u, c.x, c.y);
+      }
+      return true;
+    },
+    ai(u) { const ts = stormTargets(u); if (!ts.length) return null; const sc = ts.map(t => ({ t, n: enemiesOf(u).filter(o => dist(o, t) <= 2).length })).sort((a, b) => b.n - a.n)[0]; return { unit: sc.t, score: 3 + sc.n * 1.5 }; },
+  };
+  // Нестабильность: в начале боя уязвимость к одной стихии (сопротивление к ней не действует).
+  const prevInitRift = B.initUnit;
+  B.initUnit = function (u) {
+    if (prevInitRift) prevInitRift(u);
+    if (!u.unstable) return;
+    const dt = ["fire", "cold", "lightning", "thunder"][B.rnd(4)];
+    u.resist = u.resist.filter(x => x !== dt); if (!u.vuln.includes(dt)) u.vuln.push(dt); u.unstableDt = dt;
+    log(`${u.name}: нестабильность — уязвимость к урону «${D.DT[dt] || dt}».`, "skill");
+  };
+
   B.fillActiveTimes();
 })();

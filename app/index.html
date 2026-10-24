@@ -1251,6 +1251,47 @@ const ESSENCES = {
     passive: { name: "Вожак стаи", text: "Раз в ход, когда ты попадаешь по существу, следующая атака союзника по нему до начала твоего хода — с преимуществом." },
     active: { name: "Пике", mana: 4, time: "действие", text: "Движение по прямой на свою скорость (не провоцирует атак) и атака колющим оружием ближнего боя (копьё, рапира). При попадании +2к6 урона. Из скрытности — после атаки ещё одно действие в этот ход (не на «Пике»). Перезарядка 2 раунда." } },
   // 2 этаж, Могильник белой пыли — эссенции (rules.md, «2 этаж: эссенции Могильника белой пыли»).
+  // ===== 2 этаж, Кристальный разлом (черновик: campaign/drafts.md → «Кристальный разлом: эссенции») =====
+  "drop": { id: "drop", name: "Эссенция капли", cls: 9, source: "drop",
+    stats: { con: 1, str: -1 }, other: ["Скорость плавания = скорости"],
+    passive: { name: "Текучесть", text: "Атаки по возможности против тебя — с помехой: ты перетекаешь из клетки в клетку." },
+    active: { name: "Обливание", mana: 2, time: "бонусное действие", text: "Одно существо в 1,5 м, спасбросок Ловкости Сл 8 + БМ + мод. Тел. Провал — цель промокла до конца своего следующего хода (урон холодом и молнией по ней +1к4), её горящий факел гаснет. Перезарядка 2 раунда." } },
+  "dust-whirl": { id: "dust-whirl", name: "Эссенция пыльного вихря", cls: 9, source: "dust-whirl",
+    stats: { dex: 1, str: -1 }, other: ["Скорость +1,5 м"],
+    passive: { name: "Сквозняк", text: "Если в этот ход ты переместился не меньше 3 м, дальнобойные атаки по тебе — с помехой." },
+    active: { name: "Порыв", mana: 3, time: "действие", text: "Линия 4,5 м от тебя, спасбросок Силы Сл 8 + БМ + мод. Лов. Существа Среднего размера и меньше на линии: провал — отброшены на 3 м. Гасит открытое пламя на линии. Перезарядка 2 раунда." } },
+  "magma-hound": { id: "magma-hound", name: "Эссенция магмового пса", cls: 8, source: "magma-hound",
+    stats: { str: 2 }, other: ["Сопротивление урону огнём", "Холод жжёт (урон холодом по тебе +1к6)"],
+    passive: { name: "Жаролюб", text: "Рядом с огнём (костёр, огненная местность, в 3 м от горящего факела) твои атаки получают +1 к попаданию." },
+    active: { name: "Огненный укус", mana: 3, time: "действие", text: "Рукопашная атака: при попадании +1к6 огнём; спасбросок Телосложения Сл 8 + БМ + мод. Тел. Провал — цель горит (1к4 огнём в начале каждого её хода, потушить — действие; промокшая не загорается). Перезарядка 3 раунда." } },
+  "crystalloid": { id: "crystalloid", name: "Эссенция кристаллоида", cls: 8, source: "crystalloid",
+    stats: { con: 2, dex: -1 }, other: ["КД +1"],
+    passive: { name: "Гранёный панцирь", text: "Урон огнём и излучением по тебе меньше на 2: грани рассеивают жар и свет." },
+    active: { name: "Вспышка граней", mana: 3, time: "действие", text: "Все существа в 3 м от тебя, спасбросок Телосложения Сл 8 + БМ + мод. Тел. Провал — ослеплены до конца своего следующего хода. Перезарядка 3 раунда." } },
+  "lake-spirit": { id: "lake-spirit", name: "Эссенция озёрного духа", cls: 8, source: "lake-spirit",
+    stats: { wis: 2, con: -1 }, other: ["Скорость плавания = скорости"],
+    passive: { name: "Ледяное касание", text: "Раз в ход твоя рукопашная атака наносит урон холодом вместо своего типа; цель, получившая этот урон, теряет 3 м скорости до конца своего хода." },
+    active: { name: "Ледяная хватка", mana: 3, time: "действие", text: "Одно существо в 9 м, спасбросок Силы Сл 8 + БМ + мод. Мдр (промокшая — с помехой). Провал — 1к6 холодом и цель вмёрзла: обездвижена до конца своего следующего хода. Успех — половина урона. Перезарядка 3 раунда." } },
+  "magma-golem": { id: "magma-golem", name: "Эссенция магмового голема", cls: 7, source: "magma-golem",
+    stats: { str: 2, con: 2, dex: -1 }, other: ["Сопротивление урону огнём", "Холод сковывает (урон холодом по тебе снижает скорость на 3 м до конца твоего хода)"],
+    passive: { name: "Лавовая кровь", text: "Когда тебя ранят рубящим или колющим оружием в ближнем бою, атакующий получает 1к4 огнём (брызги лавы)." },
+    active: { name: "Извержение", mana: 5, time: "действие", text: "Все существа в 3 м от тебя, спасбросок Ловкости Сл 8 + БМ + мод. Тел. Провал — 3к6 огнём и цель горит (1к4 огнём в начале каждого её хода, потушить — действие). Успех — половина урона, не горит. Перезарядка 4 раунда." } },
+  "deep-serpent": { id: "deep-serpent", name: "Эссенция глубинного змея", cls: 7, source: "deep-serpent",
+    stats: { str: 2, dex: 2, int: -1 }, other: ["Скорость плавания = скорости", "Тяжёлый на суше (вне воды скорость −3 м)"],
+    passive: { name: "Скользящий удар", text: "Раз в ход, когда ты попадаешь атакой оружием, можешь задеть ещё одного врага рядом с основной целью: он получает половину урона этой атаки." },
+    active: { name: "Свернуться для броска", mana: 3, time: "бонусное действие", text: "Сжимаешься кольцами. Пока ты свёрнут, твоя скорость вдвое меньше. Следующая атака оружием получает +2 к попаданию и +1к8 урона, а «Скользящий удар» с неё наносит полный урон. Перезарядка 2 раунда." } },
+  "crystal-colossus": { id: "crystal-colossus", name: "Эссенция кристального колосса", cls: 7, source: "crystal-colossus",
+    stats: { con: 2, str: 2, dex: -2 }, other: ["КД +1", "Скорость −1,5 м"],
+    passive: { name: "Резонанс", text: "Союзники в 9 м от тебя получают +1 к КД — кристаллы откликаются на твой гул." },
+    active: { name: "Кристальная тюрьма", mana: 3, time: "действие", text: "Одно существо в 9 м, спасбросок Ловкости Сл 8 + БМ + мод. Тел. Провал — цель заключена в кристалл: обездвижена, не может атаковать, атаки по ней с помехой. Кристалл разбивается от 10 урона (дробящий — двойной) или в конце следующего хода цели. Успех — скорость цели вдвое меньше до конца её хода. Перезарядка 4 раунда." } },
+  "storm-spirit": { id: "storm-spirit", name: "Эссенция духа бури", cls: 7, source: "storm-spirit",
+    stats: { dex: 2, wis: 2, con: -1, str: -1 }, other: [],
+    passive: { name: "Грозовой заряд", text: "Когда тебя ранят рукопашной атакой, атакующий получает 1к4 молнией (промокший — ещё +1к4)." },
+    active: { name: "Цепная молния", mana: 4, time: "действие", text: "Одно существо в 18 м, затем до 2 других в 3 м от него. Спасбросок Ловкости Сл 8 + БМ + мод. Мдр (промокшие — с помехой). Первая цель: провал — 2к8 молнией, успех — половина. Остальные: провал — 1к8, успех — ничего. Перезарядка 4 раунда." } },
+  "rift-heart": { id: "rift-heart", name: "Эссенция Сердца разлома", cls: 7, source: "rift-heart",
+    stats: { cha: 2, wis: 2, con: -2, str: -1 }, other: ["Сопротивление урону огнём", "Сопротивление урону холодом", "Сопротивление урону молнией", "Нестабильность (в начале каждого боя уязвимость к одной из стихий: огонь, холод, молния или гром; сопротивление к ней не действует)", "Хрупкий кристалл (дробящий урон по тебе +1к6)"],
+    passive: { name: "Проводник стихий", text: "Твои атаки оружием могут наносить урон огнём, холодом, молнией или громом вместо своего типа (выбираешь при каждой атаке). Раз в ход, нанося урон стихией, накладываешь её состояние: огонь — цель горит, холод — скорость цели −3 м до конца её хода, молния — у цели нет реакций до начала её хода, гром — цель отброшена на 1,5 м. Холод и молния по промокшим — ещё +1к4." },
+    active: { name: "Шторм стихий", mana: 5, time: "действие", text: "Сфера радиусом 3 м в пределах 18 м, спасбросок Ловкости Сл 8 + БМ + мод. Хар. Провал — 2к6 урона выбранной стихией и её эффект (огонь — горит, вода — промок, молния — нет реакций, ветер — отброшен, камень — сбит с ног). Успех — половина урона, без эффекта. Перезарядка 4 раунда." } },
   "grey-shade": { id: "grey-shade", name: "Эссенция серой тени", cls: 9, source: "grey-shade",
     stats: { dex: 1, con: -1 }, other: ["Скрытность +1"],
     passive: { name: "Тень в тени", text: "В тусклом свете, тьме или тумане можешь пытаться спрятаться бонусным действием, даже без укрытия." },
@@ -1532,6 +1573,21 @@ const MONSTERS = [
   ].map(([id, cls, rare, rank, name, group, where]) => ({ id, zone: "undead", rare, weight: 1, name, floor: 2, cls, rank, size: "Нежить", group,
     type: id === "ash-spirit" ? "Нежить, элементаль" : "Нежить", sz: "", areas: ["2 этаж, Могильник белой пыли: " + where], ph: "undead", stub: true,
     ac: "—", hp: "—", speed: "—", cr: "—", abil: null, senses: "", traits: [], loot: `Камень ${cls}-го класса.`, essence: id })),
+  // ===== 2 этаж: Кристальный разлом (элементали, через каменный портал). Статблоки — черновик, campaign/drafts.md.
+  ...[
+    ["drop", 9, false, "normal", "Капля", "Стаи по 3–5 у подземного озера", "подземное озеро"],
+    ["dust-whirl", 9, false, "normal", "Пыльный вихрь", "Ветряные шахты, стаями", "ветряные шахты"],
+    ["magma-hound", 8, false, "normal", "Магмовый пёс", "Стаи по 2–4 в лавовых трещинах", "лавовые трещины"],
+    ["crystalloid", 8, false, "normal", "Кристаллоид", "Кристальный сад, не больше 2 за раз", "кристальный сад"],
+    ["lake-spirit", 8, false, "normal", "Озёрный дух", "Подземное озеро, не больше 2 за раз", "подземное озеро"],
+    ["magma-golem", 7, false, "normal", "Магмовый голем", "Лавовые трещины, хранит осколок огня", "лавовые трещины"],
+    ["deep-serpent", 7, false, "normal", "Глубинный змей", "Подземное озеро, хранит осколок воды", "подземное озеро"],
+    ["crystal-colossus", 7, false, "normal", "Кристальный колосс", "Кристальный сад и алтарь камня, хранит осколок камня", "кристальный сад"],
+    ["storm-spirit", 7, false, "normal", "Дух бури", "Ветряные шахты, хранит осколок воздуха", "ветряные шахты"],
+    ["rift-heart", 7, false, "special", "Сердце разлома", "Особый: центр сада, когда горят все четыре алтаря", "центр кристального сада"],
+  ].map(([id, cls, rare, rank, name, group, where]) => ({ id, zone: "stone", rare, weight: 1, name, floor: 2, cls, rank, size: "Элементаль", group,
+    type: "Элементаль", sz: "", areas: ["2 этаж, Кристальный разлом: " + where], ph: "elemental", stub: true,
+    ac: "—", hp: "—", speed: "—", cr: "—", abil: null, senses: "", traits: [], loot: `Камень ${cls}-го класса.`, essence: id })),
   { id: "stone-guardian", zone: "stone", rare: false, weight: 1, name: "Каменный сторож", floor: 1, cls: 8, rank: "normal", size: "Средний элементаль", group: "7-й день, у каменного портала, в одиночку",
     type: "Элементаль", sz: "средний", areas: ["1 этаж: зона элементов, у портала"],
     ac: "16", hp: "30 (4к8+12)", speed: "6 м", cr: "1", abil: [16, 8, 16, 5, 10, 5],
@@ -1636,6 +1692,29 @@ Object.assign(MON_STATS2, {
   "faceless-ringer": { size: "Большой гуманоид (нежить)", sz: "большой", ac: "15 (туман и ржавые цепи)", hp: "58 (9к10+9)", speed: "9 м", cr: "3", abil: [16, 12, 8, 10, 12, 4], senses: "Восприятие +4. Тёмное зрение 18 м.",
     traits: [["У колокола", "Стоит у колокола на вершине и звонит, пока жив.", "behavior"], ["Без лица", "Лица нет: взгляд не ловит, голоса не слышно.", "body"], ["Звон", "Звон колокола сбивает с ног и пугает.", "behavior"], ["Две атаки", "За ход цепь и язык колокола.", "attacks"], ["Цепь", "+6 к попаданию, досягаемость 3 м, 1к10+3 рубящего.", "attacks"], ["Язык колокола", "+6 к попаданию, 2к6+3 дробящего.", "attacks"]], statDraft: true },
 });
+// Черновики статблоков Кристального разлома (campaign/drafts.md → «Кристальный разлом: статблоки и встречи»)
+Object.assign(MON_STATS2, {
+  "drop": { size: "Крошечный элементаль", sz: "крошечный", ac: "9 (текучее тело)", hp: "7 (2к6)", speed: "6 м, плавание 6 м", cr: "1/8", abil: [7, 13, 13, 3, 9, 3], senses: "Тёмное зрение 18 м.",
+    traits: [["Растекается", "Ползёт к влажным клеткам и гасит огонь вокруг; раненая отходит и возвращается.", "behavior"], ["Стая", "Нападает группой по 3–5 на одну цель.", "behavior"], ["Брызги", "+3 к попаданию, 1к4+1 дробящего.", "attacks"]], statDraft: true },
+  "dust-whirl": { size: "Крошечный элементаль", sz: "крошечный", ac: "10 (вихрь)", hp: "5 (2к4)", speed: "полёт 9 м", cr: "1/8", abil: [4, 15, 10, 3, 10, 3], senses: "",
+    traits: [["Налёт", "Налетает, бьёт и отлетает; кружит вокруг цели, не стоит на месте.", "behavior"], ["Теряется", "В замкнутом проходе теряется.", "behavior"], ["Хлёст", "+4 к попаданию, 1к4+2 дробящего.", "attacks"]], statDraft: true },
+  "magma-hound": { size: "Средний элементаль", sz: "средний", ac: "13 (раскалённая шкура)", hp: "22 (4к8+4)", speed: "10,5 м", cr: "1", abil: [15, 12, 13, 3, 10, 6], senses: "Тёмное зрение 18 м.",
+    traits: [["Стая", "Охотится стаей по 2–4, окружает цель.", "behavior"], ["Тянется к теплу", "Идёт к костру и факелу, обходит воду.", "behavior"], ["Укус", "+5 к попаданию, 1к8+2 колющего.", "attacks"]], statDraft: true },
+  "crystalloid": { size: "Средний элементаль", sz: "средний", ac: "14 (гранёный панцирь)", hp: "30 (4к8+12)", speed: "6 м", cr: "1", abil: [13, 8, 16, 5, 12, 6], senses: "Тёмное зрение 18 м.",
+    traits: [["Под кристалл", "Стоит неподвижно, пока кто-то не подойдёт ближе 3 м: замаскирован под кристалл.", "behavior"], ["Пятится", "Ударив, пятится к другим кристаллам.", "behavior"], ["Хрупкий", "Дробящий урон по нему особенно опасен.", "body"], ["Осколок", "+5 к попаданию, 2к6+1 колющего.", "attacks"]], statDraft: true },
+  "lake-spirit": { size: "Средний элементаль", sz: "средний", ac: "13 (водяное тело)", hp: "27 (5к8+5)", speed: "6 м, плавание 12 м", cr: "1", abil: [12, 14, 13, 8, 12, 10], senses: "Тёмное зрение 18 м.",
+    traits: [["Из воды", "Прячется в воде и выныривает позади; старается утянуть цель к воде.", "behavior"], ["Слабее на суше", "На суше слабее и при ране уходит обратно.", "behavior"], ["Касание", "+4 к попаданию, 1к8+2 холодом.", "attacks"]], statDraft: true },
+  "magma-golem": { size: "Большой элементаль", sz: "большой", ac: "15 (остывшая корка)", hp: "66 (7к10+28)", speed: "6 м", cr: "3", abil: [19, 7, 18, 5, 10, 5], senses: "Тёмное зрение 18 м.",
+    traits: [["Напролом", "Медленный, идёт к самой горячей цели; наливается жаром.", "behavior"], ["Боится воды", "Обходит воду.", "behavior"], ["Кулак", "+6 к попаданию, 2к8+3 дробящего.", "attacks"]], statDraft: true },
+  "deep-serpent": { size: "Большой элементаль (змеевидный)", sz: "большой", ac: "14 (чешуя)", hp: "60 (8к10+16)", speed: "6 м, плавание 12 м", cr: "2", abil: [17, 14, 15, 4, 10, 5], senses: "Тёмное зрение 18 м.",
+    traits: [["Из воды", "Бьёт внезапно из воды, затем сворачивается в кольцо и ждёт, пока цель подойдёт.", "behavior"], ["Тяжёлый на суше", "На суше теряет скорость.", "body"], ["Укус", "+6 к попаданию, 2к6+3 колющего.", "attacks"]], statDraft: true },
+  "crystal-colossus": { size: "Большой элементаль", sz: "большой", ac: "16 (кристальная кожа)", hp: "72 (8к10+28)", speed: "4,5 м", cr: "3", abil: [20, 6, 18, 6, 12, 8], senses: "Тёмное зрение 18 м.",
+    traits: [["Хранитель сада", "Охраняет свой сад и не выходит за него дальше соседнего квадрата.", "behavior"], ["Бьёт у кристаллов", "Бьёт того, кто ближе всего к кристаллам; звенит при ударах, и рядом просыпаются кристаллоиды.", "behavior"], ["Кулак", "+7 к попаданию, 2к8+4 дробящего.", "attacks"]], statDraft: true },
+  "storm-spirit": { size: "Средний элементаль (воздух)", sz: "средний", ac: "15 (вихрь)", hp: "58 (8к8+22)", speed: "полёт 12 м", cr: "2", abil: [12, 18, 16, 8, 12, 10], senses: "Тёмное зрение 18 м.",
+    traits: [["Над полем", "Летает над полем, избегает ближнего боя с тяжёлыми целями, держится выше укрытий.", "behavior"], ["Разряды", "Перед ударом вокруг трещат разряды.", "behavior"], ["Порыв", "+7 к попаданию, 1к8+5 дробящего (ветер).", "attacks"]], statDraft: true },
+  "rift-heart": { size: "Большой элементаль (кристалл)", sz: "большой", ac: "15 (кристалл)", hp: "80 (9к10+31)", speed: "3 м", cr: "4", abil: [16, 8, 14, 12, 14, 18], senses: "Тёмное зрение 18 м.",
+    traits: [["Пять стихий", "В начале своего хода выбирает стихию — огонь, воду, молнию, ветер или камень; до начала следующего хода его удары несут +1к4 урона этой стихии.", "body"], ["Нестабильность", "В начале боя уязвимость к одной стихии (огонь, холод, молния или гром).", "body"], ["Зовёт кристаллоидов", "Почти не двигается, каждый ход мстит тому, кто ударил её последним.", "behavior"], ["Осколочный удар", "+7 к попаданию, 2к8+4 колющего.", "attacks"]], statDraft: true },
+});
 MONSTERS.forEach(m => {
   const x = MON_EXTRA[m.id] || {};
   Object.assign(m, MON_STATS[m.id] || MON_STATS2[m.id] || {});
@@ -1643,6 +1722,7 @@ MONSTERS.forEach(m => {
   if (x.areasAdd) m.areas = [...m.areas, ...x.areasAdd];
   if (x.spawn) m.spawn = x.spawn;
 });
+for (const m of MONSTERS) if (["living-stone", "pixie", "wisp", "green-boulder", "stone-guardian"].includes(m.id)) { m.floors = [1, 2]; if (!m.areas.some(a => /Кристальный разлом/.test(a))) m.areas = [...m.areas, "2 этаж, Кристальный разлом"]; }
 // КД монстров (решение автора): 9 класс — не больше 10, кроме «заточенных под защиту» (живой камень, зелёный валун — 11); 8 класс — не больше 14.
 // Числа в rules.md пока прежние. Применяется ко всем статблокам, в том числе 2 этажа.
 const AC_CAP = { 9: 10, 8: 14 }, AC_SET = { "living-stone": 11, "green-boulder": 11 };
@@ -2345,7 +2425,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 24;
+const BATTLE_REV = 25;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined) st.tactical = true; return st; }
@@ -3145,7 +3225,7 @@ const FLOOR2 = {
       if (x <= 2 && y <= 2) return { name: "Логово воров", lair: "thieves", cap: 3, std: x <= 1 && y <= 1 ? [["goblin-thief", 3], ["goblin-assassin", 1]] : [["goblin-assassin", 1]], capOf: { "goblin-thief": 2 } };
       if (x >= 8 && y >= 8) return { name: "Руины", cap: 3, std: [["hobgoblin-shield", 2], ["hobgoblin", 3], ["hobgoblin-thrower", 2]] };
       if (x >= 6 && x <= 9 && y >= 1 && y <= 4) return { name: "Поселение гоблинов", std: [["goblin", 4], ["goblin-sword", 1], ["goblin-spear", 1], ["goblin-archer", 1]], shaman: .35,
-        combos: [{ p: .12, day: 5, list: () => kingEscort() }, { p: .12, list: ["goblin-elder", "hobgoblin", "hobgoblin-driver"] }, { p: .15, list: ["goblin-trapper", "goblin", "goblin"] }, { p: .15, day: 6, list: () => hobTrio() }] };
+        combos: [{ p: .12, day: 5, list: () => kingEscort(), ids: ["goblin-king", "goblin-elder", "hobgoblin", "hobgoblin-brute", "hobgoblin-thrower", "hobgoblin-driver", "hobgoblin-shield", "goblin", "goblin-sword", "goblin-spear", "goblin-archer", "goblin-shaman"] }, { p: .12, list: ["goblin-elder", "hobgoblin", "hobgoblin-driver"] }, { p: .15, list: ["goblin-trapper", "goblin", "goblin"] }, { p: .15, day: 6, list: () => hobTrio() }] };
       return { name: "Поле и кромка леса", std: [["goblin", 4], ["goblin-sword", 1], ["goblin-spear", 1], ["goblin-archer", 1]], shaman: .3,
         combos: [{ p: .08, list: ["goblin-trapper", "goblin"] }, { p: .2, day: 8, list: () => hobTrio() }] };
     } },
@@ -3169,8 +3249,24 @@ const FLOOR2 = {
       return { name: "Курганы", std: [["zombie", 4], ["skeleton", 2], ["ghoul", 1], ["dust-crawler", 2], ["bone-hound", 2], ["gravedigger", 1]],
         combos: [{ p: .1, day: 6, list: ["plague-fat", "zombie", "zombie"] }] };
     } },
+  // Кристальный разлом (решение автора, черновик в campaign/drafts.md): пять мест; алтари стихий — особые места (стражи с осколками).
+  stone: { n: 2, name: "Кристальный разлом", zone: "stone", portalKind: "stone", dark: [[0, 0]],
+    placeAt(x, y) {
+      const st = state.run && state.run.sp && state.run.sp.v === "stone" ? state.run.sp.stone : null, k = tkey(x, y);
+      const guarded = (el, name, guard, std, extra = {}) => ({ name, altar: el, ...(st && st.shard[el] ? { std } : { special: [guard] }), ...extra });          // страж держит осколок, пока отряд его не взял
+      const king = (boss, helpers, ids) => ({ p: .12, day: 5, ids, list: () => [boss, ...(rnd(2) ? helpers : [])] });
+      if (x === 0 && y === 0) return guarded("air", "Ветряные шахты (алтарь воздуха)", "storm-spirit", [["dust-whirl", 5], ["wisp", 2]], { mines: true });
+      if (x <= 2 && y <= 2) return { name: "Ветряные шахты", mines: true, std: [["dust-whirl", 5], ["wisp", 2]], combos: [king("storm-spirit", ["dust-whirl", "dust-whirl"], ["storm-spirit", "dust-whirl"])] };
+      if (x === 10 && y === 5) return guarded("water", "Подземное озеро (алтарь воды)", "deep-serpent", [["drop", 5], ["lake-spirit", 2]], { lake: true, capOf: { "lake-spirit": 2 } });
+      if (x >= 8 && y >= 3 && y <= 7) return { name: "Подземное озеро", lake: true, std: [["drop", 5], ["lake-spirit", 2]], capOf: { "lake-spirit": 2 }, combos: [king("deep-serpent", ["drop", "drop"], ["deep-serpent", "drop"])] };
+      if (x === 10 && y === 10) return guarded("fire", "Лавовые трещины (алтарь огня)", "magma-golem", [["wisp", 3], ["magma-hound", 3]], { lava: true });
+      if (x >= 8 && y >= 8) return { name: "Лавовые трещины", lava: true, std: [["wisp", 3], ["magma-hound", 3]], capOf: { "magma-hound": 3 }, combos: [king("magma-golem", ["magma-hound"], ["magma-golem", "magma-hound"])] };
+      if (x >= 4 && x <= 6 && y >= 4 && y <= 6) return { name: "Кристальный сад", garden: true, std: [["pixie", 4], ["crystalloid", 2], ["living-stone", 1]], capOf: { crystalloid: 2 }, combos: [king("crystal-colossus", ["crystalloid"], ["crystal-colossus", "crystalloid"])] };
+      if (st && k === st.earth) return guarded("earth", "Каменные штреки (алтарь камня)", "crystal-colossus", [["living-stone", 3], ["green-boulder", 2], ["pixie", 1], ["wisp", 1]]);
+      return { name: "Каменные штреки", std: [["living-stone", 3], ["green-boulder", 2], ["pixie", 1], ["wisp", 1], ["stone-guardian", 1]], capOf: { "stone-guardian": 1 } };
+    } },
 };
-const FLOOR_OF_PORTAL = { goblin: "goblin", wolf: "beast", zombie: "undead", stone: null };
+const FLOOR_OF_PORTAL = { goblin: "goblin", wolf: "beast", zombie: "undead", stone: "stone" };
 // Свита короля гоблинов (решение автора): всего 5 — король, старый шаман, хобгоблин (кубик: 1–4 — один обычный, 5 — два, 6 — один с классом) и необычные гоблины 9 класса случайных видов (не ассасины).
 const kingEscort = () => {
   const d = 1 + rnd(6), cls = ["hobgoblin-brute", "hobgoblin-thrower", "hobgoblin-driver", "hobgoblin-shield"], pool = ["goblin", "goblin-sword", "goblin-spear", "goblin-archer", "goblin-shaman"];
@@ -3300,7 +3396,10 @@ const SP2 = {
   undead: { plain: "Курганы", tiers: "crypt", treasures: [
     { id: "u-kurgan", name: "курган костяного рыцаря", at: "7,3", ess: "bone-knight" }, { id: "u-crypt", name: "дно склепа", tier: "crypt2", ess: "corpse-eater" },
     { id: "u-furnace", name: "Пепельная печь", at: "10,10", ess: "ash-wraith" }, { id: "u-chapel", name: "вершина часовни", tier: "chapel4", ess: "faceless-ringer" }] },
+  stone: { plain: "Каменные штреки", treasures: [{ id: "s-heart", name: "Сердце разлома", at: "5,5", ess: "rift-heart", gate: sp => !!(sp.stone && sp.stone.heartDone) }] },
 };
+const SP_SHARD = { "magma-golem": "fire", "deep-serpent": "water", "storm-spirit": "air", "crystal-colossus": "earth" };          // монстр 7 класса → осколок его стихии
+const SP_ALTAR_NAME = { fire: "огня", water: "воды", air: "воздуха", earth: "камня" };
 // Ярусы: dir — куда ведёт следующий ярус; rooms — состав (mix: [id, вес], n: [мин, макс] — сколько монстров; list — фиксированный).
 const SP_TIERS = {
   cave: { name: "Нижние ярусы пещеры", exit: "в пещеру", dir: "down", rooms: [{ mix: [["bat", 3], ["burrower", 2]], n: [3, 5] }, { list: ["dark-bear"] }, { list: ["giant-mole"] }] },
@@ -3329,6 +3428,7 @@ function spInit(v) {
     for (let y = 4; y <= 6; y++) for (let x = 8; x <= 10; x++) sp.web[tkey(x, y)] = true;          // паутина — на всех тайлах Паучьих крон
   }
   if (v === "undead") { sp.chapel = { at, entered: false, chime: 0 }; sp.unq = {}; }
+  if (v === "stone") sp.stone = { earth: at, shard: { fire: false, water: false, air: false, earth: false }, lit: { fire: false, water: false, air: false, earth: false }, heartDone: false, inMines: false };
   return sp;
 }
 const spSide = (x, y) => { const p = state.run.pos, dx = x - p.x, dy = y - p.y; return Math.abs(dx) >= Math.abs(dy) ? (dx > 0 ? "востока" : "запада") : (dy > 0 ? "юга" : "севера"); };
@@ -3421,6 +3521,18 @@ function spAfter() {
     if (tkey(r.pos.x, r.pos.y) === sp.chapel.at) { spNotice("Туманная часовня", "Из тумана поднимается маяк — часовня-колокольня. В неё можно войти."); }
     else { spNotice("Звон колокола", `Вы слышите звон ${hintDir(x, y)}.`); }
   }
+  if (sp.stone && !r.tier) {
+    const st = sp.stone, k = tkey(r.pos.x, r.pos.y), mines = r.pos.x <= 2 && r.pos.y <= 2;
+    if (mines && !st.inMines && r.light) {          // «Сквозняк»: при входе в Ветряные шахты горящий факел гаснет на к6 = 1
+      const d = 1 + rnd(6); logRun(`Сквозняк шахт: к6 = ${d} (факел гаснет на 1).`);
+      if (d === 1) { r.light = false; spNotice("Сквозняк", "Порыв ветра из шахты гасит факел."); }
+    }
+    st.inMines = mines;
+    if (k === "5,5" && Object.values(st.lit).every(Boolean) && !st.heartDone && !dgUi.enc) {
+      r.pending = null; r.queue = [];
+      startSpecial("Сердце разлома", { zone: "stone", place: "Кристальный сад", list: ["rift-heart", ...Array.from({ length: 1 + rnd(2) }, () => "crystalloid")] }, { sp: { k: "heart" }, key: k });
+    }
+  }
   if (sp.nest && sp.nest.st === "cd" && !r.tier) {
     const j = spWindow(), M = { 2: "Вы слышите далёкие крики.", 4: "Дождь чёрных перьев кружит вокруг.", 5: "Небо смотрит на вас.", 6: "Хор криков покрывает всё вокруг." };
     if (M[j]) spNotice("Гнездо чернокрыла", M[j]);
@@ -3453,6 +3565,11 @@ function spFightDone(e, killedIds) {
   } else if (k === "tier") { if (ok) sp.tierDone[e.sp.key] = true; }
   else if (k === "queen") { sp.queen = e.outcome === "win" ? "dead" : "guard"; if (e.outcome === "win") logRun("Паучиха-матка убита."); }
   else if (k === "lair") { if (ok) { sp.lairDone = true; sp.guard["b-spider"] = true; } }
+  else if (k === "heart") { if (e.outcome === "win" && sp.stone) { sp.stone.heartDone = true; logRun("Сердце разлома разбито."); } }
+  if (sp.stone && !r.tier) for (const id of killedIds) {          // осколок стихии хранит монстр 7 класса своей стихии
+    const el = SP_SHARD[id];
+    if (el && !sp.stone.shard[el]) { sp.stone.shard[el] = true; logRun(`Осколок ${SP_ALTAR_NAME[el]} добыт.`); setTimeout(() => spNotice("Осколок стихии", `Отряд забрал осколок ${SP_ALTAR_NAME[el]}. Его можно принести на алтарь.`), 150); }
+  }
   if (!r.tier) {
     const key = e.key;
     for (const t of SP2[sp.v].treasures) if (t.at === key && ok) sp.guard[t.id] = true;
@@ -3465,7 +3582,7 @@ function spFightDone(e, killedIds) {
 function spTreasureHere() {
   const r = state.run, sp = spOf(); if (!sp) return null;
   const k = tkey(r.pos.x, r.pos.y), tid = r.tier ? r.tier.k + r.tier.n : null;
-  return SP2[sp.v].treasures.find(t => !sp.got[t.id] && !t.drop && (tid ? t.tier === tid : t.at === k)) || null;
+  return SP2[sp.v].treasures.find(t => !sp.got[t.id] && !t.drop && (!t.gate || t.gate(sp)) && (tid ? t.tier === tid : t.at === k)) || null;
 }
 // Сокровище находят бросок к20 (решение автора): 1–8 камни (10–15 штук, чем выше бросок, тем больше и тем больше среди них 8 класса), 9–13 расходники (чем выше, тем больше),
 // 14–16 броня, 17 оружие (моё допущение: числа 17 в вашей таблице не было), 18–19 сокровище 9 класса, 20 сокровище 8 класса; какое именно — случайно из списка.
@@ -3511,6 +3628,7 @@ function spButtons() {
   } else {
     if (S.tiers && k === "0,0") out.push({ id: "tier-in:" + S.tiers, label: "Спуститься", sub: SP_TIERS[S.tiers].name });
     if (sp.chapel && sp.chapel.at === k && (sp.chapel.entered || r.act === 3)) out.push({ id: "tier-in:chapel", label: "Войти в часовню", sub: "маяк из тумана" });
+    if (sp.stone) { const el = Object.entries({ air: "0,0", water: "10,5", fire: "10,10", earth: sp.stone.earth }).find(([, at]) => at === k); if (el && sp.stone.shard[el[0]] && !sp.stone.lit[el[0]]) out.push({ id: "altar:" + el[0], label: "Зажечь алтарь", sub: `осколок ${SP_ALTAR_NAME[el[0]]}` }); }
     if (sp.web && sp.web[k]) out.push({ id: "burn", label: "Поджечь паутину", sub: r.light ? "горящий факел" : "нужен горящий факел", disabled: !r.light });
     if (sp.unq && sp.unq[k]) out.push({ id: "cremate", label: "Сжечь останки", sub: partyTorches() ? "действие и факел" : "нужен факел", disabled: !partyTorches() });
   }
@@ -3538,6 +3656,10 @@ function spDo(id) {
   else if (id === "burn") {
     sp.web[k] = false; sp.burned++; logRun(`Паутина горит (${sp.burned} из 3).`);
     if (sp.burned >= 3 && sp.queen === "none") { sp.queen = "chase"; sp.chaseT0 = absAct(r); logRun("Из глубины крон доносится шипение: паучиха проснулась и идёт по следу."); setTimeout(() => toast("Паучиха проснулась"), 150); }
+  } else if (id.startsWith("altar:")) {
+    const el = id.slice(6), st = sp.stone; st.lit[el] = true; const n = Object.values(st.lit).filter(Boolean).length;
+    logRun(`Алтарь ${SP_ALTAR_NAME[el]} горит (${n} из 4).`);
+    spNotice("Алтарь пробуждается", `Алтарь ${SP_ALTAR_NAME[el]} вспыхивает. Кристалл в центре разлома вспыхивает: горит алтарей ${n} из 4, разлом просыпается (встречи чаще).${n >= 4 ? " Центр сада ждёт." : ""}`);
   } else if (id === "cremate") { burnTorch(); delete sp.unq[k]; logRun("Останки сожжены: мёртвые не встанут."); }
   else if (id === "take" || id === "steal") {
     const t = spTreasureHere(); if (!t) return;
@@ -3693,7 +3815,7 @@ function tilePool(x, y) {
     const pl = z.place || {}, ids = new Set();
     for (const [id] of pl.std || []) ids.add(id);
     for (const id of pl.special || []) ids.add(id);
-    for (const c of pl.combos || []) (typeof c.list === "function" ? ["hobgoblin", "hobgoblin-brute", "hobgoblin-thrower", "hobgoblin-driver"] : c.list).forEach(id => ids.add(id));
+    for (const c of pl.combos || []) (c.ids || (typeof c.list === "function" ? ["hobgoblin", "hobgoblin-brute", "hobgoblin-thrower", "hobgoblin-driver"] : c.list)).forEach(id => ids.add(id));
     if (pl.shaman) ids.add("goblin-shaman");
     return MONSTERS.filter(m => ids.has(m.id) && !m.draft);
   }
@@ -3789,7 +3911,9 @@ function doSearch(kind) {
       if (digger.e.uses <= 0) { digger.c.bag.splice(digger.i, 1); lines.push(`${GEAR[digger.e.id].name} (${digger.c.name}) сломалась.`); }
     }
   }
-  const row = SEARCH_TABLE[searchKey(kind, sp)].find(([max]) => sr.pick <= max);
+  const bonus = kind === "explore" && stoneAt("garden") ? 2 : 0;          // «Резонанс» Кристального сада: +2 к броску Исследования
+  const row = SEARCH_TABLE[searchKey(kind, sp)].find(([max]) => Math.min(20, sr.pick + bonus) <= max);
+  if (bonus) lines.push("Резонанс кристаллов: +2 к броску.");
   searchReward(row, sr, digger, lines);
   if (kind === "explore") {                              // тайники с компасом и картой (как раньше)
     const k = tkey(r.pos.x, r.pos.y), found = Object.entries(r.caches || {}).find(([, c]) => c === k);
@@ -3832,7 +3956,7 @@ function searchOverlay() {
 }
 // Порталы. На 1 этаже портал в углу ведёт на 2 этаж (вариант по порталу). На 2 этаже вход возвращает на 1 этаж (пока не истёк его срок), выход — на 3 этаж (ещё не готов).
 // Дни общие для всех этажей: сколько просидели, столько уже и на следующем. Срок 1 этажа — 7 дней, 2 этажа — 14.
-const FLOOR_NAME = { goblin: "Лес гоблинов", beast: "Волчья чаща", undead: "Могильник белой пыли" };
+const FLOOR_NAME = { goblin: "Лес гоблинов", beast: "Волчья чаща", undead: "Могильник белой пыли", stone: "Кристальный разлом" };
 function portalInfo() {
   const r = state.run, k = FL().portals[tkey(r.pos.x, r.pos.y)];
   if (r.floor === 1) {
@@ -3940,12 +4064,15 @@ function finishFight() {
 // Шанс по дням (3–7 %), без караула вдвое, +1 % за уровень Усталости караульного, во тьме +6 % (черновик).
 // Ночная группа маленькая (до 2); полная — только на квадрате, зачищенном больше 2 дней назад. Безопасные зоны (порталы, центр 1 этажа) — никогда.
 const NIGHT_P = [0, 0, 0, 0.03, 0.04, 0.05, 0.06, 0.06, 0.06, 0.06, 0.07, 0.07, 0.07, 0.07];          // очень редко (решение автора)
+const stoneAt = kind => { const r = state.run; if (!r || r.floor !== 2 || r.variant !== "stone") return false; const pl = FL().variant.placeAt(r.pos.x, r.pos.y); return !!(pl && pl[kind]); };
+// Разлом просыпается: каждый зажжённый алтарь повышает шанс ночных встреч на 3 п. п. (моё допущение, drafts.md).
+const spLit = () => { const sp = state.run && state.run.floor === 2 && state.run.sp && state.run.sp.stone; return sp ? Object.values(sp.lit).filter(Boolean).length : 0; };
 function rollEncounter(cause, guardFat = 0) {
   const r = state.run, dark = inDarkness(), guarded = cause === "rest";
   if (zoneAt(r.pos.x, r.pos.y).kind === "safe" || r.tier) return;
   const p0 = NIGHT_P[Math.min(NIGHT_P.length, Math.max(1, r.day)) - 1];
   if (!p0 || (guarded && guardFat <= 0)) return;
-  const base = Math.min(0.6, (guarded ? p0 + 0.01 * guardFat : p0 * 2) + (dark ? 0.06 : 0)), pct = 1 + rnd(100), lim = Math.round(base * 100);
+  const base = Math.min(0.6, (guarded ? p0 + 0.01 * guardFat : p0 * 2) + (dark ? 0.06 : 0) + 0.03 * spLit()), pct = 1 + rnd(100), lim = Math.round(base * 100);
   if (pct > lim) return;
   logRun(`Ночью кто-то приближается (шанс ${lim} %, выпало ${pct}). Мастер, брось к20.`);
   askRoll(cause, true);
@@ -3995,9 +4122,9 @@ function chaliceEmpty(c) { const e = chalicesOf(c, "potion")[0]; if (e) { delete
 function chaliceTick(n) {                                                                            // идёт и в лабиринте (действие), и в городе (действие города)
   for (const c of state.party || []) for (const e of chalicesOf(c, "water")) { e.wait = (e.wait || 0) - n; if (e.wait <= 0) { e.fill = "potion"; delete e.wait; } }
 }
-const isWaterTile = (x, y) => { const r = state.run; if (!r || r.floor !== 2) return false; if ((r.ponds || []).includes(tkey(x, y))) return true; const pl = FL().variant.placeAt(x, y); return !!(pl && /Топь/.test(pl.name)); };
+const isWaterTile = (x, y) => { const r = state.run; if (!r || r.floor !== 2) return false; if ((r.ponds || []).includes(tkey(x, y))) return true; const pl = FL().variant.placeAt(x, y); return !!(pl && /Топь|озеро/.test(pl.name)); };
 // Вода в бою: на тайле пруда лужи в бою заметно больше, в топи — немного больше (допущение).
-const waterLevel = (x, y) => { const r = state.run; if (!r || r.floor !== 2) return 0; if ((r.ponds || []).includes(tkey(x, y))) return 2; const pl = FL().variant.placeAt(x, y); return pl && /Топь/.test(pl.name) ? 1 : 0; };
+const waterLevel = (x, y) => { const r = state.run; if (!r || r.floor !== 2) return 0; if ((r.ponds || []).includes(tkey(x, y))) return 2; const pl = FL().variant.placeAt(x, y); return pl && /Топь|озеро/.test(pl.name) ? 1 : 0; };
 const canFillWater = () => !state.run || isWaterTile(state.run.pos.x, state.run.pos.y);
 // Два пруда на обычных тайлах Волчьей чащи и Леса гоблинов (допущение): на ход событий не влияют, в бою больше воды, у них можно набрать воду.
 function pickPonds(variant, startKey) {
@@ -4696,7 +4823,8 @@ function act(kind) {
       c.mp = maxMp(c); c.flags = {};                       // длинный отдых: мана и дневные способности
       c.insp = 1;                                          // переброс возвращает только сон
       if (c.hp > before) healed.push(`${c.name} +${c.hp - before}`);
-      st.fat = Math.max(0, st.fat - (st.starve >= 3 ? 1 : 2)); st.awake = 0;
+      if (!stoneAt("lava")) st.fat = Math.max(0, st.fat - (st.starve >= 3 ? 1 : 2));          // «Жар» лавовых трещин: отдых не снимает Усталость
+      st.awake = 0;
     }
     if (rs.hearth && !r.hearthUsed && treasure("hearth").owned) {
       r.hearthUsed = true;
@@ -4725,7 +4853,7 @@ function act(kind) {
   }
   // Факел горит 4 действия, пока зажжён.
   if (r.light) {
-    r.torchLeft = (r.torchLeft || 0) - 1;
+    r.torchLeft = (r.torchLeft || 0) - 1 - (stoneAt("lake") ? 1 : 0);          // «Сырость» озера: факел сгорает вдвое быстрее
     if (r.torchLeft <= 0) { r.light = false; r.torchLeft = 0; logRun("Факел догорел."); }
   }
   dgUi.phase = "menu"; dgUi.path = []; dgUi.rest = null; dgUi.target = null; dgUi.sr = null;

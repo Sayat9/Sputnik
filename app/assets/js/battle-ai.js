@@ -226,6 +226,7 @@
     // Крот гасит факел бонусным действием (решение автора); автобой героев зажигает его снова не более двух раз за бой
     if (u.side === "mon" && u.pass.includes("giant-mole") && S.torch && B.timeOK(u, "bonus")) { B.spendTime(u, "bonus"); S.torch = false; S.torchLeft = 0; S.torchFixed = false; log(`${u.name} гасит свет: тьма.`, "bad"); ui() && ui().fxText(u, "тьма", "bad"); ui() && ui().refresh(); await sleep(300); }
     if (u.side === "hero" && u.hero && S.pitDark && !S.torch && (S.torchRelit || 0) < 2 && B.timeOK(u, "action") && (countGear(u.hero, "torch") > 0 || S.torchLeft > 0) && B.lightTorch) { S.torchRelit = (S.torchRelit || 0) + 1; await B.lightTorch(u); }
+    if (has(u, "burning") && B.timeOK(u, "action") && !(bestAction(u, pr))) { B.spendTime(u, "action"); removeStatus(u, "burning"); log(`${u.name} тушит огонь.`, "good"); }
     if (has(u, "mired") && B.timeOK(u, "action") && !(bestAction(u, pr))) { B.spendTime(u, "action"); removeStatus(u, "mired"); u.bogStill = 0; u.t.move = speedOf(u); log(`${u.name} выбирается из топи.`, "good"); }          // автобой: вылезает, если некого бить
     // сдавленный/опутанный: пробуем вырваться, если некого бить
     const stuck = has(u, "grappled") || has(u, "trapped") || has(u, "restrained") || has(u, "pinned") || has(u, "buried");
