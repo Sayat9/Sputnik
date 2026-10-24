@@ -1,5 +1,5 @@
 {
- "version": 1792880437,
+ "version": 1792880673,
  "files": [
   "assets/css/battle.css",
   "assets/css/town.css",
@@ -98,6 +98,8 @@
   "assets/monsters/goblin-full.webp",
   "assets/monsters/goblin-king-face.webp",
   "assets/monsters/goblin-king-full.webp",
+  "assets/monsters/goblin-shaman-face.webp",
+  "assets/monsters/goblin-shaman-full.webp",
   "assets/monsters/goblin-spear-face.svg",
   "assets/monsters/goblin-spear-face.webp",
   "assets/monsters/goblin-spear-full.svg",
@@ -146,6 +148,8 @@
   "assets/monsters/stone-guardian-full.webp",
   "assets/monsters/swamp-fang-face.webp",
   "assets/monsters/swamp-fang-full.webp",
+  "assets/monsters/web-spider-face.webp",
+  "assets/monsters/web-spider-full.webp",
   "assets/monsters/whisperer-face.webp",
   "assets/monsters/whisperer-full.webp",
   "assets/monsters/wisp-face.webp",

@@ -1176,7 +1176,7 @@
     if (!(alive(t) || t.down)) return;
     if (el === "fire") ignite(t, src);
     else if (el === "water") makeWet(t);
-    else if (el === "lightning") { if (t.t) t.t.noReact = true; fx(t, "без реакций", "bad"); }
+    else if (el === "lightning") { if (t.t) t.t.noReact = true; addStatus(t, "slowed", { k: 1, when: "end", data: { add: -2 } }); fx(t, "без реакций, медленнее", "bad"); }          // решение автора: молния ещё и замедляет (−3 м)
     else if (el === "wind") await B.push(t, cx, cy, 2);
     else if (el === "earth") { B.knock(t, src); fx(t, "сбит с ног", "bad"); }
   };
@@ -1221,7 +1221,7 @@
     if (!u.unstable) return;
     const dt = ["fire", "cold", "lightning", "thunder"][B.rnd(4)];
     u.resist = u.resist.filter(x => x !== dt); if (!u.vuln.includes(dt)) u.vuln.push(dt); u.unstableDt = dt;
-    log(`${u.name}: нестабильность — уязвимость к урону «${D.DT[dt] || dt}».`, "skill");
+    log(`${u.name}: нестабильность — уязвимость к урону «${dt === "thunder" ? "ветром" : (D.DT[dt] || dt)}».`, "skill");
   };
 
   B.fillActiveTimes();
