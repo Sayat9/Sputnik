@@ -999,7 +999,7 @@ const SHARE_PER_RUN = 30;
 
 const WEAPONS = [
   { id: "spear", name: "Копьё", group: "melee", kind: "Простое", dmg: "1к6", type: "колющий", weight: 1.5, price: 12,
-    props: ["Метательное (6/18 м)", "Универсальное (1к8)"],
+    props: ["Метательное (6/18 м)", "Универсальное (1к8)", "Досягаемость 3 м (на 2-й клетке с помехой)"],
     note: "Самое дешёвое железо в оружейной. Древко ясеневое из Гномьего Древа, наконечник кованый." },
   { id: "mace", name: "Булава", group: "melee", kind: "Простое", dmg: "1к6", type: "дробящий", weight: 2, price: 14,
     props: [],
@@ -1030,8 +1030,8 @@ const WEAPONS = [
     props: [],
     note: "Железные наконечники. В бою часть стрел ломается; целые подбираются после боя, если отряд не бежал." },
   { id: "shield", name: "Щит", group: "shield", kind: "Щит", dmg: "+2 КД", type: "", weight: 3, price: 10,
-    props: ["Занимает руку"],
-    note: "Дубовые доски с железной оковкой и умбоном. Надеть или снять — действие." },
+    props: ["Занимает руку", "−2 к Скрытности"],
+    note: "Дубовые доски с железной оковкой и умбоном: гремит при каждом шаге (−2 к Скрытности). Надеть или снять — действие." },
   // Ростовой щит держат двумя руками: +3 КД вместо оружия, бить можно только им самим.
   { id: "tower-shield", name: "Ростовой щит", group: "melee", kind: "Щит", dmg: "1к6", type: "дробящий", weight: 7.5, price: 30, ac: 3, str: 13,
     props: ["+3 КД", "Двуручное", "Тяжёлое", "Сила 13", "Помеха Скрытности"],
@@ -2226,6 +2226,7 @@ function derived(t, c = char) {
   if (armor && armor.str && t.str.total < armor.str) warnings.push(`Сила ${t.str.total} ниже ${armor.str}, нужной для доспеха «${armor.name}»: скорость −3 м.`);
   if (armor && armor.stealth) warnings.push(`«${armor.name}»: помеха к Скрытности.`);
   if (tower) { warnings.push("Ростовой щит: помеха к Скрытности."); if (t.str.total < 13) warnings.push(`Сила ${t.str.total} ниже 13, нужной для ростового щита: скорость −3 м.`); }
+  if (off && off.id === "shield" && !twoHanded(c)) warnings.push("Щит гремит: −2 к Скрытности.");
   if (c.giantGrip && c.race === "barbarian" && isTwoHandedWeapon(mainItem(c))) warnings.push(`«${mainItem(c).name}» в одной руке (Великан): −2 к атаке.`);
   if (ld.level !== "ok") warnings.push(LOAD_TEXT[ld.level] + ".");
   const pb = 0;                                                 // бонус мастерства убран: ни у кого нет (решение автора)
@@ -2335,7 +2336,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 17;
+const BATTLE_REV = 18;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined) st.tactical = true; return st; }

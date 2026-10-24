@@ -10,16 +10,16 @@
   const key = (x, y) => x + "," + y;
 
   /* ===================== разрушаемые объекты ===================== */
-  // hp, ac; res — типы урона, которых объект «боится» меньше (урон вполовину); drop — шанс выпадения камней (1 этаж / со 2-го: [9-й класс, 8-й класс]).
+  // hp, ac; res — типы урона, которых объект «боится» меньше (урон вполовину); drop — шанс выпадения камня (решение автора: на 1 этаже только 9-го класса, на 2 этаже только 8-го; низкий) (1 этаж / со 2-го: [9-й класс, 8-й класс]).
   D.obj = {
-    rock:     { hp: 20, ac: 12, res: ["slash", "pierce"], drop: [[0.08, 0], [0.12, 0.03]] },
-    crystal:  { hp: 10, ac: 11, res: [], drop: [[0.15, 0], [0.22, 0.06]] },
-    grave:    { hp: 18, ac: 12, res: ["slash", "pierce"], drop: [[0.05, 0], [0.08, 0.02]] },
-    crate:    { hp: 8, ac: 10, res: [], vuln: ["slash"] },
-    tent:     { hp: 8, ac: 9, res: [], vuln: ["slash"] },
-    tree:     { hp: 25, ac: 12, res: ["pierce"], vuln: ["slash"] },
-    palisade: { hp: 20, ac: 10, res: ["pierce"], vuln: ["slash"] },
-    deadfall: { hp: 24, ac: 11, res: ["pierce"], vuln: ["slash"] },
+    rock:     { hp: 20, ac: 12, res: ["slash", "pierce"], drop: [[0.08, 0], [0, 0.05]] },
+    crystal:  { hp: 10, ac: 11, res: [], drop: [[0.15, 0], [0, 0.10]] },
+    grave:    { hp: 18, ac: 12, res: ["slash", "pierce"], drop: [[0.05, 0], [0, 0.04]] },
+    crate:    { hp: 8, ac: 10, res: [], vuln: ["slash"], drop: [[0.03, 0], [0, 0.02]] },
+    tent:     { hp: 8, ac: 9, res: [], vuln: ["slash"], drop: [[0.03, 0], [0, 0.02]] },
+    tree:     { hp: 25, ac: 12, res: ["pierce"], vuln: ["slash"], drop: [[0.02, 0], [0, 0.02]] },
+    palisade: { hp: 20, ac: 10, res: ["pierce"], vuln: ["slash"], drop: [[0.02, 0], [0, 0.015]] },
+    deadfall: { hp: 24, ac: 11, res: ["pierce"], vuln: ["slash"], drop: [[0.02, 0], [0, 0.015]] },
   };
   D.recoil = { maxNat: 3, dmg: [1, 4] };                          // обычное оружие (не молот и не тяжёлое), натуральное 1–3 по камню: отдача в руку
   const NO_DAMAGE = ["poison", "psychic", "necrotic", "radiant"];  // такие эффекты объектам не вредят

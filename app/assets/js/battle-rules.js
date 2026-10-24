@@ -162,6 +162,7 @@
     if (atk.penalty) ctx.mods.push({ l: atk.penaltyLabel || "Штраф", v: atk.penalty });
     if (att.fat >= 3) ctx.mods.push({ l: "Усталость", v: -2 }); else if (att.fat === 2) ctx.mods.push({ l: "Усталость", v: -1 });
     if (has(att, "weakened")) ctx.mods.push({ l: "Ослаблен", v: -1 });
+    if (atk.stretch && d0 > 1) ctx.dis.push("копьё на 2 клетки");                                        // решение автора: копьё достаёт на клетку дальше, но с помехой
     if (o.bonusHit) ctx.mods.push({ l: o.bonusLabel || "Бонус", v: o.bonusHit });
     // состояния атакующего
     if (has(att, "prone")) ctx.dis.push("атакует лёжа");
@@ -348,7 +349,7 @@
     return v;
   }
   async function doCheck(u, skill, o = {}) {
-    const mods = [{ l: SKILL_RU[skill] || skill, v: skillMod(u, skill) }];
+    const mods = [{ l: SKILL_RU[skill] || skill, v: skillMod(u, skill) }, ...(o.mods || [])];
     const adv = [...(o.adv || [])], dis = [...(o.dis || [])];
     if (has(u, "shaken") && SKILL_ABIL[skill] === "dex") { dis.push("оглушён грохотом"); removeStatus(u, "shaken"); }
     const fl = has(u, "fooled"); if (fl && !fl.data.chkUsed && (skill === "perception" || skill === "insight")) { dis.push("обманут"); fl.data.chkUsed = true; }
@@ -370,7 +371,7 @@
     log(`${a.name} (${SKILL_RU[skillA]} ${ra.total}) против ${b.name} (${SKILL_RU[skillB]} ${rb.total}) — ${win ? "успех" : "провал"}.`);
     return { win, a: ra, b: rb };
   }
-  Object.assign(B, { rollDamage, doAttack, doSave, doCheck, contest, skillMod, animKind, seesTarget });
+  Object.assign(B, { rollDamage, doAttack, doSave, doCheck, contest, skillMod, animKind, seesTarget, attackCtx });
 
   /* ===== движение с реакциями и местностью ===== */
   async function offerOpportunity(e, mover) {

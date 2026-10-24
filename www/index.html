@@ -1004,7 +1004,7 @@ const SHARE_PER_RUN = 30;
 
 const WEAPONS = [
   { id: "spear", name: "Копьё", group: "melee", kind: "Простое", dmg: "1к6", type: "колющий", weight: 1.5, price: 12,
-    props: ["Метательное (6/18 м)", "Универсальное (1к8)"],
+    props: ["Метательное (6/18 м)", "Универсальное (1к8)", "Досягаемость 3 м (на 2-й клетке с помехой)"],
     note: "Самое дешёвое железо в оружейной. Древко ясеневое из Гномьего Древа, наконечник кованый." },
   { id: "mace", name: "Булава", group: "melee", kind: "Простое", dmg: "1к6", type: "дробящий", weight: 2, price: 14,
     props: [],
@@ -1035,8 +1035,8 @@ const WEAPONS = [
     props: [],
     note: "Железные наконечники. В бою часть стрел ломается; целые подбираются после боя, если отряд не бежал." },
   { id: "shield", name: "Щит", group: "shield", kind: "Щит", dmg: "+2 КД", type: "", weight: 3, price: 10,
-    props: ["Занимает руку"],
-    note: "Дубовые доски с железной оковкой и умбоном. Надеть или снять — действие." },
+    props: ["Занимает руку", "−2 к Скрытности"],
+    note: "Дубовые доски с железной оковкой и умбоном: гремит при каждом шаге (−2 к Скрытности). Надеть или снять — действие." },
   // Ростовой щит держат двумя руками: +3 КД вместо оружия, бить можно только им самим.
   { id: "tower-shield", name: "Ростовой щит", group: "melee", kind: "Щит", dmg: "1к6", type: "дробящий", weight: 7.5, price: 30, ac: 3, str: 13,
     props: ["+3 КД", "Двуручное", "Тяжёлое", "Сила 13", "Помеха Скрытности"],
@@ -1700,8 +1700,8 @@ const DISTRICTS = [
 
 // Готовые рисованные картинки (webp) заменяют векторные заглушки.
 // Дата сборки для телефона: build.sh вписывает её сюда, в веб-версии строка пустая.
-const APP_BUILD = "24.10.2026 18:08";
-const APP_VERSION = 1792847286;                 // номер сборки, тоже вписывает build.sh
+const APP_BUILD = "24.10.2026 21:48";
+const APP_VERSION = 1792860499;                 // номер сборки, тоже вписывает build.sh
 const UPDATE_URL = "https://raw.githubusercontent.com/Sayat9/Sputnik/main/www/";
 const RASTER = new Set(["items/mace", "items/warhammer", "items/armor-leather", "items/armor-hide", "items/armor-chainmail", "items/steel-dagger", "items/steel-sword", "items/steel-greatsword", "items/steel-shield", "items/steel-tower-shield", "items/shortbow", "items/longbow", "items/rapier", "items/shield", "items/tower-shield", "items/unknown-mushroom", "items/stone-9", "items/stone-8", "items/stone-7", "items/ration", "items/potion", "items/torch", "items/arrows", "items/clothes", "items/shovel", "items/shovel-good", "items/shovel-best", "items/dagger", "items/sword", "items/greatsword", "items/spear", "monsters/goblin-king-face", "monsters/goblin-king-full", "monsters/goblin-bomber-face", "monsters/goblin-bomber-full", "monsters/hobgoblin-shield-face", "monsters/hobgoblin-shield-full", "races/barbarian", "races/human", "races/dwarf", "races/beastkin", "races/fairy", "races/dragon", "monsters/goblin-face", "monsters/goblin-full", "monsters/goblin-archer-face", "monsters/goblin-archer-full", "monsters/goblin-sword-face", "monsters/goblin-sword-full", "monsters/goblin-spear-face", "monsters/goblin-spear-full", "monsters/wolf-face", "monsters/wolf-full", "monsters/fox-face", "monsters/fox-full", "monsters/mouse-face", "monsters/mouse-full", "monsters/bat-face", "monsters/bat-full", "monsters/hobgoblin-face", "monsters/hobgoblin-full", "monsters/zombie-face", "monsters/zombie-full", "monsters/skeleton-face", "monsters/skeleton-full", "monsters/skeleton-archer-face", "monsters/skeleton-archer-full", "monsters/ghoul-face", "monsters/ghoul-full", "monsters/dark-bear-face", "monsters/dark-bear-full", "monsters/skeleton-warrior-face", "monsters/skeleton-warrior-full", "monsters/living-stone-face", "monsters/living-stone-full", "monsters/wisp-face", "monsters/wisp-full", "monsters/pixie-face", "monsters/pixie-full", "monsters/green-boulder-face", "monsters/green-boulder-full", "monsters/stone-guardian-face", "monsters/stone-guardian-full"]);
 const artPath = p => `assets/${p}.${RASTER.has(p) ? "webp" : "svg"}`;
@@ -2231,6 +2231,7 @@ function derived(t, c = char) {
   if (armor && armor.str && t.str.total < armor.str) warnings.push(`Сила ${t.str.total} ниже ${armor.str}, нужной для доспеха «${armor.name}»: скорость −3 м.`);
   if (armor && armor.stealth) warnings.push(`«${armor.name}»: помеха к Скрытности.`);
   if (tower) { warnings.push("Ростовой щит: помеха к Скрытности."); if (t.str.total < 13) warnings.push(`Сила ${t.str.total} ниже 13, нужной для ростового щита: скорость −3 м.`); }
+  if (off && off.id === "shield" && !twoHanded(c)) warnings.push("Щит гремит: −2 к Скрытности.");
   if (c.giantGrip && c.race === "barbarian" && isTwoHandedWeapon(mainItem(c))) warnings.push(`«${mainItem(c).name}» в одной руке (Великан): −2 к атаке.`);
   if (ld.level !== "ok") warnings.push(LOAD_TEXT[ld.level] + ".");
   const pb = 0;                                                 // бонус мастерства убран: ни у кого нет (решение автора)
@@ -2340,7 +2341,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 17;
+const BATTLE_REV = 18;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined) st.tactical = true; return st; }

@@ -29,7 +29,7 @@
     const giant = c.giantGrip && c.race === "barbarian" && f.two && !ranged;
     const atk = { id: mode + ":" + w.id, w, n: w.name, hit: am + u.pb + (w.bonus || 0), parts: [{ l: ABIL_RU[ab], v: am }, ...(u.pb ? [{ l: "Бонус мастерства", v: u.pb }] : []), ...(w.bonus ? [{ l: "Сталь", v: w.bonus }] : [])], dmg: { ...dice, b: dice.b + am + (w.bonus || 0) }, dt: DT[w.type] || "bludgeon", tags: [], mode, time: "action" };
     if (giant) { atk.penalty = -2; atk.penaltyLabel = "Великан: одной рукой"; }
-    if (mode === "hand" && !ranged) { atk.kind = "melee"; atk.reach = w.id === "spear" && u.pass.includes("goblin-spear") ? 2 : 1 + longArm(u, w); atk.sub = atk.reach > 1 ? `досягаемость ${atk.reach * 1.5} м`.replace(".", ",") : "ближний бой"; }
+    if (mode === "hand" && !ranged) { atk.kind = "melee"; atk.reach = w.id === "spear" ? 2 : 1 + longArm(u, w); if (w.id === "spear" && !u.pass.includes("goblin-spear")) atk.stretch = true; atk.sub = atk.reach > 1 ? `досягаемость ${atk.reach * 1.5} м`.replace(".", ",") : "ближний бой"; }
     else if (mode === "hand" && ranged) {
       atk.kind = "ranged"; atk.ammo = "arrow";
       const r = f.ammoR || [24, 96]; atk.range = [Math.floor((r[0] + eb.range) / 1.5), Math.floor((r[1] + eb.range) / 1.5)]; atk.sub = "дальний бой, стрела";
@@ -83,7 +83,7 @@
   };
   B.inAttackRange = (u, t, atk) => {
     const dd = dist(u, t);
-    if (atk.kind === "melee") return dd <= (atk.reach || 1);
+    if (atk.kind === "melee") return dd <= (atk.reach || 1) && !(atk.stretch && dd > 1 && B.lineBlocked(u, t));          // копьё через клетку: между ними не должно быть полного укрытия
     return dd <= atk.range[1] && !B.lineBlocked(u, t);
   };
   B.attackTargets = (u, atk) => enemiesOf(u).filter(t => !has(t, "underground") && B.inAttackRange(u, t, atk));          // «Нырок под землю»: закопавшегося атаковать нельзя
@@ -203,8 +203,9 @@
     const adv = [], dis = [];
     if (u.hero && u.hero.equip && itemOf(u.hero.equip.body) && itemOf(u.hero.equip.body).stealth) dis.push("тяжёлая броня");
     const main = B.mainOf(u); if (main && main.id === "tower-shield") dis.push("ростовой щит");
+    const mods = []; { const off = u.hero && u.hero.equip && u.hero.equip.off ? itemOf(u.hero.equip.off) : null; if (off && off.id === "shield") mods.push({ l: "Щит гремит", v: -2 }); }          // решение автора: одноручный щит — минус к Скрытности
     if (u.pass.includes("ash-wraith")) dis.push("светится");                                       // «Тлеющее тело»: тусклый свет мешает прятаться
-    const r = await B.doCheck(u, "stealth", { title: o.title || "Спрятаться", label: `${spot} · Сл ${dc}`, dc, adv, dis, cancel: !!o.cancel, onCommit: () => { if (o.time) spendTime(u, o.time); }, tags: ["hide"] });
+    const r = await B.doCheck(u, "stealth", { title: o.title || "Спрятаться", label: `${spot} · Сл ${dc}`, dc, adv, dis, mods, cancel: !!o.cancel, onCommit: () => { if (o.time) spendTime(u, o.time); }, tags: ["hide"] });
     if (!r) return null;
     if (r.ok) { addStatus(u, "hidden", { k: Infinity }); log(`${u.name} прячется (${r.total} против ${dc}).`); const g = ui(); if (g) g.fxText(u, "скрыт", "good"); }
     else { log(`${u.name} не удалось спрятаться (${r.total} против ${dc}).`); const g = ui(); if (g) g.fxText(u, "заметили", "bad"); }
@@ -404,6 +405,21 @@
     return true;
   }
 
+  // Страховка для способностей монстров: цели должны входить в то, что способность сама назвала допустимым (A.tgt: units), и их не больше max.
+  function fitPicks(A, u, picks) {
+    let spec; try { spec = A.tgt(u); } catch (e) { return picks; }
+    if (!spec) return picks;
+    const idOf = x => (x && typeof x === "object" ? x.id : x), ok = spec.units && spec.units.length ? new Set(spec.units) : null;
+    const out = { ...picks };
+    if (spec.type === "unit" && out.unit && ok && !ok.has(idOf(out.unit))) return null;
+    if (spec.type === "units" && out.units) {
+      out.units = out.units.filter(x => !ok || ok.has(idOf(x)));
+      if (spec.max) out.units = out.units.slice(0, spec.max);
+      if (!out.units.length && (spec.min == null || spec.min > 0)) return null;
+    }
+    return out;
+  }
+
   /* ===== список действий героя ===== */
   function skillOptions(u) {
     const out = [];
@@ -430,6 +446,8 @@
   // Так «Самодельная бомба» просит ману только за первую половину, а «Проклятие предков» перезаряжается лишь после конца проклятия.
   async function useActive(u, id, picks, o = {}) {
     const A = B.A[id], eb = ESSENCES[id].active; let committed = false;
+    if (u.side === "mon" && picks && A.tgt) picks = fitPicks(A, u, picks);          // монстр бьёт только допустимые цели в зоне: одна цель — одна, область — только внутри
+    if (picks === null) return false;
     const st = A.state ? A.state(u) : {};
     const mana = st.mana != null ? st.mana : eb.mana, cd = st.cd != null ? st.cd : (D.essCd[id] || 1);
     const commit = () => {
