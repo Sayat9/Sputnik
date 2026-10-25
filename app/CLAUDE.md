@@ -106,7 +106,7 @@
 - `ESS_CHANCE = 93` (battle-end.js; в rules.md 95+, отклонение в drafts.md). Окружение (≥2 союзника вплотную) — `attackCtx`. Побег: `runFlee` + проверка Акробатики Сл 10 (`FLEE_DC`).
 - `B.massSave(list, abil, dc, o)` — спасброски нескольких целей без анимации + `UI.summary`. Области монстров 9 класса — радиус 1.
 - `spNotice(title, text)` в index.html — сообщения часовни/гнезда окном (`dgUi.res`). `BATTLE_REV` = 20.
-- Тест: `tools/battle-tests/bnew4.js`. Промпты монстров 2 этажа: `docs/monster-prompts-floor2.md`.
+- Тест: `tools/battle-tests/bnew4.js`. Промпты недостающих картинок: `docs/missing_image_promts.md`.
 - Четвёртая пачка: штраф Ловкости от щита/«Великана» — `gearDexPenalty` в `totals()` (index.html); вращающийся удар — `atk.spin`, `SPIN_MAIN/SIDE` в battle-act.js; Сл побега — `fleeDc()`; переброс в `B.massSave`/`UI.summary`; скорость — `cellsOfM`. `BATTLE_REV` = 21. Тест: `bnew5.js`.
 - Пятая пачка: факел в бою — `lightTorch/douseTorch` (battle-act.js), `S.torchLeft`, `S.torchFixed`, `S.pitDark` (бой с кротом: тьма, помеха без света, нет атак по возможности у героев); крот гасит факел в `AI.takeTurn`. Свита короля — `kingEscort()` в index.html. `BATTLE_REV` = 23. Баланс-скрипты: `bbal4.js`, `bbal4b.js`.
 - Шестая пачка: топь — `S.bog`, терейн `mire`, статусы `mired`/`miredDis` (battle-rules.js: `startTurn`/`endTurn`, `saveCtx`, `doCheck`, `attackCtx`), «Выбраться из топи» в действиях; нырок клыка с тыла — `P["swamp-fang"].turnStartAsync` (battle-ess2.js). Тест `bnew6.js`. `BATTLE_REV` = 24.
@@ -118,3 +118,8 @@
 - Сборка Android теперь с двумя вариантами (`master`, `player`): `build.sh` собирает `sputnik.apk` и `sputnik-player.apk`; страница одна (`www/`), обновления общие.
 - Выпуск (решение автора 25.10.2026): присылать APK ведущего (`sputnik.apk`); APK игрока (`sputnik-player.apk`) — только по запросу. Обновление по сети (`publish.sh`) одно для обоих.
 - Название и логотип (25.10.2026): игра называется «Исследователи лабиринта»; APK игрока — «Исследователи лабиринта» (золотой логотип `assets/logo.png`), APK ведущего — «Исследователи лабиринта · Ведущий» (янтарный `assets/logo-admin.png`). Пиксельный логотип рисует `tools/gen_logo.py` (24×24, спираль-лабиринт; он же пишет значки Android в `android/app/src/{master,player}/res/mipmap-*`); на главном экране `CREST` берёт нужный файл по `isMaster()`. Внутренние имена (пакет `rf.sputnik`, ключи localStorage, репозиторий Sputnik) не менялись.
+
+
+## Промпты картинок (правило автора 25.10.2026)
+
+Все промпты для ещё не нарисованных картинок живут в одном файле `docs/missing_image_promts.md`, по разделам (монстры, предметы, сокровища, находки, NPC, здания, расы). Остальных файлов с промптами нет. Новый предмет/монстр/NPC/здание без картинки → добавить промпт в нужный раздел. Появилась картинка (файл в `assets/`, путь в `RASTER`) → **удалить её промпт** из этого файла. Что уже нарисовано — смотреть в `assets/`.

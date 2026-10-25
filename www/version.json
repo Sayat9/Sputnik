@@ -1,5 +1,5 @@
 {
- "version": 1792944090,
+ "version": 1792944258,
  "files": [
   "assets/css/battle.css",
   "assets/css/town.css",
@@ -524,6 +524,6 @@
   "fonts/f8.woff2": "6cc1ee17091d59eb93821c3594e8f38f",
   "fonts/f9.woff2": "070433480b7b645f69b543f284e386ce",
   "fonts/fonts.css": "1585a72a8d157b26cb424ab433fd4e19",
-  "index.html": "9341e0b1b53320aa3849140ecd3fc87c"
+  "index.html": "a674f17ae587ca976cf148f8725718fc"
  }
 }
