@@ -185,7 +185,7 @@
     const el = root.querySelector(".bt-order"), rd = root.querySelector(".bt-round b"); if (rd) rd.textContent = S.round;
     if (!S.order.length) { el.innerHTML = ""; return; }
     el.innerHTML = S.order.map((id, i) => {
-      const u = B.byId(id); if (!u || u.fled || u.escaped || (!u.alive && u.side === "mon") || B.isUnseen(u) || (u.side === "mon" && S.phase === "fight" && !B.seenByParty(u))) return "";
+      const u = B.byId(id); if (!u || u.fled || u.escaped || (!u.alive && u.side === "mon") || B.isUnseen(u) || (u.side === "mon" && S.hideMons) || (u.side === "mon" && S.phase === "fight" && !B.seenByParty(u))) return "";
       const cur = i === S.turn && S.phase === "fight";
       return `<button class="bt-ord ${u.side}${cur ? " cur" : ""}${u.down ? " down" : ""}${u.summon ? " sm" : ""}${u.spectral ? " ghost" : ""}" data-bt="inspect" data-id="${u.id}" title="${esc(u.name)}"><img src="${u.face}" alt=""></button>`;
     }).join("");
