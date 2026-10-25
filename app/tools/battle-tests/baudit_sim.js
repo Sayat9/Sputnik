@@ -1,6 +1,6 @@
 // Аудит по настоящим боям: оборачиваем useActive и смотрим, сколько героев пострадало от способности монстра и на каком расстоянии.
 const { chromium } = require('playwright');
-const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-ext','battle-act','battle-ess','battle-ess2','battle-env','battle-ai','battle-end','battle'];
+const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-ext','battle-act','battle-ess','battle-ess2','battle-weap','battle-env','battle-ai','battle-end','battle'];
 const N = +process.argv[2] || 150;
 (async () => {
   const b = await chromium.launch({ executablePath: process.env.CHROME || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });

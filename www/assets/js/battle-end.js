@@ -22,7 +22,7 @@
           S.gear.push({ ok: false, t: `${nm} (${c.name}) осталось на поле` });
         }
       }
-      u.disarmed = false; u.bagThrown = [];
+      u.disarmed = false; u.disarmedOff = false; u.bagThrown = [];
       const lg = S.arrowLog[c.id], lying = S.drops.filter(d => d.kind === "arrow" && d.hero === c.id).length;
       if (lg && lg.shot) {
         const back = keeps && lying ? lying - addToBag(c, { t: "g", id: "arrow", qty: lying }) : 0;
@@ -36,7 +36,7 @@
       const c = u.hero; if (!c) continue;
       c.hp = u.dead ? 0 : Math.max(outcome === "defeat" || u.down ? 1 : 0, Math.min(u.hp, maxHp(c)));
       if (u.down && !u.dead) c.hp = Math.max(1, c.hp);
-      c.mp = Math.max(0, Math.min(u.mp, maxMp(c))); c.insp = u.insp ?? 1; c.dead = !!u.dead;
+      c.mp = Math.max(0, Math.min(u.mp, maxMp(c))); c.insp = u.insp ?? inspMax(c); c.dead = !!u.dead;
       if (c.dead) c.hp = 0;
       if (S.ev && S.ev.arena) { c.dead = false; c.hp = Math.max(1, c.hp); }          // на арене не умирают: упавших поднимают администраторы с 1 ОЗ
     }

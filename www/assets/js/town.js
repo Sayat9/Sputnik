@@ -14,14 +14,15 @@
     { key: "potion", e: { t: "g", id: "potion", qty: 1 }, price: 3, many: true }, { key: "potion-good", e: { t: "g", id: "potion-good", qty: 1 }, price: 12, many: true },
     { key: "arrow40", e: { t: "g", id: "arrow", qty: 40 }, price: 10, label: "Колчан на 40 стрел" }, { key: "arrow20", e: { t: "g", id: "arrow", qty: 20 }, price: 5, label: "Колчан на 20 стрел" },
     { key: "shovel", e: { t: "g", id: "shovel", qty: 1 }, price: 8 }, { key: "shovel-good", e: { t: "g", id: "shovel-good", qty: 1 }, price: 15 },
-    { key: "flute", e: { t: "g", id: "flute", qty: 1 }, price: 8 }, { key: "compass", special: "compass", price: 30 },
+    { key: "flute", e: { t: "g", id: "flute", qty: 1 }, price: 8 }, { key: "firstaid", e: { t: "g", id: "firstaid", qty: 1 }, price: 20, many: true }, { key: "compass", special: "compass", price: 30 },
   ];
-  const FORGE_W = ["dagger", "spear", "mace", "warhammer", "sword", "rapier", "greatsword", "shortbow", "longbow", "shield", "tower-shield"];
+  const FORGE_W = ["dagger", "spear", "mace", "warhammer", "sword", "rapier", "greatsword", "gloves", "staff", "axe", "greataxe", "shortbow", "longbow", "shield", "tower-shield"];
   const FORGE_A = ["leather", "hide", "chainmail"];
+  const forgeDisc = p => ((state.party || []).some(c => c.race === "dwarf" && !c.dead) ? Math.max(1, Math.round(p * 0.9)) : p);          // дварф в отряде: скидка 10% в кузнице
   const FORGE_PRICE = { weapon: 10, armor: 15, steelWeapon: 25, steelArmor: 40 };               // решение автора
   const FORGE = {
-    base: [...FORGE_W.map(id => ({ key: "w:" + id, e: { t: "w", id, qty: 1 }, price: FORGE_PRICE.weapon })), ...FORGE_A.map(id => ({ key: "a:" + id, e: { t: "a", id, qty: 1 }, price: FORGE_PRICE.armor }))],
-    steel: [...FORGE_W.map(id => ({ key: "sw:" + id, e: { t: "w", id, qty: 1, steel: true }, price: FORGE_PRICE.steelWeapon })), ...FORGE_A.map(id => ({ key: "sa:" + id, e: { t: "a", id, qty: 1, steel: true }, price: FORGE_PRICE.steelArmor }))],
+    base: [...FORGE_W.map(id => ({ key: "w:" + id, e: { t: "w", id, qty: 1 }, get price() { return forgeDisc(FORGE_PRICE.weapon); } })), ...FORGE_A.map(id => ({ key: "a:" + id, e: { t: "a", id, qty: 1 }, get price() { return forgeDisc(FORGE_PRICE.armor); } }))],
+    steel: [...FORGE_W.map(id => ({ key: "sw:" + id, e: { t: "w", id, qty: 1, steel: true }, get price() { return forgeDisc(FORGE_PRICE.steelWeapon); } })), ...FORGE_A.map(id => ({ key: "sa:" + id, e: { t: "a", id, qty: 1, steel: true }, get price() { return forgeDisc(FORGE_PRICE.steelArmor); } }))],
   };
   const COMPASS_INFO = () => ({ name: "Компас", icon: ICO_COMPASS, note: "Стрелка показывает север при любом повороте карты. Включается удержанием в инвентаре лабиринта.", weight: 0 });
   const TAVERN = { sleep: 3, food: 1 };                                                           // за героя
@@ -453,6 +454,27 @@
   }
 
   /* =====================================================================
+     АКАДЕМИЯ: курсы героя за деньги (ACADEMY в index.html; знания закреплены за героем)
+     ===================================================================== */
+  function learn(id) {
+    const c = hero(), k = ACADEMY.find(x => x.id === id); if (!c || !k) return;
+    if (eduKnows(c, id)) { ui.msg = `${c.name} уже прошёл этот курс.`; return; }
+    if (k.need && !eduKnows(c, k.need)) { ui.msg = `Сначала нужен курс «${ACADEMY.find(x => x.id === k.need).name}».`; return; }
+    if (!payGold(c, k.price)) { ui.msg = "Не хватает монет."; return; }
+    eduLearn(c, id); visit(); ui.msg = `${c.name} прошёл курс «${k.name}».`; saveChar();
+  }
+  B.academy = {
+    render() {
+      const c = hero(); if (!c) return frame("Академия", "Рафдония", noParty());
+      const rows = ACADEMY.map(k => {
+        const known = eduKnows(c, k.id), locked = k.need && !eduKnows(c, k.need), can = !known && !locked && partyGold() >= k.price;
+        return `<div class="tw-row"><div class="tw-who"><div><b>${esc(k.name)}</b><small>${esc(k.text)}${locked ? " · сначала «" + esc(ACADEMY.find(x => x.id === k.need).name) + "»" : ""}</small></div></div>
+          ${known ? `<span class="tw-done">${ICO_CHECK}</span>` : `<button class="fx-btn primary" data-t="learn" data-id="${k.id}"${can ? "" : " disabled"}>${k.price}</button>`}</div>`; }).join("");
+      return frame("Академия", "Рафдония", `${heroStrip()}<p class="tw-lead">Выбери героя и оплати курс. Знания остаются за ним одним — у остальных курсов нет.</p><div class="tw-rows">${rows}</div>${msgLine()}`);
+    },
+  };
+
+  /* =====================================================================
      ЦЕРКОВЬ: удаление эссенций
      ===================================================================== */
   B_church();
@@ -606,6 +628,7 @@
       case "gbuy": guildBuy(ds.k); break;
       case "gsell": guildSell(ds.id); break;
       case "analyze": analyze(ds.id); break;
+      case "learn": learn(ds.id); break;
       case "ttab": ui.tab = ds.k; break;
       case "aid": identify(ds.id); break;
       case "purge": purge(ds.id); break;

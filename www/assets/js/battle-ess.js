@@ -14,7 +14,7 @@
   // Подбор атаки для способностей «через атаку»: герой берёт оружие нужного вида, монстр — свою атаку.
   // needWeapon — только настоящее оружие героя (не кулак): «дробящим оружием», «колющим оружием».
   function atkFor(u, kind, dt, needWeapon) {
-    let list = B.attacksOf(u).filter(a => a.kind === kind && !a.offhand && !a.thrown && !(u.side === "hero" && a.id === "torchhit"));
+    let list = B.attacksOf(u).filter(a => a.kind === kind && !a.offhand && !a.thrown && !a.special && !(u.side === "hero" && a.id === "torchhit"));
     if (needWeapon && u.side === "hero") list = list.filter(a => a.w);
     if (u.side === "hero") list = list.filter(a => !a.ammo || countGear(u.hero, "arrow") > 0);
     if (dt) list = list.filter(a => a.dt === dt);
@@ -420,7 +420,7 @@
   /* ----- расы ----- */
   P["race:barbarian"] = { saveMods(u, ctx) { if (ctx.tags.includes("frightened") || ctx.tags.includes("charm")) ctx.adv.push("дух воина"); } };
   P["race:beastkin"] = { saveMods(u, ctx) { if (ctx.tags.includes("sound")) ctx.dis.push("острые чувства"); } };
-  P["race:dragon"] = { saveMods(u, ctx) { if (ctx.tags.includes("cold") || ctx.tags.includes("slow")) ctx.dis.push("холодная кровь"); } };
+
 
   // Чувства из эссенций и тела: слепое зрение, чувство вибрации.
   // Время активки: фабрики (saveArea, attackRider…) его не задают — берём из текста эссенции, иначе активка не тратила бы действие.

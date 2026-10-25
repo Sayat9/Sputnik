@@ -1,6 +1,6 @@
 // Автобои с эссенциями 2 этажа: каждая из 35 эссенций у героя, по несколько боёв; ищем исключения, нарушения инвариантов и проверяем, что ИИ применяет способность.
 const { chromium } = require('playwright');
-const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-ext','battle-act','battle-ess','battle-ess2','battle-env','battle-ai','battle-end','battle'];
+const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-ext','battle-act','battle-ess','battle-ess2','battle-weap','battle-env','battle-ai','battle-end','battle'];
 const N = +process.argv[2] || 6;
 const ONLY = (process.argv[3] || '').split(',').filter(Boolean);
 (async () => {

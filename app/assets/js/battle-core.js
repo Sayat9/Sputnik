@@ -185,13 +185,13 @@
   function heroUnit(c) {
     const u = baseUnit("hero"), t = totals(c), dv = derived(t, c), eb = essBonus(c), st = (state.run && state.run.status && state.run.status[c.id]) || { fat: 0 };
     Object.assign(u, { ref: c.id, hero: c, name: c.name, race: c.race, level: c.level, pb: dv.pb, ac: dv.ac, maxHp: maxHp(c), hp: hpOf(c), maxMp: dv.mana, mp: mpOf(c),
-      speedC: cellsOfM(dv.speed), initB: eb.init, skills: eb.skills, saveB: eb.saves, ctl: "ui", fat: st.fat || 0, face: ART.race(c.race), dv: D.race[c.race] && D.race[c.race].dv });
+      speedC: cellsOfM(dv.speed), initB: eb.init + (c.race === "beastkin" ? 2 : 0), skills: eb.skills, saveB: eb.saves, ctl: "ui", fat: st.fat || 0, face: ART.race(c.race), dv: D.race[c.race] && D.race[c.race].dv });
     for (const k of ABIL) u.abil[k] = t[k].total;
     u.ess = (c.essences || []).filter(id => ESSENCES[id]);
-    u.pass = [...u.ess, "race:" + c.race];
+    u.pass = [...u.ess, "race:" + c.race, "weap"];
     if (u.ess.some(id => (ESSENCES[id].other || []).some(o => /^Тёмное зрение/.test(o)))) u.dv = true;
     essenceTraits(u);
-    u.insp = c.insp ?? 1;                                                  // переброс: у каждого по одному, пока не потрачен (восстанавливает только сон)
+    u.insp = c.insp ?? inspMax(c);                                                  // переброс: у каждого по одному, пока не потрачен (восстанавливает только сон)
     if (u.hp <= 0) { u.hp = 0; u.down = true; u.conds.push(mkStatus("unconscious", { k: Infinity }), mkStatus("prone", { k: Infinity })); }
     if (c.dead) { u.dead = true; u.alive = false; u.down = true; }
     return u;

@@ -6,7 +6,7 @@ const L = require('./bui_lib.js');
   await L.setup(p, { heroes: ['barb2', 'archer'], tactical: false });
   await p.evaluate(() => { state.run = null; state.townUnlocked = true; state.journal = null; unlockJournal(9); state.party.forEach(c => { c.gold = 0; }); const c = state.party[0]; addToBag(c, { t: 'g', id: 'stone-9', qty: 6 }); addToBag(c, { t: 'g', id: 'stone-8', qty: 2 }); addToBag(c, { t: 'g', id: 'stone-7', qty: 1 }); location.hash = 'town'; rerender(); });
   await p.waitForTimeout(300);
-  ok('в городе 13 зданий', await p.evaluate(() => document.querySelectorAll('.bld').length) === 13);
+  ok('в городе 14 зданий', await p.evaluate(() => document.querySelectorAll('.bld').length) === 14);
   await L.shot(p, 'town-map');
   // --- магазин
   await p.click('[data-bld="shop"]'); await p.waitForSelector('.tw-shop', { timeout: 5000 });

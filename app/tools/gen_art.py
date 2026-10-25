@@ -205,6 +205,44 @@ def warhammer():
     return place(g, y=98, rot=24, s=1.12)
 
 
+def gloves():
+    g = """
+<path d="M-34 -30 C-34 -50 -14 -54 -8 -40 L-6 -52 C-4 -62 8 -62 8 -50 L10 -56 C14 -64 24 -60 22 -48 L24 -50 C32 -52 36 -44 32 -36 L30 -8 C30 14 18 34 0 34 C-20 34 -34 16 -34 -4Z" fill="url(#leather)" stroke="#2a1a0e" stroke-width="1.5"/>
+<rect x="-30" y="-24" width="62" height="10" rx="3" fill="url(#iron)" stroke="#1c1f21"/>
+<circle cx="-18" cy="-19" r="3" fill="url(#steel)"/><circle cx="-4" cy="-19" r="3" fill="url(#steel)"/><circle cx="10" cy="-19" r="3" fill="url(#steel)"/><circle cx="24" cy="-19" r="3" fill="url(#steel)"/>
+<path d="M-26 22 L-18 34 M-10 28 L-2 38" stroke="#1c1208" stroke-width="1.3"/>"""
+    return place(g, x=128, y=92, rot=0, s=1.15)
+
+
+def staff():
+    g = """
+<rect x="-3.5" y="-96" width="7" height="200" rx="3" fill="url(#wood)" stroke="#2a1a0e"/>
+<path d="M-6 -100 C-16 -118 -2 -134 0 -124 C2 -134 16 -118 6 -100Z" fill="url(#iron)" stroke="#1c1f21"/>
+<circle cx="0" cy="-114" r="5" fill="url(#amber)" stroke="#5a3a0a"/>
+<rect x="-4.5" y="-30" width="9" height="34" fill="url(#leather)"/>""" + wrap_lines(0, -29, 3, 9) + """
+<path d="M-3.5 104h7l-1 8h-5z" fill="url(#iron)"/>"""
+    return place(g, y=88, rot=40, s=.7)
+
+
+def axe_body(big):
+    k = 1.5 if big else 1.0
+    return f"""
+<rect x="-3.5" y="{-30 * k}" width="7" height="{110 * k}" rx="2" fill="url(#wood)" stroke="#2a1a0e"/>
+<rect x="-4.5" y="{44 * k}" width="9" height="{30 * k}" fill="url(#leather)"/>
+<path d="M3 {-34 * k} C{30 * k} {-48 * k} {40 * k} {-22 * k} {34 * k} {-2 * k} C{22 * k} {-6 * k} 8 {-8 * k} 3 {-12 * k}Z" fill="url(#steelV)" stroke="#2f3538"/>
+<path d="M{34 * k} {-2 * k} C{40 * k} {-22 * k} {30 * k} {-48 * k} 3 {-34 * k}" fill="none" stroke="#cfd6da" stroke-width="2"/>
+<rect x="-6" y="{-36 * k}" width="12" height="{28 * k}" rx="2" fill="url(#iron)" stroke="#1c1f21"/>""" + (f"""
+<path d="M-3 {-34 * k} C{-30 * k} {-48 * k} {-40 * k} {-22 * k} {-34 * k} {-2 * k} C{-22 * k} {-6 * k} -8 {-8 * k} -3 {-12 * k}Z" fill="url(#steelV)" stroke="#2f3538"/>""" if big else "") + nicks([(30 * k, -20 * k, 1), (30 * k, -8 * k, 1)])
+
+
+def axe():
+    return place(axe_body(False), y=94, rot=28, s=1.12)
+
+
+def greataxe():
+    return place(axe_body(True), y=106, rot=26, s=.74)
+
+
 def bow(length, bulge, rot):
     L = length
     g = f"""
@@ -655,7 +693,7 @@ def ph_full(kind):
 
 ITEMS = {
     "spear": spear, "mace": mace, "warhammer": warhammer, "sword": sword, "rapier": rapier, "dagger": dagger, "twin-daggers": twin_daggers,
-    "greatsword": greatsword, "shortbow": shortbow, "longbow": longbow, "arrows": arrows, "shield": shield, "tower-shield": tower_shield,
+    "greatsword": greatsword, "gloves": gloves, "staff": staff, "axe": axe, "greataxe": greataxe, "shortbow": shortbow, "longbow": longbow, "arrows": arrows, "shield": shield, "tower-shield": tower_shield,
 }
 ARMOR = ["leather", "hide", "chainmail"]  # базовая броня каждой группы
 RACES = {"human": human, "barbarian": barbarian, "dwarf": dwarf, "beastkin": beastkin, "fairy": fairy, "dragon": dragon}

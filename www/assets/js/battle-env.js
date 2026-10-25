@@ -162,8 +162,8 @@
     const S = B.S, c = u.hero, f = FD()[o.fid], k = FK()[f.kind], nm = findLabel(u, o);
     // Проверка: лучший из подходящих навыков (Выживание/Медицина — травы; Выживание — грибы; Атлетика — камни)
     const skill = k.gather.slice().sort((a, b) => B.skillMod(u, b) - B.skillMod(u, a))[0];
-    const expert = (f.kind === "herb" || f.kind === "mush") && (c.essences || []).includes("goblin-shaman");          // «Знаток трав»: преимущество, 2–3 штуки за раз
-    const r = await B.doCheck(u, skill, { title: `Собрать: ${nm}`, label: `Сл ${k.gdc}`, dc: k.gdc, adv: expert ? ["Знаток трав"] : [], cancel: true, onCommit: () => { u.t.action = 0; } });
+    const expert = (f.kind === "herb" || f.kind === "mush") && ((c.essences || []).includes("goblin-shaman") || c.race === "fairy");          // «Знаток трав» (и фея «Сборщица»): преимущество, 2–3 штуки за раз
+    const r = await B.doCheck(u, skill, { title: `Собрать: ${nm}`, label: `Сл ${k.gdc}`, dc: k.gdc, adv: expert ? [c.race === "fairy" ? "Сборщица" : "Знаток трав"] : [], cancel: true, onCommit: () => { u.t.action = 0; } });
     if (!r) return false;
     if (r.ok) {
       const qty = expert ? 2 + rnd(2) : 1, left = typeof addToBag === "function" ? addToBag(c, { t: "g", id: o.fid, qty }) : 0;

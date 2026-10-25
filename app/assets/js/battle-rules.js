@@ -124,12 +124,13 @@
       const exd = tgt.extraTaken && tgt.extraTaken[p.dt]; if (exd) { const xd = B.parseDice(exd), xr = roll(xd.n, xd.s).total; v += xr; notes.push(`чувствительность +${xr}`); }       // «Боится огня», «Холод жжёт»
       v += hookSum(tgt, "dmgFlat", { dt: p.dt, melee: o.melee, o, src, v, memo });
       if (tgt.coldSlow && p.dt === "cold" && v > 0) addStatus(tgt, "slowed", { k: 1, when: "end", data: { add: -2 } });          // «Холод сковывает»: −3 м скорости до конца хода
-      v += hookSum(src || { pass: [] }, "dmgBonusVs", { dt: p.dt, tgt, o, melee: o.melee });
+      if (!o.pure) v += hookSum(src || { pass: [] }, "dmgBonusVs", { dt: p.dt, tgt, o, melee: o.melee });
       if (v < 1 && p.v > 0 && hookAny(tgt, "dmgMin1", { dt: p.dt })) v = 1;
       total += Math.max(0, v);
     }
     for (const id of tgt.pass) { const P = B.P && B.P[id]; if (P && P.dmgTotal) total = P.dmgTotal(tgt, { total, o, src, notes }); }
     total = Math.max(0, total);
+    const fb = has(tgt, "fistblock"); if (fb && o.melee && total > 0) { const fr = roll(1, 4).total + Math.max(0, amod(tgt.abil.dex)); total = Math.max(0, total - fr); notes.push(`блок кулаками −${fr}`); }          // две перчатки: «Блок кулаками»
     if (o.reduce && total > 0) { const rd = B.parseDice(o.reduce.dice), rr = roll(rd.n, rd.s).total; total = Math.max(0, total - rr); notes.push(`${o.reduce.label || "щит"} −${rr}`); }          // «Принять удар» с ростовым щитом
     const absorbed = Math.min(tgt.temp || 0, total); tgt.temp = (tgt.temp || 0) - absorbed;
     const left = total - absorbed;
@@ -171,8 +172,10 @@
     if (atk.penalty) ctx.mods.push({ l: atk.penaltyLabel || "Штраф", v: atk.penalty });
     if (att.fat >= 3) ctx.mods.push({ l: "Усталость", v: -2 }); else if (att.fat === 2) ctx.mods.push({ l: "Усталость", v: -1 });
     if (has(att, "weakened")) ctx.mods.push({ l: "Ослаблен", v: -1 });
-    if (atk.stretch && d0 > 1) ctx.dis.push("копьё на 2 клетки");                                        // решение автора: копьё достаёт на клетку дальше, но с помехой
+    if (atk.stretch && d0 > 1) { if (atk.stretchPen) ctx.mods.push({ l: "Посох на 2 клетки", v: atk.stretchPen }); else ctx.dis.push("копьё на 2 клетки"); }                                        // решение автора: копьё достаёт на клетку дальше, но с помехой
     if (o.bonusHit) ctx.mods.push({ l: o.bonusLabel || "Бонус", v: o.bonusHit });
+    if (o.dis) ctx.dis.push(...o.dis);
+    if (o.dmgPlus) ctx.dmgPlus = (ctx.dmgPlus || 0) + o.dmgPlus;
     // состояния атакующего
     if (has(att, "prone")) ctx.dis.push("атакует лёжа");
     // отравление помех не даёт (решение автора): только урон ядом и метка
@@ -222,6 +225,9 @@
     if (cover && hookAny(att, "ignoreHalfCover", ctx) && cover <= 2) { cover = 0; ctx.notes.push("укрытие не мешает"); }
     ctx.cover = cover; if (cover) ctx.acNotes.push(`укрытие +${cover}`);
     let ac = tgt.ac + cover;
+    const ign = (atk.acIgnore || 0); if (ign) { ac -= ign; ctx.acNotes.push(atk.acIgnoreLabel ? `${atk.acIgnoreLabel} −${ign}` : `пробивает броню −${ign}`); }          // булава, «Крушащий удар»
+    if (has(tgt, "stunned")) { ac -= 2; ctx.acNotes.push("оглушён −2"); }
+    if (has(tgt, "lunged")) { ac -= 1; ctx.acNotes.push("после выпада −1"); }
     if (has(tgt, "guarded")) { ac += 2; ctx.acNotes.push("прикрыт щитом +2"); }
     const own = hookSum(tgt, "acBonus", ctx); if (own) { ac += own; ctx.acNotes.push(`пассивка ${sg(own)}`); }
     let aura = 0; for (const a of alliesOf(tgt)) aura = Math.max(aura, hookSum(a, "acAura", { ally: a, tgt, ctx }));
@@ -246,7 +252,7 @@
       const r = await ses.dice({ label: crit ? "Урон (критический)" : "Урон", n, s: base.s, bonus: base.b, dt: atk.dt, crit, reroll: rerollOptions(att, "damage", { melee: ctx.melee }), cancel: false });
       rolls = r.rolls; sum = r.sum;
     }
-    const parts = [{ v: sum + base.b + (atk.dmgBonus || 0), dt: atk.dt, label: atk.n }];
+    const parts = [{ v: sum + base.b + (atk.dmgBonus || 0) + (ctx.dmgPlus || 0), dt: atk.dt, label: atk.n }];
     for (const e of ctx.extra) {
       const rr = roll(e.n * (crit && e.critDouble ? 2 : 1), e.s);
       parts.push({ v: rr.total + (e.b || 0), dt: e.dt, label: e.label }); log(`${e.label}: ${rr.total + (e.b || 0)}.`);
@@ -525,6 +531,7 @@
     if (backToHidden) addStatus(u, "hidden", { k: Infinity });
     if (B.expireOwned) B.expireOwned(u);                                                                   // «1 минута» кончается в начале хода хозяина через 10 раундов
     u.t = { move: 0, action: 1, bonus: 1, react: 1, dash: false, disengage: false, attacked: false, riteUsed: false, objUsed: false, moved: 0, startX: u.x, startY: u.y, rush: false, extraAttack: 0, straight: 0, sdir: null, packMark: false };
+    if (has(u, "stunned")) { u.t.bonus = 0; u.t.react = 0; }                                       // оглушение: нет доп. действия и реакции
     tickStatuses(u, "start");
     hookAll(u, "turnStart", {});
     // начало хода: кровотечение, горение, хватка и т. п.

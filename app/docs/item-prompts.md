@@ -414,3 +414,35 @@
 
 > `bust portrait of a proud dragonborn woman with fine copper scales, a crest of small horns, golden slit eyes and a regal composed face, fantasy, dark background with a warm rim light, realistic painterly style, looking at viewer, 4:5, no text`
 
+
+## Дополнение 25.10.2026: оружие, Академия, расы
+
+Оружие (шаблон предметов: на каменном пьедестале в нише, потёртое, 1:1; сейчас нарисованы кодом SVG).
+
+### Перчатки — `gloves`
+> `a pair of worn leather fighting gloves with iron-studded knuckle plates and scuffed fingers, lying on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Посох — `staff`
+> `a worn ash wooden quarterstaff with an iron-capped head, leather grip wraps and scratches along the shaft, leaning on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Топор — `axe`
+> `a worn one-handed iron axe with a chipped single blade and a leather-wrapped haft, resting on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Секира — `greataxe`
+> `a worn two-handed double-bladed iron battle axe with nicked edges and a long scuffed haft, leaning on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Набор первой помощи — `firstaid`
+> `a worn leather first-aid pouch with a red cross stitched on it, rolled linen bandages, a small ointment jar and a bone needle beside it, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Здание: Академия — `bld-academy`
+> `a stately stone academy building with a small copper dome, a tall arched door, carved columns, open book emblem above the entrance and lit windows, dark fantasy city at dusk, warm window glow, hand-painted fantasy RPG building icon, stylized, painterly, clean readable silhouette, centered on a dark stone square, square 1:1, no text`
+
+### NPC: наставник Академии — `npc-academy`
+> `an elderly human scholar-master in a dark green academy robe with a stitched book emblem, spectacles on a chain, ink-stained fingers holding a thick tome, a chalkboard with diagrams behind him, warm lantern light, hand-painted fantasy RPG character art, stylized, painterly, dark fantasy tone, bust portrait, wide 16:9 composition with empty space at the bottom for text, no text`
+
+### Портреты новых рас (мужской и женский, шаблон рас: погрудный, 4:5, тёмный фон)
+
+- `races/gnome` — `bust portrait of a short stocky gnome man with a huge round nose, bushy grey-brown beard braided with brass cogs, round goggles pushed up on his forehead, leather workshop apron straps and a mischievous clever look, fantasy, dark background with a warm rim light, realistic painterly style, looking at viewer, 4:5, no text`
+- `races/gnome-f` — `bust portrait of a short gnome woman with a round freckled face, curly auburn hair tied with a bright scarf and small brass tools tucked in it, ink-stained fingers, clever smile, leather apron straps, fantasy, dark background with a warm rim light, realistic painterly style, looking at viewer, 4:5, no text`
+- `races/darkfairy` — `bust portrait of a slender dark fairy man with slate-grey violet skin, long pointed ears, silver-white hair, glowing pale violet eyes and a thin shadowy cloak with faint dusky wings behind his shoulders, fantasy, dark background with a cold violet rim light, realistic painterly style, looking at viewer, 4:5, no text`
+- `races/darkfairy-f` — `bust portrait of a slender dark fairy woman with slate-grey violet skin, long pointed ears, midnight-blue hair with small glowing moth-like motes, luminous pale violet eyes and delicate dusky wings behind her shoulders, fantasy, dark background with a cold violet rim light, realistic painterly style, looking at viewer, 4:5, no text`

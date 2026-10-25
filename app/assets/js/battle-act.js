@@ -20,29 +20,32 @@
   const DT = D.DT_FROM_RU;
   // «Длинная рука» хобгоблина-загонщика: досягаемость кнута и цепа +1,5 м (такого оружия в каталоге пока нет, правило готово).
   const longArm = (u, w) => (u.pass.includes("hobgoblin-driver") && w && /whip|flail|кнут|цеп/i.test(`${w.id} ${w.name}`) ? 1 : 0);
-  function atkFrom(u, w, mode, entry) {
+  function atkFrom(u, w, mode, entry, slot) {
     const c = u.hero, f = wprops(w), eq = c.equip || {}, eb = essBonus(c);
     const ranged = w.group === "ranged", strM = amod(u.abil.str), dexM = amod(u.abil.dex);
     const ab = ranged ? "dex" : (mode === "thrown" ? (f.finesse && dexM > strM ? "dex" : "str") : (f.finesse && dexM > strM ? "dex" : "str"));
     const am = amod(u.abil[ab]);
     const dice = parseDice(f.versatile && !eq.off && mode === "hand" ? f.versatile : w.dmg);
     const atk = { id: mode + ":" + w.id, w, n: w.name, hit: am + u.pb + (w.bonus || 0), parts: [{ l: ABIL_RU[ab], v: am }, ...(u.pb ? [{ l: "Бонус мастерства", v: u.pb }] : []), ...(w.bonus ? [{ l: "Сталь", v: w.bonus }] : [])], dmg: { ...dice, b: dice.b + am + (w.bonus || 0) }, dt: DT[w.type] || "bludgeon", tags: [], mode, time: "action" };
-    if (mode === "hand" && !ranged) { atk.kind = "melee"; atk.reach = w.id === "spear" ? 2 : 1 + longArm(u, w); if (w.id === "spear" && !u.pass.includes("goblin-spear")) atk.stretch = true; atk.sub = atk.reach > 1 ? `досягаемость ${atk.reach * 1.5} м`.replace(".", ",") : "ближний бой"; }
+    if (mode === "hand" && !ranged) { atk.kind = "melee"; atk.reach = w.id === "spear" || w.id === "staff" ? 2 : 1 + longArm(u, w); if (w.id === "spear" && !u.pass.includes("goblin-spear")) atk.stretch = true; if (w.id === "staff") { atk.stretch = true; atk.stretchPen = -2; }
+      if (w.id === "mace") { atk.acIgnore = 1; } atk.sub = atk.reach > 1 ? `досягаемость ${atk.reach * 1.5} м`.replace(".", ",") : "ближний бой"; }
     else if (mode === "hand" && ranged) {
       atk.kind = "ranged"; atk.ammo = "arrow";
-      const r = f.ammoR || [24, 96]; if (w.id === "shortbow" && f.ammoR && f.ammoR[1] > f.ammoR[0]) r[1] = f.ammoR[0]; atk.range = [Math.floor((r[0] + eb.range) / 1.5), Math.floor((r[1] + eb.range) / 1.5)]; atk.sub = "дальний бой, стрела";
+      const r = f.ammoR || [24, 96]; if (w.id === "shortbow" && f.ammoR && f.ammoR[1] > f.ammoR[0]) r[1] = f.ammoR[0]; const fr = c.race === "fairy" ? 3 : 0; atk.range = [Math.floor((r[0] + eb.range + fr) / 1.5), Math.floor((r[1] + eb.range + fr) / 1.5)]; atk.sub = "дальний бой, стрела";
     } else if (mode === "thrown") {
       atk.kind = "ranged"; atk.thrown = true; atk.n = "Метнуть: " + w.name; atk.range = [f.thrown[0] + (u.throwBonus || 0), f.thrown[1] + (u.throwBonus || 0)];          // «Дальность метательного оружия +3 м»
       atk.sub = entry ? "бросок из рюкзака: оружие упадёт у цели" : "бросок: оружие упадёт у цели, рука будет пуста";
+      if (slot === "off") { atk.slot = "off"; atk.id = "thrown-off:" + w.id; atk.time = "bonus"; atk.n = "Метнуть второй: " + w.name; atk.sub = "доп. действие: оружие из другой руки упадёт у цели"; }
       if (u.pass.includes("hobgoblin-thrower")) atk.dmgBonus = (atk.dmgBonus || 0) + 1;                                      // «Полная перевязь»: метательное оружие наносит +1 урона
       if (entry) { atk.bagEntry = entry; atk.id = "thrown:" + w.id + "@" + (u.hero.bag || []).indexOf(entry); atk.n = "Метнуть из рюкзака: " + w.name; }
     }
-    else if (mode === "off") { atk.kind = "melee"; atk.reach = 1; atk.time = "bonus"; atk.offhand = true; atk.dmg.b = Math.min(0, am); atk.n = "Второй рукой: " + w.name; atk.sub = "доп. действие, без модификатора урона"; }
+    else if (mode === "off") { atk.slot = "off"; atk.kind = "melee"; atk.reach = 1; atk.time = "bonus"; atk.offhand = true; atk.dmg.b = Math.min(0, am); atk.n = "Второй рукой: " + w.name; atk.sub = "доп. действие, без модификатора урона"; }
     if (mode === "hand" && w.id === "greatsword" && !ranged) { atk.spin = true; atk.sub = (atk.sub ? atk.sub + " · " : "") + "вращающийся удар"; }
     return atk;
   }
   // Оружие в основной руке. Пока брошенное оружие лежит на земле (u.disarmed), рука пуста; сам предмет из снаряжения не убирается
   // (при перезагрузке посреди боя, ошибке или переходе на обычный экран ничего не теряется), насовсем он уходит только в итоге боя (battle-end.js).
+  B.offOf = u => (u.hero && !u.disarmedOff && u.hero.equip && u.hero.equip.off ? itemOf(u.hero.equip.off) : null);
   B.mainOf = u => (u.hero && !u.disarmed && u.hero.equip && u.hero.equip.main ? itemOf(u.hero.equip.main) : null);
   // Метательное оружие в рюкзаке («Полная перевязь» хобгоблина-метателя): каждая запись, ещё не брошенная в этом бою.
   function bagThrowEntries(u) {
@@ -58,7 +61,7 @@
   };
   function heroAttacks(u) {
     const c = u.hero, eq = c.equip || {}, out = [];
-    const main = B.mainOf(u), off = eq.off ? itemOf(eq.off) : null;
+    const main = B.mainOf(u), off = B.offOf(u);
     if (main && main.kindOf === "weapon" && main.kind !== "Боеприпасы") {
       out.push(atkFrom(u, main, "hand"));
       const f = wprops(main);
@@ -67,18 +70,20 @@
     const seenBag = new Map();                                                                  // в списке действий одинаковое оружие из рюкзака — одной строкой
     for (const e of bagThrowEntries(u)) { const k = e.id; if (seenBag.has(k)) { seenBag.get(k).count++; continue; } const a = atkFrom(u, itemOf(e), "thrown", e); a.count = 1; seenBag.set(k, a); out.push(a); }
     for (const a of seenBag.values()) if (a.count > 1) a.n += ` ×${a.count}`;
+    if (off && off.kindOf === "weapon" && off.group === "melee" && wprops(off).thrown && u.t && u.t.attacked) out.push(atkFrom(u, off, "thrown", null, "off"));          // два топора: второй тоже можно метнуть (доп. действие)
     if (off && off.kindOf === "weapon" && off.group === "melee" && off.id !== "tower-shield" && u.t && u.t.attacked && main && main.group === "melee" && !wprops(main).two) out.push(atkFrom(u, off, "off"));
     if (main && main.group === "ranged" && off && off.kindOf === "weapon" && off.group === "melee" && off.id !== "tower-shield") out.push(atkFrom(u, off, "hand"));          // лучник с ножом в другой руке: ближний бой этим оружием
     const strM = amod(u.abil.str);
+    if (B.weapSpecials) out.push(...B.weapSpecials(u, main, off));
     out.push({ id: "fist", n: "Кулак", kind: "melee", reach: 1, hit: strM + u.pb, parts: [{ l: "Сила", v: strM }, ...(u.pb ? [{ l: "Бонус мастерства", v: u.pb }] : [])], dmg: { n: 0, s: 0, b: Math.max(1, 1 + strM) }, dt: "bludgeon", tags: [], time: "action", sub: "атака рукой: 1 + Сила" });
     if (u.hero && countGear(u.hero, "torch") > 0) out.push({ id: "torchhit", n: "Факел", kind: "melee", reach: 1, hit: strM + u.pb, parts: [{ l: "Сила", v: strM }, ...(u.pb ? [{ l: "Бонус мастерства", v: u.pb }] : [])], dmg: { n: 0, s: 0, b: 1 }, dt: "fire", tags: [], time: "action", sub: "1 урона огнём" });
     return out;
   }
-  B.heroAttacks = heroAttacks;
+  B.heroAttacks = heroAttacks; B.wprops = wprops; B.atkFrom = atkFrom;
   B.heroReach = u => { const m = B.mainOf(u); return m && m.id === "spear" && u.pass.includes("goblin-spear") ? 2 : 1 + longArm(u, m); };
   B.attacksOf = u => (u.hero ? heroAttacks(u) : u.atk);
   B.meleeAttackOf = u => {
-    const list = B.attacksOf(u).filter(a => a.kind === "melee" && !a.offhand && !a.thrown);
+    const list = B.attacksOf(u).filter(a => a.kind === "melee" && !a.offhand && !a.thrown && !a.special);
     return list.sort((a, b) => B.avgDice(b.dmg) - B.avgDice(a.dmg))[0] || null;
   };
   B.inAttackRange = (u, t, atk) => {
@@ -103,7 +108,8 @@
   // tgt — цель атаки: туда падает брошенное оружие. o.free — атака входит в способность, отдельного времени не тратит («Двойной бросок»).
   function commitAttack(u, atk, tgt, o = {}) {
     if (!o.free) spendTime(u, atk.time || "action");
-    if (!atk.offhand) u.t.attacked = true;
+    if (atk.alsoBonus) spendTime(u, "bonus");                                                    // «Крушащий удар»: действие и доп. действие
+    if (!atk.offhand && !(atk.thrown && atk.slot === "off")) u.t.attacked = true;
     if (atk.ammo && u.hero) { takeGear(u.hero, "arrow", 1); const L = B.arrowLog(u.hero.id); L.shot++; }
     if (atk.thrown && u.hero) {
       const c = u.hero, S = B.S, x = tgt ? tgt.x : u.x, y = tgt ? tgt.y : u.y;
@@ -111,6 +117,13 @@
         if (!(u.bagThrown ||= []).includes(atk.bagEntry)) {
           u.bagThrown.push(atk.bagEntry); S.drops.push({ kind: "weapon", hero: c.id, slot: "bag", item: atk.bagEntry, x, y });
           log(`${u.name} достаёт и бросает ${atk.w.name.toLowerCase()}: оно падает на землю.`);
+          if (ui()) ui().refresh();
+        }
+      } else if (atk.slot === "off") {
+        if (!u.disarmedOff && c.equip.off) {
+          S.drops.push({ kind: "weapon", hero: c.id, slot: "off", item: c.equip.off, x, y });
+          u.disarmedOff = true;
+          log(`${u.name} бросает ${atk.w.name.toLowerCase()} из другой руки: оно падает на землю.`);
           if (ui()) ui().refresh();
         }
       } else if (!u.disarmed && c.equip.main) {
@@ -130,6 +143,7 @@
     if (atk.w) return atk.thrown ? "броском: " + atk.w.name.toLowerCase() : atk.w.name.toLowerCase();
     return "голыми руками";
   }
+  B.runAttackBase = (...a) => runAttack(...a);
   async function runAttack(u, atk) {
     const targets = B.attackTargets(u, atk), objs = B.objectTargets ? B.objectTargets(u, atk) : [];
     if (!targets.length && !objs.length) { UI().toast("Нет целей в досягаемости"); return false; }
@@ -219,8 +233,10 @@
     const adv = [], dis = [];
     if (u.hero && u.hero.equip && itemOf(u.hero.equip.body) && itemOf(u.hero.equip.body).stealth) dis.push("тяжёлая броня");
     const main = B.mainOf(u); if (main && main.id === "tower-shield") dis.push("ростовой щит");
+    if (u.race === "dwarf") dis.push("тяжёлая поступь");
     const mods = [];          // решение автора: одноручный щит — минус к Скрытности
     if (u.pass.includes("ash-wraith")) dis.push("светится");                                       // «Тлеющее тело»: тусклый свет мешает прятаться
+    if (u.race === "darkfairy" && spot === "в тени") adv.push("тёмная фея в тени");
     const r = await B.doCheck(u, "stealth", { title: o.title || "Спрятаться", label: `${spot} · Сл ${dc}`, dc, adv, dis, mods, cancel: !!o.cancel, onCommit: () => { if (o.time) spendTime(u, o.time); }, tags: ["hide"] });
     if (!r) return null;
     if (r.ok) { addStatus(u, "hidden", { k: Infinity }); log(`${u.name} прячется (${r.total} против ${dc}).`); const g = ui(); if (g) g.fxText(u, "скрыт", "good"); }
@@ -321,10 +337,28 @@
     if (!cands.length) { UI().toast("Некого перевязывать: нет кровотечения"); return false; }
     const t = cands.length === 1 ? cands[0] : await UI().pickUnit({ prompt: "Перевязать: кого?", units: cands.map(a => a.id), cells: [], kind: "heal" });
     if (!t) return false;
+    const trained = u.hero && typeof eduKnows === "function" && eduKnows(u.hero, "aid") && countGear(u.hero, "firstaid") > 0;          // курс первой помощи + набор: перевязка без броска
+    if (trained) { takeGear(u.hero, "firstaid", 1); spendTime(u, "action"); removeStatus(t, "bleeding"); log(`${u.name} умело перевязывает ${t.name}: кровотечение остановлено.`, "good"); UI().fxText(t, "перевязан", "good"); return true; }
     const r = await B.doCheck(u, "medicine", { title: "Перевязать", label: `${t.name} · Сл 10`, dc: 10, cancel: true, onCommit: () => spendTime(u, "action") });
     if (!r) return false;
     if (r.ok) { removeStatus(t, "bleeding"); log(`${u.name} перевязывает ${t.name}: кровотечение остановлено.`, "good"); UI().fxText(t, "перевязан", "good"); }
     else { log(`${u.name} не справляется с перевязкой.`); UI().fxText(t, "не вышло", "bad"); }
+    return true;
+  }
+  // Набор первой помощи (черновик): действие; останавливает кровотечение, лечит 1к4 ОЗ и поднимает павшего. Курс Академии: +2 и Мудрость к лечению.
+  async function doFirstAid(u) {
+    const c = u.hero, pool = [u, ...alliesOf(u).filter(a => dist(u, a) <= 1 && !a.dead)].filter(a => a.hp < a.maxHp || a.down || has(a, "bleeding"));
+    if (!pool.length) { UI().toast("Некому помогать"); return false; }
+    const t = pool.length === 1 ? pool[0] : await UI().pickUnit({ prompt: "Первая помощь: кому?", units: pool.map(a => a.id), cells: [], kind: "heal", includeSelf: true });
+    if (!t) return false;
+    const trained = typeof eduKnows === "function" && eduKnows(c, "aid"), bonus = trained ? 2 + Math.max(0, amod(u.abil.wis)) : 0;
+    const ses = B.session(u, { kind: "heal", u, title: "Первая помощь", sub: `${u.name} → ${t.name}` });
+    const r = await ses.dice({ label: `Лечение 1к4${bonus ? " + " + bonus : ""}${trained ? " (курс)" : ""}`, n: 1, s: 4, bonus, heal: true, cancel: true, reroll: B.rerollOptions(u, "heal") });
+    if (!r) { ses.close(); return false; }
+    takeGear(c, "firstaid", 1); spendTime(u, "action");
+    removeStatus(t, "bleeding");
+    const got = heal(t, Math.max(1, r.sum + bonus), u);
+    await ses.finish({ text: got ? `Восстановлено ${got} ОЗ` : "Кровотечение остановлено", heal: true, tgt: t, dmg: got });
     return true;
   }
   async function doSearch(u) {
@@ -400,7 +434,7 @@
     if (!here.length) return false;
     for (const w of here) {
       S.drops.splice(S.drops.indexOf(w), 1);
-      if (w.slot === "bag") u.bagThrown = (u.bagThrown || []).filter(e => e !== w.item); else u.disarmed = false;          // брошенное из рюкзака возвращается в рюкзак
+      if (w.slot === "bag") u.bagThrown = (u.bagThrown || []).filter(e => e !== w.item); else if (w.slot === "off") u.disarmedOff = false; else u.disarmed = false;          // брошенное из рюкзака возвращается в рюкзак
     }
     log(`${u.name} подбирает ${dropNames(here)}.`, "good");
     const g = ui(); if (g) { g.fxText(u, here.some(w => w.slot !== "bag") ? "оружие в руке" : "подобрано", "good"); g.refresh(); }
@@ -522,11 +556,12 @@
     const t = u.t;
     // атаки
     for (const atk of heroAttacks(u)) {
-      const why = timeWhy(u, atk.time) || (atk.ammo && countGear(u.hero, "arrow") < 1 ? "нет стрел" : ((B.attackTargets(u, atk).length || (B.objectTargets && B.objectTargets(u, atk).length)) ? null : "нет целей рядом"));
+      const why = timeWhy(u, atk.time) || (atk.alsoBonus && timeWhy(u, "bonus") ? "нужно ещё и доп. действие" : null) || (atk.needTarget ? atk.needTarget(u) : (atk.ammo && countGear(u.hero, "arrow") < 1 ? "нет стрел" : ((B.attackTargets(u, atk).length || (B.objectTargets && B.objectTargets(u, atk).length)) ? null : "нет целей рядом")));
       opts.push({ id: "atk:" + atk.id, cat: "attack", label: atk.n, ico: atk.ammo ? "bow" : atk.thrown ? "throwing" : atk.id === "fist" ? "fist" : atk.id === "torchhit" ? "torch" : "attack",
         sub: `${atkWith(atk)} · ${atk.kind === "melee" ? "до " + (atk.reach || 1) + " кл." : atk.range[0] >= B.W - 1 ? "дальний · всё поле" : `дальний · ${atk.range[0]} кл., до ${Math.min(atk.range[1], 12)} с помехой`} · ${atk.dmg.n ? fmtDice(atk.dmg) : atk.dmg.b} ${D.DT[atk.dt]}${atk.penalty ? " · " + atk.penaltyLabel : ""}${atk.spin ? " · вращающийся удар" : ""}${atk.ammo ? " · стрел: " + countGear(u.hero, "arrow") : ""}`,
-        time: atk.time, enabled: !why, why, atk, run: () => runAttack(u, atk) });
+        time: atk.time, enabled: !why, why, atk, run: () => (atk.special && B.runSpecial ? B.runSpecial(u, atk) : runAttack(u, atk)) });
     }
+    if (B.weapActions) opts.push(...B.weapActions(u));
     // навыки эссенций и особенности пассивок
     opts.push(...skillOptions(u));
     // движение
@@ -549,6 +584,8 @@
     if ([u, ...alliesOf(u)].some(a => has(a, "bleeding") && dist(u, a) <= 1 && !a.dead)) opts.push(simple("bandage", "Перевязать", "heart", "остановить кровотечение: Медицина Сл 10", () => doBandage(u), { enabled: !act, why: act }));
     if (B.S.objs.some(o => o.kind === "trap" && o.hidden) || B.mons().some(m => B.isUnseen(m) && alive(m))) opts.push(simple("search", "Осмотреться", "search", "найти скрытые ловушки и затаившихся врагов", () => doSearch(u), { enabled: !act, why: act }));
     // предметы
+    if (countGear(u.hero, "firstaid") > 0) { const hurtNear = [u, ...alliesOf(u).filter(a => dist(u, a) <= 1 && !a.dead)].some(a => a.hp < a.maxHp || a.down || has(a, "bleeding"));
+      opts.push(simple("firstaid", "Первая помощь", "heart", `набор: ${countGear(u.hero, "firstaid")} · кровотечение, 1к4 ОЗ, поднять павшего${typeof eduKnows === "function" && eduKnows(u.hero, "aid") ? " · обучен" : ""}`, () => doFirstAid(u), { enabled: !act && hurtNear, why: act || "некому помогать", useless: !hurtNear })); }
     if (B.envActions) opts.push(...B.envActions(u));                                                // находки, сундуки
     const c = u.hero, bon = timeWhy(u, "bonus"), act0 = timeWhy(u, "action");
     for (const pid of ["potion-good", "potion"]) if (countGear(c, pid) > 0) {
@@ -561,7 +598,7 @@
       opts.push({ id: "chalice-fill", cat: "item", label: "Набрать воды в чашу", ico: "potion", sub: "рядом лужа или пруд: через 2 дня вода станет зельем", time: "bonus", enabled: !bon && wet, why: bon || "нет воды рядом", useless: true, run: async () => { chaliceFill(chalicesOf(c, "empty")[0]); spendTime(u, "bonus"); log(`${u.name} набирает воды в чашу здоровья.`, "good"); return true; } }); }
     if ((countGear(c, "torch") > 0 || B.S.torchLeft > 0) && B.S.dark && !B.S.torch) opts.push({ id: "torch", cat: "item", label: "Зажечь факел", ico: "torch", sub: B.S.torchLeft > 0 ? `полное действие · догорит через ${B.S.torchLeft} р.` : "полное действие · один факел светит 3 раунда", time: "action", enabled: !act0, why: act0, run: () => lightTorch(u) });
     if (B.S.dark && B.S.torch && !B.S.torchFixed) opts.push({ id: "douse", cat: "item", label: "Потушить факел", ico: "torch", sub: `доп. действие · остаток света ${B.S.torchLeft} р. сохранится`, time: "bonus", enabled: !bon, why: bon, run: () => douseTorch(u) });
-    const off = c.equip.off ? itemOf(c.equip.off) : null, main = B.mainOf(u);
+    const off = B.offOf(u), main = B.mainOf(u);
     if (off && off.id === "shield") opts.push({ id: "shieldbash", cat: "attack", label: "Удар щитом", ico: "shield", sub: "щитом · толчок, доп. действие", time: "bonus", enabled: !bon && enemiesOf(u).some(e => dist(u, e) <= 1), why: bon || "нет врага рядом", run: () => doShove(u, "bonus") });
     if (main && main.id === "tower-shield") opts.push({ id: "cover", cat: "other", label: "Прикрыть союзника", ico: "shield", sub: "+2 КД союзнику рядом до вашего хода", time: "bonus", enabled: !bon && alliesOf(u).some(a => dist(u, a) <= 1 && !a.down), why: bon || "нет союзника рядом", run: () => coverAlly(u) });
     const here = dropsHere(u);
