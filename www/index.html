@@ -1889,8 +1889,8 @@ const DISTRICTS = [
 
 // Готовые рисованные картинки (webp) заменяют векторные заглушки.
 // Дата сборки для телефона: build.sh вписывает её сюда, в веб-версии строка пустая.
-const APP_BUILD = "26.10.2026 00:45";
-const APP_VERSION = 1792957501;                 // номер сборки, тоже вписывает build.sh
+const APP_BUILD = "26.10.2026 01:17";
+const APP_VERSION = 1792959441;                 // номер сборки, тоже вписывает build.sh
 const UPDATE_URL = "https://raw.githubusercontent.com/Sayat9/Sputnik/main/www/";
 const RASTER = new Set(["items/mace", "items/warhammer", "items/armor-leather", "items/armor-hide", "items/armor-chainmail", "items/steel-dagger", "items/steel-sword", "items/steel-greatsword", "items/steel-shield", "items/steel-tower-shield", "items/shortbow", "items/longbow", "items/rapier", "items/shield", "items/tower-shield", "items/unknown-mushroom", "items/stone-9", "items/stone-8", "items/stone-7", "items/ration", "items/potion", "items/torch", "items/arrows", "items/clothes", "items/shovel", "items/shovel-good", "items/shovel-best", "items/dagger", "items/sword", "items/greatsword", "items/spear", "monsters/goblin-king-face", "monsters/goblin-king-full", "monsters/goblin-bomber-face", "monsters/goblin-bomber-full", "monsters/hobgoblin-shield-face", "monsters/hobgoblin-shield-full", "races/barbarian", "races/human", "races/dwarf", "races/beastkin", "races/fairy", "races/dragon", "monsters/goblin-face", "monsters/goblin-full", "monsters/goblin-archer-face", "monsters/goblin-archer-full", "monsters/goblin-sword-face", "monsters/goblin-sword-full", "monsters/goblin-spear-face", "monsters/goblin-spear-full", "monsters/wolf-face", "monsters/wolf-full", "monsters/fox-face", "monsters/fox-full", "monsters/mouse-face", "monsters/mouse-full", "monsters/bat-face", "monsters/bat-full", "monsters/hobgoblin-face", "monsters/hobgoblin-full", "monsters/zombie-face", "monsters/zombie-full", "monsters/skeleton-face", "monsters/skeleton-full", "monsters/skeleton-archer-face", "monsters/skeleton-archer-full", "monsters/ghoul-face", "monsters/ghoul-full", "monsters/dark-bear-face", "monsters/dark-bear-full", "monsters/skeleton-warrior-face", "monsters/skeleton-warrior-full", "monsters/living-stone-face", "monsters/living-stone-full", "monsters/wisp-face", "monsters/wisp-full", "monsters/pixie-face", "monsters/pixie-full", "monsters/green-boulder-face", "monsters/green-boulder-full", "monsters/stone-guardian-face", "monsters/stone-guardian-full", "monsters/spider-queen-face", "monsters/spider-queen-full", "monsters/ash-wraith-face", "monsters/ash-wraith-full", "monsters/ash-spirit-face", "monsters/ash-spirit-full", "monsters/plague-fat-face", "monsters/plague-fat-full", "monsters/bone-hound-face", "monsters/bone-hound-full", "monsters/dust-crawler-face", "monsters/dust-crawler-full", "monsters/faceless-ringer-face", "monsters/faceless-ringer-full", "monsters/mirror-dead-face", "monsters/mirror-dead-full", "monsters/whisperer-face", "monsters/whisperer-full", "monsters/morok-face", "monsters/morok-full", "monsters/grey-shade-face", "monsters/grey-shade-full", "monsters/blackwing-face", "monsters/blackwing-full", "monsters/swamp-fang-face", "monsters/swamp-fang-full", "monsters/web-spider-face", "monsters/web-spider-full", "monsters/goblin-shaman-face", "monsters/goblin-shaman-full", "monsters/goblin-assassin-face", "monsters/goblin-assassin-full", "monsters/goblin-trapper-face", "monsters/goblin-trapper-full", "monsters/goblin-elder-face", "monsters/goblin-elder-full", "monsters/hobgoblin-brute-face", "monsters/hobgoblin-brute-full", "monsters/hobgoblin-thrower-face", "monsters/hobgoblin-thrower-full", "monsters/hobgoblin-driver-face", "monsters/hobgoblin-driver-full", "monsters/goblin-thief-face", "monsters/goblin-thief-full", "monsters/horned-hare-face", "monsters/horned-hare-full", "monsters/swamp-toad-face", "monsters/swamp-toad-full", "monsters/burrower-face", "monsters/burrower-full", "monsters/crow-face", "monsters/crow-full", "monsters/dire-wolf-face", "monsters/dire-wolf-full", "monsters/werewolf-face", "monsters/werewolf-full", "monsters/giant-mole-face", "monsters/giant-mole-full", "monsters/bone-knight-face", "monsters/bone-knight-full", "monsters/gravedigger-face", "monsters/gravedigger-full", "monsters/corpse-eater-face", "monsters/corpse-eater-full", "monsters/drop-face", "monsters/drop-full", "monsters/dust-whirl-face", "monsters/dust-whirl-full", "monsters/magma-hound-face", "monsters/magma-hound-full", "monsters/crystalloid-face", "monsters/crystalloid-full", "monsters/lake-spirit-face", "monsters/lake-spirit-full", "monsters/magma-golem-face", "monsters/magma-golem-full", "monsters/deep-serpent-face", "monsters/deep-serpent-full", "monsters/crystal-colossus-face", "monsters/crystal-colossus-full", "monsters/storm-spirit-face", "monsters/storm-spirit-full", "monsters/rift-heart-face", "monsters/rift-heart-full", "items/compass", "items/steel-mace", "items/steel-rapier", "items/unknown-herb", "items/twin-daggers", "items/unknown-stone", "items/steel-twin-daggers", "items/potion-good", "items/coins", "items/steel-spear", "items/steel-warhammer", "items/steel-shortbow", "items/steel-longbow", "items/steel-armor-leather", "items/steel-armor-hide", "items/steel-armor-chainmail", "items/gloves", "items/staff", "items/axe", "items/greataxe", "items/firstaid", "items/flute", "items/chalice", "items/once-more", "items/guard", "items/beginners-luck", "buildings/tower", "buildings/guild", "buildings/church", "buildings/library", "buildings/gate", "buildings/tavern", "buildings/shop", "buildings/forge", "monsters/rat-face", "monsters/rat-full", "monsters/rat-king-face", "monsters/rat-king-full", "monsters/rat-catcher-face", "monsters/rat-catcher-full"]);
 const artPath = p => `assets/${p}.${RASTER.has(p) ? "webp" : "svg"}`;
@@ -4527,27 +4527,46 @@ const PX = (() => {
   const rng0 = seed => () => { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed / 4294967296; };
   const cv = (w, h, fn) => { try { const c = document.createElement("canvas"); c.width = w; c.height = h; const g = c.getContext("2d"); fn(g); return c.toDataURL(); } catch (e) { return ""; } };
   const R = (g, x, y, w, h, c) => { g.fillStyle = c; g.fillRect(x, y, w, h); };
-  const PAL = {
-    goblin: ["#5e4e2c", "#6c5a34", "#4d3f23", "#7c6a3e"], beast: ["#355a2a", "#406636", "#2a4a22", "#53803c"],
-    undead: ["#494557", "#56526a", "#3a3649", "#676380"], stone: ["#43515d", "#506069", "#38444e", "#6a7d8b"], safe: ["#6a5a40", "#766449", "#54462f", "#85735a"],
+  // Стили плиток: палитра из 4 цветов + особенность. Базовые — по зоне, остальные — по месту этажа (логова, топь, паучьи кроны, склеп, печь…).
+  const STY = {
+    goblin: [["#5e4e2c", "#6c5a34", "#4d3f23", "#7c6a3e"], "dirt"], beast: [["#355a2a", "#406636", "#2a4a22", "#53803c"], "grass"],
+    undead: [["#494557", "#56526a", "#3a3649", "#676380"], "cracks"], stone: [["#43515d", "#506069", "#38444e", "#6a7d8b"], "veins"], safe: [["#6a5a40", "#766449", "#54462f", "#85735a"], "flags"],
+    den: [["#4a3a22", "#58462a", "#3a2d1a", "#6a5634"], "dirt"], camp: [["#6a5a34", "#786640", "#54462a", "#8a7648"], "straw"], warren: [["#4a3c26", "#56462e", "#382c1c", "#64523a"], "holes"],
+    ruins: [["#5a5850", "#68665c", "#48463e", "#7a786e"], "slabs"], cave: [["#4a4a4e", "#56565a", "#3a3a3e", "#68686e"], "rockcr"], swamp: [["#3a4a34", "#46583c", "#2e3c2a", "#566a46"], "water"],
+    web: [["#2e4426", "#385030", "#243820", "#4a6a3c"], "web"], hills: [["#42703a", "#4c7e42", "#365e30", "#62964e"], "lumps"],
+    crypt: [["#3c3a48", "#46445a", "#2e2c3a", "#585670"], "slabs"], furnace: [["#4a403c", "#584e4a", "#3a322e", "#6c6058"], "embers"], bonefield: [["#6a665e", "#78746a", "#56524a", "#8a867a"], "bones"],
+    mines: [["#3c4a58", "#485868", "#303c48", "#5c7084"], "wind"], lake: [["#2c5878", "#366888", "#244a66", "#4c88aa"], "water2"], lava: [["#4a2a26", "#5a3430", "#3a201c", "#7a4638"], "lava"], garden: [["#3c5a78", "#486a8a", "#304a64", "#6a9ac0"], "crystals"],
   };
   const N = 15, VARS = 5;
-  function tex(zone, v) {
+  function tex(style, v) {
     return cv(N, N, g => {
-      const rnd = rng0(zone.length * 977 + v * 131 + zone.charCodeAt(0)), P = PAL[zone];
+      const [P, feat] = STY[style], rnd = rng0(style.length * 977 + v * 131 + style.charCodeAt(0) * 7 + style.charCodeAt(style.length - 1));
       for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) { const r = rnd(); R(g, x, y, 1, 1, r < .5 ? P[0] : r < .8 ? P[1] : r < .94 ? P[2] : P[3]); }
-      const spots = (n, c, w, h) => { for (let i = 0; i < n; i++) R(g, Math.floor(rnd() * (N - w)), Math.floor(rnd() * (N - h)), w, h, c); };
-      if (zone === "goblin") { spots(5, "#3e3219", 1, 1); spots(3, "#8a7848", 2, 1); spots(2, "#5a6a2a", 1, 2); }
-      else if (zone === "beast") { for (let i = 0; i < 9; i++) { const x = Math.floor(rnd() * N), y = 1 + Math.floor(rnd() * (N - 2)); R(g, x, y - 1, 1, 2, i % 3 ? "#5f8e44" : "#243f1c"); } if (v % 2) { const x = 2 + Math.floor(rnd() * 11), y = 2 + Math.floor(rnd() * 11); R(g, x, y, 1, 1, "#e8d878"); } }
-      else if (zone === "undead") { spots(4, "#2c2938", 1, 1); const x = 2 + Math.floor(rnd() * 8), y = 2 + Math.floor(rnd() * 10); R(g, x, y, 1, 1, "#2c2938"); R(g, x + 1, y + 1, 1, 1, "#2c2938"); R(g, x + 2, y + 1, 1, 2, "#2c2938"); spots(2, "#3f6a46", 2, 1); }
-      else if (zone === "stone") { const x = 3 + Math.floor(rnd() * 8); for (let i = 0; i < 6; i++) R(g, x + (i % 2), 1 + i * 2, 1, 2, "#2c363f"); spots(2, "#8ad0e0", 1, 1); spots(3, "#2c363f", 1, 1); }
-      else { for (let y = 0; y < N; y += 5) R(g, 0, y, N, 1, "#3a2f1e"); for (let y = 0; y < 3; y++) for (let x = (y % 2) * 3 + 2; x < N; x += 7) R(g, x, y * 5, 1, 5, "#3a2f1e"); }
+      const sp = (n, c, w, h) => { for (let i = 0; i < n; i++) R(g, Math.floor(rnd() * (N - w)), Math.floor(rnd() * (N - h)), w, h, c); };
+      const line = (pts, c) => pts.forEach(([x, y]) => R(g, x, y, 1, 1, c));
+      if (feat === "dirt") { sp(5, "#3e3219", 1, 1); sp(3, "#8a7848", 2, 1); sp(2, "#5a6a2a", 1, 2); }
+      else if (feat === "grass") { for (let i = 0; i < 9; i++) { const x = Math.floor(rnd() * N), y = 1 + Math.floor(rnd() * (N - 2)); R(g, x, y - 1, 1, 2, i % 3 ? "#5f8e44" : "#243f1c"); } if (v % 2) R(g, 2 + Math.floor(rnd() * 11), 2 + Math.floor(rnd() * 11), 1, 1, "#e8d878"); }
+      else if (feat === "cracks") { sp(4, "#2c2938", 1, 1); const x = 2 + Math.floor(rnd() * 8), y = 2 + Math.floor(rnd() * 10); line([[x, y], [x + 1, y + 1], [x + 2, y + 1], [x + 2, y + 2]], "#2c2938"); sp(2, "#3f6a46", 2, 1); }
+      else if (feat === "veins") { const x = 3 + Math.floor(rnd() * 8); for (let i = 0; i < 6; i++) R(g, x + (i % 2), 1 + i * 2, 1, 2, "#2c363f"); sp(2, "#8ad0e0", 1, 1); sp(3, "#2c363f", 1, 1); }
+      else if (feat === "flags") { for (let y = 0; y < N; y += 5) R(g, 0, y, N, 1, "#3a2f1e"); for (let y = 0; y < 3; y++) for (let x = (y % 2) * 3 + 2; x < N; x += 7) R(g, x, y * 5, 1, 5, "#3a2f1e"); }
+      else if (feat === "straw") { sp(7, "#c8b060", 2, 1); sp(4, "#a08a44", 1, 1); sp(3, "#3e3219", 1, 1); }
+      else if (feat === "holes") { for (let i = 0; i < 3; i++) { const x = 1 + Math.floor(rnd() * 11), y = 1 + Math.floor(rnd() * 11); R(g, x, y, 3, 2, "#120d08"); R(g, x + 1, y - 1, 1, 1, "#120d08"); R(g, x, y + 2, 3, 1, "#6a563a"); } }
+      else if (feat === "slabs") { for (let y = 0; y < N; y += 4) R(g, 0, y, N, 1, "#25232c"); for (let y = 0; y < 4; y++) for (let x = (y % 2) * 3 + 2; x < N; x += 6) R(g, x, y * 4, 1, 4, "#25232c"); sp(2, "#3f6a46", 2, 1); }
+      else if (feat === "rockcr") { sp(4, "#2a2a2e", 2, 1); line([[3, 2], [4, 3], [4, 4], [5, 5], [6, 5], [6, 6]], "#202024"); sp(3, "#7a7a82", 1, 1); }
+      else if (feat === "water") { sp(3, "#4a90a8", 3, 2); sp(2, "#7ab8c8", 1, 1); sp(4, "#2a3a26", 1, 1); R(g, 1 + Math.floor(rnd() * 10), 1 + Math.floor(rnd() * 11), 1, 3, "#7a9a4a"); }
+      else if (feat === "web") { const c = "#d8d8e0"; for (let i = 0; i < N; i += 1) { R(g, i, i, 1, 1, c); R(g, N - 1 - i, i, 1, 1, i % 2 ? c : "#a8a8b4"); } R(g, 7, 0, 1, N, "#c0c0cc"); R(g, 0, 7, N, 1, "#c0c0cc"); for (const r of [3, 5]) for (let a = 0; a < 8; a++) { const px = 7 + Math.round(r * Math.cos(a * Math.PI / 4)), py = 7 + Math.round(r * Math.sin(a * Math.PI / 4)); R(g, px, py, 1, 1, "#e8e8f0"); } }
+      else if (feat === "lumps") { for (let i = 0; i < 4; i++) { const x = 1 + Math.floor(rnd() * 11), y = 2 + Math.floor(rnd() * 10); R(g, x, y, 3, 1, "#7ab062"); R(g, x, y + 1, 4, 1, "#2e5a28"); } sp(4, "#8ac070", 1, 1); }
+      else if (feat === "embers") { sp(6, "#2a2420", 1, 1); sp(4, "#e8802c", 1, 1); sp(2, "#f0c060", 1, 1); sp(3, "#8a8078", 2, 1); }
+      else if (feat === "bones") { sp(3, "#e0d8c4", 3, 1); sp(2, "#c8c0ac", 1, 2); sp(2, "#3a362e", 1, 1); R(g, 2 + Math.floor(rnd() * 9), 2 + Math.floor(rnd() * 10), 2, 2, "#e8e0cc"); }
+      else if (feat === "wind") { for (let i = 0; i < 3; i++) { const y = 2 + i * 5 + Math.floor(rnd() * 2), x = Math.floor(rnd() * 5); R(g, x, y, 6, 1, "#8aa8c0"); R(g, x + 6, y - 1, 2, 1, "#8aa8c0"); R(g, x + 8, y, 1, 1, "#8aa8c0"); } sp(2, "#2c3844", 1, 1); }
+      else if (feat === "water2") { for (let i = 0; i < 4; i++) { const y = 1 + i * 4, x = Math.floor(rnd() * 6); R(g, x, y, 4, 1, "#7ab8dc"); R(g, x + 5, y + 1, 3, 1, "#7ab8dc"); } sp(3, "#1c3a54", 2, 1); }
+      else if (feat === "lava") { line([[2, 1], [3, 2], [3, 3], [4, 4], [5, 4], [5, 5], [6, 6], [7, 7], [7, 8], [8, 9], [9, 9], [10, 10]], "#f08030"); line([[3, 1], [4, 3], [6, 5], [8, 8]], "#ffd070"); sp(4, "#241210", 2, 1); sp(3, "#c85028", 1, 1); }
+      else if (feat === "crystals") { sp(3, "#a8e0f0", 1, 2); sp(4, "#2c4a68", 1, 1); sp(2, "#f0f8ff", 1, 1); for (let i = 0; i < 2; i++) { const x = 1 + Math.floor(rnd() * 12), y = 3 + Math.floor(rnd() * 10); R(g, x, y, 1, 3, "#6ac8e0"); R(g, x, y - 1, 1, 1, "#b8f0ff"); } }
     });
   }
   const dark = cv(N, N, g => { for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) R(g, x, y, 1, 1, (x + y) % 2 ? "#17130e" : "#100d09"); });
-  const urls = {}; for (const z of Object.keys(PAL)) urls[z] = Array.from({ length: VARS }, (_, v) => tex(z, v));
-  // значки 12×12: рисуем прямоугольниками
-  const S = (fn) => cv(12, 12, g => fn(g));
+  const urls = {}; for (const z of Object.keys(STY)) urls[z] = Array.from({ length: VARS }, (_, v) => tex(z, v));
+  const S = fn => cv(12, 12, g => fn(g)), B = fn => cv(16, 16, g => fn(g));
   const spr = {
     tent: S(g => { R(g, 5, 1, 2, 1, "#a07a46"); R(g, 4, 2, 4, 1, "#a07a46"); R(g, 3, 3, 6, 2, "#8a6638"); R(g, 2, 5, 8, 2, "#7a5830"); R(g, 1, 7, 10, 3, "#6b4a2a"); R(g, 5, 7, 2, 3, "#1a1008"); R(g, 5, 0, 1, 1, "#c8b080"); }),
     fire: S(g => { R(g, 2, 8, 8, 2, "#5a4a3a"); R(g, 4, 7, 4, 1, "#7a6a50"); R(g, 5, 3, 2, 4, "#e8902c"); R(g, 4, 5, 4, 2, "#f0b443"); R(g, 5, 2, 1, 2, "#e8902c"); R(g, 5, 5, 2, 1, "#fff0b0"); }),
@@ -4565,6 +4584,7 @@ const PX = (() => {
     ribs: S(g => { R(g, 5, 1, 2, 10, "#d8d0bc"); for (const y of [3, 5, 7]) { R(g, 2, y, 3, 1, "#c8c0ac"); R(g, 7, y, 3, 1, "#c8c0ac"); } }),
     crack: S(g => { for (const [x, y] of [[1, 1], [2, 2], [3, 3], [3, 4], [4, 5], [5, 6], [5, 7], [6, 8], [7, 8], [8, 9], [4, 3], [5, 3]]) R(g, x, y, 1, 1, "#14121a"); }),
     crystal: S(g => { R(g, 3, 3, 2, 7, "#5ab8c8"); R(g, 4, 1, 1, 3, "#7ad0dc"); R(g, 6, 5, 3, 5, "#7ad0dc"); R(g, 7, 3, 1, 3, "#a8e8f0"); R(g, 4, 3, 1, 6, "#a8e8f0"); R(g, 2, 10, 8, 1, "#1e5a66"); }),
+    crystal2: S(g => { R(g, 5, 2, 2, 8, "#8ac8f0"); R(g, 6, 0, 1, 3, "#c0e8ff"); R(g, 3, 5, 2, 5, "#5a9ad0"); R(g, 8, 6, 2, 4, "#5a9ad0"); R(g, 5, 3, 1, 6, "#d8f4ff"); R(g, 2, 10, 8, 1, "#24466a"); }),
     rocks: S(g => { R(g, 1, 6, 5, 4, "#6c7078"); R(g, 6, 5, 5, 5, "#5a5e66"); R(g, 2, 5, 3, 1, "#8a8e98"); R(g, 7, 4, 3, 1, "#7a7e88"); R(g, 1, 10, 10, 1, "#2a2e34"); }),
     moss: S(g => { R(g, 2, 5, 8, 4, "#3e6a34"); R(g, 4, 4, 5, 1, "#3e6a34"); R(g, 3, 6, 3, 1, "#5a8a44"); R(g, 7, 7, 2, 1, "#5a8a44"); }),
     rune: S(g => { R(g, 5, 1, 2, 1, "#8ac8d4"); R(g, 4, 2, 1, 1, "#8ac8d4"); R(g, 7, 2, 1, 1, "#8ac8d4"); R(g, 3, 3, 1, 5, "#8ac8d4"); R(g, 8, 3, 1, 5, "#8ac8d4"); R(g, 4, 8, 4, 1, "#8ac8d4"); R(g, 5, 4, 2, 3, "#5aa0b0"); }),
@@ -4576,29 +4596,82 @@ const PX = (() => {
     ruin2: S(g => { R(g, 4, 1, 4, 10, "#8a8478"); R(g, 3, 1, 6, 1, "#a09a8c"); R(g, 5, 4, 1, 3, "#33302a"); R(g, 3, 11, 6, 1, "#33302a"); }),
     ruin3: S(g => { R(g, 1, 8, 4, 3, "#6a665c"); R(g, 4, 6, 4, 5, "#7a766c"); R(g, 7, 8, 4, 3, "#6a665c"); R(g, 5, 5, 2, 1, "#8a867c"); }),
     ruin4: S(g => { R(g, 1, 6, 10, 5, "#5d5a50"); R(g, 4, 4, 3, 2, "#5d5a50"); R(g, 5, 7, 2, 4, "#1a160f"); R(g, 1, 11, 10, 1, "#2a2822"); }),
+    hut: S(g => { R(g, 2, 6, 8, 4, "#8a6a3e"); R(g, 1, 5, 10, 1, "#6a4a28"); R(g, 2, 3, 8, 2, "#a8863e"); R(g, 4, 1, 4, 2, "#b8963e"); R(g, 5, 7, 2, 3, "#1a1008"); R(g, 3, 7, 1, 1, "#e8b440"); }),
+    bag: S(g => { R(g, 3, 5, 6, 5, "#8a6a3e"); R(g, 4, 3, 4, 2, "#8a6a3e"); R(g, 4, 4, 4, 1, "#c8a050"); R(g, 5, 6, 2, 1, "#e8c860"); R(g, 3, 10, 6, 1, "#4a3a22"); R(g, 9, 4, 1, 5, "#c0c0c8"); R(g, 9, 3, 1, 1, "#e8e8f0"); }),
+    hole: S(g => { R(g, 2, 5, 8, 4, "#5a4a30"); R(g, 3, 4, 6, 1, "#5a4a30"); R(g, 3, 5, 6, 3, "#0e0a06"); R(g, 4, 8, 4, 1, "#0e0a06"); R(g, 4, 6, 1, 1, "#e8c0a0"); R(g, 7, 6, 1, 1, "#e8c0a0"); }),
+    stalag: S(g => { R(g, 3, 4, 2, 6, "#8a8a92"); R(g, 4, 1, 1, 4, "#a8a8b0"); R(g, 7, 5, 2, 5, "#7a7a82"); R(g, 8, 3, 1, 3, "#9a9aa2"); R(g, 2, 10, 8, 1, "#2a2a2e"); }),
+    reed: S(g => { for (const [x, h] of [[2, 8], [4, 9], [6, 7], [8, 9]]) { R(g, x, 10 - h, 1, h, "#5a7a3a"); R(g, x, 10 - h - 1, 1, 2, "#7a4a2a"); } R(g, 1, 10, 9, 1, "#2a3a26"); }),
+    web: S(g => { const c = "#e0e0ea"; for (let i = 0; i < 11; i++) { R(g, i, i, 1, 1, c); R(g, 10 - i, i, 1, 1, c); } R(g, 5, 0, 1, 11, "#c0c0cc"); R(g, 0, 5, 11, 1, "#c0c0cc"); R(g, 4, 4, 3, 3, "#f0f0f8"); }),
+    lavacrack: S(g => { for (const [x, y] of [[1, 1], [2, 2], [3, 3], [3, 4], [4, 5], [5, 6], [6, 6], [7, 7], [8, 8], [9, 9]]) { R(g, x, y, 1, 1, "#f08030"); R(g, x + 1, y, 1, 1, "#a83a1c"); } R(g, 5, 5, 1, 1, "#ffd070"); }),
+    wind: S(g => { R(g, 1, 3, 6, 1, "#9ab8d0"); R(g, 7, 2, 2, 1, "#9ab8d0"); R(g, 9, 3, 1, 1, "#9ab8d0"); R(g, 2, 6, 7, 1, "#7a98b0"); R(g, 9, 5, 2, 1, "#7a98b0"); R(g, 1, 9, 5, 1, "#9ab8d0"); R(g, 6, 8, 2, 1, "#9ab8d0"); }),
   };
-  const sets = { goblin: ["tent", "fire", "bones", "spear", "tufts"], beast: ["tree", "bush", "tracks", "rock", "shroom"], undead: ["tomb", "cross", "skull", "ribs", "crack"], stone: ["crystal", "rocks", "moss", "rune", "boulder"], pond: ["pond1", "pond2", "pond3"], ruins: ["ruin1", "ruin2", "ruin3", "ruin4"] };
+  // Особые клетки 16×16 (рисуются крупно, одна на плитку)
+  const big = {
+    nest: B(g => { R(g, 3, 9, 10, 4, "#6a4a28"); R(g, 2, 10, 12, 3, "#7a5a32"); R(g, 4, 13, 8, 1, "#4a3018"); for (const x of [3, 6, 9, 12]) R(g, x, 8, 1, 2, "#8a6a3a"); R(g, 5, 6, 6, 4, "#14121a"); R(g, 4, 7, 2, 2, "#14121a"); R(g, 10, 4, 3, 3, "#14121a"); R(g, 13, 5, 2, 1, "#e0a030"); R(g, 11, 5, 1, 1, "#e8e8f0"); R(g, 7, 8, 2, 2, "#e8e0c0"); R(g, 1, 3, 1, 4, "#14121a"); R(g, 2, 2, 2, 1, "#14121a"); }),
+    bell: B(g => { R(g, 6, 1, 4, 2, "#8a8a98"); R(g, 5, 3, 6, 9, "#6e6e80"); R(g, 4, 12, 8, 2, "#5a5a6c"); R(g, 6, 5, 4, 3, "#1c1c26"); R(g, 7, 6, 2, 2, "#e0b040"); R(g, 7, 8, 2, 2, "#c89a30"); R(g, 6, 10, 1, 2, "#1c1c26"); R(g, 9, 10, 1, 2, "#1c1c26"); R(g, 2, 14, 12, 1, "#a8a8bc"); R(g, 0, 12, 4, 1, "#b8b8cc"); R(g, 12, 11, 4, 1, "#b8b8cc"); R(g, 1, 9, 3, 1, "#a8a8bc"); R(g, 6, 0, 4, 1, "#9a9aa8"); }),
+    cave: B(g => { R(g, 1, 4, 14, 10, "#5a5a60"); R(g, 3, 2, 10, 2, "#5a5a60"); R(g, 5, 1, 6, 1, "#70707a"); R(g, 4, 5, 8, 9, "#0e0c10"); R(g, 5, 4, 6, 1, "#0e0c10"); R(g, 6, 6, 1, 1, "#e8c0a0"); R(g, 9, 6, 1, 1, "#e8c0a0"); R(g, 3, 13, 10, 1, "#2a2a2e"); R(g, 6, 11, 4, 2, "#5a3a22"); R(g, 5, 10, 1, 1, "#5a3a22"); R(g, 7, 10, 1, 1, "#5a3a22"); R(g, 9, 10, 1, 1, "#5a3a22"); }),
+    crypt: B(g => { R(g, 1, 3, 14, 11, "#6a6878"); R(g, 3, 1, 10, 2, "#6a6878"); R(g, 4, 5, 8, 9, "#16141c"); R(g, 5, 4, 6, 1, "#16141c"); R(g, 6, 7, 4, 3, "#d8d0bc"); R(g, 6, 7, 1, 2, "#1a1820"); R(g, 9, 7, 1, 2, "#1a1820"); R(g, 7, 10, 2, 1, "#d8d0bc"); R(g, 2, 14, 12, 1, "#2e2c34"); R(g, 1, 3, 1, 11, "#8a8898"); R(g, 14, 3, 1, 11, "#4a4858"); }),
+    kurgan: B(g => { R(g, 1, 9, 14, 5, "#4a5a3a"); R(g, 3, 6, 10, 3, "#56683f"); R(g, 5, 4, 6, 2, "#627a48"); R(g, 7, 1, 2, 7, "#c8c8d4"); R(g, 7, 0, 2, 1, "#e8e8f4"); R(g, 5, 7, 6, 1, "#8a8a98"); R(g, 7, 8, 2, 2, "#6a4a28"); R(g, 2, 13, 12, 1, "#2a3a22"); R(g, 4, 10, 2, 1, "#d8d0bc"); R(g, 11, 11, 2, 1, "#d8d0bc"); }),
+    furnace: B(g => { R(g, 2, 4, 12, 10, "#5a5048"); R(g, 4, 1, 3, 4, "#4a4038"); R(g, 5, 0, 1, 1, "#8a8078"); R(g, 4, 7, 8, 7, "#14100c"); R(g, 5, 9, 6, 4, "#e8802c"); R(g, 6, 8, 4, 2, "#f0b443"); R(g, 7, 10, 2, 3, "#fff0b0"); R(g, 3, 5, 10, 1, "#7a7068"); R(g, 2, 14, 12, 1, "#2a2420"); R(g, 12, 2, 1, 1, "#9a9088"); R(g, 13, 1, 1, 1, "#7a7068"); }),
+    camp: B(g => { R(g, 2, 8, 12, 6, "#8a6a3e"); R(g, 1, 7, 14, 1, "#6a4a28"); R(g, 3, 4, 10, 3, "#a8863e"); R(g, 5, 2, 6, 2, "#b8963e"); R(g, 6, 9, 4, 5, "#1a1008"); R(g, 3, 9, 2, 2, "#e8b440"); R(g, 11, 9, 2, 2, "#e8b440"); R(g, 12, 0, 1, 5, "#7a5a34"); R(g, 13, 0, 3, 2, "#a82a1c"); R(g, 2, 14, 12, 1, "#3e2a14"); }),
+    den: B(g => { R(g, 2, 7, 12, 7, "#3a2d1a"); R(g, 3, 5, 10, 2, "#4a3a22"); R(g, 5, 3, 6, 2, "#58462a"); R(g, 5, 8, 6, 6, "#0c0906"); R(g, 6, 9, 1, 1, "#e8c840"); R(g, 9, 9, 1, 1, "#e8c840"); R(g, 1, 3, 1, 6, "#c0c0c8"); R(g, 14, 3, 1, 6, "#c0c0c8"); R(g, 0, 9, 3, 1, "#7a5a34"); R(g, 13, 9, 3, 1, "#7a5a34"); R(g, 2, 14, 12, 1, "#1e160c"); }),
+    rats: B(g => { R(g, 2, 8, 12, 6, "#4a3c26"); R(g, 4, 7, 8, 1, "#4a3c26"); R(g, 4, 8, 8, 5, "#0e0a06"); R(g, 5, 9, 1, 1, "#e8a0a0"); R(g, 7, 10, 1, 1, "#e8a0a0"); R(g, 10, 9, 1, 1, "#e8a0a0"); R(g, 11, 3, 1, 4, "#e8d8a0"); R(g, 10, 2, 3, 1, "#e8d8a0"); R(g, 12, 6, 2, 1, "#c0a060"); R(g, 1, 4, 3, 3, "#5a5a62"); R(g, 1, 4, 3, 1, "#8a8a92"); R(g, 2, 14, 12, 1, "#241c10"); }),
+    hills: B(g => { R(g, 0, 9, 16, 5, "#3a6a34"); R(g, 2, 6, 12, 3, "#468040"); R(g, 5, 4, 6, 2, "#52964a"); R(g, 7, 3, 2, 1, "#6ab062"); R(g, 3, 7, 2, 1, "#6ab062"); R(g, 11, 9, 2, 2, "#e8d878"); R(g, 5, 10, 2, 3, "#14121a"); R(g, 5, 10, 1, 1, "#e8c040"); R(g, 4, 11, 4, 1, "#14121a"); R(g, 3, 12, 2, 1, "#14121a"); R(g, 7, 12, 2, 1, "#14121a"); R(g, 0, 14, 16, 1, "#26442a"); }),
+    swamp: B(g => { R(g, 0, 8, 16, 6, "#2a3a2a"); R(g, 1, 9, 14, 3, "#3a5a48"); R(g, 3, 10, 5, 1, "#6a9a88"); R(g, 9, 11, 4, 1, "#6a9a88"); for (const [x, h] of [[2, 6], [4, 7], [12, 6], [14, 5]]) { R(g, x, 9 - h, 1, h, "#5a7a3a"); R(g, x, 9 - h - 1, 1, 2, "#7a4a2a"); } R(g, 7, 6, 3, 2, "#d8d0bc"); R(g, 7, 6, 1, 1, "#1a1820"); R(g, 9, 6, 1, 1, "#1a1820"); R(g, 7, 8, 3, 1, "#c8c0ac"); R(g, 6, 13, 6, 1, "#1a2a1c"); }),
+    lair: B(g => { R(g, 0, 0, 16, 16, "rgba(0,0,0,0)"); const c = "#e0e0ea"; for (let i = 0; i < 16; i++) { R(g, i, i, 1, 1, c); R(g, 15 - i, i, 1, 1, c); } R(g, 7, 0, 2, 16, "#c0c0cc"); R(g, 0, 7, 16, 2, "#c0c0cc"); R(g, 6, 6, 4, 4, "#14121a"); R(g, 5, 7, 1, 2, "#14121a"); R(g, 10, 7, 1, 2, "#14121a"); R(g, 7, 5, 2, 1, "#14121a"); R(g, 7, 10, 2, 1, "#14121a"); R(g, 7, 7, 1, 1, "#d82a2a"); R(g, 8, 7, 1, 1, "#d82a2a"); }),
+    heart: B(g => { R(g, 6, 1, 4, 3, "#e870c8"); R(g, 4, 3, 8, 8, "#c84ab0"); R(g, 5, 11, 6, 2, "#a03a90"); R(g, 7, 13, 2, 1, "#7a2a70"); R(g, 6, 3, 2, 5, "#f8a8e8"); R(g, 9, 6, 2, 4, "#e060c0"); R(g, 2, 7, 2, 4, "#a84aa0"); R(g, 12, 6, 2, 4, "#a84aa0"); R(g, 1, 14, 14, 1, "#3a1a38"); R(g, 7, 0, 2, 1, "#ffd8f4"); }),
+  };
+  const altar = col => B(g => { R(g, 2, 11, 12, 3, "#6a6878"); R(g, 3, 8, 10, 3, "#7e7c8c"); R(g, 5, 7, 6, 1, "#8e8c9c"); R(g, 6, 3, 4, 4, col[0]); R(g, 7, 2, 2, 1, col[1]); R(g, 7, 4, 1, 2, col[1]); R(g, 1, 14, 14, 1, "#26242e"); R(g, 4, 12, 8, 1, "#5a5868"); });
+  for (const [k, c] of Object.entries({ air: ["#a0d8f0", "#e8faff"], water: ["#3a8ad0", "#a0d0ff"], fire: ["#e86020", "#ffd070"], earth: ["#9a7a4a", "#d8c090"] })) big["altar-" + k] = altar(c);
+  const sets = { goblin: ["tent", "fire", "bones", "spear", "tufts"], beast: ["tree", "bush", "tracks", "rock", "shroom"], undead: ["tomb", "cross", "skull", "ribs", "crack"], stone: ["crystal", "rocks", "moss", "rune", "boulder"], pond: ["pond1", "pond2", "pond3"], ruins: ["ruin1", "ruin2", "ruin3", "ruin4"],
+    den: ["bag", "bones", "spear", "tufts"], camp: ["hut", "tent", "fire", "tufts"], warren: ["hole", "bones", "tracks", "hole"], cave: ["stalag", "rock", "bones", "stalag"], swamp: ["reed", "pond1", "reed", "pond2", "shroom"],
+    web: ["tree", "web", "bush", "web"], hills: ["rock", "tracks", "tufts", "bush"], crypt: ["tomb", "skull", "crack", "cross"], furnace: ["fire", "rocks", "crack", "bones"], bonefield: ["ribs", "skull", "bones", "tomb"],
+    mines: ["rocks", "wind", "rune", "crack"], lake: ["pond1", "pond3", "pond2", "wind"], lava: ["lavacrack", "rocks", "fire", "lavacrack"], garden: ["crystal", "crystal2", "crystal", "moss"], safe: ["rock"] };
   const img = (u, x, y, w, h) => `<image href="${u}" x="${x}" y="${y}" width="${w}" height="${h}" preserveAspectRatio="none" style="image-rendering:pixelated" pointer-events="none"/>`;
   return {
-    ok: !!(dark && urls.goblin[0] && spr.tent),
-    defs: () => Object.entries(urls).map(([z, a]) => a.map((u, v) => `<pattern id="px-${z}-${v}" width="1" height="1" patternContentUnits="objectBoundingBox">${img(u, 0, 0, 1, 1).replace('x="0" y="0" width="1" height="1"', 'x="0" y="0" width="1" height="1"')}</pattern>`).join("")).join("") + `<pattern id="px-dark" width="1" height="1" patternContentUnits="objectBoundingBox">${img(dark, 0, 0, 1, 1)}</pattern>`,
-    fill: (zone, h) => `url(#px-${zone}-${h % VARS})`, VARS,
-    sprite: (zone, i) => { const set = sets[zone], name = set[i % set.length]; return img(spr[name], -12, -12, 24, 24); },
-    count: zone => sets[zone].length,
+    ok: !!(dark && urls.goblin[0] && spr.tent && big.nest), VARS,
+    defs: () => Object.entries(urls).map(([z, a]) => a.map((u, v) => `<pattern id="px-${z}-${v}" width="1" height="1" patternContentUnits="objectBoundingBox">${img(u, 0, 0, 1, 1)}</pattern>`).join("")).join("") + `<pattern id="px-dark" width="1" height="1" patternContentUnits="objectBoundingBox">${img(dark, 0, 0, 1, 1)}</pattern>`,
+    fill: (style, h) => `url(#px-${STY[style] ? style : "goblin"}-${h % VARS})`,
+    sprite: (style, i) => { const set = sets[style] || sets.goblin, name = set[i % set.length]; return img(spr[name], -12, -12, 24, 24); },
+    big: (name, w = 48) => (big[name] ? img(big[name], -w / 2, -w / 2, w, w) : ""),
+    has: name => !!big[name],
   };
 })();
-const tileFill = (x, y) => (PX.ok ? PX.fill(tileZone(x, y), tileHash(x, y, 5)) : `url(#tile-${tileZone(x, y)})`);
+// Стиль плитки 2 этажа — по месту (логова, топь, паучьи кроны…); на 1 этаже — по зоне.
+const PLACE_STYLE = [[/Крысиные норы|Логово крысолова/, "warren"], [/Логово воров/, "den"], [/Руины/, "ruins"], [/Поселение/, "camp"], [/Медвежья пещера/, "cave"], [/Топь/, "swamp"], [/Паучьи кроны/, "web"], [/Волчьи холмы/, "hills"],
+  [/Склеп/, "crypt"], [/Пепельная печь/, "furnace"], [/Костяные поля/, "bonefield"], [/Ветряные шахты/, "mines"], [/озеро/, "lake"], [/Лавовые/, "lava"], [/Кристальный сад/, "garden"]];
+const tileStyle = (x, y) => {
+  const r = state.run;
+  if (r && r.floor === 2) { const pl = FL().variant.placeAt(x, y); if (pl) for (const [re, s] of PLACE_STYLE) if (re.test(pl.name)) return s; }
+  return tileZone(x, y);
+};
+// Особая клетка (крупный рисунок на плитке): фиксированные места по варианту + гнездо ворон и часовня-колокольня, которые стоят случайно.
+const tileBig = (x, y) => {
+  const r = state.run; if (!PX.ok || !r || r.floor !== 2) return "";
+  const k = tkey(x, y), sp = r.sp && r.sp.v === r.variant ? r.sp : null;
+  const seen = (r.visited || []).includes(k) || tkey(r.pos.x, r.pos.y) === k;          // случайные места видны, только когда отряд там побывал
+  if (sp && sp.nest && sp.nest.at === k && seen) return "nest";
+  if (sp && sp.chapel && sp.chapel.at === k && seen) return "bell";
+  const fixed = { goblin: { "1,5": "rats", "1,1": "den", "8,2": "camp" }, beast: { "0,0": "cave", "10,10": "swamp", "9,5": "lair", "5,4": "hills" }, undead: { "7,3": "kurgan", "0,0": "crypt", "10,10": "furnace" },
+    stone: { "0,0": "altar-air", "10,5": "altar-water", "10,10": "altar-fire", "5,5": "heart" } };
+  if (r.variant === "stone" && sp && sp.stone && sp.stone.earth === k) return "altar-earth";
+  return (fixed[r.variant] || {})[k] || "";
+};
+const tileFill = (x, y) => (PX.ok ? PX.fill(tileStyle(x, y), tileHash(x, y, 5)) : `url(#tile-${tileZone(x, y)})`);
 // Рисунки квадрата в его локальных координатах (центр 0,0); 2–3 штуки по краям, середина свободна под отряд.
 function tileDeco(x, y) {
   const zone = tileZone(x, y);
   if (zone === "safe") return `<g opacity=".5" stroke="#2a2016" stroke-width="1.2" fill="none"><path d="M-28 -9 H28 M-28 9 H28 M-10 -28 V-9 M10 -9 V9 M-10 9 V28 M18 -28 V-9 M-18 -9 V9 M18 9 V28"/></g>`;
-  const set = isWaterTile(x, y) ? DECO.pond : isRuins(x, y) ? DECO.ruins : DECO[zone], n = PX.ok ? 1 + tileHash(x, y, 1) % 2 : 2 + tileHash(x, y, 1) % 2, used = new Set(), out = [];          // пиксельные значки крупнее — их меньше
+  const set = isWaterTile(x, y) ? DECO.pond : isRuins(x, y) ? DECO.ruins : DECO[zone], big = tileBig(x, y), webbed = PX.ok && state.run && state.run.sp && state.run.sp.web && state.run.sp.web[tkey(x, y)];
+  const n = big ? 0 : PX.ok ? 1 + tileHash(x, y, 1) % 2 : 2 + tileHash(x, y, 1) % 2, used = new Set(), out = [];          // пиксельные значки крупнее — их меньше
+  if (big) out.push(`<g transform="translate(0 -2)">${PX.big(big, 54)}</g>`);
+  if (webbed) out.push(`<g transform="translate(-14 -14) scale(1.5)" opacity=".9">${PX.sprite("web", 1)}</g>`, `<g transform="translate(16 15) scale(1.1)" opacity=".8">${PX.sprite("web", 3)}</g>`);
   for (let i = 0; i < n; i++) {
     let s = tileHash(x, y, 10 + i) % DECO_SLOTS.length;
     while (used.has(s)) s = (s + 1) % DECO_SLOTS.length;
     used.add(s);
     const [dx, dy] = DECO_SLOTS[s], sc = 1 + (tileHash(x, y, 20 + i) % 4) * .1;
-    if (PX.ok) { const key = isWaterTile(x, y) ? "pond" : isRuins(x, y) ? "ruins" : zone; out.push(`<g transform="translate(${dx} ${dy}) scale(${(sc * 1.05).toFixed(2)})">${PX.sprite(key, tileHash(x, y, 30 + i))}</g>`); continue; }
+    if (PX.ok) { const key = isWaterTile(x, y) && tileStyle(x, y) === zone ? "pond" : tileStyle(x, y) !== zone ? tileStyle(x, y) : isRuins(x, y) ? "ruins" : zone; out.push(`<g transform="translate(${dx} ${dy}) scale(${(sc * 1.05).toFixed(2)})">${PX.sprite(key, tileHash(x, y, 30 + i))}</g>`); continue; }
     out.push(`<g transform="translate(${dx} ${dy}) scale(${sc})">${set[tileHash(x, y, 30 + i) % set.length]}</g>`);
   }
   return out.join("");
@@ -5003,7 +5076,7 @@ function floorMapOverlay() {
         <text x="${n * S / 2}" y="-9" text-anchor="middle" font-family="Kelly Slab, Georgia, serif" font-size="14" fill="#e5806f">▲ С</text>
         ${cells.join("")}
       </svg>
-      <p>${magic ? "Магическая карта: светящаяся метка — где отряд сейчас." : "Статуя в центре, порталы по углам; тёмные квадраты вокруг порталов — зоны тьмы. Где стоит отряд, карта не показывает."}</p>
+      <p>${magic ? "Магическая карта: светящаяся метка — где отряд сейчас." : (state.run && state.run.floor === 2 ? "Порталы по углам: вход внизу слева, выход вверху справа. Особые места рисуются своей клеткой: логова, алтари, склеп, курган, печь, паутина; гнездо ворон и туманная колокольня появляются, когда отряд там побывал. Тёмные квадраты — зоны тьмы. Где стоит отряд, карта не показывает." : "Статуя в центре, порталы по углам; тёмные квадраты вокруг порталов — зоны тьмы. Где стоит отряд, карта не показывает.")}</p>
     </div>
   </div>`;
 }
