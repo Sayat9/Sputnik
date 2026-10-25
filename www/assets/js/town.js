@@ -243,16 +243,105 @@
   }
   const infoName = it => it.hint ? `неизвестный монстр (${it.m.cls} класс)` : it.m.name;
   B_library();
+  /* ---- Библиотека: исследование по этапам (решение автора 25.10.2026, числа — черновик) ----
+     Категория (пока только монстры) → кто проверяет → класс монстра (9 или 8; Сл 10 / 14) → четыре проверки подряд:
+     тип (гоблины / звери / нежить / элементали), ранг (обычный / редкий / особый), известный или новый, вид сведений.
+     Бонус проверки героя — мод. Интеллекта + мод. Проницательности (Мудрости). Успех — выбираешь сам, провал — случайно.
+     Сведения об эссенции предлагаются только при выпавших 19–20 на последней проверке. Всё исследование — одно городское действие. */
+  const LIB_DC = { 9: 10, 8: 14 };
+  const RANK_RU = { normal: "Обычные", rare: "Редкие", special: "Особые" };
+  const NOVEL_RU = { known: "Уже известный", new: "Новый (ещё не открыт)" };
+  const STAGES = [["kind", "Тип монстра"], ["rank", "Ранг: обычный, редкий или особый"], ["novel", "Известный или новый монстр"], ["info", "Вид сведений"]];
+  const rankGroup = m => { const r = rankOf(m); return r === "normal" || r === "rare" ? r : "special"; };
+  const libBonus = c => { const t = totals(c); return mod(t.int.total) + mod(t.wis.total); };
+  const libCands = cls => MONSTERS.filter(m => !m.draft && m.floor === 1 && m.cls === cls);
+  const essKey = k => /^ess-/.test(k);
+  // Какие сведения о монстре ещё не раскрыты (эссенция — только если lr.essOK).
+  function lrInfoOpts(m, essOK) {
+    const rec = journal().known[m.id]; if (rec) migrateRevealed(rec);
+    return monSections(m).filter(x => (essOK || !essKey(x.k)) && !(rec && rec.revealed.includes(x.k))).map(x => ({ k: x.k, label: (x.group ? x.group + ": " : "") + x.label }));
+  }
+  function lrFiltered(lr, upto) {
+    let c = lr.cand;
+    if (upto > 0 && lr.picks.kind) c = c.filter(m => m.zone === lr.picks.kind);
+    if (upto > 1 && lr.picks.rank) c = c.filter(m => rankGroup(m) === lr.picks.rank);
+    if (upto > 2 && lr.picks.novel) c = c.filter(m => (lr.picks.novel === "new") === !journal().known[m.id]);
+    return c;
+  }
+  function lrOptions(lr) {
+    const st = STAGES[lr.stage][0], c = lrFiltered(lr, lr.stage);
+    if (st === "kind") return [...new Set(c.map(m => m.zone))].map(v => ({ v, label: KIND_RU[v] || v }));
+    if (st === "rank") return ["normal", "rare", "special"].filter(r => c.some(m => rankGroup(m) === r)).map(v => ({ v, label: RANK_RU[v] }));
+    if (st === "novel") return ["known", "new"].filter(n => c.some(m => (n === "new") === !journal().known[m.id] && (n === "new" || lrInfoOpts(m, lr.essOK).length))).map(v => ({ v, label: NOVEL_RU[v] }));
+    return lr.mon ? lrInfoOpts(lr.mon, lr.essOK).map(o => ({ v: o.k, label: o.label })) : [];
+  }
+  // Переходит к следующему этапу, пропуская те, где выбирать не из чего.
+  function lrAdvance(lr) {
+    for (;;) {
+      if (lr.stage >= STAGES.length) { lrFinish(lr); return; }
+      if (STAGES[lr.stage][0] === "info" && !lr.mon) {                                  // монстр определён после трёх первых этапов
+        const pool = lrFiltered(lr, 3).filter(m => lrInfoOpts(m, lr.essOK).length);
+        if (!pool.length) { lr.step = "empty"; return; }
+        lr.mon = pool[rnd(pool.length)];
+      }
+      const o = lrOptions(lr);
+      if (!o.length && STAGES[lr.stage][0] !== "info") { lr.stage++; continue; }
+      if (o.length === 1 && STAGES[lr.stage][0] !== "info") { lr.picks[STAGES[lr.stage][0]] = o[0].v; lr.log.push(`${STAGES[lr.stage][1]}: единственный вариант — ${o[0].label}.`); lr.stage++; continue; }
+      if (!o.length) { lr.step = "empty"; return; }
+      lr.step = "stage"; lr.choosing = false; return;
+    }
+  }
+  function lrFinish(lr) {
+    const m = lr.mon, k = lr.picks.info; if (!m || !k) { lr.step = "empty"; return; }
+    const isNew = !journal().known[m.id];
+    seenKeys(m.id, [k]);
+    const lab = (monSections(m).find(x => x.k === k) || {}).label || k;
+    lr.result = `${isNew ? "Новая запись в библиотеке: " : ""}${m.name} (${m.cls} класс) — ${lab}.`;
+    lr.step = "done"; saveChar();
+  }
+  function lrRoll(n) {
+    const lr = ui.lr; if (!lr || lr.step !== "stage" || lr.choosing) return;
+    const c = state.party.find(x => x.id === lr.hero) || hero(), bonus = libBonus(c), dc = LIB_DC[lr.cls], die = n || 1 + rnd(20), total = die + bonus, pass = total >= dc;
+    visit();
+    const name = STAGES[lr.stage][1];
+    if (STAGES[lr.stage][0] === "info" && die >= 19) lr.essOK = true;
+    lr.lastRoll = { die, bonus, total, dc, pass };
+    if (pass) { lr.choosing = true; lr.log.push(`${name}: к20 ${die}${bonus ? (bonus > 0 ? " + " : " − ") + Math.abs(bonus) : ""} = ${total} против Сл ${dc} — успех, выбираешь сам.`); return; }
+    const o = lrOptions(lr), pick = o.length ? o[rnd(o.length)] : null;
+    lr.log.push(`${name}: к20 ${die}${bonus ? (bonus > 0 ? " + " : " − ") + Math.abs(bonus) : ""} = ${total} против Сл ${dc} — провал, выбрано случайно${pick ? ": " + pick.label : ""}.`);
+    if (pick) lrApply(lr, pick.v);
+  }
+  function lrApply(lr, v) {
+    lr.picks[STAGES[lr.stage][0]] = v; lr.stage++; lr.choosing = false; lrAdvance(lr);
+  }
+  const lrMsg = () => `<p class="tw-msg">${ui.msg || ""}</p>`;
+  function lrHtml() {
+    const lr = ui.lr;
+    const log = lr && lr.log.length ? `<div class="tw-result fx-frame">${lr.log.map(l => `<p>${esc(l)}</p>`).join("")}</div>` : "";
+    if (!lr || lr.step === "cat") return `<p class="tw-lead">Пыльные тома и записки прежних отрядов. Выбери, о чём искать сведения. Исследование занимает одно городское действие.</p>
+      <div class="tw-rows"><div class="tw-row"><div class="tw-who"><div><b>Предметы</b><small>скоро</small></div></div><button class="fx-btn" disabled>Скоро</button></div>
+      <div class="tw-row"><div class="tw-who"><div><b>Монстры</b><small>тип, ранг, место обитания, особенности</small></div></div><button class="fx-btn primary" data-t="lr-cat" data-k="monsters">Выбрать</button></div></div>`;
+    if (lr.step === "hero") return `<p class="tw-lead">Кто проходит проверки? Бонус — модификатор Интеллекта плюс Проницательности (Мудрости).</p>
+      <div class="tw-rows">${state.party.filter(c => !c.dead).map(c => `<div class="tw-row"><div class="tw-who"><span class="tw-ph">${phPortrait(raceById(c.race))}</span><div><b>${esc(c.name)}</b><small>бонус ${libBonus(c) >= 0 ? "+" : ""}${libBonus(c)}</small></div></div><button class="fx-btn primary" data-t="lr-hero" data-id="${c.id}">Выбрать</button></div>`).join("")}</div>
+      <button class="fx-btn" data-t="lr-back">← Назад</button>`;
+    if (lr.step === "cls") return `<p class="tw-lead">О каких монстрах искать? Чем выше класс, тем сложнее проверки (растёт с 9 класса).</p>
+      <div class="tw-rows">${Object.keys(LIB_DC).map(Number).map(cl => { const open = journal().tiers.includes(cl) && libCands(cl).length; return `<div class="tw-row"><div class="tw-who"><div><b>${cl} класс</b><small>Сл ${LIB_DC[cl]}${open ? "" : " · пока не открыт"}</small></div></div><button class="fx-btn primary" data-t="lr-cls" data-n="${cl}"${open ? "" : " disabled"}>Выбрать</button></div>`; }).join("")}</div>
+      <button class="fx-btn" data-t="lr-back">← Назад</button>`;
+    if (lr.step === "stage") {
+      const c = state.party.find(x => x.id === lr.hero) || hero(), bonus = libBonus(c), dc = LIB_DC[lr.cls], opts = lrOptions(lr);
+      const head = `<p class="tw-lead"><b>Этап ${lr.stage + 1} из ${STAGES.length}: ${STAGES[lr.stage][1]}.</b> Проверяет ${esc(c.name)}: бонус ${bonus >= 0 ? "+" : ""}${bonus}, Сл ${dc}. Успех — выбираешь сам, провал — случайно.</p>`;
+      if (lr.choosing) return `${head}${log}<div class="tw-rows">${opts.map(o => `<div class="tw-row"><div class="tw-who"><div><b>${esc(o.label)}</b></div></div><button class="fx-btn primary" data-t="lr-pick" data-v="${esc(o.v)}">Выбрать</button></div>`).join("")}</div>`;
+      return `${head}${log}<p class="tw-lead">Бросок к20 (физический кубик — число ниже; или кнопка «Бросить за приложение»).</p>
+        <div class="roll-grid">${Array.from({ length: 20 }, (_, i) => `<button class="fx-btn" data-t="lr-roll" data-n="${i + 1}">${i + 1}</button>`).join("")}</div>
+        <button class="fx-btn primary" data-t="lr-roll" data-n="0" style="margin-top:8px">Бросить за приложение</button>`;
+    }
+    if (lr.step === "done") return `${log}<div class="tw-result fx-frame"><p><b>Найдено:</b> ${esc(lr.result)}</p><p style="opacity:.75;font-size:13px">Запись попала в библиотеку (кнопка «Библиотека» на главном экране и в лабиринте).</p></div>
+      <button class="fx-btn primary" data-t="lr-restart">Ещё одно исследование</button>`;
+    return `${log}<p class="tw-msg">По этим условиям в библиотеке больше нечего найти.</p><button class="fx-btn primary" data-t="lr-restart">Начать заново</button>`;
+  }
   function B_library() {
     B.library = {
-      render() {
-        const pool = infoPool();
-        const body = `<p class="tw-lead">Пыльные тома и записки прежних отрядов. Мастер бросает к20: ${LIB_PASS}+ — находится сведение о каком-то монстре, 20 — два. Каждый бросок — одно городское действие.</p>
-          ${ui.lines ? `<div class="tw-result fx-frame">${ui.lines.map(l => `<p>${l}</p>`).join("")}</div>` : ""}
-          ${pool.length ? `<div class="roll-grid">${Array.from({ length: 20 }, (_, i) => `<button class="fx-btn${ui.rolled === i + 1 ? " on" : ""}" data-t="lib" data-n="${i + 1}">${i + 1}</button>`).join("")}</div>` : `<p class="tw-msg">В библиотеке больше нечего узнать о известных монстрах.</p>`}
-          ${msgLine()}`;
-        return frame("Библиотека", "Рафдония", body);
-      },
+      render() { return frame("Библиотека", "Рафдония", `${noParty()}${state.party.length ? lrHtml() : ""}${lrMsg()}`); },
     };
   }
   function libRoll(n) {
@@ -284,6 +373,7 @@
       <p class="tw-qnote">${status}</p>${act}</article>`;
   }
   B.board = {
+    init: () => ({ cost: 1 }),                                                  // решение автора: поход к доске заданий — одно городское действие
     render() {
       const list = questBoard().list;
       return `<div class="tw-panel tw-boardpanel"><button class="fx-btn tw-x tw-xc" data-t="close" aria-label="Закрыть">${ICO_X}</button>
@@ -470,11 +560,13 @@
   B.academy = {
     render() {
       const c = hero(); if (!c) return frame("Академия", "Рафдония", noParty());
-      const rows = ACADEMY.map(k => {
+      const tab = ui.tab && ACADEMY_GROUPS.some(g => g[0] === ui.tab) ? ui.tab : "gather";
+      const tabs = `<div class="tw-tabs" role="tablist">${ACADEMY_GROUPS.map(([id, label]) => `<button class="fx-btn" role="tab" aria-selected="${tab === id}" data-t="atab" data-k="${id}">${label}${ACADEMY.filter(k => k.grp === id && eduKnows(c, k.id)).length ? " ✓" : ""}</button>`).join("")}</div>`;
+      const rows = ACADEMY.filter(k => k.grp === tab).map(k => {
         const known = eduKnows(c, k.id), locked = k.need && !eduKnows(c, k.need), can = !known && !locked && partyGold() >= k.price;
         return `<div class="tw-row"><div class="tw-who"><div><b>${esc(k.name)}</b><small>${esc(k.text)}${locked ? " · сначала «" + esc(ACADEMY.find(x => x.id === k.need).name) + "»" : ""}</small></div></div>
           ${known ? `<span class="tw-done">${ICO_CHECK}</span>` : `<button class="fx-btn primary" data-t="learn" data-id="${k.id}"${can ? "" : " disabled"}>${k.price}</button>`}</div>`; }).join("");
-      return frame("Академия", "Рафдония", `${heroStrip()}<p class="tw-lead">Выбери героя и оплати курс. Знания остаются за ним одним — у остальных курсов нет.</p><div class="tw-rows">${rows}</div>${msgLine()}`);
+      return frame("Академия", "Рафдония", `${heroStrip()}${tabs}<p class="tw-lead">Выбери героя и оплати курс. Знания остаются за ним одним — у остальных курсов нет.</p><div class="tw-rows">${rows}</div>${msgLine()}`);
     },
   };
 
@@ -625,7 +717,13 @@
       case "tv": { const m = ui[ds.k]; m[ds.id] = !m[ds.id]; break; }
       case "tv-all": for (const c of state.party.filter(x => !x.dead)) { if (!state.arenaLock) ui.sleep[c.id] = true; ui.food[c.id] = true; } break;
       case "tv-pay": tavernPay(); break;
-      case "lib": libRoll(+ds.n); break;
+      case "lr-cat": ui.lr = { step: "hero", cat: ds.k, log: [], picks: {}, stage: 0 }; break;
+      case "lr-hero": if (ui.lr) { ui.lr.hero = ds.id; ui.lr.step = "cls"; } break;
+      case "lr-cls": if (ui.lr) { const n = +ds.n; Object.assign(ui.lr, { cls: n, cand: libCands(n), stage: 0, picks: {}, log: [], mon: null, essOK: false, choosing: false }); lrAdvance(ui.lr); } break;
+      case "lr-roll": lrRoll(+ds.n); break;
+      case "lr-pick": if (ui.lr && ui.lr.choosing) lrApply(ui.lr, ds.v); break;
+      case "lr-restart": ui.lr = { step: "hero", cat: "monsters", log: [], picks: {}, stage: 0 }; break;
+      case "lr-back": if (ui.lr) ui.lr.step = ui.lr.step === "cls" ? "hero" : "cat"; break;
       case "gtab": ui.tab = ds.k; ui.mon = null; break;
       case "gmon": ui.mon = ds.id; break;
       case "gback": ui.mon = null; break;
@@ -633,6 +731,7 @@
       case "gsell": guildSell(ds.id); break;
       case "analyze": analyze(ds.id); break;
       case "learn": learn(ds.id); break;
+      case "atab": ui.tab = ds.k; break;
       case "ttab": ui.tab = ds.k; break;
       case "aid": identify(ds.id); break;
       case "purge": purge(ds.id); break;

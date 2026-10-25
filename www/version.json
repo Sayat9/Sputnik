@@ -1,5 +1,5 @@
 {
- "version": 1792942481,
+ "version": 1792944090,
  "files": [
   "assets/css/battle.css",
   "assets/css/town.css",
@@ -335,8 +335,8 @@
   "assets/js/battle-weap.js": "42fc99085fcbc0ddfece61235a3049fe",
   "assets/js/battle.js": "5c083b159fc652a9452bd822beb60f72",
   "assets/js/net.js": "f4d87de28f9e960c6acc49790a816bd2",
-  "assets/js/netglue.js": "77751d57fb939de2ef3b9d13250d7127",
-  "assets/js/town.js": "e01eb11e8eafee6eb780054bccabaaa9",
+  "assets/js/netglue.js": "08eac73486607bd8d266a6f091044a9b",
+  "assets/js/town.js": "228fe82ca81aaad619c4dd7baacbf68e",
   "assets/logo-admin.png": "aa45354a89500a24e2f481f6d7d3ee4a",
   "assets/logo.png": "2eea126130fb32be9d28f407acbc25bb",
   "assets/monsters/ash-spirit-face.webp": "0a49a247b2edd2cef40b2346b19b27ff",
@@ -524,6 +524,6 @@
   "fonts/f8.woff2": "6cc1ee17091d59eb93821c3594e8f38f",
   "fonts/f9.woff2": "070433480b7b645f69b543f284e386ce",
   "fonts/fonts.css": "1585a72a8d157b26cb424ab433fd4e19",
-  "index.html": "ef5b2ececde25ed6a443d70d73b70e4b"
+  "index.html": "9341e0b1b53320aa3849140ecd3fc87c"
  }
 }

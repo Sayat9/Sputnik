@@ -1156,16 +1156,17 @@ const RACES = [
 ];
 /* ----- Академия: курсы героя (c.edu); опознание трав, грибов и камней — через c.lore (findKnown). Числа — черновик, drafts.md → «Академия». ----- */
 const ACADEMY = [
-  { id: "herb", name: "Опознание трав", price: 300, lore: "herb", text: "Герой узнаёт все травы при сборе: названия и свойства сразу." },
-  { id: "mush", name: "Опознание грибов", price: 300, lore: "mush", text: "Герой узнаёт все грибы при сборе." },
-  { id: "sstone", name: "Опознание камней", price: 500, lore: "sstone", text: "Герой понимает, что делают особые камни, когда подбирает их." },
-  { id: "mon9", name: "Опознание монстров: 9 класс", price: 200, cls: 9, text: "При первой встрече с монстром 9 класса под ним подсвечиваются ранг и тип; в библиотеке запись сразу." },
-  { id: "mon8", name: "Опознание монстров: 8 класс", price: 500, cls: 8, text: "То же для монстров 8 класса." },
-  { id: "mon7", name: "Опознание монстров: 7 класс", price: 1000, cls: 7, text: "То же для монстров 7 класса." },
-  { id: "aid", name: "Первая помощь", price: 250, text: "С набором первой помощи герой лечит заметно лучше: +2 и модификатор Мудрости к лечению, перевязка без броска." },
-  { id: "nav1", name: "Навигатор: 1 этаж", price: 400, nav: 1, text: "На 1 этаже карта показывает направление к ближайшему порталу на следующий этаж." },
-  { id: "nav2", name: "Навигатор: 2 этаж", price: 800, nav: 2, need: "nav1", text: "То же на 2 этаже. Нужен курс «Навигатор: 1 этаж» — обучение с основ." },
+  { id: "herb", grp: "gather", name: "Опознание трав", price: 300, lore: "herb", text: "Герой узнаёт все травы при сборе: названия и свойства сразу." },
+  { id: "mush", grp: "gather", name: "Опознание грибов", price: 300, lore: "mush", text: "Герой узнаёт все грибы при сборе." },
+  { id: "sstone", grp: "gather", name: "Опознание камней", price: 500, lore: "sstone", text: "Герой понимает, что делают особые камни, когда подбирает их." },
+  { id: "mon9", grp: "monsters", name: "Опознание монстров: 9 класс", price: 200, cls: 9, text: "При первой встрече с монстром 9 класса под ним подсвечиваются ранг и тип; в библиотеке запись сразу." },
+  { id: "mon8", grp: "monsters", name: "Опознание монстров: 8 класс", price: 500, cls: 8, text: "То же для монстров 8 класса." },
+  { id: "mon7", grp: "monsters", name: "Опознание монстров: 7 класс", price: 1000, cls: 7, text: "То же для монстров 7 класса." },
+  { id: "aid", grp: "medicine", name: "Первая помощь", price: 250, text: "С набором первой помощи герой лечит заметно лучше: +2 и модификатор Мудрости к лечению, перевязка без броска." },
+  { id: "nav1", grp: "nav", name: "Навигатор: 1 этаж", price: 400, nav: 1, text: "На 1 этаже карта показывает направление к ближайшему порталу на следующий этаж." },
+  { id: "nav2", grp: "nav", name: "Навигатор: 2 этаж", price: 800, nav: 2, need: "nav1", text: "То же на 2 этаже. Нужен курс «Навигатор: 1 этаж» — обучение с основ." },
 ];
+const ACADEMY_GROUPS = [["gather", "Сбор"], ["monsters", "Монстры"], ["medicine", "Медицина"], ["nav", "Навигация"]];          // разделение курсов по знаниям
 const eduHas = (c, id) => !!(c && c.edu && c.edu[id]);
 const eduKnows = (c, id) => { const k = ACADEMY.find(x => x.id === id); return !!k && (k.lore ? (c.lore || []).includes(k.lore) : eduHas(c, id)); };
 const eduLearn = (c, id) => { const k = ACADEMY.find(x => x.id === id); if (!k) return; (c.edu ||= {})[id] = true; if (k.lore) { c.lore ||= []; if (!c.lore.includes(k.lore)) c.lore.push(k.lore); } };
@@ -1508,6 +1509,7 @@ const ESSENCES = {
   },
 };
 
+const KIND_RU = { goblin: "Гоблины", beast: "Звери", undead: "Нежить", stone: "Элементали" };          // вид монстра по зоне (фильтры и библиотека)
 const RANKS = { normal: "Обычный", rare: "Редкий", special: "Особый", guardian: "Страж", lord: "Лорд этажа" };
 const rankOf = m => m.rank === "normal" && m.rare ? "rare" : m.rank;
 const MONSTERS = [
@@ -2129,7 +2131,7 @@ function renderLiving() {
 
 /* ===================== БЕСТИАРИЙ ===================== */
 
-const MF_DEFAULT = { floor: "all", cls: "all", rank: "all" };
+const MF_DEFAULT = { floor: "all", cls: "all", rank: "all", kind: "all" };
 let mf = { ...MF_DEFAULT };
 let openMonsters = new Set();
 
@@ -2152,12 +2154,14 @@ function renderBestiary() {
   const list = MONSTERS.filter(m =>
     (mf.floor === "all" || m.floors.includes(+mf.floor)) &&
     (mf.cls === "all" || m.cls === +mf.cls) &&
-    (mf.rank === "all" || rankOf(m) === mf.rank));
+    (mf.rank === "all" || rankOf(m) === mf.rank) &&
+    (mf.kind === "all" || m.zone === mf.kind));
   const changed = JSON.stringify(mf) !== JSON.stringify(MF_DEFAULT);
   return `
     <div class="filters" data-scope="m">
       ${chipRow("Этаж", "floor", [["all", "Все"], ...floors.map(f => [f, f + " этаж"])], mf.floor)}
       ${chipRow("Класс", "cls", [["all", "Все"], ...classes.map(c => [c, c + " класс"])], mf.cls)}
+      ${chipRow("Вид", "kind", [["all", "Все"], ...Object.entries(KIND_RU)], mf.kind)}
       ${chipRow("Тип", "rank", [["all", "Все"], ...Object.entries(RANKS)], mf.rank)}
       <div class="fmeta"><small>Показано ${list.length} из ${MONSTERS.length}${changed ? ` · <button class="linkbtn" data-reset="m">Сбросить</button>` : ""}</small></div>
     </div>
@@ -5699,15 +5703,16 @@ function libMonstersTab() {
   const j = journal();
   if (!j.unlocked) return `<div class="lib-empty">${ICO_BOOK}<b style="color:var(--fx-gold-hi);font:400 20px var(--f-display)">Пока пусто</b>
     <span>Записи о монстрах появятся после первого спуска в лабиринт.</span></div>`;
-  const all = libMonsters(), known = all.filter(m => j.known[m.id]), unknown = all.filter(m => !j.known[m.id]);
+  const kindSel = libUi.kind || "all", all = libMonsters().filter(m => kindSel === "all" || m.zone === kindSel), known = all.filter(m => j.known[m.id]), unknown = all.filter(m => !j.known[m.id]);
   return `
+    <div class="lib-kinds" style="display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px">${[["all", "Все"], ...Object.entries(KIND_RU)].map(([v, l]) => `<button class="chip" data-lx="kind" data-v="${v}" aria-pressed="${kindSel === v}">${l}</button>`).join("")}</div>
     ${known.length ? `<div class="lib-sec">Известные · ${known.length}</div>
     <div class="mon-grid">${known.map(m => `<button class="mbox fx-frame${libUi.fresh === m.id ? " new" : ""}" data-lx="open" data-id="${m.id}">
       <div class="art">${img(monArt(m), m.name)}</div><b>${m.name}</b></button>`).join("")}</div>` : ""}
     ${unknown.length ? `<div class="lib-sec">Неизвестные · ${unknown.length}</div>
     <div class="mon-grid">${unknown.map(m => { const h = j.hints[m.id] || [];
       return `<div class="mbox unknown fx-frame" aria-label="Неизвестный монстр${h.includes("type") ? ": " + m.type : ""}"><div class="art">${h.includes("portrait") ? img(monArt(m), "Портрет неизвестного монстра") : `<div class="mist"><span>?</span></div>`}</div><b>???</b>${h.includes("type") ? `<small class="hint-type">${m.type}</small>` : ""}</div>`; }).join("")}</div>` : ""}
-    ${!unknown.length ? `<p class="hold-hint">Все монстры этого класса записаны.</p>` : `<p class="hold-hint">Встретили монстра? Нажми «+» и найди его по имени.</p>`}`;
+    ${!unknown.length ? `<p class="hold-hint">Все монстры этого класса записаны.</p>` : `<p class="hold-hint">Новые записи открываются в здании «Библиотека» в городе: исследование по категориям.</p>`}`;
 }
 
 function addModal() {
@@ -5757,7 +5762,7 @@ function renderLibrary() {
       <button class="fx-btn" role="tab" data-lx="tab" data-tab="monsters" aria-selected="${libUi.tab !== "artifacts"}">Монстры</button>
       <button class="fx-btn" role="tab" data-lx="tab" data-tab="artifacts" aria-selected="${libUi.tab === "artifacts"}">Артефакты</button>
       <span class="sp"></span>
-      ${journal().unlocked && libUi.tab !== "artifacts" ? `<button class="fx-btn sq-btn" data-lx="add" aria-label="Добавить монстра"${libMonsters().every(m => journal().known[m.id]) ? " disabled" : ""}>${ICO_PLUS}</button>` : ""}
+      
     </div>
     <div class="lib-body">${libUi.tab === "artifacts" ? libArtifactsTab() : libMonstersTab()}</div>
     ${libUi.adding ? addModal() : libUi.card ? cardModal() : ""}
@@ -5787,6 +5792,7 @@ $lib.addEventListener("click", e => {
     case "close": closeLibrary(); return;
     case "tab": libUi.tab = ds.tab; libUi.card = null; libUi.adding = false; break;
     case "art": artInfo(ds.id, ARTIFACTS[ds.id].cls ? "" : ""); return;
+    case "kind": libUi.kind = ds.v; libUi.card = null; break;
     case "add": libUi.adding = true; libUi.q = ""; libUi.pick = null; break;
     case "cancel-add": libUi.adding = false; break;
     case "pick": {

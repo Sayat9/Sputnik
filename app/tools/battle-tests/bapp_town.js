@@ -61,16 +61,23 @@ const L = require('./bui_lib.js');
   await p.evaluate(() => { state.run.status.h0.fat = 3; state.run.status.h0.sat = 1; endRun(true); });
   ok('endRun сохраняет усталость в carry', await p.evaluate(() => state.party[0].carry && state.party[0].carry.fat === 3 && townClock().back === true));
   // --- библиотека
-  await p.evaluate(() => { location.hash = 'town'; rerender(); }); await p.click('[data-bld="library"]'); await p.waitForSelector('.roll-grid');
-  const before = await p.evaluate(() => JSON.stringify(journal().hints) + JSON.stringify(Object.keys(journal().known).length));
-  await p.click('[data-t="lib"][data-n="20"]');
-  const after = await p.evaluate(() => JSON.stringify(journal().hints) + JSON.stringify(Object.keys(journal().known).length));
-  ok('библиотека: 20 открывает сведения', before !== after, before + ' / ' + after);
-  await p.click('[data-t="lib"][data-n="3"]'); ok('библиотека: низкий бросок — ничего', await p.evaluate(() => /ничего/.test(document.querySelector('.tw-result').innerText)));
+  await p.evaluate(() => { location.hash = 'town'; rerender(); }); await p.click('[data-bld="library"]'); await p.waitForSelector('[data-t="lr-cat"]');
+  ok('библиотека: выбор категории (предметы — скоро)', await p.evaluate(() => /Предметы/.test(document.querySelector('.tw-scroll').innerText) && /Монстры/.test(document.querySelector('.tw-scroll').innerText)));
+  await p.click('[data-t="lr-cat"][data-k="monsters"]'); await p.click('[data-t="lr-hero"]'); await p.click('[data-t="lr-cls"][data-n="9"]');
+  ok('библиотека: первая проверка — тип', await p.evaluate(() => /Этап 1 из 4/.test(document.querySelector('.tw-scroll').innerText)));
+  const known0 = await p.evaluate(() => Object.keys(journal().known).length + JSON.stringify(Object.values(journal().known).map(r => r.revealed)));
+  for (let i = 0; i < 6; i++) { if (!(await p.$('[data-t="lr-roll"][data-n="20"]'))) break; await p.click('[data-t="lr-roll"][data-n="20"]'); const pick = await p.$('[data-t="lr-pick"]'); if (pick) await pick.click(); }
+  ok('библиотека: после успешных проверок — найдено сведение', await p.evaluate(() => /Найдено/.test(document.querySelector('.tw-scroll').innerText)), await p.evaluate(() => document.querySelector('.tw-scroll').innerText.slice(0, 300)));
+  const known1 = await p.evaluate(() => Object.keys(journal().known).length + JSON.stringify(Object.values(journal().known).map(r => r.revealed)));
+  ok('библиотека: запись изменилась', known0 !== known1);
+  ok('библиотека: исследование — 1 действие', await p.evaluate(() => Town.state().cost) === 1);
+  await p.click('[data-t="lr-restart"]'); await p.click('[data-t="lr-hero"]'); await p.click('[data-t="lr-cls"][data-n="9"]');
+  for (let i = 0; i < 6; i++) { if (!(await p.$('[data-t="lr-roll"][data-n="1"]'))) break; await p.click('[data-t="lr-roll"][data-n="1"]'); if (await p.$('[data-t="lr-pick"]')) break; }
+  ok('библиотека: провал — случайный выбор без меню', await p.evaluate(() => /провал/.test(document.querySelector('.tw-scroll').innerText)));
   await p.click('[data-t="close"]');
   // --- доска
   await p.click('[data-bld="board"]'); ok('доска: лист событий и крест в углу', await p.evaluate(() => /тихо/.test(document.querySelector('.tw-wall').innerText) && !!document.querySelector('.tw-xc')));
-  const c0 = await p.evaluate(() => townClock().t); await p.click('[data-t="close"]'); ok('доска не тратит время', await p.evaluate(c0 => townClock().t === c0, c0));
+  const c0 = await p.evaluate(() => townClock().t); await p.click('[data-t="close"]'); ok('поход к доске — 1 городское действие', await p.evaluate(c0 => townClock().t === c0 + 1, c0));
   // --- гильдия
   await p.evaluate(() => { state.party[0].gold = 500; state.party[1].gold = 0; }); await p.click('[data-bld="guild"]'); await p.waitForSelector('.mon-grid');
   await p.click('.mon-grid .mbox'); await p.waitForSelector('.tw-rows');

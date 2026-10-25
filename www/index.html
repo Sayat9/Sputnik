@@ -1161,16 +1161,17 @@ const RACES = [
 ];
 /* ----- Академия: курсы героя (c.edu); опознание трав, грибов и камней — через c.lore (findKnown). Числа — черновик, drafts.md → «Академия». ----- */
 const ACADEMY = [
-  { id: "herb", name: "Опознание трав", price: 300, lore: "herb", text: "Герой узнаёт все травы при сборе: названия и свойства сразу." },
-  { id: "mush", name: "Опознание грибов", price: 300, lore: "mush", text: "Герой узнаёт все грибы при сборе." },
-  { id: "sstone", name: "Опознание камней", price: 500, lore: "sstone", text: "Герой понимает, что делают особые камни, когда подбирает их." },
-  { id: "mon9", name: "Опознание монстров: 9 класс", price: 200, cls: 9, text: "При первой встрече с монстром 9 класса под ним подсвечиваются ранг и тип; в библиотеке запись сразу." },
-  { id: "mon8", name: "Опознание монстров: 8 класс", price: 500, cls: 8, text: "То же для монстров 8 класса." },
-  { id: "mon7", name: "Опознание монстров: 7 класс", price: 1000, cls: 7, text: "То же для монстров 7 класса." },
-  { id: "aid", name: "Первая помощь", price: 250, text: "С набором первой помощи герой лечит заметно лучше: +2 и модификатор Мудрости к лечению, перевязка без броска." },
-  { id: "nav1", name: "Навигатор: 1 этаж", price: 400, nav: 1, text: "На 1 этаже карта показывает направление к ближайшему порталу на следующий этаж." },
-  { id: "nav2", name: "Навигатор: 2 этаж", price: 800, nav: 2, need: "nav1", text: "То же на 2 этаже. Нужен курс «Навигатор: 1 этаж» — обучение с основ." },
+  { id: "herb", grp: "gather", name: "Опознание трав", price: 300, lore: "herb", text: "Герой узнаёт все травы при сборе: названия и свойства сразу." },
+  { id: "mush", grp: "gather", name: "Опознание грибов", price: 300, lore: "mush", text: "Герой узнаёт все грибы при сборе." },
+  { id: "sstone", grp: "gather", name: "Опознание камней", price: 500, lore: "sstone", text: "Герой понимает, что делают особые камни, когда подбирает их." },
+  { id: "mon9", grp: "monsters", name: "Опознание монстров: 9 класс", price: 200, cls: 9, text: "При первой встрече с монстром 9 класса под ним подсвечиваются ранг и тип; в библиотеке запись сразу." },
+  { id: "mon8", grp: "monsters", name: "Опознание монстров: 8 класс", price: 500, cls: 8, text: "То же для монстров 8 класса." },
+  { id: "mon7", grp: "monsters", name: "Опознание монстров: 7 класс", price: 1000, cls: 7, text: "То же для монстров 7 класса." },
+  { id: "aid", grp: "medicine", name: "Первая помощь", price: 250, text: "С набором первой помощи герой лечит заметно лучше: +2 и модификатор Мудрости к лечению, перевязка без броска." },
+  { id: "nav1", grp: "nav", name: "Навигатор: 1 этаж", price: 400, nav: 1, text: "На 1 этаже карта показывает направление к ближайшему порталу на следующий этаж." },
+  { id: "nav2", grp: "nav", name: "Навигатор: 2 этаж", price: 800, nav: 2, need: "nav1", text: "То же на 2 этаже. Нужен курс «Навигатор: 1 этаж» — обучение с основ." },
 ];
+const ACADEMY_GROUPS = [["gather", "Сбор"], ["monsters", "Монстры"], ["medicine", "Медицина"], ["nav", "Навигация"]];          // разделение курсов по знаниям
 const eduHas = (c, id) => !!(c && c.edu && c.edu[id]);
 const eduKnows = (c, id) => { const k = ACADEMY.find(x => x.id === id); return !!k && (k.lore ? (c.lore || []).includes(k.lore) : eduHas(c, id)); };
 const eduLearn = (c, id) => { const k = ACADEMY.find(x => x.id === id); if (!k) return; (c.edu ||= {})[id] = true; if (k.lore) { c.lore ||= []; if (!c.lore.includes(k.lore)) c.lore.push(k.lore); } };
@@ -1513,6 +1514,7 @@ const ESSENCES = {
   },
 };
 
+const KIND_RU = { goblin: "Гоблины", beast: "Звери", undead: "Нежить", stone: "Элементали" };          // вид монстра по зоне (фильтры и библиотека)
 const RANKS = { normal: "Обычный", rare: "Редкий", special: "Особый", guardian: "Страж", lord: "Лорд этажа" };
 const rankOf = m => m.rank === "normal" && m.rare ? "rare" : m.rank;
 const MONSTERS = [
@@ -1868,8 +1870,8 @@ const DISTRICTS = [
 
 // Готовые рисованные картинки (webp) заменяют векторные заглушки.
 // Дата сборки для телефона: build.sh вписывает её сюда, в веб-версии строка пустая.
-const APP_BUILD = "25.10.2026 20:34";
-const APP_VERSION = 1792942481;                 // номер сборки, тоже вписывает build.sh
+const APP_BUILD = "25.10.2026 21:01";
+const APP_VERSION = 1792944090;                 // номер сборки, тоже вписывает build.sh
 const UPDATE_URL = "https://raw.githubusercontent.com/Sayat9/Sputnik/main/www/";
 const RASTER = new Set(["items/mace", "items/warhammer", "items/armor-leather", "items/armor-hide", "items/armor-chainmail", "items/steel-dagger", "items/steel-sword", "items/steel-greatsword", "items/steel-shield", "items/steel-tower-shield", "items/shortbow", "items/longbow", "items/rapier", "items/shield", "items/tower-shield", "items/unknown-mushroom", "items/stone-9", "items/stone-8", "items/stone-7", "items/ration", "items/potion", "items/torch", "items/arrows", "items/clothes", "items/shovel", "items/shovel-good", "items/shovel-best", "items/dagger", "items/sword", "items/greatsword", "items/spear", "monsters/goblin-king-face", "monsters/goblin-king-full", "monsters/goblin-bomber-face", "monsters/goblin-bomber-full", "monsters/hobgoblin-shield-face", "monsters/hobgoblin-shield-full", "races/barbarian", "races/human", "races/dwarf", "races/beastkin", "races/fairy", "races/dragon", "monsters/goblin-face", "monsters/goblin-full", "monsters/goblin-archer-face", "monsters/goblin-archer-full", "monsters/goblin-sword-face", "monsters/goblin-sword-full", "monsters/goblin-spear-face", "monsters/goblin-spear-full", "monsters/wolf-face", "monsters/wolf-full", "monsters/fox-face", "monsters/fox-full", "monsters/mouse-face", "monsters/mouse-full", "monsters/bat-face", "monsters/bat-full", "monsters/hobgoblin-face", "monsters/hobgoblin-full", "monsters/zombie-face", "monsters/zombie-full", "monsters/skeleton-face", "monsters/skeleton-full", "monsters/skeleton-archer-face", "monsters/skeleton-archer-full", "monsters/ghoul-face", "monsters/ghoul-full", "monsters/dark-bear-face", "monsters/dark-bear-full", "monsters/skeleton-warrior-face", "monsters/skeleton-warrior-full", "monsters/living-stone-face", "monsters/living-stone-full", "monsters/wisp-face", "monsters/wisp-full", "monsters/pixie-face", "monsters/pixie-full", "monsters/green-boulder-face", "monsters/green-boulder-full", "monsters/stone-guardian-face", "monsters/stone-guardian-full", "monsters/spider-queen-face", "monsters/spider-queen-full", "monsters/ash-wraith-face", "monsters/ash-wraith-full", "monsters/ash-spirit-face", "monsters/ash-spirit-full", "monsters/plague-fat-face", "monsters/plague-fat-full", "monsters/bone-hound-face", "monsters/bone-hound-full", "monsters/dust-crawler-face", "monsters/dust-crawler-full", "monsters/faceless-ringer-face", "monsters/faceless-ringer-full", "monsters/mirror-dead-face", "monsters/mirror-dead-full", "monsters/whisperer-face", "monsters/whisperer-full", "monsters/morok-face", "monsters/morok-full", "monsters/grey-shade-face", "monsters/grey-shade-full", "monsters/blackwing-face", "monsters/blackwing-full", "monsters/swamp-fang-face", "monsters/swamp-fang-full", "monsters/web-spider-face", "monsters/web-spider-full", "monsters/goblin-shaman-face", "monsters/goblin-shaman-full", "monsters/goblin-assassin-face", "monsters/goblin-assassin-full", "monsters/goblin-trapper-face", "monsters/goblin-trapper-full", "monsters/goblin-elder-face", "monsters/goblin-elder-full", "monsters/hobgoblin-brute-face", "monsters/hobgoblin-brute-full", "monsters/hobgoblin-thrower-face", "monsters/hobgoblin-thrower-full", "monsters/hobgoblin-driver-face", "monsters/hobgoblin-driver-full", "monsters/goblin-thief-face", "monsters/goblin-thief-full", "monsters/horned-hare-face", "monsters/horned-hare-full", "monsters/swamp-toad-face", "monsters/swamp-toad-full", "monsters/burrower-face", "monsters/burrower-full", "monsters/crow-face", "monsters/crow-full", "monsters/dire-wolf-face", "monsters/dire-wolf-full", "monsters/werewolf-face", "monsters/werewolf-full", "monsters/giant-mole-face", "monsters/giant-mole-full", "monsters/bone-knight-face", "monsters/bone-knight-full", "monsters/gravedigger-face", "monsters/gravedigger-full", "monsters/corpse-eater-face", "monsters/corpse-eater-full", "monsters/drop-face", "monsters/drop-full", "monsters/dust-whirl-face", "monsters/dust-whirl-full", "monsters/magma-hound-face", "monsters/magma-hound-full", "monsters/crystalloid-face", "monsters/crystalloid-full", "monsters/lake-spirit-face", "monsters/lake-spirit-full", "monsters/magma-golem-face", "monsters/magma-golem-full", "monsters/deep-serpent-face", "monsters/deep-serpent-full", "monsters/crystal-colossus-face", "monsters/crystal-colossus-full", "monsters/storm-spirit-face", "monsters/storm-spirit-full", "monsters/rift-heart-face", "monsters/rift-heart-full", "items/compass"]);
 const artPath = p => `assets/${p}.${RASTER.has(p) ? "webp" : "svg"}`;
@@ -2134,7 +2136,7 @@ function renderLiving() {
 
 /* ===================== БЕСТИАРИЙ ===================== */
 
-const MF_DEFAULT = { floor: "all", cls: "all", rank: "all" };
+const MF_DEFAULT = { floor: "all", cls: "all", rank: "all", kind: "all" };
 let mf = { ...MF_DEFAULT };
 let openMonsters = new Set();
 
@@ -2157,12 +2159,14 @@ function renderBestiary() {
   const list = MONSTERS.filter(m =>
     (mf.floor === "all" || m.floors.includes(+mf.floor)) &&
     (mf.cls === "all" || m.cls === +mf.cls) &&
-    (mf.rank === "all" || rankOf(m) === mf.rank));
+    (mf.rank === "all" || rankOf(m) === mf.rank) &&
+    (mf.kind === "all" || m.zone === mf.kind));
   const changed = JSON.stringify(mf) !== JSON.stringify(MF_DEFAULT);
   return `
     <div class="filters" data-scope="m">
       ${chipRow("Этаж", "floor", [["all", "Все"], ...floors.map(f => [f, f + " этаж"])], mf.floor)}
       ${chipRow("Класс", "cls", [["all", "Все"], ...classes.map(c => [c, c + " класс"])], mf.cls)}
+      ${chipRow("Вид", "kind", [["all", "Все"], ...Object.entries(KIND_RU)], mf.kind)}
       ${chipRow("Тип", "rank", [["all", "Все"], ...Object.entries(RANKS)], mf.rank)}
       <div class="fmeta"><small>Показано ${list.length} из ${MONSTERS.length}${changed ? ` · <button class="linkbtn" data-reset="m">Сбросить</button>` : ""}</small></div>
     </div>
@@ -5704,15 +5708,16 @@ function libMonstersTab() {
   const j = journal();
   if (!j.unlocked) return `<div class="lib-empty">${ICO_BOOK}<b style="color:var(--fx-gold-hi);font:400 20px var(--f-display)">Пока пусто</b>
     <span>Записи о монстрах появятся после первого спуска в лабиринт.</span></div>`;
-  const all = libMonsters(), known = all.filter(m => j.known[m.id]), unknown = all.filter(m => !j.known[m.id]);
+  const kindSel = libUi.kind || "all", all = libMonsters().filter(m => kindSel === "all" || m.zone === kindSel), known = all.filter(m => j.known[m.id]), unknown = all.filter(m => !j.known[m.id]);
   return `
+    <div class="lib-kinds" style="display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px">${[["all", "Все"], ...Object.entries(KIND_RU)].map(([v, l]) => `<button class="chip" data-lx="kind" data-v="${v}" aria-pressed="${kindSel === v}">${l}</button>`).join("")}</div>
     ${known.length ? `<div class="lib-sec">Известные · ${known.length}</div>
     <div class="mon-grid">${known.map(m => `<button class="mbox fx-frame${libUi.fresh === m.id ? " new" : ""}" data-lx="open" data-id="${m.id}">
       <div class="art">${img(monArt(m), m.name)}</div><b>${m.name}</b></button>`).join("")}</div>` : ""}
     ${unknown.length ? `<div class="lib-sec">Неизвестные · ${unknown.length}</div>
     <div class="mon-grid">${unknown.map(m => { const h = j.hints[m.id] || [];
       return `<div class="mbox unknown fx-frame" aria-label="Неизвестный монстр${h.includes("type") ? ": " + m.type : ""}"><div class="art">${h.includes("portrait") ? img(monArt(m), "Портрет неизвестного монстра") : `<div class="mist"><span>?</span></div>`}</div><b>???</b>${h.includes("type") ? `<small class="hint-type">${m.type}</small>` : ""}</div>`; }).join("")}</div>` : ""}
-    ${!unknown.length ? `<p class="hold-hint">Все монстры этого класса записаны.</p>` : `<p class="hold-hint">Встретили монстра? Нажми «+» и найди его по имени.</p>`}`;
+    ${!unknown.length ? `<p class="hold-hint">Все монстры этого класса записаны.</p>` : `<p class="hold-hint">Новые записи открываются в здании «Библиотека» в городе: исследование по категориям.</p>`}`;
 }
 
 function addModal() {
@@ -5762,7 +5767,7 @@ function renderLibrary() {
       <button class="fx-btn" role="tab" data-lx="tab" data-tab="monsters" aria-selected="${libUi.tab !== "artifacts"}">Монстры</button>
       <button class="fx-btn" role="tab" data-lx="tab" data-tab="artifacts" aria-selected="${libUi.tab === "artifacts"}">Артефакты</button>
       <span class="sp"></span>
-      ${journal().unlocked && libUi.tab !== "artifacts" ? `<button class="fx-btn sq-btn" data-lx="add" aria-label="Добавить монстра"${libMonsters().every(m => journal().known[m.id]) ? " disabled" : ""}>${ICO_PLUS}</button>` : ""}
+      
     </div>
     <div class="lib-body">${libUi.tab === "artifacts" ? libArtifactsTab() : libMonstersTab()}</div>
     ${libUi.adding ? addModal() : libUi.card ? cardModal() : ""}
@@ -5792,6 +5797,7 @@ $lib.addEventListener("click", e => {
     case "close": closeLibrary(); return;
     case "tab": libUi.tab = ds.tab; libUi.card = null; libUi.adding = false; break;
     case "art": artInfo(ds.id, ARTIFACTS[ds.id].cls ? "" : ""); return;
+    case "kind": libUi.kind = ds.v; libUi.card = null; break;
     case "add": libUi.adding = true; libUi.q = ""; libUi.pick = null; break;
     case "cancel-add": libUi.adding = false; break;
     case "pick": {

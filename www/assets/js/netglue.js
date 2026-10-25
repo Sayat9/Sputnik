@@ -145,7 +145,7 @@
 
   // Хуки: любое сохранение или перерисовка — пора рассылать состояние.
   const _save = window.saveChar;
-  window.saveChar = function () { const r = _save.apply(this, arguments); try { if (H.on()) schedule(); else if (N.role === "client") afterClientSave(); } catch (e) { console.error(e); } return r; };
+  window.saveChar = function () { const r = _save.apply(this, arguments); try { if (H.on()) schedule(); else if (!isMaster()) afterClientSave(); } catch (e) { console.error(e); } return r; };
 
   function renderHostPanel() {
     const ov = mkOv("netov"); if (!G.hostPanel) { ov.hidden = true; return; }
@@ -203,7 +203,7 @@
     buildBar(); buildJoin();
     N.handle("view", d => { applyPatch(d); });
     N.on((ev, d) => {
-      if (ev === "status") { updateBar(); if (d === "online") hideJoin(); }
+      if (ev === "status") { updateBar(); if (d === "online") hideJoin(); else if (d === "reconnecting" || d === "off") goOffline(); }
       if (ev === "welcome" && d && d.pid) { const cr = lsGet(PLAYER_KEY) || {}; cr.pid = d.pid; lsSet(PLAYER_KEY, cr); C.msg = ""; }
       if (ev === "joinerror") { C.msg = "Нет связи: " + d; updateJoinMsg(); }
     });
@@ -282,7 +282,7 @@
       <div class="net-players"><div class="net-row"><span><i class="net-dot on"></i>Ведущий</span><small>${heroesOf("")}</small></div>
         ${players.map(p => `<div class="net-row"><span><i class="net-dot${p.online ? " on" : ""}"></i>${esc(p.name)}${p.pid === myPid() ? " (ты)" : ""}</span><small>${p.online ? heroesOf(p.pid) : "не в сети"}</small></div>`).join("")}</div>
       ${cards ? `<div class="net-team">${cards}</div>` : `<p class="fx-hint">В отряде пока нет героев. Создай своего в разделе «Герои».</p>`}
-      <p class="fx-hint" style="opacity:.7">Ждём, когда ведущий начнёт партию.</p></div>`;
+      ${N.status === "online" ? `<p class="fx-hint" style="opacity:.7">Ждём, когда ведущий начнёт партию.</p>` : `<p class="fx-hint">Нет связи с ведущим. Здесь то, что твои герои уже знают и имеют.</p><button class="fx-btn primary" data-nj="open">Подключиться к комнате</button>`}</div>`;
   };
 
   /* ---- оболочка клиента ---- */
@@ -294,10 +294,15 @@
     updateBar();
   }
   const STATUS_RU = { off: "не подключён", starting: "запуск", connecting: "подключаюсь…", reconnecting: "связь потеряна, переподключаюсь…", online: "в сети", hosting: "в сети" };
-  function updateBar() { const el = document.getElementById("net-st"); if (el) el.textContent = STATUS_RU[N.status] || N.status; }
+  function updateBar() {
+    const el = document.getElementById("net-st"); if (el) el.textContent = STATUS_RU[N.status] || N.status;
+    document.body.classList.toggle("net-follow", G.follow && N.status === "online");          // без связи экран не «чужой»: можно листать своё
+  }
+  // Без связи игрок видит свою команду, своих героев, справочник, библиотеку и карту — всё, что уже знает; игровые экраны ведущего недоступны.
+  function goOffline() { G.follow = true; updateBar(); if (location.hash.slice(1) !== "") location.hash = ""; else rerender(); }
   function onBar(a) {
-    if (a === "game") { G.follow = true; document.body.classList.add("net-follow"); closeOv(); const h = G.view.hash || ""; if (location.hash.slice(1) !== h && GAME_HASH.includes(h)) location.hash = h; else rerender(); }
-    else if (a === "ref") { G.follow = false; document.body.classList.remove("net-follow"); closeOv(); location.hash = "#ref"; }
+    if (a === "game") { G.follow = true; closeOv(); updateBar(); if (N.status !== "online") { goOffline(); return; } const h = G.view.hash || ""; if (location.hash.slice(1) !== h && GAME_HASH.includes(h)) location.hash = h; else rerender(); }
+    else if (a === "ref") { G.follow = false; updateBar(); closeOv(); location.hash = "#ref"; }
     else if (a === "map") openMap();
     else if (a === "heroes") openHeroes();
     else if (a === "more") openMore();
@@ -327,14 +332,16 @@
     ov.innerHTML = `<div class="net-panel fx-frame"><h3>Связь</h3><p>Комната: <b>${esc(cr.code || "—")}</b> · ${esc(STATUS_RU[N.status] || N.status)}</p>
       ${APP_BUILD ? `<p class="net-ro-note">Версия от ${esc(APP_BUILD)}</p>` : ""}
       <button class="fx-btn" data-nb="map">Карта этажа</button>
+      <button class="fx-btn" data-nb="lib">Библиотека</button>
+      ${N.status !== "online" ? `<button class="fx-btn primary" data-nb="join">Подключиться к комнате</button>` : ""}
       <button class="fx-btn upd-btn" data-upd="${updUi.state === "downloaded" ? "apply" : "check"}">${UPD_LABEL[updUi.state]}</button>
       <button class="fx-btn danger" data-nb="leave">Выйти из комнаты</button><button class="fx-btn" data-nb="closeov">Закрыть</button></div>`;
     ov.hidden = false;
-    ov.onclick = e => { if (e.target === ov || e.target.closest("[data-nb='closeov']")) ov.hidden = true; if (e.target.closest("[data-nb='map']")) { ov.hidden = true; openMap(); } if (e.target.closest("[data-nb='leave']")) { ov.hidden = true; N.toHost("bye", {}); N.leave(); lsSet(PLAYER_KEY, null); showJoin(); } };
+    ov.onclick = e => { if (e.target === ov || e.target.closest("[data-nb='closeov']")) ov.hidden = true; if (e.target.closest("[data-nb='map']")) { ov.hidden = true; openMap(); } if (e.target.closest("[data-nb='lib']")) { ov.hidden = true; openLibrary(); } if (e.target.closest("[data-nb='join']")) { ov.hidden = true; showJoin(); } if (e.target.closest("[data-nb='leave']")) { ov.hidden = true; N.toHost("bye", {}); N.leave(); lsSet(PLAYER_KEY, null); showJoin(); } };
   }
 
   /* ---- вход в комнату ---- */
-  function buildJoin() { mkOv("netjoin"); }
+  function buildJoin() { mkOv("netjoin"); document.addEventListener("click", e => { if (e.target.closest("[data-nj='open']")) showJoin(); }); }
   function showJoin() {
     const ov = mkOv("netjoin"), cr = lsGet(PLAYER_KEY) || {};
     ov.hidden = false;
@@ -343,8 +350,9 @@
       <label>Код комнаты<input id="nj-code" maxlength="8" autocapitalize="characters" autocomplete="off" value="${esc(cr.code || "")}"></label>
       <label>Твоё имя<input id="nj-name" maxlength="24" autocomplete="off" value="${esc(cr.name || "")}"></label>
       <p class="net-msg" id="nj-msg"></p>
-      <button class="fx-btn primary big" data-nj="go">Подключиться</button></div>`;
+      <button class="fx-btn primary big" data-nj="go">Подключиться</button><button class="fx-btn" data-nj="later">Позже: смотреть своих героев и справочник</button></div>`;
     ov.onclick = e => {
+      if (e.target.closest("[data-nj='later']")) { ov.hidden = true; goOffline(); return; }
       if (!e.target.closest("[data-nj='go']")) return;
       const code = ov.querySelector("#nj-code").value.trim(), name = ov.querySelector("#nj-name").value.trim() || "Игрок";
       if (code.length < 4) { ov.querySelector("#nj-msg").textContent = "Введи код комнаты."; return; }
