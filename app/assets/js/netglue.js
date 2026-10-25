@@ -29,7 +29,8 @@
   .net-panel input,.net-panel select{width:100%;padding:10px;border-radius:8px;border:1px solid #6e5634;background:#1a140d;color:#f4e8cc;font:inherit}
   .net-msg{min-height:1.2em;font-size:13px;opacity:.85}
   #netbar{position:fixed;left:0;right:0;bottom:0;z-index:8500;display:flex;gap:4px;padding:6px 8px calc(6px + env(safe-area-inset-bottom));background:linear-gradient(#1a140d,#0f0b07);border-top:1px solid #6e5634}
-  #netbar button{flex:1;min-width:0;padding:10px 2px;font-size:12px}
+  #netbar button{flex:1;min-width:0;padding:12px 4px;font-size:14px;white-space:nowrap}
+  #netbar button[data-nb="more"]{flex:0 0 56px;font-size:20px;line-height:1}
   #netbar .st{position:absolute;right:8px;top:-18px;font-size:11px;padding:1px 8px;border-radius:9px;background:#2a1f12;color:#f4d48e;border:1px solid #6e5634}
   body.net-player nav.tabs,body.net-player #dice-fab{display:none!important}
   body.net-player{padding-bottom:64px}
@@ -265,7 +266,7 @@
   function buildBar() {
     const bar = mkOv("netbar", false); bar.style = ""; bar.hidden = false;
     bar.innerHTML = `<span class="st" id="net-st"></span>
-      <button class="fx-btn" data-nb="game">Игра</button><button class="fx-btn" data-nb="map">Карта</button><button class="fx-btn" data-nb="ref">Справочник</button><button class="fx-btn" data-nb="heroes">Герои</button><button class="fx-btn" data-nb="more">⋯</button>`;
+      <button class="fx-btn" data-nb="game">Игра</button><button class="fx-btn" data-nb="heroes">Герои</button><button class="fx-btn" data-nb="ref">Справочник</button><button class="fx-btn" data-nb="more" aria-label="Меню">≡</button>`;
     bar.addEventListener("click", e => { const b = e.target.closest("[data-nb]"); if (b) onBar(b.dataset.nb); });
     updateBar();
   }
@@ -302,10 +303,11 @@
     const ov = mkOv("netheroes"), cr = lsGet(PLAYER_KEY) || {};
     ov.innerHTML = `<div class="net-panel fx-frame"><h3>Связь</h3><p>Комната: <b>${esc(cr.code || "—")}</b> · ${esc(STATUS_RU[N.status] || N.status)}</p>
       ${APP_BUILD ? `<p class="net-ro-note">Версия от ${esc(APP_BUILD)}</p>` : ""}
+      <button class="fx-btn" data-nb="map">Карта этажа</button>
       <button class="fx-btn upd-btn" data-upd="${updUi.state === "downloaded" ? "apply" : "check"}">${UPD_LABEL[updUi.state]}</button>
       <button class="fx-btn danger" data-nb="leave">Выйти из комнаты</button><button class="fx-btn" data-nb="closeov">Закрыть</button></div>`;
     ov.hidden = false;
-    ov.onclick = e => { if (e.target === ov || e.target.closest("[data-nb='closeov']")) ov.hidden = true; if (e.target.closest("[data-nb='leave']")) { ov.hidden = true; N.toHost("bye", {}); N.leave(); lsSet(PLAYER_KEY, null); showJoin(); } };
+    ov.onclick = e => { if (e.target === ov || e.target.closest("[data-nb='closeov']")) ov.hidden = true; if (e.target.closest("[data-nb='map']")) { ov.hidden = true; openMap(); } if (e.target.closest("[data-nb='leave']")) { ov.hidden = true; N.toHost("bye", {}); N.leave(); lsSet(PLAYER_KEY, null); showJoin(); } };
   }
 
   /* ---- вход в комнату ---- */

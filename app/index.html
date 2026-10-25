@@ -2960,11 +2960,11 @@ function renderMain() {
       <h2 class="fx-title">Лабиринт Рафдонии</h2>
       <div class="fx-rule"><span></span></div>
       <p class="fx-sub">Раз в месяц открываются врата лабиринта. Собери отряд, спустись за камнями и вернись живым.</p>
-      <button class="fx-btn primary big" data-action="start-adventure">Начать приключение</button>
+      ${isMaster() ? `<button class="fx-btn primary big" data-action="start-adventure">Начать приключение</button>
       <button class="fx-btn" data-save="open">Сохранения</button>
       <button class="fx-btn" data-net="open">Онлайн: игра с друзьями</button>
       <button class="fx-btn" data-set="tactical" aria-pressed="${!!settings().tactical}">Тактический бой (тест): ${settings().tactical ? "вкл" : "выкл"}</button>
-      <button class="fx-btn" data-set="master" aria-pressed="${masterOn()}">Режим мастера (весь бестиарий): ${masterOn() ? "вкл" : "выкл"}</button>
+      <button class="fx-btn" data-set="master" aria-pressed="${masterOn()}">Режим мастера (весь бестиарий): ${masterOn() ? "вкл" : "выкл"}</button>` : ""}
       ${last ? `
         <div class="fx-card fx-frame">
           <span class="fx-eyebrow" style="font-size:12px">Последняя сессия</span>
@@ -2972,7 +2972,7 @@ function renderMain() {
           <p>Начата ${fmtDate(last.date)}</p>
           <div class="fx-chips">${members.map(c => `<span class="fx-chip">${esc(c.name)} · ${raceById(c.race).name}</span>`).join("")}</div>
           <button class="fx-btn" data-go="town" style="align-self:flex-start;margin-top:4px">В город</button>
-        </div>` : `<p class="fx-hint">В первый раз приложение попросит создать героев отряда.</p>`}
+        </div>` : `<p class="fx-hint">${isMaster() ? "В первый раз приложение попросит создать героев отряда." : "Ждём, когда ведущий начнёт партию."}</p>`}
       ${APP_BUILD ? `<div class="upd-box"><p class="fx-hint" style="opacity:.6;font-size:12px">Версия от ${APP_BUILD}</p>
         <button class="fx-btn upd-btn" data-upd="${updUi.state === "downloaded" ? "apply" : "check"}"${updUi.state === "checking" ? " disabled" : ""}>${UPD_LABEL[updUi.state]}</button>
         ${updUi.note ? `<small class="upd-note">${updUi.note}</small>` : ""}</div>` : ""}
