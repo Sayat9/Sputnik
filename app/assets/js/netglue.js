@@ -33,7 +33,7 @@
   #netbar .st{position:absolute;right:8px;top:-18px;font-size:11px;padding:1px 8px;border-radius:9px;background:#2a1f12;color:#f4d48e;border:1px solid #6e5634}
   body.net-player nav.tabs,body.net-player #dice-fab{display:none!important}
   body.net-player{padding-bottom:64px}
-  body.net-player.bt-active #netbar{display:none}
+  body.net-player.bt-active #netbar,body.net-player.net-forge #netbar{display:none}
   body.net-follow #view,body.net-follow #townov{pointer-events:none}
   body.net-follow #townov .tw-x{display:none}
   .net-chip{position:fixed;top:6px;right:8px;z-index:8400;font-size:11px;padding:2px 9px;border-radius:9px;background:#2a1f12;color:#f4d48e;border:1px solid #6e5634;opacity:.9}
@@ -104,6 +104,21 @@
       if (!ok) { const cur = d.hero && heroById(d.hero.id); if (cur) p.link.send("view", { set: { ["h:" + cur.id]: { ...cur, force: 1 } }, del: [] }); }
       else schedule();
       return { ok };
+    });
+    // Игрок создал героя: ведущий проверяет и добавляет в отряд (по одному живому герою на игрока).
+    N.handle("createHero", (d, link, p) => {
+      const c = d && d.hero; if (!p || !c || !c.name || !raceById(c.race) || !c.base) return { ok: false, why: "неверные данные" };
+      if (battleOn()) return { ok: false, why: "идёт бой" };
+      if ((state.party || []).some(x => x.owner === p.pid && !x.dead)) return { ok: false, why: "у тебя уже есть герой" };
+      if ((state.party || []).some(x => x.id === c.id)) c.id = "c" + Date.now().toString(36) + N.rid(2);
+      c.owner = p.pid; c.level = 1; c.nseq = 1; c.example = false; c.dead = false;
+      for (const k of ["str", "dex", "con", "int", "wis", "cha"]) c.base[k] = Math.max(1, Math.min(30, parseInt(c.base[k], 10) || 10));
+      try { ensureKit(c); } catch (e) {}
+      c.hp = maxHp(c); c.mp = maxMp(c);
+      state.party.push(c); const last = (state.sessions || [])[state.sessions.length - 1]; if (last && last.members) last.members.push(c.id);
+      saveChar(); schedule(); toast(`Игрок ${p.name} создал героя «${c.name}»`);
+      renderHostPanel();
+      return { ok: true, id: c.id };
     });
     N.handle("bye", (d, link, p) => { if (p) { p.link = null; p.online = false; } renderHostPanel(); });
   }
@@ -195,6 +210,14 @@
     N.join(code, name, pid, () => ({ heroes: ownHeroes() }));
     updateBar();
   }
+  G.submitHero = async function (c) {
+    try {
+      const r = await N.callHost("createHero", { hero: c }, 15000);
+      toast(r && r.ok ? `Герой «${c.name}» создан` : `Герой не создан: ${(r && r.why) || "ведущий отказал"}`);
+      onBar("game");
+    } catch (e) { toast("Нет связи с ведущим: герой не создан"); }
+  };
+  G.canCreate = () => !(state.party || []).some(c => c.owner && c.owner === myPid() && !c.dead);
   function afterClientSave() {
     const mine = ownHeroes(); if (!mine.length || battleOn()) return;
     for (const c of mine) {
@@ -270,9 +293,10 @@
     const ov = mkOv("netheroes");
     const party = state.party || [];
     ov.innerHTML = `<div class="net-panel fx-frame"><h3>Герои</h3>${party.length ? party.map(c => `<div class="net-row"><button class="fx-btn" data-hero="${c.id}" style="flex:1;text-align:left">${esc(c.name)} · ${raceById(c.race).name} · ${c.level} ур.${G.isMine(c) ? " · мой" : ""}</button><small>${hpOf(c)}/${maxHp(c)}</small></div>`).join("") : `<p class="net-msg">Героев пока нет: ведущий ещё не назначил тебе героя.</p>`}
+      ${G.canCreate() && N.status === "online" ? `<button class="fx-btn primary" data-nb="create">Создать своего героя</button>` : ""}
       <button class="fx-btn" data-nb="closeov">Закрыть</button></div>`;
     ov.hidden = false;
-    ov.onclick = e => { if (e.target === ov || e.target.closest("[data-nb='closeov']")) ov.hidden = true; const b = e.target.closest("[data-hero]"); if (b) { ov.hidden = true; openHero(b.dataset.hero); } };
+    ov.onclick = e => { if (e.target === ov || e.target.closest("[data-nb='closeov']")) ov.hidden = true; if (e.target.closest("[data-nb='create']")) { ov.hidden = true; if (battleOn()) { toast("Во время боя героев не создают"); return; } G.follow = false; document.body.classList.remove("net-follow"); openForge("race", "more"); } const b = e.target.closest("[data-hero]"); if (b) { ov.hidden = true; openHero(b.dataset.hero); } };
   }
   function openMore() {
     const ov = mkOv("netheroes"), cr = lsGet(PLAYER_KEY) || {};
@@ -337,5 +361,7 @@
     root.querySelectorAll(LIB_FORBID.map(x => `[data-lx="${x}"]`).join(",")).forEach(b => b.remove());
   }).observe(document.getElementById("libov"), { childList: true, subtree: true });
 
+  // Пока открыто создание героя, нижняя панель клиента прячется.
+  new MutationObserver(() => document.body.classList.toggle("net-forge", !document.getElementById("forge").hidden)).observe(document.getElementById("forge"), { attributes: true, attributeFilter: ["hidden"] });
   G.ready = true;
 })();

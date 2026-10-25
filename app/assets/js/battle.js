@@ -184,10 +184,11 @@
     const S = B.newBattle(ev);
     const g = ui();
     if (o.sim || !g) { placeHeroesDefault(S); placeMonsters(S); placeCoverMonsters(S); }
+    else if (!S.ambush && B.Net && B.Net.onlinePlacement()) { placeHeroesDefault(S); B.rollInitiative(); S.rolledEarly = true; await B.Net.placeInOrder(S); placeMonsters(S); placeCoverMonsters(S); }          // онлайн: расставляют по очереди инициативы
     else { placeHeroesDefault(S); await g.placement(S); placeMonsters(S); placeCoverMonsters(S); }
     preStart(S);                                                                                   // затаившиеся враги выбираются до показа поля, чтобы не выдать их
     if (g && !(o.sim || !g)) await g.reveal(S);
-    B.rollInitiative();
+    if (!S.rolledEarly) B.rollInitiative();
     S.phase = "fight"; log(S.ambush ? "Засада! Монстры ходят первыми." : "Бой начался.", "round");
     if (g) await g.start(S);
     await loop(S);

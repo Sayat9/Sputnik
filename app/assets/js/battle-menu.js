@@ -69,6 +69,7 @@
   UI.renderLogTicker = function () { if (UI.mode !== "hero" && UI.mode !== "place") UI.renderPanel(); };
   function renderPlace(p) {
     const S = B.S, hs = B.heroes().filter(h => !h.dead), pp = UI.panelPlace || {};
+    if (UI.placeOnly) { const h = B.byId(UI.placeOnly); p.innerHTML = `<div class="bt-prompt"><h4>Расстановка: ${esc(h ? h.name : "")}</h4><p>Нажмите свободную клетку в трёх нижних рядах — герой встанет туда. Когда готовы, нажмите «Готово»: очередь перейдёт дальше.</p><div class="btns"><button class="fx-btn primary big" data-ba="place-go">Готово</button></div></div>`; return; }
     if (pp.ambush) { p.innerHTML = `<div class="bt-prompt"><h4>Засада!</h4><p>Герои застигнуты врасплох и стоят в ряд на третьей линии. Монстры ходят первыми.</p><div class="btns"><button class="fx-btn primary big" data-ba="place-go">К бою!</button></div></div>`; return; }
     p.innerHTML = `<div class="bt-prompt"><h4>Расстановка</h4><p>Выберите героя, затем клетку в трёх нижних рядах. Враги появятся после расстановки.</p>
       <div class="bt-chips">${hs.map(h => `<button class="bt-pchip${UI.placeSel === h.id ? " on" : ""}" data-ba="place-sel" data-id="${h.id}"><img src="${h.face}" alt=""><span>${esc(h.name)}</span></button>`).join("")}</div>
@@ -400,7 +401,9 @@
   UI.onCell = function (x, y, e) {
     const S = B.S; if (!S) return;
     if (UI.mode === "place") {
-      const occ = B.occupant(x, y); if (occ && occ.side === "hero") { UI.placeSel = occ.id; UI.paintPlace(); UI.renderPanel(); return; }
+      const occ = B.occupant(x, y);
+      if (UI.placeOnly) { const h1 = B.byId(UI.placeOnly); if (h1 && y >= 4 && !B.obstacleAt(x, y) && (!occ || occ === h1)) { h1.x = x; h1.y = y; UI.paintPlace(); UI.refreshNow(); } else UI.toast("Ставьте героя в три нижних ряда на свободную клетку"); return; }
+      if (occ && occ.side === "hero") { UI.placeSel = occ.id; UI.paintPlace(); UI.renderPanel(); return; }
       const h = B.byId(UI.placeSel);
       if (h && y >= 4 && !B.obstacleAt(x, y) && !occ) { h.x = x; h.y = y; const hs = B.heroes().filter(z => !z.dead), i = hs.indexOf(h); UI.placeSel = hs[(i + 1) % hs.length].id; UI.paintPlace(); UI.refreshNow(); UI.renderPanel(); }
       else UI.toast("Ставьте героев в три нижних ряда на свободные клетки");

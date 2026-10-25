@@ -3194,6 +3194,7 @@ function finishDraft() {
   addToBag(c, { t: "g", id: "potion", qty: 2 });
   if (WEAPONS.find(x => x.id === d.weapon).group === "ranged") addToBag(c, { t: "g", id: "arrow", qty: QUIVER });          // колчан: 40 обычных стрел
   c.hp = maxHp(c);
+  if (!isMaster()) { closeForge(); NetGlue.submitHero(c); return; }          // игрок онлайн: героя утверждает и добавляет ведущий
   state.party.push(c);
   if (!state.current) state.current = c.id;
   saveChar();
@@ -3225,7 +3226,7 @@ $forge.addEventListener("click", e => {
     case "back-race": forge.step = "race"; renderForge(); break;
     case "next-w": if (forge.draft.weapon) { forge.step = "identity"; renderForge(); } break;
     case "back": forge.step = "weapon"; forge.errors = []; renderForge(); break;
-    case "discard": forge.step = "team"; forge.draft = null; renderForge(); break;
+    case "discard": if (!isMaster()) { closeForge(); break; } forge.step = "team"; forge.draft = null; renderForge(); break;
     case "add": forge.mode = "more"; forge.step = "race"; forge.draft = newDraft(); forge.errors = []; renderForge(); break;
     case "finish": finishDraft(); break;
     case "complete": completeTeam(); break;

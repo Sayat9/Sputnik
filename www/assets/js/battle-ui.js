@@ -344,6 +344,15 @@
       UI.banner("Расставьте героев в трёх нижних рядах", 3200);
     });
   };
+  // Онлайн: расстановка по очереди инициативы — на поле двигается только герой, чья очередь; «Готово» передаёт очередь дальше.
+  UI.placeOne = function (u) {
+    return new Promise(resolve => {
+      const S = B.S; S.hideMons = true; if (!UI.built) build(S);
+      UI.mode = "place"; UI.placeSel = u.id; UI.placeOnly = u.id;
+      UI.panelPlace = { ambush: false, done: () => { UI.placeOnly = null; resolve(); } }; UI.paintPlace(); UI.refreshNow(); if (UI.renderPanel) UI.renderPanel();
+      UI.banner(`Расстановка: ${u.name}`, 2200);
+    });
+  };
   UI.paintPlace = function () {
     const S = B.S, map = new Map();
     for (let y = 4; y < 7; y++) for (let x = 0; x < 7; x++) { const hero = B.byId(UI.placeSel); const occ = B.occupant(x, y, hero); if (hero && !B.obstacleAt(x, y) && !occ) UI.hlAdd(map, x, y, "hl-place"); }

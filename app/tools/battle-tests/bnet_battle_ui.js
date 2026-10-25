@@ -23,8 +23,12 @@ const URL = 'http://localhost:8765/index.html';
     window.hturns = []; Battle.UI.heroTurn = async u => { hturns.push(u.name); await Battle.AI.takeTurn(u); };
     Battle.Dice.session = (u, m) => Battle.autoSession(u, m);
     const ev = { list: ['goblin', 'goblin', 'goblin'], zone: 'goblin', ambush: false, kind: 'hard', title: 'тест', floor: 1 };
-    Battle.running = true; Battle.UI.open(); window.pr = Battle.start(ev); setTimeout(() => Battle.UI.placeDone(), 600);
+    Battle.running = true; Battle.UI.open(); setInterval(() => { if (Battle.UI.placeOnly) Battle.UI.placeDone(); }, 300); window.pr = Battle.start(ev);
   });
+  await c.waitForFunction(() => window.Battle && Battle.UI && Battle.UI.placeOnly, null, { timeout: 30000 });
+  await c.waitForTimeout(300); await c.screenshot({ path: '/tmp/battle-shots/net_place.png' });
+  ok('у игрока панель расстановки с «Готово»', await c.evaluate(() => !!document.querySelector('.bt-panel [data-ba="place-go"]')));
+  await c.click('.bt-panel [data-ba="place-go"]');
   // игрок: ждём свой ход с настоящим интерфейсом
   await c.waitForFunction(() => window.Battle && Battle.UI && Battle.UI.active && Battle.UI.mode === 'hero', null, { timeout: 30000 });
   ok('у игрока открыт бой и режим хода', true);

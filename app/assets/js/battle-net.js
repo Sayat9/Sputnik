@@ -32,13 +32,13 @@
   /* ===== ведущий ===== */
   const pushNow = () => { try { window.NetGlue && NetGlue.pushAll(true); } catch (e) {} };
   const waitOnline = pid => new Promise(res => { const off = N.on((ev, d) => { if (ev === "player" && d && d.pid === pid && d.online) { off(); res("back"); } }); });
-  async function waitOrTakeover(u, pid) {
+  async function waitOrTakeover(u, pid, what) {
     const g = ui(), p = N.players[pid], back = waitOnline(pid);
     if (!g) return back;
-    g.banner(`Ждём игрока ${p ? p.name : ""}: герой ${u.name}`, 3000);
+    g.banner(`Ждём игрока ${p ? p.name : ""}: ${what || "герой"} ${u.name}`, 3000);
     const ask = (async () => {
       for (;;) {
-        const r = await g.choose({ title: `Нет связи с игроком ${p ? p.name : ""}`, options: [{ id: "take", label: `Взять ${u.name} под управление` }, { id: "skip", label: "Пропустить ход" }, { id: "wait", label: "Ждать возвращения" }] });
+        const r = await g.choose({ title: `Нет связи с игроком ${p ? p.name : ""}`, options: [{ id: "take", label: `Взять ${u.name} под управление` }, { id: "skip", label: what ? "Оставить как стоит" : "Пропустить ход" }, { id: "wait", label: "Ждать возвращения" }] });
         if (r === "take" || r === "skip") return r;
         if (r === "wait") return new Promise(() => {});
       }
@@ -67,6 +67,37 @@
       }
     } finally { BN.active = null; }
   };
+  // Расстановка по очереди инициативы: герой друга ставится на его телефоне («Готово» передаёт очередь), свои — у ведущего.
+  BN.onlinePlacement = () => !!(hostOn() && ui() && Object.values(N.players).some(p => p.online && (state.party || []).some(c => c.owner === p.pid && !c.dead)));
+  BN.placeInOrder = async function (S) {
+    S.phase = "place"; S.hideMons = true;
+    const order = S.order.map(id => B.byId(id)).filter(u => u && u.side === "hero" && !u.summon && !u.dead);
+    for (const u of order) {
+      S.placing = u.id;
+      const pid = ownerPid(u);
+      if (!pid || S.opts.autoHeroes) { pushNow(); await ui().placeOne(u); continue; }
+      BN.active = pid;
+      try {
+        for (;;) {
+          const p = N.players[pid];
+          if (!(p && p.online)) {
+            const r = await waitOrTakeover(u, pid, "расстановка");
+            if (r === "take") { await ui().placeOne(u); break; }
+            if (r === "skip") break;
+          }
+          try {
+            pushNow();
+            const res = await N.callPlayer(pid, "place", { snap: B.ser(S), ev: S.ev, unit: u.id }, 0);
+            if (res && res.pos) { u.x = res.pos[0]; u.y = res.pos[1]; }
+            break;
+          } catch (e) { /* игрок отвалился: ждём и повторяем */ }
+        }
+      } finally { BN.active = null; }
+      if (ui()) ui().refreshNow();
+    }
+    S.placing = null; S.phase = "init";
+    if (ui()) { ui().mode = "idle"; ui().setHl(new Map()); ui().refreshNow(); }
+  };
   // Бросок героя друга на чужом ходу: окно кубиков на его телефоне; нет связи — бросает игра.
   BN.remoteSession = function (u, meta, autoSession) {
     const pid = ownerPid(u), sid = N.rid(6), fallback = autoSession(u, meta);
@@ -93,20 +124,24 @@
     try { return !!(await N.callPlayer(pid, "react", { title: o.title, text: o.text, yes: o.yes, no: o.no }, 0)); } catch (e) { return false; }
   };
   // Состояние боя для рассылки (подключается в netglue).
-  BN.view = () => (B.S && B.running && B.S.phase === "fight" ? { bat: { ev: B.S.ev, S: B.ser(B.S) } } : { bat: null });
+  BN.view = () => (B.S && B.running && (B.S.phase === "fight" || B.S.phase === "place") ? { bat: { ev: B.S.ev, S: B.ser(B.S) } } : { bat: null });
 
   /* ===== игрок ===== */
   async function ensureUi() {
     if (!B.S) return false;
     if (!B.UI.active) B.UI.open();
-    B.S.phase = "fight"; B.S.hideMons = false; B.running = true;
+    if (!B.S.phase || B.S.phase === "init") B.S.phase = "fight";
+    if (B.S.phase === "fight") B.S.hideMons = false;
+    B.running = true;
     return true;
   }
   BN.mirror = async function (bat) {
     if (!clientOn() || BN.turnActive) return;
     if (!bat) { BN.mirrorEnd(); return; }
+    const was = B.S && B.S.placing;
     if (!B.S || !BN.mirroring) { const S = { ev: bat.ev }; B.restoreInto(S, bat.S); B.S = S; BN.mirroring = true; await ensureUi(); B.UI.refreshNow(); }
     else { B.restoreInto(B.S, bat.S); B.running = true; if (!B.UI.active) await ensureUi(); B.UI.refreshNow(); }
+    if (B.S.phase === "place" && B.S.placing && B.S.placing !== was) { const u = B.byId(B.S.placing); if (u) B.UI.banner(`Расставляет героя: ${u.name}`, 2200); }
   };
   BN.mirrorEnd = function () {
     if (!BN.mirroring && !BN.turnActive) return;
@@ -138,6 +173,17 @@
         await B.UI.heroTurn(u);
       } finally { BN.turnActive = false; }
       return { snap: B.ser(B.S), heroes: ownHeroes() };
+    });
+    // Расстановка: игрок ставит своего героя и нажимает «Готово».
+    N.handle("place", async d => {
+      BN.turnActive = true; BN.mirroring = true;
+      try {
+        if (!B.S) B.S = { ev: d.ev };
+        B.restoreInto(B.S, d.snap); B.S.ev = d.ev; await ensureUi();
+        const u = B.byId(d.unit); if (!u) throw new Error("нет героя в бою");
+        await B.UI.placeOne(u);
+        return { pos: [u.x, u.y] };
+      } finally { BN.turnActive = false; }
     });
     const sess = {};
     N.handle("dice", async d => {

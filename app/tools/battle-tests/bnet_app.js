@@ -55,6 +55,19 @@ const URL = 'http://localhost:8765/index.html';
   ok('в меню героя нет кнопок ведущего', await c.evaluate(() => !document.querySelector('#heroov [data-hx="hp"],#heroov [data-hx="ess-add-toggle"],#heroov [data-hx="add-toggle"],#heroov [data-hadd]')));
   await c.evaluate(() => closeHero());
   ok('главный экран только просмотр', await c.evaluate(() => getComputedStyle(document.getElementById('view')).pointerEvents) === 'none');
+  // игрок создаёт своего героя
+  await c.evaluate(() => { openForge('race', 'more'); forge.draft = { race: 'human', weapon: 'sword', gender: 'm', name: 'Новичок', base: { str: '14', dex: '12', con: '13', int: '10', wis: '10', cha: '10' }, age: '20', height: '170', weight: '70', shield: false, knife: false }; });
+  await c.evaluate(() => { NetGlue.client.x = 1; });
+  ok('у игрока с героем создание не предлагается', await c.evaluate(() => !NetGlue.canCreate()) === true);
+  await c.evaluate(() => closeForge());
+  // второй игрок без героя
+  await h.evaluate(() => { state.party[0].dead = true; saveChar(); }); await c.waitForTimeout(600);
+  ok('после гибели героя можно создать нового', await c.evaluate(() => NetGlue.canCreate()));
+  await c.evaluate(() => { openForge('race', 'more'); forge.draft = { race: 'human', weapon: 'sword', gender: 'm', name: 'Новичок', base: { str: '14', dex: '12', con: '13', int: '10', wis: '10', cha: '10' }, age: '20', height: '170', weight: '70', shield: false, knife: false }; finishDraft(); });
+  await c.waitForTimeout(1000);
+  ok('ведущий получил героя игрока', await h.evaluate(pid => state.party.some(x => x.name === 'Новичок' && x.owner === pid), pid), await h.evaluate(() => state.party.map(x => [x.name, x.owner])));
+  ok('герой виден игроку как свой', await c.evaluate(() => state.party.some(x => x.name === 'Новичок' && NetGlue.isMine(x))));
+  await h.evaluate(() => { state.party[0].dead = false; saveChar(); });
   // переподключение и возврат сохранения
   await c.evaluate(() => { Net.link().close(); });
   await c.waitForTimeout(4500);
