@@ -4516,17 +4516,84 @@ function tileZone(x, y) {
   const z = zoneAt(x, y);
   return z.kind === "safe" ? "safe" : z.zones[tileHash(x, y, 9) % z.zones.length];
 }
-const tileFill = (x, y) => `url(#tile-${tileZone(x, y)})`;
+
+/* ----- пиксель-арт карты (вариант А, 26.10.2026): текстуры плиток и значки рисуются кодом на canvas 15×15 и 12×12 и растягиваются без сглаживания ----- */
+const PX = (() => {
+  const rng0 = seed => () => { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed / 4294967296; };
+  const cv = (w, h, fn) => { try { const c = document.createElement("canvas"); c.width = w; c.height = h; const g = c.getContext("2d"); fn(g); return c.toDataURL(); } catch (e) { return ""; } };
+  const R = (g, x, y, w, h, c) => { g.fillStyle = c; g.fillRect(x, y, w, h); };
+  const PAL = {
+    goblin: ["#5e4e2c", "#6c5a34", "#4d3f23", "#7c6a3e"], beast: ["#355a2a", "#406636", "#2a4a22", "#53803c"],
+    undead: ["#494557", "#56526a", "#3a3649", "#676380"], stone: ["#43515d", "#506069", "#38444e", "#6a7d8b"], safe: ["#6a5a40", "#766449", "#54462f", "#85735a"],
+  };
+  const N = 15, VARS = 5;
+  function tex(zone, v) {
+    return cv(N, N, g => {
+      const rnd = rng0(zone.length * 977 + v * 131 + zone.charCodeAt(0)), P = PAL[zone];
+      for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) { const r = rnd(); R(g, x, y, 1, 1, r < .5 ? P[0] : r < .8 ? P[1] : r < .94 ? P[2] : P[3]); }
+      const spots = (n, c, w, h) => { for (let i = 0; i < n; i++) R(g, Math.floor(rnd() * (N - w)), Math.floor(rnd() * (N - h)), w, h, c); };
+      if (zone === "goblin") { spots(5, "#3e3219", 1, 1); spots(3, "#8a7848", 2, 1); spots(2, "#5a6a2a", 1, 2); }
+      else if (zone === "beast") { for (let i = 0; i < 9; i++) { const x = Math.floor(rnd() * N), y = 1 + Math.floor(rnd() * (N - 2)); R(g, x, y - 1, 1, 2, i % 3 ? "#5f8e44" : "#243f1c"); } if (v % 2) { const x = 2 + Math.floor(rnd() * 11), y = 2 + Math.floor(rnd() * 11); R(g, x, y, 1, 1, "#e8d878"); } }
+      else if (zone === "undead") { spots(4, "#2c2938", 1, 1); const x = 2 + Math.floor(rnd() * 8), y = 2 + Math.floor(rnd() * 10); R(g, x, y, 1, 1, "#2c2938"); R(g, x + 1, y + 1, 1, 1, "#2c2938"); R(g, x + 2, y + 1, 1, 2, "#2c2938"); spots(2, "#3f6a46", 2, 1); }
+      else if (zone === "stone") { const x = 3 + Math.floor(rnd() * 8); for (let i = 0; i < 6; i++) R(g, x + (i % 2), 1 + i * 2, 1, 2, "#2c363f"); spots(2, "#8ad0e0", 1, 1); spots(3, "#2c363f", 1, 1); }
+      else { for (let y = 0; y < N; y += 5) R(g, 0, y, N, 1, "#3a2f1e"); for (let y = 0; y < 3; y++) for (let x = (y % 2) * 3 + 2; x < N; x += 7) R(g, x, y * 5, 1, 5, "#3a2f1e"); }
+    });
+  }
+  const dark = cv(N, N, g => { for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) R(g, x, y, 1, 1, (x + y) % 2 ? "#17130e" : "#100d09"); });
+  const urls = {}; for (const z of Object.keys(PAL)) urls[z] = Array.from({ length: VARS }, (_, v) => tex(z, v));
+  // значки 12×12: рисуем прямоугольниками
+  const S = (fn) => cv(12, 12, g => fn(g));
+  const spr = {
+    tent: S(g => { R(g, 5, 1, 2, 1, "#a07a46"); R(g, 4, 2, 4, 1, "#a07a46"); R(g, 3, 3, 6, 2, "#8a6638"); R(g, 2, 5, 8, 2, "#7a5830"); R(g, 1, 7, 10, 3, "#6b4a2a"); R(g, 5, 7, 2, 3, "#1a1008"); R(g, 5, 0, 1, 1, "#c8b080"); }),
+    fire: S(g => { R(g, 2, 8, 8, 2, "#5a4a3a"); R(g, 4, 7, 4, 1, "#7a6a50"); R(g, 5, 3, 2, 4, "#e8902c"); R(g, 4, 5, 4, 2, "#f0b443"); R(g, 5, 2, 1, 2, "#e8902c"); R(g, 5, 5, 2, 1, "#fff0b0"); }),
+    bones: S(g => { R(g, 2, 3, 8, 1, "#d8ccb0"); R(g, 1, 2, 1, 2, "#d8ccb0"); R(g, 10, 2, 1, 2, "#d8ccb0"); R(g, 3, 8, 7, 1, "#c8bca0"); R(g, 2, 7, 1, 2, "#c8bca0"); R(g, 5, 5, 3, 2, "#e8e0cc"); R(g, 5, 5, 1, 1, "#241c10"); R(g, 7, 5, 1, 1, "#241c10"); }),
+    spear: S(g => { for (let i = 0; i < 9; i++) R(g, 2 + i, 10 - i, 1, 1, "#7a5a34"); R(g, 9, 1, 2, 2, "#b0b0a8"); R(g, 10, 0, 1, 1, "#d8d8d0"); R(g, 8, 2, 1, 1, "#7a5a34"); }),
+    tufts: S(g => { for (const x of [2, 4, 6, 8]) { R(g, x, 6, 1, 4, "#7a8a3a"); R(g, x + (x % 4 ? 1 : -1), 5, 1, 2, "#9aaa4a"); } R(g, 1, 10, 10, 1, "#3e3219"); }),
+    tree: S(g => { R(g, 5, 8, 2, 3, "#4a3220"); R(g, 3, 1, 6, 7, "#2e5a26"); R(g, 2, 3, 8, 4, "#2e5a26"); R(g, 4, 2, 3, 2, "#4a8438"); R(g, 3, 4, 2, 2, "#3e7232"); R(g, 7, 6, 2, 1, "#1e4018"); }),
+    bush: S(g => { R(g, 1, 5, 4, 5, "#2a4e22"); R(g, 5, 4, 6, 6, "#336028"); R(g, 3, 3, 5, 4, "#3c6c2e"); R(g, 4, 3, 2, 1, "#5a9a44"); R(g, 8, 6, 1, 1, "#d85a5a"); R(g, 2, 7, 1, 1, "#d85a5a"); }),
+    tracks: S(g => { for (const [x, y] of [[2, 2], [7, 4], [3, 7], [8, 9]]) { R(g, x, y, 2, 2, "#1e140a"); R(g, x - 1, y - 1, 1, 1, "#1e140a"); R(g, x + 2, y - 1, 1, 1, "#1e140a"); } }),
+    rock: S(g => { R(g, 2, 7, 8, 3, "#6a665c"); R(g, 3, 5, 6, 3, "#7e7a70"); R(g, 4, 4, 3, 2, "#9a968a"); R(g, 2, 10, 8, 1, "#33302a"); }),
+    shroom: S(g => { R(g, 5, 7, 2, 3, "#d8ccb0"); R(g, 2, 4, 8, 3, "#a8402a"); R(g, 3, 3, 6, 1, "#a8402a"); R(g, 4, 4, 1, 1, "#f0e0c0"); R(g, 7, 5, 1, 1, "#f0e0c0"); }),
+    tomb: S(g => { R(g, 3, 4, 6, 7, "#7a7880"); R(g, 4, 2, 4, 2, "#7a7880"); R(g, 3, 4, 1, 7, "#9a98a2"); R(g, 5, 5, 2, 1, "#3e3c44"); R(g, 5, 7, 2, 1, "#3e3c44"); R(g, 2, 10, 8, 1, "#2e2c34"); }),
+    cross: S(g => { R(g, 5, 1, 2, 10, "#6e6a72"); R(g, 2, 4, 8, 2, "#6e6a72"); R(g, 5, 1, 1, 10, "#8a868e"); R(g, 3, 10, 6, 1, "#2e2c34"); }),
+    skull: S(g => { R(g, 3, 2, 6, 5, "#d8d0bc"); R(g, 2, 3, 8, 3, "#d8d0bc"); R(g, 4, 7, 4, 2, "#d8d0bc"); R(g, 4, 4, 1, 2, "#1a1820"); R(g, 7, 4, 1, 2, "#1a1820"); R(g, 5, 7, 1, 2, "#1a1820"); R(g, 7, 7, 1, 2, "#1a1820"); }),
+    ribs: S(g => { R(g, 5, 1, 2, 10, "#d8d0bc"); for (const y of [3, 5, 7]) { R(g, 2, y, 3, 1, "#c8c0ac"); R(g, 7, y, 3, 1, "#c8c0ac"); } }),
+    crack: S(g => { for (const [x, y] of [[1, 1], [2, 2], [3, 3], [3, 4], [4, 5], [5, 6], [5, 7], [6, 8], [7, 8], [8, 9], [4, 3], [5, 3]]) R(g, x, y, 1, 1, "#14121a"); }),
+    crystal: S(g => { R(g, 3, 3, 2, 7, "#5ab8c8"); R(g, 4, 1, 1, 3, "#7ad0dc"); R(g, 6, 5, 3, 5, "#7ad0dc"); R(g, 7, 3, 1, 3, "#a8e8f0"); R(g, 4, 3, 1, 6, "#a8e8f0"); R(g, 2, 10, 8, 1, "#1e5a66"); }),
+    rocks: S(g => { R(g, 1, 6, 5, 4, "#6c7078"); R(g, 6, 5, 5, 5, "#5a5e66"); R(g, 2, 5, 3, 1, "#8a8e98"); R(g, 7, 4, 3, 1, "#7a7e88"); R(g, 1, 10, 10, 1, "#2a2e34"); }),
+    moss: S(g => { R(g, 2, 5, 8, 4, "#3e6a34"); R(g, 4, 4, 5, 1, "#3e6a34"); R(g, 3, 6, 3, 1, "#5a8a44"); R(g, 7, 7, 2, 1, "#5a8a44"); }),
+    rune: S(g => { R(g, 5, 1, 2, 1, "#8ac8d4"); R(g, 4, 2, 1, 1, "#8ac8d4"); R(g, 7, 2, 1, 1, "#8ac8d4"); R(g, 3, 3, 1, 5, "#8ac8d4"); R(g, 8, 3, 1, 5, "#8ac8d4"); R(g, 4, 8, 4, 1, "#8ac8d4"); R(g, 5, 4, 2, 3, "#5aa0b0"); }),
+    boulder: S(g => { R(g, 2, 3, 8, 7, "#7a7468"); R(g, 3, 2, 6, 1, "#7a7468"); R(g, 3, 3, 3, 2, "#9a9488"); R(g, 5, 6, 1, 3, "#3a362e"); R(g, 6, 8, 2, 1, "#3a362e"); R(g, 2, 10, 8, 1, "#2a2822"); }),
+    pond1: S(g => { R(g, 1, 4, 10, 5, "#2f6f98"); R(g, 2, 3, 8, 1, "#2f6f98"); R(g, 2, 9, 8, 1, "#2f6f98"); R(g, 3, 5, 4, 1, "#6fb3d6"); R(g, 6, 7, 3, 1, "#4a90b8"); }),
+    pond2: S(g => { R(g, 2, 5, 8, 4, "#2a6890"); R(g, 3, 4, 6, 1, "#2a6890"); R(g, 4, 6, 3, 1, "#6fb3d6"); R(g, 2, 1, 1, 3, "#3a6a2a"); R(g, 5, 0, 1, 4, "#3a6a2a"); R(g, 9, 1, 1, 3, "#3a6a2a"); }),
+    pond3: S(g => { for (const y of [3, 6, 9]) { R(g, 1, y, 3, 1, "#9fd0ea"); R(g, 4, y - 1, 3, 1, "#9fd0ea"); R(g, 7, y, 3, 1, "#9fd0ea"); } }),
+    ruin1: S(g => { R(g, 2, 5, 8, 6, "#7a7468"); R(g, 2, 3, 3, 2, "#7a7468"); R(g, 7, 4, 2, 1, "#7a7468"); R(g, 5, 7, 2, 4, "#1a160f"); R(g, 2, 11, 8, 1, "#33302a"); }),
+    ruin2: S(g => { R(g, 4, 1, 4, 10, "#8a8478"); R(g, 3, 1, 6, 1, "#a09a8c"); R(g, 5, 4, 1, 3, "#33302a"); R(g, 3, 11, 6, 1, "#33302a"); }),
+    ruin3: S(g => { R(g, 1, 8, 4, 3, "#6a665c"); R(g, 4, 6, 4, 5, "#7a766c"); R(g, 7, 8, 4, 3, "#6a665c"); R(g, 5, 5, 2, 1, "#8a867c"); }),
+    ruin4: S(g => { R(g, 1, 6, 10, 5, "#5d5a50"); R(g, 4, 4, 3, 2, "#5d5a50"); R(g, 5, 7, 2, 4, "#1a160f"); R(g, 1, 11, 10, 1, "#2a2822"); }),
+  };
+  const sets = { goblin: ["tent", "fire", "bones", "spear", "tufts"], beast: ["tree", "bush", "tracks", "rock", "shroom"], undead: ["tomb", "cross", "skull", "ribs", "crack"], stone: ["crystal", "rocks", "moss", "rune", "boulder"], pond: ["pond1", "pond2", "pond3"], ruins: ["ruin1", "ruin2", "ruin3", "ruin4"] };
+  const img = (u, x, y, w, h) => `<image href="${u}" x="${x}" y="${y}" width="${w}" height="${h}" preserveAspectRatio="none" style="image-rendering:pixelated" pointer-events="none"/>`;
+  return {
+    ok: !!(dark && urls.goblin[0] && spr.tent),
+    defs: () => Object.entries(urls).map(([z, a]) => a.map((u, v) => `<pattern id="px-${z}-${v}" width="1" height="1" patternContentUnits="objectBoundingBox">${img(u, 0, 0, 1, 1).replace('x="0" y="0" width="1" height="1"', 'x="0" y="0" width="1" height="1"')}</pattern>`).join("")).join("") + `<pattern id="px-dark" width="1" height="1" patternContentUnits="objectBoundingBox">${img(dark, 0, 0, 1, 1)}</pattern>`,
+    fill: (zone, h) => `url(#px-${zone}-${h % VARS})`, VARS,
+    sprite: (zone, i) => { const set = sets[zone], name = set[i % set.length]; return img(spr[name], -12, -12, 24, 24); },
+    count: zone => sets[zone].length,
+  };
+})();
+const tileFill = (x, y) => (PX.ok ? PX.fill(tileZone(x, y), tileHash(x, y, 5)) : `url(#tile-${tileZone(x, y)})`);
 // Рисунки квадрата в его локальных координатах (центр 0,0); 2–3 штуки по краям, середина свободна под отряд.
 function tileDeco(x, y) {
   const zone = tileZone(x, y);
   if (zone === "safe") return `<g opacity=".5" stroke="#2a2016" stroke-width="1.2" fill="none"><path d="M-28 -9 H28 M-28 9 H28 M-10 -28 V-9 M10 -9 V9 M-10 9 V28 M18 -28 V-9 M-18 -9 V9 M18 9 V28"/></g>`;
-  const set = isWaterTile(x, y) ? DECO.pond : isRuins(x, y) ? DECO.ruins : DECO[zone], n = 2 + tileHash(x, y, 1) % 2, used = new Set(), out = [];
+  const set = isWaterTile(x, y) ? DECO.pond : isRuins(x, y) ? DECO.ruins : DECO[zone], n = PX.ok ? 1 + tileHash(x, y, 1) % 2 : 2 + tileHash(x, y, 1) % 2, used = new Set(), out = [];          // пиксельные значки крупнее — их меньше
   for (let i = 0; i < n; i++) {
     let s = tileHash(x, y, 10 + i) % DECO_SLOTS.length;
     while (used.has(s)) s = (s + 1) % DECO_SLOTS.length;
     used.add(s);
     const [dx, dy] = DECO_SLOTS[s], sc = 1 + (tileHash(x, y, 20 + i) % 4) * .1;
+    if (PX.ok) { const key = isWaterTile(x, y) ? "pond" : isRuins(x, y) ? "ruins" : zone; out.push(`<g transform="translate(${dx} ${dy}) scale(${(sc * 1.05).toFixed(2)})">${PX.sprite(key, tileHash(x, y, 30 + i))}</g>`); continue; }
     out.push(`<g transform="translate(${dx} ${dy}) scale(${sc})">${set[tileHash(x, y, 30 + i) % set.length]}</g>`);
   }
   return out.join("");
@@ -4565,6 +4632,7 @@ const ICON_DEFS = `<clipPath id="pclip"><circle r="11"/></clipPath>
   <radialGradient id="torchGlow"><stop offset="0" stop-color="#f0b443" stop-opacity=".28"/><stop offset="1" stop-color="#f0b443" stop-opacity="0"/></radialGradient>
   <pattern id="wallHatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path d="M0 0V8" stroke="#3a2d1e" stroke-width="3"/></pattern>
   <radialGradient id="tileFloor" cx=".5" cy=".4" r=".8"><stop offset="0" stop-color="#4a3c2a"/><stop offset="1" stop-color="#2a2016"/></radialGradient>
+  ${PX.ok ? PX.defs() : ""}
   ${Object.entries(TILE_TINT).map(([k, [a, b]]) => `<radialGradient id="tile-${k}" cx=".5" cy=".4" r=".8"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></radialGradient>`).join("")}`;
 
 /* ----- интерфейс захода ----- */
@@ -4583,11 +4651,11 @@ function stageSvg() {
   const vis = new Set(r.visited);
   const parts = [];
   const up = (cx, cy, inner) => `<g class="up" data-cx="${cx}" data-cy="${cy}" transform="translate(${cx} ${cy}) rotate(${-R})">${inner}</g>`;
-  const sq = (x, y, attrs) => `<rect x="${(x - px) * T - T / 2 + 2}" y="${(y - py) * T - T / 2 + 2}" width="${T - 4}" height="${T - 4}" rx="6" ${attrs}/>`;
+  const sq = (x, y, attrs) => `<rect x="${(x - px) * T - T / 2 + 2}" y="${(y - py) * T - T / 2 + 2}" width="${T - 4}" height="${T - 4}" rx="${PX.ok ? 2 : 6}" ${attrs}/>`;
   for (const k of r.visited) {
     const [x, y] = k.split(",").map(Number);
     if (x === px && y === py) continue;
-    parts.push(sq(x, y, isDark(x, y) ? 'fill="#14100c" stroke="#3e3020" stroke-width="1.2"' : `fill="${tileFill(x, y)}" stroke="#6e5634" stroke-width="1.2"`));
+    parts.push(sq(x, y, isDark(x, y) ? `fill="${PX.ok ? "url(#px-dark)" : "#14100c"}" stroke="#3e3020" stroke-width="1.2"` : `fill="${tileFill(x, y)}" stroke="#6e5634" stroke-width="1.2"`));
     if (tileType(x, y) === "floor") parts.push(up((x - px) * T, (y - py) * T, `<g opacity="${isDark(x, y) ? .3 : 1}">${tileDeco(x, y)}</g>`));
     if (isDark(x, y)) parts.push(up((x - px) * T, (y - py) * T, ICON.moon));
     const ic = tileIcon(x, y);
