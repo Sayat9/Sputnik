@@ -12,26 +12,6 @@
 
 Стальное и более сильное снаряжение рисуется на лучшем фоне, чем обычное: «новое, блестящее» предмет (`new shiny steel …`), резная подставка (`decorated wooden display stand`), ниша-арсенал (`softly lit arsenal alcove`), знамёна и доспехи вдоль стен. Образец: `a new shiny steel warhammer with a squared head and a pointed back spike on a hardwood haft, standing upright, resting against a decorated wooden display stand, on a small stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit arsenal alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`.
 
-### Улучшенный короткий лук — `steel-shortbow`
-
-> `a well-kept polished composite short bow with steel-reinforced tips, a leather grip and a taut waxed string, mounted horizontally on two wooden wall brackets, bright cool blue-silver sheen on the metal, finer craftsmanship than the iron version, only a few light battle scratches, on a small stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit arsenal alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
-
-### Улучшенный длинный лук — `steel-longbow`
-
-> `a well-kept polished long bow of dark yew with steel-capped tips, a leather grip and a taut waxed string, mounted horizontally on two wooden wall brackets, bright cool blue-silver sheen on the metal, finer craftsmanship than the iron version, only a few light battle scratches, on a small stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit arsenal alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
-
-### Клёпаный кожаный доспех — `steel-armor-leather`
-
-> `a well-kept polished studded leather armor cuirass with rows of steel rivets on dark boiled leather, only light wear, displayed on a decorated wooden armor stand, bright cool blue-silver sheen on the metal, finer craftsmanship than the iron version, only a few light battle scratches, on a small stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit arsenal alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
-
-### Усиленный шкурный доспех — `steel-armor-hide`
-
-> `a well-kept polished medium armor of thick hides reinforced with steel plates sewn over the chest and shoulders, only light wear, displayed on a decorated wooden armor stand, bright cool blue-silver sheen on the metal, finer craftsmanship than the iron version, only a few light battle scratches, on a small stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit arsenal alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
-
-### Стальная кольчуга — `steel-armor-chainmail`
-
-> `a well-kept polished fine steel chainmail hauberk with a steel gorget and a leather belt, tight bright rings, only light wear, displayed on a decorated wooden armor stand, bright cool blue-silver sheen on the metal, finer craftsmanship than the iron version, only a few light battle scratches, on a small stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit arsenal alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
-
 ### Перчатки — `gloves`
 
 > `a pair of worn leather fighting gloves with iron-studded knuckle plates and scuffed fingers, lying on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`

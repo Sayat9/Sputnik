@@ -1,5 +1,5 @@
 {
- "version": 1792945692,
+ "version": 1792946031,
  "files": [
   "assets/css/battle.css",
   "assets/css/town.css",
@@ -40,11 +40,16 @@
   "assets/items/spear.svg",
   "assets/items/spear.webp",
   "assets/items/staff.svg",
+  "assets/items/steel-armor-chainmail.webp",
+  "assets/items/steel-armor-hide.webp",
+  "assets/items/steel-armor-leather.webp",
   "assets/items/steel-dagger.webp",
   "assets/items/steel-greatsword.webp",
+  "assets/items/steel-longbow.webp",
   "assets/items/steel-mace.webp",
   "assets/items/steel-rapier.webp",
   "assets/items/steel-shield.webp",
+  "assets/items/steel-shortbow.webp",
   "assets/items/steel-spear.webp",
   "assets/items/steel-sword.webp",
   "assets/items/steel-tower-shield.webp",
@@ -319,11 +324,16 @@
   "assets/items/spear.svg": "4321a14f5627865330598444899ebff8",
   "assets/items/spear.webp": "79c8abe2139a44a212e224475525f8a8",
   "assets/items/staff.svg": "ba7ec645a3ed9306b96a509ca59fec1a",
+  "assets/items/steel-armor-chainmail.webp": "f0e5ea8a71b0dd659013479ba4ad4f60",
+  "assets/items/steel-armor-hide.webp": "5dce5e5ffe63d89e50af94643df76ba9",
+  "assets/items/steel-armor-leather.webp": "0499daa316f5c705d373a694d83a4883",
   "assets/items/steel-dagger.webp": "6893e68eff3ec02586b30c2b3d4167dd",
   "assets/items/steel-greatsword.webp": "49c54094574c1661e0b1b277ef382a21",
+  "assets/items/steel-longbow.webp": "e8b192bcb7aa29b54f0b7596b27a166c",
   "assets/items/steel-mace.webp": "34430d87d06272e7b8bf1d9323bcbb81",
   "assets/items/steel-rapier.webp": "74b7bac26a13352671cb64f8c75eb38f",
   "assets/items/steel-shield.webp": "a010df1955afc1833c2bd4e5c71db0e1",
+  "assets/items/steel-shortbow.webp": "242bdd80b8a28e7c6476ce0250ec2440",
   "assets/items/steel-spear.webp": "75283eb38fb1aeec14e322d41b466ba5",
   "assets/items/steel-sword.webp": "5d8fbdc3220d2e46e01ce251d74c6749",
   "assets/items/steel-tower-shield.webp": "1347591bfc1991f695c5ccecfe7aaee8",
@@ -556,6 +566,6 @@
   "fonts/f8.woff2": "6cc1ee17091d59eb93821c3594e8f38f",
   "fonts/f9.woff2": "070433480b7b645f69b543f284e386ce",
   "fonts/fonts.css": "1585a72a8d157b26cb424ab433fd4e19",
-  "index.html": "8bf6b9c72c2b5e0e3eff422a6dad25bf"
+  "index.html": "4d2d496072851cac2117f5cb2ab1e67a"
  }
 }
