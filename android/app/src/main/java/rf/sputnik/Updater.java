@@ -83,10 +83,16 @@ class Updater {
     private JSONObject offer;                                   // найденная на сервере версия (version.json)
 
     // Только проверка: ничего не скачивает.
-    void checkOnly(Info cb) {
+    void checkOnly(Info cb) { checkOnly(cb, 0); }
+
+    private void checkOnly(Info cb, int attempt) {
         final String base = ctx.getString(R.string.update_url);
         if (base.isEmpty()) { cb.failed("обновления выключены"); return; }
-        if (busy) return;
+        if (busy) {                                    // предыдущая проверка ещё идёт: подождать и повторить, а не молчать
+            if (attempt >= 6) { cb.failed("проверка уже идёт"); return; }
+            new Thread(() -> { try { Thread.sleep(2500); } catch (Exception e) { } checkOnly(cb, attempt + 1); }).start();
+            return;
+        }
         busy = true;
         new Thread(() -> {
             try {

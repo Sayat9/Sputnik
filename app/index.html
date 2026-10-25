@@ -6059,6 +6059,7 @@ function updDialog(mode) {
       #updov .box{width:min(92vw,380px);padding:18px;display:flex;flex-direction:column;gap:12px;text-align:center}
       #updov h3{margin:0;font-family:"Kelly Slab",Georgia,serif;color:var(--fx-gold-hi,#f4d48e)}
       #updov .track{height:14px;border-radius:8px;background:#1a140d;border:1px solid #6e5634;overflow:hidden}
+      @keyframes updpulse{from{margin-left:0}to{margin-left:65%}}
       #updov .track i{display:block;height:100%;width:0;background:linear-gradient(90deg,#a8701e,#f0b443);transition:width .15s}`;
     document.head.appendChild(st);
     ov = document.createElement("div"); ov.id = "updov"; ov.setAttribute("role", "dialog"); ov.setAttribute("aria-modal", "true"); document.body.appendChild(ov);
@@ -6078,6 +6079,7 @@ function updDialog(mode) {
   ov.hidden = false;
   const box = html => { ov.innerHTML = `<div class="box fx-frame">${html}</div>`; };
   if (mode === "ask") box(`<h3>Есть обновление</h3><p>Вышла новая версия игры. Установить её сейчас? Игра сохранится и перезапустится.</p><button class="fx-btn primary big" data-ud="yes">Установить</button><button class="fx-btn" data-ud="no">Позже</button>`);
+  else if (mode === "checking") box(`<h3>Проверка обновления</h3><div class="track"><i style="width:35%;animation:updpulse 1.2s ease-in-out infinite alternate"></i></div><p>Связываюсь с сервером обновлений…</p><button class="fx-btn" data-ud="ok">Закрыть</button>`);
   else if (mode === "progress") box(`<h3>Установка обновления</h3><div class="track"><i id="upd-bar"></i></div><p id="upd-pct">0%</p><p style="opacity:.7;font-size:13px">Не закрывайте приложение.</p>`);
   else if (mode === "done") box(`<h3>Обновление установлено</h3><div class="track"><i style="width:100%"></i></div><p>Перезапускаю игру…</p>`);
   else if (mode === "ready") box(`<h3>Обновление скачано</h3><p>Применить сейчас? Игра сохранится и перезапустится.</p><button class="fx-btn primary big" data-ud="apply">Применить</button><button class="fx-btn" data-ud="no">Позже</button>`);
@@ -6086,9 +6088,10 @@ function updDialog(mode) {
 }
 async function checkUpdate() {
   updShow("checking", "");
+  updDialog("checking");          // сразу видно, что нажатие принято
   if (window.SputnikApp && window.SputnikApp.steps && window.SputnikApp.checkOnly) {
     window.SputnikApp.checkOnly();
-    setTimeout(() => { if (updUi.state === "checking") { updShow("error", "Сервер долго не отвечает. Попробуй ещё раз."); updDialog("error"); } }, 25000);
+    setTimeout(() => { if (updUi.state === "checking") { updShow("error", "Сервер долго не отвечает. Попробуй ещё раз."); updDialog("error"); } }, 15000);
     return;
   }
   if (window.SputnikApp) {
