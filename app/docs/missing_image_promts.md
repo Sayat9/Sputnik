@@ -19,7 +19,7 @@
 
 ## Предметы, оружие и броня
 
-### Неизвестный предмет (общий для всех трав, грибов и особых камней) — `unknown`
+### Неизвестный особый камень (трава и гриб уже есть) — `unknown-stone`
 
 > `a dark mysterious silhouette of a small unidentified object wrapped in shadow, only the outline visible, a large glowing amber question mark floating over it, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
 
@@ -55,17 +55,9 @@
 
 > `a well-kept polished steel-tipped spear with a long straight ash shaft and a leaf-shaped blade, standing upright, resting against a simple wooden display stand, bright cool blue-silver sheen on the metal, finer craftsmanship than the iron version, only a few light battle scratches, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
 
-### Стальная булава — `steel-mace`
-
-> `a well-kept polished steel flanged mace with a short wooden haft wrapped in leather, standing upright, resting against a simple wooden display stand, bright cool blue-silver sheen on the metal, finer craftsmanship than the iron version, only a few light battle scratches, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
-
 ### Стальной боевой молот — `steel-warhammer`
 
 > `a well-kept polished steel warhammer with a squared head and a pointed back spike on a hardwood haft, standing upright, resting against a simple wooden display stand, bright cool blue-silver sheen on the metal, finer craftsmanship than the iron version, only a few light battle scratches, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
-
-### Стальная рапира — `steel-rapier`
-
-> `a well-kept polished thin steel rapier with an ornate brass swept hilt and a long needle blade, standing upright, resting against a simple wooden display stand, bright cool blue-silver sheen on the metal, finer craftsmanship than the iron version, only a few light battle scratches, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
 
 ### Улучшенный короткий лук — `steel-shortbow`
 

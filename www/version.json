@@ -1,5 +1,5 @@
 {
- "version": 1792944258,
+ "version": 1792944968,
  "files": [
   "assets/css/battle.css",
   "assets/css/town.css",
@@ -40,6 +40,8 @@
   "assets/items/staff.svg",
   "assets/items/steel-dagger.webp",
   "assets/items/steel-greatsword.webp",
+  "assets/items/steel-mace.webp",
+  "assets/items/steel-rapier.webp",
   "assets/items/steel-shield.webp",
   "assets/items/steel-sword.webp",
   "assets/items/steel-tower-shield.webp",
@@ -52,6 +54,7 @@
   "assets/items/tower-shield.svg",
   "assets/items/tower-shield.webp",
   "assets/items/twin-daggers.svg",
+  "assets/items/unknown-herb.webp",
   "assets/items/unknown-mushroom.webp",
   "assets/items/warhammer.svg",
   "assets/items/warhammer.webp",
@@ -286,7 +289,7 @@
   "assets/items/longbow.svg": "1a2b0af6eba29659dbf31e2e266836bc",
   "assets/items/longbow.webp": "2a9cd310dbfde5691cf80b055a113b3a",
   "assets/items/mace.svg": "fab57d17e339f0379c491f94ba0cd38b",
-  "assets/items/mace.webp": "fdaa188ac8ae861442a4868f3ef0845c",
+  "assets/items/mace.webp": "baf9771fe72335df49f3179dfe029d19",
   "assets/items/potion.webp": "f80e4783bf3ab7ede908e1c030869e05",
   "assets/items/rapier.svg": "3aecd801d7612fda9c41ae000d6fdf83",
   "assets/items/rapier.webp": "879b4b3095be0cb981e6268b341d59ae",
@@ -303,6 +306,8 @@
   "assets/items/staff.svg": "ba7ec645a3ed9306b96a509ca59fec1a",
   "assets/items/steel-dagger.webp": "6893e68eff3ec02586b30c2b3d4167dd",
   "assets/items/steel-greatsword.webp": "60f9095c1b1a9f1c732d097f0fa72762",
+  "assets/items/steel-mace.webp": "34430d87d06272e7b8bf1d9323bcbb81",
+  "assets/items/steel-rapier.webp": "74b7bac26a13352671cb64f8c75eb38f",
   "assets/items/steel-shield.webp": "a010df1955afc1833c2bd4e5c71db0e1",
   "assets/items/steel-sword.webp": "5d8fbdc3220d2e46e01ce251d74c6749",
   "assets/items/steel-tower-shield.webp": "1347591bfc1991f695c5ccecfe7aaee8",
@@ -315,6 +320,7 @@
   "assets/items/tower-shield.svg": "9e7307c4a5faaeb9e532604e6cc75d9e",
   "assets/items/tower-shield.webp": "5fea4d420f0795c7251e397af6e70ffa",
   "assets/items/twin-daggers.svg": "ce8745d1141e1759bc33f042ac572853",
+  "assets/items/unknown-herb.webp": "83262d4262a6365171b98ed36264f37a",
   "assets/items/unknown-mushroom.webp": "7ae07e82cbab2ae35ea6eb7fb1a9a018",
   "assets/items/warhammer.svg": "146a73c3b76075dc5cf83d3f60f0d935",
   "assets/items/warhammer.webp": "96a5d7990847d290d359b35e7673e757",
@@ -524,6 +530,6 @@
   "fonts/f8.woff2": "6cc1ee17091d59eb93821c3594e8f38f",
   "fonts/f9.woff2": "070433480b7b645f69b543f284e386ce",
   "fonts/fonts.css": "1585a72a8d157b26cb424ab433fd4e19",
-  "index.html": "a674f17ae587ca976cf148f8725718fc"
+  "index.html": "fe589e07de1e23b9ef4a34a1e053f9b4"
  }
 }
