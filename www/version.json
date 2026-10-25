@@ -1,7 +1,12 @@
 {
- "version": 1792947293,
+ "version": 1792947609,
  "files": [
+  "assets/buildings/church.webp",
+  "assets/buildings/gate.webp",
   "assets/buildings/guild.webp",
+  "assets/buildings/library.webp",
+  "assets/buildings/shop.webp",
+  "assets/buildings/tavern.webp",
   "assets/buildings/tower.webp",
   "assets/css/battle.css",
   "assets/css/town.css",
@@ -300,7 +305,12 @@
   "index.html"
  ],
  "hashes": {
+  "assets/buildings/church.webp": "c5a094fc01e76402890e7c18d3111859",
+  "assets/buildings/gate.webp": "0a9bc3ac279b44346fd91479481694a9",
   "assets/buildings/guild.webp": "93334f4d69d6a3627a6a045e092ef67f",
+  "assets/buildings/library.webp": "e30725f9366b0ed9cac29e5e6249991c",
+  "assets/buildings/shop.webp": "17557dbad4e5d0e8e446f2cb6ae3f870",
+  "assets/buildings/tavern.webp": "812c88667997f640e80c34b331e547b2",
   "assets/buildings/tower.webp": "a8d571c86cb743cdbcdfe7d63aaed744",
   "assets/css/battle.css": "cb24a46d9fdce5108bf04a28cc34d731",
   "assets/css/town.css": "00b1687a026df484e94c0dcd66f3e2f1",
@@ -596,6 +606,6 @@
   "fonts/f8.woff2": "6cc1ee17091d59eb93821c3594e8f38f",
   "fonts/f9.woff2": "070433480b7b645f69b543f284e386ce",
   "fonts/fonts.css": "1585a72a8d157b26cb424ab433fd4e19",
-  "index.html": "3f12bd2274a0bf0ef0429772c943892c"
+  "index.html": "d68b7abe0a1f5069f9f317a837a600d1"
  }
 }

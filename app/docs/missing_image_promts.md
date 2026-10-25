@@ -140,29 +140,9 @@
 
 ## Здания города
 
-### Церковь — `bld-church`
-
-> `a stone church with a pointed bell tower, a rose window glowing warm gold, a sunburst symbol above the arched door and candles in the windows, dark fantasy city at dusk, warm window glow, hand-painted fantasy RPG building icon, stylized, painterly, clean readable silhouette, centered on a dark stone square, square 1:1, no text`
-
-### Библиотека — `bld-library`
-
-> `a stately stone library with tall arched windows showing rows of books, a carved owl above the entrance and stacks of tomes beside the door, dark fantasy city at dusk, warm window glow, hand-painted fantasy RPG building icon, stylized, painterly, clean readable silhouette, centered on a dark stone square, square 1:1, no text`
-
-### Лабиринт — `bld-gate`
-
-> `a massive ancient stone gate with a glowing golden portal inside the arch, a diamond-shaped rune above it and worn steps leading down into the light, dark fantasy city at dusk, warm window glow, hand-painted fantasy RPG building icon, stylized, painterly, clean readable silhouette, centered on a dark stone square, square 1:1, no text`
-
 ### Доска объявлений — `bld-board`
 
 > `a large wooden notice board on two thick posts, covered with pinned parchment notices, wanted posters and a small roof of planks above it, dark fantasy city at dusk, warm window glow, hand-painted fantasy RPG building icon, stylized, painterly, clean readable silhouette, centered on a dark stone square, square 1:1, no text`
-
-### Таверна — `bld-tavern`
-
-> `a cosy timber-framed tavern with a steep roof, warm glowing windows, a hanging wooden mug sign, barrels by the door and smoke from the chimney, dark fantasy city at dusk, warm window glow, hand-painted fantasy RPG building icon, stylized, painterly, clean readable silhouette, centered on a dark stone square, square 1:1, no text`
-
-### Магазин — `bld-shop`
-
-> `a small crooked market shop with an awning of red cloth, shelves of potions, torches and shovels visible through the open front and a gleaming amber gem hanging as a sign, dark fantasy city at dusk, warm window glow, hand-painted fantasy RPG building icon, stylized, painterly, clean readable silhouette, centered on a dark stone square, square 1:1, no text`
 
 ### Кузница — `bld-forge`
 
