@@ -137,11 +137,11 @@
     const stored = lsGet(HOST_KEY);
     const code = await N.startHost(stored && stored.code ? { code: stored.code } : {});
     lsSet(HOST_KEY, { code });
-    clearInterval(H.poll); H.poll = setInterval(() => pushAll(), 400);
+    clearInterval(H.poll); H.poll = setInterval(() => pushAll(), 400); keepAlive(true);
     renderHostPanel(); updateChip();
     return code;
   };
-  G.stopHost = function () { clearInterval(H.poll); N.stopHost(); renderHostPanel(); updateChip(); };
+  G.stopHost = function () { clearInterval(H.poll); keepAlive(false); N.stopHost(); renderHostPanel(); updateChip(); };
   N.on((ev, d) => { if (ev === "codechanged") toast("Прошлый код комнаты ещё занят на сервере: новый код — " + d); });
   N.on((ev, d) => { if (ev === "player") { renderHostPanel(); updateChip(); if (d && d.online) schedule(); } });
 
@@ -195,7 +195,10 @@
   }
 
   /* ===================================================================== игрок ===== */
-  const C = G.client = { lastJ: {}, applyT: null, msg: "" };
+  const C = G.client = { lastJ: {}, applyT: null, msg: "", sig: "" };
+  // Пока идёт партия, оболочка Android держит приложение живым в фоне (сервис с уведомлением); без неё — ничего не делает.
+  function keepAlive(on) { try { if (window.SputnikApp && window.SputnikApp.keepAlive) window.SputnikApp.keepAlive(!!on); } catch (e) {} }
+  G.keepAlive = keepAlive;
   const myPid = () => N.pid();
   const ownHeroes = () => (state.party || []).filter(c => c.owner && c.owner === myPid());
   G.isMine = c => !!(c && c.owner && c.owner === myPid());
@@ -205,7 +208,7 @@
     buildBar(); buildJoin();
     N.handle("view", d => { applyPatch(d); });
     N.on((ev, d) => {
-      if (ev === "status") { updateBar(); if (d === "online") hideJoin(); else if (d === "reconnecting" || d === "off") goOffline(); }
+      if (ev === "status") { updateBar(); keepAlive(d === "online" || d === "reconnecting" || d === "connecting"); if (d === "online") hideJoin(); else if (d === "off") goOffline(); }          // при коротком обрыве экран не прыгает: переподключение идёт само
       if (ev === "welcome" && d && d.pid) { const cr = lsGet(PLAYER_KEY) || {}; cr.pid = d.pid; lsSet(PLAYER_KEY, cr); C.msg = ""; }
       if (ev === "joinerror") { C.msg = "Нет связи: " + d; updateJoinMsg(); }
     });
@@ -260,7 +263,10 @@
     if (V.bat !== undefined && window.Battle && Battle.Net) Battle.Net.mirror(V.bat);
     else if (V.bat !== undefined && V.bat) loadBattle().then(ok => { if (ok && Battle.Net) Battle.Net.mirror(G.view.bat); });
     // экран: идём за ведущим
-    if (!location.hash.slice(1)) { try { rerender(); } catch (e) {} }                                        // экран «Команда»: новый герой друга виден сразу
+    if (!location.hash.slice(1)) {                                                                        // экран «Команда»: перерисовывается, только когда состав или статусы изменились (иначе он дёргается)
+      const sig = jstr([(state.party || []).map(c => [c.id, c.name, c.owner, c.dead, c.hp]), V.players]);
+      if (sig !== C.sig) { C.sig = sig; try { rerender(); } catch (e) {} }
+    }
     if (G.follow) {
       const h = V.hash || "";
       if (GAME_HASH.includes(h) && location.hash.slice(1) !== h) location.hash = h; else if (GAME_HASH.includes(location.hash.slice(1))) rerender();

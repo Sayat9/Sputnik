@@ -63,13 +63,28 @@
     },
   };
 
+  /* ===== тикер: пока страница свёрнута, обычные таймеры замедляются браузером, а Web Worker — нет; от него зависят пульс и проверка связи ===== */
+  const Tick = (() => {
+    const subs = new Set(); let w = null, iv = null;
+    const fire = () => subs.forEach(f => { try { f(); } catch (e) {} });
+    const start = () => {
+      if (w || iv) return;
+      try { w = new Worker(URL.createObjectURL(new Blob(["setInterval(function(){postMessage(1)},2000)"], { type: "text/javascript" }))); w.onmessage = fire; w.onerror = () => { try { w.terminate(); } catch (e) {} w = null; if (!iv) iv = setInterval(fire, 2000); }; }
+      catch (e) { iv = setInterval(fire, 2000); }
+    };
+    return { add(f) { subs.add(f); start(); }, del(f) { subs.delete(f); } };
+  })();
+  const DEAD_MS = 45000;                                                                  // тишина дольше этого — связь потеряна (в фоне сообщения могут приходить реже)
+
   /* ===== Link: сообщения {t, d, id?}, ответы {re, d | err}, кусочки, пульс ===== */
   const CHUNK = 48000;
   class Link {
     constructor(conn) {
       this.conn = conn; this.alive = true; this.rpc = {}; this.seq = 1; this.parts = {}; this.last = Date.now(); this.tag = null;
       conn.onmessage = raw => this._in(raw); conn.onclose = () => this._closed();
-      this.timer = setInterval(() => { if (!this.alive) return; this.raw({ t: "ping" }); if (Date.now() - this.last > 15000) this._closed(); }, 4000);
+      this.lastPing = 0;
+      this.tickf = () => { if (!this.alive) return; const n = Date.now(); if (n - this.lastPing >= 4000) { this.lastPing = n; this.raw({ t: "ping" }); } if (n - this.last > DEAD_MS) this._closed(); };
+      Tick.add(this.tickf);
     }
     raw(msg) {
       if (!this.alive) return false;
@@ -102,7 +117,7 @@
         err => { console.error("net handler", m.t, err); if (m.id != null) this.raw({ re: m.id, err: String(err && err.message || err) }); });
     }
     _closed() {
-      if (!this.alive) return; this.alive = false; clearInterval(this.timer);
+      if (!this.alive) return; this.alive = false; Tick.del(this.tickf);
       for (const r of Object.values(this.rpc)) { r.clear && r.clear(); r.no(new Error("связь оборвана")); } this.rpc = {};
       try { this.conn.close(); } catch (e) {}
       if (this.onclose) this.onclose();
@@ -157,7 +172,10 @@
   };
 
   /* ===== игрок ===== */
-  let want = null, link = null, retry = 0, cancelled = false, gen = 0;
+  let want = null, link = null, retry = 0, cancelled = false, gen = 0, wake = null;
+  const nap = ms => new Promise(r => { wake = r; setTimeout(r, ms); });                   // пауза между попытками, которую можно прервать (N.kick)
+  N.kick = () => { retry = 0; if (wake) wake(); };                                       // вернулись в приложение или появилась сеть — подключаться сразу
+  try { document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && N.role === "client" && N.status !== "online") N.kick(); }); window.addEventListener("online", () => { if (N.role === "client" && N.status !== "online") N.kick(); }); } catch (e) {}
   N.join = function (code, name, pid, helloData) {
     code = String(code || "").trim().toUpperCase();
     if (N.role === "host") throw new Error("уже ведущий");
@@ -182,7 +200,7 @@
         if (link === l) link = null; if (cancelled || my !== gen) return;
         setStatus("reconnecting"); emit("lost");
       } catch (e) { if (my !== gen) return; link = null; emit("joinerror", String(e && e.message || e)); }
-      retry++; await sleep(Math.min(8000, 1200 + retry * 800));
+      retry++; await nap(Math.min(8000, 1200 + retry * 800));
     }
   }
   N.pid = () => (want && want.pid) || null;

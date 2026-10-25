@@ -1,6 +1,10 @@
 package rf.sputnik;
 
+import android.Manifest;
 import android.app.Activity;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.net.Uri;
 import android.os.Bundle;
 import android.webkit.JavascriptInterface;
@@ -27,6 +31,17 @@ public class MainActivity extends Activity {
     // Ответы приходят в window.sputnikUpdate(status, version), status: downloaded | latest | error.
     private class Bridge {
         @JavascriptInterface public String mode() { return getString(R.string.app_mode); }          // "master" | "player": клиент игрока для онлайн-партии
+        // Онлайн-партия: пока комната открыта, сервис держит приложение живым в фоне (при закрытии окна останавливается сам).
+        @JavascriptInterface public boolean keepAlive(boolean on) {
+            runOnUiThread(() -> {
+                Intent i = new Intent(MainActivity.this, KeepAliveService.class);
+                if (on) {
+                    if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, 11);
+                    try { if (Build.VERSION.SDK_INT >= 26) startForegroundService(i); else startService(i); } catch (Exception e) { }
+                } else stopService(i);
+            });
+            return true;
+        }
         @JavascriptInterface public String version() { return String.valueOf(updater.current()); }
         @JavascriptInterface public boolean pending() { return updater.pending(); }
         @JavascriptInterface public void checkUpdate() { updater.check(reporter()); }          // старый способ: проверить и сразу скачать
@@ -99,6 +114,12 @@ public class MainActivity extends Activity {
         // Проверка обновления при запуске: только узнаём; страница спросит, устанавливать ли.
         updater.checkOnly(infoReporter());
     }
+
+    @Override
+    protected void onPause() { super.onPause(); web.resumeTimers(); }          // свёрнутая страница продолжает работать: связь с комнатой не должна замирать
+
+    @Override
+    protected void onResume() { super.onResume(); web.resumeTimers(); }
 
     @Override
     protected void onSaveInstanceState(Bundle out) {
