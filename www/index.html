@@ -1868,8 +1868,8 @@ const DISTRICTS = [
 
 // Готовые рисованные картинки (webp) заменяют векторные заглушки.
 // Дата сборки для телефона: build.sh вписывает её сюда, в веб-версии строка пустая.
-const APP_BUILD = "25.10.2026 20:04";
-const APP_VERSION = 1792940652;                 // номер сборки, тоже вписывает build.sh
+const APP_BUILD = "25.10.2026 20:31";
+const APP_VERSION = 1792942311;                 // номер сборки, тоже вписывает build.sh
 const UPDATE_URL = "https://raw.githubusercontent.com/Sayat9/Sputnik/main/www/";
 const RASTER = new Set(["items/mace", "items/warhammer", "items/armor-leather", "items/armor-hide", "items/armor-chainmail", "items/steel-dagger", "items/steel-sword", "items/steel-greatsword", "items/steel-shield", "items/steel-tower-shield", "items/shortbow", "items/longbow", "items/rapier", "items/shield", "items/tower-shield", "items/unknown-mushroom", "items/stone-9", "items/stone-8", "items/stone-7", "items/ration", "items/potion", "items/torch", "items/arrows", "items/clothes", "items/shovel", "items/shovel-good", "items/shovel-best", "items/dagger", "items/sword", "items/greatsword", "items/spear", "monsters/goblin-king-face", "monsters/goblin-king-full", "monsters/goblin-bomber-face", "monsters/goblin-bomber-full", "monsters/hobgoblin-shield-face", "monsters/hobgoblin-shield-full", "races/barbarian", "races/human", "races/dwarf", "races/beastkin", "races/fairy", "races/dragon", "monsters/goblin-face", "monsters/goblin-full", "monsters/goblin-archer-face", "monsters/goblin-archer-full", "monsters/goblin-sword-face", "monsters/goblin-sword-full", "monsters/goblin-spear-face", "monsters/goblin-spear-full", "monsters/wolf-face", "monsters/wolf-full", "monsters/fox-face", "monsters/fox-full", "monsters/mouse-face", "monsters/mouse-full", "monsters/bat-face", "monsters/bat-full", "monsters/hobgoblin-face", "monsters/hobgoblin-full", "monsters/zombie-face", "monsters/zombie-full", "monsters/skeleton-face", "monsters/skeleton-full", "monsters/skeleton-archer-face", "monsters/skeleton-archer-full", "monsters/ghoul-face", "monsters/ghoul-full", "monsters/dark-bear-face", "monsters/dark-bear-full", "monsters/skeleton-warrior-face", "monsters/skeleton-warrior-full", "monsters/living-stone-face", "monsters/living-stone-full", "monsters/wisp-face", "monsters/wisp-full", "monsters/pixie-face", "monsters/pixie-full", "monsters/green-boulder-face", "monsters/green-boulder-full", "monsters/stone-guardian-face", "monsters/stone-guardian-full", "monsters/spider-queen-face", "monsters/spider-queen-full", "monsters/ash-wraith-face", "monsters/ash-wraith-full", "monsters/ash-spirit-face", "monsters/ash-spirit-full", "monsters/plague-fat-face", "monsters/plague-fat-full", "monsters/bone-hound-face", "monsters/bone-hound-full", "monsters/dust-crawler-face", "monsters/dust-crawler-full", "monsters/faceless-ringer-face", "monsters/faceless-ringer-full", "monsters/mirror-dead-face", "monsters/mirror-dead-full", "monsters/whisperer-face", "monsters/whisperer-full", "monsters/morok-face", "monsters/morok-full", "monsters/grey-shade-face", "monsters/grey-shade-full", "monsters/blackwing-face", "monsters/blackwing-full", "monsters/swamp-fang-face", "monsters/swamp-fang-full", "monsters/web-spider-face", "monsters/web-spider-full", "monsters/goblin-shaman-face", "monsters/goblin-shaman-full", "monsters/goblin-assassin-face", "monsters/goblin-assassin-full", "monsters/goblin-trapper-face", "monsters/goblin-trapper-full", "monsters/goblin-elder-face", "monsters/goblin-elder-full", "monsters/hobgoblin-brute-face", "monsters/hobgoblin-brute-full", "monsters/hobgoblin-thrower-face", "monsters/hobgoblin-thrower-full", "monsters/hobgoblin-driver-face", "monsters/hobgoblin-driver-full", "monsters/goblin-thief-face", "monsters/goblin-thief-full", "monsters/horned-hare-face", "monsters/horned-hare-full", "monsters/swamp-toad-face", "monsters/swamp-toad-full", "monsters/burrower-face", "monsters/burrower-full", "monsters/crow-face", "monsters/crow-full", "monsters/dire-wolf-face", "monsters/dire-wolf-full", "monsters/werewolf-face", "monsters/werewolf-full", "monsters/giant-mole-face", "monsters/giant-mole-full", "monsters/bone-knight-face", "monsters/bone-knight-full", "monsters/gravedigger-face", "monsters/gravedigger-full", "monsters/corpse-eater-face", "monsters/corpse-eater-full", "monsters/drop-face", "monsters/drop-full", "monsters/dust-whirl-face", "monsters/dust-whirl-full", "monsters/magma-hound-face", "monsters/magma-hound-full", "monsters/crystalloid-face", "monsters/crystalloid-full", "monsters/lake-spirit-face", "monsters/lake-spirit-full", "monsters/magma-golem-face", "monsters/magma-golem-full", "monsters/deep-serpent-face", "monsters/deep-serpent-full", "monsters/crystal-colossus-face", "monsters/crystal-colossus-full", "monsters/storm-spirit-face", "monsters/storm-spirit-full", "monsters/rift-heart-face", "monsters/rift-heart-full", "items/compass"]);
 const artPath = p => `assets/${p}.${RASTER.has(p) ? "webp" : "svg"}`;
@@ -2956,6 +2956,7 @@ const raceMods = r => r.id === "human" ? "+1 ко всем характерис�
 const fmtDate = iso => { try { return new Date(iso).toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" }); } catch (e) { return ""; } };
 
 function renderMain() {
+  if (!isMaster() && window.NetGlue && NetGlue.teamScreen) return NetGlue.teamScreen();          // клиент игрока: вместо главного меню — окно команды
   const last = state.sessions[state.sessions.length - 1];
   const members = last ? last.members.map(id => state.party.find(c => c.id === id)).filter(Boolean) : [];
   return `
@@ -5954,15 +5955,56 @@ const rerender = () => route(true);
 // В APK кнопка просит Android (window.SputnikApp) проверить и скачать обновление, «Применить» перезагружает страницу на новой версии.
 // Ответ приходит в window.sputnikUpdate. Без моста (старый APK) — просто сравниваем номер версии с GitHub.
 let updUi = { state: "idle", note: "" };
-const UPD_LABEL = { idle: "Проверить обновление", checking: "Проверяю…", latest: "Проверить обновление", downloaded: "Применить обновление", error: "Проверить обновление", old: "Проверить обновление" };
+const UPD_LABEL = { idle: "Проверить обновление", checking: "Проверяю…", available: "Проверить обновление", progress: "Установка…", latest: "Проверить обновление", downloaded: "Применить обновление", error: "Проверить обновление", old: "Проверить обновление" };
 function updShow(stateName, note) { updUi = { state: stateName, note }; if (!location.hash || location.hash === "#") rerender(); else if (stateName === "downloaded") toast("Обновление скачано: примени его на главном экране"); }
 window.sputnikUpdate = (status, version) => {
-  if (status === "downloaded") updShow("downloaded", "Новая версия скачана. Нажми, чтобы применить — игра сохранится.");
-  else if (status === "latest") updShow("latest", "Установлена последняя версия.");
-  else updShow("error", "Нет связи с сервером обновлений. Проверь интернет.");
+  if (status === "available") { updShow("available", "Есть новая версия."); updDialog("ask"); }
+  else if (status === "downloaded") {
+    if (updUi.state === "progress") { updShow("downloaded", ""); updDialog("done"); setTimeout(() => { saveChar(); if (window.SputnikApp) window.SputnikApp.applyUpdate(); }, 900); }
+    else { updShow("downloaded", "Новая версия скачана."); updDialog("ready"); }
+  }
+  else if (status === "latest") { const manual = updUi.state === "checking"; updShow("latest", "Установлена последняя версия."); if (manual) updDialog("latest"); }
+  else { const was = updUi.state; updShow("error", "Нет связи с сервером обновлений. Проверь интернет."); if (was === "checking" || was === "progress") updDialog("error"); }
 };
+window.sputnikProgress = p => { const bar = document.getElementById("upd-bar"), t = document.getElementById("upd-pct"); if (bar) bar.style.width = p + "%"; if (t) t.textContent = p + "%"; };
+// Окно обновления: «Есть обновление. Установить?» → полоса прогресса → применение (страница перезагружается на новой версии).
+function updDialog(mode) {
+  let ov = document.getElementById("updov");
+  if (!ov) {
+    const st = document.createElement("style");
+    st.textContent = `#updov{position:fixed;inset:0;z-index:9500;display:flex;align-items:center;justify-content:center;background:rgba(8,6,4,.82);padding:18px}
+      #updov .box{width:min(92vw,380px);padding:18px;display:flex;flex-direction:column;gap:12px;text-align:center}
+      #updov h3{margin:0;font-family:"Kelly Slab",Georgia,serif;color:var(--fx-gold-hi,#f4d48e)}
+      #updov .track{height:14px;border-radius:8px;background:#1a140d;border:1px solid #6e5634;overflow:hidden}
+      #updov .track i{display:block;height:100%;width:0;background:linear-gradient(90deg,#a8701e,#f0b443);transition:width .15s}`;
+    document.head.appendChild(st);
+    ov = document.createElement("div"); ov.id = "updov"; ov.setAttribute("role", "dialog"); ov.setAttribute("aria-modal", "true"); document.body.appendChild(ov);
+    ov.addEventListener("click", e => {
+      const b = e.target.closest("[data-ud]"); if (!b) return;
+      const a = b.dataset.ud;
+      if (a === "no" || a === "ok") { ov.hidden = true; if (updUi.state === "available") updUi = { state: "idle", note: "" }; }
+      else if (a === "yes") {
+        if (window.SputnikApp && window.SputnikApp.startDownload) { updUi = { state: "progress", note: "" }; updDialog("progress"); window.SputnikApp.startDownload(); }
+        else { updDialog("done"); }
+      } else if (a === "apply") { saveChar(); if (window.SputnikApp) window.SputnikApp.applyUpdate(); }
+    });
+  }
+  ov.hidden = false;
+  const box = html => { ov.innerHTML = `<div class="box fx-frame">${html}</div>`; };
+  if (mode === "ask") box(`<h3>Есть обновление</h3><p>Вышла новая версия игры. Установить её сейчас? Игра сохранится и перезапустится.</p><button class="fx-btn primary big" data-ud="yes">Установить</button><button class="fx-btn" data-ud="no">Позже</button>`);
+  else if (mode === "progress") box(`<h3>Установка обновления</h3><div class="track"><i id="upd-bar"></i></div><p id="upd-pct">0%</p><p style="opacity:.7;font-size:13px">Не закрывайте приложение.</p>`);
+  else if (mode === "done") box(`<h3>Обновление установлено</h3><div class="track"><i style="width:100%"></i></div><p>Перезапускаю игру…</p>`);
+  else if (mode === "ready") box(`<h3>Обновление скачано</h3><p>Применить сейчас? Игра сохранится и перезапустится.</p><button class="fx-btn primary big" data-ud="apply">Применить</button><button class="fx-btn" data-ud="no">Позже</button>`);
+  else if (mode === "latest") box(`<h3>Обновлений нет</h3><p>Установлена последняя версия.</p><button class="fx-btn primary" data-ud="ok">Хорошо</button>`);
+  else box(`<h3>Не получилось</h3><p>Нет связи с сервером обновлений. Проверь интернет и попробуй ещё раз.</p><button class="fx-btn primary" data-ud="ok">Понятно</button>`);
+}
 async function checkUpdate() {
   updShow("checking", "");
+  if (window.SputnikApp && window.SputnikApp.steps && window.SputnikApp.checkOnly) {
+    window.SputnikApp.checkOnly();
+    setTimeout(() => { if (updUi.state === "checking") { updShow("error", "Сервер долго не отвечает. Попробуй ещё раз."); updDialog("error"); } }, 25000);
+    return;
+  }
   if (window.SputnikApp) {
     window.SputnikApp.checkUpdate();
     setTimeout(() => { if (updUi.state === "checking") updShow("error", "Сервер долго не отвечает. Попробуй ещё раз."); }, 25000);
@@ -6199,6 +6241,7 @@ document.addEventListener("click", e => { const el = e.target.closest("[data-net
 state.party.forEach(ensureKit);       // старые герои получают стартовый набор
 // Первый запуск со слотами сохранений: текущая партия сохраняется сама, чтобы тесты ничего не испортили.
 if (!readSaves().length && state.party.length) makeSave("Партия до тестов (сохранено автоматически)");
+try { const st0 = window.SputnikApp && window.SputnikApp.status ? window.SputnikApp.status() : ""; if (st0) setTimeout(() => window.sputnikUpdate(st0.split(":")[0], +st0.split(":")[1] || 0), 1500); } catch (e) {}          // проверка при запуске закончилась раньше, чем страница была готова
 if (window.SputnikApp && window.SputnikApp.pending && window.SputnikApp.pending()) updUi = { state: "downloaded", note: "Новая версия скачана. Нажми, чтобы применить — игра сохранится." };
 if (!location.hash && state.lastHash && (state.lastHash !== "labyrinth" || state.run)) location.hash = state.lastHash;          // после перезагрузки — на том же экране
 route();

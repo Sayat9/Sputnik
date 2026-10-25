@@ -29,7 +29,12 @@ public class MainActivity extends Activity {
         @JavascriptInterface public String mode() { return getString(R.string.app_mode); }          // "master" | "player": клиент игрока для онлайн-партии
         @JavascriptInterface public String version() { return String.valueOf(updater.current()); }
         @JavascriptInterface public boolean pending() { return updater.pending(); }
-        @JavascriptInterface public void checkUpdate() { updater.check(reporter()); }
+        @JavascriptInterface public void checkUpdate() { updater.check(reporter()); }          // старый способ: проверить и сразу скачать
+        // Новый способ: checkOnly → страница спрашивает пользователя → startDownload с прогрессом (window.sputnikUpdate / sputnikProgress).
+        @JavascriptInterface public boolean steps() { return true; }
+        @JavascriptInterface public String status() { return lastStatus; }          // что нашла проверка при запуске: "available:<версия>" | "downloaded:<версия>" | ""
+        @JavascriptInterface public void checkOnly() { updater.checkOnly(infoReporter()); }
+        @JavascriptInterface public void startDownload() { updater.download(infoReporter(), p -> runOnUiThread(() -> web.evaluateJavascript("window.sputnikProgress && window.sputnikProgress(" + p + ")", null))); }
         @JavascriptInterface public void applyUpdate() {
             runOnUiThread(() -> { if (updater.applyNow()) web.loadUrl(HOST + "/local/index.html"); });
         }
@@ -43,7 +48,19 @@ public class MainActivity extends Activity {
         };
     }
 
+    private Updater.Info infoReporter() {
+        return new Updater.Info() {
+            @Override public void available(long v, int files) { tell("available", v); }
+            @Override public void upToDate(long v) { tell("latest", v); }
+            @Override public void downloaded(long v) { tell("downloaded", v); }
+            @Override public void failed(String why) { tell("error", 0); }
+        };
+    }
+
+    private volatile String lastStatus = "";
+
     private void tell(String status, long version) {
+        if (status.equals("available") || status.equals("downloaded")) lastStatus = status + ":" + version; else if (status.equals("latest")) lastStatus = "";
         runOnUiThread(() -> web.evaluateJavascript(
                 "window.sputnikUpdate && window.sputnikUpdate('" + status + "', " + version + ")", null));
     }
@@ -79,14 +96,8 @@ public class MainActivity extends Activity {
         String home = HOST + (updater.useLocal() ? "/local/index.html" : "/assets/www/index.html");
         if (state != null) web.restoreState(state); else web.loadUrl(home);
 
-        // Проверка обновления в фоне при запуске: если скачалось, страница покажет кнопку «Применить».
-        updater.check(new Updater.Done() {
-            @Override public void downloaded(long v) {
-                tell("downloaded", v);
-                runOnUiThread(() -> Toast.makeText(MainActivity.this,
-                        "Скачано обновление. Нажми «Применить» на главном экране или перезапусти приложение.", Toast.LENGTH_LONG).show());
-            }
-        });
+        // Проверка обновления при запуске: только узнаём; страница спросит, устанавливать ли.
+        updater.checkOnly(infoReporter());
     }
 
     @Override

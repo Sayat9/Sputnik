@@ -32,6 +32,11 @@ const URL = 'http://localhost:8765/index.html';
   await h.evaluate(pid => { state.party[0].owner = pid; saveChar(); NetGlue.pushAll(); }, pid);
   await c.waitForTimeout(700);
   ok('игрок видит своего героя', await c.evaluate(() => NetGlue.isMine(state.party[0])));
+  await h.evaluate(() => { location.hash = ''; }); await c.waitForTimeout(900);
+  ok('вместо главного меню — окно команды', await c.evaluate(() => /Команда/.test(document.getElementById('view').textContent) && /Аргон/.test(document.getElementById('view').textContent) && /Борис/.test(document.getElementById('view').textContent) && !/Начать приключение/.test(document.getElementById('view').textContent)));
+  ok('в окне команды виден игрок', await c.evaluate(() => /Вася/.test(document.getElementById('view').textContent)));
+  await c.screenshot({ path: '/tmp/battle-shots/net_team.png' });
+  await h.evaluate(() => { location.hash = 'town'; }); await c.waitForTimeout(700);
   // зеркало: ведущий меняет золото героя
   await h.evaluate(() => { state.party[1].gold = 77; saveChar(); });
   await c.waitForTimeout(700);

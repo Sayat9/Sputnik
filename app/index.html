@@ -2951,6 +2951,7 @@ const raceMods = r => r.id === "human" ? "+1 ко всем характерис�
 const fmtDate = iso => { try { return new Date(iso).toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" }); } catch (e) { return ""; } };
 
 function renderMain() {
+  if (!isMaster() && window.NetGlue && NetGlue.teamScreen) return NetGlue.teamScreen();          // клиент игрока: вместо главного меню — окно команды
   const last = state.sessions[state.sessions.length - 1];
   const members = last ? last.members.map(id => state.party.find(c => c.id === id)).filter(Boolean) : [];
   return `
@@ -5949,15 +5950,56 @@ const rerender = () => route(true);
 // В APK кнопка просит Android (window.SputnikApp) проверить и скачать обновление, «Применить» перезагружает страницу на новой версии.
 // Ответ приходит в window.sputnikUpdate. Без моста (старый APK) — просто сравниваем номер версии с GitHub.
 let updUi = { state: "idle", note: "" };
-const UPD_LABEL = { idle: "Проверить обновление", checking: "Проверяю…", latest: "Проверить обновление", downloaded: "Применить обновление", error: "Проверить обновление", old: "Проверить обновление" };
+const UPD_LABEL = { idle: "Проверить обновление", checking: "Проверяю…", available: "Проверить обновление", progress: "Установка…", latest: "Проверить обновление", downloaded: "Применить обновление", error: "Проверить обновление", old: "Проверить обновление" };
 function updShow(stateName, note) { updUi = { state: stateName, note }; if (!location.hash || location.hash === "#") rerender(); else if (stateName === "downloaded") toast("Обновление скачано: примени его на главном экране"); }
 window.sputnikUpdate = (status, version) => {
-  if (status === "downloaded") updShow("downloaded", "Новая версия скачана. Нажми, чтобы применить — игра сохранится.");
-  else if (status === "latest") updShow("latest", "Установлена последняя версия.");
-  else updShow("error", "Нет связи с сервером обновлений. Проверь интернет.");
+  if (status === "available") { updShow("available", "Есть новая версия."); updDialog("ask"); }
+  else if (status === "downloaded") {
+    if (updUi.state === "progress") { updShow("downloaded", ""); updDialog("done"); setTimeout(() => { saveChar(); if (window.SputnikApp) window.SputnikApp.applyUpdate(); }, 900); }
+    else { updShow("downloaded", "Новая версия скачана."); updDialog("ready"); }
+  }
+  else if (status === "latest") { const manual = updUi.state === "checking"; updShow("latest", "Установлена последняя версия."); if (manual) updDialog("latest"); }
+  else { const was = updUi.state; updShow("error", "Нет связи с сервером обновлений. Проверь интернет."); if (was === "checking" || was === "progress") updDialog("error"); }
 };
+window.sputnikProgress = p => { const bar = document.getElementById("upd-bar"), t = document.getElementById("upd-pct"); if (bar) bar.style.width = p + "%"; if (t) t.textContent = p + "%"; };
+// Окно обновления: «Есть обновление. Установить?» → полоса прогресса → применение (страница перезагружается на новой версии).
+function updDialog(mode) {
+  let ov = document.getElementById("updov");
+  if (!ov) {
+    const st = document.createElement("style");
+    st.textContent = `#updov{position:fixed;inset:0;z-index:9500;display:flex;align-items:center;justify-content:center;background:rgba(8,6,4,.82);padding:18px}
+      #updov .box{width:min(92vw,380px);padding:18px;display:flex;flex-direction:column;gap:12px;text-align:center}
+      #updov h3{margin:0;font-family:"Kelly Slab",Georgia,serif;color:var(--fx-gold-hi,#f4d48e)}
+      #updov .track{height:14px;border-radius:8px;background:#1a140d;border:1px solid #6e5634;overflow:hidden}
+      #updov .track i{display:block;height:100%;width:0;background:linear-gradient(90deg,#a8701e,#f0b443);transition:width .15s}`;
+    document.head.appendChild(st);
+    ov = document.createElement("div"); ov.id = "updov"; ov.setAttribute("role", "dialog"); ov.setAttribute("aria-modal", "true"); document.body.appendChild(ov);
+    ov.addEventListener("click", e => {
+      const b = e.target.closest("[data-ud]"); if (!b) return;
+      const a = b.dataset.ud;
+      if (a === "no" || a === "ok") { ov.hidden = true; if (updUi.state === "available") updUi = { state: "idle", note: "" }; }
+      else if (a === "yes") {
+        if (window.SputnikApp && window.SputnikApp.startDownload) { updUi = { state: "progress", note: "" }; updDialog("progress"); window.SputnikApp.startDownload(); }
+        else { updDialog("done"); }
+      } else if (a === "apply") { saveChar(); if (window.SputnikApp) window.SputnikApp.applyUpdate(); }
+    });
+  }
+  ov.hidden = false;
+  const box = html => { ov.innerHTML = `<div class="box fx-frame">${html}</div>`; };
+  if (mode === "ask") box(`<h3>Есть обновление</h3><p>Вышла новая версия игры. Установить её сейчас? Игра сохранится и перезапустится.</p><button class="fx-btn primary big" data-ud="yes">Установить</button><button class="fx-btn" data-ud="no">Позже</button>`);
+  else if (mode === "progress") box(`<h3>Установка обновления</h3><div class="track"><i id="upd-bar"></i></div><p id="upd-pct">0%</p><p style="opacity:.7;font-size:13px">Не закрывайте приложение.</p>`);
+  else if (mode === "done") box(`<h3>Обновление установлено</h3><div class="track"><i style="width:100%"></i></div><p>Перезапускаю игру…</p>`);
+  else if (mode === "ready") box(`<h3>Обновление скачано</h3><p>Применить сейчас? Игра сохранится и перезапустится.</p><button class="fx-btn primary big" data-ud="apply">Применить</button><button class="fx-btn" data-ud="no">Позже</button>`);
+  else if (mode === "latest") box(`<h3>Обновлений нет</h3><p>Установлена последняя версия.</p><button class="fx-btn primary" data-ud="ok">Хорошо</button>`);
+  else box(`<h3>Не получилось</h3><p>Нет связи с сервером обновлений. Проверь интернет и попробуй ещё раз.</p><button class="fx-btn primary" data-ud="ok">Понятно</button>`);
+}
 async function checkUpdate() {
   updShow("checking", "");
+  if (window.SputnikApp && window.SputnikApp.steps && window.SputnikApp.checkOnly) {
+    window.SputnikApp.checkOnly();
+    setTimeout(() => { if (updUi.state === "checking") { updShow("error", "Сервер долго не отвечает. Попробуй ещё раз."); updDialog("error"); } }, 25000);
+    return;
+  }
   if (window.SputnikApp) {
     window.SputnikApp.checkUpdate();
     setTimeout(() => { if (updUi.state === "checking") updShow("error", "Сервер долго не отвечает. Попробуй ещё раз."); }, 25000);
@@ -6194,6 +6236,7 @@ document.addEventListener("click", e => { const el = e.target.closest("[data-net
 state.party.forEach(ensureKit);       // старые герои получают стартовый набор
 // Первый запуск со слотами сохранений: текущая партия сохраняется сама, чтобы тесты ничего не испортили.
 if (!readSaves().length && state.party.length) makeSave("Партия до тестов (сохранено автоматически)");
+try { const st0 = window.SputnikApp && window.SputnikApp.status ? window.SputnikApp.status() : ""; if (st0) setTimeout(() => window.sputnikUpdate(st0.split(":")[0], +st0.split(":")[1] || 0), 1500); } catch (e) {}          // проверка при запуске закончилась раньше, чем страница была готова
 if (window.SputnikApp && window.SputnikApp.pending && window.SputnikApp.pending()) updUi = { state: "downloaded", note: "Новая версия скачана. Нажми, чтобы применить — игра сохранится." };
 if (!location.hash && state.lastHash && (state.lastHash !== "labyrinth" || state.run)) location.hash = state.lastHash;          // после перезагрузки — на том же экране
 route();

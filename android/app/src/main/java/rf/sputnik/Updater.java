@@ -71,43 +71,102 @@ class Updater {
         ready.renameTo(live);
     }
 
-    void check(Done done) {
+    // ===== Проверка и установка по шагам: сначала спрашиваем, потом качаем с прогрессом =====
+    interface Info {
+        void available(long version, int files);
+        void upToDate(long version);
+        void downloaded(long version);
+        void failed(String why);
+    }
+    interface Progress { void step(int percent); }
+
+    private JSONObject offer;                                   // найденная на сервере версия (version.json)
+
+    // Только проверка: ничего не скачивает.
+    void checkOnly(Info cb) {
         final String base = ctx.getString(R.string.update_url);
-        if (base.isEmpty()) { done.failed("обновления выключены"); return; }
+        if (base.isEmpty()) { cb.failed("обновления выключены"); return; }
         if (busy) return;
         busy = true;
         new Thread(() -> {
             try {
-                // ?t= обходит кэш GitHub, чтобы сразу видеть свежую версию.
                 JSONObject v = new JSONObject(new String(get(base + "version.json?t=" + System.currentTimeMillis()), "UTF-8"));
                 long version = v.getLong("version");
-                File ready = new File(root, "www_new");
                 if (pending()) {
-                    try (InputStream in = new java.io.FileInputStream(new File(ready, "version.json"))) {
+                    try (InputStream in = new java.io.FileInputStream(new File(new File(root, "www_new"), "version.json"))) {
                         long have = new JSONObject(new String(readAll(in), "UTF-8")).getLong("version");
-                        if (have >= version) { done.downloaded(have); return; }
+                        if (have >= version) { cb.downloaded(have); return; }
                     }
                 }
-                if (version <= current()) { done.upToDate(current()); return; }
-                File tmp = new File(root, "www_new");
-                deleteTree(tmp);
-                JSONArray files = v.getJSONArray("files");
-                for (int i = 0; i < files.length(); i++) {
-                    String path = files.getString(i);
-                    File out = new File(tmp, path);
-                    out.getParentFile().mkdirs();
-                    try (FileOutputStream fo = new FileOutputStream(out)) { fo.write(get(base + path + "?v=" + version)); }
-                }
-                try (FileOutputStream fo = new FileOutputStream(new File(tmp, "version.json"))) { fo.write(v.toString().getBytes("UTF-8")); }
-                new File(tmp, ".complete").createNewFile();
-                done.downloaded(version);
+                if (version <= current()) { cb.upToDate(current()); return; }
+                offer = v;
+                cb.available(version, v.getJSONArray("files").length());
             } catch (Exception e) {
-                // Нет сети или сервер недоступен — просто работаем на текущей версии.
-                done.failed("нет связи с сервером обновлений");
+                cb.failed("нет связи с сервером обновлений");
             } finally {
                 busy = false;
             }
         }).start();
+    }
+
+    // Скачивание найденной версии в www_new с процентами; по окончании обновление готово к применению.
+    void download(Info cb, Progress pr) {
+        final String base = ctx.getString(R.string.update_url);
+        final JSONObject v = offer;
+        if (v == null) { cb.failed("сначала проверьте обновление"); return; }
+        if (busy) return;
+        busy = true;
+        new Thread(() -> {
+            try {
+                long version = v.getLong("version");
+                File tmp = new File(root, "www_new");
+                deleteTree(tmp);
+                JSONArray files = v.getJSONArray("files");
+                int n = files.length();
+                long last = 0;
+                for (int i = 0; i < n; i++) {
+                    String path = files.getString(i);
+                    File out = new File(tmp, path);
+                    out.getParentFile().mkdirs();
+                    HttpURLConnection c = (HttpURLConnection) new URL(base + path + "?v=" + version).openConnection();
+                    c.setConnectTimeout(8000); c.setReadTimeout(15000); c.setUseCaches(false);
+                    if (c.getResponseCode() != 200) throw new Exception("HTTP " + c.getResponseCode());
+                    long len = Math.max(1, c.getContentLengthLong());
+                    long got = 0;
+                    try (InputStream in = c.getInputStream(); FileOutputStream fo = new FileOutputStream(out)) {
+                        byte[] buf = new byte[16384];
+                        for (int k; (k = in.read(buf)) > 0; ) {
+                            fo.write(buf, 0, k); got += k;
+                            long now = System.currentTimeMillis();
+                            if (now - last > 120) { last = now; pr.step((int) Math.min(99, ((i + Math.min(1.0, (double) got / len)) * 100.0) / n)); }
+                        }
+                    }
+                }
+                try (FileOutputStream fo = new FileOutputStream(new File(tmp, "version.json"))) { fo.write(v.toString().getBytes("UTF-8")); }
+                new File(tmp, ".complete").createNewFile();
+                pr.step(100);
+                cb.downloaded(version);
+            } catch (Exception e) {
+                cb.failed("не удалось скачать обновление");
+            } finally {
+                busy = false;
+            }
+        }).start();
+    }
+
+    // Старый способ (страница без окна обновления): проверить и сразу скачать.
+    void check(Done done) {
+        checkOnly(new Info() {
+            @Override public void available(long version, int files) { download(new Info() {
+                @Override public void available(long v, int f) {}
+                @Override public void upToDate(long v) {}
+                @Override public void downloaded(long v) { done.downloaded(v); }
+                @Override public void failed(String why) { done.failed(why); }
+            }, p -> {}); }
+            @Override public void upToDate(long version) { done.upToDate(version); }
+            @Override public void downloaded(long version) { done.downloaded(version); }
+            @Override public void failed(String why) { done.failed(why); }
+        });
     }
 
     private static byte[] get(String url) throws Exception {

@@ -37,6 +37,11 @@
   body.net-player.bt-active #netbar,body.net-player.net-forge #netbar{display:none}
   body.net-follow #view,body.net-follow #townov{pointer-events:none}
   body.net-follow #townov .tw-x{display:none}
+  .net-team{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;width:100%;margin:10px 0}
+  .net-team .pc{min-width:0;width:auto}
+  .net-hcard{display:flex;flex-direction:column;gap:4px;min-width:0}
+  .net-owner{font-size:12px;color:#c9b88f;text-align:center}.net-owner.me{color:#f4d48e;font-weight:700}
+  .net-players{width:100%;max-width:420px;margin:6px auto}.net-players .net-row small{opacity:.75;text-align:right}
   .net-chip{position:fixed;top:6px;right:8px;z-index:8400;font-size:11px;padding:2px 9px;border-radius:9px;background:#2a1f12;color:#f4d48e;border:1px solid #6e5634;opacity:.9}
   .net-ro-note{font-size:12px;opacity:.7;text-align:center}
   `;
@@ -60,6 +65,7 @@
     for (const k of Object.keys(state)) if (!SKIP.has(k) && k !== "party") v["s:" + k] = state[k];
     v.town = window.Town && window.Town.state && window.Town.state() ? window.Town.state() : null;
     v.battle = battleOn();
+    v.players = Object.values(N.players).map(p => ({ pid: p.pid, name: p.name, online: !!p.online }));
     if (window.Battle && Battle.Net) Object.assign(v, Battle.Net.view());
     return v;
   }
@@ -261,6 +267,23 @@
     loadTown().then(ok => { if (!ok) return; if (V.town) window.Town.mirror(V.town); else window.Town.unmirror && window.Town.unmirror(); });
     try { localStorage.setItem(STATE_KEY, jstr(state)); } catch (e) {}
   }
+
+  /* ---- окно команды: вместо главного меню у игрока ---- */
+  G.teamScreen = function () {
+    const players = G.view.players || [], nm = pid => (players.find(p => p.pid === pid) || {}).name;
+    const heroesOf = pid => (state.party || []).filter(c => (pid ? c.owner === pid : !c.owner)).map(c => esc(c.name)).join(", ") || "героя нет";
+    const cards = (state.party || []).map(c => {
+      const st = state.run && state.run.status && state.run.status[c.id], card = st ? charBars(c) : townCard(c);
+      const who = c.owner ? (nm(c.owner) || "игрок") : "Ведущий";
+      return `<div class="net-hcard"><small class="net-owner${G.isMine(c) ? " me" : ""}">${esc(who)}${G.isMine(c) ? " · это ты" : ""}${c.dead ? " · погиб" : ""}</small>${card}</div>`;
+    }).join("");
+    return `<div class="fx-home"><div class="crest">${CREST}</div>
+      <div class="fx-eyebrow">Комната ${esc(N.code || "")}</div><h2 class="fx-title">Команда</h2><div class="fx-rule"><span></span></div>
+      <div class="net-players"><div class="net-row"><span><i class="net-dot on"></i>Ведущий</span><small>${heroesOf("")}</small></div>
+        ${players.map(p => `<div class="net-row"><span><i class="net-dot${p.online ? " on" : ""}"></i>${esc(p.name)}${p.pid === myPid() ? " (ты)" : ""}</span><small>${p.online ? heroesOf(p.pid) : "не в сети"}</small></div>`).join("")}</div>
+      ${cards ? `<div class="net-team">${cards}</div>` : `<p class="fx-hint">В отряде пока нет героев. Создай своего в разделе «Герои».</p>`}
+      <p class="fx-hint" style="opacity:.7">Ждём, когда ведущий начнёт партию.</p></div>`;
+  };
 
   /* ---- оболочка клиента ---- */
   function buildBar() {
