@@ -9,7 +9,8 @@
   const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
 
   /* ===== сессии бросков ===== */
-  const ctlOf = u => (u.side === "mon" || u.summon ? "auto" : (B.S.opts.autoHeroes ? "auto" : "ui"));        // призванные существа бросают сами
+  // Кто бросает кубики за существо: "ui" — игрок на этом экране, "remote" — игрок онлайн на своём телефоне, "auto" — игра (battle-net.js решает для онлайна).
+  const ctlOf = u => { const r = B.netCtl && B.netCtl(u); if (r) return r; return (u.side === "mon" || u.summon ? "auto" : (B.S.opts.autoHeroes ? "auto" : "ui")); };        // призванные существа бросают сами
   function d20Core(o) {
     const adv = (o.adv || []).length > 0, dis = (o.dis || []).length > 0, mode = adv && !dis ? "adv" : dis && !adv ? "dis" : null;
     const a = d(20), b = mode ? d(20) : null, nat = mode === "adv" ? Math.max(a, b) : mode === "dis" ? Math.min(a, b) : a;
@@ -22,7 +23,7 @@
       async dice(o) { const r = roll(o.n, o.s); return { rolls: r.rolls, sum: r.total, auto: true }; },
       note() {}, async finish() {}, close() {} };
   }
-  function session(u, meta) { return ctlOf(u) === "ui" && B.Dice && ui() ? B.Dice.session(u, meta) : autoSession(u, meta); }
+  function session(u, meta) { const c = ctlOf(u); if (c === "remote" && B.Net) return B.Net.remoteSession(u, meta, autoSession); return c === "ui" && B.Dice && ui() ? B.Dice.session(u, meta) : autoSession(u, meta); }
   // Перебросы: расовое «Наследие обряда» (кости урона рукопашной атаки, раз в ход) и «Вдохновение» героя (любой бросок).
   function rerollOptions(u, kind, ctx = {}) {
     const out = [];
@@ -31,7 +32,7 @@
     if ((u.insp || 0) > 0 && !(u.fat >= 3)) out.push({ id: "insp", label: "Переброс", spend: () => { u.insp--; if (u.hero) u.hero.insp = u.insp; } });
     return out;
   }
-  Object.assign(B, { session, ctlOf, d20Core, rerollOptions });
+  Object.assign(B, { session, ctlOf, d20Core, rerollOptions, autoSession });
 
   /* ===== здоровье ===== */
   function setHp(u, v) { u.hp = clamp(Math.round(v), 0, u.maxHp); if (u.hero) u.hero.hp = u.hp; }

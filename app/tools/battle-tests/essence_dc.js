@@ -1,7 +1,7 @@
 // Сл активок обоих этажей: сравниваем число «против Сл N» в журнале с формулой из текста эссенции (8 + БМ + мод. характеристики).
 // Герою даётся нужное оружие (копьё, рапира, булава…), запускается активка через useActive с авто-выбором целей. node essence_dc.js [id,id]
 const { chromium } = require('playwright');
-const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-ext','battle-act','battle-ess','battle-ess2','battle-weap','battle-env','battle-ai','battle-end','battle'];
+const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-ext','battle-act','battle-ess','battle-ess2','battle-weap','battle-env','battle-ai','battle-end','battle-net','battle'];
 const ONLY = (process.argv[2] || '').split(',').filter(Boolean);
 const GEAR = { 'hobgoblin-brute': { main: 'mace' }, 'horned-hare': { main: 'spear' }, blackwing: { main: 'spear' }, 'goblin-assassin': { main: 'rapier' }, 'hobgoblin-thrower': { main: 'sword', bag: ['spear', 'spear'] }, 'bone-knight': { main: 'sword' }, 'hobgoblin-driver': { main: 'spear' }, wolf: { main: 'sword' } };
 const FAR = ['bone-hound'];                    // враги не рядом: способность — сближение

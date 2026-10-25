@@ -323,7 +323,7 @@
       const atk = atkFor(e, "melee", "pierce"); if (!atk) return;
       const r = atk.reach || 1;
       if (dist(e, mover) > r || (from && distAt(e, mover, from[0], from[1]) <= r)) return;
-      if (e.side === "hero") { if (e.mp < eb.mana || e.cd["goblin-spear"] > 0) return; if (!(await B.promptReaction({ title: "Встречный удар", text: `${mover.name} входит в вашу досягаемость. Ударить копьём? (${eb.mana} маны)` }))) return; }
+      if (e.side === "hero") { if (e.mp < eb.mana || e.cd["goblin-spear"] > 0) return; if (!(await B.promptReaction({ unit: e, title: "Встречный удар", text: `${mover.name} входит в вашу досягаемость. Ударить копьём? (${eb.mana} маны)` }))) return; }
       else { if (e.used["goblin-spear"]) return; }
       if (e.side === "hero") { B.setMp(e, e.mp - eb.mana); B.setCd(e, "goblin-spear", D.essCd["goblin-spear"] || 2); } else e.used["goblin-spear"] = true;
       e.t.react = 0; log(`${e.name}: встречный удар по ${mover.name}.`, "skill"); ui() && ui().banner(`${e.name}: встречный удар!`);
@@ -348,7 +348,7 @@
       if (!ctx.melee || !isShieldHolder(tgt) || !tgt.t.react) return false;
       const eb = ESSENCES["skeleton-warrior"].active;
       if (ctx.total - ctx.ac > 3) return false;
-      if (tgt.side === "hero") { if (tgt.mp < eb.mana || tgt.cd["skeleton-warrior"] > 0) return false; if (!(await B.promptReaction({ title: "Парирование щитом", text: `${ctx.att.name} попадает по вам. Отразить щитом? (${eb.mana} маны)` }))) return false; B.setMp(tgt, tgt.mp - eb.mana); B.setCd(tgt, "skeleton-warrior", D.essCd["skeleton-warrior"] || 2); }
+      if (tgt.side === "hero") { if (tgt.mp < eb.mana || tgt.cd["skeleton-warrior"] > 0) return false; if (!(await B.promptReaction({ unit: tgt, title: "Парирование щитом", text: `${ctx.att.name} попадает по вам. Отразить щитом? (${eb.mana} маны)` }))) return false; B.setMp(tgt, tgt.mp - eb.mana); B.setCd(tgt, "skeleton-warrior", D.essCd["skeleton-warrior"] || 2); }
       else { if (tgt.used["skeleton-warrior"]) return false; tgt.used["skeleton-warrior"] = true; }
       tgt.t.react = 0; log(`${tgt.name} парирует щитом!`, "skill"); return true;
     },
@@ -439,10 +439,16 @@
     if (u.ess.includes("stone-guardian")) u.tremor = Math.max(u.tremor || 0, 2);
   };
   // Реакция по запросу игроку (окно «Реакция»); у монстров — всегда согласие.
-  B.promptReaction = async function (o) { const g = ui(); if (!g) return true; return g.promptReaction(o); };
+  B.promptReaction = async function (o) {
+    const g = ui(); if (!g) return true;
+    const who = o.unit ? (typeof o.unit === "string" ? B.byId(o.unit) : o.unit) : null, c = who && B.netCtl ? B.netCtl(who) : null;
+    if (c === "remote") return B.Net.remoteReact(who, o);                           // игрок онлайн отвечает на своём телефоне
+    if (c === "auto" && B.Net && B.Net.isClient()) return false;                     // чужой герой во время хода другого игрока (или игрок не в сети): реакцию не предлагаем
+    return g.promptReaction(o);
+  };
   B.promptOpportunity = async function (hero, mover) {
     const atk = B.meleeAttackOf(hero); if (!atk) return false;
     const g = ui(); if (!g) return true;
-    return g.promptReaction({ title: "Атака по возможности", text: `${mover.name} покидает досягаемость ${hero.name}. Ударить? (${atk.n})`, yes: "Ударить", no: "Пропустить", unit: hero });
+    return B.promptReaction({ title: "Атака по возможности", text: `${mover.name} покидает досягаемость ${hero.name}. Ударить? (${atk.n})`, yes: "Ударить", no: "Пропустить", unit: hero });
   };
 })();

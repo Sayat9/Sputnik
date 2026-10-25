@@ -113,7 +113,7 @@
   async function loop(S) {
     let guard = 0;
     while (!S.outcome && guard++ < 400) {
-      const u = B.currentUnit();
+      let u = B.currentUnit();
       if (!u || !alive(u)) { B.advanceTurn(); continue; }
       S.curId = u.id;
       if (ui() && !(S.ev && S.ev.arena)) snapshot(S);                                                                    // автосохранение: в начале каждого хода
@@ -126,8 +126,9 @@
           if (u.down) { if (!u.dead) await deathSaveTurn(u); }
           else if (!B.canAct(u)) log(`${u.name} не может действовать.`);
           else if (B.S.opts.autoHeroes || !g) await B.AI.takeTurn(u);
+          else if (B.Net && B.Net.remoteOwner(u)) { await B.Net.remoteTurn(u); u = B.byId(u.id) || u; }          // герой друга: ходит на его телефоне (battle-net.js)
           else await g.heroTurn(u);
-        } else if (u.side === "hero" && u.summon && !u.auto && g && !B.S.opts.autoHeroes && B.canAct(u)) await g.heroTurn(u);          // волки и двойники героя: за них играет игрок
+        } else if (u.side === "hero" && u.summon && !u.auto && g && !B.S.opts.autoHeroes && B.canAct(u)) { if (B.Net && B.Net.remoteOwner(u)) { await B.Net.remoteTurn(u); u = B.byId(u.id) || u; } else await g.heroTurn(u); }          // волки и двойники героя: за них играет игрок
         else if (B.canAct(u)) await B.AI.takeTurn(u);
         await B.endTurn(u);
         if (g) g.turnEnd(u);
@@ -142,12 +143,21 @@
   /* ===== автосохранение боя: снимок в начале каждого хода, возврат после перезагрузки страницы ===== */
   function snapshot(S) {
     try {
-      const strip = (k, v) => (k === "hero" ? (v && v.id) : typeof v === "function" ? undefined : v);
-      const ev = JSON.parse(JSON.stringify(S.ev)), body = JSON.parse(JSON.stringify(S, (k, v) => (k === "ev" ? undefined : strip(k, v))));
+      const ev = JSON.parse(JSON.stringify(S.ev)), body = B.ser(S);
       state.fightSnap = { ev, S: body, at: Date.now() }; saveChar();
     } catch (e) { /* без снимка бой идёт как обычно */ }
   }
   B.snapshot = snapshot;
+  // Состояние боя без ссылок на героев и функций (герой — только id): для автосохранения и онлайна.
+  B.ser = S => JSON.parse(JSON.stringify(S, (k, v) => (k === "ev" ? undefined : k === "hero" ? (typeof v === "string" ? v : v && v.id) : typeof v === "function" ? undefined : v)));
+  // Кладёт снимок в S (на месте: цикл боя держит ссылку на S) и снова связывает героев с отрядом.
+  B.restoreInto = (S, snap) => {
+    const keepEv = S.ev; for (const k of Object.keys(S)) delete S[k];
+    Object.assign(S, JSON.parse(JSON.stringify(snap))); S.ev = keepEv;
+    for (const u of S.units) if (typeof u.hero === "string") u.hero = (state.party || []).find(c => c.id === u.hero) || null;
+    let maxId = 0; for (const u of S.units) { const m = /^u(\d+)$/.exec(u.id); if (m) maxId = Math.max(maxId, +m[1]); } B.setUid(maxId + 1);
+    return S;
+  };
   B.resume = async function (ev, S) {
     if (B.running) return;
     B.running = true; ev.battleStarted = true; S.ev = ev;
@@ -202,6 +212,7 @@
 
   // Вызывает приложение при открытии боя (encounterOverlay). Бой создаёт собственный слой и сам сообщает итог.
   B.ensure = function (ev) {
+    if (typeof isMaster === "function" && !isMaster()) return;                          // клиент игрока бой не запускает: он видит бой ведущего (battle-net.js)
     if (B.running || ev.battleStarted) return;
     ev.battleStarted = true; B.running = true;
     if (typeof autoSave === "function") autoSave("перед боем");

@@ -26,6 +26,7 @@ public class MainActivity extends Activity {
     // Мост для страницы: window.SputnikApp.checkUpdate() / applyUpdate() / version().
     // Ответы приходят в window.sputnikUpdate(status, version), status: downloaded | latest | error.
     private class Bridge {
+        @JavascriptInterface public String mode() { return getString(R.string.app_mode); }          // "master" | "player": клиент игрока для онлайн-партии
         @JavascriptInterface public String version() { return String.valueOf(updater.current()); }
         @JavascriptInterface public boolean pending() { return updater.pending(); }
         @JavascriptInterface public void checkUpdate() { updater.check(reporter()); }

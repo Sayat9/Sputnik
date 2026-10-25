@@ -10,6 +10,12 @@ android {
         versionCode 1
         versionName "0.1"
     }
+    flavorDimensions "mode"
+    productFlavors {
+        // «Спутник исследователя» — ведущий (всё); «Спутник — Игрок» — клиент онлайн-партии (режим задаёт ресурс app_mode, страница читает его через SputnikApp.mode())
+        master { dimension "mode"; applicationId "rf.sputnik" }
+        player { dimension "mode"; applicationId "rf.sputnik.player"; versionNameSuffix "-player" }
+    }
     buildTypes {
         release { minifyEnabled false; signingConfig signingConfigs.debug }
     }

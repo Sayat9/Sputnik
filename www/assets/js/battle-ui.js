@@ -192,6 +192,8 @@
     const c = el.querySelector(".cur"); if (c && c.scrollIntoView) { try { c.scrollIntoView({ inline: "center", block: "nearest" }); } catch (e) {} }
   }
   UI.refresh = function () {
+    if (B.Net && B.Net.onRefresh) B.Net.onRefresh();                                  // онлайн: игрок шлёт ведущему снимок, ведущий — игрокам
+    if (window.NetGlue && NetGlue.schedule) NetGlue.schedule();
     if (!UI.active || !B.S || !root) return;
     if (raf) return;
     raf = requestAnimationFrame(() => { raf = 0; UI.refreshNow(); });

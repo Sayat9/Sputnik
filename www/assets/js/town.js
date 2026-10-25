@@ -51,12 +51,16 @@
   };
   T.close = function () {
     if (!ui) return;
+    if (ui.mirror) return;
     const n = ui.cost; host.hidden = true; host.innerHTML = ""; ui = null;
     document.body.classList.remove("forge-open");
     if (n > 0) { const c = townClock(); c.t += n; chaliceTick(n); saveChar(); const gi = gateInfo(); toast(`Прошло городских действий: ${n}. Врата ${gi.open ? "открыты сейчас" : "закрыты ещё " + gi.left + " д."}.`); }
     rerender();
   };
   T.state = () => ui;
+  // Клиент игрока: показывает здание, открытое у ведущего (только просмотр, время не тратится).
+  T.mirror = snap => { ui = { ...snap, mirror: true }; host.hidden = false; document.body.classList.add("forge-open"); render(); };
+  T.unmirror = () => { if (ui && ui.mirror) { ui = null; host.hidden = true; host.innerHTML = ""; document.body.classList.remove("forge-open"); } };
   const spend = n => { ui.cost += n; };
   const visit = () => { ui.cost = Math.max(ui.cost, 1); };
 

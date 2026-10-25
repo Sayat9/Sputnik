@@ -1,6 +1,6 @@
 // Баланс 7–8 класса: отряд из 4 героев 1 уровня со стартовыми наборами против одиночек и стандартных групп.
 const { chromium } = require('playwright');
-const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-ext','battle-act','battle-ess','battle-ess2','battle-weap','battle-env','battle-ai','battle-end','battle'];
+const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-ext','battle-act','battle-ess','battle-ess2','battle-weap','battle-env','battle-ai','battle-end','battle-net','battle'];
 const N = +process.argv[2] || 40, ONLY = process.argv[3] || '';
 const G = (id, n) => Array(n).fill(id);
 const CASES = [

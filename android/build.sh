@@ -33,6 +33,7 @@ PY
 # WWW_ONLY=1 — только собрать www (для обновления по сети), без APK.
 [ -n "$WWW_ONLY" ] && exit 0
 export ANDROID_HOME=/opt/android-sdk
-gradle -q --max-workers=1 assembleRelease
-cp app/build/outputs/apk/release/app-release.apk sputnik.apk
-ls -la sputnik.apk
+gradle -q --max-workers=1 assembleMasterRelease assemblePlayerRelease
+cp app/build/outputs/apk/master/release/app-master-release.apk sputnik.apk
+cp app/build/outputs/apk/player/release/app-player-release.apk sputnik-player.apk
+ls -la sputnik.apk sputnik-player.apk

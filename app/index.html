@@ -2194,6 +2194,9 @@ function renderBestiary() {
 
 /* ===================== ПЕРСОНАЖ ===================== */
 
+// Режим приложения: «master» — ведущий (всё), «player» — клиент игрока для онлайн-партии (APK «Спутник — Игрок» или ?mode=player): без функций ведущего, сам по себе играть не может.
+const APP_MODE = (() => { try { if (/[?&]mode=player\b/.test(location.search)) return "player"; if (window.SputnikApp && window.SputnikApp.mode && window.SputnikApp.mode() === "player") return "player"; } catch (e) {} return "master"; })();
+const isMaster = () => APP_MODE !== "player";
 const STATE_KEY = "sputnik.state.v2";
 const DEFAULT_CHAR = {
   example: true, name: "Бьорн", race: "barbarian", level: 1,
@@ -2526,12 +2529,12 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 29;
+const BATTLE_REV = 30;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
-  "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle.js"];
-function settings() { const st = state.settings ||= {}; if (st.tactical === undefined) st.tactical = true; return st; }
+  "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
+function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }
 // Режим мастера (решение автора): без него приложение не показывает монстров и эссенции, которых отряд ещё не узнал (в поиске и в разделе «Монстры»: вместо них библиотека).
-const masterOn = () => !!settings().master;
+const masterOn = () => isMaster() && !!settings().master;
 let battleLoad = null;
 function loadBattle() {
   if (window.Battle && window.Battle.ready) return Promise.resolve(true);
@@ -2633,6 +2636,17 @@ function openKills(c) {
   $i.hidden = false;
 }
 function openSack() { const $i = document.getElementById("iteminfo"); $i.innerHTML = sackViewHtml(); $i.hidden = false; }
+/* ----- онлайн (assets/js/net.js — связь, netglue.js — ведущий и игрок) ----- */
+const NET_REV = 1, NET_FILES = ["assets/js/net.js", "assets/js/netglue.js"];
+let netLoad = null;
+function loadNet() {
+  if (window.NetGlue && window.NetGlue.ready) return Promise.resolve(true);
+  if (netLoad) return netLoad;
+  const ver = "?v=" + (APP_VERSION || NET_REV);
+  netLoad = NET_FILES.reduce((p, f) => p.then(() => new Promise((ok, no) => { const el = document.createElement("script"); el.src = f + ver; el.onload = ok; el.onerror = () => no(new Error("не загрузился " + f)); document.head.appendChild(el); })), Promise.resolve())
+    .then(() => !!(window.NetGlue && window.NetGlue.ready), err => { netLoad = null; console.warn(err); return false; });
+  return netLoad;
+}
 /* ----- здания города (assets/js/town.js грузится при первом входе в здание) ----- */
 const TOWN_REV = 9, TOWN_FILES = ["assets/css/town.css", "assets/js/town.js"];
 let townLoad = null;
@@ -2962,6 +2976,7 @@ function renderMain() {
       <p class="fx-sub">Раз в месяц открываются врата лабиринта. Собери отряд, спустись за камнями и вернись живым.</p>
       <button class="fx-btn primary big" data-action="start-adventure">Начать приключение</button>
       <button class="fx-btn" data-save="open">Сохранения</button>
+      <button class="fx-btn" data-net="open">Онлайн: игра с друзьями</button>
       <button class="fx-btn" data-set="tactical" aria-pressed="${!!settings().tactical}">Тактический бой (тест): ${settings().tactical ? "вкл" : "выкл"}</button>
       <button class="fx-btn" data-set="master" aria-pressed="${masterOn()}">Режим мастера (весь бестиарий): ${masterOn() ? "вкл" : "выкл"}</button>
       ${last ? `
@@ -4328,6 +4343,7 @@ function rollbackRun() {
   setTimeout(() => toast("Заход откатан: отряд в городе, всё как до спуска."), 50);
 }
 function newRun() {
+  if (!isMaster()) return;                                         // клиент игрока ничего не запускает сам
   snapshotRun();
   state.arenaLock = false; const burnt = questsBeforeRun(); if (burnt) setTimeout(() => toast(`Заданий сгорело: ${burnt}. Камни остались в сумке.`), 400);
   const ring = [];
@@ -6186,6 +6202,8 @@ document.addEventListener("click", e => {
   if (el && el.dataset.set === "master") { settings().master = !settings().master; saveChar(); toast(settings().master ? "Режим мастера: виден весь бестиарий" : "Режим мастера выключен"); rerender(); }
 });
 if (settings().tactical) loadBattle().then(ok => { if (ok && state.fightSnap) resumeFight(); }); else state.fightSnap = null;
+if (!isMaster()) { state.fightSnap = null; loadNet().then(ok => { if (ok) NetGlue.initPlayer(); else toast("Не загрузился онлайн-модуль"); }); }
+document.addEventListener("click", e => { const el = e.target.closest("[data-net]"); if (el && el.dataset.net === "open" && isMaster()) loadNet().then(ok => ok ? NetGlue.openHostPanel() : toast("Не загрузился онлайн-модуль")); });
 state.party.forEach(ensureKit);       // старые герои получают стартовый набор
 // Первый запуск со слотами сохранений: текущая партия сохраняется сама, чтобы тесты ничего не испортили.
 if (!readSaves().length && state.party.length) makeSave("Партия до тестов (сохранено автоматически)");

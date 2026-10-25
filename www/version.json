@@ -1,5 +1,5 @@
 {
- "version": 1792887111,
+ "version": 1792936352,
  "files": [
   "assets/css/battle.css",
   "assets/css/town.css",
@@ -66,10 +66,13 @@
   "assets/js/battle-ess2.js",
   "assets/js/battle-ext.js",
   "assets/js/battle-menu.js",
+  "assets/js/battle-net.js",
   "assets/js/battle-rules.js",
   "assets/js/battle-ui.js",
   "assets/js/battle-weap.js",
   "assets/js/battle.js",
+  "assets/js/net.js",
+  "assets/js/netglue.js",
   "assets/js/town.js",
   "assets/monsters/ash-spirit-face.webp",
   "assets/monsters/ash-spirit-full.webp",
@@ -231,6 +234,7 @@
   "assets/races/fairy.webp",
   "assets/races/human.svg",
   "assets/races/human.webp",
+  "assets/vendor/peerjs.min.js",
   "fonts/f0.woff2",
   "fonts/f1.woff2",
   "fonts/f10.woff2",

@@ -1,7 +1,7 @@
 // Регрессия эссенций 2 этажа (35 шт.): каждая пассивка и активка в управляемых условиях (принудительные кубики, расстановка вручную).
 // Враги-«манекены»: слабый (все характеристики 1: спасброски почти всегда проваливаются, КД 1) и крепкий (все 30: спасброски удаются).
 const { chromium } = require('playwright');
-const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-ext','battle-act','battle-ess','battle-ess2','battle-weap','battle-env','battle-ai','battle-end','battle'];
+const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-ext','battle-act','battle-ess','battle-ess2','battle-weap','battle-env','battle-ai','battle-end','battle-net','battle'];
 const ONLY = (process.argv[2] || '').split(',').filter(Boolean);
 (async () => {
   const b = await chromium.launch({ executablePath: process.env.CHROME || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });

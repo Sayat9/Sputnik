@@ -367,7 +367,7 @@
       if (!canAct(a) || !(a.t.react > 0) || dist(a, c.tgt) > 1) return null;
       if (a.side === "hero") {
         if (a.mp < eb.mana || a.cd["hobgoblin-shield"] > 0) return null;
-        if (!(await B.promptReaction({ title: "Принять удар", text: `${c.att.name} атакует ${c.tgt.name}. Принять удар на себя? (${eb.mana} маны)` }))) return null;
+        if (!(await B.promptReaction({ unit: a, title: "Принять удар", text: `${c.att.name} атакует ${c.tgt.name}. Принять удар на себя? (${eb.mana} маны)` }))) return null;
         B.setMp(a, a.mp - eb.mana); B.setCd(a, "hobgoblin-shield", D.essCd["hobgoblin-shield"]);
       } else { if (a.used["hobgoblin-shield"]) return null; a.used["hobgoblin-shield"] = true; }
       a.t.react = 0;
@@ -801,7 +801,7 @@
     async reactHit(tgt, c) {
       const ds = B.doublesOf(tgt).filter(d => dist(d, tgt) <= 6);
       if (!ds.length || !canAct(tgt) || !(tgt.t.react > 0) || tgt.flags.swapRound === B.S.round) return false;          // раз в раунд реакцией
-      if (manual(tgt) && !(await B.promptReaction({ title: "Подмена", text: `${c.att.name} попадает по вам. Поменяться местами с двойником, и пусть удар примет он?` }))) return false;
+      if (manual(tgt) && !(await B.promptReaction({ unit: tgt, title: "Подмена", text: `${c.att.name} попадает по вам. Поменяться местами с двойником, и пусть удар примет он?` }))) return false;
       const dbl = ds.sort((a, b) => dist(c.att, a) - dist(c.att, b))[0];
       tgt.t.react = 0; tgt.flags.swapRound = B.S.round;
       const px = tgt.x, py = tgt.y; tgt.x = dbl.x; tgt.y = dbl.y; dbl.x = px; dbl.y = py;

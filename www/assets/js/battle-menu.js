@@ -217,16 +217,16 @@
     });
   };
   UI.menu = function () {
-    const S = B.S;
+    const S = B.S, PLAYER = typeof isMaster === "function" && !isMaster();          // у игрока в меню боя нет функций ведущего
     const lines = S.log.slice(-30).reverse().map(l => `<p class="${l.c}">${esc(l.t)}</p>`).join("");
     const m = showModal(`<div class="bt-dlg fx-frame menu"><div class="bt-ihead"><h4>Меню боя</h4><button class="bt-x" data-m="close" aria-label="Закрыть">${ico("close")}</button></div>
       <div class="bt-switches">
-        <button class="fx-btn" data-m="monhp">ОЗ монстров: ${S.opts.showMonHp ? "показаны" : "скрыты"}</button>
+        ${PLAYER ? "" : `<button class="fx-btn" data-m="monhp">ОЗ монстров: ${S.opts.showMonHp ? "показаны" : "скрыты"}</button>`}
         <button class="fx-btn" data-m="autosave">Спасброски героев: ${S.opts.autoSaves ? "авто" : "вручную"}</button>
         <button class="fx-btn" data-m="autoend">Конец хода сам, когда кончились действия: ${S.opts.autoEnd ? "вкл" : "выкл"}</button>
-        <button class="fx-btn" data-m="auto">Авто-бой героев: ${S.opts.autoHeroes ? "вкл" : "выкл"}</button>
+        ${PLAYER ? "" : `<button class="fx-btn" data-m="auto">Авто-бой героев: ${S.opts.autoHeroes ? "вкл" : "выкл"}</button>
         <button class="fx-btn" data-m="gm">Мастер: завершить бой…</button>
-        <button class="fx-btn" data-m="legacy">Обычный экран боя (без поля)</button></div>
+        <button class="fx-btn" data-m="legacy">Обычный экран боя (без поля)</button>`}</div>
       <h5>Журнал боя</h5><div class="bt-log">${lines}</div></div>`);
     m.onclick = async e => {
       const b = e.target.closest("[data-m]"); if (!b && e.target !== m) return; const k = b && b.dataset.m;
