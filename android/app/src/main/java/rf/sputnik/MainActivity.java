@@ -36,7 +36,7 @@ public class MainActivity extends Activity {
         @JavascriptInterface public void checkOnly() { updater.checkOnly(infoReporter()); }
         @JavascriptInterface public void startDownload() { updater.download(infoReporter(), p -> runOnUiThread(() -> web.evaluateJavascript("window.sputnikProgress && window.sputnikProgress(" + p + ")", null))); }
         @JavascriptInterface public void applyUpdate() {
-            runOnUiThread(() -> { if (updater.applyNow()) web.loadUrl(HOST + "/local/index.html"); });
+            runOnUiThread(() -> { if (updater.applyNow()) { lastStatus = ""; web.loadUrl(HOST + "/local/index.html"); } });
         }
     }
 

@@ -5990,6 +5990,8 @@ let updUi = { state: "idle", note: "" };
 const UPD_LABEL = { idle: "Проверить обновление", checking: "Проверяю…", available: "Установить обновление", progress: "Установка…", latest: "Проверить обновление", downloaded: "Применить обновление", error: "Проверить обновление", old: "Проверить обновление" };
 function updShow(stateName, note) { updUi = { state: stateName, note }; if (!location.hash || location.hash === "#") rerender(); else if (stateName === "downloaded") toast("Обновление скачано: примени его на главном экране"); }
 window.sputnikUpdate = (status, version) => {
+  // Устаревший ответ: эта версия уже установлена (кнопка «Применить» ничего бы не сделала) — считаем, что обновлений нет.
+  try { const cur = window.SputnikApp && window.SputnikApp.version ? +window.SputnikApp.version() : 0; if ((status === "available" || status === "downloaded") && version && cur >= version) { if (updUi.state === "checking") updDialog("latest"); updShow("latest", "Установлена последняя версия."); return; } } catch (e) {}
   if (status === "available") { const manual = updUi.state === "checking"; updShow("available", "Есть новая версия."); if (manual) updDialog("ask"); }          // найденное при запуске окно само не открывает: только кнопка «Установить обновление»
   else if (status === "downloaded") {
     if (updUi.state === "progress") { updShow("downloaded", ""); updDialog("done"); setTimeout(() => { saveChar(); if (window.SputnikApp) window.SputnikApp.applyUpdate(); }, 900); }
@@ -6018,7 +6020,10 @@ function updDialog(mode) {
       else if (a === "yes") {
         if (window.SputnikApp && window.SputnikApp.startDownload) { updUi = { state: "progress", note: "" }; updDialog("progress"); window.SputnikApp.startDownload(); }
         else { updDialog("done"); }
-      } else if (a === "apply") { saveChar(); if (window.SputnikApp) window.SputnikApp.applyUpdate(); }
+      } else if (a === "apply") {
+        if (window.SputnikApp && window.SputnikApp.pending && !window.SputnikApp.pending()) { ov.hidden = true; updShow("latest", "Установлена последняя версия."); toast("Эта версия уже установлена"); return; }
+        saveChar(); if (window.SputnikApp) window.SputnikApp.applyUpdate();
+      }
     });
   }
   ov.hidden = false;
@@ -6051,7 +6056,10 @@ document.addEventListener("click", e => {
   const el = e.target.closest("[data-upd]"); if (!el) return;
   if (el.dataset.upd === "check") checkUpdate();
   else if (el.dataset.upd === "ask") updDialog("ask");
-  else if (window.SputnikApp) { saveChar(); window.SputnikApp.applyUpdate(); }
+  else if (window.SputnikApp) {
+    if (window.SputnikApp.pending && !window.SputnikApp.pending()) { updShow("latest", "Установлена последняя версия."); toast("Эта версия уже установлена"); return; }
+    saveChar(); window.SputnikApp.applyUpdate();
+  }
 });
 
 /* ===================== КУБИКИ ===================== */
