@@ -313,7 +313,7 @@
   function showJoin() {
     const ov = mkOv("netjoin"), cr = lsGet(PLAYER_KEY) || {};
     ov.hidden = false;
-    ov.innerHTML = `<div class="net-panel fx-frame"><div class="fx-eyebrow">Спутник — Игрок</div><h3>Подключиться к партии</h3>
+    ov.innerHTML = `<div class="net-panel fx-frame"><div class="fx-eyebrow">Исследователи лабиринта</div><h3>Подключиться к партии</h3>
       <p>Попроси ведущего код комнаты и впиши его ниже.</p>
       <label>Код комнаты<input id="nj-code" maxlength="8" autocapitalize="characters" autocomplete="off" value="${esc(cr.code || "")}"></label>
       <label>Твоё имя<input id="nj-name" maxlength="24" autocomplete="off" value="${esc(cr.name || "")}"></label>

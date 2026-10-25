@@ -1,4 +1,4 @@
-# Спутник исследователя — приложение для кампании
+# Исследователи лабиринта (бывш. «Спутник исследователя») — приложение для кампании
 
 Мобильное приложение-помощник для D&D-кампании «Выживание за варвара». Платформа — Android. Это одностраничное веб-приложение (`index.html`), на телефон ставится как APK.
 
@@ -117,3 +117,4 @@
 - Онлайн-режим (одиннадцатая пачка): `APP_MODE`/`isMaster()` в index.html («master» или «player», игрок — APK `rf.sputnik.player`, `SputnikApp.mode()` или `?mode=player`); `loadNet()` грузит `assets/js/net.js` (транспорт PeerJS/loopback, `Link`, RPC) и `netglue.js` (ведущий: панель «Онлайн», рассылка патчей состояния `pushAll`; игрок: экран входа, зеркало `applyView`, нижняя панель, ограничения меню героя и библиотеки, `nseq` героев) и `battle-net.js` в файлах боя (удалённый ход героя друга — `Battle.Net.remoteTurn`, броски `remoteSession`, реакции `remoteReact`, зеркало боя `mirror`; `B.netCtl`, `B.ser`, `B.restoreInto`). `BATTLE_REV` = 30. Схема, решения и ограничения — `docs/multiplayer.md`. Тесты `bnet_link.js`, `bnet_app.js`, `bnet_battle.js`, `bnet_battle_ui.js`, `bnet_peer.js`.
 - Сборка Android теперь с двумя вариантами (`master`, `player`): `build.sh` собирает `sputnik.apk` и `sputnik-player.apk`; страница одна (`www/`), обновления общие.
 - Выпуск (решение автора 25.10.2026): присылать APK ведущего (`sputnik.apk`); APK игрока (`sputnik-player.apk`) — только по запросу. Обновление по сети (`publish.sh`) одно для обоих.
+- Название и логотип (25.10.2026): игра называется «Исследователи лабиринта»; APK игрока — «Исследователи лабиринта» (золотой логотип `assets/logo.png`), APK ведущего — «Исследователи лабиринта · Ведущий» (янтарный `assets/logo-admin.png`). Пиксельный логотип рисует `tools/gen_logo.py` (24×24, спираль-лабиринт; он же пишет значки Android в `android/app/src/{master,player}/res/mipmap-*`); на главном экране `CREST` берёт нужный файл по `isMaster()`. Внутренние имена (пакет `rf.sputnik`, ключи localStorage, репозиторий Sputnik) не менялись.

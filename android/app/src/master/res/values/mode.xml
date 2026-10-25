@@ -1,4 +1,4 @@
 <resources>
     <string name="app_mode" translatable="false">master</string>
-    <string name="app_name">Спутник исследователя</string>
+    <string name="app_name">Исследователи лабиринта · Ведущий</string>
 </resources>

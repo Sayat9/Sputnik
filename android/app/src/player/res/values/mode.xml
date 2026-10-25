@@ -1,4 +1,4 @@
 <resources>
     <string name="app_mode" translatable="false">player</string>
-    <string name="app_name">Спутник — Игрок</string>
+    <string name="app_name">Исследователи лабиринта</string>
 </resources>

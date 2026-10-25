@@ -1,5 +1,5 @@
 {
- "version": 1792938114,
+ "version": 1792939060,
  "files": [
   "assets/css/battle.css",
   "assets/css/town.css",
@@ -74,6 +74,8 @@
   "assets/js/net.js",
   "assets/js/netglue.js",
   "assets/js/town.js",
+  "assets/logo-admin.png",
+  "assets/logo.png",
   "assets/monsters/ash-spirit-face.webp",
   "assets/monsters/ash-spirit-full.webp",
   "assets/monsters/ash-wraith-face.webp",
