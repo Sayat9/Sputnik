@@ -44,7 +44,8 @@
     async host(code, onConn) {
       await loadPeer();
       const peer = new Peer(PREFIX + code, PEER_OPTS);
-      await new Promise((ok, no) => { peer.on("open", ok); peer.on("error", e => no(e)); });
+      try { await new Promise((ok, no) => { peer.on("open", ok); peer.on("error", e => no(e)); setTimeout(() => no(new Error("нет связи с сервером рукопожатий")), 15000); }); }
+      catch (e) { try { peer.destroy(); } catch (x) {} throw e; }                                  // неудачная попытка не должна занимать код комнаты
       peer.on("error", e => emit("peererror", String(e && e.type || e)));
       peer.on("disconnected", () => { try { peer.reconnect(); } catch (e) {} });          // сигнальный сервер нужен только для рукопожатий
       peer.on("connection", dc => { const c = wrapDc(dc); if (dc.open) onConn(c); else dc.on("open", () => onConn(c)); });
@@ -115,9 +116,19 @@
   N.startHost = async function (opts = {}) {
     if (N.role) throw new Error("уже в онлайне");
     N.transport = opts.transport || N.transport;
-    const code = opts.code || rid(5);
+    let code = opts.code || rid(5);
     setStatus("starting");
-    hostHandle = await Tr[N.transport].host(code, conn => onConn(new Link(conn)));
+    // Старый код комнаты ещё может числиться на сервере рукопожатий (приложение закрыли, не закрыв комнату): ждём освобождения, потом берём новый код.
+    for (let attempt = 0; ; attempt++) {
+      try { hostHandle = await Tr[N.transport].host(code, conn => onConn(new Link(conn))); break; }
+      catch (e) {
+        const taken = e && (e.type === "unavailable-id" || /taken/i.test(String(e.message || e)));
+        if (!taken) { setStatus("off"); throw e; }
+        if (attempt < 5) { await sleep(3000); continue; }
+        if (attempt === 5) { code = rid(5); emit("codechanged", code); continue; }
+        setStatus("off"); throw e;
+      }
+    }
     N.role = "host"; N.code = code; setStatus("hosting"); emit("host", code);
     return code;
   };
@@ -146,29 +157,31 @@
   };
 
   /* ===== игрок ===== */
-  let want = null, link = null, retry = 0, cancelled = false;
+  let want = null, link = null, retry = 0, cancelled = false, gen = 0;
   N.join = function (code, name, pid, helloData) {
     code = String(code || "").trim().toUpperCase();
     if (N.role === "host") throw new Error("уже ведущий");
-    cancelled = false; want = { code, name, pid, helloData }; N.code = code; N.role = "client"; connectLoop();
+    if (link) { link.onclose = null; link.close(); link = null; }                  // повторный вход: старое соединение и старый цикл подключения не должны мешать новому
+    cancelled = false; retry = 0; want = { code, name, pid, helloData }; N.code = code; N.role = "client"; connectLoop(++gen);
   };
-  N.leave = function () { cancelled = true; want = null; if (link) { link.onclose = null; link.close(); link = null; } N.role = null; N.code = null; setStatus("off"); };
+  N.leave = function () { gen++; cancelled = true; want = null; if (link) { link.onclose = null; link.close(); link = null; } N.role = null; N.code = null; setStatus("off"); };
   N.link = () => link;
   N.callHost = (t, d, ms) => { if (!(link && link.alive)) return Promise.reject(new Error("нет связи с ведущим")); return link.call(t, d, ms); };
   N.toHost = (t, d) => !!(link && link.alive && link.send(t, d));
-  async function connectLoop() {
-    while (!cancelled && want) {
+  async function connectLoop(my) {
+    while (!cancelled && want && my === gen) {
       setStatus(retry ? "reconnecting" : "connecting");
       try {
-        const conn = await Tr[N.transport].join(want.code), l = new Link(conn); link = l;
+        const conn = await Tr[N.transport].join(want.code); if (my !== gen) { try { conn.close(); } catch (e) {} return; }
+        const l = new Link(conn); link = l;
         const hello = typeof want.helloData === "function" ? want.helloData() : (want.helloData || {});
         const w = await l.call("hello", { ver: N.ver, pid: want.pid, name: want.name, ...hello }, 8000);
         if (w && w.pid) want.pid = w.pid;
         retry = 0; setStatus("online"); emit("welcome", w);
         await new Promise(res => { l.onclose = res; });
-        link = null; if (cancelled) return;
+        if (link === l) link = null; if (cancelled || my !== gen) return;
         setStatus("reconnecting"); emit("lost");
-      } catch (e) { link = null; emit("joinerror", String(e && e.message || e)); }
+      } catch (e) { if (my !== gen) return; link = null; emit("joinerror", String(e && e.message || e)); }
       retry++; await sleep(Math.min(8000, 1200 + retry * 800));
     }
   }

@@ -125,6 +125,7 @@
       state.party.push(c); const last = (state.sessions || [])[state.sessions.length - 1]; if (last && last.members) last.members.push(c.id);
       saveChar(); schedule(); toast(`Игрок ${p.name} создал героя «${c.name}»`);
       renderHostPanel();
+      try { if (forge && forge.open && forge.step === "team") renderForge(true); else if (!location.hash.slice(1)) rerender(); } catch (e) {}          // ведущий сразу видит нового героя в отряде
       return { ok: true, id: c.id };
     });
     N.handle("bye", (d, link, p) => { if (p) { p.link = null; p.online = false; } renderHostPanel(); });
@@ -141,6 +142,7 @@
     return code;
   };
   G.stopHost = function () { clearInterval(H.poll); N.stopHost(); renderHostPanel(); updateChip(); };
+  N.on((ev, d) => { if (ev === "codechanged") toast("Прошлый код комнаты ещё занят на сервере: новый код — " + d); });
   N.on((ev, d) => { if (ev === "player") { renderHostPanel(); updateChip(); if (d && d.online) schedule(); } });
 
   // Хуки: любое сохранение или перерисовка — пора рассылать состояние.
@@ -174,7 +176,7 @@
     const el = e.target.closest("[data-nx]"); if (!el || !el.closest("#netov")) return;
     const a = el.dataset.nx;
     if (a === "close") { G.hostPanel = false; renderHostPanel(); }
-    else if (a === "start") { el.disabled = true; try { await G.startHost(); } catch (err) { toast("Не удалось создать комнату: " + (err && err.message || err)); renderHostPanel(); } }
+    else if (a === "start") { el.disabled = true; toast("Создаю комнату…"); try { await G.startHost(); } catch (err) { toast("Не удалось создать комнату: " + (err && err.message || err)); renderHostPanel(); } }
     else if (a === "stop") { G.stopHost(); }
     else if (a === "copy") { try { await navigator.clipboard.writeText(N.code); toast("Код скопирован"); } catch (err) { toast("Код: " + N.code); } }
   });
@@ -258,6 +260,7 @@
     if (V.bat !== undefined && window.Battle && Battle.Net) Battle.Net.mirror(V.bat);
     else if (V.bat !== undefined && V.bat) loadBattle().then(ok => { if (ok && Battle.Net) Battle.Net.mirror(G.view.bat); });
     // экран: идём за ведущим
+    if (!location.hash.slice(1)) { try { rerender(); } catch (e) {} }                                        // экран «Команда»: новый герой друга виден сразу
     if (G.follow) {
       const h = V.hash || "";
       if (GAME_HASH.includes(h) && location.hash.slice(1) !== h) location.hash = h; else if (GAME_HASH.includes(location.hash.slice(1))) rerender();
