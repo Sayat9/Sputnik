@@ -323,6 +323,7 @@
   };
 
   /* ---- оболочка клиента ---- */
+  window.addEventListener("hashchange", () => { try { updateBar(); } catch (e) {} });
   function buildBar() {
     const bar = mkOv("netbar", false); bar.style = ""; bar.hidden = false;
     bar.innerHTML = `<span class="st" id="net-st"></span>
@@ -333,7 +334,8 @@
   const STATUS_RU = { off: "не подключён", starting: "запуск", connecting: "подключаюсь…", reconnecting: "связь потеряна, переподключаюсь…", online: "в сети", hosting: "в сети" };
   function updateBar() {
     const el = document.getElementById("net-st"); if (el) el.textContent = STATUS_RU[N.status] || N.status;
-    document.body.classList.toggle("net-follow", G.follow && N.status === "online");          // без связи экран не «чужой»: можно листать своё
+    const hh = location.hash.slice(1), onGame = hh === "town" || hh === "labyrinth";
+    document.body.classList.toggle("net-follow", (G.follow && N.status === "online") || onGame);          // экран ведущего игрок только смотрит: даже во время переподключения он не отвечает на нажатия          // без связи экран не «чужой»: можно листать своё
   }
   // Без связи игрок видит свою команду, своих героев, справочник, библиотеку и карту — всё, что уже знает; игровые экраны ведущего недоступны.
   function goOffline() { G.follow = true; updateBar(); if (location.hash.slice(1) !== "") location.hash = ""; else rerender(); }

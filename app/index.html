@@ -4858,7 +4858,7 @@ function renderDungeon() {
   <div class="dg">
     <div class="dg-top">
       <div class="dg-clock"><span>День</span><b>${r.day}<small>/${FL().days}</small></b></div>
-      <div class="dg-floor">${FL().n} этаж<button class="fx-btn" data-dg="gm" aria-label="Меню мастера" aria-expanded="${dgUi.gm}">${ICO_DOTS}</button></div>
+      <div class="dg-floor">${FL().n} этаж${isMaster() ? `<button class="fx-btn" data-dg="gm" aria-label="Меню мастера" aria-expanded="${dgUi.gm}">${ICO_DOTS}</button>` : ""}</div>
       <div class="dg-clock r"><span>Действие</span><b>${r.act}<small>/${FL().acts}</small></b><div class="pips" aria-hidden="true">${actionPips}</div></div>
     </div>
     <div class="stage" id="stage">
@@ -4880,7 +4880,7 @@ function renderDungeon() {
         <button class="fx-btn" data-dg="sack" style="display:flex;align-items:center;gap:8px;justify-content:center"><span style="width:22px;height:22px;display:inline-flex">${ICO_SACK}</span>Сумка для камней · ${sackTotal()}</button>
         <small style="color:var(--fx-muted);font-size:12px;max-width:220px">Лежит в рюкзаках героев. Удерживай карточку героя внизу, чтобы открыть его инвентарь.</small>
       </div>` : ""}
-      ${dgUi.gm ? `<div class="dd r fx-frame" style="top:8px;max-height:84vh;overflow-y:auto">
+      ${dgUi.gm && isMaster() ? `<div class="dd r fx-frame" style="top:8px;max-height:84vh;overflow-y:auto">
         <span class="fx-eyebrow" style="font-size:11px">Мастер</span>
         ${Object.keys(TREASURES).map(id => `<button class="fx-btn" data-dg="give-tr" data-id="${id}"${treasure(id).owned ? " disabled" : ""}>Выдать сокровище: ${TREASURES[id].name}</button>`).join("")}
         <button class="fx-btn" data-dg="give-compass"${inv.compass.owned ? " disabled" : ""}>Выдать компас</button>
@@ -5208,6 +5208,7 @@ function mountDungeon() {
 document.addEventListener("click", e => {
   const el = e.target.closest("[data-dg],[data-act],[data-sp],[data-inv],[data-sup],[data-guard],[data-eat]");
   if (!el || !state.run || location.hash !== "#labyrinth") return;
+  if (!isMaster()) return;                                          // игрок онлайн не ходит и не управляет лабиринтом: экран ведёт ведущий
   const ds = el.dataset, inv = inventory(), r = state.run;
   if (ds.inv) {
     if (dgUi.justLit) { dgUi.justLit = false; return; }
