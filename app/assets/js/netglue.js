@@ -334,7 +334,7 @@
       <button class="fx-btn" data-nb="map">Карта этажа</button>
       <button class="fx-btn" data-nb="lib">Библиотека</button>
       ${N.status !== "online" ? `<button class="fx-btn primary" data-nb="join">Подключиться к комнате</button>` : ""}
-      <button class="fx-btn upd-btn" data-upd="${updUi.state === "downloaded" ? "apply" : "check"}">${UPD_LABEL[updUi.state]}</button>
+      <button class="fx-btn upd-btn" data-upd="${updUi.state === "downloaded" ? "apply" : updUi.state === "available" ? "ask" : "check"}">${UPD_LABEL[updUi.state]}</button>
       <button class="fx-btn danger" data-nb="leave">Выйти из комнаты</button><button class="fx-btn" data-nb="closeov">Закрыть</button></div>`;
     ov.hidden = false;
     ov.onclick = e => { if (e.target === ov || e.target.closest("[data-nb='closeov']")) ov.hidden = true; if (e.target.closest("[data-nb='map']")) { ov.hidden = true; openMap(); } if (e.target.closest("[data-nb='lib']")) { ov.hidden = true; openLibrary(); } if (e.target.closest("[data-nb='join']")) { ov.hidden = true; showJoin(); } if (e.target.closest("[data-nb='leave']")) { ov.hidden = true; N.toHost("bye", {}); N.leave(); lsSet(PLAYER_KEY, null); showJoin(); } };

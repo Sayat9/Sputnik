@@ -2992,7 +2992,7 @@ function renderMain() {
           <button class="fx-btn" data-go="town" style="align-self:flex-start;margin-top:4px">В город</button>
         </div>` : `<p class="fx-hint">${isMaster() ? "В первый раз приложение попросит создать героев отряда." : "Ждём, когда ведущий начнёт партию."}</p>`}
       ${APP_BUILD ? `<div class="upd-box"><p class="fx-hint" style="opacity:.6;font-size:12px">Версия от ${APP_BUILD}</p>
-        <button class="fx-btn upd-btn" data-upd="${updUi.state === "downloaded" ? "apply" : "check"}"${updUi.state === "checking" ? " disabled" : ""}>${UPD_LABEL[updUi.state]}</button>
+        <button class="fx-btn upd-btn" data-upd="${updUi.state === "downloaded" ? "apply" : updUi.state === "available" ? "ask" : "check"}"${updUi.state === "checking" ? " disabled" : ""}>${UPD_LABEL[updUi.state]}</button>
         ${updUi.note ? `<small class="upd-note">${updUi.note}</small>` : ""}</div>` : ""}
     </div>`;
 }
@@ -5987,13 +5987,13 @@ const rerender = () => route(true);
 // В APK кнопка просит Android (window.SputnikApp) проверить и скачать обновление, «Применить» перезагружает страницу на новой версии.
 // Ответ приходит в window.sputnikUpdate. Без моста (старый APK) — просто сравниваем номер версии с GitHub.
 let updUi = { state: "idle", note: "" };
-const UPD_LABEL = { idle: "Проверить обновление", checking: "Проверяю…", available: "Проверить обновление", progress: "Установка…", latest: "Проверить обновление", downloaded: "Применить обновление", error: "Проверить обновление", old: "Проверить обновление" };
+const UPD_LABEL = { idle: "Проверить обновление", checking: "Проверяю…", available: "Установить обновление", progress: "Установка…", latest: "Проверить обновление", downloaded: "Применить обновление", error: "Проверить обновление", old: "Проверить обновление" };
 function updShow(stateName, note) { updUi = { state: stateName, note }; if (!location.hash || location.hash === "#") rerender(); else if (stateName === "downloaded") toast("Обновление скачано: примени его на главном экране"); }
 window.sputnikUpdate = (status, version) => {
-  if (status === "available") { updShow("available", "Есть новая версия."); updDialog("ask"); }
+  if (status === "available") { const manual = updUi.state === "checking"; updShow("available", "Есть новая версия."); if (manual) updDialog("ask"); }          // найденное при запуске окно само не открывает: только кнопка «Установить обновление»
   else if (status === "downloaded") {
     if (updUi.state === "progress") { updShow("downloaded", ""); updDialog("done"); setTimeout(() => { saveChar(); if (window.SputnikApp) window.SputnikApp.applyUpdate(); }, 900); }
-    else { updShow("downloaded", "Новая версия скачана."); updDialog("ready"); }
+    else { const manual = updUi.state === "checking"; updShow("downloaded", "Новая версия скачана."); if (manual) updDialog("ready"); }
   }
   else if (status === "latest") { const manual = updUi.state === "checking"; updShow("latest", "Установлена последняя версия."); if (manual) updDialog("latest"); }
   else { const was = updUi.state; updShow("error", "Нет связи с сервером обновлений. Проверь интернет."); if (was === "checking" || was === "progress") updDialog("error"); }
@@ -6050,6 +6050,7 @@ async function checkUpdate() {
 document.addEventListener("click", e => {
   const el = e.target.closest("[data-upd]"); if (!el) return;
   if (el.dataset.upd === "check") checkUpdate();
+  else if (el.dataset.upd === "ask") updDialog("ask");
   else if (window.SputnikApp) { saveChar(); window.SputnikApp.applyUpdate(); }
 });
 
