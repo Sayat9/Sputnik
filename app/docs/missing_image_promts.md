@@ -6,26 +6,9 @@
 
 ## Монстры
 
-Полный рост 1024 × 1536 (2:3); иконку лица вырезает автор. Окружение и свет — под монстра (см. `docs/art-style.md`). Хвост: `full body, 2:3 vertical, 1024x1536, dark moody fantasy, realistic painterly style, highly detailed, no text`.
-
-### Монстр: Крыса (9) — `rat`
-> `large dark-furred rat with scarred ears and long bare tail, yellowed incisors, hunched ready to pounce, wet matted fur, standing on the packed earth floor of a damp burrow under tree roots in a goblin forest, bones and scraps around, dim warm light of a distant torch and green-grey shadows, full body, 2:3 vertical, 1024x1536, dark moody fantasy, realistic painterly style, highly detailed, no text`
-
-### Монстр: Крысиный король (8) — `rat-king`
-> `big rat with a crown of rusted bottle caps and bone shards on its head, thicker scarred body, one cloudy eye, tail knotted with a few smaller tails, scrawny but sharp-toothed, standing on a pile of gnawed bones and scraps in a burrow chamber under tree roots, small torchlight from the side, rats' shadows crawling behind it, full body, 2:3 vertical, 1024x1536, dark moody fantasy, realistic painterly style, highly detailed, no text`
-
-### Монстр: Гоблин-крысолов (7) — `rat-catcher`
-> `small lean goblin piper in a patched hide coat hung with little bells and rat tails, holding a carved bone pipe to his mouth, a few rats at his feet, sly narrowed eyes, standing at the mouth of a rat warren in a goblin forest at dusk, torn nets and cages with rats, dim orange lantern light and green forest shadows, full body, 2:3 vertical, 1024x1536, dark moody fantasy, realistic painterly style, highly detailed, no text`
+Все монстры нарисованы — промптов нет. Новый монстр без картинки: промпт сюда (полный рост 1024 × 1536, 2:3; лицо вырезается из него).
 
 ## Предметы, оружие и броня
-
-### Неизвестный особый камень (трава и гриб уже есть) — `unknown-stone`
-
-> `a dark mysterious silhouette of a small unidentified object wrapped in shadow, only the outline visible, a large glowing amber question mark floating over it, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
-
-### Парные кинжалы — `twin-daggers`
-
-> `a pair of worn battle-used matching daggers crossed over each other, leather-wrapped grips, brass crossguards, nicks on the blades, standing upright, resting against a simple wooden display stand, scratches and light wear, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
 
 ### Деревянный сундук — `chest`
 
