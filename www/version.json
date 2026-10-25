@@ -1,5 +1,5 @@
 {
- "version": 1792953299,
+ "version": 1792957073,
  "files": [
   "assets/buildings/church.webp",
   "assets/buildings/forge.webp",
@@ -397,20 +397,20 @@
   "assets/js/battle-ai.js": "175c4fe11728c31c66c7e47e8428b8ee",
   "assets/js/battle-core.js": "b4a58e376a3779c32c3e32b3410ac893",
   "assets/js/battle-data.js": "df955f26235a22cb1e8d4d9366bff43c",
-  "assets/js/battle-dice.js": "1137ec40b958656ae02977e78bd844e5",
-  "assets/js/battle-end.js": "1ba1991629b68c505bbbcb713eafd4cc",
+  "assets/js/battle-dice.js": "e45c4170169e0538b2b8519fd233bf0e",
+  "assets/js/battle-end.js": "a8e205e4004205f56b67d0e2c8111e0b",
   "assets/js/battle-env.js": "72019875cad3fb061e892005eae3bd66",
   "assets/js/battle-ess.js": "89dcbd7a747537548d6a3dbae23bf9e8",
   "assets/js/battle-ess2.js": "e98a4b17268c74ca9143d0809837d29c",
   "assets/js/battle-ext.js": "a67e829a12589102ffd75dd249968017",
-  "assets/js/battle-menu.js": "3306793481648cba1191c8c5d03be7aa",
-  "assets/js/battle-net.js": "46ac0f0f087ab54cabb4ed5e37de1ccc",
-  "assets/js/battle-rules.js": "5f4d8f9bcdf191bd0fd99f4dec059e33",
-  "assets/js/battle-ui.js": "41f2019e09d77631b03e38d6c9afc6d0",
-  "assets/js/battle-weap.js": "e6dc0f0e91510651a72d9bdcf06fc1d7",
+  "assets/js/battle-menu.js": "4c4389761d71b3c3f96e8e18ac7b5bf3",
+  "assets/js/battle-net.js": "2ec8914d230f7ef8ef96df7662aa1e4e",
+  "assets/js/battle-rules.js": "90d5267a6015a1e0a642a430a271159b",
+  "assets/js/battle-ui.js": "78dce602ebbb4c99f2df1ea5a8a63c78",
+  "assets/js/battle-weap.js": "c8451f39b82259634e8699a87ef513cb",
   "assets/js/battle.js": "5c083b159fc652a9452bd822beb60f72",
-  "assets/js/net.js": "b8f8f7ec9b9028fe7a62ac3708a93e5f",
-  "assets/js/netglue.js": "b456a5ef1032ad14bca3ef585062d654",
+  "assets/js/net.js": "110683a663d3cbfa576e7a56e5d09677",
+  "assets/js/netglue.js": "ffaf172e46a4f3beea14cf8c46fe5a85",
   "assets/js/town.js": "5845ec089d46df1ff8e16351b52dd9ba",
   "assets/logo-admin.png": "aa45354a89500a24e2f481f6d7d3ee4a",
   "assets/logo.png": "2eea126130fb32be9d28f407acbc25bb",
@@ -608,6 +608,6 @@
   "fonts/f8.woff2": "6cc1ee17091d59eb93821c3594e8f38f",
   "fonts/f9.woff2": "070433480b7b645f69b543f284e386ce",
   "fonts/fonts.css": "1585a72a8d157b26cb424ab433fd4e19",
-  "index.html": "fb6eddd7e07d946d65c7854aef341e2d"
+  "index.html": "89b893ba9e3d18ee3c0e741fde0d906a"
  }
 }

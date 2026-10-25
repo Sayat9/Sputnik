@@ -477,6 +477,8 @@ body.forge-open { overflow: hidden; }
 .fx-input.bad { border-color: var(--fx-danger); }
 .fx-seg { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .fx-seg .fx-btn[aria-pressed="false"] { color: var(--fx-muted); }
+.bonus-box ul.minus { margin-top: 6px; color: #e0a38a; }
+.bonus-box ul.minus li::marker { content: "− "; }
 .bonus-box li.tap { cursor: help; text-decoration: underline dotted rgb(244 212 142 / .55); text-underline-offset: 3px; }
 #fxinfo { position: fixed; inset: 0; z-index: 9600; display: flex; align-items: center; justify-content: center; background: rgba(8,6,4,.78); padding: 18px; }
 #fxinfo .box { width: min(92vw, 380px); padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; text-align: center; }
@@ -1542,7 +1544,7 @@ const MONSTERS = [
       ["Праща", "+4 к попаданию, 9/36 м, 1к4+2 дробящего.", "attacks"],
     ],
     loot: "Камень 9-го класса.", essence: "goblin" },
-  { id: "goblin-archer", zone: "goblin", rare: true, weight: 1, name: "Гоблин-лучник", floor: 1, cls: 9, rank: "normal", size: "Маленький гуманоид", group: "Редкий: с 4-го дня поодиночке, с 6-го — вместе с обычными",
+  { id: "goblin-archer", zone: "goblin", rare: true, weight: 1, name: "Гоблин-лучник", floor: 1, cls: 9, rank: "normal", size: "Маленький гуманоид", group: "Редкий, стадный: с 4-го дня только стаей (2–3 мыши), в одиночку не встречается",
     type: "Гуманоид, монстр", sz: "маленький", areas: ["1 этаж: зона гоблинов"],
     ac: "13", hp: "7 (2к6)", speed: "9 м", cr: "1/4", abil: [8, 16, 10, 8, 12, 6],
     senses: "Восприятие +3, Скрытность +5. Тёмное зрение 18 м.",
@@ -1995,6 +1997,7 @@ function renderWeapons() {
           <div><dt>Вес</dt><dd>${kg(w.weight)}</dd></div>
         </dl>
         ${w.props.length ? `<div class="tags">${w.props.map(p => `<span class="tag">${p}</span>`).join("")}</div>` : ""}
+        ${w.props.some(p => PROPS.some(([n]) => p.startsWith(n))) ? `<dl class="gloss" style="margin:6px 0 0">${w.props.map(p => { const g = PROPS.find(([n]) => p.startsWith(n)); return g ? `<div><dt>${g[0]}</dt><dd>${g[1]}</dd></div>` : ""; }).join("")}</dl>` : ""}
         <p>${w.note}</p>
       </article>`).join("") : `<div class="empty">Под эти фильтры ничего не подходит.</div>`}
     </div>
@@ -2405,14 +2408,18 @@ function fluteOutcome(c, d20) {
 }
 const hasEssence = (c, id) => (c.essences || []).includes(id);
 const mainItem = (c = char) => itemOf((c.equip || {}).main);
-const twoHanded = (c = char) => isTwoHandedWeapon(mainItem(c)) && !(c.giantGrip && c.race === "barbarian");
+const isBigGrip = c => !!(c.giantGrip && c.race === "barbarian");                     // «Великан»: двуручное в одной руке
+// Лук держат одной рукой, а вторая свободна для кинжала; для остального двуручного обе руки заняты (кроме «Великана»).
+const twoHanded = (c = char) => { const m = mainItem(c); return isTwoHandedWeapon(m) && m.group !== "ranged" && !isBigGrip(c); };
+const lightMelee = w => !!w && w.group === "melee" && (w.props || []).includes("Лёгкое");
 
 // Решение автора: одноручный щит и двуручное оружие в одной руке у варвара («Великан») дают −2 к Ловкости (каждое).
 function gearDexPenalty(c) {
   const off = itemOf((c.equip || {}).off), main = itemOf((c.equip || {}).main);
   let g = 0;
   if (off && off.id === "shield" && !twoHanded(c)) g -= 2;
-  if (c.giantGrip && c.race === "barbarian" && isTwoHandedWeapon(main)) g -= 2;
+  if (isBigGrip(c) && isTwoHandedWeapon(main) && main.group !== "ranged") g -= 2;
+  if (isBigGrip(c) && isTwoHandedWeapon(off) && off.group !== "ranged" && off.id !== "tower-shield") g -= 4;          // два двуручных сразу: большой штраф (решение автора)
   return g;
 }
 function totals(c = char) {
@@ -2453,7 +2460,8 @@ function derived(t, c = char) {
   if (armor && armor.stealth) warnings.push(`«${armor.name}»: помеха к Скрытности.`);
   if (tower) { warnings.push("Ростовой щит: помеха к Скрытности."); if (t.str.total < 13) warnings.push(`Сила ${t.str.total} ниже 13, нужной для ростового щита: скорость −3 м.`); }
   if (off && off.id === "shield" && !twoHanded(c)) warnings.push("Щит: −2 к Ловкости.");
-  if (c.giantGrip && c.race === "barbarian" && isTwoHandedWeapon(mainItem(c))) warnings.push(`«${mainItem(c).name}» в одной руке (Великан): −2 к Ловкости.`);
+  if (isBigGrip(c) && isTwoHandedWeapon(mainItem(c)) && mainItem(c).group !== "ranged") warnings.push(`«${mainItem(c).name}» в одной руке (Великан): −2 к Ловкости.`);
+  if (isBigGrip(c) && isTwoHandedWeapon(off) && off.group !== "ranged") warnings.push(`Два двуручных оружия сразу («${off.name}» во второй руке): ещё −4 к Ловкости.`);
   if (ld.level !== "ok") warnings.push(LOAD_TEXT[ld.level] + ".");
   const pb = 0;                                                 // бонус мастерства убран: ни у кого нет (решение автора)
   const eb = essBonus(c);
@@ -2562,7 +2570,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 32;
+const BATTLE_REV = 33;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }
@@ -2872,7 +2880,10 @@ function renderCharacter() {
 
 function slotOptions(id) {
   if (id === "main") return WEAPONS.filter(w => w.group !== "shield" && w.kind !== "Боеприпасы").map(w => ({ t: "w", it: w, art: ART.weapon(w.id) }));
-  if (id === "off") return WEAPONS.filter(w => w.group === "shield" || (w.group === "melee" && !isTwoHandedWeapon(w))).map(w => ({ t: "w", it: w, art: ART.weapon(w.id) }));
+  if (id === "off") {
+    const m = mainItem(), bow = m && m.group === "ranged";
+    return WEAPONS.filter(w => bow ? lightMelee(w) : (w.group === "shield" || (w.group === "melee" && (!isTwoHandedWeapon(w) || isBigGrip(char))))).map(w => ({ t: "w", it: w, art: ART.weapon(w.id) }));
+  }
   if (id === "body") return ARMOR_FLAT.map(a => ({ t: "a", it: a, art: ART.armor(a.id) })).concat([{ t: "g", it: { ...GEAR.clothes, id: "clothes", ac: "10 + Лов", catLabel: "одежда", price: 1 }, art: "" }]);
   return [];
 }
@@ -2902,7 +2913,10 @@ function openSlot(id) {
 
 function equip(id, val) {
   char.equip[id] = val;
-  if (id === "main" && isTwoHandedWeapon(itemOf(val)) && !(char.giantGrip && char.race === "barbarian")) delete char.equip.off;
+  const mi = itemOf(val), oi = itemOf(char.equip.off);
+  if (id === "main" && isTwoHandedWeapon(mi) && mi.group === "ranged") { if (oi && !lightMelee(oi)) delete char.equip.off; }          // лук: во второй руке остаётся только кинжал
+  else if (id === "main" && isTwoHandedWeapon(mi) && !isBigGrip(char)) delete char.equip.off;
+  if (id === "off" && isTwoHandedWeapon(oi) && oi.group !== "ranged" && char.race === "barbarian") char.giantGrip = true;          // второе двуручное — только «одной рукой»
   char.example = false;
   saveChar();
   closeSheet();
@@ -3052,13 +3066,14 @@ function forgeRace() {
         <div class="bonus-box">
           <div class="st">${raceMods(r)}</div>
           <ul>${r.plus.map(([n], i) => `<li class="tap" data-fx-info="race:${r.id}:${i}">${n}</li>`).join("")}</ul>
+          <ul class="minus">${r.minus.length ? r.minus.map(([n], i) => `<li class="tap" data-fx-info="rminus:${r.id}:${i}">${n}</li>`).join("") : "<li>Без недостатков</li>"}</ul>
         </div>
       </button>`).join("")}
     </div>
   </div></div>`;
 }
 
-const canTwinWeapon = w => !!w && ((w.props || []).includes("Лёгкое") || w.id === "axe" || w.id === "gloves");          // можно взять по одному в каждую руку
+const canTwinWeapon = (w, race) => !!w && ((w.props || []).includes("Лёгкое") || w.id === "axe" || w.id === "gloves" || (race === "barbarian" && isTwoHandedWeapon(w) && w.group !== "ranged"));          // можно взять по одному в каждую руку
 const START_WEAPONS = () => WEAPONS.filter(w => w.group !== "shield" && w.kind !== "Боеприпасы");
 function forgeWeapon() {
   const d = forge.draft, w = WEAPONS.find(x => x.id === d.weapon);
@@ -3084,11 +3099,11 @@ function forgeWeapon() {
         <div class="bonus-box"><div class="st">${dg.dmg} ${dg.type} ×2 · ${kgf(dg.weight * 2)} кг</div><ul><li>Лёгкое</li><li>По кинжалу в каждой руке</li></ul></div></button>`; })()}
     </div>
     ${(() => { const sh = WEAPONS.find(x => x.id === "shield"), block = w && (isTwoHandedWeapon(w) || w.group === "ranged") && !(d.race === "barbarian");
-      const light = w && canTwinWeapon(w), kn = light && d.knife;
+      const bow = !!w && w.group === "ranged", light = w && (bow || canTwinWeapon(w, d.race)), kn = light && d.knife, sec = bow ? WEAPONS.find(x => x.id === "dagger") : w;
       return (light ? `<button class="race-card fx-frame shield-pick" data-fx-knife aria-pressed="${!!kn}">
-        <div class="wpn-art">${img(ART.weapon(w.id), w.name)}${kn ? `<span class="tick">${TICK}</span>` : ""}</div>
-        <div><h3>${w.id === "gloves" ? "Вторая перчатка" : w.id === "axe" ? "Второй топор" : "Второй клинок"} в левую руку</h3><div class="bonus-box"><div class="st">${w.dmg} ${w.type} · ${kgf(w.weight)} кг</div>
-        <ul><li>${w.id === "gloves" ? "Две перчатки: +2 КД, урон 2к4; вместо щита" : "Удар второй рукой — доп. действием; вместо щита"}</li></ul></div></div></button>` : "") + `<button class="race-card fx-frame shield-pick" data-fx-shield aria-pressed="${!!d.shield && !block && !kn}"${block || kn ? " disabled" : ""}>
+        <div class="wpn-art">${img(ART.weapon(sec.id), sec.name)}${kn ? `<span class="tick">${TICK}</span>` : ""}</div>
+        <div><h3>${bow ? "Кинжал" : w.id === "gloves" ? "Вторая перчатка" : w.id === "axe" ? "Второй топор" : isTwoHandedWeapon(w) ? "Второе двуручное" : "Второй клинок"} в левую руку</h3><div class="bonus-box"><div class="st">${sec.dmg} ${sec.type} · ${kgf(sec.weight)} кг</div>
+        <ul><li>${bow ? "Ближний бой, если враг вплотную; вместо щита" : w.id === "gloves" ? "Две перчатки: +2 КД, урон 2к4; вместо щита" : isTwoHandedWeapon(w) ? "Большой штраф: −6 к Ловкости (два двуручных)" : "Удар второй рукой — доп. действием; вместо щита"}</li></ul></div></div></button>` : "") + `<button class="race-card fx-frame shield-pick" data-fx-shield aria-pressed="${!!d.shield && !block && !kn}"${block || kn ? " disabled" : ""}>
         <div class="wpn-art">${img(ART.weapon("shield"), sh.name)}${d.shield && !block && !kn ? `<span class="tick">${TICK}</span>` : ""}</div>
         <div><h3>Щит в левую руку</h3><div class="bonus-box"><div class="st">${sh.dmg} · ${kgf(sh.weight)} кг</div>
         <ul><li>${block ? "Не с двуручным оружием и луком" : kn ? "Занята вторым клинком" : "Можно взять вместе с оружием"}</li></ul></div></div></button>`; })()}
@@ -3224,7 +3239,8 @@ function finishDraft() {
     equip: { main: { t: "w", id: d.weapon }, body: { t: "g", id: "clothes" } }, bag: [],
   };
   const wpn = WEAPONS.find(x => x.id === d.weapon);
-  if (d.knife && canTwinWeapon(wpn)) c.equip.off = { t: "w", id: wpn.id };                                   // два клинка вместо щита
+  if (d.knife && wpn.group === "ranged") c.equip.off = { t: "w", id: "dagger" };          // лук и кинжал в левой руке
+  else if (d.knife && canTwinWeapon(wpn, d.race)) c.equip.off = { t: "w", id: wpn.id };                                   // два клинка вместо щита
   else if (d.shield && (d.race === "barbarian" || !(isTwoHandedWeapon(wpn) || wpn.group === "ranged"))) c.equip.off = { t: "w", id: "shield" };
   if (d.race === "barbarian" && isTwoHandedWeapon(wpn) && c.equip.off) c.giantGrip = true;          // «Великан»: двуручное в одной руке, вторая рука держит щит (−2 к Ловкости за каждое)
   addToBag(c, { t: "g", id: "ration", qty: 7 });
@@ -3258,7 +3274,7 @@ $forge.addEventListener("click", e => {
   if (inf) {                                          // нажатие на бонус или свойство только читает описание, карточку не выбирает
     e.preventDefault(); e.stopPropagation();
     const [kind, id, extra] = inf.dataset.fxInfo.split(":");
-    if (kind === "race") { const r = raceById(id), pl = r && r.plus[+extra]; if (pl) fxInfo(`${r.name}: ${pl[0]}`, pl[1]); }
+    if (kind === "race" || kind === "rminus") { const r = raceById(id), pl = r && (kind === "race" ? r.plus : r.minus)[+extra]; if (pl) fxInfo(`${r.name}: ${pl[0]}${kind === "rminus" ? " (минус)" : ""}`, pl[1]); }
     else { const w = WEAPONS.find(x => x.id === id), name = inf.dataset.fxInfo.slice(kind.length + id.length + 2), pr = PROPS.find(([n]) => name.startsWith(n)); fxInfo(`${w ? w.name + ": " : ""}${name}`, pr ? pr[1] : (w && w.note) || "Особое свойство оружия."); }
     return;
   }
@@ -3410,10 +3426,10 @@ const FLOOR2 = {
       if (x === 10 && y === 10) return { name: "Топь (угол)", special: ["swamp-fang"] };
       if (x <= 1 && y <= 1) return { name: "Медвежья пещера", std: [["bat", 3], ["burrower", 2]] };
       if (x >= 8 && y >= 8) return { name: "Топь", std: [["bat", 3], ["swamp-toad", 3]] };
-      if (x >= 9 && y <= 1) return { name: "Руины зданий", ruins: true, std: [["wolf", 3], ["fox", 2], ["mouse", 1], ["horned-hare", 1], ["crow", 2]] };          // 2 × 2 у выходного портала (сам портал безопасен); чуть больше находок
+      if (x >= 9 && y <= 1) return { name: "Руины зданий", ruins: true, std: [["wolf", 3], ["fox", 2], ["mouse", 1], ["horned-hare", 1], ["crow", 2]], minOf: { mouse: 2 } };          // 2 × 2 у выходного портала (сам портал безопасен); чуть больше находок
       if (x >= 8 && y >= 4 && y <= 6) return { name: "Паучьи кроны", cap: 3, std: [["web-spider", 4], ["crow", 1]] };
       if (x >= 4 && x <= 7 && y >= 3 && y <= 6) return { name: "Волчьи холмы", std: [["wolf", 5]], pack: true, combos: [{ p: .12, day: 3, list: ["werewolf"] }] };
-      return { name: "Чаща", std: [["wolf", 3], ["fox", 2], ["mouse", 1], ["horned-hare", 1], ["crow", 2]] };
+      return { name: "Чаща", std: [["wolf", 3], ["fox", 2], ["mouse", 1], ["horned-hare", 1], ["crow", 2]], minOf: { mouse: 2 } };
     } },
   undead: { n: 2, name: "Могильник белой пыли", zone: "undead", portalKind: "zombie", dark: [[0, 0]],
     placeAt(x, y) {
@@ -3531,7 +3547,9 @@ function genEncounterRaw(x, y, day, n = 1, forceRare = false) {
   const species = pickWeighted(std);
   const list = [];
   if (rareHit) {
-    list.push(pickWeighted(rare).id);
+    const rr = pickWeighted(rare);
+    if (rr.id === "mouse") { for (let i = 0; i < (day >= 6 ? 3 : 2); i++) list.push("mouse"); return { list, zone, border: z.kind === "border" }; }          // громовая мышь ходит только стадом
+    list.push(rr.id);
     const extra = day >= 7 ? 2 : day >= 6 ? 1 : 0;
     for (let i = 0; i < extra; i++) list.push(species.id);
   } else for (let i = 0; i < stdCount; i++) list.push(species.id);
@@ -4210,9 +4228,10 @@ function awardXp(ids) {
   state.party.forEach(c => {
     c.xp = (c.xp || 0) + total;
     while (c.xp >= XP_STEP && c.level < 20) {
-      const before = maxHp(c); c.xp -= XP_STEP; c.level++;
+      const before = maxHp(c), mpBefore = maxMp(c); c.xp -= XP_STEP; c.level++;
       c.hp = Math.min(maxHp(c), hpOf(c) + maxHp(c) - before);
-      ups.push(`${c.name} — ${c.level} ур.`);
+      const dMp = maxMp(c) - mpBefore; c.mp = Math.min(maxMp(c), (c.mp ?? mpBefore) + dMp);          // вместе с максимумом растёт и текущая мана
+      ups.push(`${c.name} — ${c.level} ур. (макс. ОЗ +${maxHp(c) - before}, мана +${dMp})`);
     }
   });
   logRun(`Опыт за первых убитых (${fresh.map(id => MONSTERS.find(m => m.id === id).name).join(", ")}): +${total} каждому герою.${ups.length ? " Новый уровень: " + ups.join(", ") + "." : ""}`);
@@ -5459,7 +5478,7 @@ function selPanel(c) {
   if (it.slot === "charm") btns.push(`<button class="fx-btn" data-hx="equip" data-slot-to="charm">Надеть талисман</button>`);
   if (it.use === "find") btns.push(`<button class="fx-btn primary" data-hx="usefind">${it.find === "mush" ? "Съесть" : "Применить"}</button>`);
   if (it.kindOf === "weapon" && it.group !== "shield" && it.kind !== "Боеприпасы") btns.push(`<button class="fx-btn" data-hx="equip" data-slot-to="main">В правую руку</button>`);
-  if (it.kindOf === "weapon" && (it.group === "shield" || (it.group === "melee" && !isTwoHandedWeapon(it)))) btns.push(`<button class="fx-btn" data-hx="equip" data-slot-to="off"${twoHanded(c) ? " disabled" : ""}>В левую руку</button>`);
+  if (it.kindOf === "weapon" && (it.group === "shield" || (it.group === "melee" && (!isTwoHandedWeapon(it) || isBigGrip(c))))) { const mi = mainItem(c), bowBlock = mi && mi.group === "ranged" && !lightMelee(it); btns.push(`<button class="fx-btn" data-hx="equip" data-slot-to="off"${twoHanded(c) || bowBlock ? " disabled" : ""}>В левую руку</button>`); }
   if (it.kindOf === "armor" || it.slot === "body") btns.push(`<button class="fx-btn" data-hx="equip" data-slot-to="body">Надеть</button>`);
   const others = state.party.filter(o => o.id !== c.id);
   if (others.length) btns.push(`<button class="fx-btn" data-hx="give-toggle" aria-expanded="${heroUi.give}">Передать</button>`);
@@ -5653,7 +5672,12 @@ $hero.addEventListener("click", e => {
       const prev = c.equip[slot];
       c.equip[slot] = entry.t === "c" ? { t: "c", name: entry.name } : { t: entry.t, id: entry.id, ...(entry.steel ? { steel: true } : {}) };
       if (prev) addToBag(c, { ...prev, qty: 1 });
-      if (slot === "main" && isTwoHandedWeapon(it) && !(c.giantGrip && c.race === "barbarian") && c.equip.off) {
+      if (slot === "off" && isTwoHandedWeapon(it) && it.group !== "ranged" && c.race === "barbarian") c.giantGrip = true;          // второе двуручное в левую руку: «Великан» с большим штрафом
+      if (slot === "main" && isTwoHandedWeapon(it) && it.group === "ranged" && c.equip.off && !lightMelee(itemOf(c.equip.off))) {
+        if (addToBag(c, { ...c.equip.off, qty: 1 })) { toast("Нет места для предмета из левой руки"); c.equip.main = prev; c.bag.push(entry); if (prev) takeLast(c, prev); saveChar(); renderHero(); return; }
+        delete c.equip.off;
+      }
+      else if (slot === "main" && isTwoHandedWeapon(it) && it.group !== "ranged" && !isBigGrip(c) && c.equip.off) {
         if (addToBag(c, { ...c.equip.off, qty: 1 })) { toast("Нет места для предмета из левой руки"); c.equip.main = prev; c.bag.push(entry); if (prev) takeLast(c, prev); saveChar(); renderHero(); return; }
         delete c.equip.off;
       }

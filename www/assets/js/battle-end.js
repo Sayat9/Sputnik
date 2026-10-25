@@ -94,6 +94,7 @@
     if (B.deliverFound && !ev.arena) gotLines.push(...B.deliverFound(S, outcome === "win" || outcome === "retreat" || outcome === "abort"));
     if (!(UI && UI.active)) { for (const w of plan.wins) if (!w.arena) essStash().push(w.id); if (plan.wins.length) saveChar(); }          // без экрана итога — в запас; с экраном игрок выбирает: впитать, сохранить, оставить
     if (UI && UI.active) await showScreens(S, display, plan, gotLines);
+    if (B.Net && B.Net.endClose) B.Net.endClose();
     const res = { outcome: mapped, killed: S.killed.slice(), plan };
     if (UI && UI.active) UI.close();
     B.running = false; B.S = null; ev.battleStarted = false;
@@ -120,6 +121,7 @@
       ${nothing ? "" : `<div class="bt-roll" hidden><p>Бросок на эссенцию <small>— нужно ${ESS_CHANCE}+ из 100</small></p><canvas></canvas><div class="bt-roll-res"></div><button class="bt-rolls-btn" type="button" aria-expanded="false" aria-label="Показать все броски на эссенцию" hidden><span>все броски</span><i aria-hidden="true">▾</i></button><div class="bt-rolls" hidden></div></div>`}
       <div class="bt-essgot" hidden></div>
       <button class="fx-btn primary big bt-done" hidden>Готово</button></div>`;
+    if (B.Net && B.Net.announceEnd) { const essLine = plan.wins.length ? "Выпала эссенция!" : (plan.species.length ? "Эссенция не выпала" : ""); B.Net.announceEnd(`<div class="bt-endscr fx-frame ${cls}"><small class="bt-eyebrow">Бой окончен · раундов: ${S.round}</small><h2 class="bt-title ${cls}">${title}</h2>${fallen.length ? `<p class="bt-bad">Погибли: ${esc(fallen.join(", "))}</p>` : ""}<div class="bt-rwd"><h5>Награды</h5>${nothing ? `<p class="muted">Никто не убит — награды нет.</p>` : `<ul>${xpLine}${stoneLines}</ul>`}${essLine ? `<p><b>${essLine}</b></p>` : ""}<div class="bt-hlist">${B.heroes().map(h => `<span class="bt-hchip${h.dead ? " dead" : ""}"><img src="${h.face}" alt="">${esc(h.name)} <b>${h.dead ? "погиб" : Math.max(h.down ? 1 : 0, h.hp) + "/" + h.maxHp}</b></span>`).join("")}</div></div></div>`); }
     const done = modal.querySelector(".bt-done"), finish = new Promise(res => { done.onclick = res; });
     if (!nothing && plan.best) {
       await sleep(900);

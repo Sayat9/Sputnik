@@ -349,7 +349,7 @@
     return new Promise(resolve => {
       const S = B.S; S.hideMons = true; if (!UI.built) build(S);
       UI.mode = "place"; UI.placeSel = u.id; UI.placeOnly = u.id;
-      UI.panelPlace = { ambush: false, done: () => { UI.placeOnly = null; resolve(); } }; UI.paintPlace(); UI.refreshNow(); if (UI.renderPanel) UI.renderPanel();
+      UI.panelPlace = { ambush: false, done: () => { UI.placeOnly = null; UI.panelPlace = null; UI.mode = "idle"; UI.setHl(new Map()); if (UI.renderPanel) UI.renderPanel(); resolve(); } }; UI.paintPlace(); UI.refreshNow(); if (UI.renderPanel) UI.renderPanel();
       UI.banner(`Расстановка: ${u.name}`, 2200);
     });
   };

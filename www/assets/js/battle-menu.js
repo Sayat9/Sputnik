@@ -57,7 +57,7 @@
         } else if (!UI.cat) h += `<p class="bt-hint">Выберите действие. Нажмите на любого бойца на поле, чтобы посмотреть его состояние.</p>`;
       }
       p.innerHTML = h;
-      if (UI.cat && !UI.pick) { const l = p.querySelector(".bt-list"); if (l && l.scrollIntoView) { try { l.scrollIntoView({ block: "nearest" }); } catch (e) {} } }
+      if (UI.cat && !UI.pick) { const dk = p.querySelector(".bt-dock"); if (dk) { const d = dk.getBoundingClientRect().top - p.getBoundingClientRect().top - 4; if (d > 0 || p.scrollTop > 0) p.scrollTop = Math.max(0, p.scrollTop + d); } }          // кнопки действий остаются целыми, список раскрывается под ними
       return;
     }
     // чужой ход; выбор, начатый до меню хода (вынырнуть из-под земли в начале хода), тоже показывает подсказку и кнопки
@@ -150,7 +150,7 @@
   UI.inspect = function (u, note) {
     const S = B.S, hero = !!u.hero, mine = u.side === "hero";
     const atk = B.attacksOf(u).filter(a => !a.offhand).map(a => `<li><b>${esc(a.n)}</b> · ${a.kind === "melee" ? "ближний" : "дальний"} · ${a.hit != null ? "+" + (a.hit) : ""} · ${a.dmg.n ? B.fmtDice(a.dmg) : a.dmg.b} ${D.DT[a.dt] || ""}${a.dmgMult === 0.5 ? " (вполсилы)" : ""}</li>`).join("");
-    const ess = u.ess.map(id => { const e = ESSENCES[id]; return `<li><b>${esc(e.passive.name)} (П).</b> ${esc(e.passive.text)}</li><li><b>${esc(e.active.name)} (А).</b> ${e.active.mana} маны, ${esc(e.active.time)}. ${esc(e.active.text)}</li>`; }).join("");
+    const ess = (!hero && !u.summon && B.Net && B.Net.isClient && B.Net.isClient() ? [] : u.ess).map(id => { const e = ESSENCES[id]; return `<li><b>${esc(e.passive.name)} (П).</b> ${esc(e.passive.text)}</li><li><b>${esc(e.active.name)} (А).</b> ${e.active.mana} маны, ${esc(e.active.time)}. ${esc(e.active.text)}</li>`; }).join("");
     const sts = u.conds.filter(c => D.status[c.id]).map(c => `<li><span class="bt-stchip ${D.status[c.id].good ? "good" : "bad"}" data-sid="${c.id}" data-uid="${u.id}">${stIco(c.id)}${esc(D.status[c.id].name)}</span> ${esc(D.status[c.id].desc)}</li>`).join("");
     const owner = u.summon ? B.byId(u.owner) : null;
     const sub = hero ? esc(raceById(u.race).name) + " · " + u.level + " ур." : u.summon ? (u.kind === "double" ? `Двойник · ${esc(owner ? owner.name : "")} · исчезает от любого урона` : `Призванный волк · ${esc(owner ? owner.name : "")}`) : esc(u.mon.size) + " · " + u.cls + " класс" + (typeof monCourse === "function" && monCourse(u.cls) ? ` · <b class="bt-rankbadge">${esc(monBadge(u.mon))}</b>` : "");
@@ -211,8 +211,9 @@
         <ul class="bt-sum">${rs.map((r, i) => `<li class="${r.ok ? "ok" : "bad"}"><span class="n">${esc(r.name)}</span><span class="v">${r.total}</span><b>${r.ok ? "устоял" : "провал"}</b>${reroll && r.side === "hero" ? `<button class="fx-btn bt-rr" data-rr="${i}"${r.canReroll ? "" : " disabled"} title="Потратить переброс">Переброс</button>` : ""}</li>`).join("")}</ul>
         <div class="bt-btns"><button class="fx-btn primary" data-m="sumok">Готово</button></div></div>`;
       const m = showModal(draw(rows));
+      UI.sumRedraw = rs => { if (m.isConnected && !m.hidden) m.innerHTML = draw(rs); };          // онлайн: игрок перебросил у себя — сводка у ведущего обновляется
       m.onclick = e => {
-        if (e.target.closest("[data-m=sumok]")) { hideModal(); res(); return; }
+        if (e.target.closest("[data-m=sumok]")) { hideModal(); UI.sumRedraw = null; res(); return; }
         const b = e.target.closest("[data-rr]"); if (b && !b.disabled && reroll) m.innerHTML = draw(reroll(+b.dataset.rr));
       };
     });

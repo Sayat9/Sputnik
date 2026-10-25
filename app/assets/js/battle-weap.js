@@ -32,7 +32,7 @@
     if (main.id === "spear") out.push({ ...base, id: "weak:spear", n: "Копьё: слабое место", special: "weak", sub: "проверка Внимательности: больше урона" });
     if (main.id === "rapier") out.push({ ...base, id: "lunge:rapier", n: "Выпад", special: "lunge", reach: 3, sub: "рывок 1–2 кл. по прямой и укол +1к4 · потом −1 КД",
       needTarget: v => (enemiesOf(v).some(t => lungeCells(v, t)) ? null : "нужна цель на прямой в 2–3 клетках") });
-    if (main.id === "greataxe") out.push({ ...base, id: "crush:greataxe", n: "Крушащий удар", special: "crush", acIgnore: 2, acIgnoreLabel: "крушит", alsoBonus: true, sub: "действие + доп. действие · игнорирует 2 КД, ломает щит/броню" });
+    if (main.id === "greataxe") out.push({ ...base, id: "crush:greataxe", n: "Крушащий удар", special: "crush", acIgnore: 2, acIgnoreLabel: "крушит", alsoBonus: true, sub: "действие и доп. действие: игнорирует 2 КД цели; ломает щит (−2 или −3 КД), без щита портит броню (−1 КД, до 2 раз)" });
     return out;
   };
   async function pick(u, atk, prompt) {
@@ -89,6 +89,28 @@
     if (((main && main.id === "gloves") || (off && off.id === "gloves"))) out.push({ id: "fistblock", cat: "defend", label: "Блок кулаками", ico: "defend", sub: "до начала хода: урон ближних атак −1к4 + Ловкость", time: "action",
       enabled: act && !has(u, "fistblock"), why: !act ? "действие потрачено" : "уже в блоке",
       run: async () => { B.spendTime(u, "action"); addStatus(u, "fistblock", { k: 1, when: "start" }); log(`${u.name} встаёт в блок кулаками.`, "good"); fx(u, "блок кулаками", "good"); return true; } });
+    // «Смена оружия»: основное действие — поменять оружие в руке на то, что лежит в рюкзаке.
+    const cands = (c.bag || []).map((e, i) => ({ e, i, it: e && e.t === "w" ? itemOf(e) : null })).filter(x => x.it && x.it.kindOf === "weapon" && x.it.group !== "shield" && x.it.kind !== "Боеприпасы");
+    if (cands.length) out.push({ id: "swapweapon", cat: "other", label: "Смена оружия", ico: "attack", sub: "основное действие: взять в руку оружие из рюкзака, прежнее уйдёт в рюкзак", time: "action",
+      enabled: act && !u.disarmed, why: !act ? "действие потрачено" : "рука пуста: сначала подберите оружие",
+      run: async () => {
+        const g = UI(); if (!g || !g.choose) return false;
+        const pick = await g.choose({ title: "Какое оружие взять?", options: cands.map(x => ({ id: String(x.i), label: `${x.it.name}${x.it.steel ? " (сталь)" : ""} · ${x.it.dmg || ""}` })).concat([{ id: "__no", label: "Отмена" }]) });
+        if (pick == null || pick === "__no") return false;
+        const idx = +pick, entry = c.bag[idx]; if (!entry) return false;
+        const newIt = itemOf(entry), oldMain = c.equip.main, offIt = c.equip.off && itemOf(c.equip.off);
+        const needOff = isTwoHandedWeapon(newIt) && newIt.group !== "ranged" && !(c.giantGrip && c.race === "barbarian") && offIt;          // двуручное: левая рука освобождается
+        const bagFree = (c.bag.length - 1) + (oldMain ? 1 : 0) + (needOff ? 1 : 0) <= bagSize(c);
+        if (!bagFree) { toast("В рюкзаке нет места для прежнего оружия"); return false; }
+        const t0 = totals(c), d0 = derived(t0, c);
+        c.bag.splice(idx, 1);
+        c.equip.main = { t: entry.t, id: entry.id, ...(entry.steel ? { steel: true } : {}) };
+        if (oldMain) addToBag(c, { ...oldMain, qty: 1 });
+        if (needOff) { addToBag(c, { ...c.equip.off, qty: 1 }); delete c.equip.off; }
+        const t1 = totals(c), d1 = derived(t1, c);          // КД, Ловкость и скорость зависят от снаряжения
+        u.ac += d1.ac - d0.ac; u.abil.dex += t1.dex.total - t0.dex.total; u.speedC += B.cellsOfM(d1.speed) - B.cellsOfM(d0.speed);
+        B.spendTime(u, "action"); log(`${u.name} меняет оружие: теперь в руке ${newIt.name}.`, "good"); fx(u, "смена оружия", "good"); saveChar(); return true;
+      } });
     const fl = (c.bag || []).some(e => e && e.id === "calm-flute"), used = !!(c.flags && c.flags.calmFlute);
     if (fl) out.push({ id: "calm-flute", cat: "item", label: "Флейта успокоения", ico: "potion", sub: "действие: всему отряду +2 клетки скорости до конца боя, раз в день", time: "action",
       enabled: act && !used, why: !act ? "действие потрачено" : "уже играли сегодня",

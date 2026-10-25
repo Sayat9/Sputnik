@@ -23,7 +23,11 @@
       async dice(o) { const r = roll(o.n, o.s); return { rolls: r.rolls, sum: r.total, auto: true }; },
       note() {}, async finish() {}, close() {} };
   }
-  function session(u, meta) { const c = ctlOf(u); if (c === "remote" && B.Net) return B.Net.remoteSession(u, meta, autoSession); return c === "ui" && B.Dice && ui() ? B.Dice.session(u, meta) : autoSession(u, meta); }
+  function session(u, meta) {
+    const c = ctlOf(u);
+    const s = c === "remote" && B.Net ? B.Net.remoteSession(u, meta, autoSession) : (c === "ui" && B.Dice && ui() ? B.Dice.session(u, meta) : autoSession(u, meta));
+    return B.Net && B.Net.watch ? B.Net.watch(u, meta, s) : s;          // онлайн: остальные игроки видят этот бросок
+  }
   // Перебросы: расовое «Наследие обряда» (кости урона рукопашной атаки, раз в ход) и «Вдохновение» героя (любой бросок).
   function rerollOptions(u, kind, ctx = {}) {
     const out = [];
@@ -377,7 +381,8 @@
     const g = ui();
     if (g && g.summary) {
       // справа от героев — кнопка переброса: тот же счётчик, что и у остальных бросков; результат заменяется новым
-      const rows = () => list.map((t, i) => ({ name: t.name, side: t.side, total: out[i].total, nat: out[i].nat, ok: out[i].ok, canReroll: !!ctxs[i] && !out[i].ok && rerollOptions(t, "save").length > 0 }));
+      const ownR = t => !!(B.Net && B.Net.remoteOwner && B.Net.remoteOwner(t));          // герой друга перебрасывает у себя на телефоне, а не у ведущего
+      const rows = () => list.map((t, i) => { const can = !!ctxs[i] && !out[i].ok && rerollOptions(t, "save").length > 0; return { name: t.name, side: t.side, total: out[i].total, nat: out[i].nat, ok: out[i].ok, canReroll: can && !ownR(t), rr: can, owner: B.Net && B.Net.ownerPid ? B.Net.ownerPid(t) : null }; });
       const reroll = i => {
         const t = list[i], opt = rerollOptions(t, "save")[0]; if (!opt || !ctxs[i]) return rows();
         opt.spend(); const old = out[i].total, r = d20Core({ mods: ctxs[i].mods, adv: ctxs[i].adv, dis: ctxs[i].dis }), ok = r.total >= dc;
@@ -385,7 +390,9 @@
         log(`${t.name}: переброс — спасбросок ${ABIL_RU[abil]} ${r.total} (было ${old}) против Сл ${dc} — ${ok ? "успех" : "провал"}.`, ok ? "save" : "fail");
         return rows();
       };
-      await g.summary(o.title || o.label || "Спасброски", `${ABIL_RU[abil]}, Сл ${dc}`, rows(), reroll);
+      const title = o.title || o.label || "Спасброски", sub = `${ABIL_RU[abil]}, Сл ${dc}`, sid = B.Net && B.Net.sumStart ? B.Net.sumStart(title, sub, rows, reroll) : null;
+      await g.summary(title, sub, rows(), i => { const r = reroll(i); if (sid) B.Net.sumUpdate(sid); return r; });
+      if (sid) B.Net.sumEnd(sid);
     }
     return out;
   }

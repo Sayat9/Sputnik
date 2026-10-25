@@ -194,6 +194,7 @@
         const l = new Link(conn); link = l;
         const hello = typeof want.helloData === "function" ? want.helloData() : (want.helloData || {});
         const w = await l.call("hello", { ver: N.ver, pid: want.pid, name: want.name, ...hello }, 8000);
+        if (w && w.error) { cancelled = true; want = null; l.onclose = null; l.close(); link = null; N.role = null; N.code = null; setStatus("off"); emit("refused", w); return; }          // ведущий не пустил: другая версия или исключён
         if (w && w.pid) want.pid = w.pid;
         retry = 0; setStatus("online"); emit("welcome", w);
         await new Promise(res => { l.onclose = res; });

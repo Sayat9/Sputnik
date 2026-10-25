@@ -365,7 +365,7 @@
       const rerolls = (o.reroll || []).slice();
       let rolled = false, settled = false, prev = null, lastVals = null;
       $(".bd-chips").innerHTML = o.kind === "d20" ? chipsHtml(o.mods, o.adv, o.dis) + (o.dual ? "" : "") : `<span class="bd-chip">${o.n}к${o.s}${o.bonus ? " " + sg(o.bonus) : ""}</span>${o.crit ? '<span class="bd-chip adv">кости урона ×2</span>' : ""}${o.dt ? `<span class="bd-chip">${esc(D.DT[o.dt] || "")}</span>` : ""}`;
-      $(".bd-vs").innerHTML = o.vs ? (o.vs.ac != null ? `Цель: ${esc(o.vs.name || "")} · <b>КД ${o.vs.ac}</b>${o.vs.notes && o.vs.notes.length ? ` <small>(${esc(o.vs.notes.join(", "))})</small>` : ""}` : `Сложность <b>${o.vs.dc}</b>`) : (o.label ? esc(o.label) : "");
+      $(".bd-vs").innerHTML = o.vs ? (o.vs.ac != null ? (B.Net && B.Net.isClient && B.Net.isClient() ? `Цель: ${esc(o.vs.name || "")}` : `Цель: ${esc(o.vs.name || "")} · <b>КД ${o.vs.ac}</b>${o.vs.notes && o.vs.notes.length ? ` <small>(${esc(o.vs.notes.join(", "))})</small>` : ""}`) : `Сложность <b>${o.vs.dc}</b>`) : (o.label ? esc(o.label) : "");
       $(".bd-res").innerHTML = ""; $(".bd-res").className = "bd-res";
       $(".bd-ok").hidden = true; $(".bd-row").hidden = false;
       const rollBtn = $(".bd-roll"), rrBtn = $(".bd-reroll"), xBtn = $(".bd-x");

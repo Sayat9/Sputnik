@@ -123,6 +123,77 @@
     const pid = ownerPid(u);
     try { return !!(await N.callPlayer(pid, "react", { title: o.title, text: o.text, yes: o.yes, no: o.no }, 0)); } catch (e) { return false; }
   };
+  /* ===== общий канал «видно всем»: броски, сводки спасбросков, итог боя ===== */
+  const relay = (msg, except) => { for (const p of Object.values(N.players)) if (p.link && p.pid !== except) p.link.send("watch", msg); };
+  BN.ownerPid = ownerPid;
+  BN.emit = (msg, except) => { try { if (hostOn()) { relay(msg, except); if (except) BN.show(msg); } else if (clientOn()) N.toHost("watch", msg); } catch (e) {} };
+  // Обёртка сессии броска: что бросает любой участник — видят все остальные (без КД монстров).
+  BN.watch = function (u, meta, ses) {
+    if (!ses || !(hostOn() || clientOn())) return ses;
+    const sid = N.rid(5), ex = hostOn() ? ownerPid(u) : null;
+    const send = m => BN.emit({ sid, who: u.name, side: u.side, title: meta.title, sub: meta.sub, ...m }, ex);
+    const out = Object.assign({}, ses);
+    out.d20 = async o => { send({ k: "start", label: o.label }); const r = await ses.d20(o); if (r) send({ k: "res", total: r.total, nat: r.nat, label: o.label }); return r; };
+    out.dice = async o => { send({ k: "start", label: o.label }); const r = await ses.dice(o); if (r) send({ k: "res", total: r.total, label: o.label }); return r; };
+    out.finish = async o => { const r = await ses.finish(o); send({ k: "fin", text: o && o.text, ok: o && o.ok }); return r; };
+    out.close = () => { try { ses.close(); } finally { send({ k: "end" }); } };
+    return out;
+  };
+  let wEl = null, wT = 0;
+  function watchBox() {
+    if (wEl && document.body.contains(wEl)) return wEl;
+    wEl = document.createElement("div"); wEl.id = "bnwatch";
+    wEl.style.cssText = "position:fixed;left:50%;top:58px;transform:translateX(-50%);z-index:9300;width:min(92vw,360px);padding:10px 14px;border-radius:12px;background:rgba(20,14,8,.94);border:1px solid #6e5634;color:#f4e8cc;text-align:center;pointer-events:none;box-shadow:0 6px 24px rgba(0,0,0,.5);font:14px/1.35 inherit";
+    document.body.appendChild(wEl); return wEl;
+  }
+  BN.show = function (m) {
+    if (!m || !B.UI || !B.UI.active) return;
+    if (m.k === "sum" || m.k === "sumend") return BN.showSum(m);
+    if (m.k === "end") return;
+    const el = watchBox(); el.hidden = false;
+    const head = `<small style="opacity:.75">${m.side === "hero" ? "Герой" : "Враг"}: ${esc(m.who || "")}</small><br><b>${esc(m.title || "Бросок")}</b>${m.sub ? `<br><small>${esc(m.sub)}</small>` : ""}`;
+    let body = "";
+    if (m.k === "start") body = `<div style="margin-top:4px;opacity:.8">бросает кубики…</div>`;
+    else if (m.k === "res") body = `<div style="margin-top:4px;font-size:26px;font-weight:700;color:#f4d48e">${m.total}</div>${m.nat != null && m.nat !== m.total ? `<small>на кубике ${m.nat}</small>` : ""}`;
+    else if (m.k === "fin") body = `<div style="margin-top:4px;color:${m.ok === false ? "#e8a090" : "#b8e0a0"}">${esc(m.text || "")}</div>`;
+    el.innerHTML = head + body;
+    clearTimeout(wT); wT = setTimeout(() => { if (wEl) wEl.hidden = true; }, m.k === "start" ? 9000 : 3200);
+  };
+  const esc = s => String(s == null ? "" : s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  // Сводка спасбросков: ведущий показывает всем; перебросить можно только за своего героя, и только на своём телефоне.
+  const sums = {};
+  BN.sumStart = (title, sub, rows, reroll) => {
+    if (!hostOn()) return null;
+    const sid = N.rid(5); sums[sid] = { title, sub, rows, reroll };
+    relay({ k: "sum", sid, title, sub, rows: rows() }); return sid;
+  };
+  BN.sumUpdate = sid => { const s = sums[sid]; if (!s) return; const rs = s.rows(); relay({ k: "sum", sid, title: s.title, sub: s.sub, rows: rs }); if (B.UI && B.UI.sumRedraw) B.UI.sumRedraw(rs); };
+  BN.sumEnd = sid => { if (sums[sid]) { delete sums[sid]; relay({ k: "sumend", sid }); } };
+  BN.showSum = function (m) {
+    let el = document.getElementById("bnsum");
+    if (m.k === "sumend") { if (el) el.remove(); return; }
+    if (!clientOn()) return;
+    if (!el) { el = document.createElement("div"); el.id = "bnsum"; el.style.cssText = "position:fixed;inset:0;z-index:9400;display:flex;align-items:center;justify-content:center;background:rgba(8,6,4,.7);padding:14px"; document.body.appendChild(el);
+      el.addEventListener("click", async e => {
+        if (e.target.closest("[data-bs=close]")) { el.remove(); return; }
+        const b = e.target.closest("[data-bs=rr]"); if (!b || b.disabled) return; b.disabled = true;
+        try { await N.callHost("sumReroll", { sid: el.dataset.sid, i: +b.dataset.i }, 8000); } catch (err) { b.disabled = false; }
+      }); }
+    el.dataset.sid = m.sid; const me = myPid();
+    el.innerHTML = `<div class="bt-dlg fx-frame" style="width:min(92vw,380px);padding:14px"><h4 style="margin:0 0 4px">${esc(m.title)}</h4><p style="margin:0 0 8px;opacity:.8">${esc(m.sub)}</p>
+      <ul class="bt-sum" style="list-style:none;margin:0;padding:0;display:grid;gap:6px">${m.rows.map((r, i) => `<li class="${r.ok ? "ok" : "bad"}" style="display:flex;gap:8px;align-items:center;justify-content:space-between"><span class="n">${esc(r.name)}</span><span class="v">${r.total}</span><b>${r.ok ? "устоял" : "провал"}</b>${r.owner && r.owner === me && r.rr ? `<button class="fx-btn" data-bs="rr" data-i="${i}">Перебросить</button>` : ""}</li>`).join("")}</ul>
+      <div style="margin-top:10px"><button class="fx-btn" data-bs="close">Скрыть</button></div></div>`;
+  };
+  // Итог боя: ведущий присылает экран победы всем, у остальных он показывается, пока ведущий не закроет свой.
+  BN.announceEnd = html => { if (hostOn()) relay({ k: "endscr", html }); };
+  BN.endClose = () => { if (hostOn()) relay({ k: "endclose" }); };
+  BN.showEnd = function (m) {
+    let el = document.getElementById("bnend");
+    if (m.k === "endclose") { if (el) el.remove(); return; }
+    if (!clientOn()) return;
+    if (!el) { el = document.createElement("div"); el.id = "bnend"; el.style.cssText = "position:fixed;inset:0;z-index:9450;display:flex;align-items:center;justify-content:center;background:rgba(8,6,4,.86);padding:14px;overflow:auto"; document.body.appendChild(el); el.addEventListener("click", e => { if (e.target.closest("[data-be=close]")) el.remove(); }); }
+    el.innerHTML = m.html + `<div style="position:absolute;left:0;right:0;bottom:16px;text-align:center"><button class="fx-btn" data-be="close">Закрыть</button></div>`;
+  };
   // Состояние боя для рассылки (подключается в netglue).
   BN.view = () => (B.S && B.running && (B.S.phase === "fight" || B.S.phase === "place") ? { bat: { ev: B.S.ev, S: B.ser(B.S) } } : { bat: null });
 
@@ -131,7 +202,6 @@
     if (!B.S) return false;
     if (!B.UI.active) B.UI.open();
     if (!B.S.phase || B.S.phase === "init") B.S.phase = "fight";
-    if (B.S.phase === "fight") B.S.hideMons = false;
     B.running = true;
     return true;
   }
@@ -158,6 +228,12 @@
   BN.register = function () {
     N = window.Net; if (!N || registered) return; registered = true;
     // Игрок во время хода присылает снимки: ведущий видит ход вживую и сохраняет его на случай обрыва.
+    N.handle("watch", (d, link, p) => { if (hostOn()) { if (!p) return; relay(d, p.pid); BN.show(d); } else if (d && (d.k === "endscr" || d.k === "endclose")) BN.showEnd(d); else BN.show(d); });
+    N.handle("sumReroll", (d, link, p) => {
+      const s = hostOn() && d && sums[d.sid]; if (!s || !p) return { ok: false };
+      const r = s.rows()[d.i]; if (!r || r.owner !== p.pid || !r.rr) return { ok: false };
+      s.reroll(d.i); BN.sumUpdate(d.sid); return { ok: true };
+    });
     N.handle("bat", (d, link, p) => {
       if (!hostOn() || !B.S || !p || BN.active !== p.pid) return;
       mergeHeroes(d.heroes); B.restoreInto(B.S, d.snap); if (ui()) ui().refresh();

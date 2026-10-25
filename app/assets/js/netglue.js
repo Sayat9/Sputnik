@@ -4,6 +4,7 @@
   const N = window.Net;
   const G = window.NetGlue = { ready: false, follow: true, view: {}, hostPanel: false };
   const jstr = JSON.stringify;
+  const buildOf = () => (window.__TEST_BUILD != null ? String(window.__TEST_BUILD) : (typeof APP_BUILD === "string" ? APP_BUILD : ""));          // версия сборки; __TEST_BUILD — только для проверок
   const PLAYER_KEY = "sputnik.net.v1", HOST_KEY = "sputnik.nethost.v1";
   const SKIP = new Set(["sessions", "example", "current", "runSnap", "fightSnap", "settings", "lastHash", "saves", "net"]);
   const GAME_HASH = ["", "town", "labyrinth"];
@@ -44,12 +45,19 @@
   .net-players{width:100%;max-width:420px;margin:6px auto}.net-players .net-row small{opacity:.75;text-align:right}
   .net-chip{position:fixed;top:6px;right:8px;z-index:8400;font-size:11px;padding:2px 9px;border-radius:9px;background:#2a1f12;color:#f4d48e;border:1px solid #6e5634;opacity:.9}
   .net-ro-note{font-size:12px;opacity:.7;text-align:center}
+  #netjoin .net-panel{height:min(92vh,600px)}                                                   /* окна подключения и комнаты — фиксированного размера: длинный ник и сообщения их не растягивают и не сжимают */
+  #netov .net-panel{height:min(90vh,660px)}
+  #netjoin .net-msg{min-height:3.6em}
+  #netjoin .net-panel .fx-btn{white-space:normal;flex:none}
+  .net-row{min-height:38px}
+  .net-row>span{min-width:0;flex:1 1 auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .net-row>small,.net-row>select{flex:0 0 auto;max-width:55%}
   `;
   document.head.appendChild(css);
   const mkOv = (id, hidden = true) => { let el = document.getElementById(id); if (!el) { el = document.createElement("div"); el.id = id; el.hidden = hidden; document.body.appendChild(el); } return el; };
 
   /* ===================================================================== ведущий ===== */
-  const H = G.host = { cache: {}, lastJ: {}, timer: null, last: 0 };
+  const H = G.host = { cache: {}, lastJ: {}, timer: null, last: 0, banned: {} };
   H.on = () => N.role === "host";
   function trackHeroes(lastJ) {
     for (const c of state.party || []) {
@@ -98,6 +106,10 @@
   }
   function setupHostHandlers() {
     N.handle("hello", (d, link) => {
+      const mine = buildOf();
+      if (d.pid && H.banned && H.banned[d.pid]) { setTimeout(() => link.close(), 300); return { error: "kicked", why: "Ведущий исключил тебя из комнаты." }; }
+      if (mine && d.build && d.build !== mine) { setTimeout(() => link.close(), 300); toast(`${String(d.name || "Игрок")}: версия игры не совпала (у него ${d.build})`); return { error: "version", host: mine, you: d.build }; }          // разные версии не играют вместе
+      if (mine && !d.build) { setTimeout(() => link.close(), 300); return { error: "version", host: mine, you: "старая" }; }
       const p = N.bind(link, d.pid || N.newPid(), String(d.name || "Игрок").slice(0, 24));
       for (const h of d.heroes || []) adoptHero(h, p);
       p.sent = {};
@@ -162,7 +174,7 @@
       body = `<div class="fx-eyebrow">Код комнаты</div><div class="net-code" id="net-code">${esc(N.code)}</div>
         <button class="fx-btn" data-nx="copy">Скопировать код</button>
         <div class="fx-section">Игроки</div>
-        ${players.length ? players.map(p => `<div class="net-row"><span><i class="net-dot${p.online ? " on" : ""}"></i>${esc(p.name)}</span><small>${p.online ? "в сети" : "не в сети"}</small></div>`).join("") : `<p class="net-msg">Пока никого нет. Отправь код друзьям: они вводят его в клиенте «Спутник — Игрок».</p>`}
+        ${players.length ? players.map(p => `<div class="net-row"><span><i class="net-dot${p.online ? " on" : ""}"></i>${esc(p.name)}</span><small>${p.online ? "в сети" : "не в сети"} <button class="fx-btn danger" data-nx="kick" data-pid="${p.pid}" style="padding:2px 8px;font-size:12px">Исключить</button></small></div>`).join("") : `<p class="net-msg">Пока никого нет. Отправь код друзьям: они вводят его в клиенте «Спутник — Игрок».</p>`}
         <div class="fx-section">Герои и игроки</div>
         ${(state.party || []).length ? state.party.map(c => `<div class="net-row"><span>${esc(c.name)}</span><select data-nx="own" data-id="${c.id}" aria-label="Чей герой ${esc(c.name)}"><option value="">Ведущий</option>${players.map(p => `<option value="${p.pid}"${c.owner === p.pid ? " selected" : ""}>${esc(p.name)}</option>`).join("")}</select></div>`).join("") : `<p class="net-msg">В отряде нет героев.</p>`}
         <p class="net-ro-note">Герой игрока хранится и у него: при подключении ведущий забирает его сохранение.</p>
@@ -172,12 +184,22 @@
     ov.innerHTML = `<div class="net-panel fx-frame"><h3>Онлайн-игра</h3>${body}</div>`;
   }
   G.openHostPanel = function () { G.hostPanel = true; renderHostPanel(); };
+  // Исключить игрока из партии (только ведущий): связь закрывается, вернуться в эту комнату он не сможет; его герои остаются у ведущего.
+  G.kick = function (pid) {
+    const p = N.players[pid]; if (!H.on() || !p) return;
+    if (!confirm(`Исключить игрока ${p.name} из партии?`)) return;
+    H.banned[pid] = true;
+    try { if (p.link) { p.link.send("kicked", {}); const l = p.link; setTimeout(() => { try { l.close(); } catch (e) {} }, 300); } } catch (e) {}
+    for (const c of state.party || []) if (c.owner === pid) delete c.owner;
+    delete N.players[pid]; saveChar(); schedule(); renderHostPanel(); updateChip(); toast(`Игрок ${p.name} исключён`);
+  };
   document.addEventListener("click", async e => {
     const el = e.target.closest("[data-nx]"); if (!el || !el.closest("#netov")) return;
     const a = el.dataset.nx;
     if (a === "close") { G.hostPanel = false; renderHostPanel(); }
     else if (a === "start") { el.disabled = true; toast("Создаю комнату…"); try { await G.startHost(); } catch (err) { toast("Не удалось создать комнату: " + (err && err.message || err)); renderHostPanel(); } }
     else if (a === "stop") { G.stopHost(); }
+    else if (a === "kick") { G.kick(el.dataset.pid); }
     else if (a === "copy") { try { await navigator.clipboard.writeText(N.code); toast("Код скопирован"); } catch (err) { toast("Код: " + N.code); } }
   });
   document.addEventListener("change", e => {
@@ -207,10 +229,16 @@
     document.body.classList.add("net-player", "net-follow");
     buildBar(); buildJoin();
     N.handle("view", d => { applyPatch(d); });
+    N.handle("kicked", () => { const cr = lsGet(PLAYER_KEY) || {}; lsSet(PLAYER_KEY, { name: cr.name }); N.leave(); C.msg = "Ведущий исключил тебя из комнаты."; toast(C.msg); showJoin(); updateJoinMsg(); });
     N.on((ev, d) => {
       if (ev === "status") { updateBar(); keepAlive(d === "online" || d === "reconnecting" || d === "connecting"); if (d === "online") hideJoin(); else if (d === "off") goOffline(); }          // при коротком обрыве экран не прыгает: переподключение идёт само
       if (ev === "welcome" && d && d.pid) { const cr = lsGet(PLAYER_KEY) || {}; cr.pid = d.pid; lsSet(PLAYER_KEY, cr); C.msg = ""; }
       if (ev === "joinerror") { C.msg = "Нет связи: " + d; updateJoinMsg(); }
+      if (ev === "refused") {
+        C.msg = d.error === "version" ? `Версии игры не совпадают: у ведущего «${d.host}», у тебя «${buildOf() || "—"}». Нажми «Проверить обновление» и зайди снова.` : (d.why || "Ведущий не пустил в комнату.");
+        const cr = lsGet(PLAYER_KEY) || {}; if (d.error === "kicked") lsSet(PLAYER_KEY, { name: cr.name });
+        showJoin(); updateJoinMsg(); updateBar();
+      }
     });
     loadBattle().then(ok => { if (ok && Battle.Net) Battle.Net.register(); });                                                                      // файлы боя нужны, чтобы видеть бой и играть свои ходы
     const cr = lsGet(PLAYER_KEY);
@@ -219,7 +247,7 @@
   };
   function connect(code, name, pid) {
     lsSet(PLAYER_KEY, { code: code.toUpperCase(), name, pid });
-    N.join(code, name, pid, () => ({ heroes: ownHeroes() }));
+    N.join(code, name, pid, () => ({ heroes: ownHeroes(), build: buildOf() }));
     updateBar();
   }
   G.submitHero = async function (c) {
@@ -359,7 +387,7 @@
       <label>Код комнаты<input id="nj-code" maxlength="8" autocapitalize="characters" autocomplete="off" value="${esc(cr.code || "")}"></label>
       <label>Твоё имя<input id="nj-name" maxlength="24" autocomplete="off" value="${esc(cr.name || "")}"></label>
       <p class="net-msg" id="nj-msg"></p>
-      <button class="fx-btn primary big" data-nj="go">Подключиться</button><button class="fx-btn" data-nj="later">Позже: смотреть своих героев и справочник</button></div>`;
+      <button class="fx-btn primary big" data-nj="go">Подключиться</button><button class="fx-btn" data-nj="later">Позже: свои герои и справочник</button></div>`;
     ov.onclick = e => {
       if (e.target.closest("[data-nj='later']")) { ov.hidden = true; goOffline(); return; }
       if (!e.target.closest("[data-nj='go']")) return;
