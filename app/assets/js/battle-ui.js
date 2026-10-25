@@ -200,6 +200,7 @@
   };
   UI.refreshNow = function () {
     const S = B.S; if (!UI.active || !S || !root) return;
+    if (B.Net && B.Net.onRefresh) B.Net.onRefresh();                                  // ход игрока: снимок уходит ведущему и после перемещений, которые обновляют экран напрямую
     if (!UI.built) build(S);
     root.classList.toggle("dark", !!S.dark && !S.torch);
     renderCells(S); renderZones(S); renderTokens(S); renderObjs(S); renderShadow(S); renderOrder(S);
