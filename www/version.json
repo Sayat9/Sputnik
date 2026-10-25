@@ -1,7 +1,8 @@
 {
- "version": 1792947621,
+ "version": 1792947642,
  "files": [
   "assets/buildings/church.webp",
+  "assets/buildings/forge.webp",
   "assets/buildings/gate.webp",
   "assets/buildings/guild.webp",
   "assets/buildings/library.webp",
@@ -306,6 +307,7 @@
  ],
  "hashes": {
   "assets/buildings/church.webp": "c5a094fc01e76402890e7c18d3111859",
+  "assets/buildings/forge.webp": "0fbd4b80c66e4ab05b37bdb2e438088c",
   "assets/buildings/gate.webp": "0a9bc3ac279b44346fd91479481694a9",
   "assets/buildings/guild.webp": "93334f4d69d6a3627a6a045e092ef67f",
   "assets/buildings/library.webp": "e30725f9366b0ed9cac29e5e6249991c",
@@ -606,6 +608,6 @@
   "fonts/f8.woff2": "6cc1ee17091d59eb93821c3594e8f38f",
   "fonts/f9.woff2": "070433480b7b645f69b543f284e386ce",
   "fonts/fonts.css": "1585a72a8d157b26cb424ab433fd4e19",
-  "index.html": "613ae365d8130ef6af6b8cba1a66c10f"
+  "index.html": "5e0f85f5762d1fb1a87e00ca923851b7"
  }
 }

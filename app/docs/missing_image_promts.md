@@ -144,10 +144,6 @@
 
 > `a large wooden notice board on two thick posts, covered with pinned parchment notices, wanted posters and a small roof of planks above it, dark fantasy city at dusk, warm window glow, hand-painted fantasy RPG building icon, stylized, painterly, clean readable silhouette, centered on a dark stone square, square 1:1, no text`
 
-### Кузница — `bld-forge`
-
-> `a rugged stone forge with a tall smoking chimney, an orange-glowing open furnace, an anvil outside and swords and shields displayed on racks by the wall, dark fantasy city at dusk, warm window glow, hand-painted fantasy RPG building icon, stylized, painterly, clean readable silhouette, centered on a dark stone square, square 1:1, no text`
-
 ### Ратуша — `bld-hall`
 
 > `a stately stone town hall with a clock tower, a banner of the city and a broad stair to a double door, a notice stand with a tax ledger, dark fantasy city at dusk, warm window glow, hand-painted fantasy RPG building icon, stylized, painterly, clean readable silhouette, centered on a dark stone square, square 1:1, no text`
