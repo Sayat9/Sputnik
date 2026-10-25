@@ -40,6 +40,7 @@
       if (entry) { atk.bagEntry = entry; atk.id = "thrown:" + w.id + "@" + (u.hero.bag || []).indexOf(entry); atk.n = "Метнуть из рюкзака: " + w.name; }
     }
     else if (mode === "off") { atk.slot = "off"; atk.kind = "melee"; atk.reach = 1; atk.time = "bonus"; atk.offhand = true; atk.dmg.b = Math.min(0, am); atk.n = "Второй рукой: " + w.name; atk.sub = "доп. действие, без модификатора урона"; }
+    if (mode === "hand" && w.id === "gloves" && eq.off && eq.off.id === "gloves") { atk.dmg.n = 2; atk.dmg.s = 4; atk.sub = "две перчатки: 2к4"; }          // обе руки в перчатках: удар кулаками 2к4
     if (mode === "hand" && w.id === "greatsword" && !ranged) { atk.spin = true; atk.sub = (atk.sub ? atk.sub + " · " : "") + "вращающийся удар"; }
     return atk;
   }
@@ -71,7 +72,7 @@
     for (const e of bagThrowEntries(u)) { const k = e.id; if (seenBag.has(k)) { seenBag.get(k).count++; continue; } const a = atkFrom(u, itemOf(e), "thrown", e); a.count = 1; seenBag.set(k, a); out.push(a); }
     for (const a of seenBag.values()) if (a.count > 1) a.n += ` ×${a.count}`;
     if (off && off.kindOf === "weapon" && off.group === "melee" && wprops(off).thrown && u.t && u.t.attacked) out.push(atkFrom(u, off, "thrown", null, "off"));          // два топора: второй тоже можно метнуть (доп. действие)
-    if (off && off.kindOf === "weapon" && off.group === "melee" && off.id !== "tower-shield" && u.t && u.t.attacked && main && main.group === "melee" && !wprops(main).two) out.push(atkFrom(u, off, "off"));
+    if (off && off.kindOf === "weapon" && off.group === "melee" && off.id !== "tower-shield" && u.t && u.t.attacked && main && main.group === "melee" && !wprops(main).two && !(main.id === "gloves" && off.id === "gloves")) out.push(atkFrom(u, off, "off"));
     if (main && main.group === "ranged" && off && off.kindOf === "weapon" && off.group === "melee" && off.id !== "tower-shield") out.push(atkFrom(u, off, "hand"));          // лучник с ножом в другой руке: ближний бой этим оружием
     const strM = amod(u.abil.str);
     if (B.weapSpecials) out.push(...B.weapSpecials(u, main, off));

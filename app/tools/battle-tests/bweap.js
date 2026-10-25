@@ -53,7 +53,15 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
       T('перчатки: одна +1 КД, две +2 КД', ac(one) - ac(none) === 1 && ac(two) - ac(none) === 2, [ac(none), ac(one), ac(two)]);
       const { u } = await setup('gloves', 'gloves'); T('блок кулаками в списке', !!Battle.actionsFor(u).find(o => o.id === 'fistblock'));
       await Battle.actionsFor(u).find(o => o.id === 'fistblock').run(); T('блок: статус', Battle.has(u, 'fistblock')); Battle.S = null;
-      const { u: u1 } = await setup('gloves'); T('одна перчатка: блока нет', !Battle.actionsFor(u1).find(o => o.id === 'fistblock')); Battle.S = null; }
+      const { u: u1 } = await setup('gloves'); T('одна перчатка: блок есть', !!Battle.actionsFor(u1).find(o => o.id === 'fistblock'));
+      const a1 = Battle.heroAttacks(u1).find(x => x.w && x.w.id === 'gloves'), a2 = Battle.heroAttacks(u).find(x => x.w && x.w.id === 'gloves');
+      T('урон перчаток: одна 1к4, две 2к4', a1.dmg.n === 1 && a1.dmg.s === 4 && a2.dmg.n === 2 && a2.dmg.s === 4, [a1.dmg, a2.dmg]);
+      Battle.S = null; }
+    // двуручный меч 1к10 и «Тяжёлый замах» секиры и меча
+    T('двуручный меч 1к10', WEAPONS.find(w => w.id === 'greatsword').dmg === '1к10');
+    for (const id of ['greataxe', 'greatsword']) { const { u, m } = await setup(id, null); await Battle.hooks_afterAttackTest?.(u); const P = Battle.P.weap; await P.afterAttack(u, { res: { nat: 4, hit: false }, tgt: m, atk: { w: WEAPONS.find(w => w.id === id) }, melee: true });
+      T(id + ': нат. 4 → тяжёлый замах', !!u.conds.find(c => c.id === 'overswung'));
+      u.conds = []; await P.afterAttack(u, { res: { nat: 9, hit: false }, tgt: m, atk: { w: WEAPONS.find(w => w.id === id) }, melee: true }); T(id + ': нат. 9 → без штрафа', !u.conds.find(c => c.id === 'overswung')); Battle.S = null; }
     // посох
     { const s = mkHero('staff'), n = mkHero('mace'); T('посох: +1 мана', maxMp(s) - maxMp(n) === 1, [maxMp(s), maxMp(n)]);
       const { u, m } = await setup('staff'); near(u, m, 2); const a = Battle.heroAttacks(u).find(x => x.w && x.w.id === 'staff'); const ctx = Battle.attackCtx(u, m, a); T('посох: 2 клетки −2 без помехи', a.reach === 2 && ctx.dis.length === 0 && ctx.mods.some(x => x.v === -2), [a.reach, ctx.dis, ctx.mods]); Battle.S = null; }

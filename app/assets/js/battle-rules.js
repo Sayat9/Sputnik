@@ -532,7 +532,8 @@
     if (backToHidden) addStatus(u, "hidden", { k: Infinity });
     if (B.expireOwned) B.expireOwned(u);                                                                   // «1 минута» кончается в начале хода хозяина через 10 раундов
     u.t = { move: 0, action: 1, bonus: 1, react: 1, dash: false, disengage: false, attacked: false, riteUsed: false, objUsed: false, moved: 0, startX: u.x, startY: u.y, rush: false, extraAttack: 0, straight: 0, sdir: null, packMark: false };
-    if (has(u, "stunned")) { u.t.bonus = 0; u.t.react = 0; }                                       // оглушение: нет доп. действия и реакции
+    if (has(u, "stunned")) { u.t.bonus = 0; u.t.react = 0; }
+    if (has(u, "overswung")) u.t.bonus = 0;                                       // «Тяжёлый замах»: нет доп. действия                                       // оглушение: нет доп. действия и реакции
     tickStatuses(u, "start");
     hookAll(u, "turnStart", {});
     // начало хода: кровотечение, горение, хватка и т. п.

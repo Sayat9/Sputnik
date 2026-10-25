@@ -477,7 +477,20 @@ body.forge-open { overflow: hidden; }
 .fx-input.bad { border-color: var(--fx-danger); }
 .fx-seg { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .fx-seg .fx-btn[aria-pressed="false"] { color: var(--fx-muted); }
-.fx-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 10px; }
+.bonus-box li.tap { cursor: help; text-decoration: underline dotted rgb(244 212 142 / .55); text-underline-offset: 3px; }
+#fxinfo { position: fixed; inset: 0; z-index: 9600; display: flex; align-items: center; justify-content: center; background: rgba(8,6,4,.78); padding: 18px; }
+#fxinfo .box { width: min(92vw, 380px); padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; text-align: center; }
+#fxinfo h3 { margin: 0; font-family: var(--f-display); color: var(--fx-gold-hi); }
+#fxinfo p { margin: 0; text-align: left; line-height: 1.4; }
+.roll-box { display: flex; flex-direction: column; gap: 8px; margin: 6px 0 12px; padding: 10px; }
+.roll-log { font-size: 13.5px; color: var(--fx-muted); display: grid; gap: 2px; text-align: left; }
+.roll-log s { opacity: .55; }
+.roll-log b { color: var(--fx-gold-hi); }
+.roll-pool { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.roll-pool .fx-btn { min-width: 52px; padding: 8px 10px; font: 700 20px/1 var(--f-data); }
+.roll-pool .fx-btn small { display: block; font: 600 10px/1.1 var(--f-body, inherit); letter-spacing: .04em; opacity: .75; margin-top: 3px; }
+.fx-stat .put { font-size: 12px; padding: 4px 6px; }
+.fx-stats grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 10px; }
 .fx-stat { padding: 10px 8px 8px; text-align: center; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .fx-stat .k { font: 700 13px/1 var(--f-fancy); letter-spacing: .14em; color: var(--fx-gold); }
 .fx-stat input { text-align: center; font: 600 24px/1 var(--f-data); padding: 8px 4px; }
@@ -1020,8 +1033,8 @@ const WEAPONS = [
   { id: "rapier", name: "Рапира", group: "melee", kind: "Воинское", dmg: "1к8", type: "колющий", weight: 1, price: 30,
     props: ["Фехтовальное", "Выпад"],
     note: "Тонкий клинок требует хорошей стали и долгой ковки, поэтому дороже меча. «Выпад» — отдельная атака: рывок на 1–2 клетки по прямой и укол с бонусным уроном; после него до начала вашего хода −1 КД." },
-  { id: "greatsword", name: "Двуручный меч", group: "melee", kind: "Воинское", dmg: "2к6", type: "рубящий", weight: 3, price: 50,
-    props: ["Тяжёлое", "Двуручное"],
+  { id: "greatsword", name: "Двуручный меч", group: "melee", kind: "Воинское", dmg: "1к10", type: "рубящий", weight: 3, price: 50,
+    props: ["Тяжёлое", "Двуручное", "Тяжёлый замах"],
     note: "Много железа и работы. Варвар («Великан») может держать его одной рукой со штрафом −2 к Ловкости; двумя руками штрафа нет. Удар с разворота: основная цель получает чуть меньше урона, соседние с ней — ещё меньше." },
   { id: "shortbow", name: "Короткий лук", group: "ranged", kind: "Простое", dmg: "1к6", type: "колющий", weight: 1, price: 20,
     props: ["Боеприпасы (8/8 м)"],
@@ -1031,8 +1044,8 @@ const WEAPONS = [
     note: "Тисовая заготовка сохнет годами. В коридорах лабиринта дальность редко пригождается целиком. «Прицел»: потратив действие, следующий выстрел наносит +1к6 урона." },
   // Оружие второй итерации (черновик, drafts.md → «Оружие — вторая итерация»).
   { id: "gloves", name: "Перчатки", group: "melee", kind: "Простое", dmg: "1к4", type: "дробящий", weight: 1, price: 10,
-    props: ["Кастет", "Одна: +1 КД", "Две: +2 КД и «Блок кулаками»"],
-    note: "Кожа с железными накладками на костяшках. Одна перчатка — оружие и чуть-чуть защиты (+1 КД); в обеих руках — полноценная защита (+2 КД) и действие «Блок кулаками»: до начала следующего хода урон ближних атак по вам снижается на 1к4 + Ловкость." },
+    props: ["Кастет", "Одна: +1 КД и «Блок кулаками»", "Две: +2 КД и урон 2к4"],
+    note: "Кожа с железными накладками на костяшках. Одна перчатка — оружие и чуть-чуть защиты (+1 КД) и действие «Блок кулаками»: до начала следующего хода урон ближних атак по вам снижается на 1к4 + Ловкость. В обеих руках — +2 КД, а удар кулаками наносит 2к4." },
   { id: "staff", name: "Посох", group: "melee", kind: "Простое", dmg: "1к4", type: "дробящий", weight: 2, price: 6,
     props: ["Двуручное", "Досягаемость 3 м (на 2-й клетке −2 к атаке)", "+1 к мане"],
     note: "Ясеневая жердь с железным оголовьем. Слабее копья, но на второй клетке бьёт с меньшим штрафом (−2 вместо помехи). Владельцу даёт +1 к максимуму маны." },
@@ -1040,7 +1053,7 @@ const WEAPONS = [
     props: ["Метательное (4/12 м)", "Против щитов (+2 урона)"],
     note: "Одноручный топор: можно держать в обеих руках и бросать оба. Против носителей щитов бьёт на 2 урона сильнее." },
   { id: "greataxe", name: "Секира", group: "melee", kind: "Воинское", dmg: "1к12", type: "рубящий", weight: 3.5, price: 45,
-    props: ["Тяжёлое", "Двуручное", "Крушащий удар"],
+    props: ["Тяжёлое", "Двуручное", "Крушащий удар", "Тяжёлый замах"],
     note: "Тяжёлая двуручная секира. «Крушащий удар» занимает действие и доп. действие: игнорирует 2 КД цели, ломает щит и портит броню." },
   { id: "arrows", name: "Стрелы, 20 шт.", group: "ranged", kind: "Боеприпасы", dmg: "—", type: "", weight: 0.5, price: 2,
     props: [],
@@ -1091,6 +1104,8 @@ const PROPS = [
   ["Прицел", "Действие: следующий выстрел наносит +1к6 урона."],
   ["Против щитов", "+2 урона по носителю щита."],
   ["Крушащий удар", "Действие и доп. действие: игнорирует 2 КД, ломает щит и портит броню цели."],
+  ["Тяжёлый замах", "Если на кубике атаки выпало 5 или меньше, вы повисаете на оружии: на следующем ходу у вас нет доп. действия."],
+  ["Кастет", "Бьёт кулаком: урон от оружия, а не 1 + Сила."],
   ["Боеприпасы", "Нужны стрелы. Каждая атака тратит одну; после боя можно собрать половину."],
 ];
 
@@ -2547,7 +2562,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 31;
+const BATTLE_REV = 32;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }
@@ -2998,7 +3013,7 @@ function renderMain() {
 }
 
 const $forge = document.getElementById("forge");
-const newDraft = () => ({ race: null, weapon: null, gender: null, name: "", base: Object.fromEntries(STAT_KEYS.map(k => [k, ""])), age: "", height: "", weight: "" });
+const newDraft = () => ({ rolls: null, put: {}, chip: null, race: null, weapon: null, gender: null, name: "", base: Object.fromEntries(STAT_KEYS.map(k => [k, ""])), age: "", height: "", weight: "" });
 let forge = { open: false };
 
 function openForge(step, mode) {
@@ -3036,13 +3051,14 @@ function forgeRace() {
         <h3>${r.name}</h3>
         <div class="bonus-box">
           <div class="st">${raceMods(r)}</div>
-          <ul>${r.plus.map(([n]) => `<li>${n}</li>`).join("")}</ul>
+          <ul>${r.plus.map(([n], i) => `<li class="tap" data-fx-info="race:${r.id}:${i}">${n}</li>`).join("")}</ul>
         </div>
       </button>`).join("")}
     </div>
   </div></div>`;
 }
 
+const canTwinWeapon = w => !!w && ((w.props || []).includes("Лёгкое") || w.id === "axe" || w.id === "gloves");          // можно взять по одному в каждую руку
 const START_WEAPONS = () => WEAPONS.filter(w => w.group !== "shield" && w.kind !== "Боеприпасы");
 function forgeWeapon() {
   const d = forge.draft, w = WEAPONS.find(x => x.id === d.weapon);
@@ -3059,7 +3075,7 @@ function forgeWeapon() {
         <h3>${x.name}</h3>
         <div class="bonus-box">
           <div class="st">${x.dmg} ${x.type} · ${kgf(x.weight)} кг</div>
-          <ul>${(x.props.length ? x.props : ["Без особых свойств"]).map(p => `<li>${p}</li>`).join("")}</ul>
+          <ul>${(x.props.length ? x.props : ["Без особых свойств"]).map(p => `<li class="tap" data-fx-info="weapon:${x.id}:${esc(p)}">${p}</li>`).join("")}</ul>
         </div>
       </button>`).join("")}
       ${(() => { const dg = WEAPONS.find(x => x.id === "dagger"), on = d.weapon === "dagger" && d.knife; return `<button class="race-card fx-frame" data-fx-twin aria-pressed="${on}">
@@ -3068,11 +3084,11 @@ function forgeWeapon() {
         <div class="bonus-box"><div class="st">${dg.dmg} ${dg.type} ×2 · ${kgf(dg.weight * 2)} кг</div><ul><li>Лёгкое</li><li>По кинжалу в каждой руке</li></ul></div></button>`; })()}
     </div>
     ${(() => { const sh = WEAPONS.find(x => x.id === "shield"), block = w && (isTwoHandedWeapon(w) || w.group === "ranged") && !(d.race === "barbarian");
-      const light = w && (w.props || []).includes("Лёгкое"), kn = light && d.knife;
+      const light = w && canTwinWeapon(w), kn = light && d.knife;
       return (light ? `<button class="race-card fx-frame shield-pick" data-fx-knife aria-pressed="${!!kn}">
         <div class="wpn-art">${img(ART.weapon(w.id), w.name)}${kn ? `<span class="tick">${TICK}</span>` : ""}</div>
-        <div><h3>Второй клинок в левую руку</h3><div class="bonus-box"><div class="st">${w.dmg} ${w.type} · ${kgf(w.weight)} кг</div>
-        <ul><li>Удар второй рукой — доп. действием; вместо щита</li></ul></div></div></button>` : "") + `<button class="race-card fx-frame shield-pick" data-fx-shield aria-pressed="${!!d.shield && !block && !kn}"${block || kn ? " disabled" : ""}>
+        <div><h3>${w.id === "gloves" ? "Вторая перчатка" : w.id === "axe" ? "Второй топор" : "Второй клинок"} в левую руку</h3><div class="bonus-box"><div class="st">${w.dmg} ${w.type} · ${kgf(w.weight)} кг</div>
+        <ul><li>${w.id === "gloves" ? "Две перчатки: +2 КД, урон 2к4; вместо щита" : "Удар второй рукой — доп. действием; вместо щита"}</li></ul></div></div></button>` : "") + `<button class="race-card fx-frame shield-pick" data-fx-shield aria-pressed="${!!d.shield && !block && !kn}"${block || kn ? " disabled" : ""}>
         <div class="wpn-art">${img(ART.weapon("shield"), sh.name)}${d.shield && !block && !kn ? `<span class="tick">${TICK}</span>` : ""}</div>
         <div><h3>Щит в левую руку</h3><div class="bonus-box"><div class="st">${sh.dmg} · ${kgf(sh.weight)} кг</div>
         <ul><li>${block ? "Не с двуручным оружием и луком" : kn ? "Занята вторым клинком" : "Можно взять вместе с оружием"}</li></ul></div></div></button>`; })()}
@@ -3099,12 +3115,14 @@ function forgeIdentity() {
 
     <div class="fx-section">Характеристики</div>
     <p class="fx-p" style="font-size:15px">Впиши значения, которые получил по правилам D&D: бросок кубов, стандартный набор или покупка очков. Бонус расы прибавится сам.</p>
+    ${statRollBox(d)}
     <div class="fx-stats">${STAT_KEYS.map(k => `
       <div class="fx-stat fx-frame">
         <label class="k" for="fx-${k}">${STAT_SHORT[k]}</label>
         <span class="note-s">${STAT_INFO[k].short}</span>
         <input class="fx-input${bad.has(k) ? " bad" : ""}" id="fx-${k}" data-draft-stat="${k}" type="number" inputmode="numeric" min="1" max="30" value="${esc(d.base[k])}" placeholder="—">
         <small id="fx-tot-${k}">${statPreview(k)}</small>
+        ${d.rolls && d.chip != null ? `<button class="fx-btn put" data-fx-put="${k}">Поставить ${d.rolls.pool[d.chip]}</button>` : ""}
       </div>`).join("")}
     </div>
     <details class="stat-help fx-frame" open>
@@ -3122,6 +3140,20 @@ function forgeIdentity() {
   </div></div>`;
 }
 
+// Бросок характеристик по правилам D&D: 4к6 восемь раз, у каждого броска отбрасывается меньшая кость, из восьми сумм остаются шесть лучших; игрок раскладывает их сам.
+function rollStatSet() {
+  const rows = Array.from({ length: 8 }, () => { const dice = Array.from({ length: 4 }, () => 1 + rnd(6)), low = dice.indexOf(Math.min(...dice)); return { dice, low, sum: dice.reduce((a, b) => a + b, 0) - dice[low] }; });
+  const order = rows.map((r, i) => i).sort((a, b) => rows[b].sum - rows[a].sum), keep = new Set(order.slice(0, 6));
+  rows.forEach((r, i) => { r.keep = keep.has(i); });
+  return { rows, pool: rows.filter(r => r.keep).map(r => r.sum).sort((a, b) => b - a) };
+}
+function statRollBox(d) {
+  if (!d.rolls) return `<div class="roll-box fx-frame"><p class="fx-p" style="font-size:15px;margin:0">Или брось кости по стандартным правилам: 4к6 восемь раз (меньшая кость каждого броска не считается), остаются шесть лучших значений, и ты сам раскладываешь их по характеристикам. Бросок один на героя.</p><button class="fx-btn primary" data-fx="roll-stats">Бросить 4к6 × 8</button></div>`;
+  const used = new Set(Object.values(d.put || {}));
+  return `<div class="roll-box fx-frame"><div class="roll-log">${d.rolls.rows.map(r => `<div>${r.dice.map((v, i) => i === r.low ? `<s>${v}</s>` : v).join(" + ")} = <b>${r.sum}</b>${r.keep ? "" : " <s>(не вошло)</s>"}</div>`).join("")}</div>
+    <p class="fx-p" style="font-size:14px;margin:0">Выбери значение, затем нажми «Поставить» у нужной характеристики.</p>
+    <div class="roll-pool">${d.rolls.pool.map((v, i) => `<button class="fx-btn${d.chip === i ? " primary" : ""}" data-fx-chip="${i}" aria-pressed="${d.chip === i}"${used.has(i) && d.chip !== i ? ' style="opacity:.45"' : ""}>${v}${used.has(i) ? `<small>${STAT_SHORT[Object.keys(d.put).find(k => d.put[k] === i)]}</small>` : ""}</button>`).join("")}</div></div>`;
+}
 function statPreview(k) {
   const d = forge.draft, r = raceById(d.race), v = parseInt(d.base[k], 10), m = r.mods[k] || 0;
   if (!v) return m ? `раса ${signed(m)}` : "";
@@ -3192,8 +3224,9 @@ function finishDraft() {
     equip: { main: { t: "w", id: d.weapon }, body: { t: "g", id: "clothes" } }, bag: [],
   };
   const wpn = WEAPONS.find(x => x.id === d.weapon);
-  if (d.knife && (wpn.props || []).includes("Лёгкое")) c.equip.off = { t: "w", id: wpn.id };                                   // два клинка вместо щита
+  if (d.knife && canTwinWeapon(wpn)) c.equip.off = { t: "w", id: wpn.id };                                   // два клинка вместо щита
   else if (d.shield && (d.race === "barbarian" || !(isTwoHandedWeapon(wpn) || wpn.group === "ranged"))) c.equip.off = { t: "w", id: "shield" };
+  if (d.race === "barbarian" && isTwoHandedWeapon(wpn) && c.equip.off) c.giantGrip = true;          // «Великан»: двуручное в одной руке, вторая рука держит щит (−2 к Ловкости за каждое)
   addToBag(c, { t: "g", id: "ration", qty: 7 });
   addToBag(c, { t: "g", id: "potion", qty: 2 });
   if (WEAPONS.find(x => x.id === d.weapon).group === "ranged") addToBag(c, { t: "g", id: "arrow", qty: QUIVER });          // колчан: 40 обычных стрел
@@ -3215,8 +3248,21 @@ function completeTeam() {
   if (location.hash.slice(1) !== "town") location.hash = "town"; else route();
 }
 
+function fxInfo(title, text) {
+  let ov = document.getElementById("fxinfo");
+  if (!ov) { ov = document.createElement("div"); ov.id = "fxinfo"; ov.setAttribute("role", "dialog"); ov.setAttribute("aria-modal", "true"); document.body.appendChild(ov); ov.addEventListener("click", ev => { if (ev.target === ov || ev.target.closest("[data-fxi-close]")) ov.hidden = true; }); }
+  ov.hidden = false; ov.innerHTML = `<div class="box fx-frame"><h3>${esc(title)}</h3><p>${esc(text)}</p><button class="fx-btn primary" data-fxi-close>Понятно</button></div>`;
+}
 $forge.addEventListener("click", e => {
-  const el = e.target.closest("[data-fx],[data-fx-race],[data-fx-gender],[data-fx-weapon],[data-fx-shield],[data-fx-knife],[data-fx-twin]");
+  const inf = e.target.closest("[data-fx-info]");
+  if (inf) {                                          // нажатие на бонус или свойство только читает описание, карточку не выбирает
+    e.preventDefault(); e.stopPropagation();
+    const [kind, id, extra] = inf.dataset.fxInfo.split(":");
+    if (kind === "race") { const r = raceById(id), pl = r && r.plus[+extra]; if (pl) fxInfo(`${r.name}: ${pl[0]}`, pl[1]); }
+    else { const w = WEAPONS.find(x => x.id === id), name = inf.dataset.fxInfo.slice(kind.length + id.length + 2), pr = PROPS.find(([n]) => name.startsWith(n)); fxInfo(`${w ? w.name + ": " : ""}${name}`, pr ? pr[1] : (w && w.note) || "Особое свойство оружия."); }
+    return;
+  }
+  const el = e.target.closest("[data-fx],[data-fx-race],[data-fx-gender],[data-fx-weapon],[data-fx-shield],[data-fx-knife],[data-fx-twin],[data-fx-chip],[data-fx-put]");
   if (!el) return;
   const ds = el.dataset;
   if (ds.fxRace) { forge.draft.race = ds.fxRace; renderForge(true); return; }
@@ -3224,8 +3270,11 @@ $forge.addEventListener("click", e => {
   if (ds.fxShield !== undefined) { forge.draft.shield = !forge.draft.shield; renderForge(true); return; }
   if (ds.fxTwin !== undefined) { forge.draft.weapon = "dagger"; forge.draft.knife = true; forge.draft.shield = false; renderForge(true); return; }
   if (ds.fxKnife !== undefined) { forge.draft.knife = !forge.draft.knife; if (forge.draft.knife) forge.draft.shield = false; renderForge(true); return; }
+  if (ds.fxChip !== undefined) { const d = forge.draft, i = +ds.fxChip; d.chip = d.chip === i ? null : i; renderForge(true); return; }
+  if (ds.fxPut) { const d = forge.draft, i = d.chip, k = ds.fxPut; if (i == null || !d.rolls) return; for (const o of Object.keys(d.put)) if (d.put[o] === i || o === k) { delete d.put[o]; if (o !== k) d.base[o] = ""; } d.put[k] = i; d.base[k] = String(d.rolls.pool[i]); d.chip = null; forge.errors = forge.errors.filter(x => x.f !== k); renderForge(true); return; }
   if (ds.fxGender) { forge.draft.gender = ds.fxGender; forge.errors = forge.errors.filter(x => x.f !== "gender"); renderForge(true); return; }
   switch (ds.fx) {
+    case "roll-stats": if (!forge.draft.rolls) { forge.draft.rolls = rollStatSet(); forge.draft.put = {}; forge.draft.chip = null; renderForge(true); } break;
     case "next": if (forge.draft.race) { forge.step = "weapon"; renderForge(); } break;
     case "back-race": forge.step = "race"; renderForge(); break;
     case "next-w": if (forge.draft.weapon) { forge.step = "identity"; renderForge(); } break;
