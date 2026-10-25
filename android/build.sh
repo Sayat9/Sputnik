@@ -28,7 +28,9 @@ python3 - <<'PY'
 import json, os, time
 W = "app/src/main/assets/www"
 files = sorted(os.path.relpath(os.path.join(d, f), W) for d, _, fs in os.walk(W) for f in fs if f != "version.json")
-json.dump({"version": int(os.environ["APP_VERSION"]), "files": files}, open(W + "/version.json", "w"), ensure_ascii=False, indent=1)
+import hashlib
+hashes = {f: hashlib.md5(open(os.path.join(W, f), "rb").read()).hexdigest() for f in files}          # по ним приложение докачивает только изменившиеся файлы
+json.dump({"version": int(os.environ["APP_VERSION"]), "files": files, "hashes": hashes}, open(W + "/version.json", "w"), ensure_ascii=False, indent=1)
 PY
 # WWW_ONLY=1 — только собрать www (для обновления по сети), без APK.
 [ -n "$WWW_ONLY" ] && exit 0

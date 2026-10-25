@@ -124,10 +124,16 @@ class Updater {
                 JSONArray files = v.getJSONArray("files");
                 int n = files.length();
                 long last = 0;
+                JSONObject newH = v.optJSONObject("hashes"), oldH = haveHashes();
                 for (int i = 0; i < n; i++) {
                     String path = files.getString(i);
                     File out = new File(tmp, path);
                     out.getParentFile().mkdirs();
+                    // Файл не менялся с установленной версии — копируем его, а не качаем (обновление становится маленьким).
+                    if (newH != null && oldH != null && newH.has(path) && newH.optString(path).equals(oldH.optString(path, "-")) && copyHave(path, out)) {
+                        pr.step((int) Math.min(99, ((i + 1) * 100.0) / n));
+                        continue;
+                    }
                     HttpURLConnection c = (HttpURLConnection) new URL(base + path + "?v=" + version).openConnection();
                     c.setConnectTimeout(8000); c.setReadTimeout(15000); c.setUseCaches(false);
                     if (c.getResponseCode() != 200) throw new Exception("HTTP " + c.getResponseCode());
@@ -152,6 +158,30 @@ class Updater {
                 busy = false;
             }
         }).start();
+    }
+
+    // Хеши файлов установленной версии (version.json скачанной или вшитой).
+    private JSONObject haveHashes() {
+        try {
+            InputStream in;
+            File f = new File(liveDir(), "version.json");
+            in = useLocal() && f.exists() ? new java.io.FileInputStream(f) : ctx.getAssets().open("www/version.json");
+            try (InputStream i2 = in) { return new JSONObject(new String(readAll(i2), "UTF-8")).optJSONObject("hashes"); }
+        } catch (Exception e) { return null; }
+    }
+
+    private boolean copyHave(String path, File out) {
+        try {
+            InputStream in;
+            File src = new File(liveDir(), path);
+            in = useLocal() ? (src.exists() ? new java.io.FileInputStream(src) : null) : ctx.getAssets().open("www/" + path);
+            if (in == null) return false;
+            try (InputStream i2 = in; FileOutputStream fo = new FileOutputStream(out)) {
+                byte[] buf = new byte[16384];
+                for (int k; (k = i2.read(buf)) > 0; ) fo.write(buf, 0, k);
+            }
+            return true;
+        } catch (Exception e) { return false; }
     }
 
     // Старый способ (страница без окна обновления): проверить и сразу скачать.
