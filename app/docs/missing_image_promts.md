@@ -122,18 +122,6 @@
 
 > `a cunning goblin merchant with green skin, a sly knowing grin showing small teeth, narrow amber eyes, a small gold crown-shaped hat and a red scarf, leaning over a wooden counter piled with gold coins, warm lantern light, hand-painted fantasy RPG character art, stylized, painterly, dark fantasy tone, bust portrait, wide 16:9 composition with empty space at the bottom for text, no text`
 
-### Рюкзак (рамка инвентаря) — `ui-backpack`
-
-> `a worn leather adventurer's backpack seen from the front with the flap open, two buckled straps, stitched patches and brass buckles, an empty padded interior panel suitable for a grid of square slots, on a dark stone background, hand-painted fantasy RPG UI art, stylized, painterly, vertical 3:4, no text`
-
-### Витрина (лист цен) — `ui-showcase`
-
-> `a hanging parchment price sheet unrolled from a wooden rod with rope loops, aged warm beige paper with stains and burned corners, subtle ruled grid of empty frames for items with space under each for a price, on a dark wooden shop wall, hand-painted fantasy RPG UI art, stylized, painterly, vertical 3:4, no text`
-
-### Администратор арены — `npc-arena`
-
-> `a heavyset retired gladiator with a shaved head, a scar across his brow and a leather arena master's coat with brass studs, holding a wooden betting ledger, sand and iron bars of an arena behind him, warm lantern light, hand-painted fantasy RPG character art, stylized, painterly, dark fantasy tone, bust portrait, wide 16:9 composition with empty space at the bottom for text, no text`
-
 ### Банкир — `npc-banker`
 
 > `a thin precise human banker in a dark velvet coat with a monocle and ink-stained gloves, a heavy ring of keys at his belt, behind a counter with coin stacks and a vault door, warm lantern light, hand-painted fantasy RPG character art, stylized, painterly, dark fantasy tone, bust portrait, wide 16:9 composition with empty space at the bottom for text, no text`
@@ -151,14 +139,6 @@
 > `an elderly human scholar-master in a dark green academy robe with a stitched book emblem, spectacles on a chain, ink-stained fingers holding a thick tome, a chalkboard with diagrams behind him, warm lantern light, hand-painted fantasy RPG character art, stylized, painterly, dark fantasy tone, bust portrait, wide 16:9 composition with empty space at the bottom for text, no text`
 
 ## Здания города
-
-### Башня магов — `bld-tower`
-
-> `a tall slender stone wizard's tower with a conical blue-tiled roof, glowing arched windows, floating crystals around the top and a faint swirl of arcane light, dark fantasy city at dusk, warm window glow, hand-painted fantasy RPG building icon, stylized, painterly, clean readable silhouette, centered on a dark stone square, square 1:1, no text`
-
-### Гильдия приключений — `bld-guild`
-
-> `a broad stone guildhall with a heavy wooden double door, a banner of crossed sword and shield, a notice rack and weapon racks by the entrance, dark fantasy city at dusk, warm window glow, hand-painted fantasy RPG building icon, stylized, painterly, clean readable silhouette, centered on a dark stone square, square 1:1, no text`
 
 ### Церковь — `bld-church`
 

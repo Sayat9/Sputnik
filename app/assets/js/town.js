@@ -423,7 +423,7 @@
       const c = hero(); if (!c) return frame("Арена", "Рафдония", noParty());
       const a = arenaState();
       const tabs = `<div class="tw-tabs" role="tablist"><button class="fx-btn" role="tab" aria-selected="${ui.tab === "bets"}" data-t="atab" data-k="bets">Ставки</button><button class="fx-btn" role="tab" aria-selected="${ui.tab === "fight"}" data-t="atab" data-k="fight">Бой отряда</button></div>`;
-      let body = heroStrip() + tabs;
+      let body = `<div class="tw-npc">${img("assets/npc/arena.webp", "Администратор арены")}<span>Арена Рафдонии: делайте ставки на бои монстров или выходите на песок всем отрядом.</span></div>` + heroStrip() + tabs;
       if (ui.tab === "bets") {
         body += `<p class="tw-lead">Три боя один на один между монстрами одного класса. Ставку делает выбранный герой (при нехватке добавят другие). Выигрыш — ставка × коэффициент, проигрыш — ставка сгорает.</p>
           <div class="tw-bouts">${a.bouts.map((b, i) => {

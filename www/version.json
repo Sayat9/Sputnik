@@ -1,6 +1,8 @@
 {
- "version": 1792947159,
+ "version": 1792947293,
  "files": [
+  "assets/buildings/guild.webp",
+  "assets/buildings/tower.webp",
   "assets/css/battle.css",
   "assets/css/town.css",
   "assets/items/armor-chainmail.svg",
@@ -253,6 +255,7 @@
   "assets/monsters/wolf-full.webp",
   "assets/monsters/zombie-face.webp",
   "assets/monsters/zombie-full.webp",
+  "assets/npc/arena.webp",
   "assets/npc/innkeeper.webp",
   "assets/npc/smith.webp",
   "assets/races/barbarian.svg",
@@ -267,6 +270,8 @@
   "assets/races/fairy.webp",
   "assets/races/human.svg",
   "assets/races/human.webp",
+  "assets/ui/backpack.webp",
+  "assets/ui/showcase.webp",
   "assets/vendor/peerjs.min.js",
   "fonts/f0.woff2",
   "fonts/f1.woff2",
@@ -295,6 +300,8 @@
   "index.html"
  ],
  "hashes": {
+  "assets/buildings/guild.webp": "93334f4d69d6a3627a6a045e092ef67f",
+  "assets/buildings/tower.webp": "a8d571c86cb743cdbcdfe7d63aaed744",
   "assets/css/battle.css": "cb24a46d9fdce5108bf04a28cc34d731",
   "assets/css/town.css": "00b1687a026df484e94c0dcd66f3e2f1",
   "assets/items/armor-chainmail.svg": "e40e4fb1059d07ed20cf160cba2800fc",
@@ -392,7 +399,7 @@
   "assets/js/battle.js": "5c083b159fc652a9452bd822beb60f72",
   "assets/js/net.js": "f4d87de28f9e960c6acc49790a816bd2",
   "assets/js/netglue.js": "08eac73486607bd8d266a6f091044a9b",
-  "assets/js/town.js": "228fe82ca81aaad619c4dd7baacbf68e",
+  "assets/js/town.js": "5845ec089d46df1ff8e16351b52dd9ba",
   "assets/logo-admin.png": "aa45354a89500a24e2f481f6d7d3ee4a",
   "assets/logo.png": "2eea126130fb32be9d28f407acbc25bb",
   "assets/monsters/ash-spirit-face.webp": "0a49a247b2edd2cef40b2346b19b27ff",
@@ -547,6 +554,7 @@
   "assets/monsters/wolf-full.webp": "a899f1db4ccc0b462e3a0c40a9155908",
   "assets/monsters/zombie-face.webp": "548f401e713cb2ea785ad8ac4c01ba60",
   "assets/monsters/zombie-full.webp": "2d40a8f97e036dd19dc3659ccd952f7a",
+  "assets/npc/arena.webp": "4f79308b3c97b9bf3eea29b915445eab",
   "assets/npc/innkeeper.webp": "2c36e37700ca019fe02d0be90ae5892a",
   "assets/npc/smith.webp": "3c27756f1f2d80459b33c116fe1fc23f",
   "assets/races/barbarian.svg": "f16354f5da5c04e9ca3c1bcec799a66e",
@@ -561,6 +569,8 @@
   "assets/races/fairy.webp": "6eb3d424a194585b93217fad96bd72e1",
   "assets/races/human.svg": "ba557d3349220f21fe0f978d9dfe09e3",
   "assets/races/human.webp": "5c6d3bc095940eb13856ad31f3452ede",
+  "assets/ui/backpack.webp": "b3369f2ea587591a1f7d9794ad0b915c",
+  "assets/ui/showcase.webp": "e85d639be6a601cbff150d58ac3e9f10",
   "assets/vendor/peerjs.min.js": "c2c48b561e5d9099fd76b204ba543fe9",
   "fonts/f0.woff2": "be4cdbc09751bd09d1c9d7a1d827e48a",
   "fonts/f1.woff2": "e051c0b310725aab39316865e8f5b1d8",
@@ -586,6 +596,6 @@
   "fonts/f8.woff2": "6cc1ee17091d59eb93821c3594e8f38f",
   "fonts/f9.woff2": "070433480b7b645f69b543f284e386ce",
   "fonts/fonts.css": "1585a72a8d157b26cb424ab433fd4e19",
-  "index.html": "556c989f313b8556eea2ed32646c0bd8"
+  "index.html": "3f12bd2274a0bf0ef0429772c943892c"
  }
 }
