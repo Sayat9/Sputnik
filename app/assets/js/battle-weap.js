@@ -89,6 +89,14 @@
     if (main && main.id === "gloves" && off && off.id === "gloves") out.push({ id: "fistblock", cat: "defend", label: "Блок кулаками", ico: "defend", sub: "до начала хода: урон ближних атак −1к4 + Ловкость", time: "action",
       enabled: act && !has(u, "fistblock"), why: !act ? "действие потрачено" : "уже в блоке",
       run: async () => { B.spendTime(u, "action"); addStatus(u, "fistblock", { k: 1, when: "start" }); log(`${u.name} встаёт в блок кулаками.`, "good"); fx(u, "блок кулаками", "good"); return true; } });
+    const fl = (c.bag || []).some(e => e && e.id === "calm-flute"), used = !!(c.flags && c.flags.calmFlute);
+    if (fl) out.push({ id: "calm-flute", cat: "item", label: "Флейта успокоения", ico: "potion", sub: "действие: всему отряду +2 клетки скорости до конца боя, раз в день", time: "action",
+      enabled: act && !used, why: !act ? "действие потрачено" : "уже играли сегодня",
+      run: async () => {
+        B.spendTime(u, "action"); (c.flags ||= {}).calmFlute = true;
+        for (const h of B.heroes()) { h.speedC += 2; if (h.t) h.t.move += 2; }
+        log(`${u.name} играет на флейте успокоения: отряд быстрее на 2 клетки.`, "good"); fx(u, "отряд быстрее", "good"); return true;
+      } });
     return out;
   };
 

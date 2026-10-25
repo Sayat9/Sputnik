@@ -14,25 +14,9 @@
 
 ## Сокровища и артефакты
 
-### Флейта — `flute`
+### Флейта успокоения — `calm-flute`
 
-> `a worn carved wooden flute with a few finger holes, a bone mouthpiece and a faded red ribbon, small scratches and a chipped end, standing upright against a simple wooden stand, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
-
-### Чаша здоровья — `chalice`
-
-> `a worn pewter chalice with a faintly glowing pale-green rim and engraved leaf patterns, a few dents, a little clear water inside, standing on a small cloth, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
-
-### Удача новичка — `beginners-luck`
-
-> `a small worn leather talisman pouch on a thin cord with a four-leaf clover charm and a tiny polished green stone, scuffed leather, resting on a simple wooden stand, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
-
-### «Ещё раз» — `once-more`
-
-> `a small cracked ceramic token shaped like a circular arrow with a few glowing amber runes along the edge, chipped glaze, resting on a small cloth, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
-
-### Ночной страж — `guard`
-
-> `a worn iron watchman's lantern with a small helmeted owl figurine on top, dark glass and a steady pale glow, scratches on the frame, standing on a simple wooden stand, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+> `a refined bone-and-silver flute with delicate silver inlay, a pale blue silk ribbon and faint soothing glow around its finger holes, new and polished, standing upright, resting against a decorated wooden display stand, on a small stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
 
 ### Огонь, указывающий путь — `flame`
 
