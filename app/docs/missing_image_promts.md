@@ -12,26 +12,6 @@
 
 Стальное и более сильное снаряжение рисуется на лучшем фоне, чем обычное: «новое, блестящее» предмет (`new shiny steel …`), резная подставка (`decorated wooden display stand`), ниша-арсенал (`softly lit arsenal alcove`), знамёна и доспехи вдоль стен. Образец: `a new shiny steel warhammer with a squared head and a pointed back spike on a hardwood haft, standing upright, resting against a decorated wooden display stand, on a small stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit arsenal alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`.
 
-### Перчатки — `gloves`
-
-> `a pair of worn leather fighting gloves with iron-studded knuckle plates and scuffed fingers, lying on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
-
-### Посох — `staff`
-
-> `a worn ash wooden quarterstaff with an iron-capped head, leather grip wraps and scratches along the shaft, leaning on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
-
-### Топор — `axe`
-
-> `a worn one-handed iron axe with a chipped single blade and a leather-wrapped haft, resting on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
-
-### Секира — `greataxe`
-
-> `a worn two-handed double-bladed iron battle axe with nicked edges and a long scuffed haft, leaning on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
-
-### Набор первой помощи — `firstaid`
-
-> `a worn leather first-aid pouch with a red cross stitched on it, rolled linen bandages, a small ointment jar and a bone needle beside it, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
-
 ## Сокровища и артефакты
 
 ### Флейта — `flute`
