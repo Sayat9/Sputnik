@@ -2313,7 +2313,7 @@ const GEAR = {
   "stone-9":   { short: "Камни", name: "Магический камень 9-го класса", weight: 0.1, stack: 99, note: "Добыча лабиринта: Магазин скупает по 1 монете." },
   "silver-salt": { short: "Соль", name: "Серебряная соль", weight: 0.1, stack: 5, cls: 9, treasure: true, use: "salt", note: "Одна щепотка закрепляется на оружии навсегда. Оружие бьёт призраков и других спектральных существ; +1к4 светлого урона по нежити и духам." },
   "weak-salt": { short: "Слабая соль", name: "Слабая серебряная соль", weight: 0.1, stack: 10, use: "salt", note: "Мелкая серая соль с серебряной крошкой, в мешочке." },
-  "director-quiver": { short: "Колчан+", name: "Колчан режиссёра", weight: 0.5, stack: 1, cls: 7, treasure: true, note: "Артефакт 7 класса. В нём 10 обычных стрел, которые не ломаются и в конце боя возвращаются сами. Лучник стреляет ими первыми, затем обычными." },
+  "director-quiver": { short: "Колчан+", name: "Колчан режиссёра", weight: 0.5, stack: 1, cls: 8, treasure: true, note: "Артефакт 8 класса. В нём 10 обычных стрел, которые не ломаются и в конце боя возвращаются сами. Лучник стреляет ими первыми, затем обычными." },
   "stone-7":   { short: "Камни 7", name: "Магический камень 7-го класса", weight: 0.1, stack: 99, note: "Добыча 2 этажа. Магазин скупает по 20 монет." },
   "potion-good": { short: "Зелье+", name: "Зелье лечения", weight: 0.25, stack: 5, use: "drink", heal: "2к4 + 4", note: "Восстанавливает 2к4 + 4 ОЗ (6–12, в среднем 9). Черновик." },
   chalice: { short: "Чаша", name: "Чаша здоровья", weight: 0.5, stack: 1, cls: 8, treasure: true, note: "Сокровище 8 класса. Наполните водой (бесплатно в городе, у воды в лабиринте и в бою, или за паёк на Отдыхе): через 2 дня вода станет улучшенным зельем лечения (2к4 + 4). После питья чаша остаётся." },
@@ -2416,9 +2416,13 @@ const ART_WEAPONS = {
   "thunder-spear": { base: "spear", name: "Копьё-громоотвод", cls: 6 },
   "magnet-gloves": { base: "gloves", name: "Магнитные перчатки", cls: 7 },
   "shadow-daggers": { base: "dagger", name: "Парные тени", cls: 7 },
+  "falling-star": { base: "longbow", name: "Лук «Падающая звезда»", cls: 6 },
+  "echo-blade": { base: "sword", name: "Эхо-клинок", cls: 7 },
+  "discharge-staff": { base: "staff", name: "Посох разрядов", cls: 6 },
+  "mirror-shield": { base: "shield", name: "Зеркальный щит", cls: 7 },
 };
 function artWeaponInfo(w, id) {
-  const A = ART_WEAPONS[id], known = typeof artKnown === "function" && artKnown(id), info = { artId: id, bonus: Math.max(1, w.bonus || 0), treasure: true, cls: A.cls };
+  const A = ART_WEAPONS[id], known = typeof artKnown === "function" && artKnown(id), sh = w.group === "shield", info = { artId: id, bonus: sh ? 0 : Math.max(1, w.bonus || 0), treasure: true, cls: A.cls, ...(sh ? { steel: true } : {}) };          // щит: +1 КД как у стального
   return known ? { ...info, name: A.name, note: ARTIFACTS[id].text } : { ...info, name: "??", short: "??", note: `Свойства неизвестны. Определить артефакт можно в Башне магов за ${artPrice(id)} монет.` };
 }
 const artHeld = id => state.party.some(c => [...Object.values(c.equip || {}), ...(c.bag || [])].some(e => e && e.art === id));
@@ -2628,7 +2632,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 41;
+const BATTLE_REV = 42;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }
@@ -2747,7 +2751,7 @@ function loadNet() {
   return netLoad;
 }
 /* ----- здания города (assets/js/town.js грузится при первом входе в здание) ----- */
-const TOWN_REV = 12, TOWN_FILES = ["assets/css/town.css", "assets/js/town.js"];
+const TOWN_REV = 13, TOWN_FILES = ["assets/css/town.css", "assets/js/town.js"];
 let townLoad = null;
 function loadTown() {
   if (window.Town && window.Town.ready) return Promise.resolve(true);
@@ -3867,7 +3871,7 @@ function spTreasureHere() {
 }
 // Сокровище находят бросок к20 (решение автора): 1–8 камни (10–15 штук, чем выше бросок, тем больше и тем больше среди них 8 класса), 9–13 расходники (чем выше, тем больше),
 // 14–16 броня, 17 оружие (моё допущение: числа 17 в вашей таблице не было), 18–19 сокровище 9 класса, 20 сокровище 8 класса; какое именно — случайно из списка.
-const TREASURE_POOL = { 9: ["guard", "flame", "hearth", "dice", "bell", "once-more", "wind", "silver-salt"], 7: ["director-quiver"], 8: ["chalice", "beginners-luck", "flask", "monocle", "boots"] };
+const TREASURE_POOL = { 9: ["guard", "flame", "hearth", "dice", "bell", "once-more", "wind", "silver-salt"], 7: [], 8: ["chalice", "beginners-luck", "flask", "monocle", "boots", "director-quiver"] };
 const treasureOwned = id => (TREASURES[id] ? treasure(id).owned : state.party.some(c => [...(c.bag || []), ...Object.values(c.equip || {})].some(e => e && e.id === id)));
 function treasurePick(cls) {
   const free = TREASURE_POOL[cls].filter(id => id === "once-more" || !treasureOwned(id));
@@ -4297,7 +4301,7 @@ const f3 = () => { const r = state.run; return (r.f3 ||= f3Gen()); };
 const TOLL_MSG = "Звон серебряного колокольчика возвращает воспоминания о доме";
 const NOISE_MAX = 20, NOISE_BY_CLS = { 9: 1, 8: 2, 7: 4, 6: 7 }, TOLL_DC = 8, TOLL_STEP_NOISE = 1, TOLL_STEP_BAD = 2, TOLL_CALM = 1;
 const isToll = (x, y) => curFloor() === 3 && ["Звон", "Сердце этажа"].includes(FLOOR3.zoneName(x, y)) && tileType(x, y) === "floor";
-const TOLL_CHEST = "15,15", FIRE_CHEST = "4,5", FIRE_BOOST = 10, ART_DROPS = ["thunder-spear", "magnet-gloves", "shadow-daggers"];          // сундук Пылающих земель: артефакт гарантирован
+const TOLL_CHEST = "15,15", FIRE_CHEST = "4,5", FIRE_BOOST = 10, ART_DROPS = ["thunder-spear", "magnet-gloves", "shadow-daggers", "falling-star", "echo-blade", "discharge-staff", "mirror-shield"];          // сундук Пылающих земель: артефакт гарантирован
 function f3Noise(n, why) {
   const r = state.run; if (!r || r.floor !== 3 || !(n > 0)) return;
   const F = f3(); F.noise = (F.noise || 0) + n;
@@ -4683,6 +4687,9 @@ const ICO_FLASK = `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="cur
 const ICO_BOLT = `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M13 2L5 14h6l-1 8 8-12h-6z" fill="currentColor" opacity=".25"/><path d="M13 2L5 14h6l-1 8 8-12h-6z"/></svg>`;
 const ICO_MAGNET = `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M5 4v8a7 7 0 0 0 14 0V4h-4v8a3 3 0 0 1-6 0V4z"/><path d="M5 7h4M15 7h4"/></svg>`;
 const ICO_DAGGER = `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M14 3l7 0 0 7-8 8-4-4z" fill="currentColor" opacity=".2"/><path d="M14 3h7v7l-8 8-4-4zM9 14l-5 5M7 12l5 5"/></svg>`;
+const ICO_STAR = `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M12 6l1.6 3.6 3.9.4-2.9 2.6.8 3.8L12 14.4 8.6 16.4l.8-3.8L6.5 10l3.9-.4z" fill="currentColor" opacity=".25"/><path d="M12 6l1.6 3.6 3.9.4-2.9 2.6.8 3.8L12 14.4 8.6 16.4l.8-3.8L6.5 10l3.9-.4zM4 3l3 3M20 3l-3 3"/></svg>`;
+const ICO_ECHO = `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M5 19L17 7M14 5l5 0 0 5M8 21L20 9" opacity=".7"/><path d="M5 19l-2 2"/></svg>`;
+const ICO_MIRROR = `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M5 4h14v8c0 5-3 7.5-7 9-4-1.5-7-4-7-9z" fill="currentColor" opacity=".15"/><path d="M5 4h14v8c0 5-3 7.5-7 9-4-1.5-7-4-7-9zM9 9l6 6M15 9l-2 2"/></svg>`;
 const ICO_AGAIN = `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M5 12a7 7 0 0 1 12-4.9L19 9M19 12a7 7 0 0 1-12 4.9L5 15"/><path d="M19 4v5h-5M5 20v-5h5"/></svg>`;
 const ARTIFACTS = {
   guard: { cls: 9, name: "Ночной страж", ico: () => ICO_GUARD, text: "Заменяет караульного в Отдыхе: никто не бодрствует, ночной встречи нет. На заход 3 заряда, +2 за первый спуск на новый этаж; после выхода из лабиринта запас сбрасывается." },
@@ -4693,8 +4700,12 @@ const ARTIFACTS = {
   "thunder-spear": { cls: 6, name: "Копьё-громоотвод", ico: () => ICO_BOLT, text: "Как стальное копьё. За 2 маны (доп. действие) копьё заряжается: следующий удар или бросок — электрический, +1к6. Брошенное в монстра, застревает в нём; в начале вашего следующего хода в цель бьёт молния, слабее — по всем рядом; вода проводит молнию дальше. Можно воткнуть в клетку: копьё становится препятствием с 1 ОЗ и тоже бьёт молнией; сбитое лежит на земле." },
   "magnet-gloves": { cls: 7, name: "Магнитные перчатки", ico: () => ICO_MAGNET, text: "Как стальные перчатки. Действие «Притянуть»: проверка Телосложения — цель до 3 клеток притягивается к вам, если на пути нет препятствий. Тяжёлым врагам притянуться легче, самых тяжёлых притянуть нельзя, в металлических врагов вцепиться труднее." },
   "shadow-daggers": { cls: 7, name: "Парные тени", ico: () => ICO_DAGGER, text: "Как стальной кинжал. Атака «Порез теней»: полноценная атака кинжалом по цели на расстоянии до 3 клеток." },
+  "falling-star": { cls: 6, name: "Лук «Падающая звезда»", ico: () => ICO_STAR, text: "Как стальной длинный лук. Атака «Падающая звезда»: 1 мана и стрела, раз в 3 хода — стрела падает в выбранную точку (линия обзора не нужна), радиус 1, радиантное 2к6. Задетые подсвечены: атаки по ним с преимуществом и невидимость спадает до начала вашего следующего хода." },
+  "echo-blade": { cls: 7, name: "Эхо-клинок", ico: () => ICO_ECHO, text: "Как стальной меч. Попадание оставляет на цели эхо: следующая атака по ней, попадёт она или нет, повторяется эхом без броска на половину прежнего удара." },
+  "discharge-staff": { cls: 6, name: "Посох разрядов", ico: () => ICO_BOLT, text: "Как стальной посох. Потраченная мана копится в посохе зарядами (до 3). Действие «Разряд»: цель в 3 клетках получает 1к6 электричества за заряд, посох разряжается." },
+  "mirror-shield": { cls: 7, name: "Зеркальный щит", ico: () => ICO_MIRROR, text: "Как стальной щит. Когда по вам попадает дальняя атака и у вас есть 1 мана, с шансом 40 % щит отражает её: вы не получаете урона, а стрелок — половину." },
   "silver-salt": { cls: 9, name: "Серебряная соль", ico: () => GEAR_ICON.potion, text: GEAR["silver-salt"].note },
-  "director-quiver": { cls: 7, name: "Колчан режиссёра", ico: () => GEAR_ICON.arrow, text: GEAR["director-quiver"].note },
+  "director-quiver": { cls: 8, name: "Колчан режиссёра", ico: () => GEAR_ICON.arrow, text: GEAR["director-quiver"].note },
   "once-more": { cls: 9, name: "«Ещё раз»", ico: () => ICO_AGAIN, text: "Одноразовый предмет: позволяет перебросить неудачный бросок на эссенцию после боя." },
   chalice: { cls: 8, name: "Чаша здоровья", ico: () => GEAR_ICON.chalice, text: GEAR.chalice.note },
   "beginners-luck": { cls: 8, name: "Удача новичка", ico: () => GEAR_ICON["beginners-luck"], text: GEAR["beginners-luck"].note },

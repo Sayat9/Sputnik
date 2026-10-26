@@ -300,6 +300,73 @@
   }
   B.doPull = doPull; B.pullPath = pullPath; B.pullDc = pullDc;
 
+  /* ===== артефактное оружие, вторая партия (решения автора 29.10): Падающая звезда, Эхо-клинок, Посох разрядов, Зеркальный щит; «Упор» пики ===== */
+  const STAR_MANA = 1, STAR_CD = 3, STAR_DMG = [2, 6], STAFF_MAX = 3, MIRROR_CHANCE = 40, MIRROR_MANA = 1;
+  const starWhy = u => (u.mp < STAR_MANA ? "нужна 1 мана" : u.starAt != null && B.S.round - u.starAt < STAR_CD ? `перезарядка: ещё ${STAR_CD - (B.S.round - u.starAt)} р.` : B.arrowsLeft(u) < 1 ? "нет стрел" : null);
+  async function star(u, atk) {
+    const why = starWhy(u); if (why) { toast(why); return false; }
+    const cells = []; for (let y = 0; y < B.H; y++) for (let x = 0; x < B.W; x++) { const d = B.distCell(u, x, y); if (d >= 1 && d <= atk.range[1]) cells.push([x, y]); }
+    const pt = await UI().pickCell({ prompt: "Падающая звезда: выберите центр (нажмите ещё раз для подтверждения)", cells, kind: "attack", radius: 1, forSide: "hero" });
+    if (!pt || pt.length !== 2) return false;
+    const [cx, cy] = pt; B.commitAttack(u, atk, null);          // действие и стрела
+    B.setMp(u, u.mp - STAR_MANA); u.starAt = B.S.round;
+    log(`${u.name} пускает «Падающую звезду» в клетку ${cx + 1}:${cy + 1}.`, "skill");
+    const g = ui(); if (g) { g.banner("Падающая звезда!"); g.fxText({ x: cx, y: cy, size: 1, id: "star" }, "звезда", "dmg"); }
+    for (const t of B.enemiesOf(u)) {
+      if (!alive(t) || t.down || B.distCell(t, cx, cy) > 1) continue;
+      const v = roll(STAR_DMG[0], STAR_DMG[1]).total;
+      await B.applyDamage(u, t, [{ v, dt: "radiant", label: "Падающая звезда" }], { src: u });
+      if (alive(t)) { addStatus(t, "starlit", { k: Infinity, data: { endAtStartOf: u.id } }); removeStatus(t, "hidden"); removeStatus(t, "unseen"); }
+    }
+    return true;
+  }
+  const ws0 = B.weapSpecials;
+  B.weapSpecials = (u, main, off) => {
+    const out = ws0(u, main, off);
+    if (main && main.artId === "falling-star" && !u.disarmed) { const base = B.atkFrom(u, main, "hand"); out.push({ ...base, id: "star:longbow", n: "Падающая звезда", special: "star", sub: "1 мана и стрела, раз в 3 хода: радиус 1, радиантное 2к6, цели подсвечены", needTarget: v => starWhy(v) }); }
+    return out;
+  };
+  const rs0 = B.runSpecial;
+  B.runSpecial = (u, atk) => (atk.special === "star" ? star(u, atk) : rs0(u, atk));
+
+  // Посох разрядов: потраченная мана копится зарядами; «Разряд» — 1к6 за заряд.
+  B.staffCharge = (u, spent) => { const m = B.mainOf(u); if (m && m.artId === "discharge-staff") u.charges = Math.min(STAFF_MAX, (u.charges || 0) + spent); };
+  // Зеркальный щит: дальняя атака попала — с шансом отражается (мана тратится на каждую попытку).
+  B.mirrorTry = async (src, tgt, parts) => {
+    const off = B.offOf(tgt); if (!off || off.artId !== "mirror-shield" || tgt.mp < MIRROR_MANA || !alive(src) || src.side === tgt.side || !canAct(tgt)) return null;
+    B.setMp(tgt, tgt.mp - MIRROR_MANA);
+    const total = parts.reduce((a, q) => a + q.v, 0);
+    if (roll(1, 100).total > MIRROR_CHANCE) { log(`${tgt.name}: зеркальный щит не поймал удар (-${MIRROR_MANA} мана).`); return null; }
+    log(`${tgt.name}: зеркальный щит отражает удар в ${src.name}!`, "skill"); fx(tgt, "отражено", "good");
+    const dt = (parts.find(q => q.dt) || {}).dt || "pierce";
+    await B.applyDamage(tgt, src, [{ v: Math.max(1, Math.floor(total / 2)), dt, label: "Отражение" }], { src: tgt, noReflect: true });
+    return { total: 0, absorbed: total, notes: ["отражено щитом"] };
+  };
+  // Эхо-клинок: попадание оставляет эхо; следующая атака по цели (хоть мимо) повторяется без броска на половину прежнего удара.
+  P.weap.attackDone = async function (u, ctx) {
+    const { res, tgt, atk } = ctx, w = atk && atk.w;
+    if (!w || w.artId !== "echo-blade" || !tgt || tgt.isObj || !res || atk.mode !== "hand") return;
+    if (u.echo && u.echo.tgt === tgt.id) {
+      const e = u.echo; u.echo = null;
+      if (alive(tgt) || tgt.down) {
+        const v = Math.max(1, Math.floor(e.dmg / 2));
+        const ap = await B.applyDamage(u, tgt, [{ v, dt: atk.dt, label: "Эхо клинка" }], { melee: true, src: u, pure: true });
+        log(`${u.name}: эхо клинка повторяет удар — ${tgt.name} получает ${ap.total} урона.`, "skill"); fx(tgt, "эхо", "bad");
+      }
+    } else if (res.hit && res.dealt > 0) u.echo = { tgt: tgt.id, dmg: res.dealt };
+  };
+  // «Упор» пики: враг вошёл в зону досягаемости — реакция, попавший останавливается.
+  P.weap.reactEnter = async function (e, mover, from) {
+    if (!e.hero || e.disarmed) return;
+    const pk = B.mainOf(e); if (!pk || pk.id !== "pike") return;
+    const atk = B.attacksOf(e).find(a => a.kind === "melee" && a.w && a.w.id === "pike" && !a.offhand); if (!atk) return;
+    const r = atk.reach || 2;
+    if (dist(e, mover) > r || (from && B.distAt(e, mover, from[0], from[1]) <= r) || B.lineBlocked(e, mover)) return;
+    if (!(await B.promptReaction({ unit: e, title: "Упор", text: `${mover.name} входит в зону пики. Встретить ударом? (реакция)` }))) return;
+    e.t.react = 0; log(`${e.name}: упор пики по ${mover.name}.`, "skill"); fx(e, "упор", "good");
+    await B.doAttack(e, mover, atk, { reaction: true, cancelable: false, rider: async res => { if (res.hit && mover.size <= 2) { addStatus(mover, "spearstop", { k: 0, when: "end" }); fx(mover, "остановлен", "bad"); } } });
+  };
+
   const rb = B.weapActions;
   B.weapActions = u => {
     const out = rb(u);
@@ -330,6 +397,17 @@
     const planted = lodged().find(r => r.kind === "cell" && r.hero === u.id && B.distCell(u, r.x, r.y) <= 1);
     if (planted && u.disarmed) out.push({ id: "spearpull", cat: "other", label: "Вытащить копьё", ico: "attack", sub: "свободное действие: копьё возвращается в руку", time: "free", enabled: true,
       run: async () => { B.S.cells[planted.y][planted.x] = ""; B.S.lodged = lodged().filter(r => r !== planted); u.disarmed = false; log(`${u.name} вытаскивает копьё из земли.`, "good"); const g = ui(); if (g) g.refresh(); return true; } });
+    if (main0 && main0.artId === "discharge-staff") {
+      const n = u.charges || 0, tmp = { kind: "ranged", range: [3, 3] }, tg = B.attackTargets(u, tmp);
+      out.push({ id: "discharge", cat: "skill", label: "Разряд", ico: "attack", sub: `действие: ${n ? n + "к6 электричества" : "нет зарядов"} в цель до 3 клеток (заряды копятся от потраченной маны, до ${STAFF_MAX})`, time: "action",
+        enabled: act0 && n > 0 && tg.length > 0, why: !act0 ? "действие потрачено" : n < 1 ? "нет зарядов" : "нет цели в 3 клетках",
+        run: async () => {
+          const t = await UI().pickUnit({ prompt: "Разряд: выберите цель", units: tg.map(x => x.id), cells: B.rangeCells(u, tmp), kind: "attack" }); if (!t) return false;
+          B.spendTime(u, "action"); const n2 = u.charges || 0, v = roll(n2, 6).total; u.charges = 0;
+          log(`${u.name}: разряд посоха (${n2} зар.) бьёт ${t.name}.`, "skill");
+          await B.applyDamage(u, t, [{ v, dt: "lightning", label: "Разряд посоха" }], { src: u }); return true;
+        } });
+    }
     if ((main0 && main0.artId === "magnet-gloves") || (off0 && off0.artId === "magnet-gloves")) {
       const any = enemiesOf(u).some(t => alive(t) && !t.down && pullPath(u, t));
       out.push({ id: "magnet", cat: "skill", label: "Притянуть", ico: "move", sub: "действие: проверка Телосложения, цель за 2–4 клетки по прямой подтянется к вам (путь должен быть свободен)", time: "action", enabled: act0 && any, why: !act0 ? "действие потрачено" : "нет цели на прямой с чистым путём",

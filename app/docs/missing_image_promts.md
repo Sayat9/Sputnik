@@ -223,3 +223,7 @@
 - `items/art-magnet-gloves` — `pair of heavy steel gauntlets with horseshoe magnets on the knuckles and faint blue field lines, painted fantasy artifact icon, plain dark background`
 - `items/art-shadow-daggers` — `black elegant dagger with a blade that dissolves into smoky shadow at the edge, violet glow in the engraving, painted fantasy artifact icon, plain dark background`
 - `items/pike` — `short knight's pike, long slender faceted steel head, dark wood shaft with leather grip, painted fantasy weapon icon, plain dark background`
+- `items/art-falling-star` — `elegant white-wood longbow with a glowing golden star set in the grip, faint comet trail along the limbs, painted fantasy artifact icon, plain dark background`
+- `items/art-echo-blade` — `straight steel sword with a faint translucent duplicate blade offset behind it, soft blue echo ripples, painted fantasy artifact icon, plain dark background`
+- `items/art-discharge-staff` — `ash staff with a cage of copper coils and a crackling blue-white orb at the head, painted fantasy artifact icon, plain dark background`
+- `items/art-mirror-shield` — `round polished mirror-faced shield with a dark iron rim, a streak of reflected light, painted fantasy artifact icon, plain dark background`

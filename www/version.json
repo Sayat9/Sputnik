@@ -1,5 +1,5 @@
 {
- "version": 1793052159,
+ "version": 1793054220,
  "files": [
   "assets/buildings/church.webp",
   "assets/buildings/forge.webp",
@@ -398,7 +398,7 @@
   "assets/js/battle-act.js": "8555431007c6b2544d1757327475ede0",
   "assets/js/battle-ai.js": "ea4b8bee5b46c2263419653fee717cf2",
   "assets/js/battle-core.js": "06b3e6de8c93728146a1db62f4c5d486",
-  "assets/js/battle-data.js": "93e7ad3a4eb6d7cdc715f2fa29ef2414",
+  "assets/js/battle-data.js": "7ba600e7b5d656c6c088a80984590bf9",
   "assets/js/battle-dice.js": "e45c4170169e0538b2b8519fd233bf0e",
   "assets/js/battle-end.js": "bf226e686dae2ea7486318a989e09e9e",
   "assets/js/battle-env.js": "117e848ca67c5aa28d0f3da9442277bf",
@@ -407,9 +407,9 @@
   "assets/js/battle-ext.js": "71cdb0ae150fac652989c8a2ef02a315",
   "assets/js/battle-menu.js": "861743e358d79477224aa77705a7c633",
   "assets/js/battle-net.js": "2ec8914d230f7ef8ef96df7662aa1e4e",
-  "assets/js/battle-rules.js": "9b02c18b52ddea3fc55206506b04799e",
+  "assets/js/battle-rules.js": "b71cf27ee90a529f29b1f766ffddd51b",
   "assets/js/battle-ui.js": "f3895514c0f26b5a2dbb26f301b2072d",
-  "assets/js/battle-weap.js": "7e7040aac7b4a2675775421c1a0683c9",
+  "assets/js/battle-weap.js": "231ccb78e0e473ba78191598915007cb",
   "assets/js/battle.js": "cf7816a970e9fb0f9884938028260772",
   "assets/js/net.js": "110683a663d3cbfa576e7a56e5d09677",
   "assets/js/netglue.js": "57c46e99a7482a59b5196b9b40ba1c6d",
@@ -610,6 +610,6 @@
   "fonts/f8.woff2": "6cc1ee17091d59eb93821c3594e8f38f",
   "fonts/f9.woff2": "070433480b7b645f69b543f284e386ce",
   "fonts/fonts.css": "1585a72a8d157b26cb424ab433fd4e19",
-  "index.html": "43e16af541c0edc089fd26c204bed080"
+  "index.html": "c0feee67f0f931cfad219197cac850ba"
  }
 }

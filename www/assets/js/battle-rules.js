@@ -40,7 +40,7 @@
 
   /* ===== здоровье ===== */
   function setHp(u, v) { u.hp = clamp(Math.round(v), 0, u.maxHp); if (u.hero) u.hero.hp = u.hp; }
-  function setMp(u, v) { u.mp = clamp(Math.round(v), 0, u.maxMp); if (u.hero) u.hero.mp = u.mp; }
+  function setMp(u, v) { const old = u.mp; u.mp = clamp(Math.round(v), 0, u.maxMp); if (u.hero) u.hero.mp = u.mp; if (u.hero && u.mp < old && B.staffCharge) B.staffCharge(u, old - u.mp); }          // посох разрядов копит потраченную ману
   const canAct = u => alive(u) && !u.down && !has(u, "unconscious") && !has(u, "stable") && !has(u, "paralyzed") && !has(u, "encased") && !has(u, "underground");          // закопавшийся землекоп не действует и не реагирует
   function revive(u) {
     removeStatus(u, "unconscious"); removeStatus(u, "stable"); u.down = false; u.deathSaves = { ok: 0, fail: 0 };
@@ -105,6 +105,7 @@
   }
   /* Урон: parts — [{v, dt, label}]. Учитывает уязвимости, сопротивления, плоские поправки пассивок, мокроту и временные ОЗ. */
   async function applyDamage(src, tgt, parts, o = {}) {
+    if (src && tgt.hero && o.ctx && o.ctx.atk && o.ctx.atk.kind === "ranged" && !o.noReflect && B.mirrorTry) { const rf = await B.mirrorTry(src, tgt, parts); if (rf) return rf; }          // зеркальный щит
     const enc = has(tgt, "encased");
     if (enc && parts.length) {          // «Кристальная тюрьма»: урон бьёт по кристаллу; дробящий — двойной; цель не ранена
       const dmg = parts.reduce((a, p) => a + (p.v > 0 ? p.v * (p.dt === "bludgeon" ? 2 : 1) : 0), 0);
@@ -212,6 +213,7 @@
     // состояния цели
     if (has(tgt, "prone")) { if (d0 <= 1) ctx.adv.push("цель сбита с ног"); else ctx.dis.push("цель лежит, далеко"); }
     if (has(tgt, "restrained")) ctx.adv.push("цель опутана");
+    if (has(tgt, "starlit")) ctx.adv.push("цель отмечена падающей звездой");
     if (has(tgt, "blinded") || has(tgt, "buried")) ctx.adv.push(has(tgt, "buried") ? "цель засыпана" : "цель ослеплена");
     if (has(tgt, "paralyzed")) { ctx.adv.push("цель парализована"); if (d0 <= 1) ctx.autoCrit = true; }
     if (has(tgt, "unconscious") || has(tgt, "stable")) { ctx.adv.push("цель без сознания"); if (d0 <= 1) ctx.autoCrit = true; }

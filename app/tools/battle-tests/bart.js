@@ -72,7 +72,7 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
     return out;
   });
   ok('артефактное оружие: имя «??» до определения, бонус стали, после — имя', o.masked[0] === '??' && o.masked[1] === 1 && o.masked[2] === 'thunder-spear' && o.named === 'Копьё-громоотвод', o);
-  ok('классы: громоотвод 6, перчатки 7, парные тени 7, колчан 7', o.classes.join() === '6,7,7,director-quiver', o.classes);
+  ok('классы: громоотвод 6, перчатки 7, парные тени 7', o.classes.slice(0, 3).join() === '6,7,7', o.classes);
   ok('сундук горнила: артефакт всегда, оружие ~10 %', o.fire.ok && o.fire.share > 0.03 && o.fire.share < 0.2, o.fire);
   ok('сундук горнила стоит на полу Пылающих земель, кнопка доступна', o.fireBtn && o.fireZone === 'Пылающие земли' && o.fireTile === 'floor', [o.fireBtn, o.fireZone, o.fireTile]);
   ok('громоотвод: заряд и бросок в меню', o.acts.includes('spearcharge') && o.acts.includes('spearplant'), o.acts);
@@ -131,6 +131,56 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
   ok('пика: со щитом не двуручная блокировка, с пустой рукой/мечом — двуручная', o2.pike.two === false && o2.pikeAlone === true && o2.pikeSword === true, o2);
   ok('пика со щитом: скорость на клетку меньше, досягаемость 2', o2.pikeSpeed[0] === o2.pikeSpeed[1] - 1 && o2.pikeReach === 2, [o2.pikeSpeed, o2.pikeReach]);
   ok('цены артефактного оружия: класс 6, кузница платит больше башни', o2.price[0] === 5000 && o2.price[1] === 1.1 && o2.price[2] === 1, o2.price);
+  const o3 = await p.evaluate(async () => {
+    const B = Battle, out = {};
+    const hero0 = state.party[0]; hero0.equip = {}; hero0.bag = [];
+    out.classes = [ART_WEAPONS['falling-star'].cls, ART_WEAPONS['echo-blade'].cls, ART_WEAPONS['discharge-staff'].cls, ART_WEAPONS['mirror-shield'].cls, GEAR['director-quiver'].cls, ARTIFACTS['director-quiver'].cls, TREASURE_POOL[8].includes('director-quiver'), TREASURE_POOL[7].length];
+    // ---- Падающая звезда
+    hero0.equip.main = { t: 'w', id: 'longbow', art: 'falling-star' }; hero0.bag = [{ t: 'g', id: 'arrow', qty: 10 }]; hero0.mp = 5;
+    const S = B.newBattle({ list: ['goblin', 'goblin', 'goblin'], zone: 'goblin', floor: 3, kind: 'hard', title: 'x' }); S.opts.autoHeroes = true; B.placeHeroesDefault(S); B.placeMonsters(S); B.running = true;
+    for (let y = 0; y < B.H; y++) for (let x = 0; x < B.W; x++) S.cells[y][x] = '';
+    const h = B.heroes()[0], [m1, m2, m3] = B.mons(); h.mp = 5; h.maxMp = 6; B.heroes().slice(1).forEach((o, i) => { o.x = i; o.y = 9; });
+    h.x = 5; h.y = 9; h.t = { move: 6, action: 1, bonus: 1, react: 1, moved: 0, startX: 5, startY: 9 };
+    m1.x = 5; m1.y = 3; m2.x = 6; m2.y = 3; m3.x = 0; m3.y = 0; for (const m of [m1, m2, m3]) m.hp = m.maxHp = 100;
+    B.addStatus(m1, 'hidden', { k: Infinity });
+    const sp = B.attacksOf(h).find(a => a.special === 'star'); out.star = !!sp;
+    const before = countGear(hero0, 'arrow');
+    const origPick = B.UI.pickCell; B.UI.pickCell = async () => [5, 3]; const okStar = await B.runSpecial(h, sp); B.UI.pickCell = origPick;
+    out.starRes = { ok: okStar, mp: h.mp, arrows: before - countGear(hero0, 'arrow'), m1: m1.hp < 100, m2: m2.hp < 100, far: m3.hp === 100, lit: !!B.has(m1, 'starlit'), hid: !B.has(m1, 'hidden'), action: h.t.action };
+    const hh = B.attacksOf(h).find(a => a.special === 'star'); out.starCd = hh && hh.needTarget ? hh.needTarget(h) : null;
+    // ---- Эхо-клинок
+    hero0.equip.main = { t: 'w', id: 'sword', art: 'echo-blade' }; h.echo = null;
+    const swordAtk = B.attacksOf(h).find(a => a.mode === 'hand'); m1.x = 5; m1.y = 8; m1.hp = 100;
+    const ctxHit = { res: { hit: true, dealt: 10 }, tgt: m1, atk: swordAtk };
+    await P_weap().attackDone(h, ctxHit); out.echoMark = h.echo && h.echo.dmg;
+    const hp1 = m1.hp; await P_weap().attackDone(h, { res: { hit: false, dealt: 0 }, tgt: m1, atk: swordAtk }); out.echoHit = [hp1 - m1.hp, h.echo];
+    function P_weap() { return B.P.weap; }
+    // ---- Посох разрядов
+    hero0.equip.main = { t: 'w', id: 'staff', art: 'discharge-staff' }; h.charges = 0; h.mp = 5; h.t.action = 1;
+    B.setMp(h, 3); out.charges = h.charges; B.setMp(h, 0); out.chargesCap = h.charges; B.setMp(h, 3);
+    m1.x = 5; m1.y = 7; m1.hp = 100; const dis = B.weapActions(h).find(a => a.id === 'discharge'); out.disEnabled = dis && dis.enabled;
+    const pk = B.UI.pickUnit; B.UI.pickUnit = async () => m1; await dis.run(); B.UI.pickUnit = pk; out.dis = [m1.hp < 100, h.charges];
+    // ---- Зеркальный щит
+    hero0.equip.main = null; hero0.equip.off = { t: 'w', id: 'shield', art: 'mirror-shield' }; h.mp = 3;
+    out.shieldAc = itemOf(hero0.equip.off).steel === true;
+    let reflected = 0, taken = 0, tries = 40; for (let i = 0; i < tries; i++) { h.mp = 3; m1.hp = 100; h.hp = h.maxHp; const r = await B.applyDamage(m1, h, [{ v: 10, dt: 'pierce', label: 'стрела' }], { ctx: { atk: { kind: 'ranged' } }, src: m1 }); if (r.notes && r.notes.includes('отражено щитом')) { reflected++; if (m1.hp !== 95) taken = -1; } }
+    out.mirror = { reflected, taken };
+    h.mp = 0; h.hp = h.maxHp; const r0 = await B.applyDamage(m1, h, [{ v: 10, dt: 'pierce', label: 'стрела' }], { ctx: { atk: { kind: 'ranged' } }, src: m1 }); out.noMana = !(r0.notes || []).includes('отражено щитом');
+    // ---- Упор пики
+    hero0.equip.off = null; hero0.equip.main = { t: 'w', id: 'pike', qty: 1 }; h.mp = 3; h.t.react = 1; h.x = 5; h.y = 5; m2.x = 5; m2.y = 1; m2.hp = 100;
+    const rr = B.UI.confirm; B.promptReaction = async () => true;
+    const hpB = m2.hp; m2.x = 5; m2.y = 3; await B.P.weap.reactEnter(h, m2, [5, 1]);
+    out.pike = { react: h.t.react, hurt: m2.hp < hpB, stopped: !!B.has(m2, 'spearstop') || m2.hp >= hpB };
+    return out;
+  });
+  ok('колчан режиссёра — 8 класса (пул 8), пул 7 пуст; новые артефакты: 6,7,6,7', o3.classes.join() === '6,7,6,7,8,8,true,0', o3.classes);
+  ok('Падающая звезда: атака в меню, тратит 1 ману, стрелу и действие', o3.star && o3.starRes.ok && o3.starRes.mp === 4 && o3.starRes.arrows === 1 && o3.starRes.action === 0, o3.starRes);
+  ok('Падающая звезда: бьёт область, дальнюю цель нет, подсвечивает и снимает невидимость', o3.starRes.m1 && o3.starRes.m2 && o3.starRes.far && o3.starRes.lit && o3.starRes.hid, o3.starRes);
+  ok('Падающая звезда: перезарядка 3 хода', /перезарядка/.test(o3.starCd || ''), o3.starCd);
+  ok('Эхо-клинок: попадание оставляет эхо; следующая атака (хоть мимо) повторяется на половину', o3.echoMark === 10 && o3.echoHit[0] === 5 && o3.echoHit[1] === null, [o3.echoMark, o3.echoHit]);
+  ok('Посох разрядов: заряды от потраченной маны (до 3), «Разряд» бьёт и разряжает', o3.charges === 2 && o3.chargesCap === 3 && o3.disEnabled && o3.dis[0] && o3.dis[1] === 0, [o3.charges, o3.chargesCap, o3.disEnabled, o3.dis]);
+  ok('Зеркальный щит: +1 КД, шанс отражения около 40 %, отражённое бьёт стрелка вполсилы, без маны не работает', o3.shieldAc && o3.mirror.reflected >= 5 && o3.mirror.reflected <= 28 && o3.mirror.taken === 0 && o3.noMana, [o3.shieldAc, o3.mirror, o3.noMana]);
+  ok('Упор пики: реакция тратится, цель получает удар', o3.pike.react === 0 && o3.pike.hurt, o3.pike);
   ok('нет ошибок страницы', errs.length === 0, errs.slice(0, 3));
   console.log('проверок:', R.length, 'не прошли:', R.filter(x => !x).length);
   await b.close();
