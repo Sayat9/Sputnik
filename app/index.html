@@ -1073,6 +1073,12 @@ const WEAPONS = [
     note: "Высокая стена из досок с железными полосами, закрывает почти целиком. Бьют им с разворота кромкой; обычный щит вместе с ним не держат." },
 ];
 
+// Описания (решение автора 28.10): короткая фраза о предмете и только то, что видно по самому предмету — без правил особых способностей и скрытых взаимодействий.
+const W_FLAVOR = { spear: "Ясеневое древко с кованым наконечником.", mace: "Железное навершие на окованной рукояти.", warhammer: "Тяжёлый молот дварфийской работы.", sword: "Прямой железный клинок.", dagger: "Короткий клинок с широкой крестовиной.", rapier: "Тонкий и лёгкий клинок.", greatsword: "Длинный тяжёлый меч для двух рук.", shortbow: "Лёгкий лук из дерева и жилы.", longbow: "Тисовый лук в рост человека.", gloves: "Кожаные перчатки с железными накладками.", staff: "Ясеневая жердь с железным оголовьем.", axe: "Одноручный топор с острым лезвием.", greataxe: "Тяжёлая двуручная секира.", arrows: "Стрелы с железными наконечниками.", shield: "Дубовые доски с железной оковкой.", "tower-shield": "Высокая стена из досок с железными полосами." };
+const A_FLAVOR = { leather: "Варёная кожа, пропитанная жиром.", hide: "Толстые шкуры и мех.", chainmail: "Кольчуга с подкольчужником." };
+const kgTxt = n => String(n).replace(".", ",") + " кг";
+const weaponStats = w => `${w.group === "shield" ? w.dmg : `Урон ${w.dmg}${w.type ? " " + w.type : ""}`}${w.props && w.props.length ? " · " + w.props.join(", ") : ""} · ${kgTxt(w.weight)}.`;
+const armorStats = a => `КД ${a.ac}${a.str ? ", нужна Сила " + a.str : ""}${a.stealth ? ", помеха Скрытности" : ""} · ${kgTxt(a.weight)}.`;
 const ARMOR = [
   { cat: "light", label: "Лёгкая", rule: "КД + мод. Ловкости · надеть 1 мин · снять 1 мин",
     desc: "Для разведчиков и тех, кто много бегает. Не мешает Бегу и долгим переходам.",
@@ -1093,6 +1099,8 @@ const ARMOR = [
         note: "Полная кольчуга с подкольчужником. Кольца местами в ржавчине, но целые." },
     ]},
 ];
+for (const w of WEAPONS) if (W_FLAVOR[w.id]) w.note = `${W_FLAVOR[w.id]} ${weaponStats(w)}`;
+for (const c of ARMOR) for (const a of c.items) if (A_FLAVOR[a.id]) a.note = `${A_FLAVOR[a.id]} ${armorStats(a)}`;
 const ARMOR_FLAT = ARMOR.flatMap(c => c.items.map(a => ({ ...a, cat: c.cat, catLabel: c.label })));
 
 const PROPS = [
@@ -1836,6 +1844,12 @@ MONSTERS.push({ id: "silence-keeper", zone: "undead", rare: false, weight: 1, na
   senses: "Тёмное зрение 36 м. Слышит каждый звон в Звоне.",
   traits: [["Почитает тишину", "Не бродит по Звону: приходит на шум и карает того, кто его поднял.", "behavior"], ["Беззвучный", "Движется и бьёт молча; сам звона не издаёт, пока не ранен.", "behavior"], ["Ослабев, звонит", "Когда ОЗ меньше 40 %, за 3 своих хода не убитый хранитель звонит: шум +7.", "behavior"],
     ["Две атаки", "За ход два удара булавой.", "attacks"], ["Серебряная булава", "+8 к попаданию, 2к8+4 дробящего.", "attacks"], ["Тяжёлый кулак", "+8 к попаданию, 1к10+4 дробящего.", "attacks"]] });
+// Мимик — очень редкий монстр 6 класса Ведьмина леса; прячется в походных сундучках (шанс 5 % при поломке). Статблок — моя заготовка (campaign/drafts.md).
+MONSTERS.push({ id: "mimic", zone: "undead", rare: true, weight: 1, name: "Мимик", floor: 3, cls: 6, rank: "boss", size: "Средняя тварь", group: "Один; прячется в сундучке", draft: true, statDraft: true,
+  type: "Тварь, монстр", sz: "средний", areas: ["3 этаж: Ведьмин лес"], ac: "13 (липкая шкура)", hp: "85 (10к8+40)", speed: "6 м", cr: "4", abil: [18, 12, 18, 6, 12, 8],
+  senses: "Тёмное зрение 18 м.",
+  traits: [["Подражатель", "Выглядит как обычный сундучок, пока не нападёт.", "behavior"], ["Липкая шкура", "Того, кто его ударил, трудно отпустить: поражённый в ближнем бою не может уйти без проверки.", "behavior"],
+    ["Две атаки", "За ход два удара.", "attacks"], ["Ложная пасть", "+7 к попаданию, 2к8+4 колющего.", "attacks"], ["Псевдоподия", "+7 к попаданию, 1к10+4 дробящего.", "attacks"]] });
 MONSTERS.forEach(m => {
   const x = MON_EXTRA[m.id] || {};
   Object.assign(m, MON_STATS[m.id] || MON_STATS2[m.id] || {});
@@ -2293,7 +2307,7 @@ const GEAR = {
   "shovel-good": { short: "Лопата+", name: "Хорошая лопата", weight: 2.5, stack: 1, uses: 5, note: "Для действия «Копать». Ломается после 5 раскопок." },
   "shovel-best": { short: "Лопата++", name: "Отличная лопата", weight: 2, stack: 1, uses: 10, note: "Для действия «Копать». Ломается после 10 раскопок." },
   "stone-9":   { short: "Камни", name: "Магический камень 9-го класса", weight: 0.1, stack: 99, note: "Добыча лабиринта: Магазин скупает по 1 монете." },
-  "silver-salt": { short: "Соль", name: "Серебряная соль", weight: 0.1, stack: 5, cls: 9, note: "Одноразовая. В бою (доп. действие) посыпать оружие: до конца боя удары носителя ранят спектральных существ как обычные. Кладовая Звона." },
+  "silver-salt": { short: "Соль", name: "Серебряная соль", weight: 0.1, stack: 5, cls: 9, use: "salt", note: "Одна щепотка закрепляется на оружии навсегда. Лежит в сундуках." },
   "stone-7":   { short: "Камни 7", name: "Магический камень 7-го класса", weight: 0.1, stack: 99, note: "Добыча 2 этажа. Магазин скупает по 20 монет." },
   "potion-good": { short: "Зелье+", name: "Зелье лечения", weight: 0.25, stack: 5, use: "drink", heal: "2к4 + 4", note: "Восстанавливает 2к4 + 4 ОЗ (6–12, в среднем 9). Черновик." },
   chalice: { short: "Чаша", name: "Чаша здоровья", weight: 0.5, stack: 1, cls: 8, treasure: true, note: "Сокровище 8 класса. Наполните водой (бесплатно в городе, у воды в лабиринте и в бою, или за паёк на Отдыхе): через 2 дня вода станет улучшенным зельем лечения (2к4 + 4). После питья чаша остаётся." },
@@ -2301,6 +2315,13 @@ const GEAR = {
   "once-more": { short: "Ещё раз", name: "«Ещё раз»", weight: 0.1, stack: 5, cls: 9, treasure: true, note: "Одноразовый. После неудачного броска на эссенцию позволяет перебросить его." },
   "stone-8":   { short: "Камни 8", name: "Магический камень 8-го класса", weight: 0.1, stack: 99, note: "Добыча 2 этажа: Магазин скупает по 5 монет." },
 };
+const GEAR_NOTE = {          // артефакты сюда не входят: у них описаний нет
+  clothes: "Рубаха, штаны, плащ. КД 10 + Ловкость.", ration: "Сухари, вяленое мясо и вода на день пути. 1 кг.", potion: "Красноватая жидкость во флаконе. Лечит 1к4 + 2 ОЗ.", "potion-good": "Тёмный густой настой. Лечит 2к4 + 4 ОЗ.",
+  torch: "Просмолённая палка. Свет на 6 м.", firstaid: "Бинты, мазь и иглы.", flute: "Деревянная флейта.", arrow: "Стрелы для лука, колчан на 40.", shovel: "Железная лопата. Хватит на 3 раскопки.", "shovel-good": "Крепкая лопата. Хватит на 5 раскопок.", "shovel-best": "Лёгкая и прочная лопата. Хватит на 10 раскопок.",
+  "stone-9": "Кристалл, в котором дремлет магия. Магазин скупает по 1 монете.", "stone-8": "Кристалл, в котором дремлет магия. Магазин скупает по 5 монет.", "stone-7": "Кристалл, в котором дремлет магия. Магазин скупает по 20 монет.",
+  "silver-salt": "Крупные серые кристаллы с серебряной крошкой, в мешочке. 0,1 кг.",
+};
+for (const [id, n] of Object.entries(GEAR_NOTE)) if (GEAR[id]) GEAR[id].note = n;
 const SHOVELS = ["shovel", "shovel-good", "shovel-best"];
 const GEAR_ICON = {
   firstaid: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="7" width="16" height="12" rx="2" fill="currentColor" opacity=".15"/><path d="M9 7V5h6v2M12 10v6M9 13h6"/></svg>`,
@@ -2381,6 +2402,8 @@ const STEEL_W = { gloves: "Стальные перчатки", staff: "Оков�
   greatsword: "Стальной двуручный меч", shortbow: "Улучшенный короткий лук", longbow: "Улучшенный длинный лук", shield: "Стальной щит", "tower-shield": "Стальной ростовой щит" };
 const STEEL_A = { leather: "Клёпаный кожаный доспех", hide: "Усиленный шкурный доспех", chainmail: "Стальная кольчуга" };
 const isShieldW = w => w.group === "shield" || w.id === "tower-shield";
+// Серебряная соль (решение автора 28.10): оружие навсегда бьёт спектральных обычными ударами; плюс +1к4 светлого урона по нежити и духам.
+function saltWeapon(w) { return { salt: true, note: `${w.note || w.desc || ""} Посыпано серебряной солью: бьёт призраков и других спектральных существ; +1к4 светлого урона по нежити и духам.`.trim() }; }
 function steelWeapon(w) {
   const sh = isShieldW(w);
   return { name: STEEL_W[w.id] || "Стальной " + w.name.toLowerCase(), steel: true, bonus: sh ? 0 : 1, price: 25,
@@ -2404,7 +2427,7 @@ function itemOf(v, holder) {
     if (g && ARTIFACTS[v.id]) return artMask({ ...g, id: v.id, kindOf: "gear", icon: GEAR_ICON[v.id] }, v.id);
     return g && { ...g, id: v.id, kindOf: "gear", art: ART.gear(v.id) || undefined, icon: GEAR_ICON[v.id] || (SHOVELS.includes(v.id) ? GEAR_ICON.shovel : GEAR_ICON.custom) };
   }
-  if (v.t === "w") { const w = WEAPONS.find(x => x.id === v.id); return w && { ...w, kindOf: "weapon", art: v.steel && RASTER.has("items/steel-" + w.id) ? artPath("items/steel-" + w.id) : ART.weapon(w.id), ...(v.steel ? steelWeapon(w) : {}) }; }
+  if (v.t === "w") { const w = WEAPONS.find(x => x.id === v.id); return w && { ...w, kindOf: "weapon", art: v.steel && RASTER.has("items/steel-" + w.id) ? artPath("items/steel-" + w.id) : ART.weapon(w.id), ...(v.steel ? steelWeapon(w) : {}), ...(v.salt ? saltWeapon(v.steel ? steelWeapon(w) : w) : {}) }; }
   if (v.t === "a") { const a = ARMOR_FLAT.find(x => x.id === v.id); return a && { ...a, kindOf: "armor", art: v.steel && RASTER.has("items/steel-armor-" + a.id) ? artPath("items/steel-armor-" + a.id) : ART.armor(a.id), ...(v.steel ? steelArmor(a) : {}) }; }
   if (v.t === "c") return { name: v.name, kindOf: "custom", weight: 0, icon: GEAR_ICON.custom };
   return null;
@@ -2504,7 +2527,7 @@ function addToBag(c, e) {
   while (left > 0 && c.bag.length < bagSize(c)) {
     const n = Math.min(left, stackMax(e, c));
     const uses = e.t === "g" && GEAR[e.id].uses ? { uses: e.uses ?? GEAR[e.id].uses } : {};
-    c.bag.push(e.t === "c" ? { t: "c", name: e.name, qty: 1 } : { t: e.t, id: e.id, qty: n, ...uses, ...(e.steel ? { steel: true } : {}) });
+    c.bag.push(e.t === "c" ? { t: "c", name: e.name, qty: 1 } : { t: e.t, id: e.id, qty: n, ...uses, ...(e.steel ? { steel: true } : {}), ...(e.salt ? { salt: true } : {}) });
     left -= n;
   }
   return left;                                   // сколько не поместилось
@@ -2702,7 +2725,7 @@ function loadNet() {
   return netLoad;
 }
 /* ----- здания города (assets/js/town.js грузится при первом входе в здание) ----- */
-const TOWN_REV = 9, TOWN_FILES = ["assets/css/town.css", "assets/js/town.js"];
+const TOWN_REV = 10, TOWN_FILES = ["assets/css/town.css", "assets/js/town.js"];
 let townLoad = null;
 function loadTown() {
   if (window.Town && window.Town.ready) return Promise.resolve(true);
@@ -3479,12 +3502,12 @@ const F3_SIZE = 31, F3_DAYS = 21, PORTAL_LAST_DAY = 14;
 const F3_ENTRIES = ["0,30", "30,30", "0,15", "30,15"], F3_NEXT = "15,0";
 const F3_PORTALS = { "0,30": "f3in", "30,30": "f3in", "0,15": "f3in", "30,15": "f3in", [F3_NEXT]: "f3next" };
 const F3_CORNER = { "0,30": "левый нижний угол", "30,30": "правый нижний угол", "0,15": "середина левой стороны", "30,15": "середина правой стороны" };
-// Раскладка зон (решения автора): храм — внизу по центру, лагерь орков — на пути к порталу дальше (сверху по центру), зона ловушек — справа сверху (вокруг Безвременья),
+// Раскладка зон (решения автора): храм — внизу по центру, лагерь орков — на пути к порталу дальше (сверху по центру), зона ловушек — справа сверху (вокруг Ведьмина леса),
 // Звон (бывший Вой) — по центру (в его середине — Сердце этажа с сундуком), пылающие земли — слева сверху (мой вариант), всё остальное между зонами — охотничьи угодья.
-const F3_RECTS = [["Безвременье", 27, 0, 30, 3], ["Сердце этажа", 14, 14, 16, 16], ["Звон", 11, 11, 19, 19], ["Храм изваяний", 11, 25, 19, 30], ["Лагерь орков", 11, 1, 19, 7],
+const F3_RECTS = [["Ведьмин лес", 27, 0, 30, 3], ["Сердце этажа", 14, 14, 16, 16], ["Звон", 11, 11, 19, 19], ["Храм изваяний", 11, 25, 19, 30], ["Лагерь орков", 11, 1, 19, 7],
   ["Зона ловушек", 21, 0, 30, 9], ["Пылающие земли", 0, 1, 9, 10]];
 const F3_FALLBACK = "Охотничьи угодья";
-// Безвременье (решение автора): зона 4 × 4 в правом верхнем углу; внутри пропадает чувство направления — каждый шаг уходит в случайную сторону,
+// Ведьмин лес (решение автора): зона 4 × 4 в правом верхнем углу; внутри пропадает чувство направления — каждый шаг уходит в случайную сторону,
 // пройденные квадраты не запоминаются, выйти (и дойти до босса в центре) можно только случайно. Игра следит за позицией отряда.
 const F3_VOID = { x0: 27, y0: 0, x1: 30, y1: 3, boss: "28,2" };
 const inVoid = (x, y) => curFloor() === 3 && x >= F3_VOID.x0 && x <= F3_VOID.x1 && y >= F3_VOID.y0 && y <= F3_VOID.y1;
@@ -3945,6 +3968,7 @@ function rollInitiative(list, ambush) {
   return rows.sort((a, b) => (ambush ? (a.k === "mon" ? 0 : 1) - (b.k === "mon" ? 0 : 1) : 0) || b.total - a.total || b.dex - a.dex);
 }
 function startFight(ev, p, enc) {
+  if (voidHere()) ev.void = true;          // бой в Ведьмином лесу: сундучки на поле, побег сложнее
   Object.assign(ev, enc, { key: tkey(p.x, p.y), outcome: null, killed: [], turn: 0, round: 1, tactical: tacticalOn(), floor: curFloor(), water: waterLevel(p.x, p.y) });
   enc.list.forEach(id => { seenKeys(id, ["area"]); const m = MONSTERS.find(x => x.id === id); if (m && monCourse(m.cls)) { seenKeys(id, ["type"]); const h = (journal().hints[id] ||= []); for (const k of ["type", "portrait"]) if (!h.includes(k)) h.push(k); } });     // встреча открывает портрет, имя и места обитания; курс «Опознание монстров» — ещё и тип
   spFightStart(ev);
@@ -4246,6 +4270,7 @@ function f3Gen(mapTraps = false) {          // ловушки и валуны �
 const f3 = () => { const r = state.run; return (r.f3 ||= f3Gen()); };
 /* ----- Звон (решения автора 27.10): территория шума, в центре сундук. Шум копится (шкала до 20); дошла до 20 — приходит Хранитель Тишины (6 класс): в бою сразу на поле, вне боя начинается бой;
    шкала при этом сбрасывается. Шумят монстры (чем сильнее, тем больше: 9 — 1, 8 — 2, 7 — 4, 6 — 7) и неосторожные шаги отряда (лёгкая проверка Ловкости). Числа — мои, черновик drafts.md. ----- */
+const TOLL_MSG = "Звон серебряного колокольчика возвращает воспоминания о доме";
 const NOISE_MAX = 20, NOISE_BY_CLS = { 9: 1, 8: 2, 7: 4, 6: 7 }, TOLL_DC = 8, TOLL_STEP_NOISE = 1, TOLL_STEP_BAD = 2, TOLL_CALM = 1;
 const isToll = (x, y) => curFloor() === 3 && ["Звон", "Сердце этажа"].includes(FLOOR3.zoneName(x, y)) && tileType(x, y) === "floor";
 const TOLL_CHEST = "15,15";
@@ -4263,7 +4288,7 @@ function f3SummonKeeper() {
 function f3TollStep() {          // шаг по Звону: лёгкая проверка Ловкости; провал хоть у кого-то — звон
   const res = spSave("dex", TOLL_DC), fail = res.filter(x => !x.ok);
   if (!fail.length) { const F = f3(); if (F.noise > 0) F.noise = Math.max(0, F.noise - TOLL_CALM); return; }          // тихий шаг: шум −1 (решение автора 28.10)
-  const awful = fail.some(x => x.d === 1 || x.t <= TOLL_DC - 5);          // ужасный бросок: натуральная 1 или провал на 5+
+  const awful = fail.some(x => x.t <= 5);          // ужасный бросок (решение автора 28.10): итог 5 и меньше
   f3Noise(awful ? TOLL_STEP_BAD : TOLL_STEP_NOISE, `${fail.map(x => x.c.name).join(", ")} ${awful ? "грохочут" : "неосторожны"} (Ловкость Сл ${TOLL_DC})`);
 }
 function f3Buttons() {
@@ -4275,7 +4300,7 @@ function f3Do(id) {
   const r = state.run, F = f3();
   if (id === "f3chest" && !F.chestOpen) {
     F.chestOpen = true; const lines = [];
-    if (!treasure("tollbell").owned) { giveTreasure("tollbell"); lines.push("Артефакт 7 класса: Серебряный колокольчик Звона (неопознан)."); } else lines.push("Колокольчик Звона уже у отряда.");
+    if (!treasure("tollbell").owned) { giveTreasure("tollbell"); lines.push("Артефакт 7 класса: Серебряный колокольчик (неопознан)."); } else lines.push("Серебряный колокольчик уже у отряда.");
     lines.push(giveParty({ t: "g", id: "stone-7", qty: 3 }));
     lines.push(giveParty({ t: "g", id: "silver-salt", qty: 2 }));
     if (r.quietDay === r.day) { lines.push(giveParty({ t: "g", id: "stone-7", qty: 3 }), "Тихая цена: отряд подошёл беззвучно — награда вдвое."); }
@@ -4557,7 +4582,7 @@ function inventory() {
 const curFloor = () => (state.run && state.run.floor) || 1;
 /* ----- сокровища (черновик, drafts.md → «Сокровища»): по классам, 9 — худший, 1 — лучший ----- */
 const TREASURES = { guard: { cls: 9, name: "Ночной страж", base: 3, perFloor: 2 }, flame: { cls: 9, name: "Огонь, указывающий путь" }, hearth: { cls: 9, name: "Вечный очаг" },
-  dice: { cls: 9, name: "Игральные кубики", cd: 6 }, bell: { cls: 9, name: "Бубенец-предвестник", cd: 6 }, flask: { cls: 8, name: "Фляга странника", cd: 6 }, monocle: { cls: 8, name: "Монокль Амона" }, boots: { cls: 8, name: "Сапоги скороходы" }, tollbell: { cls: 7, name: "Серебряный колокольчик Звона" }, wind: { cls: 9, name: "Экстракт попутного ветра", charges: 10 } };          // cd — откат в действиях (6 = 2 дня)
+  dice: { cls: 9, name: "Игральные кубики", cd: 6 }, bell: { cls: 9, name: "Бубенец-предвестник", cd: 6 }, flask: { cls: 8, name: "Фляга странника", cd: 6 }, monocle: { cls: 8, name: "Монокль Амона" }, boots: { cls: 8, name: "Сапоги скороходы" }, tollbell: { cls: 7, name: "Серебряный колокольчик" }, wind: { cls: 9, name: "Экстракт попутного ветра", charges: 10 } };          // cd — откат в действиях (6 = 2 дня)
 function treasure(id) { return ((inventory().treasures ||= {})[id] ||= { owned: false }); }
 // Заряды Ночного стража — на заход: 3, +2 за первый за заход спуск на каждый новый этаж; вернулся и спустился снова — зарядов нет; новый заход сбрасывает.
 function ngState() { const r = state.run; return r ? (r.ng ||= { used: 0, granted: [] }) : { used: 0, granted: [] }; }
@@ -4623,7 +4648,7 @@ const ARTIFACTS = {
   chalice: { cls: 8, name: "Чаша здоровья", ico: () => GEAR_ICON.chalice, text: GEAR.chalice.note },
   "beginners-luck": { cls: 8, name: "Удача новичка", ico: () => GEAR_ICON["beginners-luck"], text: GEAR["beginners-luck"].note },
   "calm-flute": { cls: 9, name: "Флейта успокоения", ico: () => GEAR_ICON.flute, text: GEAR["calm-flute"].note },
-  tollbell: { cls: 7, name: "Серебряный колокольчик Звона", ico: () => ICO_BELL, text: "Уникальный (сокровищница Звона). Раз в день: если монстр атаковал героя ментальной атакой или дебаффом и герой провалил проверку (Инт, Муд или Хар), колокольчик звенит сам — перебросок с преимуществом получает пострадавший и все остальные, кого задела та же способность. Можно взвести заранее из Инвентаря: тогда следующие ментальные проверки команды идут с преимуществом." },
+  tollbell: { cls: 7, name: "Серебряный колокольчик", ico: () => ICO_BELL, text: "Уникальный (сокровищница Звона). Раз в день: если монстр атаковал героя ментальной атакой или дебаффом и герой провалил проверку (Инт, Муд или Хар), колокольчик звенит сам — перебросок с преимуществом получает пострадавший и все остальные, кого задела та же способность. Можно взвести заранее из Инвентаря: тогда следующие ментальные проверки команды идут с преимуществом." },
   boots: { cls: 8, name: "Сапоги скороходы", ico: () => ICO_BOOTS, text: "Раз в день: Движение проходит сразу 2 клетки, а Бег — 3 клетки (одна из пробегаемых клеток — без проверки)." },
   wind: { cls: 9, name: "Экстракт попутного ветра", ico: () => ICO_WIND, text: "Расходуется, 10 зарядов. Применить перед Бегом: следующий Бег идёт без Усталости, без минусов и без проверок." },
   monocle: { cls: 8, name: "Монокль Амона", ico: () => ICO_MONOCLE, text: "Раскрывает ловушки на карте: пока монокль у отряда, все ловушки в зоне видны сразу, проверка внимательности при входе не нужна." },
@@ -4632,6 +4657,12 @@ const ARTIFACTS = {
 const ART_ID_PRICE = { 9: 20, 8: 80, 7: 320, 6: 1000, 5: 3000, 4: 8000, 3: 20000, 2: 50000, 1: 150000 };          // определение в Башне магов (черновик)
 const artState = () => (state.artifacts ||= { seen: {}, known: {} });
 const artSeen = id => { if (ARTIFACTS[id]) artState().seen[id] = true; };                                         // получен: попадает в библиотеку артефактов
+// Цена артефактов растёт с классом (решение автора 28.10); «Удача новичка» — на уровне 7 класса. Кузница и Башня магов скупают артефакты;
+// «своя» лавка (Башня — аксессуары, Кузница — броня и оружие) платит на 10 % больше. Надбавку нигде не показываем.
+const ART_PRICE = { 9: 150, 8: 450, 7: 1500, 6: 5000 }, ART_PRICE_OVER = { "beginners-luck": 1500 }, ART_CAT = { boots: "armor" };
+const artValue = id => ART_PRICE_OVER[id] ?? ART_PRICE[ARTIFACTS[id].cls] ?? 100;
+const artBuyerMult = (id, b) => ((ART_CAT[id] || "acc") === "acc") === (b === "tower") ? 1.1 : 1;
+for (const id of Object.keys(ARTIFACTS)) ARTIFACTS[id].price = artValue(id);
 const artKnown = id => !!artState().known[id];
 const artName = id => (artKnown(id) ? ARTIFACTS[id].name : "??");
 const artPrice = id => ART_ID_PRICE[ARTIFACTS[id].cls] || 100;
@@ -4903,7 +4934,7 @@ const PX = (() => {
   };
 })();
 // Стиль плитки 2 этажа — по месту (логова, топь, паучьи кроны…); на 1 этаже — по зоне.
-const PLACE_STYLE = [[/Безвременье/, "void"], [/Сердце этажа/, "garden"], [/^Звон$/, "mines"], [/Храм изваяний/, "crypt"], [/Лагерь орков/, "camp"], [/Зона ловушек/, "holes"], [/Пылающие земли/, "lava"], [/Охотничьи угодья/, "beast"], 
+const PLACE_STYLE = [[/Ведьмин лес/, "void"], [/Сердце этажа/, "garden"], [/^Звон$/, "mines"], [/Храм изваяний/, "crypt"], [/Лагерь орков/, "camp"], [/Зона ловушек/, "holes"], [/Пылающие земли/, "lava"], [/Охотничьи угодья/, "beast"], 
   [/Крысиные норы|Логово крысолова/, "warren"], [/Логово воров/, "den"], [/Руины/, "ruins"], [/Поселение/, "camp"], [/Медвежья пещера/, "cave"], [/Топь/, "swamp"], [/Паучьи кроны/, "web"], [/Волчьи холмы/, "hills"],
   [/Склеп/, "crypt"], [/Пепельная печь/, "furnace"], [/Костяные поля/, "bonefield"], [/Ветряные шахты/, "mines"], [/озеро/, "lake"], [/Лавовые/, "lava"], [/Кристальный сад/, "garden"]];
 const tileStyle = (x, y) => {
@@ -4998,7 +5029,7 @@ function stageSvg() {
   const parts = [];
   const up = (cx, cy, inner) => `<g class="up" data-cx="${cx}" data-cy="${cy}" transform="translate(${cx} ${cy}) rotate(${-R})">${inner}</g>`;
   const sq = (x, y, attrs) => `<rect x="${(x - px) * T - T / 2 + 2}" y="${(y - py) * T - T / 2 + 2}" width="${T - 4}" height="${T - 4}" rx="${PX.ok ? 2 : 6}" ${attrs}/>`;
-  for (const k of voidHere() ? [] : r.visited) {          // в Безвременье предыдущие квадраты не видны
+  for (const k of voidHere() ? [] : r.visited) {          // в Ведьмином лесу предыдущие квадраты не видны
     const [x, y] = k.split(",").map(Number);
     if (x === px && y === py) continue;
     parts.push(sq(x, y, isDark(x, y) ? `fill="${PX.ok ? "url(#px-dark)" : "#14100c"}" stroke="#3e3020" stroke-width="1.2"` : `fill="${tileFill(x, y)}" stroke="#6e5634" stroke-width="1.2"`));
@@ -5110,7 +5141,7 @@ function stageOverlay() {
       ${spBtnHtml()}
       <button class="fx-btn" data-act="move"${r.tier ? " disabled" : ""}>${ICO_ACT.move}Движение<small>${r.tier ? "в ярусе нельзя" : "1 квадрат"}</small></button>
       ${(() => { const heavy = state.party.filter(c => load(c).noRun).map(c => c.name);
-        return `<button class="fx-btn" data-act="run"${heavy.length || r.tier || voidHere() ? " disabled" : ""}>${ICO_ACT.run}Бег<small>${voidHere() ? "в Безвременье нельзя" : heavy.length ? "перегруз: " + heavy.map(esc).join(", ") : "2 квадрата, +1 Усталость"}</small></button>`; })()}
+        return `<button class="fx-btn" data-act="run"${heavy.length || r.tier || voidHere() ? " disabled" : ""}>${ICO_ACT.run}Бег<small>${voidHere() ? "в Ведьмином лесу нельзя" : heavy.length ? "перегруз: " + heavy.map(esc).join(", ") : "2 квадрата, +1 Усталость"}</small></button>`; })()}
       <button class="fx-btn" data-act="rest">${ICO_ACT.rest}Отдых<small>сон, караул, еда</small></button>
       <button class="fx-btn" data-act="explore"${r.tier ? " disabled" : ""}>${ICO_ACT.explore}Исследовать<small>этот фрагмент, к20</small></button>
       ${tileType(r.pos.x, r.pos.y) === "portal" ? `<button class="fx-btn portal-btn" data-act="portal">${ICO_ACT.run}Войти в портал<small>${portalName(r.pos.x, r.pos.y)}</small></button>` : ""}
@@ -5410,7 +5441,7 @@ function act(kind) {
     let t = dgUi.target; const wasVoid = voidHere();
     const boots = !wasVoid && bootsOn() && dgUi.path.length >= 2;          // сапоги скороходы: пройти сразу 2 клетки шагом (промежуточная — без события)
     if (boots) { const m = dgUi.path[0]; visit(m.x, m.y); if (r.floor === 3) f3Step(m.x, m.y); r.bootsDay = r.day; r.boots = false; }
-    if (wasVoid) {          // Безвременье: куда бы ни шли, шаг уходит в случайную сторону; за краем этажа стоим на месте
+    if (wasVoid) {          // Ведьмин лес: куда бы ни шли, шаг уходит в случайную сторону; за краем этажа стоим на месте
       const [dx, dy] = [[1, 0], [-1, 0], [0, 1], [0, -1]][rnd(4)], nx = r.pos.x + dx, ny = r.pos.y + dy;
       t = inBounds(nx, ny) ? { x: nx, y: ny } : { x: r.pos.x, y: r.pos.y };
       r.spin = [0, 90, 180, 270][rnd(4)];
@@ -5418,13 +5449,13 @@ function act(kind) {
     r.pos = { x: t.x, y: t.y }; visit(t.x, t.y);
     r.stay = { k: tkey(t.x, t.y), since: absAct(r) + 1 };
     tick();
-    logRun((wasVoid ? "Безвременье: шаг в неизвестную сторону." : boots ? "Сапоги скороходы: Движение на 2 квадрата." : "Движение на 1 квадрат.") + tileNote(t.x, t.y));
+    logRun((wasVoid ? "Ведьмин лес: шаг в неизвестную сторону." : boots ? "Сапоги скороходы: Движение на 2 квадрата." : "Движение на 1 квадрат.") + tileNote(t.x, t.y));
     const nearVoid = !voidHere() && [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]].some(([dx, dy]) => inVoid(r.pos.x + dx, r.pos.y + dy));
     if (nearVoid) { logRun("Впереди неприглядный туман."); toast("Впереди неприглядный туман"); }
-    if (!wasVoid && voidHere()) logRun("Безвременье: пропало чувство направления. Что слева, что справа — уже не понять; пройденное не запоминается.");
-    else if (wasVoid && !voidHere()) logRun("Направление вернулось: отряд вышел из Безвременья.");
+    if (!wasVoid && voidHere()) logRun("Ведьмин лес: пропало чувство направления. Что слева, что справа — уже не понять; пройденное не запоминается.");
+    else if (wasVoid && !voidHere()) logRun("Направление вернулось: отряд вышел из Ведьмина леса.");
     if (r.floor === 3) f3Step(r.pos.x, r.pos.y);
-    if (voidHere() && tkey(r.pos.x, r.pos.y) === F3_VOID.boss) { dgUi.res = { title: "Центр Безвременья", roll: "", lines: ["В центре Безвременья ждёт местный босс. Он ещё не создан."] }; logRun("Отряд случайно дошёл до центра Безвременья."); }
+    if (voidHere() && tkey(r.pos.x, r.pos.y) === F3_VOID.boss) { dgUi.res = { title: "Центр Ведьмина леса", roll: "", lines: ["В центре Ведьмина леса ждёт местный босс. Он ещё не создан."] }; logRun("Отряд случайно дошёл до центра Ведьмина леса."); }
   } else if (kind === "run") {
     const tired = state.party.filter(c => r.status[c.id].fat >= 3).map(c => c.name);
     if (r.flame && r.flame.left > 0) r.flame.left--;
@@ -5499,7 +5530,7 @@ function act(kind) {
     const pn = dgUi.path.length, p0 = kind === "run" && pn > 1 && !windUsed ? dgUi.path[pn - 2] : null;          // последняя пробегаемая клетка; при Беге в 3 клетки первая — без проверки (сапоги)
     if (p0 && zoneAt(p0.x, p0.y).kind !== "safe" && !isQuiet(r, tkey(p0.x, p0.y))) askPass(p0.x, p0.y, { key: tkey(r.pos.x, r.pos.y), fresh: dgUi.finFresh });
     if (z.kind !== "safe" && spEnter()) { /* особое место: бой начат */ }
-    else if (z.kind !== "safe" && voidHere()) { /* Безвременье: встречи пока не описаны */ }
+    else if (z.kind !== "safe" && voidHere()) { /* Ведьмин лес: встречи пока не описаны */ }
     else if (z.kind !== "safe") {
       if (isQuiet(r, tkey(r.pos.x, r.pos.y))) logRun("Квадрат недавно зачищен: пусто, бросок не нужен.");
       else { logRun("Новый квадрат: мастер, брось к20."); askRoll(kind); }
@@ -5721,7 +5752,7 @@ document.addEventListener("click", e => {
     case "tr-tap": {
       const id = ds.id, r = state.run;
       if (id === "flame" && !r.flame) { r.flame = { left: 3 }; logRun("Следующие 3 перемещения подсветят дорогу к ближайшему порталу."); saveChar(); toast("Зажжено: 3 перемещения"); dgUi.inv = false; break; }
-      if (id === "tollbell" && tollReady() && !r.tollArmed) { r.tollArmed = { day: r.day }; r.tollDay = r.day; if (isToll(r.pos.x, r.pos.y)) f3Noise(3, "колокольчик звенит в Звоне"); logRun("Серебряный колокольчик Звона взведён: ближайшие ментальные проверки команды — с преимуществом."); saveChar(); toast("Колокольчик взведён"); dgUi.inv = false; break; }
+      if (id === "tollbell" && tollReady() && !r.tollArmed) { r.tollArmed = { day: r.day }; r.tollDay = r.day; if (isToll(r.pos.x, r.pos.y)) f3Noise(3, "колокольчик звенит в Звоне"); logRun("Звон серебряного колокольчика возвращает воспоминания о доме. Ближайшие ментальные проверки команды — с преимуществом."); saveChar(); toast(TOLL_MSG); dgUi.inv = false; break; }
       if (id === "boots" && bootsReady()) { r.boots = !r.boots; logRun(r.boots ? "Сапоги скороходы: следующее Движение — 2 клетки, следующий Бег — 3 клетки." : "Сапоги скороходы: отменено."); saveChar(); toast(r.boots ? "Сапоги включены" : "Сапоги выключены"); dgUi.inv = false; break; }
       if (id === "wind" && (treasure("wind").charges || 0) > 0) { r.wind = !r.wind; logRun(r.wind ? "Экстракт попутного ветра: следующий Бег — без Усталости, минусов и проверок." : "Экстракт попутного ветра: отменено."); saveChar(); toast(r.wind ? "Ветер применён" : "Отменено"); dgUi.inv = false; break; }
       trInfo(id); return;
@@ -5915,6 +5946,7 @@ function selPanel(c) {
   const btns = [];
   if (it.use === "eat") btns.push(`<button class="fx-btn primary" data-hx="eat">Съесть 1</button>`);
   if (it.use === "drink") btns.push(`<button class="fx-btn primary" data-hx="drink">Выпить</button>`);
+  if (it.use === "salt") btns.push(`<button class="fx-btn primary" data-hx="salt-toggle" aria-expanded="${!!heroUi.salt}">Посыпать оружие</button>`);
   if (e.id === "chalice") {
     const st = chaliceSt(e);
     if (st === "potion") btns.push(`<button class="fx-btn primary" data-hx="chalice-drink">Выпить (2к4 + 4)</button>`);
@@ -5932,6 +5964,7 @@ function selPanel(c) {
   return `<div class="sel-panel fx-frame"><h4>${esc(it.name)}${e.qty > 1 ? ` × ${e.qty}` : ""}</h4>
     <p>${kgf((it.weight || 0) * (e.qty || 1))} кг${e.uses != null ? ` · осталось раскопок: ${e.uses}` : ""}${it.note ? " · " + it.note : ""}${it.kindOf === "weapon" && it.dmg ? ` · ${it.dmg} ${it.type}` : ""}${it.kindOf === "armor" ? ` · КД ${it.ac}` : ""}</p>
     <div class="btn-row">${btns.join("")}</div>
+    ${it.use === "salt" && heroUi.salt ? `<div class="btn-row">${saltTargets(c).map(w => `<button class="fx-btn" data-hx="salt-do" data-wk="${w.k}">${esc(w.name)}</button>`).join("") || "<span>Нет подходящего оружия.</span>"}</div>` : ""}
     ${heroUi.give ? `<div class="btn-row">${others.map(o => `<button class="fx-btn" data-hx="give" data-to="${o.id}">${esc(o.name)} (${(o.bag || []).length}/${bagSize(o)})</button>`).join("")}</div>
       ${e.qty > 1 ? `<p>Передаётся вся стопка.</p>` : ""}` : ""}
   </div>`;
@@ -6012,6 +6045,13 @@ function renderHero() {
   const body = $hero.querySelector(".hero-body"); if (body) body.scrollTop = y;
 }
 
+// Оружие героя, на которое можно высыпать серебряную соль: в руках и в рюкзаке (не щиты и не боеприпасы, ещё не посыпанное).
+function saltTargets(c) {
+  const out = [], ok = e => { const it = e && e.t === "w" && itemOf(e); return it && it.group !== "shield" && it.kind !== "Боеприпасы" && !e.salt ? it : null; };
+  for (const [sl, nm] of [["main", "в правой руке"], ["off", "в левой руке"]]) { const e = (c.equip || {})[sl], it = ok(e); if (it) out.push({ k: "eq:" + sl, e, name: `${it.name} (${nm})` }); }
+  (c.bag || []).forEach((e, i) => { const it = ok(e); if (it) out.push({ k: "bag:" + i, e, name: it.name }); });
+  return out;
+}
 function heroAfterChange(msg) {
   saveChar();
   if (msg) toast(msg);
@@ -6078,6 +6118,13 @@ $hero.addEventListener("click", e => {
       c.gold = goldOf(c) - n; addGold(to, n); heroAfterChange(`${n} монет: ${c.name} → ${to.name}`); return;
     }
     case "give-toggle": heroUi.give = !heroUi.give; renderHero(); return;
+    case "salt-toggle": heroUi.salt = !heroUi.salt; renderHero(); return;
+    case "salt-do": {
+      const w = saltTargets(c).find(x => x.k === ds.wk); if (!w || !entry || entry.id !== "silver-salt") return;
+      w.e.salt = true; entry.qty--; if (!entry.qty) { c.bag.splice(heroUi.sel, 1); heroUi.sel = null; }
+      heroUi.salt = false; if (state.run) logRun(`${c.name} посыпает оружие серебряной солью: ${w.name} теперь бьёт призраков.`);
+      heroAfterChange(`${w.name}: посыпано солью`); return;
+    }
     case "eat": {
       takeGear(c, "ration", 1);
       const st = state.run && state.run.status && state.run.status[c.id];
@@ -6115,7 +6162,7 @@ $hero.addEventListener("click", e => {
       const slot = ds.slotTo, it = itemOf(entry);
       c.bag.splice(heroUi.sel, 1); heroUi.sel = null;
       const prev = c.equip[slot];
-      c.equip[slot] = entry.t === "c" ? { t: "c", name: entry.name } : { t: entry.t, id: entry.id, ...(entry.steel ? { steel: true } : {}) };
+      c.equip[slot] = entry.t === "c" ? { t: "c", name: entry.name } : { t: entry.t, id: entry.id, ...(entry.steel ? { steel: true } : {}), ...(entry.salt ? { salt: true } : {}) };
       if (prev) addToBag(c, { ...prev, qty: 1 });
       if (slot === "off" && isTwoHandedWeapon(it) && it.group !== "ranged" && c.race === "barbarian") c.giantGrip = true;          // второе двуручное в левую руку: «Великан» с большим штрафом
       if (slot === "main" && isTwoHandedWeapon(it) && it.group === "ranged" && c.equip.off && !lightMelee(itemOf(c.equip.off))) {

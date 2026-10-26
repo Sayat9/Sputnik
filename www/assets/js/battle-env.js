@@ -19,6 +19,7 @@
     tent:     { hp: 8, ac: 9, res: [], vuln: ["slash"], drop: [[0.03, 0], [0, 0.02]] },
     tree:     { hp: 25, ac: 12, res: ["pierce"], vuln: ["slash"], drop: [[0.02, 0], [0, 0.02]] },
     palisade: { hp: 20, ac: 10, res: ["pierce"], vuln: ["slash"], drop: [[0.02, 0], [0, 0.015]] },
+    stash:    { hp: 6, ac: 9, res: [], vuln: ["slash"], drop: [[0, 0], [0, 0]] },          // походный сундучок Ведьмина леса: награда и мимик — в destroyObject
     deadfall: { hp: 24, ac: 11, res: ["pierce"], vuln: ["slash"], drop: [[0.02, 0], [0, 0.015]] },
   };
   D.recoil = { maxNat: 3, dmg: [1, 4] };                          // обычное оружие (не молот и не тяжёлое), натуральное 1–3 по камню: отдача в руку
@@ -52,10 +53,38 @@
     S.cells[y][x] = ""; delete (S.objHp || {})[key(x, y)];
     log(`${name} разрушен${/[ао]$/.test(name) ? "а" : ""}${src ? " (" + src.name + ")" : ""}.`, "hit");
     const g = ui(); if (g) { g.fxText({ x, y, size: 1, id: "obj" }, "разрушено", "dmg"); g.refresh(); }
+    if (t === "stash") { stashBreak(x, y, src); return; }
     const [p9, p8] = stoneChance(t);
     if (p9 && rnd(1000) < p9 * 1000) { (S.found ||= []).push({ t: "g", id: "stone-9", qty: 1 }); log(`Среди обломков блестит магический камень (9-й класс).`, "good"); }
     if (p8 && rnd(1000) < p8 * 1000) { (S.found ||= []).push({ t: "g", id: "stone-8", qty: 1 }); log(`Среди обломков блестит магический камень (8-й класс).`, "good"); }
   }
+  // Походный сундучок (Ведьмин лес): обычно камни (иногда факел), в 5 % случаев внутри мимик — он появляется рядом и бьёт того, кто сломал.
+  D.stash = { mimic: 0.05, stone9: [1, 2], stone8: 0.2, torch: 0.08 };
+  function stashBreak(x, y, src) {
+    const S = B.S, C = D.stash; let who = src && src.side && !src.isObj ? src : null;
+    if (!who) who = B.heroes().filter(alive)[0] || null;
+    if (who && rnd(1000) < C.mimic * 1000) {
+      const m = B.monUnit("mimic", -1), c = B.freeCellsNear(who, 1, m)[0] || [x, y];
+      m.x = c[0]; m.y = c[1]; B.addUnit(m, S.order[S.turn]);
+      log(`Из сундучка выскакивает мимик и бросается на ${who.name}!`, "bad");
+      const g = ui(); if (g) { g.banner("Мимик!"); g.fxText(m, "мимик", "bad"); }
+      (S.stashQ ||= []).push({ id: m.id, tgt: who.id }); return;
+    }
+    const lines = [], n9 = C.stone9[0] + rnd(C.stone9[1] - C.stone9[0] + 1);
+    (S.found ||= []).push({ t: "g", id: "stone-9", qty: n9 }); lines.push(`камни 9-го класса × ${n9}`);
+    if (rnd(1000) < C.stone8 * 1000) { S.found.push({ t: "g", id: "stone-8", qty: 1 }); lines.push("камень 8-го класса"); }
+    if (rnd(1000) < C.torch * 1000) { S.found.push({ t: "g", id: "torch", qty: 1 }); lines.push("факел"); }
+    if (rnd(1000) < 120) { S.found.push({ t: "g", id: "silver-salt", qty: 1 }); lines.push("серебряная соль"); }
+    log(`В обломках сундучка: ${lines.join(", ")}.`, "good");
+  }
+  B.flushStash = async function () {
+    const S = B.S; while (S && S.stashQ && S.stashQ.length) {
+      const q = S.stashQ.shift(), m = S.units.find(u => u.id === q.id), t = S.units.find(u => u.id === q.tgt);
+      if (!m || !t || !alive(m) || !alive(t) || t.down) continue;
+      const atk = B.meleeAttackOf ? B.meleeAttackOf(m) : null; if (!atk) continue;
+      await B.doAttack(m, t, atk, { reaction: true, cancelable: false });
+    }
+  };
   // Урон объекту в клетке. dt — тип урона (ядовитому, психическому и т. п. объект не вредит).
   function damageObject(x, y, dmg, dt, src) {
     const S = B.S, t = B.terrain(x, y), def = t && D.obj[t]; if (!def || dmg <= 0 || NO_DAMAGE.includes(dt)) return 0;
@@ -88,7 +117,8 @@
     if (hit) {
       const dm = await B.rollDamage(att, o, atk, { melee, extra: [] }, crit, ses);
       for (const p of dm.parts) dealt += damageObject(o.x, o.y, p.v, p.dt, att);
-      for (const e of opt.extra || []) { const rr = roll(e.n * (crit && e.critDouble ? 2 : 1), e.s).total + (e.b || 0); dealt += damageObject(o.x, o.y, rr, e.dt || atk.dt, att); }          // «+2к6» способности
+      for (const e of opt.extra || []) { const rr = roll(e.n * (crit && e.critDouble ? 2 : 1), e.s).total + (e.b || 0); dealt += damageObject(o.x, o.y, rr, e.dt || atk.dt, att); }
+      if (B.flushStash) await B.flushStash();          // «+2к6» способности
       text = `${crit ? "Критическое попадание! " : "Попадание! "}${o.name}: −${dealt}`;
       log(`${att.name}: ${atk.n} по объекту «${o.name}» — ${dealt} урона.`, "hit");
     } else { text = "Мимо"; log(`${att.name}: ${atk.n} по объекту «${o.name}» — промах (${nat === total ? nat : nat + " → " + total} против КД ${o.ac}).`, "miss"); }
@@ -237,6 +267,7 @@
     if (rnd(1000) < C.food * 1000) out.push({ t: "g", id: "ration", qty: 1 + rnd(2) });
     if (rnd(1000) < C.potion * 1000) out.push({ t: "g", id: "potion", qty: 1 });
     if (rnd(1000) < C.other * 1000) { const ids = Object.keys(FD()); out.push(rnd(2) ? { t: "g", id: "torch", qty: 1 + rnd(2) } : { t: "g", id: pick(ids), qty: 1 }); }
+    if (rnd(100) < 15) out.push({ t: "g", id: "silver-salt", qty: 1 });          // соль падает из всех сундуков (решение автора 28.10)
     if (rnd(1000) < C.map * 1000) out.push({ map: "floorMap" });
     return out;
   }
@@ -248,6 +279,15 @@
       const x = rnd(B.W), y = 1 + rnd(3);
       if (S.cells[y][x] || S.objs.some(o => o.x === x && o.y === y)) continue;
       S.cells[y][x] = "chest"; S.objs.push({ id: "chest", kind: "chest", x, y, opened: false, loot: rollChest(S.floor) }); return;
+    }
+  }
+  function placeStashes(S, ev) {
+    if (!(ev.stash || ev.void)) return;
+    const n = 2 + rnd(2);
+    for (let i = 0, tries = 0; i < n && tries < 80; tries++) {
+      const x = rnd(B.W), y = 2 + rnd(Math.max(1, B.H - 5));
+      if (S.cells[y][x] || S.objs.some(o => o.x === x && o.y === y)) continue;
+      S.cells[y][x] = "stash"; i++;
     }
   }
   const nearChest = u => B.S.objs.find(o => o.kind === "chest" && !o.opened && distCell(u, o.x, o.y) <= 1);
@@ -297,12 +337,14 @@
   };
 
   /* ===================== подготовка поля ===================== */
-  B.placeEnv = function (S, ev) { placeFinds(S); placeChests(S, ev || {}); };
+  B.placeEnv = function (S, ev) { placeFinds(S); placeChests(S, ev || {}); placeStashes(S, ev || {}); };
 
   /* ===================== данные местности: сундук ===================== */
   D.SVG.chest = '<ellipse cx="50" cy="82" rx="38" ry="9" fill="#000" opacity=".3"/><rect x="14" y="40" width="72" height="40" rx="5" fill="#8a5a2a" stroke="#3d2410" stroke-width="3"/><path d="M14 52 Q50 24 86 52 V40 Q50 14 14 40Z" fill="#a06a32" stroke="#3d2410" stroke-width="3" stroke-linejoin="round"/><path d="M14 56 H86 M32 40 V80 M68 40 V80" stroke="#4a2c12" stroke-width="3"/><rect x="43" y="50" width="14" height="16" rx="2" fill="#d6a64c" stroke="#5a3d0a" stroke-width="2"/><circle cx="50" cy="58" r="2.4" fill="#3d2410"/>';
   D.SVG.chestopen = '<ellipse cx="50" cy="82" rx="38" ry="9" fill="#000" opacity=".3"/><rect x="14" y="46" width="72" height="34" rx="5" fill="#8a5a2a" stroke="#3d2410" stroke-width="3"/><path d="M14 46 L24 18 H76 L86 46Z" fill="#a06a32" stroke="#3d2410" stroke-width="3" stroke-linejoin="round"/><rect x="20" y="48" width="60" height="12" fill="#2a1a0c"/><path d="M32 46 V80 M68 46 V80" stroke="#4a2c12" stroke-width="3"/>';
   D.terrain.chest = { name: "Деревянный сундук", obstacle: true, note: "Не пройти. Откройте его рядом действием: внутри добыча (камни, иногда еда, зелья, карта)." };
+  D.SVG.stash = '<ellipse cx="50" cy="82" rx="30" ry="7" fill="#000" opacity=".3"/><rect x="24" y="48" width="52" height="32" rx="5" fill="#6b5a7a" stroke="#2c2236" stroke-width="3"/><rect x="24" y="48" width="52" height="11" rx="5" fill="#85729a" stroke="#2c2236" stroke-width="3"/><rect x="46" y="58" width="8" height="9" rx="2" fill="#d8c070" stroke="#2c2236" stroke-width="2"/>';
+  D.terrain.stash = { name: "Походный сундучок", obstacle: true, note: "Не пройти. Небольшой сундучок: сломайте его (КД 9, 6 ОЗ), и внутри что-то будет." };
   D.terrain.chestopen = { name: "Открытый сундук", obstacle: true, note: "Не пройти. Уже пуст." };
 
   /* ===== вороны: последняя ворона в гнезде паникует; чернокрыл зовёт новых (rules.md → «Гнездо ворон и чернокрыл») ===== */

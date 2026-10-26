@@ -117,11 +117,36 @@
      МАГАЗИН
      ===================================================================== */
   // Магазин и кузница — один интерфейс с разной витриной.
-  const goodsOf = () => ui.b === "forge" ? FORGE[ui.tab || "base"] : GOODS;
+  const goodsOf = () => ui.b === "forge" ? (FORGE[ui.tab || "base"] || FORGE.base) : GOODS;
   const goodByKey = k => [...GOODS, ...FORGE.base, ...FORGE.steel].find(g => g.key === k);
   const owned = g => g.special === "compass" && inventory().compass.owned;
   const goodInfo = g => g.special === "compass" ? COMPASS_INFO() : (g.label ? { ...itemOf(g.e), name: g.label } : itemOf(g.e));
   const sellsStones = () => ui.b === "shop";
+  // Продажа артефактов (Кузница и Башня магов): в отряде — флаги сокровищ и артефакты-предметы в рюкзаках и слотах.
+  function artRows() {
+    const out = [];
+    for (const id of Object.keys(TREASURES)) if (ARTIFACTS[id] && treasure(id).owned) out.push({ key: "t:" + id, id, src: "tr" });
+    for (const c of state.party.filter(x => !x.dead)) {
+      (c.bag || []).forEach((e, i) => { if (e && e.t === "g" && ARTIFACTS[e.id] && !TREASURES[e.id]) out.push({ key: `b:${c.id}:${i}`, id: e.id, src: "bag", c, i, qty: e.qty || 1 }); });
+      for (const [sl, e] of Object.entries(c.equip || {})) if (e && e.t === "g" && ARTIFACTS[e.id] && !TREASURES[e.id]) out.push({ key: `e:${c.id}:${sl}`, id: e.id, src: "eq", c, sl });
+    }
+    return out;
+  }
+  const artPay = (r, b) => Math.round(artValue(r.id) * artBuyerMult(r.id, b));
+  function artSell(key, b) {
+    const r = artRows().find(x => x.key === key); if (!r) return;
+    const c = hero(), g = artPay(r, b);
+    if (r.src === "tr") { const tr = treasure(r.id); tr.owned = false; if (state.run && state.run.tollArmed && r.id === "tollbell") state.run.tollArmed = null; }
+    else if (r.src === "bag") { const e = r.c.bag[r.i]; e.qty = (e.qty || 1) - 1; if (e.qty <= 0) r.c.bag.splice(r.i, 1); }
+    else delete r.c.equip[r.sl];
+    addGold(c, g); visit(); ui.msg = `Продано: ${artName(r.id)} за ${g} монет — ${c.name}.`; saveChar();
+  }
+  const artSellHtml = b => {
+    artSync(); const rows = artRows();
+    return rows.length ? `<div class="tw-rows">${rows.map(r => { const A = ARTIFACTS[r.id];
+      return `<div class="tw-row"><div class="tw-who"><span class="tw-ph sq" style="display:grid;place-items:center;color:var(--fx-gold)">${A.ico()}</span><div><b>${esc(artName(r.id))}${r.qty > 1 ? " × " + r.qty : ""}</b><small>${A.cls} класс${r.c ? " · у " + esc(r.c.name) : ""}</small></div></div>
+        <button class="fx-btn primary" data-t="artsell" data-key="${r.key}" data-b="${b}">${artPay(r, b)}</button></div>`; }).join("")}</div>` : `<p class="tw-msg">Артефактов, которые можно продать, у отряда нет.</p>`;
+  };
   function shopSelInfo() {
     const c = hero(), sel = ui.sel;
     if (!sel) return `<span class="tw-hint">Нажми предмет, чтобы купить${sellsStones() ? "; камни продаются из сумки" : ""}. Удержи: описание.</span>`;
@@ -156,7 +181,11 @@
     const c = hero(), forge = ui.b === "forge", title = forge ? "Кузница" : "Магазин";
     if (!c) return frame(title, "Рафдония", noParty());
     const left = `<aside class="tw-bagcol">${heroStrip()}<div class="gold-row">${COIN_SVG}<b>${goldOf(c)}</b><small>монет у героя</small></div>${bagGrid(c, ui.sel && ui.sel.side === "bag" ? ui.sel.i : null)}${forge ? "" : sackTile()}</aside>`;
-    const tabs = forge ? `<div class="tw-tabs"><button class="fx-btn" role="tab" aria-selected="${(ui.tab || "base") === "base"}" data-t="ftab" data-k="base">Обычное</button><button class="fx-btn" role="tab" aria-selected="${ui.tab === "steel"}" data-t="ftab" data-k="steel">Улучшенное</button></div>` : "";
+    const tabs = forge ? `<div class="tw-tabs"><button class="fx-btn" role="tab" aria-selected="${(ui.tab || "base") === "base"}" data-t="ftab" data-k="base">Обычное</button><button class="fx-btn" role="tab" aria-selected="${ui.tab === "steel"}" data-t="ftab" data-k="steel">Улучшенное</button><button class="fx-btn" role="tab" aria-selected="${ui.tab === "art"}" data-t="ftab" data-k="art">Скупка</button></div>` : "";
+    if (forge && ui.tab === "art") {
+      const right0 = `<section class="tw-shopcol"><div class="tw-keeper">${img("assets/npc/smith.webp", "Кузнец")}<div class="tw-bubble">Редкие вещи беру за хорошие деньги.</div></div><div class="tw-sheet"><div class="tw-rod"></div><div class="tw-sheet-in">${tabs}${artSellHtml("forge")}</div></div></section>`;
+      return `<div class="tw-panel fx-frame">${head(title, "Рафдония")}<div class="tw-shop">${left}${right0}</div><footer class="tw-foot">${msgLine()}</footer></div>`;
+    }
     const sheet = `<div class="tw-sheet"><div class="tw-rod"></div><div class="tw-sheet-in">${tabs}<div class="tw-stock">${goodsOf().map(g => {
       const it = goodInfo(g), sel = ui.sel && ui.sel.side === "shop" && ui.sel.key === g.key, own = owned(g), q = g.e ? g.e.qty : 1;
       return `<button class="tw-slot${own ? " own" : ""}${it.steel ? " steel" : ""}" data-t="stock" data-id="${g.key}" aria-pressed="${!!sel}" aria-label="${esc(it.name)}, ${g.price} монет">
@@ -526,13 +555,14 @@
     B.tower = {
       render() {
         const c = hero(); if (!c) return frame("Башня магов", "Рафдония", noParty());
-        const tab = ui.tab === "art" ? "art" : "ess";
-        const tabs = `<div class="tw-tabs"><button class="fx-btn" role="tab" aria-selected="${tab === "ess"}" data-t="ttab" data-k="ess">Эссенции</button><button class="fx-btn" role="tab" aria-selected="${tab === "art"}" data-t="ttab" data-k="art">Артефакты</button></div>`;
+        const tab = ui.tab === "art" ? "art" : ui.tab === "sell" ? "sell" : "ess";
+        const tabs = `<div class="tw-tabs"><button class="fx-btn" role="tab" aria-selected="${tab === "ess"}" data-t="ttab" data-k="ess">Эссенции</button><button class="fx-btn" role="tab" aria-selected="${tab === "sell"}" data-t="ttab" data-k="sell">Скупка</button><button class="fx-btn" role="tab" aria-selected="${tab === "art"}" data-t="ttab" data-k="art">Артефакты</button></div>`;
+        if (tab === "sell") return frame("Башня магов", "Рафдония", `${heroStrip()}${tabs}<p class="tw-lead">Маг скупает артефакты. Золото получает выбранный герой.</p>${artSellHtml("tower")}${msgLine()}`);
         if (tab === "art") {
           artSync();
           const ids = Object.keys(ARTIFACTS).filter(id => artState().seen[id]);
           const rows = ids.map(id => { const A = ARTIFACTS[id], known = artKnown(id), price = artPrice(id);
-            return `<div class="tw-row"><div class="tw-who"><span class="tw-ph sq" style="display:grid;place-items:center;color:var(--fx-gold)">${A.ico()}</span><div><b>${esc(artName(id))}</b><small>${known ? `${A.cls} класс · ${esc(A.text)}` : `${A.cls} класс · свойства неизвестны`}</small></div></div>
+            return `<div class="tw-row"><div class="tw-who"><span class="tw-ph sq" style="display:grid;place-items:center;color:var(--fx-gold)">${A.ico()}</span><div><b>${esc(artName(id))}</b><small>${known ? `${A.cls} класс · цена ${artValue(id)} з. · ${esc(A.text)}` : `${A.cls} класс · свойства неизвестны`}</small></div></div>
               ${known ? `<span class="tw-done">${ICO_CHECK}</span>` : `<button class="fx-btn primary" data-t="aid" data-id="${id}"${partyGold() >= price ? "" : " disabled"}>${price}</button>`}</div>`; }).join("");
           return frame("Башня магов", "Рафдония", `${heroStrip()}${tabs}<p class="tw-lead">Маг определит артефакт за деньги: откроются название и свойства, сведения попадут в библиотеку артефактов.</p>
             ${ids.length ? `<div class="tw-rows">${rows}</div>` : `<p class="tw-msg">Артефактов пока нет: они появляются, когда отряд находит сокровища.</p>`}${msgLine()}`);
@@ -734,6 +764,7 @@
       case "atab": ui.tab = ds.k; break;
       case "ttab": ui.tab = ds.k; break;
       case "aid": identify(ds.id); break;
+      case "artsell": artSell(ds.key, ds.b); break;
       case "purge": purge(ds.id); break;
       case "qaccept": questAccept(ds.id); break;
       case "qdone": questDone(ds.id); break;

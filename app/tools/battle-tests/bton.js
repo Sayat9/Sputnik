@@ -54,10 +54,26 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
     // 7. серебряная соль: спектральному физика не проходит, с солью проходит
     const hh = B.heroes()[0], ghost = { side: 'mon', tags: [], id: 'g' };
     const gh = { mon: { spectral: true } }, plain = { side: 'hero' };
-    out.salt = [B.physBlocked(plain, gh, 'slash'), B.physBlocked({ salted: true }, gh, 'slash'), B.physBlocked(plain, gh, 'fire')];
+    out.salt = [B.physBlocked(plain, gh, 'slash'), B.physBlocked(plain, gh, 'slash', { w: { salt: true } }), B.physBlocked(plain, gh, 'fire')];
     // колокольчик в Звоне: +3 шума
     state.run.pos = { x: 15, y: 15 }; f3().noise = 0; state.run.day = 9; state.run.tollDay = null; B.S.round = 20;
     await B.doSave(hero, 'wis', 99, { label: 'зв', from: k }); out.ring = f3().noise;
+    // 8. побег: 3 этаж 8, Ведьмин лес 10, 2 этаж 7, 1 этаж 5
+    const fl = []; for (const [f, v] of [[1, false], [2, false], [3, false], [3, true]]) { const Sx = B.newBattle({ list: ['goblin'], zone: 'goblin', floor: f, kind: 'hard', title: 'x', void: v }); fl.push(B.fleeDc()); }
+    out.flee = fl;
+    // 9. походные сундучки Ведьмина леса: ставятся, ломаются; награда или мимик
+    const Sv = B.newBattle({ list: ['goblin', 'goblin'], zone: 'goblin', floor: 3, kind: 'hard', title: 'x', void: true, stash: true }); S0 = null;
+    B.placeHeroesDefault(Sv); B.placeMonsters(Sv);
+    let sx = []; for (let y = 0; y < B.H; y++) for (let x = 0; x < B.W; x++) if (Sv.cells[y][x] === 'stash') sx.push([x, y]);
+    out.stash = { n: sx.length };
+    const hv = B.heroes()[0]; const rr = Math.random;
+    B.D.stash.mimic = 0; Sv.found = []; B.destroyObject(sx[0][0], sx[0][1], hv); out.loot = { found: Sv.found.map(f => f.id), mons: B.mons().length };
+    B.D.stash.mimic = 1; const before2 = B.mons().length; const hp0 = hv.hp; B.destroyObject(sx[1][0], sx[1][1], hv);
+    out.mimic = { mons: B.mons().length - before2, q: (Sv.stashQ || []).length, sx: sx.length, who: !!hv, st: B.S === Sv, cell: Sv.cells[sx[1][0]] ? Sv.cells[sx[1][1]][sx[1][0]] : null };
+    await B.flushStash(); out.mimic.hit = hv.hp < hp0 || (Sv.log || []).some(l => /Мимик/.test(l.t || l));
+    B.D.stash.mimic = 0.05;
+    // 10. соль: оружие с флагом бьёт спектральных
+    out.salted = !!itemOf({ t: 'w', id: 'sword', salt: true }).salt && /соль/.test(itemOf({ t: 'w', id: 'sword', salt: true }).note);
     out.errs = 0;
     return out;
   });
@@ -73,6 +89,11 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
   ok('шаг по Звону: тихо −1, провал +1, ужасный +2', o.step[0] === 4 && o.step[1] === 2 && (o.step[2] == null || o.step[2] === 1), o.step);
   ok('соль: физика проходит по спектральному, без соли блокируется, огонь проходит', o.salt.join() === 'true,false,false', o.salt);
   ok('колокольчик в Звоне: шум +3', o.ring === 3, o.ring);
+  ok('сложность побега: 1 эт. 5, 2 эт. 7, 3 эт. 8, Ведьмин лес 10', o.flee.join() === '5,7,8,10', o.flee);
+  ok('сундучки в бою Ведьмина леса', o.stash.n >= 2, o.stash);
+  ok('обычный сундучок даёт камни, мимик не появляется', o.loot.found.includes('stone-9') && o.mimic && true, o.loot);
+  ok('5%: из сундучка выскакивает мимик и бьёт сломавшего', o.mimic.mons === 1 && o.mimic.hit, o.mimic);
+  ok('посыпанное солью оружие описано и помечено', o.salted, o.salted);
   ok('нет ошибок страницы', errs.length === 0, errs.slice(0, 3));
   console.log('проверок:', R.length, 'не прошли:', R.filter(x => !x).length);
   await b.close();

@@ -114,13 +114,15 @@
       return { total: 0, absorbed: dmg, notes: ["кристалл"] };
     }
     let total = 0; const notes = [];
+    const sw = o.ctx && o.ctx.atk && o.ctx.atk.w;          // оружие в серебряной соли: +1к4 светлого урона по нежити, духам и спектральным
+    if (sw && sw.salt && tgt.mon && (B.isSpectral(tgt) || /Нежить|Дух|Призрак/i.test(tgt.mon.type || ""))) parts = [...parts, { v: roll(1, 4).total, dt: "radiant", l: "Серебряная соль" }];
     // Плоские прибавки атакующего считаются один раз на всю атаку (к первой части урона): «Стая вокруг» волколака — себе и союзникам рядом.
     let outFlat = 0;
     if (src && o.ctx) { outFlat += hookSum(src, "dmgOut", { tgt, o }); let aura = 0; for (const a of alliesOf(src)) aura = Math.max(aura, hookSum(a, "dmgAura", { ally: a, src, tgt, o })); outFlat += aura; }          // аура одноимённых эссенций не складывается
     const memo = {};                                                                    // «один раз на удар» для хуков dmgFlat (например, «Латы из костей» режут общий урон, а не каждую часть)
     for (const p of parts) {
       let v = p.v; if (!(v > 0)) continue;
-      if (B.physBlocked && B.physBlocked(src, tgt, p.dt)) { notes.push("призрак: обычный урон не проходит"); continue; }          // спектральные: физический урон не ранит (кроме атак драконов)
+      if (B.physBlocked && B.physBlocked(src, tgt, p.dt, o.ctx && o.ctx.atk)) { notes.push("призрак: обычный урон не проходит"); continue; }          // спектральные: физический урон не ранит (кроме атак драконов)
       if (outFlat) { v += outFlat; outFlat = 0; }                                       // прибавка — часть урона: уязвимость и сопротивление считаются и от неё
       const wetBonus = (p.dt === "cold" || p.dt === "lightning") && has(tgt, "wet") ? roll(1, 4).total : 0;
       if (wetBonus) { v += wetBonus; notes.push(`промок +${wetBonus}`); }
@@ -355,6 +357,7 @@
     return "ready";
   }
   B.tollBell = tollBell;
+  const tollMsg = () => { log("Звон серебряного колокольчика возвращает воспоминания о доме.", "good"); if (typeof toast === "function") toast("Звон серебряного колокольчика возвращает воспоминания о доме"); };
   const tollRing = u => { if (typeof isToll === "function" && state.run && isToll(state.run.pos.x, state.run.pos.y) && B.noise) B.noise(u, 3, "колокольчик звенит в Звоне"); };          // звон колокольчика на территории Звона: шум +3
   function saveCtx(u, abil, dc, o) {
     const mods = [{ l: ABIL_RU[abil], v: amod(u.abil[abil]) }]; if (u.saveB[abil]) mods.push({ l: "Эссенция", v: u.saveB[abil] });
@@ -382,8 +385,8 @@
     if (!ok) {
       const tb = tollBell(u, abil, o);
       if (tb) {
-        if (tb === "ready") { state.run.tollDay = state.run.day; B.S.tollKey = tollKey(o); tollRing(u); }
-        log(`Серебряный колокольчик звенит: ${u.name} перебрасывает с преимуществом.`, "good");
+        if (tb === "ready") { state.run.tollDay = state.run.day; B.S.tollKey = tollKey(o); tollRing(u); tollMsg(); }
+        log(`${u.name} перебрасывает с преимуществом.`, "good");
         const r2 = await ses.d20({ label: "Колокольчик: переброс", mods: ctx.mods, adv: [...ctx.adv, "Серебряный колокольчик"], dis: ctx.dis, vs: { dc }, cancel: false });
         ok = r2.total >= dc; Object.assign(r, { nat: r2.nat, total: r2.total, dice: r2.dice, mode: r2.mode });
         log(`${u.name}: после колокольчика ${r2.total} против Сл ${dc} — ${ok ? "успех" : "провал"}.`, ok ? "save" : "fail");
@@ -406,7 +409,7 @@
     // колокольчик Звона: все пострадавшие герои (провалили ментальный спасбросок) перебрасывают с преимуществом, звон тратит один заряд на день
     list.forEach((t, i) => {
       if (!ctxs[i] || out[i].ok) return; const tb = tollBell(t, abil, o); if (!tb) return;
-      if (tb === "ready") { state.run.tollDay = state.run.day; B.S.tollKey = tollKey(o); tollRing(t); }
+      if (tb === "ready") { state.run.tollDay = state.run.day; B.S.tollKey = tollKey(o); tollRing(t); tollMsg(); }
       const old = out[i].total, r2 = d20Core({ mods: ctxs[i].mods, adv: [...ctxs[i].adv, "Серебряный колокольчик"], dis: ctxs[i].dis }), ok2 = r2.total >= dc;
       out[i] = { ok: ok2, nat: r2.nat, total: r2.total, dice: r2.dice, mode: r2.mode, again: old };
       log(`Серебряный колокольчик звенит: ${t.name} — ${r2.total} (было ${old}) против Сл ${dc} — ${ok2 ? "успех" : "провал"}.`, ok2 ? "save" : "fail");
@@ -566,6 +569,7 @@
     S.turn = 0; S.round = 1;
   }
   async function startTurn(u) {
+    if (B.flushStash) await B.flushStash();
     const S = B.S;
     u.turnsTaken++;
     if (u.t) { const moved = u.t.moved > 0 || u.t.startX !== u.x || u.t.startY !== u.y; u.still = moved ? 0 : (u.still || 0) + 1; }          // сколько своих ходов подряд простоял на месте («Слиться с топью»)

@@ -214,3 +214,5 @@
 - `monsters/silence-keeper` — `full-body tall hooded spirit in a grey silver-trimmed robe, face hidden in shadow, one finger pressed to where the lips would be, heavy silver mace, ghostly mist at the feet, painted dark fantasy character, 1024x1536`
 - `items/silver-salt` — `small linen pouch of coarse glittering silver salt spilling a little onto dark wood, painted fantasy item icon, plain dark background`
 - `treasures/bell` — `small silver warning handbell with a short ribbon (renamed: Bubenets-predvestnik)`
+- `monsters/mimic` — `full-body treasure chest mimic mid-lunge, wooden chest with a wide toothy maw, long sticky tongue, glowing amber eyes under the lid, tiny gold coins stuck to its teeth, painted dark fantasy creature, 1024x1536`
+- `terrain/stash` — `small purple-grey travelling chest with a gold latch, top-down fantasy battle map tile`
