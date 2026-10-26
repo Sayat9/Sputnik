@@ -632,11 +632,40 @@
   A["giant-mole"] = saveArea({ name: "Сотрясение", radius: 3, side: "all", ground: true, abil: "str", save: "dex", dmg: "3к6", dt: "bludgeon", half: true, anim: "blunt", tags: ["prone"],
     onFail: async (t, u) => { B.knock(t, u); addStatus(t, "slowed", { k: 1, when: "end", data: { mult: 0.5 } }); fx(t, "сбит с ног", "bad"); } });
 
-  /* ----- Болотный клык (7): «Из-под воды», «Мёртвая хватка» ----- */
+  /* ----- Болотный клык (7) -----
+     Эссенция: пассивка «Удар из маскировки» (атака по возможности из маскировки +5 и шанс кровотечения) и активка «Слиться с топью» (невидимость после трёх ходов без движения).
+     Особенности самого монстра (P["body:swamp-fang"]): «Из-под воды» и уход под воду в топи, «Мёртвая хватка» — атака, раз за бой (решение автора 27.10: это особенность вида, не навык эссенции). */
   P["swamp-fang"] = {
     attackMods(att, ctx) {
+      if (!(ctx.o && ctx.o.reaction)) return;                                                // только атака по возможности (враг отходит от тебя)
+      if (!has(att, "hidden")) return;                                                       // только из маскировки: скрыт или невидим
+      ctx.mods.push({ l: "Удар из маскировки", v: 5 }); ctx.ambushBleed = true;
+    },
+    async afterAttack(u, c) {
+      if (!c.ambushBleed || !c.res || !c.res.hit || !c.tgt || c.tgt.isObj || c.tgt.side === u.side || !alive(c.tgt) || (B.noBlood && B.noBlood(c.tgt))) return;
+      const sv = await B.doSave(c.tgt, "con", dcOf(u, "str"), { label: `кровотечение (${u.name})` });
+      if (!sv.ok) { addStatus(c.tgt, "bleeding", { k: 3, when: "end", src: u.id }); log(`${c.tgt.name} истекает кровью (3 хода).`, "skill"); fx(c.tgt, "кровотечение", "bad"); }
+    },
+  };
+  A["swamp-fang"] = {
+    time: "bonus",
+    tgt() { return { type: "self" }; },
+    can(u) { const h = has(u, "hidden"); if (h && h.data.invis) return "уже невидим"; return (u.still || 0) >= 3 ? true : `нужно простоять три хода без движения (сейчас ${u.still || 0})`; },
+    async run(u, pk, ctl) { ctl.commit(); addStatus(u, "hidden", { k: Infinity, data: { invis: true, swampStill: true } }); fx(u, "слился с топью", "good"); log(`${u.name} сливается с топью и становится невидимым.`, "skill"); return true; },
+    ai(u) { return (u.still || 0) >= 3 && !has(u, "hidden") && enemiesOf(u).length ? { score: 3 } : null; },
+  };
+  P["body:swamp-fang"] = {
+    attackMods(att, ctx) {
       if (has(att, "emerged")) { ctx.adv.push("атака с тыла"); ctx.consume.push([att, "emerged"]); }
-      const f = has(att, "firstblood"); if (!f) return; ctx.consume.push([att, "firstblood"]); if (inWater(att)) ctx.adv.push("Из-под воды");
+      const f = has(att, "firstblood"); if (f) { ctx.consume.push([att, "firstblood"]); if (inWater(att)) ctx.adv.push("Из-под воды"); }
+      if (ctx.atk && ctx.atk.n === "Мёртвая хватка") ctx.extra.push({ n: 2, s: 6, b: 0, dt: ctx.atk.dt, label: "Мёртвая хватка", critDouble: true });
+    },
+    async afterAttack(u, c) {
+      if (!c.atk || c.atk.n !== "Мёртвая хватка") return;
+      (u.used ||= {})["atk:" + c.atk.id] = true;                                              // раз за бой
+      const t = c.tgt; if (!c.res || !c.res.hit || !t || t.isObj || t.side === u.side || !(alive(t) || t.down) || !alive(t)) return;
+      const dc = dcOf(u, "str"), sv = await B.doSave(t, "str", dc, { label: "Мёртвая хватка", tags: ["grapple"] });
+      if (!sv.ok) { addStatus(t, "grappled", { k: Infinity, data: { by: u.id, dc, skill: "athletics", dmg: "1к6", dt: c.atk.dt, tick: "holder" } }); log(`${u.name} вцепляется в ${t.name} мёртвой хваткой.`, "skill"); fx(t, "схвачен", "bad"); }
     },
     // Решение автора: в бою в топи клык каждый ход уходит под воду и выныривает у цели с тыла (дальше от остальных героев и ближе к их краю поля), если никого не держит
     async turnStartAsync(u) {
@@ -659,8 +688,6 @@
       addStatus(u, "emerged", { k: 0, when: "end" });
     },
   };
-  A["swamp-fang"] = attackRider({ name: "Мёртвая хватка", kind: "melee", weapon: true, weaponText: "нужно оружие", abil: "str", save: "str", tags: ["grapple"], extra: { n: 2, s: 6 }, aiBonus: 4,
-    onFail: async (t, u, sv, res) => { addStatus(t, "grappled", { k: Infinity, data: { by: u.id, dc: dcOf(u, "str"), skill: "athletics", dmg: "1к6", dt: res.atk.dt, tick: "holder" } }); log(`${u.name} вцепляется в ${t.name} мёртвой хваткой.`, "skill"); fx(t, "схвачен", "bad"); } });
 
   /* ----- Паучиха-матка (7): «Мать роя», «Рой паучат» ----- */
   P["spider-queen"] = {
@@ -989,7 +1016,7 @@
   const prevInit = B.initUnit;
   B.initUnit = function (u) {
     if (prevInit) prevInit(u);
-    if (u.ess.includes("swamp-fang")) addStatus(u, "firstblood", { k: Infinity });         // первая атака в бою из воды — с преимуществом
+    if (u.ref === "swamp-fang") addStatus(u, "firstblood", { k: Infinity });               // особенность вида: первая атака в бою из воды — с преимуществом (у героя с эссенцией её нет)
     if (u.ess.includes("ash-wraith")) addStatus(u, "lit", { k: Infinity });               // светится тусклым светом на 3 м
   };
 

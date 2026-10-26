@@ -11,7 +11,8 @@
   const P = B.P;
 
   // Кому кровотечение не страшно (нет крови): нежить, конструкты, элементали.
-  const noBlood = t => !!(t.mon && (/нежить|конструкт|элементаль/i.test(`${t.mon.type || ""} ${t.mon.group || ""}`) || ["undead", "elemental"].includes(t.mon.ph)));
+  const noBlood = t => !!(t.mon && (t.mon.noBlood || /нежить|конструкт|элементаль|механизм/i.test(`${t.mon.type || ""} ${t.mon.group || ""} ${t.mon.size || ""}`) || ["undead", "elemental"].includes(t.mon.ph) || t.mon.zone === "stone"));
+  B.noBlood = noBlood;
 
   /* ===== особые атаки героя ===== */
   function lungeCells(u, t) {

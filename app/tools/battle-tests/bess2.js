@@ -440,21 +440,56 @@ const ONLY = (process.argv[2] || '').split(',').filter(Boolean);
     });
 
     await test('swamp-fang', async () => {
+      // эссенция (27.10): пассивка «Удар из маскировки» и активка «Слиться с топью»; Мёртвая хватка и «Из-под воды» — особенности самого монстра
       const { S, hs, ms } = sc([{ ess: ['swamp-fang'], base: { str: 14 } }], ['goblin']);
       const [H] = hs, G = ms[0]; place(H, 3, 5); place(G, 3, 4); T(H);
       ok('Инициатива −1', H.initB === -1, H.initB);
-      ok('первая атака в бою: состояние «из-под воды»', !!has(H, 'firstblood'));
-      S.cells[5][3] = 'puddle'; const atk = meleeOf(H);
-      ok('в воде: преимущество на первую атаку', B.attackCtx(H, G, atk).adv.includes('Из-под воды'));
-      F(15, 3); await B.doAttack(H, G, atk, { cancelable: false, onCommit: () => B.commitAttack(H, atk, G) });
-      ok('после первой атаки состояние снято, второй атаки без преимущества', !has(H, 'firstblood') && !B.attackCtx(H, G, atk).adv.includes('Из-под воды'));
-      const s2 = setup([mk(120, { ess: ['swamp-fang'] })], ['goblin']); const H2 = B.heroes()[0], G2 = B.mons()[0]; place(H2, 3, 5); place(G2, 3, 4);
-      ok('на суше нет преимущества', !B.attackCtx(H2, G2, meleeOf(H2)).adv.includes('Из-под воды')); B.S.cells[5][3] = 'mud'; ok('в топи (грязь) — есть', B.attackCtx(H2, G2, meleeOf(H2)).adv.includes('Из-под воды'));
-      B.S.cells[5][3] = ''; B.removeStatus(H2, 'firstblood'); T(H2); const mp0 = H2.mp; F(15, 3, 5, 5, 1); const r = await act(H2, 'swamp-fang', { unit: G2 });
-      ok('Мёртвая хватка: +2к6 (10) и провал — схвачен, 1к6 в начале хода кусающего', r && has(G2, 'grappled') && has(G2, 'grappled').data.tick === 'holder' && logHas(/Мёртвая хватка: 10/), logs(4));
-      ok('мана 4, КД 3, действие', mp0 - H2.mp === 4 && H2.cd['swamp-fang'] === 3 && H2.t.action === 0);
-      const hpb = G2.hp; F(4); await B.startTurn(H2); ok('в начале хода кусающего цель получает 1к6', hpb - G2.hp === 4, hpb - G2.hp);
-      ok('цель вырвется действием (проверка Силы или Ловкости против Сл)', (() => { const g = has(G2, 'grappled'); return g.data.dc === B.dcOf(H2, 'str'); })());
+      ok('у героя с эссенцией нет «Из-под воды» (это особенность монстра)', !has(H, 'firstblood'));
+      const atk = meleeOf(H);
+      ok('без маскировки атака по возможности без бонуса', !B.attackCtx(H, G, atk, { reaction: true }).mods.some(m => m.l === 'Удар из маскировки'));
+      B.addStatus(H, 'hidden', { k: Infinity });
+      ok('из маскировки, но не по возможности: без бонуса +5', !B.attackCtx(H, G, atk, {}).mods.some(m => m.l === 'Удар из маскировки'));
+      ok('по возможности из маскировки: +5 к попаданию', B.attackCtx(H, G, atk, { reaction: true }).mods.some(m => m.l === 'Удар из маскировки' && m.v === 5));
+      B.removeStatus(H, 'hidden'); B.addStatus(H, 'hidden', { k: Infinity, data: { invis: true } });
+      ok('из невидимости по возможности: тоже +5', B.attackCtx(H, G, atk, { reaction: true }).mods.some(m => m.l === 'Удар из маскировки'));
+      // кровотечение
+      B.removeStatus(H, 'hidden'); B.addStatus(H, 'hidden', { k: Infinity }); F(15, 3, 3, 1, 1);
+      await B.doAttack(H, G, atk, { reaction: true, cancelable: false, onCommit: () => B.commitAttack(H, atk, G) });
+      ok('слабый враг: кровотечение на 3 хода', !!has(G, 'bleeding'), logs(4));
+      ok('после атаки маскировка спала', !has(H, 'hidden'));
+      for (const grp of ['Нежить', 'Элементаль', 'Конструкт']) {
+        const s2 = sc([{ ess: ['swamp-fang'] }], ['goblin']); const H2 = s2.hs[0], G2 = s2.ms[0]; place(H2, 3, 5); place(G2, 3, 4); T(H2); G2.mon = Object.assign({}, G2.mon, { group: grp });
+        B.addStatus(H2, 'hidden', { k: Infinity }); F(15, 3, 3, 1, 1); const a2 = meleeOf(H2);
+        await B.doAttack(H2, G2, a2, { reaction: true, cancelable: false, onCommit: () => B.commitAttack(H2, a2, G2) });
+        ok(`«${grp}»: кровотечения нет`, !has(G2, 'bleeding'));
+      }
+      // настоящая атака по возможности: враг отходит от скрытого героя
+      { const s5 = sc([{ ess: ['swamp-fang'] }], ['goblin']); const H5 = s5.hs[0], G5 = s5.ms[0]; place(H5, 3, 5); place(G5, 3, 4); T(H5); T(G5); H5.t.react = 1; B.addStatus(H5, 'hidden', { k: Infinity }); const hp5 = G5.hp; F(15, 3, 3, 1, 1);
+        await B.moveAlong(G5, [[3, 3]]);
+        ok('враг отошёл — герой ударил по возможности из маскировки: урон и кровотечение', G5.hp < hp5 && !!has(G5, 'bleeding') && !has(H5, 'hidden') && logHas(/атака по возможности/), logs(5)); }
+      // активка: три хода без движения
+      const s3 = sc([{ ess: ['swamp-fang'] }], ['goblin']); const H3 = s3.hs[0], G3 = s3.ms[0]; place(H3, 3, 5); place(G3, 0, 0); T(H3);
+      ok('сразу после боя: не доступна (нужно 3 хода без движения)', B.A['swamp-fang'].can(H3) !== true, B.A['swamp-fang'].can(H3));
+      H3.t.moved = 0; for (let i = 0; i < 2; i++) { await B.endTurn(H3); await B.startTurn(H3); }
+      ok('после 2 ходов без движения — ещё нет', B.A['swamp-fang'].can(H3) !== true && H3.still === 2, H3.still);
+      await B.endTurn(H3); await B.startTurn(H3);
+      ok('после 3 ходов без движения — доступна', B.A['swamp-fang'].can(H3) === true && H3.still === 3, H3.still);
+      T(H3); const mp0 = H3.mp; const r3 = await act(H3, 'swamp-fang', {});
+      ok('невидим, мана 1, бонусное действие', r3 && has(H3, 'hidden') && has(H3, 'hidden').data.invis && mp0 - H3.mp === 1 && H3.t.bonus === 0, [mp0 - H3.mp, H3.t.bonus]);
+      await B.moveAlong(H3, [[4, 5]]);
+      ok('сдвинулся — невидимость пропала', !has(H3, 'hidden'));
+      H3.t.moved = 1; await B.endTurn(H3); await B.startTurn(H3);
+      ok('после хода с движением счётчик сброшен', H3.still === 0 && B.A['swamp-fang'].can(H3) !== true, H3.still);
+      // монстр: Мёртвая хватка — особенность вида, раз за бой
+      const s4 = sc([{ main: 'sword' }], ['swamp-fang'], { strong: false }); const H4 = s4.hs[0], M = s4.ms[0]; place(H4, 3, 5); place(M, 3, 4); M.maxHp = M.hp = 66; M.abil = { str: 19, dex: 9, con: 18, int: 2, wis: 10, cha: 5 }; M.ac = 15; H4.abil.str = 1; H4.abil.dex = 1; T(M);
+      const names = B.attacksOf(M).map(a => a.n);
+      ok('у монстра есть атака «Мёртвая хватка», Укус и Хвост', ['Мёртвая хватка', 'Укус', 'Хвост'].every(n => names.includes(n)), names.join());
+      const grab = B.attacksOf(M).find(a => a.n === 'Мёртвая хватка');
+      ok('в «Мёртвой хватке» +2к6 урона', B.attackCtx(M, H4, grab, {}).extra.some(e => e.n === 2 && e.s === 6));
+      ok('у монстра «Из-под воды» (особенность вида) есть', !!has(M, 'firstblood'));
+      F(20, 5, 5, 5, 5, 2, 2); await B.doAttack(M, H4, grab, { cancelable: false, onCommit: () => B.commitAttack(M, grab, H4) });
+      ok('герой схвачен (провалил Силу), 1к6 в начале хода кусающего', !!has(H4, 'grappled') && has(H4, 'grappled').data.tick === 'holder', logs(5));
+      ok('раз за бой: второй раз атаки уже нет в списке', !B.attacksOf(M).some(a => a.n === 'Мёртвая хватка') && B.attacksOf(M).length === 2);
     });
 
     await test('spider-queen', async () => {
@@ -895,17 +930,6 @@ const ONLY = (process.argv[2] || '').split(',').filter(Boolean);
     await test('audit-crow-eyepeck', async () => {
       const { hs, ms } = sc([{ ess: ['crow'] }], ['goblin']); const [H] = hs; place(H, 3, 5); T(H); await act(H, 'crow', {});
       ok('«В глаза» готов', !!has(H, 'eyepeck')); await B.endTurn(H); ok('не ударил в этот ход — преимущество сгорело', !has(H, 'eyepeck'));
-    });
-
-    await test('audit-fang', async () => {
-      const { hs, ms } = sc([{ ess: ['swamp-fang'], main: 'spear' }], ['goblin']); const [H] = hs, G = ms[0]; place(H, 3, 5); place(G, 3, 4); T(H);
-      F(15, 3, 3, 1, 1, 1, 1); await act(H, 'swamp-fang', { unit: G });
-      ok('хватка клыка: вырваться только проверкой Силы (Атлетика)', has(G, 'grappled') && has(G, 'grappled').data.skill === 'athletics', JSON.stringify(has(G, 'grappled')));
-      // без оружия способность недоступна
-      const s2 = sc([{ ess: ['swamp-fang'], main: 'sword' }], ['goblin']); const H2 = s2.hs[0]; H2.disarmed = true; ok('«оружием»: без оружия в руке недоступна', B.A['swamp-fang'].can(H2) !== true, B.A['swamp-fang'].can(H2));
-      // «Дальность 1,5 м»: копьё с «Длинной рукой» на 3 м не достаёт
-      const s3 = sc([{ ess: ['swamp-fang', 'goblin-spear'], main: 'spear' }], ['goblin']); const H3 = s3.hs[0], G3 = s3.ms[0]; place(H3, 3, 5); place(G3, 3, 3); T(H3);
-      ok('цель на 3 м (копьё с «Длинной рукой» достаёт, способность — нет)', B.A['swamp-fang'].can(H3) !== true, B.A['swamp-fang'].can(H3));
     });
 
     await test('audit-werewolf-range', async () => {

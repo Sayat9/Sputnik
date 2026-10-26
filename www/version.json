@@ -1,5 +1,5 @@
 {
- "version": 1793013725,
+ "version": 1793021160,
  "files": [
   "assets/buildings/church.webp",
   "assets/buildings/forge.webp",
@@ -393,21 +393,21 @@
   "assets/items/unknown-stone.webp": "0c888965995e38749cc8ce27373285bb",
   "assets/items/warhammer.svg": "146a73c3b76075dc5cf83d3f60f0d935",
   "assets/items/warhammer.webp": "96a5d7990847d290d359b35e7673e757",
-  "assets/js/battle-act.js": "e001b279ce3beb425a34cd1ce3a49514",
+  "assets/js/battle-act.js": "473f0487168ed3fd6bc78b2f03ce60a3",
   "assets/js/battle-ai.js": "175c4fe11728c31c66c7e47e8428b8ee",
   "assets/js/battle-core.js": "b4a58e376a3779c32c3e32b3410ac893",
-  "assets/js/battle-data.js": "df955f26235a22cb1e8d4d9366bff43c",
+  "assets/js/battle-data.js": "93e7ad3a4eb6d7cdc715f2fa29ef2414",
   "assets/js/battle-dice.js": "e45c4170169e0538b2b8519fd233bf0e",
   "assets/js/battle-end.js": "a8e205e4004205f56b67d0e2c8111e0b",
   "assets/js/battle-env.js": "72019875cad3fb061e892005eae3bd66",
   "assets/js/battle-ess.js": "89dcbd7a747537548d6a3dbae23bf9e8",
-  "assets/js/battle-ess2.js": "e98a4b17268c74ca9143d0809837d29c",
+  "assets/js/battle-ess2.js": "f1c59704cfae7fbb14136674f882e0f4",
   "assets/js/battle-ext.js": "a67e829a12589102ffd75dd249968017",
   "assets/js/battle-menu.js": "4c4389761d71b3c3f96e8e18ac7b5bf3",
   "assets/js/battle-net.js": "2ec8914d230f7ef8ef96df7662aa1e4e",
-  "assets/js/battle-rules.js": "9cadae4cec577450372248e58aee40ce",
+  "assets/js/battle-rules.js": "1892825bf61b7e2de70e73286d204051",
   "assets/js/battle-ui.js": "8c52d69a0e5c145199e7044f8bc43c2e",
-  "assets/js/battle-weap.js": "c8451f39b82259634e8699a87ef513cb",
+  "assets/js/battle-weap.js": "491aff97b54eddc698f305eb69370838",
   "assets/js/battle.js": "5c083b159fc652a9452bd822beb60f72",
   "assets/js/net.js": "110683a663d3cbfa576e7a56e5d09677",
   "assets/js/netglue.js": "57c46e99a7482a59b5196b9b40ba1c6d",
@@ -608,6 +608,6 @@
   "fonts/f8.woff2": "6cc1ee17091d59eb93821c3594e8f38f",
   "fonts/f9.woff2": "070433480b7b645f69b543f284e386ce",
   "fonts/fonts.css": "1585a72a8d157b26cb424ab433fd4e19",
-  "index.html": "49eee00c19b13f0f3ac10d90f99fd02b"
+  "index.html": "348aa9cbec7378fd6b44b3c7b3a4b51f"
  }
 }

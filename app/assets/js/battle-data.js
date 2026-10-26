@@ -241,7 +241,7 @@
       const hit = parseInt(h[1].replace("−", "-"), 10), dice = dm[1].replace(/\s+/g, "").replace("−", "-"), dt = DT_RU[dm[2]] || "bludgeon", id = "a" + atk.length;
       const rg = /(\d+(?:,\d+)?)\/(\d+(?:,\d+)?) м/.exec(txt), th = /метнуть (\d+)\/(\d+) м/.exec(txt);
       if (rg && !th) atk.push({ id, n, hit, dmg: dice, dt, kind: "ranged", range: [Math.floor(parseFloat(rg[1].replace(",", ".")) / 1.5), Math.floor(parseFloat(rg[2].replace(",", ".")) / 1.5)] });
-      else { atk.push({ id, n, hit, dmg: dice, dt, kind: "melee", reach: /досягаемость 3 м/i.test(txt) ? 2 : 1 }); if (th) atk.push({ id: id + "t", n: n + " (метнуть)", hit, dmg: dice, dt, kind: "ranged", range: [Math.floor(+th[1] / 1.5), Math.floor(+th[2] / 1.5)] }); }
+      else { atk.push({ id, n, hit, dmg: dice, dt, kind: "melee", reach: /досягаемость 3 м/i.test(txt) ? 2 : 1, ...(/раз за бой/i.test(txt) ? { once: true } : {}) }); if (th) atk.push({ id: id + "t", n: n + " (метнуть)", hit, dmg: dice, dt, kind: "ranged", range: [Math.floor(+th[1] / 1.5), Math.floor(+th[2] / 1.5)] }); }
       names.push(id);
     }
     const hasRanged = atk.some(a => a.kind === "ranged" && !/метнуть/.test(a.n)), behind = (m.traits || []).some(t => /позади|за спинами|Прячется за/.test(t[1] || ""));

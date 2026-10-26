@@ -82,7 +82,7 @@
   }
   B.heroAttacks = heroAttacks; B.wprops = wprops; B.atkFrom = atkFrom;
   B.heroReach = u => { const m = B.mainOf(u); return m && m.id === "spear" && u.pass.includes("goblin-spear") ? 2 : 1 + longArm(u, m); };
-  B.attacksOf = u => (u.hero ? heroAttacks(u) : u.atk);
+  B.attacksOf = u => (u.hero ? heroAttacks(u) : u.atk.filter(a => !(a.once && u.used && u.used["atk:" + a.id])));          // a.once — особенность вида «раз за бой» (Мёртвая хватка)
   B.meleeAttackOf = u => {
     const list = B.attacksOf(u).filter(a => a.kind === "melee" && !a.offhand && !a.thrown && !a.special);
     return list.sort((a, b) => B.avgDice(b.dmg) - B.avgDice(a.dmg))[0] || null;
