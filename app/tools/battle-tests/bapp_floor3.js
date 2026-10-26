@@ -26,7 +26,8 @@ const L = require('./bui_lib.js');
     out.safe = ['0,30', '30,30', '0,15', '30,15', '15,0'].every(k => zoneAt(...k.split(',').map(Number)).kind === 'safe');
     out.tileTypes = ['0,30', '30,30', '0,15', '30,15', '15,0'].every(k => tileType(...k.split(',').map(Number)) === 'portal') && tileType(15, 15) === 'floor';
     const zn = new Set(); for (let y = 0; y < 31; y++) for (let x = 0; x < 31; x++) { const z = zoneAt(x, y); if (z.kind === 'zone') zn.add(z.place.name); }
-    out.zones = zn.size;
+    out.zones = zn.size; const nm = (x, y) => zoneAt(x, y).place.name;
+    out.layout = [nm(15, 28), nm(15, 4), nm(25, 5), nm(15, 12), nm(15, 15), nm(4, 5), nm(28, 1), nm(5, 25), nm(25, 25), nm(0, 20)];
     let bad = 0; for (let y = 0; y < 31; y++) for (let x = 0; x < 31; x++) { try { tileFill(x, y); tileDeco(x, y); tileIcon(x, y); isDark(x, y); genEncounter(x, y, 5, 3); } catch (e) { bad++; } }
     out.tileErrors = bad;
     out.noEnc = (() => { for (let i = 0; i < 40; i++) if (genEncounter(15, 15, 5, 1 + i % 12)) return false; return true; })();
@@ -64,6 +65,7 @@ const L = require('./bui_lib.js');
   ok('высадка рядом со своим входом, день сохранён', res.ring && res.dayKept, [res.ring, res.dayKept]);
   ok('порталы безопасны и считаются порталами', res.safe && res.tileTypes);
   ok('на этаже несколько зон', res.zones >= 8, res.zones);
+  ok('раскладка: храм внизу по центру, лагерь орков сверху по центру, ловушки справа сверху, Вой по центру (Сердце в середине), пылающие слева сверху, Безвременье в углу, между ними угодья', JSON.stringify(res.layout) === JSON.stringify(['Храм изваяний', 'Лагерь орков', 'Зона ловушек', 'Вой', 'Сердце этажа', 'Пылающие земли', 'Безвременье', 'Охотничьи угодья', 'Охотничьи угодья', 'Охотничьи угодья']), res.layout);
   ok('все 961 тайл рисуются и встречи не падают', res.tileErrors === 0, res.tileErrors);
   ok('встреч на 3 этаже пока нет', res.noEnc);
   ok('портал дальше не активен', res.next && res.next.ok === false, res.next);

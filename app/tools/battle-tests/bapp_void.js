@@ -11,6 +11,9 @@ const L = require('./bui_lib.js');
     // геометрия: ровно 16 клеток в углу 27..30 × 0..3
     let n = 0, bad = 0; for (let y = 0; y < 31; y++) for (let x = 0; x < 31; x++) { const inV = x >= 27 && y <= 3; if (inVoid(x, y) !== inV) bad++; if (inV) { n++; if (zoneAt(x, y).place.name !== 'Безвременье') bad++; } else if (zoneAt(x, y).kind === 'zone' && zoneAt(x, y).place.name === 'Безвременье') bad++; }
     out.n = n; out.geoBad = bad; out.portalOutside = !inVoid(15, 0) && !inVoid(30, 15);
+    // предупреждение у зоны: «неприглядный туман»
+    r.pos = { x: 24, y: 1 }; r.pending = null; dgUi.phase = 'move'; dgUi.target = { x: 25, y: 1 }; act('move'); out.fogFar = (r.log || []).slice(-3).some(l => /неприглядный туман/.test(l.t || l));
+    r.pending = null; dgUi.phase = 'move'; dgUi.target = { x: 26, y: 1 }; act('move'); out.fogNear = (r.log || []).slice(-4).some(l => /неприглядный туман/.test(l.t || l));
     // вход снаружи — обычный шаг; внутри — случайный
     r.pos = { x: 26, y: 1 }; r.visited = [tkey(26, 1)]; dgUi.phase = 'move'; dgUi.target = { x: 27, y: 1 }; const before = r.visited.length; act('move');
     out.entered = r.pos.x === 27 && r.pos.y === 1 && voidHere(); out.notVisited = !r.visited.includes('27,1');
@@ -43,6 +46,7 @@ const L = require('./bui_lib.js');
   ok('3 этаж', res.floor === 3);
   ok('зона ровно 16 клеток в правом верхнем углу (27–30 × 0–3), порталы снаружи', res.n === 16 && res.geoBad === 0 && res.portalOutside, res);
   ok('вход в зону — обычный шаг, пройденное не запоминается', res.entered && res.notVisited && res.noMemory, res);
+  ok('у границы Безвременья — «впереди неприглядный туман» (не раньше)', res.fogNear && !res.fogFar, [res.fogNear, res.fogFar]);
   ok('бег внутри зоны отключён', res.runOff);
   ok('внутри направление случайное (все 4 стороны)', res.dirs >= 4, res.dirs);
   ok('блуждание заканчивается: выход бывает, до центра тоже доходят', res.outs >= 20 && res.bosses >= 1, [res.outs, res.bosses, res.avg]);
