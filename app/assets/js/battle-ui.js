@@ -67,11 +67,12 @@
     const topH = (h(".bt-top") || 56) + (h(".bt-banner") || 26) + 24, panelMin = innerHeight < 700 ? 240 : 270;
     const side = innerWidth >= 760 && innerWidth > innerHeight;                      // альбомный режим: панель рядом с полем
     const size = side ? Math.max(210, Math.min(innerWidth - 400 - 24, innerHeight - topH - 8, 640)) : Math.max(210, Math.min(innerWidth - 10, innerHeight - topH - panelMin, 560));
-    cell = Math.floor(size / 7); const wpx = cell * 7;
-    root.style.setProperty("--cell", cell + "px"); root.style.setProperty("--bw", wpx + "px");
+    const N = B.W; cell = Math.floor(size / N); const wpx = cell * N;
+    root.style.setProperty("--cell", cell + "px"); root.style.setProperty("--bw", wpx + "px"); root.style.setProperty("--n", N);
     if (UI.built) UI.refresh();
   }
   function build(S) {
+    fit();                                                                           // размер поля (7×7 или 10×10) мог измениться
     const bg = root.querySelector(".bt-bg"); S.bgSeed = S.bgSeed || Math.floor(Math.random() * 1e9);
     bg.innerHTML = bgSvg(S.zone, S.bgSeed);
     const have = (D.bgImages || {})[S.zone] || 0; if (have) { const n = 1 + (S.bgSeed % have), im = new Image(), src = `assets/bg/${S.zone}-${n}.webp`; im.onload = () => { bg.style.backgroundImage = `url(${src})`; bg.style.backgroundSize = "cover"; bg.style.backgroundPosition = "center"; const sv = bg.querySelector("svg"); if (sv) sv.style.opacity = "0"; }; im.src = src; }          // нарисованный фон поля (assets/bg/<зона>-1..3.webp), если файл есть; иначе рисуется схемой
@@ -214,7 +215,7 @@
     const svg = root && root.querySelector(".bt-pathsvg"); if (!svg) return;
     const p = UI.pathPreview, ways = UI.pathWays || [], tr = UI.traj || [];
     if ((!p || !p.length) && !ways.length && !tr.length) { svg.innerHTML = ""; return; }
-    svg.setAttribute("viewBox", `0 0 ${cell * 7} ${cell * 7}`);
+    svg.setAttribute("viewBox", `0 0 ${cell * B.W} ${cell * B.W}`);
     let h = "";
     if (p && p.length) {
       const start = UI.pathStart ? [UI.pathStart] : [];
@@ -356,7 +357,7 @@
   };
   UI.paintPlace = function () {
     const S = B.S, map = new Map();
-    for (let y = 4; y < 7; y++) for (let x = 0; x < 7; x++) { const hero = B.byId(UI.placeSel); const occ = B.occupant(x, y, hero); if (hero && !B.obstacleAt(x, y) && !occ) UI.hlAdd(map, x, y, "hl-place"); }
+    for (let y = B.H - 3; y < B.H; y++) for (let x = 0; x < B.W; x++) { const hero = B.byId(UI.placeSel); const occ = B.occupant(x, y, hero); if (hero && !B.obstacleAt(x, y) && !occ) UI.hlAdd(map, x, y, "hl-place"); }
     UI.setHl(map);
   };
   UI.placeDone = function () { UI.setHl(new Map()); UI.mode = "idle"; const p = UI.panelPlace; UI.panelPlace = null; if (p) p.done(); };

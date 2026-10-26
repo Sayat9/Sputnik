@@ -403,10 +403,10 @@
     const S = B.S; if (!S) return;
     if (UI.mode === "place") {
       const occ = B.occupant(x, y);
-      if (UI.placeOnly) { const h1 = B.byId(UI.placeOnly); if (h1 && y >= 4 && !B.obstacleAt(x, y) && (!occ || occ === h1)) { h1.x = x; h1.y = y; UI.paintPlace(); UI.refreshNow(); } else UI.toast("Ставьте героя в три нижних ряда на свободную клетку"); return; }
+      if (UI.placeOnly) { const h1 = B.byId(UI.placeOnly); if (h1 && y >= B.H - 3 && !B.obstacleAt(x, y) && (!occ || occ === h1)) { h1.x = x; h1.y = y; UI.paintPlace(); UI.refreshNow(); } else UI.toast("Ставьте героя в три нижних ряда на свободную клетку"); return; }
       if (occ && occ.side === "hero") { UI.placeSel = occ.id; UI.paintPlace(); UI.renderPanel(); return; }
       const h = B.byId(UI.placeSel);
-      if (h && y >= 4 && !B.obstacleAt(x, y) && !occ) { h.x = x; h.y = y; const hs = B.heroes().filter(z => !z.dead), i = hs.indexOf(h); UI.placeSel = hs[(i + 1) % hs.length].id; UI.paintPlace(); UI.refreshNow(); UI.renderPanel(); }
+      if (h && y >= B.H - 3 && !B.obstacleAt(x, y) && !occ) { h.x = x; h.y = y; const hs = B.heroes().filter(z => !z.dead), i = hs.indexOf(h); UI.placeSel = hs[(i + 1) % hs.length].id; UI.paintPlace(); UI.refreshNow(); UI.renderPanel(); }
       else UI.toast("Ставьте героев в три нижних ряда на свободные клетки");
       return;
     }

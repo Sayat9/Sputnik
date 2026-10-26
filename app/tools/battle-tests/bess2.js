@@ -504,6 +504,29 @@ const ONLY = (process.argv[2] || '').split(',').filter(Boolean);
       const h = sc([{}], ['goblin']).hs[0]; ok('герои кровоточат и травятся', !!B.addStatus(h, 'bleeding', { k: 3 }) && !!B.addStatus(h, 'poisoned', { k: 3 }));
     });
 
+    await test('spectral', async () => {
+      // решение автора 27.10: спектральные существа не ранятся физическим уроном, только нефизическим (элементальным); драконы бьют их обычными атаками и регенерируют ману против спектральных и элементалей
+      const { hs, ms } = sc([{}, { race: 'dragon' }], ['goblin']); const [Hh, Hd] = hs, G = ms[0]; G.mon = Object.assign({}, G.mon, { spectral: true });
+      ok('спектральный: распознаётся', B.isSpectral(G) && !B.isSpectral(Hh));
+      const dmg = async (src, dt) => { G.hp = G.maxHp = 300; const r = await B.applyDamage(src, G, [{ v: 10, dt }], {}); return r.total; };
+      ok('человек: колющий/рубящий/дробящий — 0', (await dmg(Hh, 'pierce')) === 0 && (await dmg(Hh, 'slash')) === 0 && (await dmg(Hh, 'bludgeon')) === 0);
+      ok('человек: огонь, холод, молния, звук — проходят полностью', (await dmg(Hh, 'fire')) === 10 && (await dmg(Hh, 'cold')) === 10 && (await dmg(Hh, 'lightning')) === 10 && (await dmg(Hh, 'thunder')) === 10);
+      ok('дракон: обычные атаки (колющий, рубящий, дробящий) поражают', (await dmg(Hd, 'pierce')) === 10 && (await dmg(Hd, 'slash')) === 10 && (await dmg(Hd, 'bludgeon')) === 10);
+      ok('монстр-человек (не спектральный) от физического урона страдает', (() => { G.mon = Object.assign({}, G.mon, { spectral: false }); return true; })() && (await dmg(Hh, 'slash')) === 10);
+      G.mon = Object.assign({}, G.mon, { spectral: true });
+      ok('нет кровотечения и отравления', !B.addStatus(G, 'bleeding', { k: 3 }) && !B.addStatus(G, 'poisoned', { k: 3 }));
+      // атака мечом человека по призраку: попадание есть, урона нет
+      place(Hh, 3, 5); place(G, 3, 4); T(Hh); const a = meleeOf(Hh); F(18, 3, 3, 3, 3); G.hp = G.maxHp = 300; G.ac = 1; await B.doAttack(Hh, G, a, { cancelable: false, onCommit: () => B.commitAttack(Hh, a, G) });
+      ok('удар мечом человека по спектральному не оставляет ран', G.hp === 300, G.hp);
+      T(Hd); place(Hd, 4, 5); const a2 = meleeOf(Hd); F(18, 3, 3, 3, 3); await B.doAttack(Hd, G, a2, { cancelable: false, onCommit: () => B.commitAttack(Hd, a2, G) }); place(G, 4, 4);
+      // мана дракона
+      Hd.mp = 0; B.S.curId = Hd.id; await B.startTurn(Hd);
+      ok('дракон против спектрального: +1 мана в начале хода', Hd.mp === 1, Hd.mp);
+      G.mon = Object.assign({}, G.mon, { spectral: false }); Hd.mp = 0; await B.startTurn(Hd); ok('против обычного врага регенерации нет', Hd.mp === 0, Hd.mp);
+      G.mon = Object.assign({}, G.mon, { zone: 'stone' }); Hd.mp = 0; await B.startTurn(Hd); ok('против элементаля (зона камня) +1 мана', Hd.mp === 1, Hd.mp);
+      Hh.mp = 0; await B.startTurn(Hh); ok('у человека регенерации нет', Hh.mp === 0);
+    });
+
     await test('spider-queen', async () => {
       const { S, hs, ms } = sc([{ ess: ['spider-queen'], base: { dex: 14, con: 14 } }, { main: 'sword' }], ['goblin']);
       const [H, A_] = hs, G = ms[0]; place(H, 3, 6); place(A_, 5, 6); place(G, 3, 2); T(H);

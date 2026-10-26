@@ -1012,6 +1012,34 @@
     ai(u) { const es = enemiesOf(u).filter(e => dist(e, u) <= 6); return es.length && !(B.S.zones || []).some(z => z.kind === "dust" && z.owner === u.id) ? { score: 3 } : null; },
   };
 
+  /* ===== Звон (3 этаж; решения автора 27.10) =====
+     B.noise(u, n, why) — монстр или событие в бою поднимает шум; шкала общая с картой (f3Noise в index.html). Дошла до 20 — на поле приходит Хранитель Тишины (B.summonKeeper). */
+  B.NOISE_BY_CLS = { 9: 1, 8: 2, 7: 4, 6: 7 };
+  B.noise = function (u, n, why) {
+    const S = B.S; if (!S || (S.floor || 1) < 3 || !(n > 0)) return;
+    log(`${u.name}: звон! ${why || ""} (шум +${n})`, "skill"); fx(u, "звон", "bad");
+    if (typeof f3Noise === "function") f3Noise(n, `${u.name}${why ? ": " + why : ""}`);
+  };
+  B.summonKeeper = function () {
+    const S = B.S; if (!S) return null;
+    const idx = S.units.filter(x => x.side === "mon").length, k = B.monUnit("silence-keeper", idx), tmp = { size: k.size, side: "mon", id: "tmpkeeper" };
+    const cells = []; for (let y = 0; y < Math.min(3, B.H); y++) for (let x = 0; x < B.W; x++) if (B.canStand(k, x, y) && !live().some(o => o.x === x && o.y === y)) cells.push([x, y]);
+    const c = cells.length ? cells[Math.floor(cells.length / 2)] : (B.freeCellsNear({ x: Math.floor(B.W / 2), y: 0, size: 1, side: "mon", id: "x" }, 4, tmp)[0] || [0, 0]);
+    k.x = c[0]; k.y = c[1]; k.startCell = [k.x, k.y];
+    if (S.ev && Array.isArray(S.ev.list)) S.ev.list.push("silence-keeper");
+    B.addUnit(k, S.order[S.turn]);
+    log("Из тишины выходит Хранитель Тишины: шум Звона созвал его.", "bad"); const g = ui(); if (g) { g.banner("Приходит Хранитель Тишины!"); g.fxText(k, "приходит", "bad"); }
+    return k;
+  };
+  // Хранитель Тишины: ослабев (< 40 % ОЗ), за 3 своих хода не убитый — звонит (+7 шума); счёт идёт заново.
+  P["body:silence-keeper"] = {
+    turnEnd(u) {
+      if (u.hp * 100 >= u.maxHp * 40 || !alive(u)) { if (u.flags) u.flags.keeperT = 0; return; }
+      u.flags = u.flags || {}; u.flags.keeperT = (u.flags.keeperT || 0) + 1;
+      if (u.flags.keeperT >= 3) { u.flags.keeperT = 0; B.noise(u, B.NOISE_BY_CLS[6], "ослабевший хранитель звонит"); }
+    },
+  };
+
   /* ===== свет и стартовые состояния ===== */
   const prevInit = B.initUnit;
   B.initUnit = function (u) {

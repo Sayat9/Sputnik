@@ -1165,7 +1165,9 @@ const RACES = [
   { id: "dragon", name: "Дракон", tax: "high", life: "Землевладение",
     mods: { str: 2, con: 1 },
     plus: [["Драконья чешуя", "−1 к урону от элементальных атак (огонь, холод, молния, кислота, звук)."],
-      ["Долгий век", "Преимущество к проверкам Истории."]],
+      ["Долгий век", "Преимущество к проверкам Истории."],
+      ["Драконья хватка", "Обычные атаки поражают спектральных существ (призраков и подобных): остальным героям их ранит только нефизический урон, например элементальный."],
+      ["Драконья кровь", "Врождённая регенерация маны в бою со спектральными противниками и элементалями: +1 мана в начале каждого своего хода."]],
     minus: [["Родовая вражда", "−1 к попаданию по элементальным врагам."]] },
   { id: "darkfairy", name: "Тёмная фея", tax: "high", life: "Ночные рынки, подземные сады",
     mods: { dex: 2, cha: 1, con: -1 },
@@ -1828,6 +1830,12 @@ Object.assign(MON_STATS2, {
   "rat-catcher": { size: "Маленький гуманоид", sz: "маленький", ac: "13 (шкуры и бубенцы)", hp: "38 (7к6+14)", speed: "9 м", cr: "2", abil: [8, 14, 14, 10, 12, 14], senses: "Тёмное зрение 18 м.",
     traits: [["Зов дудки", "Начинает бой один; каждый свой ход зовёт крыс: ещё две, пока рядом их меньше шести.", "behavior"], ["За крысами", "Держится позади своих крыс и играет.", "behavior"], ["Бросают крысы", "Убили крысолова — оставшиеся крысы разбегаются.", "behavior"], ["Костяная дудка", "+4 к попаданию, 1к6+1 дробящего.", "attacks"]], statDraft: true },
 });
+// Хранитель Тишины — босс Звона (6 класс). Не бродит по зоне: приходит, когда шум в Звоне доходит до 20 (решение автора 27.10). Статблок — моя заготовка, черновик в campaign/drafts.md.
+MONSTERS.push({ id: "silence-keeper", zone: "undead", rare: false, weight: 1, name: "Хранитель Тишины", floor: 3, cls: 6, rank: "boss", size: "Большой дух", group: "Один; приходит на шум Звона", draft: true, statDraft: true,
+  type: "Дух, монстр", sz: "большой", areas: ["3 этаж: Звон"], ac: "16 (серебряная ряса)", hp: "110 (13к10+39)", speed: "9 м", cr: "5", abil: [19, 12, 17, 12, 16, 8],
+  senses: "Тёмное зрение 36 м. Слышит каждый звон в Звоне.",
+  traits: [["Почитает тишину", "Не бродит по Звону: приходит на шум и карает того, кто его поднял.", "behavior"], ["Беззвучный", "Движется и бьёт молча; сам звона не издаёт, пока не ранен.", "behavior"], ["Ослабев, звонит", "Когда ОЗ меньше 40 %, за 3 своих хода не убитый хранитель звонит: шум +7.", "behavior"],
+    ["Две атаки", "За ход два удара булавой.", "attacks"], ["Серебряная булава", "+8 к попаданию, 2к8+4 дробящего.", "attacks"], ["Тяжёлый кулак", "+8 к попаданию, 1к10+4 дробящего.", "attacks"]] });
 MONSTERS.forEach(m => {
   const x = MON_EXTRA[m.id] || {};
   Object.assign(m, MON_STATS[m.id] || MON_STATS2[m.id] || {});
@@ -2574,7 +2582,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 37;
+const BATTLE_REV = 38;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }
@@ -3471,8 +3479,8 @@ const F3_ENTRIES = ["0,30", "30,30", "0,15", "30,15"], F3_NEXT = "15,0";
 const F3_PORTALS = { "0,30": "f3in", "30,30": "f3in", "0,15": "f3in", "30,15": "f3in", [F3_NEXT]: "f3next" };
 const F3_CORNER = { "0,30": "левый нижний угол", "30,30": "правый нижний угол", "0,15": "середина левой стороны", "30,15": "середина правой стороны" };
 // Раскладка зон (решения автора): храм — внизу по центру, лагерь орков — на пути к порталу дальше (сверху по центру), зона ловушек — справа сверху (вокруг Безвременья),
-// Вой — по центру (в его середине — Сердце этажа), пылающие земли — слева сверху (мой вариант), всё остальное между зонами — охотничьи угодья.
-const F3_RECTS = [["Безвременье", 27, 0, 30, 3], ["Сердце этажа", 14, 14, 16, 16], ["Вой", 11, 11, 19, 19], ["Храм изваяний", 11, 25, 19, 30], ["Лагерь орков", 11, 1, 19, 7],
+// Звон (бывший Вой) — по центру (в его середине — Сердце этажа с сундуком), пылающие земли — слева сверху (мой вариант), всё остальное между зонами — охотничьи угодья.
+const F3_RECTS = [["Безвременье", 27, 0, 30, 3], ["Сердце этажа", 14, 14, 16, 16], ["Звон", 11, 11, 19, 19], ["Храм изваяний", 11, 25, 19, 30], ["Лагерь орков", 11, 1, 19, 7],
   ["Зона ловушек", 21, 0, 30, 9], ["Пылающие земли", 0, 1, 9, 10]];
 const F3_FALLBACK = "Охотничьи угодья";
 // Безвременье (решение автора): зона 4 × 4 в правом верхнем углу; внутри пропадает чувство направления — каждый шаг уходит в случайную сторону,
@@ -3846,6 +3854,7 @@ function spTreasureGive(t) {
 }
 // Кнопки особых действий в меню (каждая тратит действие).
 function spButtons() {
+  if (state.run && state.run.floor === 3) return f3Buttons();
   const r = state.run, sp = spOf(); if (!sp) return [];
   const out = [], k = spTileKey(), S = SP2[sp.v];
   if (r.tier) {
@@ -3875,6 +3884,7 @@ function spEnterTier() {
 }
 // Одно особое действие; время (tick) уже потрачено в act().
 function spDo(id) {
+  if (state.run && state.run.floor === 3) { f3Do(id); return; }
   const r = state.run, sp = spOf(); if (!sp) return;
   const k = spTileKey();
   if (id.startsWith("tier-in:")) { const kind = id.slice(8); r.tier = { k: kind, n: 1 }; if (kind === "chapel") sp.chapel.entered = true; spEnterTier(); }
@@ -4233,6 +4243,40 @@ function f3Gen(mapTraps = false) {          // ловушки и валуны �
   return { traps, boulders, pen: 0, inZone: false, hunt: { acts: 0, need: 9, kills: 0, mon: null, rested: false, anim: null } };
 }
 const f3 = () => { const r = state.run; return (r.f3 ||= f3Gen()); };
+/* ----- Звон (решения автора 27.10): территория шума, в центре сундук. Шум копится (шкала до 20); дошла до 20 — приходит Хранитель Тишины (6 класс): в бою сразу на поле, вне боя начинается бой;
+   шкала при этом сбрасывается. Шумят монстры (чем сильнее, тем больше: 9 — 1, 8 — 2, 7 — 4, 6 — 7) и неосторожные шаги отряда (лёгкая проверка Ловкости). Числа — мои, черновик drafts.md. ----- */
+const NOISE_MAX = 20, NOISE_BY_CLS = { 9: 1, 8: 2, 7: 4, 6: 7 }, TOLL_DC = 8, TOLL_STEP_NOISE = 2;
+const isToll = (x, y) => curFloor() === 3 && ["Звон", "Сердце этажа"].includes(FLOOR3.zoneName(x, y)) && tileType(x, y) === "floor";
+const TOLL_CHEST = "15,15";
+function f3Noise(n, why) {
+  const r = state.run; if (!r || r.floor !== 3 || !(n > 0)) return;
+  const F = f3(); F.noise = (F.noise || 0) + n;
+  logRun(`Звон! ${why}: шум +${n} (${Math.min(F.noise, NOISE_MAX)}/${NOISE_MAX}).`); toast(`Звон: шум ${Math.min(F.noise, NOISE_MAX)}/${NOISE_MAX}`);
+  if (F.noise >= NOISE_MAX) { F.noise = 0; F.keepers = (F.keepers || 0) + 1; f3SummonKeeper(); }
+}
+function f3SummonKeeper() {
+  logRun("Шум дошёл до предела: приходит Хранитель Тишины.");
+  if (window.Battle && Battle.S && Battle.running && Battle.summonKeeper) { Battle.summonKeeper(); return; }          // идёт бой — хранитель появляется прямо на поле
+  startSpecial("Хранитель Тишины", { list: ["silence-keeper"], zone: "undead", place: "Звон" }, { ambush: false });
+}
+function f3TollStep() {          // шаг по Звону: лёгкая проверка Ловкости; провал хоть у кого-то — звон
+  const res = spSave("dex", TOLL_DC), fail = res.filter(x => !x.ok); if (!fail.length) return;
+  f3Noise(TOLL_STEP_NOISE, `${fail.map(x => x.c.name).join(", ")} неосторожны (Ловкость Сл ${TOLL_DC})`);
+}
+function f3Buttons() {
+  const r = state.run, F = f3(), out = [];
+  if (tkey(r.pos.x, r.pos.y) === TOLL_CHEST && !F.chestOpen) out.push({ id: "f3chest", label: "Открыть сундук Звона", sub: "сокровищница в центре" });
+  return out;
+}
+function f3Do(id) {
+  const r = state.run, F = f3();
+  if (id === "f3chest" && !F.chestOpen) {
+    F.chestOpen = true; const lines = [];
+    if (!treasure("tollbell").owned) { giveTreasure("tollbell"); lines.push("Артефакт 7 класса: Серебряный колокольчик Звона (неопознан)."); } else lines.push("Колокольчик Звона уже у отряда.");
+    lines.push(giveParty({ t: "g", id: "stone-7", qty: 3 }));
+    logRun("Сундук Звона открыт: " + lines.join(" ")); dgUi.res = { title: "Сундук Звона", roll: "", lines };
+  }
+}
 const f3Hurt = (c, n) => { c.hp = Math.max(1, hpOf(c) - n); };          // вне боя ловушка не убивает
 const F3_TRAP_NAME = { bear: "капкан", wire: "растяжка" };
 const f3DexSaves = (dc, bonus = 0) => state.party.filter(c => !c.dead).map(c => { const d = 1 + rnd(20), t = d + mod(totals(c).dex.total) + bonus; return { c, t, d, ok: t >= dc }; });
@@ -4271,6 +4315,7 @@ function f3Step(x, y) {
   if (inZ && !F.inZone) f3Perception();
   F.inZone = inZ;
   if (inZ) { const tr = F.traps[tkey(x, y)]; if (tr) f3Trap(tkey(x, y), tr); }
+  if (isToll(x, y)) f3TollStep();
   const b = F.boulders.find(b => b.x === x && b.y === y); if (b && inZ) f3Boulder(b);
   if (F.hunt.mon && F.hunt.mon.x === x && F.hunt.mon.y === y) f3HuntContact();
 }
@@ -4506,7 +4551,7 @@ function inventory() {
 const curFloor = () => (state.run && state.run.floor) || 1;
 /* ----- сокровища (черновик, drafts.md → «Сокровища»): по классам, 9 — худший, 1 — лучший ----- */
 const TREASURES = { guard: { cls: 9, name: "Ночной страж", base: 3, perFloor: 2 }, flame: { cls: 9, name: "Огонь, указывающий путь" }, hearth: { cls: 9, name: "Вечный очаг" },
-  dice: { cls: 9, name: "Игральные кубики", cd: 6 }, bell: { cls: 9, name: "Серебряный колокольчик", cd: 6 }, flask: { cls: 8, name: "Фляга странника", cd: 6 }, monocle: { cls: 8, name: "Монокль Амона" }, boots: { cls: 8, name: "Сапоги скороходы" }, wind: { cls: 9, name: "Экстракт попутного ветра", charges: 10 } };          // cd — откат в действиях (6 = 2 дня)
+  dice: { cls: 9, name: "Игральные кубики", cd: 6 }, bell: { cls: 9, name: "Серебряный колокольчик", cd: 6 }, flask: { cls: 8, name: "Фляга странника", cd: 6 }, monocle: { cls: 8, name: "Монокль Амона" }, boots: { cls: 8, name: "Сапоги скороходы" }, tollbell: { cls: 7, name: "Серебряный колокольчик Звона" }, wind: { cls: 9, name: "Экстракт попутного ветра", charges: 10 } };          // cd — откат в действиях (6 = 2 дня)
 function treasure(id) { return ((inventory().treasures ||= {})[id] ||= { owned: false }); }
 // Заряды Ночного стража — на заход: 3, +2 за первый за заход спуск на каждый новый этаж; вернулся и спустился снова — зарядов нет; новый заход сбрасывает.
 function ngState() { const r = state.run; return r ? (r.ng ||= { used: 0, granted: [] }) : { used: 0, granted: [] }; }
@@ -4572,6 +4617,7 @@ const ARTIFACTS = {
   chalice: { cls: 8, name: "Чаша здоровья", ico: () => GEAR_ICON.chalice, text: GEAR.chalice.note },
   "beginners-luck": { cls: 8, name: "Удача новичка", ico: () => GEAR_ICON["beginners-luck"], text: GEAR["beginners-luck"].note },
   "calm-flute": { cls: 9, name: "Флейта успокоения", ico: () => GEAR_ICON.flute, text: GEAR["calm-flute"].note },
+  tollbell: { cls: 7, name: "Серебряный колокольчик Звона", ico: () => ICO_BELL, text: "Уникальный (сокровищница Звона). Раз в день: если монстр атаковал героя ментальной атакой или дебаффом и герой провалил проверку (Инт, Муд или Хар), колокольчик звенит сам — перебросок с преимуществом получает пострадавший и все остальные, кого задела та же способность. Можно взвести заранее из Инвентаря: тогда следующие ментальные проверки команды идут с преимуществом." },
   boots: { cls: 8, name: "Сапоги скороходы", ico: () => ICO_BOOTS, text: "Раз в день: Движение проходит сразу 2 клетки, а Бег — 3 клетки (одна из пробегаемых клеток — без проверки)." },
   wind: { cls: 9, name: "Экстракт попутного ветра", ico: () => ICO_WIND, text: "Расходуется, 10 зарядов. Применить перед Бегом: следующий Бег идёт без Усталости, без минусов и без проверок." },
   monocle: { cls: 8, name: "Монокль Амона", ico: () => ICO_MONOCLE, text: "Раскрывает ловушки на карте: пока монокль у отряда, все ловушки в зоне видны сразу, проверка внимательности при входе не нужна." },
@@ -4601,10 +4647,12 @@ function trInfo(id) {
   else if (id === "flame") artInfo(id, `<p>Сейчас: <b>${flameLabel()}</b>.</p>`);
   else if (id === "boots") artInfo(id, `<p>Сейчас: <b>${state.run && state.run.boots ? "активированы — следующие Движение или Бег идут с сапогами" : bootsReady() ? "готовы" : "использованы сегодня"}</b>.</p>`);
   else if (id === "wind") artInfo(id, `<p>Зарядов: <b>${treasure("wind").charges || 0}</b>${state.run && state.run.wind ? " · применён: следующий Бег без минусов и проверок" : ""}.</p>`);
+  else if (id === "tollbell") artInfo(id, `<p>Сейчас: <b>${state.run && state.run.tollArmed ? "взведён" : tollReady() ? "готов" : "сегодня уже звонил"}</b>.</p>`);
   else if (id === "hearth") artInfo(id, `<p>Сейчас: <b>${state.run && state.run.hearthUsed ? "использован в этом заходе" : "готов"}</b>.</p>`);
   else artInfo(id, `<p>Сейчас: <b>${cdText(id)}</b>.</p>`);
 }
 // Сапоги скороходы: раз в день; Экстракт попутного ветра: заряды, применяется перед Бегом.
+const tollReady = () => !!(state.run && treasure("tollbell").owned && state.run.tollDay !== state.run.day);
 const bootsReady = () => !!(state.run && treasure("boots").owned && state.run.bootsDay !== state.run.day);
 const bootsOn = () => !!(state.run && state.run.boots && bootsReady() && !voidHere() && !state.run.tier);
 const windOn = () => !!(state.run && state.run.wind && treasure("wind").owned && (treasure("wind").charges || 0) > 0);
@@ -4617,6 +4665,7 @@ function trDropdown() {
   if (treasure("flame").owned) out.push(row("flame", ICO_FLAME, !r.flame, `Огонь · ${flameLabel()}`));
   if (treasure("hearth").owned) out.push(row("hearth", ICO_HEARTH, !r.hearthUsed, `Очаг · ${r.hearthUsed ? "использован" : "готов"}`));
   if (treasure("guard").owned) out.push(row("guard", ICO_GUARD, ngCharges() > 0, `Страж · ${ngCharges()}`));
+  if (treasure("tollbell").owned) out.push(row("tollbell", ICO_BELL, tollReady(), `Звон · ${r.tollArmed ? "взведён" : tollReady() ? "готов" : "сегодня звонил"}`));
   if (treasure("boots").owned) out.push(row("boots", ICO_BOOTS, bootsReady(), `Сапоги · ${r.boots && bootsReady() ? "включены" : bootsReady() ? "готовы" : "завтра"}`));
   if (treasure("wind").owned) out.push(row("wind", ICO_WIND, (treasure("wind").charges || 0) > 0, `Ветер · ${treasure("wind").charges || 0}${r.wind ? " (применён)" : ""}`));
   for (const id of ["dice", "bell", "flask"]) if (treasure(id).owned) out.push(row(id, ARTIFACTS[id].ico(), trReady(id), `${ARTIFACTS[id].name.split(" ")[0]} · ${cdText(id)}`));
@@ -4848,7 +4897,7 @@ const PX = (() => {
   };
 })();
 // Стиль плитки 2 этажа — по месту (логова, топь, паучьи кроны…); на 1 этаже — по зоне.
-const PLACE_STYLE = [[/Безвременье/, "void"], [/Сердце этажа/, "garden"], [/^Вой$/, "mines"], [/Храм изваяний/, "crypt"], [/Лагерь орков/, "camp"], [/Зона ловушек/, "holes"], [/Пылающие земли/, "lava"], [/Охотничьи угодья/, "beast"], 
+const PLACE_STYLE = [[/Безвременье/, "void"], [/Сердце этажа/, "garden"], [/^Звон$/, "mines"], [/Храм изваяний/, "crypt"], [/Лагерь орков/, "camp"], [/Зона ловушек/, "holes"], [/Пылающие земли/, "lava"], [/Охотничьи угодья/, "beast"], 
   [/Крысиные норы|Логово крысолова/, "warren"], [/Логово воров/, "den"], [/Руины/, "ruins"], [/Поселение/, "camp"], [/Медвежья пещера/, "cave"], [/Топь/, "swamp"], [/Паучьи кроны/, "web"], [/Волчьи холмы/, "hills"],
   [/Склеп/, "crypt"], [/Пепельная печь/, "furnace"], [/Костяные поля/, "bonefield"], [/Ветряные шахты/, "mines"], [/озеро/, "lake"], [/Лавовые/, "lava"], [/Кристальный сад/, "garden"]];
 const tileStyle = (x, y) => {
@@ -5665,6 +5714,7 @@ document.addEventListener("click", e => {
     case "tr-tap": {
       const id = ds.id, r = state.run;
       if (id === "flame" && !r.flame) { r.flame = { left: 3 }; logRun("Следующие 3 перемещения подсветят дорогу к ближайшему порталу."); saveChar(); toast("Зажжено: 3 перемещения"); dgUi.inv = false; break; }
+      if (id === "tollbell" && tollReady() && !r.tollArmed) { r.tollArmed = { day: r.day }; r.tollDay = r.day; logRun("Серебряный колокольчик Звона взведён: ближайшие ментальные проверки команды — с преимуществом."); saveChar(); toast("Колокольчик взведён"); dgUi.inv = false; break; }
       if (id === "boots" && bootsReady()) { r.boots = !r.boots; logRun(r.boots ? "Сапоги скороходы: следующее Движение — 2 клетки, следующий Бег — 3 клетки." : "Сапоги скороходы: отменено."); saveChar(); toast(r.boots ? "Сапоги включены" : "Сапоги выключены"); dgUi.inv = false; break; }
       if (id === "wind" && (treasure("wind").charges || 0) > 0) { r.wind = !r.wind; logRun(r.wind ? "Экстракт попутного ветра: следующий Бег — без Усталости, минусов и проверок." : "Экстракт попутного ветра: отменено."); saveChar(); toast(r.wind ? "Ветер применён" : "Отменено"); dgUi.inv = false; break; }
       trInfo(id); return;

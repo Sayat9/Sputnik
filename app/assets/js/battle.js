@@ -6,7 +6,7 @@
   B.running = false;
 
   /* ===== расстановка ===== */
-  const spreadX = n => { const order = [3, 2, 4, 1, 5, 0, 6]; return order.slice(0, n).sort((a, b) => a - b); };
+  const spreadX = n => { const mid = (B.W - 1) / 2, order = Array.from({ length: B.W }, (_, i) => i).sort((a, b) => Math.abs(a - mid) - Math.abs(b - mid) || a - b); return order.slice(0, n).sort((a, b) => a - b); };          // от центра к краям
   function freeBlock(u, x, y) { return B.canStand(u, x, y) && !footprint(u, x, y).some(([fx, fy]) => { const t = B.tinfo(fx, fy); return t && t.hazard; }); }
   function nearestFree(u, x, y, rows) {
     let best = null;
@@ -19,26 +19,27 @@
     return best;
   }
   function placeHeroesDefault(S) {
-    const hs = B.heroes().filter(h => !h.dead), xs = spreadX(hs.length), y = S.ambush ? 4 : 5;
-    hs.forEach((h, i) => { const c = nearestFree(h, xs[i], y, [4, 5, 6]) || nearestFree(h, 3, 5, [4, 5, 6]); if (c) { h.x = c.x; h.y = c.y; } });
+    const hs = B.heroes().filter(h => !h.dead), xs = spreadX(hs.length), H = B.H, y = S.ambush ? H - 3 : H - 2, rows = [H - 3, H - 2, H - 1];          // герои — в трёх нижних рядах
+    hs.forEach((h, i) => { const c = nearestFree(h, xs[i], y, rows) || nearestFree(h, Math.floor(B.W / 2), H - 2, rows); if (c) { h.x = c.x; h.y = c.y; } });
   }
   B.placeHeroesDefault = placeHeroesDefault;
   function placeMonsters(S) {
     const mons = B.mons(), amb = S.ambush;
-    const rowsBy = amb ? { front: [3, 2], mid: [2, 1], back: [1, 0] } : { front: [2, 1], mid: [1, 2, 0], back: [0, 1] };
+    const H = B.H, big = H > 7;
+    const rowsBy = amb ? { front: [H - 4, H - 5], mid: [H - 5, H - 6], back: [H - 6, H - 7] } : big ? { front: [3, 2], mid: [2, 1, 3], back: [1, 0] } : { front: [2, 1], mid: [1, 2, 0], back: [0, 1] };
     const where = pr => (["ranged", "secondLine"].includes(pr.role) ? "back" : ["skirmisher", "skittish", "support"].includes(pr.role) ? "mid" : "front");
     const order = shuffle(mons).sort((a, b) => (b.size - a.size));
     const heroes = B.heroes().filter(h => alive(h));
     for (const m of order) {
       const rows = rowsBy[where(m.ai || {})];
-      const anchor = heroes.length ? pick(heroes) : { x: 3 };
+      const anchor = heroes.length ? pick(heroes) : { x: Math.floor(B.W / 2) };
       let placed = false;
       for (const ry of rows) {
         const opts = [];
-        for (let cx = 0; cx < B.W; cx++) { if (m.size > 1 && (cx + 1 >= B.W || ry + 1 >= B.H)) continue; if (freeBlock(m, cx, ry)) opts.push({ x: cx, y: ry, k: Math.abs(cx - (amb ? anchor.x : 3)) + rnd(3) * 0.8 }); }
+        for (let cx = 0; cx < B.W; cx++) { if (m.size > 1 && (cx + 1 >= B.W || ry + 1 >= B.H)) continue; if (freeBlock(m, cx, ry)) opts.push({ x: cx, y: ry, k: Math.abs(cx - (amb ? anchor.x : Math.floor(B.W / 2))) + rnd(3) * 0.8 }); }
         if (opts.length) { opts.sort((a, b) => a.k - b.k); m.x = opts[0].x; m.y = opts[0].y; placed = true; break; }
       }
-      if (!placed) { const c = nearestFree(m, 3, rows[0], [0, 1, 2, 3]); if (c) { m.x = c.x; m.y = c.y; } }
+      if (!placed) { const c = nearestFree(m, Math.floor(B.W / 2), rows[0], Array.from({ length: Math.floor(B.H / 2) }, (_, i) => i)); if (c) { m.x = c.x; m.y = c.y; } }
       m.startCell = [m.x, m.y];
     }
   }
@@ -49,7 +50,7 @@
     const mons = shuffle(B.mons().filter(m => m.size === 1 && alive(m) && !B.isFlying(m)));
     let want = Math.round(B.mons().length * cfg.hideShare + (rnd(3) - 1) * 0.5); want = Math.max(1, Math.min(want, mons.length));
     const spots = [];
-    for (let y = 0; y <= 3; y++) for (let x = 0; x < B.W; x++) { const t = B.tinfo(x, y); if (t && t.hide && !t.obstacle) spots.push({ x, y }); }
+    for (let y = 0; y <= Math.floor(B.H / 2); y++) for (let x = 0; x < B.W; x++) { const t = B.tinfo(x, y); if (t && t.hide && !t.obstacle) spots.push({ x, y }); }
     let done = 0;
     for (const m of mons) {
       if (done >= want) break;
@@ -153,7 +154,7 @@
   // Кладёт снимок в S (на месте: цикл боя держит ссылку на S) и снова связывает героев с отрядом.
   B.restoreInto = (S, snap) => {
     const keepEv = S.ev; for (const k of Object.keys(S)) delete S[k];
-    Object.assign(S, JSON.parse(JSON.stringify(snap))); S.ev = keepEv;
+    Object.assign(S, JSON.parse(JSON.stringify(snap))); S.ev = keepEv; if (S.n) B.setSize(S.n);
     for (const u of S.units) if (typeof u.hero === "string") u.hero = (state.party || []).find(c => c.id === u.hero) || null;
     let maxId = 0; for (const u of S.units) { const m = /^u(\d+)$/.exec(u.id); if (m) maxId = Math.max(maxId, +m[1]); } B.setUid(maxId + 1);
     return S;
@@ -164,7 +165,7 @@
     try {
       let maxId = 0;
       for (const u of S.units) { if (typeof u.hero === "string") u.hero = (state.party || []).find(c => c.id === u.hero) || null; const m = /^u(\d+)$/.exec(u.id); if (m) maxId = Math.max(maxId, +m[1]); }
-      B.setUid(maxId + 1); B.S = S;
+      B.setUid(maxId + 1); B.S = S; B.setSize(S.n || 7);
       if (B.UI) B.UI.open();
       const g = ui(); S.phase = "fight"; S.hideMons = false;
       if (g) await g.start(S);

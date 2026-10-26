@@ -2,8 +2,9 @@
    Атаки, урон, спасброски и ход — в конце файла и в battle-act.js. См. docs/battle.md. */
 (function () {
   const B = window.Battle, D = B.D;
-  const W = 7, H = 7;
+  let W = 7, H = 7;                                       // размер поля: 7×7, на 3 этаже 10×10 (решение автора 27.10); задаётся в newBattle через B.setSize
   B.W = W; B.H = H;
+  B.setSize = n => { W = H = n; B.W = B.H = n; };
   B.cfg = { fast: false };                               // fast — без пауз и анимаций (симуляции)
   B.S = null;                                            // текущий бой
 
@@ -91,6 +92,7 @@
     if (water) zc = Object.assign({}, zc, { feats: zc.feats.concat([["puddle", water > 1 ? 3 : 1, water > 1 ? 5 : 3, true]]) });          // пруд: заметно больше воды; топь — чуть больше
     if (bog === "lake") zc = Object.assign({}, zc, { feats: zc.feats.concat([["deep", 7, 10, true]]) });          // бой с глубинным змеем: озеро на поле
     else if (bog) zc = Object.assign({}, zc, { feats: zc.feats.concat([["mire", 9, 13, true]]) });          // бой с болотным клыком: топь пятнами
+    const AREA = (H * W) / 49, sc = v => Math.round(v * AREA);          // на поле 10×10 препятствий и украшений пропорционально больше
     for (let attempt = 0; attempt < 30; attempt++) {
       const cells = Array.from({ length: H }, () => Array(W).fill(null));
       const objs = [];
@@ -99,23 +101,23 @@
       const placeObst = n => {
         let put = 0;
         for (let tries = 0; put < n && tries < 60; tries++) {
-          const x = rnd(W), y = rnd(5);
+          const x = rnd(W), y = rnd(H - 2);
           if (cells[y][x]) continue;
-          if (y === 4) { if (low >= 1) continue; low++; }
+          if (y === H - 3) { if (low >= 1) continue; low++; }
           cells[y][x] = pick(zc.obst); put++;
         }
         return put;
       };
-      placeObst(rr(zc.nObst[0], zc.nObst[1]));
+      placeObst(rr(sc(zc.nObst[0]), sc(zc.nObst[1])));
       // полное укрытие (D.gen.wallChance): стенка из 1–2 клеток в рядах 1–4 (не в рядах героев), чаще поперёк поля
       if (zc.wall && rnd(100) < G.wallChance * 100) {
-        const n = rr(G.wallLen[0], G.wallLen[1]); let sx = rnd(W), sy = 1 + rnd(4);
+        const n = rr(G.wallLen[0], G.wallLen[1]); let sx = rnd(W), sy = 1 + rnd(H - 3);
         for (let i = 0; i < n; i++) { const x = sx + i; if (x < W && !cells[sy][x]) cells[sy][x] = zc.wall; }
       }
       // украшения и опасности
       for (const [k, lo, hi, blob] of zc.feats) {
-        const n = rr(lo, hi); if (!n) continue;
-        const ymin = k === "fire" ? 2 : 1, ymax = k === "fire" ? 4 : 5;
+        const n = rr(sc(lo), sc(hi)); if (!n) continue;
+        const ymin = k === "fire" ? 2 : 1, ymax = k === "fire" ? H - 3 : H - 2;
         let placed = 0, tries = 0, seed = null;
         while (placed < n && tries < 80) {
           tries++;
@@ -131,12 +133,12 @@
       const isThicket = t => !!(t && D.terrain[t].thicket), isCover = t => !!(t && (D.terrain[t].obstacle || D.terrain[t].cover));
       const count = f => cells.reduce((a, row) => a + row.filter(f).length, 0);
       if (zc.thicket && !count(isThicket) && rnd(100) < G.thicketChance * 100) {
-        const n = rr(G.thicketN[0], G.thicketN[1]);
+        const n = rr(sc(G.thicketN[0]), sc(G.thicketN[1]));
         let placed = 0, seed = null;
         for (let tries = 0; placed < n && tries < 80; tries++) {
           let x, y;
-          if (seed && rnd(4)) { const [dx, dy] = pick(DIRS); x = seed[0] + dx; y = seed[1] + dy; if (!inB(x, y) || y < 1 || y > 5) continue; }
-          else { x = rnd(W); y = 1 + rnd(5); }
+          if (seed && rnd(4)) { const [dx, dy] = pick(DIRS); x = seed[0] + dx; y = seed[1] + dy; if (!inB(x, y) || y < 1 || y > H - 2) continue; }
+          else { x = rnd(W); y = 1 + rnd(H - 2); }
           if (cells[y][x]) continue;
           cells[y][x] = zc.thicket; placed++; seed = [x, y];
         }
@@ -144,9 +146,9 @@
       const have = count(isCover);
       if (have < G.minCover && rnd(100) < G.coverChance * 100) placeObst(G.minCover - have + rnd(2));
       // скрытые ловушки гоблинов в нейтральной зоне
-      const nT = rr(zc.traps[0], zc.traps[1]);
+      const nT = rr(sc(zc.traps[0]), sc(zc.traps[1]));
       for (let i = 0, tries = 0; i < nT && tries < 40; tries++) {
-        const x = rnd(W), y = 2 + rnd(3);
+        const x = rnd(W), y = Math.round(H * 0.3) + rnd(Math.max(1, Math.round(H * 0.4)));          // нейтральная полоса в середине поля
         if (cells[y][x] && cells[y][x] !== "mud" && cells[y][x] !== "stakes") continue;
         if (objs.some(o => o.x === x && o.y === y)) continue;
         objs.push({ id: "trap" + objs.length, kind: "trap", x, y, dc: 12, hidden: true, owner: "mon", dmg: "1к6", dt: "pierce" }); i++;
@@ -403,7 +405,8 @@
   /* ===== состояние боя ===== */
   function newBattle(ev) {
     const zone = D.zones[ev.zone] ? ev.zone : "goblin";
-    const S = { ev, zone, fog: ev.fog || 0, ambush: !!ev.ambush, dark: false, torch: false, units: [], order: [], turn: 0, round: 1, phase: "init", log: [], killed: [], objs: [], drops: [], opts: Object.assign({ showMonHp: false, autoSaves: false, autoEnd: true }, (state.settings && state.settings.battleOpts) || {}, { autoHeroes: false }), outcome: null, arrowLog: {}, zones: [], bodies: [], q: [], started: Date.now() };
+    B.setSize(((ev.floor || (state.run && state.run.floor) || 1) >= 3) ? 10 : 7);          // 3 этаж — поле 10×10
+    const S = { n: W, ev, zone, fog: ev.fog || 0, ambush: !!ev.ambush, dark: false, torch: false, units: [], order: [], turn: 0, round: 1, phase: "init", log: [], killed: [], objs: [], drops: [], opts: Object.assign({ showMonHp: false, autoSaves: false, autoEnd: true }, (state.settings && state.settings.battleOpts) || {}, { autoHeroes: false }), outcome: null, arrowLog: {}, zones: [], bodies: [], q: [], started: Date.now() };
     try { S.dark = typeof inDarkness === "function" && !!(state.run && isDark(state.run.pos.x, state.run.pos.y)) && !(state.run && state.run.light); S.torch = !!(state.run && state.run.light); } catch (e) { S.dark = false; }
     S.torchFixed = S.torch;          // факел, зажжённый на карте, горит весь бой; факел, зажжённый в бою, — 3 раунда (battle-act.js)
     if ((ev.list || []).includes("giant-mole")) { S.dark = true; S.torch = false; S.torchFixed = false; S.pitDark = true; }          // решение автора: дно пещеры крота — кромешная тьма

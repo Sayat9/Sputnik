@@ -149,7 +149,7 @@
       let pickId = ids[0], t = rnd(total);
       for (const id of ids) { t -= FD()[id].w; if (t < 0) { pickId = id; break; } }
       for (let tries = 0; tries < 40; tries++) {
-        const x = rnd(B.W), y = 1 + rnd(5), tt = D.terrain[S.cells[y][x]];
+        const x = rnd(B.W), y = 1 + rnd(B.H - 2), tt = D.terrain[S.cells[y][x]];
         if ((tt && (tt.obstacle || tt.hazard)) || S.objs.some(o => o.x === x && o.y === y)) continue;
         S.objs.push({ id: "find" + S.objs.length, kind: "find", fid: pickId, x, y }); break;
       }

@@ -11,7 +11,7 @@
   const P = B.P;
 
   // Кому кровотечение не страшно (нет крови): нежить, конструкты, элементали.
-  const noBlood = t => !!(t.mon && (t.mon.noBlood || /нежить|конструкт|элементаль|механизм/i.test(`${t.mon.type || ""} ${t.mon.group || ""} ${t.mon.size || ""}`) || ["undead", "elemental"].includes(t.mon.ph) || ["undead", "stone"].includes(t.mon.zone)));          // решение автора 27.10: нежить, элементали, конструкты и механизмы — без крови и без отравления (все монстры 1 и 2 этажа зон нежити и камня)
+  const noBlood = t => !!(t.mon && (t.mon.noBlood || t.mon.spectral || /нежить|конструкт|элементаль|механизм/i.test(`${t.mon.type || ""} ${t.mon.group || ""} ${t.mon.size || ""}`) || ["undead", "elemental"].includes(t.mon.ph) || ["undead", "stone"].includes(t.mon.zone)));          // решение автора 27.10: нежить, элементали, конструкты и механизмы — без крови и без отравления (все монстры 1 и 2 этажа зон нежити и камня)
   B.noBlood = noBlood;
 
   /* ===== особые атаки героя ===== */
@@ -170,6 +170,11 @@
   /* ===== расы (черновик, drafts.md → «Расы») ===== */
   const ELEM_DT = ["fire", "cold", "lightning", "acid", "thunder"];
   const isElemental = t => !!(t && t.mon && (t.mon.ph === "elemental" || /Элементаль/i.test(t.mon.type || "")));
+  // Спектральные существа (призраки и подобные; решение автора 27.10): обычным (физическим) уроном не ранятся — только элементальным и прочим нефизическим; драконы бьют их обычными атаками.
+  const PHYS = ["pierce", "slash", "bludgeon"];
+  B.isSpectral = t => !!(t && t.mon && (t.mon.spectral || (t.cb && t.cb.spectral)));
+  B.isElem = t => isElemental(t) || !!(t && t.mon && (t.mon.zone === "stone" || /Элементаль/i.test(t.mon.size || "")));
+  B.physBlocked = (src, tgt, dt) => B.isSpectral(tgt) && PHYS.includes(dt) && !(src && src.race === "dragon");
   P["race:beastkin"] = Object.assign(P["race:beastkin"] || {}, {
     checkMods(u, ctx) { if (ctx.skill === "perception" && B.inDark(u) && !u.dv) ctx.dis.push("звериная натура: темно"); },
   });
@@ -183,6 +188,12 @@
   P["race:dragon"] = {
     dmgFlat(u, c) { return ELEM_DT.includes(c.dt) && c.v > 0 ? -1 : 0; },
     attackMods(u, ctx) { if (isElemental(ctx.tgt)) ctx.mods.push({ l: "Родовая вражда", v: -1 }); },
+    // Решение автора 27.10: обычные атаки драконов поражают спектральных существ (B.physBlocked), а в бою со спектральными противниками и элементалями у дракона врождённая регенерация маны.
+    turnStart(u) {
+      if (!u.hero || !B.enemiesOf(u).some(e => B.alive(e) && (B.isSpectral(e) || B.isElem(e)))) return;
+      const before = u.mp; B.setMp(u, u.mp + 1);
+      if (u.mp > before) { log(`${u.name}: драконья кровь — +1 мана.`, "good"); fx(u, "+1 мана", "good"); }
+    },
   };
   P["race:darkfairy"] = {
     attackMods(u, ctx) { if (B.brightAt && B.brightAt(u)) ctx.mods.push({ l: "Боится света", v: -1 }); },

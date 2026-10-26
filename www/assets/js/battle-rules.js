@@ -120,6 +120,7 @@
     const memo = {};                                                                    // «один раз на удар» для хуков dmgFlat (например, «Латы из костей» режут общий урон, а не каждую часть)
     for (const p of parts) {
       let v = p.v; if (!(v > 0)) continue;
+      if (B.physBlocked && B.physBlocked(src, tgt, p.dt)) { notes.push("призрак: обычный урон не проходит"); continue; }          // спектральные: физический урон не ранит (кроме атак драконов)
       if (outFlat) { v += outFlat; outFlat = 0; }                                       // прибавка — часть урона: уязвимость и сопротивление считаются и от неё
       const wetBonus = (p.dt === "cold" || p.dt === "lightning") && has(tgt, "wet") ? roll(1, 4).total : 0;
       if (wetBonus) { v += wetBonus; notes.push(`промок +${wetBonus}`); }
@@ -343,6 +344,17 @@
   // Ауры союзников к спасброску вне doSave (спасбросок от смерти): «Под защитой духов» и подобные.
   function auraSave(u, abil) { const ctx = { u, abil, mods: [], adv: [], dis: [], tags: ["death"], o: {} }; for (const a of alliesOf(u)) hookAll(a, "saveAura", { ally: a, u, abil, ctx }); return ctx; }
   B.auraSave = auraSave;
+  /* ----- Серебряный колокольчик Звона (7; решение автора 27.10) -----
+     Ментальный спасбросок героя (Инт, Муд, Хар): раз в день провалившие перебрасывают с преимуществом — и все, кого задела та же способность в тот же ход; можно взвести заранее (tollArmed). */
+  const isMental = abil => abil === "int" || abil === "wis" || abil === "cha";
+  const tollKey = o => ((o && o.from && o.from.id) || "x") + ":" + (B.S ? B.S.round + ":" + B.S.turn : "");
+  function tollBell(u, abil, o) {          // 'ready' — звонок сработает сейчас; true — уже звенел от этой способности; false — нет
+    if (!u.hero || u.side !== "hero" || !isMental(abil) || typeof treasure !== "function" || !state.run || !treasure("tollbell").owned) return false;
+    const key = tollKey(o); if (B.S.tollKey === key) return true;
+    if (state.run.tollDay === state.run.day) return false;
+    return "ready";
+  }
+  B.tollBell = tollBell;
   function saveCtx(u, abil, dc, o) {
     const mods = [{ l: ABIL_RU[abil], v: amod(u.abil[abil]) }]; if (u.saveB[abil]) mods.push({ l: "Эссенция", v: u.saveB[abil] });
     if (has(u, "weakened")) mods.push({ l: "Ослаблен", v: -1 });
@@ -351,6 +363,8 @@
     if (abil === "dex" && has(u, "restrained")) dis.push("опутан");
     if (abil === "dex" && has(u, "shaken")) { dis.push("оглушён грохотом"); removeStatus(u, "shaken"); }
     if (has(u, "miredDis")) { dis.push("увяз в топи"); removeStatus(u, "miredDis"); }
+    const ar = state.run && state.run.tollArmed;          // колокольчик взведён из Инвентаря: ментальные проверки той же способности — с преимуществом
+    if (ar && u.hero && isMental(abil)) { const k = tollKey(o); if (!ar.key) ar.key = k; if (ar.key === k) adv.push("Серебряный колокольчик (взведён)"); else state.run.tollArmed = null; }
     const ctx = { u, abil, dc, o, mods, adv, dis, tags: o.tags || [] };
     hookAll(u, "saveMods", ctx);
     for (const a of alliesOf(u)) hookAll(a, "saveAura", { ally: a, u, abil, ctx });                // «Под защитой духов», «Голос старейшины»
@@ -362,8 +376,18 @@
     const ctx = saveCtx(u, abil, dc, o);
     const ses = session(u, { kind: "save", u, title: o.title || `Спасбросок: ${ABIL_RU[abil]}`, sub: `${u.name} · ${o.label || ""}` });
     const r = await ses.d20({ label: "Спасбросок", mods: ctx.mods, adv: ctx.adv, dis: ctx.dis, vs: { dc }, reroll: rerollOptions(u, "save"), cancel: false });
-    const ok = r.total >= dc;
+    let ok = r.total >= dc;
     log(`${u.name}: спасбросок ${ABIL_RU[abil]} ${r.nat === r.total ? r.nat : r.nat + " → " + r.total} против Сл ${dc} — ${ok ? "успех" : "провал"}.`, ok ? "save" : "fail");
+    if (!ok) {
+      const tb = tollBell(u, abil, o);
+      if (tb) {
+        if (tb === "ready") { state.run.tollDay = state.run.day; B.S.tollKey = tollKey(o); }
+        log(`Серебряный колокольчик звенит: ${u.name} перебрасывает с преимуществом.`, "good");
+        const r2 = await ses.d20({ label: "Колокольчик: переброс", mods: ctx.mods, adv: [...ctx.adv, "Серебряный колокольчик"], dis: ctx.dis, vs: { dc }, cancel: false });
+        ok = r2.total >= dc; Object.assign(r, { nat: r2.nat, total: r2.total, dice: r2.dice, mode: r2.mode });
+        log(`${u.name}: после колокольчика ${r2.total} против Сл ${dc} — ${ok ? "успех" : "провал"}.`, ok ? "save" : "fail");
+      }
+    }
     const g = ui(); if (g) g.fxText(u, ok ? "успех" : "провал", ok ? "good" : "bad");
     await ses.finish({ text: ok ? "Спасбросок удался" : "Спасбросок провален", save: true, ok });
     return { ok, nat: r.nat, total: r.total, dice: r.dice, mode: r.mode };
@@ -378,6 +402,14 @@
       log(`${t.name}: спасбросок ${ABIL_RU[abil]} ${r.nat === r.total ? r.nat : r.nat + " → " + r.total} против Сл ${dc} — ${ok ? "успех" : "провал"}.`, ok ? "save" : "fail");
       out.push({ ok, nat: r.nat, total: r.total, dice: r.dice, mode: r.mode }); ctxs.push(ctx);
     }
+    // колокольчик Звона: все пострадавшие герои (провалили ментальный спасбросок) перебрасывают с преимуществом, звон тратит один заряд на день
+    list.forEach((t, i) => {
+      if (!ctxs[i] || out[i].ok) return; const tb = tollBell(t, abil, o); if (!tb) return;
+      if (tb === "ready") { state.run.tollDay = state.run.day; B.S.tollKey = tollKey(o); }
+      const old = out[i].total, r2 = d20Core({ mods: ctxs[i].mods, adv: [...ctxs[i].adv, "Серебряный колокольчик"], dis: ctxs[i].dis }), ok2 = r2.total >= dc;
+      out[i] = { ok: ok2, nat: r2.nat, total: r2.total, dice: r2.dice, mode: r2.mode, again: old };
+      log(`Серебряный колокольчик звенит: ${t.name} — ${r2.total} (было ${old}) против Сл ${dc} — ${ok2 ? "успех" : "провал"}.`, ok2 ? "save" : "fail");
+    });
     const g = ui();
     if (g && g.summary) {
       // справа от героев — кнопка переброса: тот же счётчик, что и у остальных бросков; результат заменяется новым
