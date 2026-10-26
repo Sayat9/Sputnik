@@ -125,6 +125,7 @@
 
   /* ===== пассивки оружия ===== */
   P.weap = {
+    speedBonus(u) { const m = B.mainOf(u), o = B.offOf(u); return m && o && (m.props || []).includes("Можно со щитом") && o.id === "shield" ? -1 : 0; },          // пика со щитом: −1 клетка скорости
     attackMods(u, ctx) {
       const w = ctx.atk && ctx.atk.w; if (!w) return;
       if (w.id === "longbow" && ctx.atk.kind === "ranged" && has(u, "aimed")) { ctx.extra.push({ n: 1, s: 6, b: 0, dt: ctx.atk.dt, label: "Прицел", critDouble: true }); ctx.consume.push([u, "aimed"]); ctx.notes.push("прицел +1к6"); }
@@ -198,9 +199,152 @@
   P["race:darkfairy"] = {
     attackMods(u, ctx) { if (B.brightAt && B.brightAt(u)) ctx.mods.push({ l: "Боится света", v: -1 }); },
   };
+  /* ===== артефактное оружие (решения автора 29.10) =====
+     Копьё-громоотвод (6): заряд за ману, бросок застревает в цели и бьёт молнией в начале следующего хода владельца, копьё можно воткнуть в клетку.
+     Магнитные перчатки (7): «Притянуть». Парные тени (7): «Порез теней» — атака кинжалом на расстоянии до 3 клеток. Числа — черновик (drafts.md). */
+  const CHARGE_MANA = 2, STRIKE = [2, 8], PULL_DC = 12, PULL_LARGE = -3, PULL_METAL = 3, PULL_MAX = 3;
+  B.SKILL_ABIL.conCheck = "con"; B.SKILL_RU.conCheck = "Телосложение";
+  const lodged = () => (B.S.lodged ||= []);
+  const wetAt = (x, y) => { const t = B.tinfo && B.tinfo(x, y); return !!(t && t.wet); };
+  const ownerOf = rec => B.byId(rec.hero);
+  B.artTweak = (u, w, mode, atk) => {
+    if (w.artId === "thunder-spear" && u.charged && mode !== "off") {
+      atk.dt = "lightning"; atk.extra = [{ n: 1, s: 6, dt: "lightning", label: "Заряд молнии" }]; atk.charged = true;
+      atk.sub = (atk.sub ? atk.sub + " · " : "") + "заряжено молнией";
+    }
+  };
+  B.artAttacksOf = (u, main) => {
+    if (main.artId !== "shadow-daggers" || u.disarmed) return [];
+    const a = B.atkFrom(u, main, "hand");
+    Object.assign(a, { id: "shadowcut:" + main.id, n: "Порез теней", kind: "melee", reach: 3, stretch: false, sub: "полноценная атака кинжалом на расстоянии до 4,5 м" });
+    return [a];
+  };
+  // Бросок попал: копьё не падает под ноги цели, а остаётся в ней.
+  B.artAfterAttack = async (u, atk, tgt, r) => {
+    if (!(atk.thrown && atk.w.artId === "thunder-spear") || atk.slot === "off" || !r.hit || tgt.isObj || !alive(tgt)) return;
+    const S = B.S, i = S.drops.map(d => d.kind === "weapon" && d.hero === u.hero.id && d.slot === "main" && d.item && d.item.art === "thunder-spear").lastIndexOf(true);
+    if (i < 0) return;
+    const drop = S.drops.splice(i, 1)[0];
+    lodged().push({ kind: "unit", tgt: tgt.id, hero: u.id, turn: u.turnsTaken, drop });
+    log(`Копьё застряло в ${tgt.name}: в начале следующего хода ${u.name} в него ударит молния.`, "skill"); fx(tgt, "копьё застряло", "bad");
+    const g = ui(); if (g) g.refresh();
+  };
+  function release(rec, pos) {
+    const S = B.S, t = rec.kind === "unit" ? B.byId(rec.tgt) : null, p = pos || (t ? { x: t.x, y: t.y } : { x: rec.x, y: rec.y });
+    rec.drop.x = p.x; rec.drop.y = p.y; S.drops.push(rec.drop);
+    S.lodged = lodged().filter(r => r !== rec);
+  }
+  B.artRelease = S => { for (const rec of [...(S.lodged || [])]) { if (rec.kind === "cell" && S.cells[rec.y] && S.cells[rec.y][rec.x] === "spearstuck") S.cells[rec.y][rec.x] = ""; release(rec); } };
+  B.artSpearDown = (x, y, src) => {
+    const rec = lodged().find(r => r.kind === "cell" && r.x === x && r.y === y); if (!rec) return;
+    release(rec, { x, y }); log(`Копьё сбито${src ? " (" + src.name + ")" : ""} и лежит на земле.`);
+    const g = ui(); if (g) g.refresh();
+  };
+  function conductCells(x, y) {          // вода проводит молнию: все связные мокрые клетки от места удара
+    const seen = new Set(), q = [[x, y]]; if (!wetAt(x, y)) return seen; seen.add(x + "," + y);
+    while (q.length) { const [cx, cy] = q.shift(); for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const nx = cx + dx, ny = cy + dy, k = nx + "," + ny; if (!seen.has(k) && B.inB(nx, ny) && wetAt(nx, ny)) { seen.add(k); q.push([nx, ny]); } } }
+    return seen;
+  }
+  async function spearStrike(rec, owner) {
+    const t = rec.kind === "unit" ? B.byId(rec.tgt) : null;
+    if (rec.kind === "unit" && (!t || !alive(t))) { release(rec); log("Цель копья-громоотвода погибла раньше: копьё падает на землю."); return; }
+    const c = t ? { x: t.x, y: t.y } : { x: rec.x, y: rec.y }, v = roll(STRIKE[0], STRIKE[1]).total, weak = Math.max(1, Math.floor(v / 2)), hit = new Set();
+    log(`Молния бьёт из копья-громоотвода${t ? " в " + t.name : ""}!`, "skill");
+    const g = ui(); if (g) { g.banner("Молния!"); g.fxText({ x: c.x, y: c.y, size: 1, id: "bolt" }, "молния", "dmg"); }
+    if (t) { await B.applyDamage(owner, t, [{ v, dt: "lightning", label: "Молния громоотвода" }], { src: owner }); hit.add(t.id); }
+    const wet = conductCells(c.x, c.y);
+    for (const o of B.live()) {
+      if (hit.has(o.id) || !alive(o) || o.down) continue;
+      const near = B.distCell(o, c.x, c.y) <= 1, onWater = wet.size && footprintOf(o).some(([x, y]) => wet.has(x + "," + y));
+      if (!near && !onWater) continue;
+      hit.add(o.id); await B.applyDamage(owner, o, [{ v: weak, dt: "lightning", label: onWater && !near ? "Молния по воде" : "Молния рядом" }], { src: owner });
+    }
+    rec.struck = true;
+    if (rec.kind === "unit") release(rec, c);
+  }
+  const footprintOf = o => (B.footprint ? B.footprint(o) : [[o.x, o.y]]);
+  B.artTurnStart = async u => {
+    const S = B.S; if (!S || !S.lodged || !S.lodged.length) return;
+    for (const rec of [...S.lodged]) if (rec.hero === u.id && !rec.struck && rec.turn < u.turnsTaken) await spearStrike(rec, u);
+  };
+
+  // «Притянуть»: перчатки тянут цель по прямой, путь должен быть свободен.
+  const METAL = /металл|желез|стал|латн|бронз|медн|голем|доспех|рыцар|конструкт/i;
+  const isMetal = t => !!(t.mon && (t.mon.metal || METAL.test(`${t.mon.name || ""} ${t.mon.type || ""} ${t.mon.size || ""} ${t.mon.group || ""}`)));
+  const pullDc = t => PULL_DC + (t.size >= 2 ? PULL_LARGE : 0) + (isMetal(t) ? PULL_METAL : 0);
+  function pullPath(u, t) {
+    const dx = t.x - u.x, dy = t.y - u.y, d = Math.max(Math.abs(dx), Math.abs(dy));
+    if (d < 2 || d - 1 > PULL_MAX + 0 || t.size >= 3 || (dx && dy && Math.abs(dx) !== Math.abs(dy))) return null;
+    const sx = Math.sign(dx), sy = Math.sign(dy), cells = [], me = { ...t };
+    let cx = t.x, cy = t.y;
+    for (let i = 0; i < d - 1; i++) {
+      cx -= sx; cy -= sy; me.x = cx; me.y = cy;
+      if (!B.canStand(t, cx, cy)) return null;          // на пути препятствие или кто-то стоит
+      cells.push([cx, cy]);
+      if (B.dist({ x: u.x, y: u.y, size: u.size }, me) <= 1) break;
+    }
+    return cells.length && B.dist(u, { ...t, x: cells[cells.length - 1][0], y: cells[cells.length - 1][1] }) <= 1 ? cells : null;
+  }
+  async function doPull(u) {
+    const cands = enemiesOf(u).filter(t => alive(t) && !t.down && pullPath(u, t));
+    if (!cands.length) { toast("Притянуть: нет цели на прямой в 2–4 клетках с чистым путём"); return false; }
+    const t = await UI().pickUnit({ prompt: "Притянуть: выберите цель", units: cands.map(x => x.id), cells: [], kind: "attack" }); if (!t) return false;
+    const dc = pullDc(t);
+    const ck = await B.doCheck(u, "conCheck", { title: "Притянуть", label: `${t.name} · Сл ${dc}`, dc, cancel: true, onCommit: () => B.spendTime(u, "action") });
+    if (!ck) return false;
+    if (ck.total < dc) { log(`${u.name} не смог притянуть ${t.name} (${ck.total} против Сл ${dc}).`); fx(t, "устоял"); return true; }
+    const path = pullPath(u, t); if (!path) { log(`Путь для ${t.name} оказался занят.`); return true; }
+    for (const [x, y] of path) { const from = [t.x, t.y]; t.x = x; t.y = y; const g = ui(); if (g) await g.animMove(t, from, [x, y]); if (B.terrainEnter) await B.terrainEnter(t); if (!alive(t)) break; }
+    log(`${u.name} притягивает ${t.name} магнитом (${ck.total} против Сл ${dc}).`, "good"); fx(t, "притянут", "bad");
+    return true;
+  }
+  B.doPull = doPull; B.pullPath = pullPath; B.pullDc = pullDc;
+
   const rb = B.weapActions;
   B.weapActions = u => {
     const out = rb(u);
+    const c0 = u.hero, main0 = B.mainOf(u), off0 = B.offOf(u), act0 = B.timeOK(u, "action"), bon0 = B.timeOK(u, "bonus");
+    if (main0 && main0.artId === "thunder-spear" && !u.disarmed) {
+      out.push({ id: "spearcharge", cat: "skill", label: "Зарядить копьё", ico: "throwing", sub: `${CHARGE_MANA} маны, доп. действие: следующий удар или бросок — молния +1к6${u.charged ? " · уже заряжено" : ""}`, time: "bonus",
+        enabled: bon0 && !u.charged && u.mp >= CHARGE_MANA, why: !bon0 ? "доп. действие потрачено" : u.charged ? "уже заряжено" : "не хватает маны",
+        run: async () => { B.spendTime(u, "bonus"); B.setMp(u, u.mp - CHARGE_MANA); u.charged = true; log(`${u.name} заряжает копьё молнией.`, "good"); fx(u, "копьё заряжено", "good"); return true; } });
+      out.push({ id: "spearplant", cat: "attack", label: "Воткнуть копьё", ico: "throwing", sub: "действие: метнуть в клетку — копьё станет препятствием с 1 ОЗ и ударит молнией в начале вашего следующего хода", time: "action", enabled: act0, why: "действие потрачено",
+        run: async () => {
+          const S = B.S, th = B.atkFrom(u, main0, "thrown"), tmp = { size: 1, side: "hero", id: "tmp" }, cells = [];
+          for (let y = 0; y < B.H; y++) for (let x = 0; x < B.W; x++) {
+            const d = B.distCell(u, x, y); if (d < 1 || d > th.range[1]) continue;
+            if (!B.canStand(tmp, x, y) || S.objs.some(o => o.x === x && o.y === y) || B.live().some(o => B.footprint(o).some(([fx2, fy2]) => fx2 === x && fy2 === y))) continue;
+            if (B.lineBlocked(u, { x, y, size: 1, id: "c" })) continue;
+            cells.push([x, y]);
+          }
+          if (!cells.length) { toast("Некуда воткнуть"); return false; }
+          const pt = await UI().pickCell({ prompt: "Воткнуть копьё в клетку", cells, kind: "attack", radius: 0 });
+          if (!pt || pt.length !== 2) return false;
+          const [x, y] = pt, entry = c0.equip.main;
+          B.spendTime(u, "action"); u.t.attacked = true; u.disarmed = true; S.cells[y][x] = "spearstuck";
+          lodged().push({ kind: "cell", x, y, hero: u.id, turn: u.turnsTaken, drop: { kind: "weapon", hero: c0.id, slot: "main", item: entry, x, y } });
+          log(`${u.name} вонзает копьё-громоотвод в землю: в начале его следующего хода ударит молния.`, "skill"); fx(u, "копьё воткнуто", "good");
+          const g = ui(); if (g) g.refresh(); return true;
+        } });
+    }
+    const planted = lodged().find(r => r.kind === "cell" && r.hero === u.id && B.distCell(u, r.x, r.y) <= 1);
+    if (planted && u.disarmed) out.push({ id: "spearpull", cat: "other", label: "Вытащить копьё", ico: "attack", sub: "свободное действие: копьё возвращается в руку", time: "free", enabled: true,
+      run: async () => { B.S.cells[planted.y][planted.x] = ""; B.S.lodged = lodged().filter(r => r !== planted); u.disarmed = false; log(`${u.name} вытаскивает копьё из земли.`, "good"); const g = ui(); if (g) g.refresh(); return true; } });
+    if ((main0 && main0.artId === "magnet-gloves") || (off0 && off0.artId === "magnet-gloves")) {
+      const any = enemiesOf(u).some(t => alive(t) && !t.down && pullPath(u, t));
+      out.push({ id: "magnet", cat: "skill", label: "Притянуть", ico: "move", sub: "действие: проверка Телосложения, цель за 2–4 клетки по прямой подтянется к вам (путь должен быть свободен)", time: "action", enabled: act0 && any, why: !act0 ? "действие потрачено" : "нет цели на прямой с чистым путём",
+        run: () => doPull(u) });
+    }
+    return out;
+  };
+  const rb2 = B.weapActions;
+  B.weapActions = u => {
+    const out = rb2(u);
+    return out;
+  };
+  const rb3 = B.weapActions;
+  B.weapActions = u => {
+    const out = rb3(u);
     if (u.race === "darkfairy") {
       const bon = B.timeOK(u, "bonus"), used = !!u.flags.whisper;
       out.push({ id: "whisper", cat: "move", label: "Шёпот теней", ico: "disengage", sub: "доп. действие, раз за бой: движение не провоцирует атак", time: "bonus", enabled: bon && !used, why: used ? "уже использовано" : "доп. действие потрачено",

@@ -20,6 +20,7 @@
     tree:     { hp: 25, ac: 12, res: ["pierce"], vuln: ["slash"], drop: [[0.02, 0], [0, 0.02]] },
     palisade: { hp: 20, ac: 10, res: ["pierce"], vuln: ["slash"], drop: [[0.02, 0], [0, 0.015]] },
     stash:    { hp: 6, ac: 9, res: [], vuln: ["slash"], drop: [[0, 0], [0, 0]] },          // походный сундучок Ведьмина леса: награда и мимик — в destroyObject
+    spearstuck: { hp: 1, ac: 6, res: [], drop: [[0, 0], [0, 0]] },          // воткнутое копьё-громоотвод: препятствие с 1 ОЗ, сбитое лежит на земле (battle-weap.js)
     deadfall: { hp: 24, ac: 11, res: ["pierce"], vuln: ["slash"], drop: [[0.02, 0], [0, 0.015]] },
   };
   D.recoil = { maxNat: 3, dmg: [1, 4] };                          // обычное оружие (не молот и не тяжёлое), натуральное 1–3 по камню: отдача в руку
@@ -54,6 +55,7 @@
     log(`${name} разрушен${/[ао]$/.test(name) ? "а" : ""}${src ? " (" + src.name + ")" : ""}.`, "hit");
     const g = ui(); if (g) { g.fxText({ x, y, size: 1, id: "obj" }, "разрушено", "dmg"); g.refresh(); }
     if (t === "stash") { stashBreak(x, y, src); return; }
+    if (t === "spearstuck") { if (B.artSpearDown) B.artSpearDown(x, y, src); return; }
     const [p9, p8] = stoneChance(t);
     if (p9 && rnd(1000) < p9 * 1000) { (S.found ||= []).push({ t: "g", id: "stone-9", qty: 1 }); log(`Среди обломков блестит магический камень (9-й класс).`, "good"); }
     if (p8 && rnd(1000) < p8 * 1000) { (S.found ||= []).push({ t: "g", id: "stone-8", qty: 1 }); log(`Среди обломков блестит магический камень (8-й класс).`, "good"); }
@@ -346,6 +348,8 @@
   D.terrain.chest = { name: "Деревянный сундук", obstacle: true, note: "Не пройти. Откройте его рядом действием: внутри добыча (камни, иногда еда, зелья, карта)." };
   D.SVG.stash = '<ellipse cx="50" cy="82" rx="30" ry="7" fill="#000" opacity=".3"/><rect x="24" y="48" width="52" height="32" rx="5" fill="#6b5a7a" stroke="#2c2236" stroke-width="3"/><rect x="24" y="48" width="52" height="11" rx="5" fill="#85729a" stroke="#2c2236" stroke-width="3"/><rect x="46" y="58" width="8" height="9" rx="2" fill="#d8c070" stroke="#2c2236" stroke-width="2"/>';
   D.terrain.stash = { name: "Походный сундучок", obstacle: true, note: "Не пройти. Небольшой сундучок: сломайте его (КД 9, 6 ОЗ), и внутри что-то будет." };
+  D.SVG.spearstuck = '<ellipse cx="50" cy="86" rx="16" ry="5" fill="#000" opacity=".3"/><path d="M50 12 L56 30 L44 30 Z" fill="#c9d4e6" stroke="#2c3a52" stroke-width="2"/><rect x="47" y="30" width="6" height="56" rx="2" fill="#8a6a3a" stroke="#3d2a10" stroke-width="2"/><path d="M40 34 L48 44 M60 34 L52 44" stroke="#7fd0ff" stroke-width="3" stroke-linecap="round"/>';
+  D.terrain.spearstuck = { name: "Воткнутое копьё", obstacle: true, note: "Не пройти. Копьё торчит из земли: собьёте его любой атакой (1 ОЗ), и оно упадёт рядом." };
   D.terrain.chestopen = { name: "Открытый сундук", obstacle: true, note: "Не пройти. Уже пуст." };
 
   /* ===== вороны: последняя ворона в гнезде паникует; чернокрыл зовёт новых (rules.md → «Гнездо ворон и чернокрыл») ===== */

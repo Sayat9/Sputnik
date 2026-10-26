@@ -27,6 +27,10 @@ const L = require('./bui_lib.js');
     const fb = hostF.querySelector('[data-t="artsell"][data-key="t:boots"]'); fb && fb.click();
     out.afterForge = { gold: c.gold, owned: treasure('boots').owned };
     Town.close();
+    // артефактное оружие: продаётся в кузнице (+10 %)
+    c.bag = [{ t: 'w', id: 'spear', art: 'thunder-spear', qty: 1 }]; c.gold = 0; artState().known['thunder-spear'] = true;
+    Town.open('forge'); Town.state().tab = 'art'; document.querySelector('[data-t="ftab"][data-k="art"]') && document.querySelector('[data-t="ftab"][data-k="art"]').click();
+    const wb = document.getElementById('townov').querySelector('[data-t="artsell"]'); out.wrows = !!wb; wb && wb.click(); out.wsold = { gold: c.gold, bag: c.bag.length }; Town.close();
     // соль на оружии
     const w = { t: 'w', id: 'sword', qty: 1 }; c.equip = c.equip || {}; c.equip.main = w; c.bag = [{ t: 'g', id: 'silver-salt', qty: 2 }];
     const tg = saltTargets(c); out.saltTargets = tg.map(x => x.k);
@@ -42,6 +46,7 @@ const L = require('./bui_lib.js');
   ok('у артефактов есть поле price', res.priceField);
   ok('Башня: колокольчик продаётся дороже на 10 % (1650)', res.afterTower.gold === 1650 && !res.afterTower.owned && res.towerRows.length >= 2, res);
   ok('Кузница: сапоги (броня) +10 % (495)', res.afterForge.gold === 495 && !res.afterForge.owned, res);
+  ok('артефактное оружие продаётся в кузнице за 5500 (6 класс +10 %)', res.wrows && res.wsold.gold === 5500 && res.wsold.bag === 0, res.wsold);
   ok('соль: цель выбирается, оружие помечено и описано', res.saltTargets.length === 1 && !res.saltBefore && res.saltAfter && /соль/.test(res.saltNote), res);
   ok('описания: короткая фраза и известные статы, без правил способностей', /Прямой железный клинок/.test(res.notes.sword) && /Урон 1к8/.test(res.notes.sword) && !/Парирование:|реакци/.test(res.notes.sword) && !/крысолов/i.test(res.notes.flute) && /КД 16/.test(res.notes.chain), res.notes);
   console.log('проверок:', R.length, 'не прошли:', R.filter(x => !x.ok).length);

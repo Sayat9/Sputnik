@@ -12,6 +12,7 @@
   function cleanup(S, outcome) {
     const keeps = outcome === "win" || outcome === "retreat" || outcome === "abort";
     S.gear = [];
+    if (B.artRelease) B.artRelease(S);          // застрявшие и воткнутые копья падают на землю: дальше они ведут себя как обычное брошенное оружие
     for (const u of B.heroes()) {
       const c = u.hero; if (!c) continue;
       for (const w of S.drops.filter(d => d.kind === "weapon" && d.hero === c.id)) {          // оружие из руки и из рюкзака («Полная перевязь»), в том числе схваченное вором

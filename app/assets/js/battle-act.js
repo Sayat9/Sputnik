@@ -27,7 +27,7 @@
     const am = amod(u.abil[ab]);
     const dice = parseDice(f.versatile && !eq.off && mode === "hand" ? f.versatile : w.dmg);
     const atk = { id: mode + ":" + w.id, w, n: w.name, hit: am + u.pb + (w.bonus || 0), parts: [{ l: ABIL_RU[ab], v: am }, ...(u.pb ? [{ l: "Бонус мастерства", v: u.pb }] : []), ...(w.bonus ? [{ l: "Сталь", v: w.bonus }] : [])], dmg: { ...dice, b: dice.b + am + (w.bonus || 0) }, dt: DT[w.type] || "bludgeon", tags: [], mode, time: "action" };
-    if (mode === "hand" && !ranged) { atk.kind = "melee"; atk.reach = w.id === "spear" || w.id === "staff" ? 2 : 1 + longArm(u, w); if (w.id === "spear" && !u.pass.includes("goblin-spear")) atk.stretch = true; if (w.id === "staff") { atk.stretch = true; atk.stretchPen = -2; }
+    if (mode === "hand" && !ranged) { atk.kind = "melee"; atk.reach = w.id === "spear" || w.id === "staff" || w.id === "pike" ? 2 : 1 + longArm(u, w); if (w.id === "spear" && !u.pass.includes("goblin-spear")) atk.stretch = true; if (w.id === "staff") { atk.stretch = true; atk.stretchPen = -2; }
       if (w.id === "mace") { atk.acIgnore = 1; } atk.sub = atk.reach > 1 ? `досягаемость ${atk.reach * 1.5} м`.replace(".", ",") : "ближний бой"; }
     else if (mode === "hand" && ranged) {
       atk.kind = "ranged"; atk.ammo = "arrow";
@@ -42,10 +42,12 @@
     else if (mode === "off") { atk.slot = "off"; atk.kind = "melee"; atk.reach = 1; atk.time = "bonus"; atk.offhand = true; atk.dmg.b = Math.min(0, am); atk.n = "Второй рукой: " + w.name; atk.sub = "доп. действие, без модификатора урона"; }
     if (mode === "hand" && w.id === "gloves" && eq.off && eq.off.id === "gloves") { atk.dmg.n = 2; atk.dmg.s = 4; atk.sub = "две перчатки: 2к4"; }          // обе руки в перчатках: удар кулаками 2к4
     if (mode === "hand" && w.id === "greatsword" && !ranged) { atk.spin = true; atk.sub = (atk.sub ? atk.sub + " · " : "") + "вращающийся удар"; }
+    if (w.artId && B.artTweak) B.artTweak(u, w, mode, atk);          // артефактное оружие (battle-weap.js)
     return atk;
   }
   // Оружие в основной руке. Пока брошенное оружие лежит на земле (u.disarmed), рука пуста; сам предмет из снаряжения не убирается
   // (при перезагрузке посреди боя, ошибке или переходе на обычный экран ничего не теряется), насовсем он уходит только в итоге боя (battle-end.js).
+  B.atkFrom = atkFrom;
   B.offOf = u => (u.hero && !u.disarmedOff && u.hero.equip && u.hero.equip.off ? itemOf(u.hero.equip.off) : null);
   B.mainOf = u => (u.hero && !u.disarmed && u.hero.equip && u.hero.equip.main ? itemOf(u.hero.equip.main) : null);
   // Метательное оружие в рюкзаке («Полная перевязь» хобгоблина-метателя): каждая запись, ещё не брошенная в этом бою.
@@ -67,6 +69,7 @@
       out.push(atkFrom(u, main, "hand"));
       const f = wprops(main);
       if (f.thrown) out.push(atkFrom(u, main, "thrown"));
+      if (main.artId && B.artAttacksOf) out.push(...B.artAttacksOf(u, main));          // «Порез теней» и другие особые атаки артефактов
     }
     const seenBag = new Map();                                                                  // в списке действий одинаковое оружие из рюкзака — одной строкой
     for (const e of bagThrowEntries(u)) { const k = e.id; if (seenBag.has(k)) { seenBag.get(k).count++; continue; } const a = atkFrom(u, itemOf(e), "thrown", e); a.count = 1; seenBag.set(k, a); out.push(a); }
@@ -114,6 +117,7 @@
     if (!o.free) spendTime(u, atk.time || "action");
     if (atk.alsoBonus) spendTime(u, "bonus");                                                    // «Крушащий удар»: действие и доп. действие
     if (!atk.offhand && !(atk.thrown && atk.slot === "off")) u.t.attacked = true;
+    if (atk.charged) u.charged = false;                                                          // заряд копья-громоотвода потрачен
     if (atk.ammo && u.hero) {
       const L = B.arrowLog(u.hero.id);
       if (B.dqLeft(u) > 0) { u.dq--; u.dqShot = true; L.dq = (L.dq || 0) + 1; }          // колчан режиссёра: стрелы не ломаются и возвращаются сами
@@ -158,7 +162,8 @@
     const tgt = await UI().pickUnit({ prompt: `${atk.n}: выберите цель${objs.length ? " (можно и объект)" : ""}`, units: targets.map(t => t.id), objs: objs.map(o => o.x + "," + o.y), cells: rangeCells(u, atk), kind: "attack", from: atk.kind === "melee" ? null : u });
     if (!tgt) return false;
     if (tgt.isObj) { const r0 = await B.attackObject(u, atk, tgt, { onCommit: () => commitAttack(u, atk, tgt) }); return !r0.cancelled; }
-    const r = await B.doAttack(u, tgt, atk, { onCommit: () => commitAttack(u, atk, tgt), scale: atk.spin ? SPIN_MAIN : undefined });
+    const r = await B.doAttack(u, tgt, atk, { onCommit: () => commitAttack(u, atk, tgt), scale: atk.spin ? SPIN_MAIN : undefined, extra: atk.extra });
+    if (!r.cancelled && atk.w && atk.w.artId && B.artAfterAttack) await B.artAfterAttack(u, atk, tgt, r);          // копьё-громоотвод застревает в цели
     if (atk.spin && !r.cancelled && r.hit && r.raw) {          // враги по бокам от цели (рядом и с героем, и с целью) получают ещё меньше
       const sides = enemiesOf(u).filter(e => e !== tgt && alive(e) && !has(e, "underground") && dist(u, e) <= 1 && dist(e, tgt) <= 1);
       for (const e of sides) {

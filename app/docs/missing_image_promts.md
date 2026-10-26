@@ -219,3 +219,7 @@
 - `items/weak-salt` — `small linen pouch of fine grey salt flecked with silver dust, painted fantasy item icon, plain dark background`
 - `items/silver-salt` — `heavy silver-clasped pouch of glittering coarse silver salt spilling out, faint cold glow, painted fantasy artifact icon, plain dark background`
 - `items/director-quiver` — `ornate leather quiver embossed with theatre masks, ten white-fletched arrows sticking out, brass fittings, painted fantasy artifact icon, plain dark background`
+- `items/art-thunder-spear` — `ornate steel spear with crackling blue lightning coiled around the blade, copper rings on the haft, painted fantasy artifact weapon icon, plain dark background`
+- `items/art-magnet-gloves` — `pair of heavy steel gauntlets with horseshoe magnets on the knuckles and faint blue field lines, painted fantasy artifact icon, plain dark background`
+- `items/art-shadow-daggers` — `black elegant dagger with a blade that dissolves into smoky shadow at the edge, violet glow in the engraving, painted fantasy artifact icon, plain dark background`
+- `items/pike` — `short knight's pike, long slender faceted steel head, dark wood shaft with leather grip, painted fantasy weapon icon, plain dark background`

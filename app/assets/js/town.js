@@ -16,7 +16,7 @@
     { key: "shovel", e: { t: "g", id: "shovel", qty: 1 }, price: 8 }, { key: "shovel-good", e: { t: "g", id: "shovel-good", qty: 1 }, price: 15 },
     { key: "flute", e: { t: "g", id: "flute", qty: 1 }, price: 8 }, { key: "firstaid", e: { t: "g", id: "firstaid", qty: 1 }, price: 20, many: true }, { key: "compass", special: "compass", price: 30 },
   ];
-  const FORGE_W = ["dagger", "spear", "mace", "warhammer", "sword", "rapier", "greatsword", "gloves", "staff", "axe", "greataxe", "shortbow", "longbow", "shield", "tower-shield"];
+  const FORGE_W = ["dagger", "spear", "pike", "mace", "warhammer", "sword", "rapier", "greatsword", "gloves", "staff", "axe", "greataxe", "shortbow", "longbow", "shield", "tower-shield"];
   const FORGE_A = ["leather", "hide", "chainmail"];
   const forgeDisc = p => ((state.party || []).some(c => c.race === "dwarf" && !c.dead) ? Math.max(1, Math.round(p * 0.9)) : p);          // дварф в отряде: скидка 10% в кузнице
   const FORGE_PRICE = { weapon: 10, armor: 15, steelWeapon: 25, steelArmor: 40 };               // решение автора
@@ -127,8 +127,8 @@
     const out = [];
     for (const id of Object.keys(TREASURES)) if (ARTIFACTS[id] && treasure(id).owned) out.push({ key: "t:" + id, id, src: "tr" });
     for (const c of state.party.filter(x => !x.dead)) {
-      (c.bag || []).forEach((e, i) => { if (e && e.t === "g" && ARTIFACTS[e.id] && !TREASURES[e.id]) out.push({ key: `b:${c.id}:${i}`, id: e.id, src: "bag", c, i, qty: e.qty || 1 }); });
-      for (const [sl, e] of Object.entries(c.equip || {})) if (e && e.t === "g" && ARTIFACTS[e.id] && !TREASURES[e.id]) out.push({ key: `e:${c.id}:${sl}`, id: e.id, src: "eq", c, sl });
+      (c.bag || []).forEach((e, i) => { if (e && e.art && ARTIFACTS[e.art]) out.push({ key: `b:${c.id}:${i}`, id: e.art, src: "bag", c, i, qty: 1 }); else if (e && e.t === "g" && ARTIFACTS[e.id] && !TREASURES[e.id]) out.push({ key: `b:${c.id}:${i}`, id: e.id, src: "bag", c, i, qty: e.qty || 1 }); });
+      for (const [sl, e] of Object.entries(c.equip || {})) if (e && ((e.t === "g" && ARTIFACTS[e.id] && !TREASURES[e.id]) || (e.art && ARTIFACTS[e.art]))) out.push({ key: `e:${c.id}:${sl}`, id: e.art || e.id, src: "eq", c, sl });
     }
     return out;
   }

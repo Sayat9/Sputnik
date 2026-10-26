@@ -573,6 +573,7 @@
     if (B.flushStash) await B.flushStash();
     const S = B.S;
     u.turnsTaken++;
+    if (B.artTurnStart) await B.artTurnStart(u);          // молнии воткнутых копий-громоотводов
     if (u.t) { const moved = u.t.moved > 0 || u.t.startX !== u.x || u.t.startY !== u.y; u.still = moved ? 0 : (u.still || 0) + 1; }          // сколько своих ходов подряд простоял на месте («Слиться с топью»)
     const invis = has(u, "hidden"), backToHidden = !!(invis && invis.data && invis.data.invis && invis.data.was && invis.data.endAtStartOf === u.id);          // невидимость кончилась, а обычная скрытность была до неё
     for (const o of units()) o.conds = o.conds.filter(c => !(c.data && c.data.endAtStartOf === u.id));      // «до начала моего следующего хода»
