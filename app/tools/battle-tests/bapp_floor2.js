@@ -28,7 +28,7 @@ const L = require('./bui_lib.js');
     r.pos = { x: 0, y: 10 }; r.day = 5; let pi = portalInfo(); out.back5 = pi.ok && pi.to === 1; switchFloor(); out.afterBack = r.floor;
     r.floor = 1; r.pos = { x: 0, y: 0 }; r.day = 8; out.late = portalInfo().ok; // после срока 1 этажа
     r.floor = 2; r.variant = 'goblin'; r.pos = { x: 0, y: 10 }; r.day = 9; out.noBack = portalInfo().ok;
-    r.pos = { x: 10, y: 0 }; out.exit = portalInfo().ok; r.day = 14; out.exitOff = portalInfo().ok; r.day = 9;
+    r.pos = { x: 10, y: 0 }; out.exit = portalInfo().ok; r.day = 15; out.exitOff = portalInfo().ok; r.day = 9;
     out.stonePortal = (() => { r.floor = 1; delete r.variant; r.pos = { x: 10, y: 10 }; r.day = 2; return portalInfo().ok; })();
     return out;
   });
@@ -38,7 +38,7 @@ const L = require('./bui_lib.js');
   ok('назад на 1 этаж до конца 7-го дня можно', res.back5 && res.afterBack === 1);
   ok('после 7-го дня на 1 этаж нельзя', res.noBack === false);
   ok('вход на 2 этаж после срока 1 этажа нельзя', res.late === false);
-  ok('выход на 3 этаж открыт до 13-го дня и закрыт с 14-го; каменный портал ведёт в Кристальный разлом', res.exit === true && res.exitOff === false && res.stonePortal === true);
+  ok('выход на 3 этаж открыт до конца 14-го дня и закрыт с 15-го; каменный портал ведёт в Кристальный разлом', res.exit === true && res.exitOff === false && res.stonePortal === true);
   // ночной шанс
   const n = await p.evaluate(() => { const rr = state.run; rr.floor = 1; rr.pos = { x: 5, y: 3 }; const orig = window.askRoll; let hit = 0; window.askRoll = () => { hit++; }; const tab = {}; for (const [day, guard, gf] of [[2, 'rest-noguard', 0], [4, 'rest', 0], [4, 'rest', 1], [4, 'rest-noguard', 0], [9, 'rest-noguard', 0]]) { rr.day = day; hit = 0; for (let i = 0; i < 3000; i++) rollEncounter(guard === 'rest' ? 'rest' : 'rest-noguard', gf); tab[day + guard + gf] = hit / 3000; } window.askRoll = orig; return tab; });
   ok('дни 1–3: ночных встреч нет совсем', n['2rest-noguard0'] === 0, JSON.stringify(n));

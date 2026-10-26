@@ -43,9 +43,12 @@ const L = require('./bui_lib.js');
     out.pairs = {};
     for (const v of ['goblin', 'beast', 'undead', 'stone']) { r.floor = 2; r.variant = v; r.pos = { x: 10, y: 0 }; r.day = 6; const i = portalInfo(); out.pairs[v] = i.entry; switchFloor(); const back = r.floor === 3 ? f3VariantOf(tkey(...[r.pos.x, r.pos.y].map(String).length ? [r.pos.x, r.pos.y] : [])) : null; out.pairs[v + '_floor'] = r.floor; }
     out.pairsDistinct = new Set(['goblin', 'beast', 'undead', 'stone'].map(v => out.pairs[v])).size === 4;
+    out.rand = (() => { const pts = new Set(); let onPortal = 0;
+      for (let i = 0; i < 30; i++) { r.floor = 2; r.variant = 'goblin'; r.pos = { x: 10, y: 0 }; r.day = 6; switchFloor(); pts.add(tkey(r.pos.x, r.pos.y)); if (tileType(r.pos.x, r.pos.y) === 'portal') onPortal++; }
+      return { distinct: pts.size, onPortal }; })();
     // 5. отключение порталов с 14-го дня
     out.off = {};
-    for (const day of [13, 14, 15]) {
+    for (const day of [14, 15, 16]) {
       r.floor = 2; r.variant = 'beast'; r.pos = { x: 10, y: 0 }; r.day = day; const a = portalInfo().ok;
       r.floor = 3; delete r.variant; const e = F3_ENTRIES[0].split(',').map(Number); r.pos = { x: e[0], y: e[1] }; const b2 = portalInfo().ok;
       out.off[day] = [a, b2];
@@ -67,9 +70,10 @@ const L = require('./bui_lib.js');
   ok('портал дальше не активен', res.next && res.next.ok === false, res.next);
   for (const k of ['0,30', '30,30', '0,15', '30,15']) { const o = res.back[k]; ok(`вход ${k} ведёт на ${o.want}`, o.ok && o.to === 2 && o.variant === o.want && o.after && o.after[0] === 2 && o.after[1] === o.want && o.after[2] === 6, o); }
   ok('четыре варианта ведут на четыре разных входа', res.pairsDistinct && ['goblin', 'beast', 'undead', 'stone'].every(v => res.pairs[v + '_floor'] === 3), res.pairs);
-  ok('день 13: порталы работают в обе стороны', res.off[13][0] && res.off[13][1], res.off[13]);
-  ok('день 14: порталы отключены в обе стороны', !res.off[14][0] && !res.off[14][1], res.off[14]);
-  ok('день 15: порталы отключены', !res.off[15][0] && !res.off[15][1], res.off[15]);
+  ok('день 14: порталы работают до конца дня в обе стороны', res.off[14][0] && res.off[14][1], res.off[14]);
+  ok('день 15: порталы отключены в обе стороны', !res.off[15][0] && !res.off[15][1], res.off[15]);
+  ok('день 16: порталы отключены', !res.off[16][0] && !res.off[16][1], res.off[16]);
+  ok('повторный спуск — в случайное место, не на портал', res.rand.distinct >= 8 && res.rand.onPortal === 0, res.rand);
   // интерфейс: экран, карта, окно портала
   const ui = await p.evaluate(() => {
     const r = state.run, o = {};
