@@ -105,6 +105,7 @@
   }
   /* Урон: parts — [{v, dt, label}]. Учитывает уязвимости, сопротивления, плоские поправки пассивок, мокроту и временные ОЗ. */
   async function applyDamage(src, tgt, parts, o = {}) {
+    if (src && src !== tgt && src.side === tgt.side && tgt.hero && B.wearsRing && B.wearsRing(tgt)) { log(`${tgt.name}: кольцо братского духа гасит урон от ${src.name}.`, "good"); return { total: 0, absorbed: 0, notes: ["братский дух"] }; }
     if (src && tgt.hero && o.ctx && o.ctx.atk && o.ctx.atk.kind === "ranged" && !o.noReflect && B.mirrorTry) { const rf = await B.mirrorTry(src, tgt, parts); if (rf) return rf; }          // зеркальный щит
     const enc = has(tgt, "encased");
     if (enc && parts.length) {          // «Кристальная тюрьма»: урон бьёт по кристаллу; дробящий — двойной; цель не ранена

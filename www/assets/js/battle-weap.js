@@ -126,8 +126,10 @@
   /* ===== пассивки оружия ===== */
   P.weap = {
     speedBonus(u) { const m = B.mainOf(u), o = B.offOf(u); return m && o && (m.props || []).includes("Можно со щитом") && o.id === "shield" ? -1 : 0; },          // пика со щитом: −1 клетка скорости
+    acBonus(u) { const m = u.hero ? B.mainOf(u) : null; return m && m.artId === "moon-sword" && u.moon === 3 ? 1 : 0; },          // фаза «ущерб»: +1 КД
     attackMods(u, ctx) {
       const w = ctx.atk && ctx.atk.w; if (!w) return;
+      if (w.artId === "moon-sword" && u.moon === 0 && (ctx.hiddenData || has(ctx.tgt, "blinded"))) { ctx.extra.push({ n: 1, s: 6, b: 0, dt: ctx.atk.dt, label: "Новолуние", critDouble: true }); ctx.notes.push("новолуние +1к6"); }
       if (w.id === "longbow" && ctx.atk.kind === "ranged" && has(u, "aimed")) { ctx.extra.push({ n: 1, s: 6, b: 0, dt: ctx.atk.dt, label: "Прицел", critDouble: true }); ctx.consume.push([u, "aimed"]); ctx.notes.push("прицел +1к6"); }
       if (w.id === "axe" && B.isShieldBearer && B.isShieldBearer(ctx.tgt)) { ctx.dmgPlus = (ctx.dmgPlus || 0) + 2; ctx.notes.push("топор против щита +2"); }
     },
@@ -155,7 +157,7 @@
     // «Парирование» меча: враг промахнулся по герою в ближнем бою более чем на 4 — ослабленный ответ (реакция).
     onMissedBy(u, ctx) {
       const { att, res } = ctx; if (!ctx.melee || res.parried || res.swapped || !u.hero) return;
-      const main = B.mainOf(u); if (!main || main.id !== "sword") return;
+      const main = B.mainOf(u); if (!main || !(main.id === "sword" || (main.artId === "moon-sword" && u.moon === 3))) return;
       if (!(u.t && u.t.react > 0) || !canAct(u) || att.side === u.side || dist(u, att) > 1) return;
       if (!(ctx.ac - res.total > 4)) return;
       res.post.push(async () => {
@@ -207,7 +209,13 @@
   const lodged = () => (B.S.lodged ||= []);
   const wetAt = (x, y) => { const t = B.tinfo && B.tinfo(x, y); return !!(t && t.wet); };
   const ownerOf = rec => B.byId(rec.hero);
+  const MOON = [{ n: "новолуние", d: "+1к6, если вас не видят" }, { n: "серп", d: "после убийства шаг на 2 клетки без провокации" }, { n: "полнолуние", d: "удары радиантные, +1к4" }, { n: "ущерб", d: "+1 КД, ответ по промахнувшемуся" }];
+  B.wearsRing = u => !!(u.hero && ["ring1", "ring2"].some(s => u.hero.equip && u.hero.equip[s] && u.hero.equip[s].id === "brotherhood-ring"));
   B.artTweak = (u, w, mode, atk) => {
+    if (w.artId === "moon-sword" && mode === "hand") {
+      if (u.moon === 2) { atk.dt = "radiant"; atk.extra = [{ n: 1, s: 4, dt: "radiant", label: "Полнолуние" }]; }
+      if (u.moon != null) atk.sub = (atk.sub ? atk.sub + " · " : "") + "фаза: " + MOON[u.moon].n;
+    }
     if (w.artId === "thunder-spear" && u.charged && mode !== "off") {
       atk.dt = "lightning"; atk.extra = [{ n: 1, s: 6, dt: "lightning", label: "Заряд молнии" }]; atk.charged = true;
       atk.sub = (atk.sub ? atk.sub + " · " : "") + "заряжено молнией";
@@ -221,6 +229,7 @@
   };
   // Бросок попал: копьё не падает под ноги цели, а остаётся в ней.
   B.artAfterAttack = async (u, atk, tgt, r) => {
+    if (atk.thrown && atk.w.artId === "storm-axe" && !atk.bagEntry) return stormAxe(u, atk, tgt, r);
     if (!(atk.thrown && atk.w.artId === "thunder-spear") || atk.slot === "off" || !r.hit || tgt.isObj || !alive(tgt)) return;
     const S = B.S, i = S.drops.map(d => d.kind === "weapon" && d.hero === u.hero.id && d.slot === "main" && d.item && d.item.art === "thunder-spear").lastIndexOf(true);
     if (i < 0) return;
@@ -264,9 +273,70 @@
   }
   const footprintOf = o => (B.footprint ? B.footprint(o) : [[o.x, o.y]]);
   B.artTurnStart = async u => {
-    const S = B.S; if (!S || !S.lodged || !S.lodged.length) return;
+    const S = B.S; if (!S) return;
+    const mw = u.hero ? B.mainOf(u) : null;
+    if (mw && mw.artId === "moon-sword" && !u.disarmed) { u.moon = ((u.moon == null ? -1 : u.moon) + 1) % 4; log(`${u.name}: фаза луны — ${MOON[u.moon].n}.`, "skill"); fx(u, MOON[u.moon].n, "good"); }
+    if (!S.lodged || !S.lodged.length) return;
     for (const rec of [...S.lodged]) if (rec.hero === u.id && !rec.struck && rec.turn < u.turnsTaken) await spearStrike(rec, u);
   };
+
+  // Топор бури: брошенный возвращается в руку; попав, стягивает врагов в 2 клетках (Телосложение, тяжёлым проще), падение даёт 1к4.
+  async function stormAxe(u, atk, tgt, r) {
+    const S = B.S, slot = atk.slot === "off" ? "off" : "main";
+    const i = S.drops.map(d => d.kind === "weapon" && d.hero === u.hero.id && d.slot === slot && d.item && d.item.art === "storm-axe").lastIndexOf(true);
+    if (i >= 0) { S.drops.splice(i, 1); if (slot === "off") u.disarmedOff = false; else u.disarmed = false; log(`${atk.w.name} возвращается в руку ${u.name}.`, "good"); const g = ui(); if (g) g.refresh(); }
+    if (!r.hit || tgt.isObj || !alive(tgt)) return;
+    const dcBase = 8 + (u.pb || 0) + Math.max(0, amod(u.abil.str));
+    for (const e of enemiesOf(u)) {
+      if (e === tgt || !alive(e) || e.down) continue;
+      const d = B.dist(e, tgt); if (d <= 1 || d > 2) continue;
+      const dc = dcBase - (e.size >= 2 ? 2 : 0) - (e.size >= 3 ? 2 : 0);
+      const sv = await B.doSave(e, "con", dc, { label: `стяжка топора (${u.name})`, from: u });
+      if (sv.ok) continue;
+      const cell = (B.freeCellsNear(tgt, 1, e) || [])[0]; if (!cell) continue;
+      const from = [e.x, e.y]; e.x = cell[0]; e.y = cell[1]; const g = ui(); if (g) await g.animMove(e, from, cell);
+      log(`${e.name} притянут к ${tgt.name}.`, "skill"); fx(e, "стянут", "bad");
+      if (B.terrainEnter) await B.terrainEnter(e);
+      if (alive(e)) await B.applyDamage(u, e, [{ v: roll(1, 4).total, dt: "bludgeon", label: "Столкновение" }], { src: u });
+    }
+  }
+  // Булава «Метеор»: раз за бой — прыжок и удар сверху; урон по области вполовину, цель может упасть, клетка — кратер; 1–2 на кубике — отбрасывает героя.
+  const METEOR = { dmg: [2, 6], back: [1, 8] };
+  async function meteor(u, atk) {
+    if (u.meteorUsed) { toast("Метеорный удар уже использован в этом бою"); return false; }
+    const reach = enemiesOf(u).filter(t => alive(t) && !t.down && B.dist(u, t) <= 3);
+    if (!reach.length) { toast("Нет цели в 3 клетках"); return false; }
+    const tgt = await UI().pickUnit({ prompt: "Метеорный удар: выберите цель (прыжок до 2 клеток)", units: reach.map(t => t.id), cells: [], kind: "attack" }); if (!tgt) return false;
+    const tmp = { size: u.size, side: u.side, id: u.id };
+    let land = null; if (B.dist(u, tgt) <= 1) land = [u.x, u.y]; else {
+      const near = (B.freeCellsNear(tgt, 1, tmp) || []).filter(c => Math.max(Math.abs(c[0] - u.x), Math.abs(c[1] - u.y)) <= 2).sort((a, b) => Math.max(Math.abs(a[0] - u.x), Math.abs(a[1] - u.y)) - Math.max(Math.abs(b[0] - u.x), Math.abs(b[1] - u.y)));
+      land = near[0] || null;
+    }
+    if (!land) { toast("Некуда приземлиться"); return false; }
+    u.meteorUsed = true;
+    if (land[0] !== u.x || land[1] !== u.y) { const from = [u.x, u.y]; u.x = land[0]; u.y = land[1]; const g = ui(); if (g) await g.animMove(u, from, land); log(`${u.name} взмывает и падает на ${tgt.name}.`, "skill"); }
+    const a2 = { ...atk, kind: "melee", reach: 1, dmg: { ...atk.dmg, n: METEOR.dmg[0], s: METEOR.dmg[1] }, dt: "bludgeon" };
+    const r = await B.doAttack(u, tgt, a2, { cancelable: false, onCommit: () => B.commitAttack(u, a2, tgt) });
+    if (!r || r.cancelled) return true;
+    const cx = tgt.x, cy = tgt.y;
+    if (r.nat <= 2) {
+      const v = roll(METEOR.back[0], METEOR.back[1]).total;
+      log(`${u.name}: метеор срывается (выпало ${r.nat}) — героя отбрасывает назад, ${v} урона.`, "bad"); fx(u, "отброшен", "bad");
+      await B.push(u, cx, cy, 2);
+      if (alive(u)) await B.applyDamage(null, u, [{ v, dt: "bludgeon", label: "Отдача метеора" }], { src: null });
+      return true;
+    }
+    if (!r.hit) return true;
+    const half = Math.max(1, Math.floor((r.dealt || 0) / 2));
+    for (const o of B.live()) {          // область бьёт и своих
+      if (o === u || o === tgt || !alive(o) || o.down || B.distCell(o, cx, cy) > 1) continue;
+      await B.applyDamage(u, o, [{ v: half, dt: "bludgeon", label: "Метеорный удар" }], { src: u });
+    }
+    if (alive(tgt)) { const sv = await B.doSave(tgt, "str", 8 + (u.pb || 0) + Math.max(0, amod(u.abil.str)), { label: "метеорный удар", from: u }); if (!sv.ok) { B.knock(tgt, u); fx(tgt, "сбит с ног", "bad"); } }
+    if (B.S.cells[cy] && !B.S.cells[cy][cx]) { B.S.cells[cy][cx] = "crater"; log("На месте удара остаётся кратер.", "skill"); const g = ui(); if (g) g.refresh(); }
+    return true;
+  }
+  B.doMeteor = meteor;
 
   // «Притянуть»: перчатки тянут цель по прямой, путь должен быть свободен.
   const METAL = /металл|желез|стал|латн|бронз|медн|голем|доспех|рыцар|конструкт/i;
@@ -312,22 +382,23 @@
     B.setMp(u, u.mp - STAR_MANA); u.starAt = B.S.round;
     log(`${u.name} пускает «Падающую звезду» в клетку ${cx + 1}:${cy + 1}.`, "skill");
     const g = ui(); if (g) { g.banner("Падающая звезда!"); g.fxText({ x: cx, y: cy, size: 1, id: "star" }, "звезда", "dmg"); }
-    for (const t of B.enemiesOf(u)) {
+    for (const t of B.live()) {          // область бьёт и своих (решение автора 29.10)
       if (!alive(t) || t.down || B.distCell(t, cx, cy) > 1) continue;
       const v = roll(STAR_DMG[0], STAR_DMG[1]).total;
       await B.applyDamage(u, t, [{ v, dt: "radiant", label: "Падающая звезда" }], { src: u });
-      if (alive(t)) { addStatus(t, "starlit", { k: Infinity, data: { endAtStartOf: u.id } }); removeStatus(t, "hidden"); removeStatus(t, "unseen"); }
+      if (alive(t) && t.side !== u.side) { addStatus(t, "starlit", { k: Infinity, data: { endAtStartOf: u.id } }); removeStatus(t, "hidden"); removeStatus(t, "unseen"); }
     }
     return true;
   }
   const ws0 = B.weapSpecials;
   B.weapSpecials = (u, main, off) => {
     const out = ws0(u, main, off);
+    if (main && main.artId === "meteor-mace" && !u.disarmed) { const base = B.atkFrom(u, main, "hand"); out.push({ ...base, id: "meteor:mace", n: "Метеорный удар", special: "meteor", sub: "раз за бой: прыжок до 2 клеток, 2к6 по цели и вполовину вокруг (и своим), кратер", needTarget: v => (v.meteorUsed ? "уже использован в этом бою" : (enemiesOf(v).some(x => alive(x) && B.dist(v, x) <= 3) ? null : "нет цели в 3 клетках")) }); }
     if (main && main.artId === "falling-star" && !u.disarmed) { const base = B.atkFrom(u, main, "hand"); out.push({ ...base, id: "star:longbow", n: "Падающая звезда", special: "star", sub: "1 мана и стрела, раз в 3 хода: радиус 1, радиантное 2к6, цели подсвечены", needTarget: v => starWhy(v) }); }
     return out;
   };
   const rs0 = B.runSpecial;
-  B.runSpecial = (u, atk) => (atk.special === "star" ? star(u, atk) : rs0(u, atk));
+  B.runSpecial = (u, atk) => (atk.special === "star" ? star(u, atk) : atk.special === "meteor" ? meteor(u, atk) : rs0(u, atk));
 
   // Посох разрядов: потраченная мана копится зарядами; «Разряд» — 1к6 за заряд.
   B.staffCharge = (u, spent) => { const m = B.mainOf(u); if (m && m.artId === "discharge-staff") u.charges = Math.min(STAFF_MAX, (u.charges || 0) + spent); };
@@ -345,6 +416,7 @@
   // Эхо-клинок: попадание оставляет эхо; следующая атака по цели (хоть мимо) повторяется без броска на половину прежнего удара.
   P.weap.attackDone = async function (u, ctx) {
     const { res, tgt, atk } = ctx, w = atk && atk.w;
+    if (w && w.artId === "moon-sword" && u.moon === 1 && res && res.killed && u.t) { u.t.move += 2; u.t.disengage = true; log(`${u.name}: серп — шаг на 2 клетки без провокации.`, "skill"); fx(u, "серп", "good"); }
     if (!w || w.artId !== "echo-blade" || !tgt || tgt.isObj || !res || atk.mode !== "hand") return;
     if (u.echo && u.echo.tgt === tgt.id) {
       const e = u.echo; u.echo = null;

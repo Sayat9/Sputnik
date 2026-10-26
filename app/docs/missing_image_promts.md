@@ -227,3 +227,7 @@
 - `items/art-echo-blade` — `straight steel sword with a faint translucent duplicate blade offset behind it, soft blue echo ripples, painted fantasy artifact icon, plain dark background`
 - `items/art-discharge-staff` — `ash staff with a cage of copper coils and a crackling blue-white orb at the head, painted fantasy artifact icon, plain dark background`
 - `items/art-mirror-shield` — `round polished mirror-faced shield with a dark iron rim, a streak of reflected light, painted fantasy artifact icon, plain dark background`
+- `items/art-moon-sword` — `huge two-handed sword with a crescent-moon shaped crossguard and pale silver blade with faint moon-phase engravings, painted fantasy artifact icon, plain dark background`
+- `items/art-storm-axe` — `compact throwing axe with wind swirls etched in the blade and crackling pale-blue edge, painted fantasy artifact icon, plain dark background`
+- `items/art-meteor-mace` — `heavy mace whose head is a glowing cracked meteorite, orange fissures and trailing sparks, painted fantasy artifact icon, plain dark background`
+- `items/brotherhood-ring` — `simple gold ring with two clasped hands engraved around the band, soft warm glow, painted fantasy artifact icon, plain dark background`

@@ -173,7 +173,7 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
     out.pike = { react: h.t.react, hurt: m2.hp < hpB, stopped: !!B.has(m2, 'spearstop') || m2.hp >= hpB };
     return out;
   });
-  ok('колчан режиссёра — 8 класса (пул 8), пул 7 пуст; новые артефакты: 6,7,6,7', o3.classes.join() === '6,7,6,7,8,8,true,0', o3.classes);
+  ok('колчан режиссёра — 8 класса (пул 8), в пуле 7 — кольцо; новые артефакты: 6,7,6,7', o3.classes.join() === '6,7,6,7,8,8,true,1', o3.classes);
   ok('Падающая звезда: атака в меню, тратит 1 ману, стрелу и действие', o3.star && o3.starRes.ok && o3.starRes.mp === 4 && o3.starRes.arrows === 1 && o3.starRes.action === 0, o3.starRes);
   ok('Падающая звезда: бьёт область, дальнюю цель нет, подсвечивает и снимает невидимость', o3.starRes.m1 && o3.starRes.m2 && o3.starRes.far && o3.starRes.lit && o3.starRes.hid, o3.starRes);
   ok('Падающая звезда: перезарядка 3 хода', /перезарядка/.test(o3.starCd || ''), o3.starCd);
@@ -181,6 +181,63 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
   ok('Посох разрядов: заряды от потраченной маны (до 3), «Разряд» бьёт и разряжает', o3.charges === 2 && o3.chargesCap === 3 && o3.disEnabled && o3.dis[0] && o3.dis[1] === 0, [o3.charges, o3.chargesCap, o3.disEnabled, o3.dis]);
   ok('Зеркальный щит: +1 КД, шанс отражения около 40 %, отражённое бьёт стрелка вполсилы, без маны не работает', o3.shieldAc && o3.mirror.reflected >= 5 && o3.mirror.reflected <= 28 && o3.mirror.taken === 0 && o3.noMana, [o3.shieldAc, o3.mirror, o3.noMana]);
   ok('Упор пики: реакция тратится, цель получает удар', o3.pike.react === 0 && o3.pike.hurt, o3.pike);
+  const o4 = await p.evaluate(async () => {
+    const B = Battle, out = {};
+    const hero0 = state.party[0]; hero0.equip = {}; hero0.bag = [{ t: 'g', id: 'arrow', qty: 10 }];
+    out.classes = [ART_WEAPONS['moon-sword'].cls, ART_WEAPONS['storm-axe'].cls, ART_WEAPONS['meteor-mace'].cls, GEAR['brotherhood-ring'].cls, TREASURE_POOL[7].join()];
+    const S = B.newBattle({ list: ['goblin', 'goblin', 'goblin'], zone: 'goblin', floor: 3, kind: 'hard', title: 'x' }); S.opts.autoHeroes = true; B.placeHeroesDefault(S); B.placeMonsters(S); B.running = true;
+    for (let y = 0; y < B.H; y++) for (let x = 0; x < B.W; x++) S.cells[y][x] = '';
+    const [h, ally, ally2] = B.heroes(), [m1, m2, m3] = B.mons();
+    const reset = () => { h.x = 5; h.y = 9; ally.x = 0; ally.y = 9; ally2.x = 1; ally2.y = 9; m1.x = 5; m1.y = 5; m2.x = 0; m2.y = 0; m3.x = 9; m3.y = 0; for (const u of B.live()) { u.hp = u.maxHp = 100; } h.t = { move: 6, action: 1, bonus: 1, react: 1, moved: 0, startX: 5, startY: 9 }; h.mp = 5; h.maxMp = 6; };
+    reset();
+    // ---- Падающая звезда задевает союзников
+    hero0.equip.main = { t: 'w', id: 'longbow', art: 'falling-star' };
+    ally.x = 6; ally.y = 5; reset(); ally.x = 6; ally.y = 5;
+    const sp = B.attacksOf(h).find(a => a.special === 'star'); const op = B.UI.pickCell; B.UI.pickCell = async () => [5, 5]; await B.runSpecial(h, sp); B.UI.pickCell = op;
+    out.starFF = { enemy: m1.hp < 100, ally: ally.hp < 100, allyLit: !!B.has(ally, 'starlit') };
+    // ---- Кольцо братского духа
+    reset(); ally.x = 5; ally.y = 8; state.party[1].equip = { ring1: { t: 'g', id: 'brotherhood-ring' } };
+    const hpA = ally.hp; await B.applyDamage(h, ally, [{ v: 10, dt: 'fire', label: 'огонь' }], { src: h });
+    out.ringAlly = ally.hp === hpA; const hpB = ally.hp; await B.applyDamage(m1, ally, [{ v: 10, dt: 'fire', label: 'огонь' }], { src: m1 });
+    out.ringEnemy = ally.hp < hpB; state.party[1].equip = {};
+    // ---- Меч полумесяца
+    reset(); hero0.equip.main = { t: 'w', id: 'greatsword', art: 'moon-sword' }; h.moon = undefined;
+    const seen = []; for (let i = 0; i < 5; i++) { await B.artTurnStart(h); seen.push(h.moon); } out.moonCycle = seen;
+    h.moon = 2; const full = B.attacksOf(h).find(a => a.mode === 'hand'); out.full = [full.dt, full.extra && full.extra[0].dt];
+    h.moon = 3; out.acb = B.P.weap.acBonus(h); h.moon = 1; out.acb1 = B.P.weap.acBonus(h);
+    h.moon = 1; h.t.move = 0; await B.P.weap.attackDone(h, { res: { hit: true, killed: true, dealt: 5 }, tgt: m1, atk: full }); out.sickle = [h.t.move, h.t.disengage];
+    h.moon = 0; const ctx = { atk: full, tgt: m1, extra: [], notes: [], hiddenData: { x: 1 }, adv: [], dis: [] }; B.P.weap.attackMods(h, ctx); out.newMoon = ctx.extra.length;
+    // ---- Топор бури
+    reset(); hero0.equip.main = { t: 'w', id: 'axe', art: 'storm-axe' };
+    const th = B.attacksOf(h).find(a => a.thrown && !a.bagEntry); m1.x = 5; m1.y = 3; m2.x = 5; m2.y = 1; m3.x = 9; m3.y = 3; m3.hp = 100;
+    B.commitAttack(h, th, m1); out.axeDisarmed = h.disarmed;
+    h.abil.str = 30; h.pb = 0; const dis = []; m2.abil.con = 1; m2.size = 1;
+    await B.artAfterAttack(h, th, m1, { hit: true });
+    out.axe = { back: h.disarmed === false, drops: B.S.drops.filter(d => d.kind === 'weapon').length, pulled: B.dist(m2, m1) <= 1, hurt: m2.hp < 100, far: m3.hp === 100 && m3.x === 9 };
+    // ---- Булава «Метеор»
+    reset(); hero0.equip.main = { t: 'w', id: 'mace', art: 'meteor-mace' }; hero0.hp = hero0.hp;
+    const mAtk = B.attacksOf(h).find(a => a.special === 'meteor'); out.meteorAtk = !!mAtk;
+    const pu = B.UI.pickUnit; B.UI.pickUnit = async () => m1; const da = B.doAttack; const sv = B.doSave;
+    m1.x = 5; m1.y = 6; ally.x = 6; ally.y = 6; m2.x = 4; m2.y = 6; m3.x = 9; m3.y = 0; B.S.cells[6][5] = '';
+    B.doAttack = async () => ({ hit: true, nat: 15, dealt: 12, cancelled: false }); B.doSave = async () => ({ ok: false });
+    await B.doMeteor(h, mAtk); B.doAttack = da; B.doSave = sv;
+    out.meteor = { used: h.meteorUsed, moved: h.y < 9, ally: ally.hp < 100, enemy2: m2.hp < 100, far: m3.hp === 100, prone: !!B.has(m1, 'prone'), crater: B.S.cells[6][5] };
+    // повтор запрещён
+    const again = B.attacksOf(h).find(a => a.special === 'meteor'); out.meteorAgain = again.needTarget(h);
+    // провал 1–2
+    reset(); h.meteorUsed = false; m1.x = 5; m1.y = 8; const hp0 = h.hp; B.doAttack = async () => ({ hit: false, nat: 1, dealt: 0, cancelled: false });
+    await B.doMeteor(h, B.attacksOf(h).find(a => a.special === 'meteor')); B.doAttack = da; B.UI.pickUnit = pu;
+    out.backlash = { hurt: h.hp < hp0, moved: h.y > m1.y };
+    return out;
+  });
+  ok('классы: меч 6, топор 7, булава 7, кольцо 7 (пул 7 — кольцо)', o4.classes.join() === '6,7,7,7,brotherhood-ring', o4.classes);
+  ok('Падающая звезда задевает и союзников (но подсвечивает только врагов)', o4.starFF.enemy && o4.starFF.ally && !o4.starFF.allyLit, o4.starFF);
+  ok('Кольцо братского духа: от союзника урона нет, от врага есть', o4.ringAlly && o4.ringEnemy, [o4.ringAlly, o4.ringEnemy]);
+  ok('Меч полумесяца: фазы 0,1,2,3,0 сами каждый ход', o4.moonCycle.join() === '0,1,2,3,0', o4.moonCycle);
+  ok('Меч полумесяца: полнолуние — радиантный, ущерб +1 КД, серп — шаг после убийства, новолуние +1к6 из скрытности', o4.full[0] === 'radiant' && o4.full[1] === 'radiant' && o4.acb === 1 && o4.acb1 === 0 && o4.sickle[0] === 2 && o4.sickle[1] === true && o4.newMoon === 1, o4);
+  ok('Топор бури: возвращается в руку, стягивает врага в 2 клетках с уроном, дальнего не трогает', o4.axe.back && o4.axe.drops === 0 && o4.axe.pulled && o4.axe.hurt && o4.axe.far, o4.axe);
+  ok('Булава «Метеор»: прыжок, урон вокруг (и своим), падение цели, кратер, раз за бой', o4.meteorAtk && o4.meteor.used && o4.meteor.moved && o4.meteor.ally && o4.meteor.enemy2 && o4.meteor.far && o4.meteor.prone && o4.meteor.crater === 'crater' && /уже использован/.test(o4.meteorAgain || ''), [o4.meteor, o4.meteorAgain]);
+  ok('Булава «Метеор»: 1–2 — героя отбрасывает, 1к8 урона', o4.backlash.hurt && o4.backlash.moved, o4.backlash);
   ok('нет ошибок страницы', errs.length === 0, errs.slice(0, 3));
   console.log('проверок:', R.length, 'не прошли:', R.filter(x => !x).length);
   await b.close();

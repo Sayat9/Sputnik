@@ -350,6 +350,8 @@
   D.terrain.stash = { name: "Походный сундучок", obstacle: true, note: "Не пройти. Небольшой сундучок: сломайте его (КД 9, 6 ОЗ), и внутри что-то будет." };
   D.SVG.spearstuck = '<ellipse cx="50" cy="86" rx="16" ry="5" fill="#000" opacity=".3"/><path d="M50 12 L56 30 L44 30 Z" fill="#c9d4e6" stroke="#2c3a52" stroke-width="2"/><rect x="47" y="30" width="6" height="56" rx="2" fill="#8a6a3a" stroke="#3d2a10" stroke-width="2"/><path d="M40 34 L48 44 M60 34 L52 44" stroke="#7fd0ff" stroke-width="3" stroke-linecap="round"/>';
   D.terrain.spearstuck = { name: "Воткнутое копьё", obstacle: true, note: "Не пройти. Копьё торчит из земли: собьёте его любой атакой (1 ОЗ), и оно упадёт рядом." };
+  D.SVG.crater = '<ellipse cx="50" cy="56" rx="38" ry="22" fill="#2a2018" opacity=".55"/><ellipse cx="50" cy="54" rx="30" ry="16" fill="#4a3a28"/><ellipse cx="50" cy="52" rx="20" ry="9" fill="#1a120c"/><path d="M14 54l8-4M86 54l-8-4M24 38l6 6M76 38l-6 6" stroke="#6b5640" stroke-width="3" stroke-linecap="round"/>';
+  D.terrain.crater = { name: "Кратер", cost: 2, note: "Труднопроходен (клетка стоит 2). Воронка от метеорного удара." };
   D.terrain.chestopen = { name: "Открытый сундук", obstacle: true, note: "Не пройти. Уже пуст." };
 
   /* ===== вороны: последняя ворона в гнезде паникует; чернокрыл зовёт новых (rules.md → «Гнездо ворон и чернокрыл») ===== */

@@ -2311,6 +2311,7 @@ const GEAR = {
   "shovel-good": { short: "Лопата+", name: "Хорошая лопата", weight: 2.5, stack: 1, uses: 5, note: "Для действия «Копать». Ломается после 5 раскопок." },
   "shovel-best": { short: "Лопата++", name: "Отличная лопата", weight: 2, stack: 1, uses: 10, note: "Для действия «Копать». Ломается после 10 раскопок." },
   "stone-9":   { short: "Камни", name: "Магический камень 9-го класса", weight: 0.1, stack: 99, note: "Добыча лабиринта: Магазин скупает по 1 монете." },
+  "brotherhood-ring": { short: "Кольцо", name: "Кольцо братского духа", weight: 0, stack: 1, slot: "ring", cls: 7, treasure: true, note: "Артефакт 7 класса. Носитель не получает урона от атак и способностей союзников." },
   "silver-salt": { short: "Соль", name: "Серебряная соль", weight: 0.1, stack: 5, cls: 9, treasure: true, use: "salt", note: "Одна щепотка закрепляется на оружии навсегда. Оружие бьёт призраков и других спектральных существ; +1к4 светлого урона по нежити и духам." },
   "weak-salt": { short: "Слабая соль", name: "Слабая серебряная соль", weight: 0.1, stack: 10, use: "salt", note: "Мелкая серая соль с серебряной крошкой, в мешочке." },
   "director-quiver": { short: "Колчан+", name: "Колчан режиссёра", weight: 0.5, stack: 1, cls: 8, treasure: true, note: "Артефакт 8 класса. В нём 10 обычных стрел, которые не ломаются и в конце боя возвращаются сами. Лучник стреляет ими первыми, затем обычными." },
@@ -2347,6 +2348,7 @@ GEAR_ICON["potion-good"] = GEAR_ICON.potion;
 GEAR_ICON["calm-flute"] = GEAR_ICON.flute;
 GEAR_ICON.chalice = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M6 4h12c0 5-2 8-6 8S6 9 6 4z" fill="currentColor" opacity=".2"/><path d="M6 4h12c0 5-2 8-6 8S6 9 6 4zM12 12v6M8 20h8"/><path d="M8 7c2 1 6 1 8 0" opacity=".7"/></svg>`;
 GEAR_ICON["once-more"] = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M5 12a7 7 0 0 1 12-4.9L19 9M19 12a7 7 0 0 1-12 4.9L5 15"/><path d="M19 4v5h-5M5 20v-5h5"/></svg>`;
+GEAR_ICON["brotherhood-ring"] = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><circle cx="12" cy="14" r="6"/><path d="M9.500 6.500L12 3l2.500 3.500M10.500 5.500h3"/></svg>`;
 GEAR_ICON["beginners-luck"] = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><circle cx="12" cy="12" r="8" fill="currentColor" opacity=".15"/><circle cx="12" cy="12" r="8"/><path d="M12 8v8M8 12h8M9.2 9.2l5.6 5.6M14.8 9.2l-5.6 5.6" opacity=".8"/></svg>`;
 
 
@@ -2420,6 +2422,9 @@ const ART_WEAPONS = {
   "echo-blade": { base: "sword", name: "Эхо-клинок", cls: 7 },
   "discharge-staff": { base: "staff", name: "Посох разрядов", cls: 6 },
   "mirror-shield": { base: "shield", name: "Зеркальный щит", cls: 7 },
+  "moon-sword": { base: "greatsword", name: "Меч полумесяца", cls: 6 },
+  "storm-axe": { base: "axe", name: "Топор бури", cls: 7 },
+  "meteor-mace": { base: "mace", name: "Булава «Метеор»", cls: 7 },
 };
 function artWeaponInfo(w, id) {
   const A = ART_WEAPONS[id], known = typeof artKnown === "function" && artKnown(id), sh = w.group === "shield", info = { artId: id, bonus: sh ? 0 : Math.max(1, w.bonus || 0), treasure: true, cls: A.cls, ...(sh ? { steel: true } : {}) };          // щит: +1 КД как у стального
@@ -2632,7 +2637,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 42;
+const BATTLE_REV = 43;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }
@@ -3871,7 +3876,7 @@ function spTreasureHere() {
 }
 // Сокровище находят бросок к20 (решение автора): 1–8 камни (10–15 штук, чем выше бросок, тем больше и тем больше среди них 8 класса), 9–13 расходники (чем выше, тем больше),
 // 14–16 броня, 17 оружие (моё допущение: числа 17 в вашей таблице не было), 18–19 сокровище 9 класса, 20 сокровище 8 класса; какое именно — случайно из списка.
-const TREASURE_POOL = { 9: ["guard", "flame", "hearth", "dice", "bell", "once-more", "wind", "silver-salt"], 7: [], 8: ["chalice", "beginners-luck", "flask", "monocle", "boots", "director-quiver"] };
+const TREASURE_POOL = { 9: ["guard", "flame", "hearth", "dice", "bell", "once-more", "wind", "silver-salt"], 7: ["brotherhood-ring"], 8: ["chalice", "beginners-luck", "flask", "monocle", "boots", "director-quiver"] };
 const treasureOwned = id => (TREASURES[id] ? treasure(id).owned : state.party.some(c => [...(c.bag || []), ...Object.values(c.equip || {})].some(e => e && e.id === id)));
 function treasurePick(cls) {
   const free = TREASURE_POOL[cls].filter(id => id === "once-more" || !treasureOwned(id));
@@ -4301,7 +4306,7 @@ const f3 = () => { const r = state.run; return (r.f3 ||= f3Gen()); };
 const TOLL_MSG = "Звон серебряного колокольчика возвращает воспоминания о доме";
 const NOISE_MAX = 20, NOISE_BY_CLS = { 9: 1, 8: 2, 7: 4, 6: 7 }, TOLL_DC = 8, TOLL_STEP_NOISE = 1, TOLL_STEP_BAD = 2, TOLL_CALM = 1;
 const isToll = (x, y) => curFloor() === 3 && ["Звон", "Сердце этажа"].includes(FLOOR3.zoneName(x, y)) && tileType(x, y) === "floor";
-const TOLL_CHEST = "15,15", FIRE_CHEST = "4,5", FIRE_BOOST = 10, ART_DROPS = ["thunder-spear", "magnet-gloves", "shadow-daggers", "falling-star", "echo-blade", "discharge-staff", "mirror-shield"];          // сундук Пылающих земель: артефакт гарантирован
+const TOLL_CHEST = "15,15", FIRE_CHEST = "4,5", FIRE_BOOST = 10, ART_DROPS = ["thunder-spear", "magnet-gloves", "shadow-daggers", "falling-star", "echo-blade", "discharge-staff", "mirror-shield", "moon-sword", "storm-axe", "meteor-mace"];          // сундук Пылающих земель: артефакт гарантирован
 function f3Noise(n, why) {
   const r = state.run; if (!r || r.floor !== 3 || !(n > 0)) return;
   const F = f3(); F.noise = (F.noise || 0) + n;
@@ -4690,6 +4695,10 @@ const ICO_DAGGER = `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="cu
 const ICO_STAR = `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M12 6l1.6 3.6 3.9.4-2.9 2.6.8 3.8L12 14.4 8.6 16.4l.8-3.8L6.5 10l3.9-.4z" fill="currentColor" opacity=".25"/><path d="M12 6l1.6 3.6 3.9.4-2.9 2.6.8 3.8L12 14.4 8.6 16.4l.8-3.8L6.5 10l3.9-.4zM4 3l3 3M20 3l-3 3"/></svg>`;
 const ICO_ECHO = `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M5 19L17 7M14 5l5 0 0 5M8 21L20 9" opacity=".7"/><path d="M5 19l-2 2"/></svg>`;
 const ICO_MIRROR = `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M5 4h14v8c0 5-3 7.5-7 9-4-1.5-7-4-7-9z" fill="currentColor" opacity=".15"/><path d="M5 4h14v8c0 5-3 7.5-7 9-4-1.5-7-4-7-9zM9 9l6 6M15 9l-2 2"/></svg>`;
+const ICO_MOON = `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M16 4a8 8 0 1 0 4 11 6.5 6.5 0 0 1-4-11z" fill="currentColor" opacity=".25"/><path d="M16 4a8 8 0 1 0 4 11 6.5 6.5 0 0 1-4-11z"/></svg>`;
+const ICO_STORM = `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M5 20L14 8M10 6c3-2 8-1 9 3-3-1-6 0-9-3z" fill="currentColor" opacity=".2"/><path d="M5 20L14 8M10 6c3-2 8-1 9 3-3-1-6 0-9-3zM17 13l-2 3h3l-2 3"/></svg>`;
+const ICO_METEOR = `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><circle cx="15" cy="15" r="5" fill="currentColor" opacity=".25"/><circle cx="15" cy="15" r="5"/><path d="M11 11L3 3M9 14L3 9M14 9L9 3"/></svg>`;
+const ICO_RING = `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><circle cx="12" cy="14" r="6"/><path d="M9.5 6.5L12 3l2.500 3.500M10.500 5.500h3"/><path d="M12 11c-1.500-1.500-3.500 0-2 1.500l2 2 2-2c1.500-1.500-.5-3-2-1.500z" opacity=".7"/></svg>`;
 const ICO_AGAIN = `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M5 12a7 7 0 0 1 12-4.9L19 9M19 12a7 7 0 0 1-12 4.9L5 15"/><path d="M19 4v5h-5M5 20v-5h5"/></svg>`;
 const ARTIFACTS = {
   guard: { cls: 9, name: "Ночной страж", ico: () => ICO_GUARD, text: "Заменяет караульного в Отдыхе: никто не бодрствует, ночной встречи нет. На заход 3 заряда, +2 за первый спуск на новый этаж; после выхода из лабиринта запас сбрасывается." },
@@ -4704,6 +4713,10 @@ const ARTIFACTS = {
   "echo-blade": { cls: 7, name: "Эхо-клинок", ico: () => ICO_ECHO, text: "Как стальной меч. Попадание оставляет на цели эхо: следующая атака по ней, попадёт она или нет, повторяется эхом без броска на половину прежнего удара." },
   "discharge-staff": { cls: 6, name: "Посох разрядов", ico: () => ICO_BOLT, text: "Как стальной посох. Потраченная мана копится в посохе зарядами (до 3). Действие «Разряд»: цель в 3 клетках получает 1к6 электричества за заряд, посох разряжается." },
   "mirror-shield": { cls: 7, name: "Зеркальный щит", ico: () => ICO_MIRROR, text: "Как стальной щит. Когда по вам попадает дальняя атака и у вас есть 1 мана, с шансом 40 % щит отражает её: вы не получаете урона, а стрелок — половину." },
+  "moon-sword": { cls: 6, name: "Меч полумесяца", ico: () => ICO_MOON, text: "Как стальной двуручный меч. Фаза луны меняется сама в начале вашего каждого хода: новолуние (+1к6, если вас не видят), серп (после убийства — шаг на 2 клетки без провокации), полнолуние (удары радиантные, +1к4, бьют спектральных), ущерб (+1 КД и ответный удар по промахнувшемуся)." },
+  "storm-axe": { cls: 7, name: "Топор бури", ico: () => ICO_STORM, text: "Как стальной топор. Брошенный, возвращается в руку. Попав, стягивает врагов в 2 клетках: Телосложение, провалившие подтягиваются к цели и получают 1к4 от столкновения (тяжёлым проще)." },
+  "meteor-mace": { cls: 7, name: "Булава «Метеор»", ico: () => ICO_METEOR, text: "Как стальная булава. «Метеорный удар», раз за бой: прыжок до 2 клеток и удар сверху — попавший по цели урон 2к6, вполовину по всем вокруг (и по союзникам), цель может упасть, клетка становится кратером. Выпало 1–2 — героя отбрасывает назад и он получает 1к8." },
+  "brotherhood-ring": { cls: 7, name: "Кольцо братского духа", ico: () => ICO_RING, text: "Носитель не получает урона от атак и способностей союзников." },
   "silver-salt": { cls: 9, name: "Серебряная соль", ico: () => GEAR_ICON.potion, text: GEAR["silver-salt"].note },
   "director-quiver": { cls: 8, name: "Колчан режиссёра", ico: () => GEAR_ICON.arrow, text: GEAR["director-quiver"].note },
   "once-more": { cls: 9, name: "«Ещё раз»", ico: () => ICO_AGAIN, text: "Одноразовый предмет: позволяет перебросить неудачный бросок на эссенцию после боя." },
@@ -6015,6 +6028,7 @@ function selPanel(c) {
     else if (st === "empty") btns.push(`<button class="fx-btn primary" data-hx="chalice-fill"${canFillWater() ? "" : " disabled"}>Наполнить водой</button>`);
   }
   if (it.slot === "charm") btns.push(`<button class="fx-btn" data-hx="equip" data-slot-to="charm">Надеть талисман</button>`);
+  if (it.slot === "ring") btns.push(`<button class="fx-btn" data-hx="equip" data-slot-to="ring">Надеть кольцо</button>`);
   if (it.use === "find") btns.push(`<button class="fx-btn primary" data-hx="usefind">${it.find === "mush" ? "Съесть" : "Применить"}</button>`);
   if (it.kindOf === "weapon" && it.group !== "shield" && it.kind !== "Боеприпасы") btns.push(`<button class="fx-btn" data-hx="equip" data-slot-to="main">В правую руку</button>`);
   if (it.kindOf === "weapon" && (it.group === "shield" || (it.group === "melee" && (!isTwoHandedWeapon(it) || isBigGrip(c))))) { const mi = mainItem(c), bowBlock = mi && mi.group === "ranged" && !lightMelee(it); btns.push(`<button class="fx-btn" data-hx="equip" data-slot-to="off"${(twoHanded(c) && !(it.id === "shield" && mi && (mi.props || []).includes("Можно со щитом"))) || bowBlock ? " disabled" : ""}>В левую руку</button>`); }
@@ -6221,7 +6235,7 @@ $hero.addEventListener("click", e => {
       heroAfterChange(`Зелье: +${heal} ОЗ (${before} → ${c.hp})`); return;
     }
     case "equip": {
-      const slot = ds.slotTo, it = itemOf(entry);
+      const slot = ds.slotTo === "ring" ? (c.equip.ring1 ? "ring2" : "ring1") : ds.slotTo, it = itemOf(entry);
       c.bag.splice(heroUi.sel, 1); heroUi.sel = null;
       const prev = c.equip[slot];
       c.equip[slot] = entry.t === "c" ? { t: "c", name: entry.name } : { t: entry.t, id: entry.id, ...(entry.steel ? { steel: true } : {}), ...(entry.salt ? { salt: true } : {}), ...(entry.saltDays > 0 ? { saltDays: entry.saltDays } : {}), ...(entry.art ? { art: entry.art } : {}) };
