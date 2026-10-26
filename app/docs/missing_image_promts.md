@@ -231,3 +231,7 @@
 - `items/art-storm-axe` — `compact throwing axe with wind swirls etched in the blade and crackling pale-blue edge, painted fantasy artifact icon, plain dark background`
 - `items/art-meteor-mace` — `heavy mace whose head is a glowing cracked meteorite, orange fissures and trailing sparks, painted fantasy artifact icon, plain dark background`
 - `items/brotherhood-ring` — `simple gold ring with two clasped hands engraved around the band, soft warm glow, painted fantasy artifact icon, plain dark background`
+- `items/art-rampart-pike` — `long steel pike with a banner-like notch below the head and runic rings on the shaft, sturdy knightly look, painted fantasy artifact icon, plain dark background`
+- `items/art-ricochet-bow` — `short recurve bow with bright metal rings and an arrow caught bouncing off a spark, painted fantasy artifact icon, plain dark background`
+- `items/art-shadow-fang` — `curved black dagger shaped like a fang, edge fading into shadow wisps, painted fantasy artifact icon, plain dark background`
+- `items/art-reaper-axe` — `broad crescent-bladed greataxe with a long dark haft and faint red harvest marks etched on the blade, painted fantasy artifact icon, plain dark background`

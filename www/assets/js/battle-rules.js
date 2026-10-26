@@ -240,6 +240,7 @@
     if (has(tgt, "stunned")) { ac -= 2; ctx.acNotes.push("оглушён −2"); }
     if (has(tgt, "lunged")) { ac -= 1; ctx.acNotes.push("после выпада −1"); }
     if (has(tgt, "guarded")) { ac += 2; ctx.acNotes.push("прикрыт щитом +2"); }
+    if (has(tgt, "pikeward") && melee) { ac += 1; ctx.acNotes.push("заслон пики +1"); }
     const own = hookSum(tgt, "acBonus", ctx); if (own) { ac += own; ctx.acNotes.push(`пассивка ${sg(own)}`); }
     let aura = 0; for (const a of alliesOf(tgt)) aura = Math.max(aura, hookSum(a, "acAura", { ally: a, tgt, ctx }));
     if (aura) { ac += aura; ctx.acNotes.push(`стена щитов +${aura}`); }
@@ -492,7 +493,7 @@
   async function onEnter(u, from) {
     // реакции вроде «Встречного удара»: враги, у которых юнит вошёл в досягаемость
     for (const e of enemiesOf(u)) {
-      if (!canAct(e) || !e.t.react) continue;
+      if (!canAct(e) || (!e.t.react && !(B.freeReact && B.freeReact(e)))) continue;
       for (const id of e.pass) { const P = B.P && B.P[id]; if (P && P.reactEnter) { await P.reactEnter(e, u, from); if (!alive(u) || u.down) return; } }
     }
   }

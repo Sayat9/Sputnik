@@ -200,20 +200,33 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
     const hpA = ally.hp; await B.applyDamage(h, ally, [{ v: 10, dt: 'fire', label: 'огонь' }], { src: h });
     out.ringAlly = ally.hp === hpA; const hpB = ally.hp; await B.applyDamage(m1, ally, [{ v: 10, dt: 'fire', label: 'огонь' }], { src: m1 });
     out.ringEnemy = ally.hp < hpB; state.party[1].equip = {};
-    // ---- Меч полумесяца
-    reset(); hero0.equip.main = { t: 'w', id: 'greatsword', art: 'moon-sword' }; h.moon = undefined;
+    // ---- Меч полумесяца (способности по фазам, откат 2/3/4/2)
+    reset(); hero0.equip.main = { t: 'w', id: 'greatsword', art: 'moon-sword' }; h.moon = undefined; h.moonCd = 0;
     const seen = []; for (let i = 0; i < 5; i++) { await B.artTurnStart(h); seen.push(h.moon); } out.moonCycle = seen;
-    h.moon = 2; const full = B.attacksOf(h).find(a => a.mode === 'hand'); out.full = [full.dt, full.extra && full.extra[0].dt];
-    h.moon = 3; out.acb = B.P.weap.acBonus(h); h.moon = 1; out.acb1 = B.P.weap.acBonus(h);
-    h.moon = 1; h.t.move = 0; await B.P.weap.attackDone(h, { res: { hit: true, killed: true, dealt: 5 }, tgt: m1, atk: full }); out.sickle = [h.t.move, h.t.disengage];
-    h.moon = 0; const ctx = { atk: full, tgt: m1, extra: [], notes: [], hiddenData: { x: 1 }, adv: [], dis: [] }; B.P.weap.attackMods(h, ctx); out.newMoon = ctx.extra.length;
-    // ---- Топор бури
+    const pu0 = B.UI.pickUnit; B.UI.pickUnit = async () => m1; const da0 = B.doAttack; const cds = [];
+    for (const ph of [0, 1, 2, 3]) {
+      reset(); h.moon = ph; h.moonCd = 0; m1.x = 5; m1.y = 8; m2.x = 6; m2.y = 8; ally.x = 4; ally.y = 8; for (const u of B.live()) { u.hp = u.maxHp = 100; }
+      B.S.conds; const sp = B.attacksOf(h).find(a => a.special === 'moon'); const act = B.weapActions(h).find(a => a.id === 'moonguard');
+      let extra = null; B.doAttack = async (u, tg, atk, o) => { extra = o.extra || null; return { hit: true, nat: 15, dealt: 20, cancelled: false }; };
+      if (ph === 3) { await act.run(); } else { await B.runSpecial(h, sp); }
+      B.doAttack = da0;
+      cds.push({ ph, cd: h.moonCd, extra: extra && extra[0] ? extra[0].n + 'к' + extra[0].s : null, dazzled: !!B.has(m1, 'dazzled'), m2: m2.hp < 100, ally: ally.hp < 100, guard: !!B.has(h, 'moonguard'), acb: B.P.weap.acBonus(h) });
+    }
+    B.UI.pickUnit = pu0; out.moonPh = cds;
+    h.moon = 1; h.moonCd = 2; out.moonLocked = !B.attacksOf(h).some(a => a.special === 'moon');
+    // ---- Топор бури: «Стяжка» и «Бумеранг»
     reset(); hero0.equip.main = { t: 'w', id: 'axe', art: 'storm-axe' };
-    const th = B.attacksOf(h).find(a => a.thrown && !a.bagEntry); m1.x = 5; m1.y = 3; m2.x = 5; m2.y = 1; m3.x = 9; m3.y = 3; m3.hp = 100;
-    B.commitAttack(h, th, m1); out.axeDisarmed = h.disarmed;
-    h.abil.str = 30; h.pb = 0; const dis = []; m2.abil.con = 1; m2.size = 1;
-    await B.artAfterAttack(h, th, m1, { hit: true });
-    out.axe = { back: h.disarmed === false, drops: B.S.drops.filter(d => d.kind === 'weapon').length, pulled: B.dist(m2, m1) <= 1, hurt: m2.hp < 100, far: m3.hp === 100 && m3.x === 9 };
+    const axeSp = B.attacksOf(h).filter(a => a.special === 'axepull' || a.special === 'boomerang'); out.axeSp = axeSp.map(a => a.special);
+    m1.x = 5; m1.y = 3; m2.x = 5; m2.y = 1; m3.x = 9; m3.y = 3; ally.x = 4; ally.y = 3; ally.hp = 100; for (const u of B.live()) u.hp = u.maxHp = 100; m2.abil.con = 1; m2.size = 1; h.abil.str = 30; h.pb = 0;
+    const pull = axeSp.find(a => a.special === 'axepull'); const pu1 = B.UI.pickUnit; B.UI.pickUnit = async () => m1; const da1 = B.doAttack; B.doAttack = async (u, tg, atk, o) => { if (o.onCommit) o.onCommit(); return { hit: true, nat: 15, dealt: 5, cancelled: false }; };
+    await B.runSpecial(h, pull); B.doAttack = da1; B.UI.pickUnit = pu1;
+    out.axePull = { pulled: B.dist(m2, m1) <= 1, hurt: m2.hp < 100, far: m3.hp === 100 && m3.x === 9, dropped: B.S.drops.some(d => d.kind === 'weapon' && d.item && d.item.art === 'storm-axe') };
+    m2.x = 5; m2.y = 1; m2.hp = 100; m2.size = 2; B.S.drops.length = 0; h.disarmed = false; h.t.action = 1; B.UI.pickUnit = async () => m1; B.doAttack = async (u, tg, atk, o) => { if (o.onCommit) o.onCommit(); return { hit: true, nat: 15, dealt: 5, cancelled: false }; };
+    await B.runSpecial(h, pull); B.doAttack = da1; B.UI.pickUnit = pu1; out.axeHeavy = m2.y === 1 && m2.hp === 100;
+    // бумеранг
+    reset(); h.disarmed = false; B.S.drops.length = 0; for (const u of B.live()) u.hp = u.maxHp = 100; m1.x = 5; m1.y = 6; ally.x = 6; ally.y = 6; m3.x = 0; m3.y = 0; m2.x = 9; m2.y = 9;
+    const boom = B.attacksOf(h).find(a => a.special === 'boomerang'); const opc = B.UI.pickCell; B.UI.pickCell = async () => [5, 6]; await B.runSpecial(h, boom); B.UI.pickCell = opc;
+    out.boom = { enemy: m1.hp < 100, ally: ally.hp < 100, far: m3.hp === 100 && m2.hp === 100, inHand: h.disarmed === false, noDrop: B.S.drops.length === 0, action: h.t.action };
     // ---- Булава «Метеор»
     reset(); hero0.equip.main = { t: 'w', id: 'mace', art: 'meteor-mace' }; hero0.hp = hero0.hp;
     const mAtk = B.attacksOf(h).find(a => a.special === 'meteor'); out.meteorAtk = !!mAtk;
@@ -233,11 +246,66 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
   ok('классы: меч 6, топор 7, булава 7, кольцо 7 (пул 7 — кольцо)', o4.classes.join() === '6,7,7,7,brotherhood-ring', o4.classes);
   ok('Падающая звезда задевает и союзников (но подсвечивает только врагов)', o4.starFF.enemy && o4.starFF.ally && !o4.starFF.allyLit, o4.starFF);
   ok('Кольцо братского духа: от союзника урона нет, от врага есть', o4.ringAlly && o4.ringEnemy, [o4.ringAlly, o4.ringEnemy]);
-  ok('Меч полумесяца: фазы 0,1,2,3,0 сами каждый ход', o4.moonCycle.join() === '0,1,2,3,0', o4.moonCycle);
-  ok('Меч полумесяца: полнолуние — радиантный, ущерб +1 КД, серп — шаг после убийства, новолуние +1к6 из скрытности', o4.full[0] === 'radiant' && o4.full[1] === 'radiant' && o4.acb === 1 && o4.acb1 === 0 && o4.sickle[0] === 2 && o4.sickle[1] === true && o4.newMoon === 1, o4);
-  ok('Топор бури: возвращается в руку, стягивает врага в 2 клетках с уроном, дальнего не трогает', o4.axe.back && o4.axe.drops === 0 && o4.axe.pulled && o4.axe.hurt && o4.axe.far, o4.axe);
+  ok('Меч полумесяца: фазы сменяются сами каждый ход (0,1,2,3,0)', o4.moonCycle.join() === '0,1,2,3,0', o4.moonCycle);
+  ok('Меч: новолуние ослепляет цель, откат 2', o4.moonPh[0].cd === 2 && o4.moonPh[0].dazzled && !o4.moonPh[0].m2, o4.moonPh[0]);
+  ok('Меч: полумесяц задевает всех вокруг цели (и своих), откат 3', o4.moonPh[1].cd === 3 && o4.moonPh[1].m2 && o4.moonPh[1].ally, o4.moonPh[1]);
+  ok('Меч: полнолуние — большой удар +2к8, откат 4', o4.moonPh[2].cd === 4 && o4.moonPh[2].extra === '2к8', o4.moonPh[2]);
+  ok('Меч: ущерб — стойка +1 КД, откат 2; в откате способности недоступны', o4.moonPh[3].cd === 2 && o4.moonPh[3].guard && o4.moonPh[3].acb === 1 && o4.moonLocked, [o4.moonPh[3], o4.moonLocked]);
+  ok('Топор бури: «Стяжка» и «Бумеранг» отдельные действия', o4.axeSp.join() === 'axepull,boomerang', o4.axeSp);
+  ok('Стяжка: попав, стягивает ближнего врага с уроном, дальнего нет, топор лежит на земле; тяжёлого не стянуть', o4.axePull.pulled && o4.axePull.hurt && o4.axePull.far && o4.axePull.dropped && o4.axeHeavy, [o4.axePull, o4.axeHeavy]);
+  ok('Бумеранг: бьёт всех на дуге (и своих), возвращается в руку, тратит действие', o4.boom.enemy && o4.boom.ally && o4.boom.far && o4.boom.inHand && o4.boom.noDrop && o4.boom.action === 0, o4.boom);
   ok('Булава «Метеор»: прыжок, урон вокруг (и своим), падение цели, кратер, раз за бой', o4.meteorAtk && o4.meteor.used && o4.meteor.moved && o4.meteor.ally && o4.meteor.enemy2 && o4.meteor.far && o4.meteor.prone && o4.meteor.crater === 'crater' && /уже использован/.test(o4.meteorAgain || ''), [o4.meteor, o4.meteorAgain]);
   ok('Булава «Метеор»: 1–2 — героя отбрасывает, 1к8 урона', o4.backlash.hurt && o4.backlash.moved, o4.backlash);
+  const o5 = await p.evaluate(async () => {
+    const B = Battle, out = {};
+    const hero0 = state.party[0]; hero0.equip = {}; hero0.bag = [{ t: 'g', id: 'arrow', qty: 10 }];
+    const S = B.newBattle({ list: ['goblin', 'goblin', 'goblin'], zone: 'goblin', floor: 3, kind: 'hard', title: 'x' }); S.opts.autoHeroes = true; B.placeHeroesDefault(S); B.placeMonsters(S); B.running = true;
+    for (let y = 0; y < B.H; y++) for (let x = 0; x < B.W; x++) S.cells[y][x] = '';
+    const [h, ally, ally2] = B.heroes(), [m1, m2, m3] = B.mons();
+    const reset = () => { h.x = 5; h.y = 9; ally.x = 4; ally.y = 9; ally2.x = 0; ally2.y = 9; m1.x = 5; m1.y = 5; m2.x = 0; m2.y = 0; m3.x = 9; m3.y = 0; for (const u of B.live()) { u.hp = u.maxHp = 100; } h.t = { move: 6, action: 1, bonus: 1, react: 1, moved: 0, startX: 5, startY: 9 }; h.mp = 6; h.maxMp = 6; };
+    // ---- Пика Заставы
+    reset(); hero0.equip.main = { t: 'w', id: 'pike', art: 'rampart-pike' }; B.promptReaction = async () => true;
+    h.y = 5; h.x = 5; m1.x = 5; m1.y = 3; ally.x = 4; ally.y = 5; B.S.round = 3; h.t.react = 0; out.free = B.freeReact(h);
+    const hp0 = m1.hp; await B.P.weap.reactEnter(h, m1, [5, 0]);
+    out.upor = { react: h.t.react, again: B.freeReact(h), stop: !!B.has(m1, 'spearstop') || m1.hp < hp0, ward: !!B.has(ally, 'pikeward') };
+    out.wardAc = (() => { const c = B.attackCtx(m1, ally, { kind: 'melee', hit: 5, parts: [{ l: 'x', v: 5 }], dmg: { n: 1, s: 6, b: 0 }, dt: 'pierce' }); const base = ally.ac; return c.ac - base; })();
+    // разбег
+    reset(); h.t.startX = 5; h.t.startY = 9; h.x = 5; h.y = 6; m1.x = 5; m1.y = 4; m2.x = 5; m2.y = 3; m1.size = 1;
+    const chg = B.attacksOf(h).find(a => a.special === 'charge'); out.chg = !!chg && chg.needTarget(h) === null;
+    const pk = B.UI.pickUnit; B.UI.pickUnit = async () => m1; const da = B.doAttack; const sv = B.doSave; let extra = null;
+    B.doAttack = async (u, tg, atk, o) => { extra = o.extra; return { hit: true, nat: 15, dealt: 20, cancelled: false }; }; B.doSave = async () => ({ ok: false });
+    await B.runSpecial(h, chg); B.doAttack = da; B.doSave = sv; B.UI.pickUnit = pk;
+    out.chargeRes = { extra: extra && extra[0].n + 'к' + extra[0].s, prone: !!B.has(m1, 'prone'), second: m2.hp < 100 };
+    h.t.startY = 7; out.chargeNo = chg && B.attacksOf(h).find(a => a.special === 'charge').needTarget(h);
+    // ---- Лук «Рикошет»
+    reset(); hero0.equip.main = { t: 'w', id: 'shortbow', art: 'ricochet-bow' }; m1.x = 5; m1.y = 3; m2.x = 6; m2.y = 2; m3.x = 9; m3.y = 0;
+    const bowAtk = B.attacksOf(h).find(a => a.kind === 'ranged');
+    await B.P.weap.afterAttack(h, { res: { hit: true, nat: 12, dealt: 10 }, tgt: m1, atk: bowAtk, melee: false });
+    const half = 100 - m2.hp; m2.hp = 100; await B.P.weap.afterAttack(h, { res: { hit: true, nat: 20, dealt: 10 }, tgt: m1, atk: bowAtk, melee: false });
+    out.rico = { half, full: 100 - m2.hp, far: m3.hp === 100 };
+    // ---- Теневой клык
+    reset(); hero0.equip.main = { t: 'w', id: 'dagger', art: 'shadow-fang' }; B.S.dark = true; B.S.torch = false;
+    const lit = B.lightAt; B.lightAt = (x, y) => x < 4; // светло слева
+    out.dark = B.darkCells(h).every(c => c[0] >= 4) && B.darkCells(h).length > 0;
+    const stepA = B.weapActions(h).find(a => a.id === 'shadowstep'); out.stepEn = stepA.enabled;
+    const pc = B.UI.pickCell; B.UI.pickCell = async () => [6, 7]; const mp0 = h.mp; await stepA.run(); B.UI.pickCell = pc;
+    out.stepRes = { x: h.x, y: h.y, mana: mp0 - h.mp, bonus: h.t.bonus };
+    B.S.dark = false; B.lightAt = lit; out.stepLight = B.weapActions(h).find(a => a.id === 'shadowstep').enabled;
+    // ---- Секира «Жатва»
+    reset(); hero0.equip.main = { t: 'w', id: 'greataxe', art: 'reaper-axe' }; h.harvest = 0; const gAtk = B.attacksOf(h).find(a => a.mode === 'hand');
+    for (let i = 0; i < 3; i++) await B.P.weap.afterAttack(h, { res: { hit: true, killed: true, nat: 10 }, tgt: m1, atk: gAtk, melee: true });
+    out.harv = h.harvest; ally.x = 4; ally.y = 8; m1.x = 5; m1.y = 8; m1.hp = 100; ally.hp = 100; m2.x = 0; m2.y = 0;
+    const reap = B.weapActions(h).find(a => a.id === 'reap'); out.reapEn = reap.enabled;
+    const ms = B.massSave; B.massSave = async (list) => list.map(() => ({ ok: false })); await reap.run(); B.massSave = ms;
+    out.reap = { enemy: m1.hp < 100, ally: ally.hp < 100, far: m2.hp === 100, reset: h.harvest, action: h.t.action };
+    h.harvest = 2; out.reapLocked = B.weapActions(h).find(a => a.id === 'reap').enabled;
+    return out;
+  });
+  ok('Пика Заставы: «Упор» бесплатный раз в раунд, останавливает, союзники рядом получают заслон +1 КД', o5.free && o5.upor.react === 0 && o5.upor.again === false && o5.upor.stop && o5.upor.ward && o5.wardAc === 1, [o5.free, o5.upor, o5.wardAc]);
+  ok('Пика Заставы: «Разбег» после 3+ клеток по прямой: +2к6, сбивает с ног, вторая цель на линии; без разбега нельзя', o5.chg && o5.chargeRes.extra === '2к6' && o5.chargeRes.prone && o5.chargeRes.second && /разбег/.test(o5.chargeNo || ''), [o5.chg, o5.chargeRes, o5.chargeNo]);
+  ok('Лук «Рикошет»: ближайший враг в 2 клетках получает половину, на 20 — полный, дальний нет', o5.rico.half === 5 && o5.rico.full === 10 && o5.rico.far, o5.rico);
+  ok('Теневой клык: прыжок только в тёмную клетку, 3 маны, доп. действие; при свете нельзя', o5.dark && o5.stepEn && o5.stepRes.x === 6 && o5.stepRes.y === 7 && o5.stepRes.mana === 3 && o5.stepRes.bonus === 0 && o5.stepLight === false, [o5.dark, o5.stepEn, o5.stepRes, o5.stepLight]);
+  ok('Секира «Жатва»: убийства копят заряды, с 3 — круговой удар по всем рядом (и своим), потом сброс', o5.harv === 3 && o5.reapEn && o5.reap.enemy && o5.reap.ally && o5.reap.far && o5.reap.reset === 0 && o5.reap.action === 0 && o5.reapLocked === false, [o5.harv, o5.reap, o5.reapLocked]);
   ok('нет ошибок страницы', errs.length === 0, errs.slice(0, 3));
   console.log('проверок:', R.length, 'не прошли:', R.filter(x => !x).length);
   await b.close();

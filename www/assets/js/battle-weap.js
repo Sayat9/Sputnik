@@ -126,19 +126,24 @@
   /* ===== пассивки оружия ===== */
   P.weap = {
     speedBonus(u) { const m = B.mainOf(u), o = B.offOf(u); return m && o && (m.props || []).includes("Можно со щитом") && o.id === "shield" ? -1 : 0; },          // пика со щитом: −1 клетка скорости
-    acBonus(u) { const m = u.hero ? B.mainOf(u) : null; return m && m.artId === "moon-sword" && u.moon === 3 ? 1 : 0; },          // фаза «ущерб»: +1 КД
+    acBonus(u) { return has(u, "moonguard") ? 1 : 0; },          // лунная стойка: +1 КД
     attackMods(u, ctx) {
       const w = ctx.atk && ctx.atk.w; if (!w) return;
-      if (w.artId === "moon-sword" && u.moon === 0 && (ctx.hiddenData || has(ctx.tgt, "blinded"))) { ctx.extra.push({ n: 1, s: 6, b: 0, dt: ctx.atk.dt, label: "Новолуние", critDouble: true }); ctx.notes.push("новолуние +1к6"); }
+
       if (w.id === "longbow" && ctx.atk.kind === "ranged" && has(u, "aimed")) { ctx.extra.push({ n: 1, s: 6, b: 0, dt: ctx.atk.dt, label: "Прицел", critDouble: true }); ctx.consume.push([u, "aimed"]); ctx.notes.push("прицел +1к6"); }
       if (w.id === "axe" && B.isShieldBearer && B.isShieldBearer(ctx.tgt)) { ctx.dmgPlus = (ctx.dmgPlus || 0) + 2; ctx.notes.push("топор против щита +2"); }
     },
     async afterAttack(u, ctx) {
       const { res, tgt, atk } = ctx, w = atk && atk.w;
+      if (w && w.artId === "reaper-axe" && res && res.killed && atk.mode === "hand" && (u.harvest || 0) < 5) { u.harvest = (u.harvest || 0) + 1; fx(u, `жатва ${u.harvest}/5`, "good"); }
       if (w && (w.id === "greataxe" || w.id === "greatsword") && u.hero && res && res.nat <= 5 && !has(u, "overswung")) {          // «Тяжёлый замах»: на кубике 1–5 герой повисает на оружии — на следующем ходу нет доп. действия
         addStatus(u, "overswung", { k: 2, when: "end" }); log(`${u.name}: тяжёлый замах (выпало ${res.nat}) — на следующем ходу нет доп. действия.`, "bad"); fx(u, "тяжёлый замах", "bad");
       }
       if (!w || !res.hit || !tgt || tgt.isObj || !(tgt.alive || tgt.down) || tgt.side === u.side) return;
+      if (w.artId === "ricochet-bow" && atk.kind === "ranged" && !atk.thrown) {          // рикошет: стрела отскакивает в ближайшего врага в 2 клетках от цели
+        const near = enemiesOf(u).filter(e => e !== tgt && alive(e) && !e.down && B.dist(e, tgt) <= 2).sort((a, b) => B.dist(a, tgt) - B.dist(b, tgt))[0];
+        if (near) { const v = Math.max(1, res.nat === 20 ? (res.dealt || 0) : Math.floor((res.dealt || 0) / 2)); const ap = await B.applyDamage(u, near, [{ v, dt: atk.dt, label: "Рикошет" }], { src: u }); log(`Стрела отскакивает в ${near.name}: ${ap.total} урона.`, "skill"); fx(near, "рикошет", "bad"); }
+      }
       if (w.id === "dagger" && ctx.melee && alive(tgt) && !noBlood(tgt)) {
         const dc = 10 + Math.max(0, amod(u.abil.dex));
         const r = await B.doSave(tgt, "con", dc, { label: `кровотечение (${u.name})` });
@@ -157,7 +162,7 @@
     // «Парирование» меча: враг промахнулся по герою в ближнем бою более чем на 4 — ослабленный ответ (реакция).
     onMissedBy(u, ctx) {
       const { att, res } = ctx; if (!ctx.melee || res.parried || res.swapped || !u.hero) return;
-      const main = B.mainOf(u); if (!main || !(main.id === "sword" || (main.artId === "moon-sword" && u.moon === 3))) return;
+      const main = B.mainOf(u); if (!main || !(main.id === "sword" || (main.artId === "moon-sword" && has(u, "moonguard")))) return;
       if (!(u.t && u.t.react > 0) || !canAct(u) || att.side === u.side || dist(u, att) > 1) return;
       if (!(ctx.ac - res.total > 4)) return;
       res.post.push(async () => {
@@ -209,13 +214,15 @@
   const lodged = () => (B.S.lodged ||= []);
   const wetAt = (x, y) => { const t = B.tinfo && B.tinfo(x, y); return !!(t && t.wet); };
   const ownerOf = rec => B.byId(rec.hero);
-  const MOON = [{ n: "новолуние", d: "+1к6, если вас не видят" }, { n: "серп", d: "после убийства шаг на 2 клетки без провокации" }, { n: "полнолуние", d: "удары радиантные, +1к4" }, { n: "ущерб", d: "+1 КД, ответ по промахнувшемуся" }];
+  const MOON = [
+    { n: "новолуние", ab: "Затмение", cd: 2, d: "попавший удар слепит цель вспышкой: её следующая атака с помехой" },
+    { n: "полумесяц", ab: "Взмах полумесяца", cd: 3, d: "удар задевает 1к6 всех вокруг цели (и своих)" },
+    { n: "полнолуние", ab: "Лунный удар", cd: 4, d: "большой удар: +2к8 радиантного урона" },
+    { n: "ущерб", ab: "Лунная стойка", cd: 2, d: "доп. действие: +1 КД и ответный удар по промахнувшемуся до вашего следующего хода" },
+  ];
   B.wearsRing = u => !!(u.hero && ["ring1", "ring2"].some(s => u.hero.equip && u.hero.equip[s] && u.hero.equip[s].id === "brotherhood-ring"));
   B.artTweak = (u, w, mode, atk) => {
-    if (w.artId === "moon-sword" && mode === "hand") {
-      if (u.moon === 2) { atk.dt = "radiant"; atk.extra = [{ n: 1, s: 4, dt: "radiant", label: "Полнолуние" }]; }
-      if (u.moon != null) atk.sub = (atk.sub ? atk.sub + " · " : "") + "фаза: " + MOON[u.moon].n;
-    }
+    if (w.artId === "moon-sword" && mode === "hand" && u.moon != null) atk.sub = (atk.sub ? atk.sub + " · " : "") + "фаза: " + MOON[u.moon].n + (u.moonCd > 0 ? ` (меч в откате ${u.moonCd})` : "");
     if (w.artId === "thunder-spear" && u.charged && mode !== "off") {
       atk.dt = "lightning"; atk.extra = [{ n: 1, s: 6, dt: "lightning", label: "Заряд молнии" }]; atk.charged = true;
       atk.sub = (atk.sub ? atk.sub + " · " : "") + "заряжено молнией";
@@ -229,7 +236,6 @@
   };
   // Бросок попал: копьё не падает под ноги цели, а остаётся в ней.
   B.artAfterAttack = async (u, atk, tgt, r) => {
-    if (atk.thrown && atk.w.artId === "storm-axe" && !atk.bagEntry) return stormAxe(u, atk, tgt, r);
     if (!(atk.thrown && atk.w.artId === "thunder-spear") || atk.slot === "off" || !r.hit || tgt.isObj || !alive(tgt)) return;
     const S = B.S, i = S.drops.map(d => d.kind === "weapon" && d.hero === u.hero.id && d.slot === "main" && d.item && d.item.art === "thunder-spear").lastIndexOf(true);
     if (i < 0) return;
@@ -275,23 +281,19 @@
   B.artTurnStart = async u => {
     const S = B.S; if (!S) return;
     const mw = u.hero ? B.mainOf(u) : null;
-    if (mw && mw.artId === "moon-sword" && !u.disarmed) { u.moon = ((u.moon == null ? -1 : u.moon) + 1) % 4; log(`${u.name}: фаза луны — ${MOON[u.moon].n}.`, "skill"); fx(u, MOON[u.moon].n, "good"); }
+    if (mw && mw.artId === "moon-sword" && !u.disarmed) { if (u.moonCd > 0) u.moonCd--; u.moon = ((u.moon == null ? -1 : u.moon) + 1) % 4; log(`${u.name}: фаза луны — ${MOON[u.moon].n}${u.moonCd > 0 ? ` (меч в откате: ещё ${u.moonCd})` : ": " + MOON[u.moon].ab}.`, "skill"); fx(u, MOON[u.moon].n, "good"); }
     if (!S.lodged || !S.lodged.length) return;
     for (const rec of [...S.lodged]) if (rec.hero === u.id && !rec.struck && rec.turn < u.turnsTaken) await spearStrike(rec, u);
   };
 
-  // Топор бури: брошенный возвращается в руку; попав, стягивает врагов в 2 клетках (Телосложение, тяжёлым проще), падение даёт 1к4.
-  async function stormAxe(u, atk, tgt, r) {
-    const S = B.S, slot = atk.slot === "off" ? "off" : "main";
-    const i = S.drops.map(d => d.kind === "weapon" && d.hero === u.hero.id && d.slot === slot && d.item && d.item.art === "storm-axe").lastIndexOf(true);
-    if (i >= 0) { S.drops.splice(i, 1); if (slot === "off") u.disarmedOff = false; else u.disarmed = false; log(`${atk.w.name} возвращается в руку ${u.name}.`, "good"); const g = ui(); if (g) g.refresh(); }
-    if (!r.hit || tgt.isObj || !alive(tgt)) return;
+  // Топор бури: «Стяжка» — бросок, попав в цель, стягивает врагов в 2 клетках (Телосложение; огромных и тяжёлых не стянуть), падение даёт 1к4.
+  // «Бумеранг» — топор по дуге бьёт всех на пути (и своих) и возвращается в руку.
+  async function axePull(u, tgt) {
     const dcBase = 8 + (u.pb || 0) + Math.max(0, amod(u.abil.str));
     for (const e of enemiesOf(u)) {
-      if (e === tgt || !alive(e) || e.down) continue;
+      if (e === tgt || !alive(e) || e.down || e.size >= 2) continue;
       const d = B.dist(e, tgt); if (d <= 1 || d > 2) continue;
-      const dc = dcBase - (e.size >= 2 ? 2 : 0) - (e.size >= 3 ? 2 : 0);
-      const sv = await B.doSave(e, "con", dc, { label: `стяжка топора (${u.name})`, from: u });
+      const sv = await B.doSave(e, "con", dcBase, { label: `стяжка топора (${u.name})`, from: u });
       if (sv.ok) continue;
       const cell = (B.freeCellsNear(tgt, 1, e) || [])[0]; if (!cell) continue;
       const from = [e.x, e.y]; e.x = cell[0]; e.y = cell[1]; const g = ui(); if (g) await g.animMove(e, from, cell);
@@ -300,6 +302,33 @@
       if (alive(e)) await B.applyDamage(u, e, [{ v: roll(1, 4).total, dt: "bludgeon", label: "Столкновение" }], { src: u });
     }
   }
+  async function axeSpecial(u, atk) {
+    const th = atk.axeThrow;
+    if (atk.special === "axepull") {
+      const tgs = B.attackTargets(u, th); if (!tgs.length) { toast("Нет целей в досягаемости"); return false; }
+      const tgt = await UI().pickUnit({ prompt: "Стяжка: выберите цель", units: tgs.map(x => x.id), cells: B.rangeCells(u, th), kind: "attack" }); if (!tgt) return false;
+      const r = await B.doAttack(u, tgt, th, { onCommit: () => B.commitAttack(u, th, tgt) }); if (r.cancelled) return false;
+      if (r.hit && alive(tgt)) await axePull(u, tgt);
+      return true;
+    }
+    // бумеранг: клетка-ориентир в дальности броска; урон — всем в полосе вдоль линии (шириной в 3 клетки)
+    const cells = []; for (let y = 0; y < B.H; y++) for (let x = 0; x < B.W; x++) { const d = B.distCell(u, x, y); if (d >= 2 && d <= th.range[1]) cells.push([x, y]); }
+    const pt = await UI().pickCell({ prompt: "Бумеранг: выберите ориентир дуги (нажмите ещё раз для подтверждения)", cells, kind: "attack", radius: 1, forSide: "hero" });
+    if (!pt || pt.length !== 2) return false;
+    B.spendTime(u, "action"); u.t.attacked = true;
+    const line = B.lineCells(u, { x: pt[0], y: pt[1], size: 1, id: "c" }).map(([x, y]) => [x, y]); line.push(pt);
+    const near = (o) => line.some(([x, y]) => B.distCell(o, x, y) <= 1);
+    log(`${u.name} бросает топор бумерангом по дуге.`, "skill");
+    const g = ui(); if (g) g.banner("Бумеранг!");
+    for (const o of B.live()) {
+      if (o === u || !alive(o) || o.down || !near(o)) continue;
+      const v = roll(th.dmg.n, th.dmg.s).total + th.dmg.b;
+      await B.applyDamage(u, o, [{ v: Math.max(1, v), dt: th.dt, label: "Бумеранг" }], { src: u });
+    }
+    log(`Топор возвращается в руку ${u.name}.`, "good");
+    return true;
+  }
+
   // Булава «Метеор»: раз за бой — прыжок и удар сверху; урон по области вполовину, цель может упасть, клетка — кратер; 1–2 на кубике — отбрасывает героя.
   const METEOR = { dmg: [2, 6], back: [1, 8] };
   async function meteor(u, atk) {
@@ -371,6 +400,48 @@
   B.doPull = doPull; B.pullPath = pullPath; B.pullDc = pullDc;
 
   /* ===== артефактное оружие, вторая партия (решения автора 29.10): Падающая звезда, Эхо-клинок, Посох разрядов, Зеркальный щит; «Упор» пики ===== */
+  /* ===== третья партия: меч полумесяца (способности по фазам), пика Заставы, рикошет, теневой шаг, жатва ===== */
+  async function moonAttack(u, atk) {
+    const ph = u.moon, tgs = B.attackTargets(u, atk);
+    if (!tgs.length) { toast("Нет целей в досягаемости"); return false; }
+    const tgt = await UI().pickUnit({ prompt: `${MOON[ph].ab}: выберите цель`, units: tgs.map(x => x.id), cells: B.rangeCells(u, atk), kind: "attack" }); if (!tgt) return false;
+    if (tgt.isObj) return B.runAttackBase(u, atk);
+    const o = { onCommit: () => B.commitAttack(u, atk, tgt) };
+    if (ph === 2) o.extra = [{ n: 2, s: 8, b: 0, dt: "radiant", label: "Лунный удар", critDouble: true }];
+    const r = await B.doAttack(u, tgt, atk, o); if (r.cancelled) return false;
+    u.moonCd = MOON[ph].cd; fx(u, MOON[ph].ab, "good");
+    if (r.hit && ph === 0 && alive(tgt)) { addStatus(tgt, "dazzled", { k: 1, when: "end" }); log(`${tgt.name} ослеплён затмением: его следующая атака с помехой.`, "skill"); }
+    if (r.hit && ph === 1) for (const o2 of B.live()) {          // полумесяц задевает всех вокруг цели, и своих
+      if (o2 === u || o2 === tgt || !alive(o2) || o2.down || B.dist(o2, tgt) > 1) continue;
+      await B.applyDamage(u, o2, [{ v: roll(1, 6).total, dt: atk.dt, label: "Взмах полумесяца" }], { src: u });
+    }
+    return true;
+  }
+  const chargeWhy = u => { const dx = u.x - u.t.startX, dy = u.y - u.t.startY, d = Math.max(Math.abs(dx), Math.abs(dy)); return d >= 3 && (dx === 0 || dy === 0 || Math.abs(dx) === Math.abs(dy)) ? null : "нужен разбег: 3+ клетки по прямой в этот ход"; };
+  async function pikeCharge(u, atk) {
+    const why = chargeWhy(u); if (why) { toast(why); return false; }
+    const tgs = B.attackTargets(u, atk); if (!tgs.length) { toast("Нет целей в досягаемости"); return false; }
+    const tgt = await UI().pickUnit({ prompt: "Разбег: выберите цель", units: tgs.map(x => x.id), cells: B.rangeCells(u, atk), kind: "attack" }); if (!tgt) return false;
+    if (tgt.isObj) return B.runAttackBase(u, atk);
+    const r = await B.doAttack(u, tgt, atk, { onCommit: () => B.commitAttack(u, atk, tgt), extra: [{ n: 2, s: 6, b: 0, dt: atk.dt, label: "Разбег", critDouble: true }] }); if (r.cancelled) return false;
+    if (!r.hit) return true;
+    if (alive(tgt) && tgt.size <= 1) { const sv = await B.doSave(tgt, "str", 8 + (u.pb || 0) + Math.max(0, amod(u.abil.str)), { label: "разбег пики", from: u }); if (!sv.ok) { B.knock(tgt, u); fx(tgt, "сбит с ног", "bad"); } }
+    const bx = tgt.x + Math.sign(tgt.x - u.x), by = tgt.y + Math.sign(tgt.y - u.y), back = enemiesOf(u).find(e => e !== tgt && alive(e) && !e.down && B.footprint(e).some(([x, y]) => x === bx && y === by));
+    if (back) { const ap = await B.applyDamage(u, back, [{ v: Math.max(1, Math.floor((r.dealt || 0) / 2)), dt: atk.dt, label: "Разбег (вторая цель)" }], { src: u }); log(`Пика проходит дальше: ${back.name} получает ${ap.total} урона.`, "skill"); }
+    return true;
+  }
+  B.freeReact = e => !!(e.hero && !e.disarmed && (B.mainOf(e) || {}).artId === "rampart-pike" && e.pikeAt !== B.S.round);
+  const FANG_MANA = 3;
+  const darkCells = u => {
+    const S = B.S, out = []; if (!S.dark) return out;
+    for (let y = 0; y < B.H; y++) for (let x = 0; x < B.W; x++) {
+      const d = Math.max(Math.abs(x - u.x), Math.abs(y - u.y)); if (d < 1 || d > 3 || B.lightAt(x, y) || !B.canStand(u, x, y)) continue;
+      if (B.live().some(o => o !== u && B.footprint(o).some(([fx2, fy2]) => fx2 === x && fy2 === y))) continue;
+      out.push([x, y]);
+    }
+    return out;
+  };
+  B.darkCells = darkCells;
   const STAR_MANA = 1, STAR_CD = 3, STAR_DMG = [2, 6], STAFF_MAX = 3, MIRROR_CHANCE = 40, MIRROR_MANA = 1;
   const starWhy = u => (u.mp < STAR_MANA ? "нужна 1 мана" : u.starAt != null && B.S.round - u.starAt < STAR_CD ? `перезарядка: ещё ${STAR_CD - (B.S.round - u.starAt)} р.` : B.arrowsLeft(u) < 1 ? "нет стрел" : null);
   async function star(u, atk) {
@@ -393,12 +464,19 @@
   const ws0 = B.weapSpecials;
   B.weapSpecials = (u, main, off) => {
     const out = ws0(u, main, off);
+    if (main && main.artId === "moon-sword" && !u.disarmed && u.moon != null && u.moon !== 3 && !(u.moonCd > 0)) { const base = B.atkFrom(u, main, "hand"); out.push({ ...base, id: "moon:sword", n: MOON[u.moon].ab, special: "moon", sub: `${MOON[u.moon].d} · после — откат ${MOON[u.moon].cd} х.` }); }
+    if (main && main.artId === "storm-axe" && !u.disarmed) {
+      const th = B.atkFrom(u, main, "thrown");
+      out.push({ ...th, id: "axepull:storm", n: "Стяжка", special: "axepull", axeThrow: th, sub: "бросок: попав, стягивает врагов в 2 клетках (Телосложение; тяжёлых не стянуть), 1к4 от столкновения · топор остаётся на земле" });
+      out.push({ ...th, id: "boomerang:storm", n: "Бумеранг", special: "boomerang", axeThrow: th, sub: "топор по дуге бьёт всех на пути (и своих) и возвращается в руку", needTarget: () => null });
+    }
+    if (main && main.artId === "rampart-pike" && !u.disarmed) { const base = B.atkFrom(u, main, "hand"); out.push({ ...base, id: "charge:pike", n: "Разбег", special: "charge", sub: "после 3+ клеток по прямой: +2к6, сбивает с ног (средним и меньше), вторая цель на линии получает половину", needTarget: v => chargeWhy(v) || (B.attackTargets(v, base).length ? null : "нет цели в досягаемости") }); }
     if (main && main.artId === "meteor-mace" && !u.disarmed) { const base = B.atkFrom(u, main, "hand"); out.push({ ...base, id: "meteor:mace", n: "Метеорный удар", special: "meteor", sub: "раз за бой: прыжок до 2 клеток, 2к6 по цели и вполовину вокруг (и своим), кратер", needTarget: v => (v.meteorUsed ? "уже использован в этом бою" : (enemiesOf(v).some(x => alive(x) && B.dist(v, x) <= 3) ? null : "нет цели в 3 клетках")) }); }
     if (main && main.artId === "falling-star" && !u.disarmed) { const base = B.atkFrom(u, main, "hand"); out.push({ ...base, id: "star:longbow", n: "Падающая звезда", special: "star", sub: "1 мана и стрела, раз в 3 хода: радиус 1, радиантное 2к6, цели подсвечены", needTarget: v => starWhy(v) }); }
     return out;
   };
   const rs0 = B.runSpecial;
-  B.runSpecial = (u, atk) => (atk.special === "star" ? star(u, atk) : atk.special === "meteor" ? meteor(u, atk) : rs0(u, atk));
+  B.runSpecial = (u, atk) => (atk.special === "star" ? star(u, atk) : atk.special === "meteor" ? meteor(u, atk) : atk.special === "moon" ? moonAttack(u, atk) : atk.special === "charge" ? pikeCharge(u, atk) : atk.special === "axepull" || atk.special === "boomerang" ? axeSpecial(u, atk) : rs0(u, atk));
 
   // Посох разрядов: потраченная мана копится зарядами; «Разряд» — 1к6 за заряд.
   B.staffCharge = (u, spent) => { const m = B.mainOf(u); if (m && m.artId === "discharge-staff") u.charges = Math.min(STAFF_MAX, (u.charges || 0) + spent); };
@@ -416,7 +494,7 @@
   // Эхо-клинок: попадание оставляет эхо; следующая атака по цели (хоть мимо) повторяется без броска на половину прежнего удара.
   P.weap.attackDone = async function (u, ctx) {
     const { res, tgt, atk } = ctx, w = atk && atk.w;
-    if (w && w.artId === "moon-sword" && u.moon === 1 && res && res.killed && u.t) { u.t.move += 2; u.t.disengage = true; log(`${u.name}: серп — шаг на 2 клетки без провокации.`, "skill"); fx(u, "серп", "good"); }
+
     if (!w || w.artId !== "echo-blade" || !tgt || tgt.isObj || !res || atk.mode !== "hand") return;
     if (u.echo && u.echo.tgt === tgt.id) {
       const e = u.echo; u.echo = null;
@@ -432,11 +510,14 @@
     if (!e.hero || e.disarmed) return;
     const pk = B.mainOf(e); if (!pk || pk.id !== "pike") return;
     const atk = B.attacksOf(e).find(a => a.kind === "melee" && a.w && a.w.id === "pike" && !a.offhand); if (!atk) return;
-    const r = atk.reach || 2;
+    const r = atk.reach || 2, art = pk.artId === "rampart-pike";
+    if (art && e.pikeAt === B.S.round) return;
     if (dist(e, mover) > r || (from && B.distAt(e, mover, from[0], from[1]) <= r) || B.lineBlocked(e, mover)) return;
-    if (!(await B.promptReaction({ unit: e, title: "Упор", text: `${mover.name} входит в зону пики. Встретить ударом? (реакция)` }))) return;
-    e.t.react = 0; log(`${e.name}: упор пики по ${mover.name}.`, "skill"); fx(e, "упор", "good");
-    await B.doAttack(e, mover, atk, { reaction: true, cancelable: false, rider: async res => { if (res.hit && mover.size <= 2) { addStatus(mover, "spearstop", { k: 0, when: "end" }); fx(mover, "остановлен", "bad"); } } });
+    if (!(await B.promptReaction({ unit: e, title: "Упор", text: `${mover.name} входит в зону пики. Встретить ударом? (${art ? "бесплатно, раз в раунд" : "реакция"})` }))) return;
+    if (art) e.pikeAt = B.S.round; else e.t.react = 0;
+    log(`${e.name}: упор пики по ${mover.name}.`, "skill"); fx(e, "упор", "good");
+    if (art) for (const a of B.alliesOf ? B.alliesOf(e) : []) if (a !== e && alive(a) && !a.down && dist(a, e) <= 1) addStatus(a, "pikeward", { k: Infinity, data: { endAtStartOf: e.id } });
+    await B.doAttack(e, mover, atk, { reaction: true, cancelable: false, rider: async res => { if (res.hit && (art || mover.size <= 2)) { addStatus(mover, "spearstop", { k: 0, when: "end" }); fx(mover, "остановлен", "bad"); } } });
   };
 
   const rb = B.weapActions;
@@ -469,6 +550,33 @@
     const planted = lodged().find(r => r.kind === "cell" && r.hero === u.id && B.distCell(u, r.x, r.y) <= 1);
     if (planted && u.disarmed) out.push({ id: "spearpull", cat: "other", label: "Вытащить копьё", ico: "attack", sub: "свободное действие: копьё возвращается в руку", time: "free", enabled: true,
       run: async () => { B.S.cells[planted.y][planted.x] = ""; B.S.lodged = lodged().filter(r => r !== planted); u.disarmed = false; log(`${u.name} вытаскивает копьё из земли.`, "good"); const g = ui(); if (g) g.refresh(); return true; } });
+    if (main0 && main0.artId === "moon-sword" && !u.disarmed && u.moon === 3 && !(u.moonCd > 0)) {
+      out.push({ id: "moonguard", cat: "defend", label: "Лунная стойка", ico: "defend", sub: `${MOON[3].d} · после — откат ${MOON[3].cd} х.`, time: "bonus", enabled: bon0, why: "доп. действие потрачено",
+        run: async () => { B.spendTime(u, "bonus"); addStatus(u, "moonguard", { k: Infinity, data: { endAtStartOf: u.id } }); u.moonCd = MOON[3].cd; log(`${u.name} встаёт в лунную стойку.`, "good"); fx(u, "лунная стойка", "good"); return true; } });
+    }
+    if (main0 && main0.artId === "shadow-fang" && !u.disarmed) {
+      const dk = darkCells(u);
+      out.push({ id: "shadowstep", cat: "move", label: "Теневой шаг", ico: "disengage", sub: `доп. действие, ${FANG_MANA} маны: прыжок до 3 клеток в тёмную клетку`, time: "bonus", enabled: bon0 && u.mp >= FANG_MANA && dk.length > 0,
+        why: !B.S.dark ? "светло: нужна тёмная клетка" : !bon0 ? "доп. действие потрачено" : u.mp < FANG_MANA ? "не хватает маны" : "нет тёмных клеток в 3 клетках",
+        run: async () => {
+          const pt = await UI().pickCell({ prompt: "Теневой шаг: выберите тёмную клетку", cells: dk, kind: "move" }); if (!pt || pt.length !== 2) return false;
+          B.spendTime(u, "bonus"); B.setMp(u, u.mp - FANG_MANA);
+          const from = [u.x, u.y]; u.x = pt[0]; u.y = pt[1]; const g = ui(); if (g) await g.animMove(u, from, pt);
+          log(`${u.name} растворяется в тени и появляется в другой клетке.`, "skill"); fx(u, "теневой шаг", "good"); return true;
+        } });
+    }
+    if (main0 && main0.artId === "reaper-axe" && !u.disarmed) {
+      const n = u.harvest || 0;
+      out.push({ id: "reap", cat: "attack", label: "Жатва", ico: "attack", sub: `${n}/5 зарядов: круговой удар по всем рядом (и своим), ${n}к8, Ловкость — вполовину`, time: "action", enabled: act0 && n >= 3, why: !act0 ? "действие потрачено" : "нужно 3 заряда",
+        run: async () => {
+          const ts = B.live().filter(o => o !== u && alive(o) && !o.down && dist(u, o) <= 1); if (!ts.length) { toast("Рядом никого"); return false; }
+          B.spendTime(u, "action"); u.t.attacked = true; const k = u.harvest; u.harvest = 0;
+          log(`${u.name}: «Жатва» (${k} зар.) — круговой удар!`, "skill"); const g = ui(); if (g) g.banner("Жатва!");
+          const dc = 8 + (u.pb || 0) + Math.max(0, amod(u.abil.str)), sv = await B.massSave(ts, "dex", dc, { label: "Жатва", title: "Жатва", from: u });
+          for (let i = 0; i < ts.length; i++) { let v = roll(k, 8).total; if (sv[i] && sv[i].ok) v = Math.floor(v / 2); await B.applyDamage(u, ts[i], [{ v: Math.max(1, v), dt: "slash", label: "Жатва" }], { src: u }); }
+          return true;
+        } });
+    }
     if (main0 && main0.artId === "discharge-staff") {
       const n = u.charges || 0, tmp = { kind: "ranged", range: [3, 3] }, tg = B.attackTargets(u, tmp);
       out.push({ id: "discharge", cat: "skill", label: "Разряд", ico: "attack", sub: `действие: ${n ? n + "к6 электричества" : "нет зарядов"} в цель до 3 клеток (заряды копятся от потраченной маны, до ${STAFF_MAX})`, time: "action",
