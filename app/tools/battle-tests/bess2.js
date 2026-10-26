@@ -27,6 +27,7 @@ const ONLY = (process.argv[2] || '').split(',').filter(Boolean);
       B.cfg.fast = true;
       const S = B.newBattle({ list, zone: o.zone || 'goblin', ambush: !!o.ambush }); S.opts.autoHeroes = true; S.dark = !!o.dark; S.torch = !!o.torch;
       for (const row of S.cells) row.fill(''); S.objs.length = 0;
+      B.heroes().forEach(h => { h.speedC += 1; });          // базовая скорость тестов 4 клетки (в игре сейчас 3) (баланс игры менялся: тесты не зависят от него)
       B.mons().forEach(m => { m.abil = o.strong ? { str: 30, dex: 30, con: 30, int: 30, wis: 30, cha: 30 } : { str: 1, dex: 1, con: 1, int: 1, wis: 1, cha: 1 }; m.ac = o.strong ? 40 : 1; m.maxHp = m.hp = 300; m.skills = {}; m.flags = {}; });
       return S;
     };
@@ -315,7 +316,7 @@ const ONLY = (process.argv[2] || '').split(',').filter(Boolean);
       const s2 = setup([mk(60, { ess: ['horned-hare'], main: 'spear' })], ['goblin']); const H2 = B.heroes()[0], G2 = B.mons()[0]; place(H2, 3, 5); place(G2, 3, 1); T(H2); F(15, 3, 4, 20);
       await act(H2, 'horned-hare', { cell: [3, 2] }); ok('разбег 3 клетки — отскока нет', H2.x === 3 && H2.y === 2, `${H2.x},${H2.y}`);
       ok('без колющего оружия способность недоступна', (() => { const s3 = setup([mk(61, { ess: ['horned-hare'], main: 'mace' })], ['goblin']); const H3 = B.heroes()[0]; return B.A['horned-hare'].can(H3) === 'нужно колющее оружие (копьё, пика)'; })());
-      ok('нет цели на прямой — недоступна', (() => { const s3 = setup([mk(62, { ess: ['horned-hare'], main: 'spear' })], ['goblin']); const H3 = B.heroes()[0], G3 = B.mons()[0]; place(H3, 0, 6); place(G3, 3, 0); return B.A['horned-hare'].can(H3) === 'нет цели на прямой'; })());
+      ok('нет цели на прямой — недоступна', (() => { const s3 = setup([mk(62, { ess: ['horned-hare'], main: 'spear' })], ['goblin']); const H3 = B.heroes()[0], G3 = B.mons()[0]; place(H3, 0, 6); place(G3, 6, 3); T(H3); B.addStatus(G3, 'underground', { k: Infinity }); return B.A['horned-hare'].can(H3) === 'нет цели на прямой'; })());
       // «Петляет» при обычной атаке после долгого разбега
       const s4 = setup([mk(63, { ess: ['horned-hare'], main: 'spear' })], ['goblin']); const H4 = B.heroes()[0], G4 = B.mons()[0]; place(H4, 3, 6); place(G4, 3, 1); T(H4);
       await B.moveAlong(H4, [[3, 5], [3, 4], [3, 3], [3, 2]]); const atk = meleeOf(H4); F(15, 3); await B.doAttack(H4, G4, atk, { cancelable: false, onCommit: () => B.commitAttack(H4, atk, G4) });
@@ -490,6 +491,17 @@ const ONLY = (process.argv[2] || '').split(',').filter(Boolean);
       F(20, 5, 5, 5, 5, 2, 2); await B.doAttack(M, H4, grab, { cancelable: false, onCommit: () => B.commitAttack(M, grab, H4) });
       ok('герой схвачен (провалил Силу), 1к6 в начале хода кусающего', !!has(H4, 'grappled') && has(H4, 'grappled').data.tick === 'holder', logs(5));
       ok('раз за бой: второй раз атаки уже нет в списке', !B.attacksOf(M).some(a => a.n === 'Мёртвая хватка') && B.attacksOf(M).length === 2);
+    });
+
+    await test('bloodless', async () => {
+      // решение автора 27.10: у нежити, элементалей, конструктов и механизмов нет кровотечения и отравления (все монстры 1 и 2 этажа зон нежити и камня)
+      const ids = { undead: ['zombie', 'skeleton', 'skeleton-archer', 'ghoul', 'bone-knight', 'ash-wraith', 'grey-shade'], stone: ['living-stone', 'pixie', 'wisp', 'green-boulder', 'magma-golem', 'crystal-colossus'], living: ['goblin', 'wolf', 'swamp-fang', 'dire-wolf', 'rat'] };
+      for (const [grp, list] of Object.entries(ids)) {
+        const { ms } = sc([{}], list); let all = true, none = true;
+        for (const m of ms) { const bl = !!B.addStatus(m, 'bleeding', { k: 3 }), po = !!B.addStatus(m, 'poisoned', { k: 3 }); if (grp === 'living') { if (!bl || !po) none = false; } else if (bl || po) all = false; }
+        ok(grp === 'living' ? 'живые монстры: кровотечение и отравление действуют' : `${grp === 'undead' ? 'нежить' : 'элементали'}: ни кровотечения, ни отравления (${list.length} видов)`, grp === 'living' ? none : all);
+      }
+      const h = sc([{}], ['goblin']).hs[0]; ok('герои кровоточат и травятся', !!B.addStatus(h, 'bleeding', { k: 3 }) && !!B.addStatus(h, 'poisoned', { k: 3 }));
     });
 
     await test('spider-queen', async () => {

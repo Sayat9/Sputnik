@@ -17,6 +17,7 @@
   B.knock = (t, src) => addStatus(t, "prone", { k: Infinity, data: { by: src ? src.id : null } });
   // Иммунитет к состоянию: свои пассивки (immune) и ауры союзников (immuneAura).
   B.immuneTo = function (u, id, o = {}) {
+    if ((id === "bleeding" || id === "poisoned") && B.noBlood && u.side === "mon" && B.noBlood(u)) return true;          // нежить, элементали, конструкты, механизмы: нет кровотечения и отравления
     if (!B.P) return false;
     for (const pid of u.pass) { const P = B.P[pid]; if (P && P.immune && P.immune(u, { id, data: o.data || {} })) return true; }
     for (const a of alliesOf(u)) for (const pid of a.pass) { const P = B.P[pid]; if (P && P.immuneAura && P.immuneAura(a, { u, id, data: o.data || {} })) return true; }

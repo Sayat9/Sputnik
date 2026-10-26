@@ -2574,7 +2574,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 36;
+const BATTLE_REV = 37;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }
@@ -2807,7 +2807,7 @@ function renderCharacter() {
     ${char === state.example ? `<div class="note"><span class="draft">Пример</span>Это образец персонажа. Своих героев создают на вкладке «Главная» кнопкой «Начать приключение». Всё сохраняется на этом устройстве.</div>` : ""}
     ${state.party.length > 1 ? `<div class="chips" role="group" aria-label="Герои отряда" style="padding:0">${state.party.map(c => `<button class="chip" data-member="${c.id}" aria-pressed="${c.id === char.id}">${esc(c.name)}</button>`).join("")}</div>` : ""}
     <div class="char-top">
-      <div class="grow"><h2>${esc(char.name || "Без имени")}</h2><div class="sub">${race.name}${char.gender ? " · " + GENDERS[char.gender] : ""}${char.age ? " · " + ageText(char.age) : ""} · ${char.level} уровень · опыт ${char.xp || 0}/${XP_STEP}</div></div>
+      <div class="grow"><h2>${esc(char.name || "Без имени")}</h2><div class="sub">${race.name}${char.gender ? " · " + GENDERS[char.gender] : ""}${char.age ? " · " + ageText(char.age) : ""} · ${char.level} уровень · опыт ${char.xp || 0}/${xpNeed(char)}</div></div>
       <button class="btn" data-action="edit-char">Изменить</button>
     </div>
 
@@ -3813,7 +3813,7 @@ function spTreasureHere() {
 }
 // Сокровище находят бросок к20 (решение автора): 1–8 камни (10–15 штук, чем выше бросок, тем больше и тем больше среди них 8 класса), 9–13 расходники (чем выше, тем больше),
 // 14–16 броня, 17 оружие (моё допущение: числа 17 в вашей таблице не было), 18–19 сокровище 9 класса, 20 сокровище 8 класса; какое именно — случайно из списка.
-const TREASURE_POOL = { 9: ["guard", "flame", "hearth", "dice", "bell", "once-more"], 8: ["chalice", "beginners-luck", "flask", "monocle"] };
+const TREASURE_POOL = { 9: ["guard", "flame", "hearth", "dice", "bell", "once-more", "wind"], 8: ["chalice", "beginners-luck", "flask", "monocle", "boots"] };
 const treasureOwned = id => (TREASURES[id] ? treasure(id).owned : state.party.some(c => [...(c.bag || []), ...Object.values(c.equip || {})].some(e => e && e.id === id)));
 function treasurePick(cls) {
   const free = TREASURE_POOL[cls].filter(id => id === "once-more" || !treasureOwned(id));
@@ -4399,29 +4399,44 @@ function resultOverlay() {
 }
 // Опыт (rules.md, «Опыт»): только за первую убитую особь вида, каждый герой получает полный опыт.
 // Монстр 9-го класса — 1 опыт, 8-го — 2 и т. д. (10 − класс).
-// Новый уровень каждые XP_STEP опыта, остаток переходит дальше.
-const XP_STEP = 20;
+// Новый уровень: со 2-го за 20 опыта, с 3-го за 40 (решение автора 27.10; дальше пока 40), остаток переходит дальше.
+const xpNeed = c => (c.level >= 2 ? 40 : 20);
 const monXp = m => Math.max(1, 10 - m.cls);
-function awardXp(ids) {
-  const j = journal(), fresh = [...new Set(ids)].filter(id => !j.known[id]?.xpDone);
-  if (!fresh.length || !state.party.length) return;
-  const total = fresh.reduce((a, id) => a + monXp(MONSTERS.find(m => m.id === id)), 0);
-  fresh.forEach(id => { seenKeys(id, []); j.known[id].xpDone = new Date().toISOString(); });
+function addXpAll(total) {          // опыт всем героям отряда + повышения уровней
   const ups = [];
   state.party.forEach(c => {
     c.xp = (c.xp || 0) + total;
-    while (c.xp >= XP_STEP && c.level < 20) {
-      const before = maxHp(c), mpBefore = maxMp(c); c.xp -= XP_STEP; c.level++;
+    while (c.xp >= xpNeed(c) && c.level < 20) {
+      const before = maxHp(c), mpBefore = maxMp(c); c.xp -= xpNeed(c); c.level++;
       c.hp = Math.min(maxHp(c), hpOf(c) + maxHp(c) - before);
       const dMp = maxMp(c) - mpBefore; c.mp = Math.min(maxMp(c), (c.mp ?? mpBefore) + dMp);          // вместе с максимумом растёт и текущая мана
       ups.push(`${c.name} — ${c.level} ур. (макс. ОЗ +${maxHp(c) - before}, мана +${dMp})`);
     }
   });
+  return ups;
+}
+// Достижения захода (решения автора 27.10): добраться до портала на 2 этаж до конца 2-го дня, до портала на 3 этаж — до конца 5-го дня: +2 опыта каждому герою, один раз за заход.
+const ACHIEVEMENTS = { portal2: { title: "Быстрый спуск", text: "Отряд дошёл до портала на 2 этаж до конца 2-го дня", day: 2, xp: 2 }, portal3: { title: "Лёгкий путь вниз", text: "Отряд дошёл до портала на 3 этаж до конца 5-го дня", day: 5, xp: 2 } };
+function achCheck() {
+  const r = state.run; if (!r || !state.party.length || tileType(r.pos.x, r.pos.y) !== "portal") return;
+  const k = FL().portals[tkey(r.pos.x, r.pos.y)], id = r.floor === 1 ? "portal2" : r.floor === 2 && k === "exit" ? "portal3" : null;
+  if (!id || (r.ach ||= {})[id] || r.day > ACHIEVEMENTS[id].day) return;
+  const A = ACHIEVEMENTS[id]; r.ach[id] = r.day;
+  const ups = addXpAll(A.xp);
+  logRun(`Достижение «${A.title}»: ${A.text}. +${A.xp} опыта каждому герою.${ups.length ? " Новый уровень: " + ups.join(", ") + "." : ""}`);
+  dgUi.res = { title: `Достижение: ${A.title}`, roll: "", lines: [`${A.text}.`, `+${A.xp} опыта каждому герою.`, ...ups] };
+}
+function awardXp(ids) {
+  const j = journal(), fresh = [...new Set(ids)].filter(id => !j.known[id]?.xpDone);
+  if (!fresh.length || !state.party.length) return;
+  const total = fresh.reduce((a, id) => a + monXp(MONSTERS.find(m => m.id === id)), 0);
+  fresh.forEach(id => { seenKeys(id, []); j.known[id].xpDone = new Date().toISOString(); });
+  const ups = addXpAll(total);
   logRun(`Опыт за первых убитых (${fresh.map(id => MONSTERS.find(m => m.id === id).name).join(", ")}): +${total} каждому герою.${ups.length ? " Новый уровень: " + ups.join(", ") + "." : ""}`);
   setTimeout(() => toast(ups.length ? "Новый уровень: " + ups.join(", ") : `+${total} опыта каждому`), 30);
 }
-const xpBar = c => `<div class="xp-box"><div class="lrow"><span>${c.level} уровень · опыт <button class="fx-btn" data-hx="kills" aria-label="Список убийств героя" style="padding:1px 8px;font-size:12px;margin-left:6px">Убийства</button></span><b>${c.xp || 0} / ${XP_STEP}</b></div>
-  <div class="lbar"><i style="width:${Math.min(100, Math.round((c.xp || 0) / XP_STEP * 100))}%"></i></div></div>`;
+const xpBar = c => `<div class="xp-box"><div class="lrow"><span>${c.level} уровень · опыт <button class="fx-btn" data-hx="kills" aria-label="Список убийств героя" style="padding:1px 8px;font-size:12px;margin-left:6px">Убийства</button></span><b>${c.xp || 0} / ${xpNeed(c)}</b></div>
+  <div class="lbar"><i style="width:${Math.min(100, Math.round((c.xp || 0) / xpNeed(c) * 100))}%"></i></div></div>`;
 const essSlots = c => `${(c.essences || []).length}/${c.level}`;
 // Итог боя: победа открывает тип всех монстров, при бегстве и отступлении монстров — только убитых.
 // Квадрат зачищен после победы или отступления монстров; если сбежал отряд, монстры остались.
@@ -4491,7 +4506,7 @@ function inventory() {
 const curFloor = () => (state.run && state.run.floor) || 1;
 /* ----- сокровища (черновик, drafts.md → «Сокровища»): по классам, 9 — худший, 1 — лучший ----- */
 const TREASURES = { guard: { cls: 9, name: "Ночной страж", base: 3, perFloor: 2 }, flame: { cls: 9, name: "Огонь, указывающий путь" }, hearth: { cls: 9, name: "Вечный очаг" },
-  dice: { cls: 9, name: "Игральные кубики", cd: 6 }, bell: { cls: 9, name: "Серебряный колокольчик", cd: 6 }, flask: { cls: 8, name: "Фляга странника", cd: 6 }, monocle: { cls: 8, name: "Монокль Амона" } };          // cd — откат в действиях (6 = 2 дня)
+  dice: { cls: 9, name: "Игральные кубики", cd: 6 }, bell: { cls: 9, name: "Серебряный колокольчик", cd: 6 }, flask: { cls: 8, name: "Фляга странника", cd: 6 }, monocle: { cls: 8, name: "Монокль Амона" }, boots: { cls: 8, name: "Сапоги скороходы" }, wind: { cls: 9, name: "Экстракт попутного ветра", charges: 10 } };          // cd — откат в действиях (6 = 2 дня)
 function treasure(id) { return ((inventory().treasures ||= {})[id] ||= { owned: false }); }
 // Заряды Ночного стража — на заход: 3, +2 за первый за заход спуск на каждый новый этаж; вернулся и спустился снова — зарядов нет; новый заход сбрасывает.
 function ngState() { const r = state.run; return r ? (r.ng ||= { used: 0, granted: [] }) : { used: 0, granted: [] }; }
@@ -4543,6 +4558,8 @@ function artMask(it, id) { return artKnown(id) ? it : { ...it, name: "??", short
 const ICO_DICE = `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><rect x="4" y="4" width="16" height="16" rx="3" fill="currentColor" opacity=".15"/><rect x="4" y="4" width="16" height="16" rx="3"/><circle cx="8.5" cy="8.5" r="1.1" fill="currentColor"/><circle cx="15.5" cy="8.5" r="1.1" fill="currentColor"/><circle cx="12" cy="12" r="1.1" fill="currentColor"/><circle cx="8.5" cy="15.5" r="1.1" fill="currentColor"/><circle cx="15.5" cy="15.5" r="1.1" fill="currentColor"/></svg>`;
 const ICO_BELL = `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M6 17c1.2-1.4 1.5-3 1.5-5.5a4.5 4.5 0 0 1 9 0c0 2.5.3 4.1 1.5 5.5z" fill="currentColor" opacity=".18"/><path d="M6 17c1.2-1.4 1.5-3 1.5-5.5a4.5 4.5 0 0 1 9 0c0 2.5.3 4.1 1.5 5.5zM10.5 19.5a1.6 1.6 0 0 0 3 0M12 5.5V4"/></svg>`;
 const ICO_MONOCLE = `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><circle cx="10" cy="10" r="6.5"/><circle cx="10" cy="10" r="3" fill="currentColor" opacity=".25"/><path d="M14.6 14.6 20 20M20 20c0 1.5-1 2.5-2.5 2.5M5.5 7.5A5 5 0 0 1 9 5"/></svg>`;
+const ICO_BOOTS = `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M8 3h6v8l5 3v5H5v-4l3-2z"/><path d="M8 7h6M2 8h3M1 11h4"/></svg>`;
+const ICO_WIND = `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M9 3h6v3l2 2v11a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V8l2-2z"/><path d="M9 11c2-1 3 1 6 0M9 15c2-1 3 1 6 0"/></svg>`;
 const ICO_FLASK = `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M9 3h6v3l2 2v11a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V8l2-2z" fill="currentColor" opacity=".18"/><path d="M9 3h6v3l2 2v11a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V8l2-2zM9 6h6M7.5 12h9"/></svg>`;
 const ICO_AGAIN = `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M5 12a7 7 0 0 1 12-4.9L19 9M19 12a7 7 0 0 1-12 4.9L5 15"/><path d="M19 4v5h-5M5 20v-5h5"/></svg>`;
 const ARTIFACTS = {
@@ -4555,6 +4572,8 @@ const ARTIFACTS = {
   chalice: { cls: 8, name: "Чаша здоровья", ico: () => GEAR_ICON.chalice, text: GEAR.chalice.note },
   "beginners-luck": { cls: 8, name: "Удача новичка", ico: () => GEAR_ICON["beginners-luck"], text: GEAR["beginners-luck"].note },
   "calm-flute": { cls: 9, name: "Флейта успокоения", ico: () => GEAR_ICON.flute, text: GEAR["calm-flute"].note },
+  boots: { cls: 8, name: "Сапоги скороходы", ico: () => ICO_BOOTS, text: "Раз в день: Движение проходит сразу 2 клетки, а Бег — 3 клетки (одна из пробегаемых клеток — без проверки)." },
+  wind: { cls: 9, name: "Экстракт попутного ветра", ico: () => ICO_WIND, text: "Расходуется, 10 зарядов. Применить перед Бегом: следующий Бег идёт без Усталости, без минусов и без проверок." },
   monocle: { cls: 8, name: "Монокль Амона", ico: () => ICO_MONOCLE, text: "Раскрывает ловушки на карте: пока монокль у отряда, все ловушки в зоне видны сразу, проверка внимательности при входе не нужна." },
   flask: { cls: 8, name: "Фляга странника", ico: () => ICO_FLASK, text: "На Отдыхе один съеденный паёк не тратится: он возвращается тому, кто его ел. Откат 6 действий (2 дня)." },
 };
@@ -4568,7 +4587,7 @@ function artSync() {                                                            
   for (const id of Object.keys(TREASURES)) if (treasure(id).owned) artSeen(id);
   for (const c of state.party || []) for (const e of [...(c.bag || []), ...Object.values(c.equip || {})]) if (e && e.t === "g" && ARTIFACTS[e.id]) artSeen(e.id);
 }
-function giveTreasure(id) { treasure(id).owned = true; artSeen(id); }
+function giveTreasure(id) { const tr = treasure(id); tr.owned = true; if (TREASURES[id] && TREASURES[id].charges && !(tr.charges > 0)) tr.charges = TREASURES[id].charges; artSeen(id); }
 const cdLeft = (id, n) => { const r = state.run; if (!r || !r.cd || r.cd[id] == null) return 0; return Math.max(0, n - (absAct(r) - r.cd[id])); };
 const cdSet = id => { const r = state.run; if (r) (r.cd ||= {})[id] = absAct(r); };
 const trReady = id => !!(state.run && treasure(id).owned && cdLeft(id, TREASURES[id].cd) === 0);
@@ -4580,9 +4599,16 @@ function artInfo(id, extra = "") {
 function trInfo(id) {
   if (id === "guard") { const g = ngState(); artInfo(id, `<p>Заряды этого захода: <b>${ngCharges()}</b> (${TREASURES.guard.base} + ${TREASURES.guard.perFloor} за каждый новый этаж, на который отряд спустился в этом заходе${g.granted.length ? `: ${g.granted.map(f => f + "-й").join(", ")}` : ""}; потрачено ${g.used}).</p>`); }
   else if (id === "flame") artInfo(id, `<p>Сейчас: <b>${flameLabel()}</b>.</p>`);
+  else if (id === "boots") artInfo(id, `<p>Сейчас: <b>${state.run && state.run.boots ? "активированы — следующие Движение или Бег идут с сапогами" : bootsReady() ? "готовы" : "использованы сегодня"}</b>.</p>`);
+  else if (id === "wind") artInfo(id, `<p>Зарядов: <b>${treasure("wind").charges || 0}</b>${state.run && state.run.wind ? " · применён: следующий Бег без минусов и проверок" : ""}.</p>`);
   else if (id === "hearth") artInfo(id, `<p>Сейчас: <b>${state.run && state.run.hearthUsed ? "использован в этом заходе" : "готов"}</b>.</p>`);
   else artInfo(id, `<p>Сейчас: <b>${cdText(id)}</b>.</p>`);
 }
+// Сапоги скороходы: раз в день; Экстракт попутного ветра: заряды, применяется перед Бегом.
+const bootsReady = () => !!(state.run && treasure("boots").owned && state.run.bootsDay !== state.run.day);
+const bootsOn = () => !!(state.run && state.run.boots && bootsReady() && !voidHere() && !state.run.tier);
+const windOn = () => !!(state.run && state.run.wind && treasure("wind").owned && (treasure("wind").charges || 0) > 0);
+const pathNeed = phase => (phase === "move" ? (bootsOn() ? 2 : 1) : (bootsOn() ? 3 : 2));
 const ngInfo = () => trInfo("guard");
 // Строка сокровища в Инвентаре лабиринта: название и состояние видны только у определённых.
 function trDropdown() {
@@ -4591,6 +4617,8 @@ function trDropdown() {
   if (treasure("flame").owned) out.push(row("flame", ICO_FLAME, !r.flame, `Огонь · ${flameLabel()}`));
   if (treasure("hearth").owned) out.push(row("hearth", ICO_HEARTH, !r.hearthUsed, `Очаг · ${r.hearthUsed ? "использован" : "готов"}`));
   if (treasure("guard").owned) out.push(row("guard", ICO_GUARD, ngCharges() > 0, `Страж · ${ngCharges()}`));
+  if (treasure("boots").owned) out.push(row("boots", ICO_BOOTS, bootsReady(), `Сапоги · ${r.boots && bootsReady() ? "включены" : bootsReady() ? "готовы" : "завтра"}`));
+  if (treasure("wind").owned) out.push(row("wind", ICO_WIND, (treasure("wind").charges || 0) > 0, `Ветер · ${treasure("wind").charges || 0}${r.wind ? " (применён)" : ""}`));
   for (const id of ["dice", "bell", "flask"]) if (treasure(id).owned) out.push(row(id, ARTIFACTS[id].ico(), trReady(id), `${ARTIFACTS[id].name.split(" ")[0]} · ${cdText(id)}`));
   return out.join("");
 }
@@ -4904,9 +4932,9 @@ let dgUi = freshUi();
 
 // Квадраты, которые можно выбрать в фазе движения: соседи (в тумане, знакомые или стена — стена выглядит как туман).
 function candidates() {
-  const r = state.run, from = dgUi.phase === "run" && dgUi.path.length ? dgUi.path[0] : r.pos;
+  const r = state.run, from = dgUi.path.length ? dgUi.path[dgUi.path.length - 1] : r.pos;
   return [[1, 0], [-1, 0], [0, 1], [0, -1]].map(([dx, dy]) => ({ x: from.x + dx, y: from.y + dy }))
-    .filter(t => !(t.x === r.pos.x && t.y === r.pos.y));
+    .filter(t => !(t.x === r.pos.x && t.y === r.pos.y) && !dgUi.path.some(p => p.x === t.x && p.y === t.y));
 }
 
 function stageSvg() {
@@ -5184,8 +5212,8 @@ function renderDungeon() {
   const actionPips = Array.from({ length: FL().acts }, (_, i) => `<i class="${i < r.act ? "on" : ""}"></i>`).join("");
   const moving = dgUi.phase === "move" || dgUi.phase === "run";
   const menu = dgUi.phase === "menu";
-  const pill = dgUi.phase === "move" ? "Движение: выбери квадрат"
-    : dgUi.phase === "run" ? `Бег: шаг ${dgUi.path.length + 1} из 2` : "";
+  const pill = dgUi.phase === "move" ? (pathNeed("move") > 1 ? `Движение в сапогах: шаг ${dgUi.path.length + 1} из ${pathNeed("move")}` : "Движение: выбери квадрат")
+    : dgUi.phase === "run" ? `Бег: шаг ${dgUi.path.length + 1} из ${pathNeed("run")}${windOn() ? " · ветер" : ""}` : "";
   return `
   <div class="dg">
     <div class="dg-top">
@@ -5321,9 +5349,12 @@ function eatRations(c, n) {
 
 function act(kind) {
   const r = state.run; if (!r) return;
+  let windUsed = false;
   if (kind === "move") {
     if (r.flame && r.flame.left > 0) r.flame.left--;
     let t = dgUi.target; const wasVoid = voidHere();
+    const boots = !wasVoid && bootsOn() && dgUi.path.length >= 2;          // сапоги скороходы: пройти сразу 2 клетки шагом (промежуточная — без события)
+    if (boots) { const m = dgUi.path[0]; visit(m.x, m.y); if (r.floor === 3) f3Step(m.x, m.y); r.bootsDay = r.day; r.boots = false; }
     if (wasVoid) {          // Безвременье: куда бы ни шли, шаг уходит в случайную сторону; за краем этажа стоим на месте
       const [dx, dy] = [[1, 0], [-1, 0], [0, 1], [0, -1]][rnd(4)], nx = r.pos.x + dx, ny = r.pos.y + dy;
       t = inBounds(nx, ny) ? { x: nx, y: ny } : { x: r.pos.x, y: r.pos.y };
@@ -5332,7 +5363,7 @@ function act(kind) {
     r.pos = { x: t.x, y: t.y }; visit(t.x, t.y);
     r.stay = { k: tkey(t.x, t.y), since: absAct(r) + 1 };
     tick();
-    logRun((wasVoid ? "Безвременье: шаг в неизвестную сторону." : "Движение на 1 квадрат.") + tileNote(t.x, t.y));
+    logRun((wasVoid ? "Безвременье: шаг в неизвестную сторону." : boots ? "Сапоги скороходы: Движение на 2 квадрата." : "Движение на 1 квадрат.") + tileNote(t.x, t.y));
     const nearVoid = !voidHere() && [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]].some(([dx, dy]) => inVoid(r.pos.x + dx, r.pos.y + dy));
     if (nearVoid) { logRun("Впереди неприглядный туман."); toast("Впереди неприглядный туман"); }
     if (!wasVoid && voidHere()) logRun("Безвременье: пропало чувство направления. Что слева, что справа — уже не понять; пройденное не запоминается.");
@@ -5342,15 +5373,18 @@ function act(kind) {
   } else if (kind === "run") {
     const tired = state.party.filter(c => r.status[c.id].fat >= 3).map(c => c.name);
     if (r.flame && r.flame.left > 0) r.flame.left--;
-    const t = dgUi.path[dgUi.path.length - 1]; r.pos = { x: t.x, y: t.y };
+    const t = dgUi.path[dgUi.path.length - 1], n = dgUi.path.length, boots = n === 3 && bootsOn(); r.pos = { x: t.x, y: t.y };
+    windUsed = windOn();                       // экстракт попутного ветра: этот Бег — без Усталости, минусов и проверок
+    if (windUsed) { const w = treasure("wind"); w.charges--; r.wind = false; if (w.charges <= 0) { w.owned = false; w.charges = 0; } }
+    if (boots) { r.bootsDay = r.day; r.boots = false; }
     r.stay = { k: tkey(t.x, t.y), since: absAct(r) + 1 };
-    if (r.floor === 3) { if (dgUi.path.length > 1) f3Step(dgUi.path[0].x, dgUi.path[0].y); f3Step(t.x, t.y); }
+    if (r.floor === 3) { for (const m of dgUi.path.slice(0, -1)) f3Step(m.x, m.y); f3Step(t.x, t.y); }
     dgUi.finFresh = !r.visited.includes(tkey(t.x, t.y));
-    visit(t.x, t.y);                         // первый квадрат пробежали — он остаётся неоткрытым
+    visit(t.x, t.y);                         // пробегаемые квадраты остаются неоткрытыми
     tick();
-    for (const c of state.party) r.status[c.id].fat = Math.min(4, r.status[c.id].fat + 1);
-    logRun("Бег на 2 квадрата: всем +1 Усталость, пассивное Восприятие −5." + tileNote(t.x, t.y)
-      + (tired.length ? ` Спасбросок ТЕЛ Сл 12 перед Бегом: ${tired.join(", ")}.` : ""));
+    if (!windUsed) for (const c of state.party) r.status[c.id].fat = Math.min(4, r.status[c.id].fat + 1);
+    logRun(`${boots ? "Сапоги скороходы: Бег на 3 квадрата" : "Бег на " + n + " квадрата"}: ${windUsed ? `Экстракт попутного ветра — без Усталости, минусов и проверок (зарядов: ${treasure("wind").charges || 0})` : "всем +1 Усталость, пассивное Восприятие −5"}.` + tileNote(t.x, t.y)
+      + (tired.length && !windUsed ? ` Спасбросок ТЕЛ Сл 12 перед Бегом: ${tired.join(", ")}.` : ""));
   } else if (kind === "sp") {
     tick();
     spDo(dgUi.spDo);
@@ -5405,7 +5439,8 @@ function act(kind) {
     const z = zoneAt(r.pos.x, r.pos.y);
     if (z.kind === "safe") logRun("Возле статуи монстры не появляются.");
     if (inDarkness()) logRun("Тьма: без света помеха на Восприятие и поиск, дальние атаки с помехой, −2 к броску события.");
-    const p0 = kind === "run" && dgUi.path.length > 1 ? dgUi.path[0] : null;
+    achCheck();
+    const pn = dgUi.path.length, p0 = kind === "run" && pn > 1 && !windUsed ? dgUi.path[pn - 2] : null;          // последняя пробегаемая клетка; при Беге в 3 клетки первая — без проверки (сапоги)
     if (p0 && zoneAt(p0.x, p0.y).kind !== "safe" && !isQuiet(r, tkey(p0.x, p0.y))) askPass(p0.x, p0.y, { key: tkey(r.pos.x, r.pos.y), fresh: dgUi.finFresh });
     if (z.kind !== "safe" && spEnter()) { /* особое место: бой начат */ }
     else if (z.kind !== "safe" && voidHere()) { /* Безвременье: встречи пока не описаны */ }
@@ -5540,9 +5575,9 @@ function mountDungeon() {
     if (!hit) return;
     const t = { x: +hit.dataset.tx, y: +hit.dataset.ty };
     if (!inBounds(t.x, t.y)) return;                       // стена: ничего не происходит
-    if (dgUi.phase === "move") { dgUi.target = t; act("move"); return; }
+    if (dgUi.phase === "move") { dgUi.path.push(t); if (dgUi.path.length >= pathNeed("move")) { dgUi.target = t; act("move"); } else rerender(); return; }
     dgUi.path.push(t);
-    if (dgUi.path.length >= 2) act("run"); else rerender();
+    if (dgUi.path.length >= pathNeed("run")) act("run"); else rerender();
   };
   svg.addEventListener("pointerup", end);
   svg.addEventListener("pointercancel", e => { pts.delete(e.pointerId); drag = null; pinch = null; });
@@ -5630,6 +5665,8 @@ document.addEventListener("click", e => {
     case "tr-tap": {
       const id = ds.id, r = state.run;
       if (id === "flame" && !r.flame) { r.flame = { left: 3 }; logRun("Следующие 3 перемещения подсветят дорогу к ближайшему порталу."); saveChar(); toast("Зажжено: 3 перемещения"); dgUi.inv = false; break; }
+      if (id === "boots" && bootsReady()) { r.boots = !r.boots; logRun(r.boots ? "Сапоги скороходы: следующее Движение — 2 клетки, следующий Бег — 3 клетки." : "Сапоги скороходы: отменено."); saveChar(); toast(r.boots ? "Сапоги включены" : "Сапоги выключены"); dgUi.inv = false; break; }
+      if (id === "wind" && (treasure("wind").charges || 0) > 0) { r.wind = !r.wind; logRun(r.wind ? "Экстракт попутного ветра: следующий Бег — без Усталости, минусов и проверок." : "Экстракт попутного ветра: отменено."); saveChar(); toast(r.wind ? "Ветер применён" : "Отменено"); dgUi.inv = false; break; }
       trInfo(id); return;
     }
     case "flask-toggle": { const rs = dgUi.rest; if (trReady("flask")) rs.flask = !rs.flask; break; }

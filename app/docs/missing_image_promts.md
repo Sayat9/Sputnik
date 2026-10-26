@@ -42,6 +42,14 @@
 
 > `an ornate brass monocle with a thick round lens that shows a faint glowing eye-like iris, thin engraved rune ring around the rim and a short chain with a clasp, resting on a small cloth, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
 
+### Сапоги скороходы — `boots`
+
+> `a pair of sturdy travel boots of supple brown leather with small silver wing motifs along the ankles and a faint pale-blue gust swirling around the soles, scuffed toes and worn laces, resting on a small cloth, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Экстракт попутного ветра — `wind`
+
+> `a small corked glass vial filled with swirling pale-blue and white mist like a tiny captive breeze, a worn leather cord and a hand-written paper tag around the neck, resting on a small cloth, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
 ## Находки (после определения)
 
 ### Целебная трава — `herb-heal`
