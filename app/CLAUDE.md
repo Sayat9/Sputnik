@@ -144,3 +144,4 @@
 - `portalInfo`/`switchFloor` умеют 2↔3; на 3 этаже `genEncounterRaw` даёт `null` (монстры не описаны), монстровые события превращаются в «пусто». Тест `bapp_floor3.js`.
 - `isDark/zoneAt/tileStyle` — для `floor >= 2`; зоны 3 этажа — `F3_ZONES`, стили в `PLACE_STYLE`.
 - Сводка спасбросков: `canReroll` у ведущего только для героев без владельца (`massSave` в battle-rules.js). Тест `bnet_sum.js`.
+- Безвременье: `F3_VOID` (27–30 × 0–3, `boss: "28,2"`), `inVoid/voidHere`; в `act("move")` шаг внутри зоны случайный, `visit()` внутри не запоминает, `stageSvg` не рисует пройденное, бег и компас отключены. Тест `bapp_void.js`.

@@ -1889,8 +1889,8 @@ const DISTRICTS = [
 
 // Готовые рисованные картинки (webp) заменяют векторные заглушки.
 // Дата сборки для телефона: build.sh вписывает её сюда, в веб-версии строка пустая.
-const APP_BUILD = "26.10.2026 12:20";
-const APP_VERSION = 1792999224;                 // номер сборки, тоже вписывает build.sh
+const APP_BUILD = "26.10.2026 12:41";
+const APP_VERSION = 1793000488;                 // номер сборки, тоже вписывает build.sh
 const UPDATE_URL = "https://raw.githubusercontent.com/Sayat9/Sputnik/main/www/";
 const RASTER = new Set(["items/mace", "items/warhammer", "items/armor-leather", "items/armor-hide", "items/armor-chainmail", "items/steel-dagger", "items/steel-sword", "items/steel-greatsword", "items/steel-shield", "items/steel-tower-shield", "items/shortbow", "items/longbow", "items/rapier", "items/shield", "items/tower-shield", "items/unknown-mushroom", "items/stone-9", "items/stone-8", "items/stone-7", "items/ration", "items/potion", "items/torch", "items/arrows", "items/clothes", "items/shovel", "items/shovel-good", "items/shovel-best", "items/dagger", "items/sword", "items/greatsword", "items/spear", "monsters/goblin-king-face", "monsters/goblin-king-full", "monsters/goblin-bomber-face", "monsters/goblin-bomber-full", "monsters/hobgoblin-shield-face", "monsters/hobgoblin-shield-full", "races/barbarian", "races/human", "races/dwarf", "races/beastkin", "races/fairy", "races/dragon", "monsters/goblin-face", "monsters/goblin-full", "monsters/goblin-archer-face", "monsters/goblin-archer-full", "monsters/goblin-sword-face", "monsters/goblin-sword-full", "monsters/goblin-spear-face", "monsters/goblin-spear-full", "monsters/wolf-face", "monsters/wolf-full", "monsters/fox-face", "monsters/fox-full", "monsters/mouse-face", "monsters/mouse-full", "monsters/bat-face", "monsters/bat-full", "monsters/hobgoblin-face", "monsters/hobgoblin-full", "monsters/zombie-face", "monsters/zombie-full", "monsters/skeleton-face", "monsters/skeleton-full", "monsters/skeleton-archer-face", "monsters/skeleton-archer-full", "monsters/ghoul-face", "monsters/ghoul-full", "monsters/dark-bear-face", "monsters/dark-bear-full", "monsters/skeleton-warrior-face", "monsters/skeleton-warrior-full", "monsters/living-stone-face", "monsters/living-stone-full", "monsters/wisp-face", "monsters/wisp-full", "monsters/pixie-face", "monsters/pixie-full", "monsters/green-boulder-face", "monsters/green-boulder-full", "monsters/stone-guardian-face", "monsters/stone-guardian-full", "monsters/spider-queen-face", "monsters/spider-queen-full", "monsters/ash-wraith-face", "monsters/ash-wraith-full", "monsters/ash-spirit-face", "monsters/ash-spirit-full", "monsters/plague-fat-face", "monsters/plague-fat-full", "monsters/bone-hound-face", "monsters/bone-hound-full", "monsters/dust-crawler-face", "monsters/dust-crawler-full", "monsters/faceless-ringer-face", "monsters/faceless-ringer-full", "monsters/mirror-dead-face", "monsters/mirror-dead-full", "monsters/whisperer-face", "monsters/whisperer-full", "monsters/morok-face", "monsters/morok-full", "monsters/grey-shade-face", "monsters/grey-shade-full", "monsters/blackwing-face", "monsters/blackwing-full", "monsters/swamp-fang-face", "monsters/swamp-fang-full", "monsters/web-spider-face", "monsters/web-spider-full", "monsters/goblin-shaman-face", "monsters/goblin-shaman-full", "monsters/goblin-assassin-face", "monsters/goblin-assassin-full", "monsters/goblin-trapper-face", "monsters/goblin-trapper-full", "monsters/goblin-elder-face", "monsters/goblin-elder-full", "monsters/hobgoblin-brute-face", "monsters/hobgoblin-brute-full", "monsters/hobgoblin-thrower-face", "monsters/hobgoblin-thrower-full", "monsters/hobgoblin-driver-face", "monsters/hobgoblin-driver-full", "monsters/goblin-thief-face", "monsters/goblin-thief-full", "monsters/horned-hare-face", "monsters/horned-hare-full", "monsters/swamp-toad-face", "monsters/swamp-toad-full", "monsters/burrower-face", "monsters/burrower-full", "monsters/crow-face", "monsters/crow-full", "monsters/dire-wolf-face", "monsters/dire-wolf-full", "monsters/werewolf-face", "monsters/werewolf-full", "monsters/giant-mole-face", "monsters/giant-mole-full", "monsters/bone-knight-face", "monsters/bone-knight-full", "monsters/gravedigger-face", "monsters/gravedigger-full", "monsters/corpse-eater-face", "monsters/corpse-eater-full", "monsters/drop-face", "monsters/drop-full", "monsters/dust-whirl-face", "monsters/dust-whirl-full", "monsters/magma-hound-face", "monsters/magma-hound-full", "monsters/crystalloid-face", "monsters/crystalloid-full", "monsters/lake-spirit-face", "monsters/lake-spirit-full", "monsters/magma-golem-face", "monsters/magma-golem-full", "monsters/deep-serpent-face", "monsters/deep-serpent-full", "monsters/crystal-colossus-face", "monsters/crystal-colossus-full", "monsters/storm-spirit-face", "monsters/storm-spirit-full", "monsters/rift-heart-face", "monsters/rift-heart-full", "items/compass", "items/steel-mace", "items/steel-rapier", "items/unknown-herb", "items/twin-daggers", "items/unknown-stone", "items/steel-twin-daggers", "items/potion-good", "items/coins", "items/steel-spear", "items/steel-warhammer", "items/steel-shortbow", "items/steel-longbow", "items/steel-armor-leather", "items/steel-armor-hide", "items/steel-armor-chainmail", "items/gloves", "items/staff", "items/axe", "items/greataxe", "items/firstaid", "items/flute", "items/chalice", "items/once-more", "items/guard", "items/beginners-luck", "buildings/tower", "buildings/guild", "buildings/church", "buildings/library", "buildings/gate", "buildings/tavern", "buildings/shop", "buildings/forge", "monsters/rat-face", "monsters/rat-full", "monsters/rat-king-face", "monsters/rat-king-full", "monsters/rat-catcher-face", "monsters/rat-catcher-full"]);
 const artPath = p => `assets/${p}.${RASTER.has(p) ? "webp" : "svg"}`;
@@ -3472,8 +3472,13 @@ const F3_ENTRIES = ["0,30", "30,30", "0,15", "30,15"], F3_NEXT = "15,0";
 const F3_PORTALS = { "0,30": "f3in", "30,30": "f3in", "0,15": "f3in", "30,15": "f3in", [F3_NEXT]: "f3next" };
 const F3_CORNER = { "0,30": "левый нижний угол", "30,30": "правый нижний угол", "0,15": "середина левой стороны", "30,15": "середина правой стороны" };
 const F3_ZONES = [["Северо-западные дебри", "Подступы к верхнему порталу", "Северо-восточные дебри"], ["Западные ворота", "Сердце этажа", "Восточные ворота"], ["Юго-западный вход", "Южная равнина", "Юго-восточный вход"]];
+// Безвременье (решение автора): зона 4 × 4 в правом верхнем углу; внутри пропадает чувство направления — каждый шаг уходит в случайную сторону,
+// пройденные квадраты не запоминаются, выйти (и дойти до босса в центре) можно только случайно. Игра следит за позицией отряда.
+const F3_VOID = { x0: 27, y0: 0, x1: 30, y1: 3, boss: "28,2" };
+const inVoid = (x, y) => curFloor() === 3 && x >= F3_VOID.x0 && x <= F3_VOID.x1 && y >= F3_VOID.y0 && y <= F3_VOID.y1;
+const voidHere = () => { const r = state.run; return !!(r && r.floor === 3 && inVoid(r.pos.x, r.pos.y)); };
 const FLOOR3 = { n: 3, name: "3 этаж", zone: "stone", portalKind: "stone", dark: [],
-  zoneName: (x, y) => F3_ZONES[y < 10 ? 0 : y < 21 ? 1 : 2][x < 10 ? 0 : x < 21 ? 1 : 2],
+  zoneName: (x, y) => (x >= F3_VOID.x0 && y <= F3_VOID.y1 ? "Безвременье" : F3_ZONES[y < 10 ? 0 : y < 21 ? 1 : 2][x < 10 ? 0 : x < 21 ? 1 : 2]),
   placeAt(x, y) { return { name: this.zoneName(x, y), std: [] }; } };
 // Какой вход 3 этажа ждёт портал каждого варианта 2 этажа: перестановка четырёх входов, бросается в начале 2-го дня (или при первом обращении).
 function f3Map(r = state.run) {
@@ -4575,6 +4580,7 @@ const PX = (() => {
     undead: [["#494557", "#56526a", "#3a3649", "#676380"], "cracks"], stone: [["#43515d", "#506069", "#38444e", "#6a7d8b"], "veins"], safe: [["#6a5a40", "#766449", "#54462f", "#85735a"], "flags"],
     den: [["#4a3a22", "#58462a", "#3a2d1a", "#6a5634"], "dirt"], camp: [["#6a5a34", "#786640", "#54462a", "#8a7648"], "straw"], warren: [["#4a3c26", "#56462e", "#382c1c", "#64523a"], "holes"],
     ruins: [["#5a5850", "#68665c", "#48463e", "#7a786e"], "slabs"], cave: [["#4a4a4e", "#56565a", "#3a3a3e", "#68686e"], "rockcr"], swamp: [["#3a4a34", "#46583c", "#2e3c2a", "#566a46"], "water"],
+    void: [["#2a2238", "#352a46", "#1e1828", "#4a3a64"], "static"],
     web: [["#2e4426", "#385030", "#243820", "#4a6a3c"], "web"], hills: [["#42703a", "#4c7e42", "#365e30", "#62964e"], "lumps"],
     crypt: [["#3c3a48", "#46445a", "#2e2c3a", "#585670"], "slabs"], furnace: [["#4a403c", "#584e4a", "#3a322e", "#6c6058"], "embers"], bonefield: [["#6a665e", "#78746a", "#56524a", "#8a867a"], "bones"],
     mines: [["#3c4a58", "#485868", "#303c48", "#5c7084"], "wind"], lake: [["#2c5878", "#366888", "#244a66", "#4c88aa"], "water2"], lava: [["#4a2a26", "#5a3430", "#3a201c", "#7a4638"], "lava"], garden: [["#3c5a78", "#486a8a", "#304a64", "#6a9ac0"], "crystals"],
@@ -4596,6 +4602,7 @@ const PX = (() => {
       else if (feat === "slabs") { for (let y = 0; y < N; y += 4) R(g, 0, y, N, 1, "#25232c"); for (let y = 0; y < 4; y++) for (let x = (y % 2) * 3 + 2; x < N; x += 6) R(g, x, y * 4, 1, 4, "#25232c"); sp(2, "#3f6a46", 2, 1); }
       else if (feat === "rockcr") { sp(4, "#2a2a2e", 2, 1); line([[3, 2], [4, 3], [4, 4], [5, 5], [6, 5], [6, 6]], "#202024"); sp(3, "#7a7a82", 1, 1); }
       else if (feat === "water") { sp(3, "#4a90a8", 3, 2); sp(2, "#7ab8c8", 1, 1); sp(4, "#2a3a26", 1, 1); R(g, 1 + Math.floor(rnd() * 10), 1 + Math.floor(rnd() * 11), 1, 3, "#7a9a4a"); }
+      else if (feat === "static") { sp(9, "#6a5a8a", 1, 1); sp(6, "#120e1a", 2, 1); sp(4, "#9a86c0", 1, 1); for (let i = 0; i < 3; i++) { const y = Math.floor(rnd() * N); R(g, 0, y, N, 1, "rgba(160,140,200,.18)"); } }
       else if (feat === "web") { const c = "#d8d8e0"; for (let i = 0; i < N; i += 1) { R(g, i, i, 1, 1, c); R(g, N - 1 - i, i, 1, 1, i % 2 ? c : "#a8a8b4"); } R(g, 7, 0, 1, N, "#c0c0cc"); R(g, 0, 7, N, 1, "#c0c0cc"); for (const r of [3, 5]) for (let a = 0; a < 8; a++) { const px = 7 + Math.round(r * Math.cos(a * Math.PI / 4)), py = 7 + Math.round(r * Math.sin(a * Math.PI / 4)); R(g, px, py, 1, 1, "#e8e8f0"); } }
       else if (feat === "lumps") { for (let i = 0; i < 4; i++) { const x = 1 + Math.floor(rnd() * 11), y = 2 + Math.floor(rnd() * 10); R(g, x, y, 3, 1, "#7ab062"); R(g, x, y + 1, 4, 1, "#2e5a28"); } sp(4, "#8ac070", 1, 1); }
       else if (feat === "embers") { sp(6, "#2a2420", 1, 1); sp(4, "#e8802c", 1, 1); sp(2, "#f0c060", 1, 1); sp(3, "#8a8078", 2, 1); }
@@ -4667,7 +4674,7 @@ const PX = (() => {
   for (const [k, c] of Object.entries({ air: ["#a0d8f0", "#e8faff"], water: ["#3a8ad0", "#a0d0ff"], fire: ["#e86020", "#ffd070"], earth: ["#9a7a4a", "#d8c090"] })) big["altar-" + k] = altar(c);
   const sets = { goblin: ["tent", "fire", "bones", "spear", "tufts"], beast: ["tree", "bush", "tracks", "rock", "shroom"], undead: ["tomb", "cross", "skull", "ribs", "crack"], stone: ["crystal", "rocks", "moss", "rune", "boulder"], pond: ["pond1", "pond2", "pond3"], ruins: ["ruin1", "ruin2", "ruin3", "ruin4"],
     den: ["bag", "bones", "spear", "tufts"], camp: ["hut", "tent", "fire", "tufts"], warren: ["hole", "bones", "tracks", "hole"], cave: ["stalag", "rock", "bones", "stalag"], swamp: ["reed", "pond1", "reed", "pond2", "shroom"],
-    web: ["tree", "web", "bush", "web"], hills: ["rock", "tracks", "tufts", "bush"], crypt: ["tomb", "skull", "crack", "cross"], furnace: ["fire", "rocks", "crack", "bones"], bonefield: ["ribs", "skull", "bones", "tomb"],
+    web: ["tree", "web", "bush", "web"], void: ["rune", "crack", "rune", "crack"], hills: ["rock", "tracks", "tufts", "bush"], crypt: ["tomb", "skull", "crack", "cross"], furnace: ["fire", "rocks", "crack", "bones"], bonefield: ["ribs", "skull", "bones", "tomb"],
     mines: ["rocks", "wind", "rune", "crack"], lake: ["pond1", "pond3", "pond2", "wind"], lava: ["lavacrack", "rocks", "fire", "lavacrack"], garden: ["crystal", "crystal2", "crystal", "moss"], safe: ["rock"] };
   const img = (u, x, y, w, h) => `<image href="${u}" x="${x}" y="${y}" width="${w}" height="${h}" preserveAspectRatio="none" style="image-rendering:pixelated" pointer-events="none"/>`;
   return {
@@ -4680,7 +4687,7 @@ const PX = (() => {
   };
 })();
 // Стиль плитки 2 этажа — по месту (логова, топь, паучьи кроны…); на 1 этаже — по зоне.
-const PLACE_STYLE = [[/Северо-западные дебри/, "web"], [/Северо-восточные дебри/, "hills"], [/Подступы к верхнему/, "ruins"], [/Западные ворота/, "cave"], [/Сердце этажа/, "garden"], [/Восточные ворота/, "mines"], [/Юго-западный вход/, "swamp"], [/Южная равнина/, "bonefield"], [/Юго-восточный вход/, "lava"],
+const PLACE_STYLE = [[/Безвременье/, "void"], [/Северо-западные дебри/, "web"], [/Северо-восточные дебри/, "hills"], [/Подступы к верхнему/, "ruins"], [/Западные ворота/, "cave"], [/Сердце этажа/, "garden"], [/Восточные ворота/, "mines"], [/Юго-западный вход/, "swamp"], [/Южная равнина/, "bonefield"], [/Юго-восточный вход/, "lava"],
   [/Крысиные норы|Логово крысолова/, "warren"], [/Логово воров/, "den"], [/Руины/, "ruins"], [/Поселение/, "camp"], [/Медвежья пещера/, "cave"], [/Топь/, "swamp"], [/Паучьи кроны/, "web"], [/Волчьи холмы/, "hills"],
   [/Склеп/, "crypt"], [/Пепельная печь/, "furnace"], [/Костяные поля/, "bonefield"], [/Ветряные шахты/, "mines"], [/озеро/, "lake"], [/Лавовые/, "lava"], [/Кристальный сад/, "garden"]];
 const tileStyle = (x, y) => {
@@ -4775,7 +4782,7 @@ function stageSvg() {
   const parts = [];
   const up = (cx, cy, inner) => `<g class="up" data-cx="${cx}" data-cy="${cy}" transform="translate(${cx} ${cy}) rotate(${-R})">${inner}</g>`;
   const sq = (x, y, attrs) => `<rect x="${(x - px) * T - T / 2 + 2}" y="${(y - py) * T - T / 2 + 2}" width="${T - 4}" height="${T - 4}" rx="${PX.ok ? 2 : 6}" ${attrs}/>`;
-  for (const k of r.visited) {
+  for (const k of voidHere() ? [] : r.visited) {          // в Безвременье предыдущие квадраты не видны
     const [x, y] = k.split(",").map(Number);
     if (x === px && y === py) continue;
     parts.push(sq(x, y, isDark(x, y) ? `fill="${PX.ok ? "url(#px-dark)" : "#14100c"}" stroke="#3e3020" stroke-width="1.2"` : `fill="${tileFill(x, y)}" stroke="#6e5634" stroke-width="1.2"`));
@@ -4886,7 +4893,7 @@ function stageOverlay() {
       ${spBtnHtml()}
       <button class="fx-btn" data-act="move"${r.tier ? " disabled" : ""}>${ICO_ACT.move}Движение<small>${r.tier ? "в ярусе нельзя" : "1 квадрат"}</small></button>
       ${(() => { const heavy = state.party.filter(c => load(c).noRun).map(c => c.name);
-        return `<button class="fx-btn" data-act="run"${heavy.length || r.tier ? " disabled" : ""}>${ICO_ACT.run}Бег<small>${heavy.length ? "перегруз: " + heavy.map(esc).join(", ") : "2 квадрата, +1 Усталость"}</small></button>`; })()}
+        return `<button class="fx-btn" data-act="run"${heavy.length || r.tier || voidHere() ? " disabled" : ""}>${ICO_ACT.run}Бег<small>${voidHere() ? "в Безвременье нельзя" : heavy.length ? "перегруз: " + heavy.map(esc).join(", ") : "2 квадрата, +1 Усталость"}</small></button>`; })()}
       <button class="fx-btn" data-act="rest">${ICO_ACT.rest}Отдых<small>сон, караул, еда</small></button>
       <button class="fx-btn" data-act="explore"${r.tier ? " disabled" : ""}>${ICO_ACT.explore}Исследовать<small>этот фрагмент, к20</small></button>
       ${tileType(r.pos.x, r.pos.y) === "portal" ? `<button class="fx-btn portal-btn" data-act="portal">${ICO_ACT.run}Войти в портал<small>${portalName(r.pos.x, r.pos.y)}</small></button>` : ""}
@@ -5086,7 +5093,7 @@ function renderDungeon() {
         ${state.runSnap ? "" : `<small style="color:var(--fx-muted);font-size:11.5px;max-width:200px">Откат доступен для заходов, начатых после обновления.</small>`}
         <button class="fx-btn" data-dg="gm">Закрыть</button>
       </div>` : ""}
-      ${inv.compass.active && inv.compassOn ? `<div class="compass" id="compass">${COMPASS_SVG}</div>` : ""}
+      ${inv.compass.active && inv.compassOn && !voidHere() ? `<div class="compass" id="compass">${COMPASS_SVG}</div>` : ""}
     </div>
     <div class="party-bars" aria-label="Состояние отряда">${state.party.map(charBars).join("")}</div>
     ${state.party.length ? `<p class="hold-hint">Удерживай карточку героя: данные и инвентарь.</p>` : ""}
@@ -5163,7 +5170,7 @@ function endRun(early) {
   location.hash = "town";
   setTimeout(() => toast(early ? "Отряд вернулся в город." : FL_DAYS + " дней прошли: лабиринт выбросил отряд на Площадь измерений."), 50);
 }
-function visit(x, y) { const k = tkey(x, y); if (!state.run.visited.includes(k)) state.run.visited.push(k); }
+function visit(x, y) { if (inVoid(x, y)) return; const k = tkey(x, y); if (!state.run.visited.includes(k)) state.run.visited.push(k); }
 
 // Еда общая, но лежит у каждого своя: герой сначала ест из своего рюкзака, потом берёт у того, у кого больше всего.
 function eatRations(c, n) {
@@ -5180,10 +5187,19 @@ function act(kind) {
   const r = state.run; if (!r) return;
   if (kind === "move") {
     if (r.flame && r.flame.left > 0) r.flame.left--;
-    const t = dgUi.target; r.pos = { x: t.x, y: t.y }; visit(t.x, t.y);
+    let t = dgUi.target; const wasVoid = voidHere();
+    if (wasVoid) {          // Безвременье: куда бы ни шли, шаг уходит в случайную сторону; за краем этажа стоим на месте
+      const [dx, dy] = [[1, 0], [-1, 0], [0, 1], [0, -1]][rnd(4)], nx = r.pos.x + dx, ny = r.pos.y + dy;
+      t = inBounds(nx, ny) ? { x: nx, y: ny } : { x: r.pos.x, y: r.pos.y };
+      r.spin = [0, 90, 180, 270][rnd(4)];
+    }
+    r.pos = { x: t.x, y: t.y }; visit(t.x, t.y);
     r.stay = { k: tkey(t.x, t.y), since: absAct(r) + 1 };
     tick();
-    logRun("Движение на 1 квадрат." + tileNote(t.x, t.y));
+    logRun((wasVoid ? "Безвременье: шаг в неизвестную сторону." : "Движение на 1 квадрат.") + tileNote(t.x, t.y));
+    if (!wasVoid && voidHere()) logRun("Безвременье: пропало чувство направления. Что слева, что справа — уже не понять; пройденное не запоминается.");
+    else if (wasVoid && !voidHere()) logRun("Направление вернулось: отряд вышел из Безвременья.");
+    if (voidHere() && tkey(r.pos.x, r.pos.y) === F3_VOID.boss) { dgUi.res = { title: "Центр Безвременья", roll: "", lines: ["В центре Безвременья ждёт местный босс. Он ещё не создан."] }; logRun("Отряд случайно дошёл до центра Безвременья."); }
   } else if (kind === "run") {
     const tired = state.party.filter(c => r.status[c.id].fat >= 3).map(c => c.name);
     if (r.flame && r.flame.left > 0) r.flame.left--;
@@ -5252,6 +5268,7 @@ function act(kind) {
     const p0 = kind === "run" && dgUi.path.length > 1 ? dgUi.path[0] : null;
     if (p0 && zoneAt(p0.x, p0.y).kind !== "safe" && !isQuiet(r, tkey(p0.x, p0.y))) askPass(p0.x, p0.y, { key: tkey(r.pos.x, r.pos.y), fresh: dgUi.finFresh });
     if (z.kind !== "safe" && spEnter()) { /* особое место: бой начат */ }
+    else if (z.kind !== "safe" && voidHere()) { /* Безвременье: встречи пока не описаны */ }
     else if (z.kind !== "safe") {
       if (isQuiet(r, tkey(r.pos.x, r.pos.y))) logRun("Квадрат недавно зачищен: пусто, бросок не нужен.");
       else { logRun("Новый квадрат: мастер, брось к20."); askRoll(kind); }
