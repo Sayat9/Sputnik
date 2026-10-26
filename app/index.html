@@ -888,6 +888,10 @@ dl.kv { margin: 0; }
 .mist span { position: relative; font: 400 40px/1 var(--f-display); color: rgb(240 230 208 / .55); text-shadow: 0 0 12px rgb(0 0 0 / .8); }
 @media (prefers-reduced-motion: no-preference) {
   .mist::before { animation: mistDrift 9s linear infinite; }
+  @keyframes huntAnim { 0% { opacity: 0; } 15% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; } }
+  @keyframes huntPulse { 50% { transform: scale(1.08); filter: drop-shadow(0 0 14px rgb(190 70 110 / .8)); } }
+  .hunt-anim { position: fixed; inset: 0; z-index: 9300; display: grid; place-content: center; justify-items: center; gap: 10px; background: rgb(6 4 10 / .8); animation: huntAnim 2.6s forwards; pointer-events: none; color: #e8a8b8; font: 600 20px/1.2 var(--f-head, Georgia, serif); }
+  .hunt-anim svg { animation: huntPulse 1s ease-in-out infinite; }
   @keyframes mistDrift { to { transform: translate(12%, 8%) rotate(30deg); } }
   .mbox.new { animation: rise-in .7s ease-out; }
   @keyframes rise-in { from { transform: translateY(60px) scale(.9); box-shadow: 0 0 30px rgb(244 212 142 / .8); } }
@@ -4214,8 +4218,133 @@ function portalOverlay() {
       <div style="display:flex;justify-content:center"><button class="fx-btn primary big" data-dg="portal-go"${pi.ok ? "" : " disabled"}>Войти</button></div>
     </div></div>`;
 }
+/* ----- 3 этаж: зона ловушек, валуны и преследователь охотничьих угодий -----
+   Решения автора (26.10): вся зона ловушек полна ловушек сразу; при входе — проверка внимательности (часть или все ловушки подсвечиваются), при наступлении — проверка
+   Ловкости, чтобы не задеть; капкан, катящийся валун (2 клетки за действие, отбрасывает и бьёт сильно), скрытая растяжка. Охотничьи угодья: после 3 суммарных дней
+   появляется монстр 6 класса («???»), виден только в радиусе 3 клеток, 1 шаг в день (2, если отряд отдыхал); побеждён — счётчик на 3 дня, но дальше появляется ближе и быстрее.
+   Числа (Сл, урон, радиусы) — мои, черновик в campaign/drafts.md. Босс охоты пока заглушка: при встрече показывается окно «босс ещё не создан». */
+const isTrapZone = (x, y) => curFloor() === 3 && FLOOR3.zoneName(x, y) === "Зона ловушек" && tileType(x, y) === "floor";
+const isHunt = (x, y) => curFloor() === 3 && FLOOR3.zoneName(x, y) === F3_FALLBACK && tileType(x, y) === "floor";
+function f3Gen() {
+  const cells = []; for (let y = 0; y < F3_SIZE; y++) for (let x = 0; x < F3_SIZE; x++) if (isTrapZone(x, y)) cells.push([x, y]);
+  const traps = {}; for (const [x, y] of cells) if (Math.random() < .4) traps[tkey(x, y)] = { t: Math.random() < .45 ? "bear" : "wire", seen: false };
+  const boulders = []; for (let i = 0; i < 3 && cells.length; i++) { const [x, y] = cells[rnd(cells.length)], [dx, dy] = [[1, 0], [-1, 0], [0, 1], [0, -1]][rnd(4)]; boulders.push({ x, y, dx, dy }); }
+  return { traps, boulders, pen: 0, inZone: false, hunt: { acts: 0, need: 9, kills: 0, mon: null, rested: false, anim: null } };
+}
+const f3 = () => { const r = state.run; return (r.f3 ||= f3Gen()); };
+const f3Hurt = (c, n) => { c.hp = Math.max(1, hpOf(c) - n); };          // вне боя ловушка не убивает
+const F3_TRAP_NAME = { bear: "капкан", wire: "растяжка" };
+const f3DexSaves = (dc, bonus = 0) => state.party.filter(c => !c.dead).map(c => { const d = 1 + rnd(20), t = d + mod(totals(c).dex.total) + bonus; return { c, t, d, ok: t >= dc }; });
+function f3Perception() {
+  const F = f3(), res = spSave("wis", 12), best = Math.max(-99, ...res.map(x => x.t)), keys = Object.keys(F.traps);
+  let shown = 0; for (const k of keys) if (!F.traps[k].seen && (best >= 17 || (best >= 12 && Math.random() < .55))) { F.traps[k].seen = true; shown++; }
+  const all = keys.every(k => F.traps[k].seen), none = !keys.some(k => F.traps[k].seen);
+  const txt = best >= 17 ? "Внимательность на высоте: ловушки зоны подсвечены все." : best >= 12 ? `Часть ловушек замечена и подсвечена (${keys.filter(k => F.traps[k].seen).length} из ${keys.length}).` : "Ловушек не заметили.";
+  logRun(`Зона ловушек: проверка внимательности (Сл 12), лучший результат ${best}. ${txt}`);
+  dgUi.res = { title: "Зона ловушек", roll: "Внимательность Сл 12", lines: [...res.map(x => `${esc(x.c.name)}: ${x.t} (к20 = ${x.d}) — ${x.ok ? "заметил" : "не заметил"}`), txt] };
+}
+function f3Trap(k, tr) {
+  const res = f3DexSaves(13, tr.seen ? 3 : 0), fail = res.filter(x => !x.ok), lines = res.map(x => `${esc(x.c.name)}: ${x.t} (к20 = ${x.d}) — ${x.ok ? "не задел" : "задел"}`);
+  if (!fail.length) { logRun(`Отряд аккуратно обошёл ловушку (${F3_TRAP_NAME[tr.t]}, Ловкость Сл 13).`); dgUi.res = { title: "Ловушка не сработала", roll: "Ловкость Сл 13", lines }; return; }
+  delete f3().traps[k];
+  for (const x of fail) { const n = tr.t === "bear" ? roll(2, 6) : roll(2, 8); f3Hurt(x.c, n); lines.push(`${esc(x.c.name)}: −${n} ОЗ`); }
+  if (tr.t === "bear") { f3().pen = (f3().pen || 0) + 1; lines.push("Капкан держит отряд: потеряно следующее действие."); }
+  logRun(`${tr.t === "bear" ? "Капкан" : "Растяжка (дротики)"}: сработала у ${fail.map(x => x.c.name).join(", ")}.`);
+  dgUi.res = { title: tr.t === "bear" ? "Капкан!" : "Растяжка!", roll: "Ловкость Сл 13", lines };
+}
+function f3Boulder(b) {
+  const r = state.run, res = f3DexSaves(14), fail = res.filter(x => !x.ok), lines = res.map(x => `${esc(x.c.name)}: ${x.t} (к20 = ${x.d}) — ${x.ok ? "увернулся" : "сбит"}`);
+  if (!fail.length) { logRun("Катящийся валун пронёсся мимо: все увернулись."); dgUi.res = { title: "Валун", roll: "Ловкость Сл 14", lines }; return; }
+  for (const x of fail) { const n = roll(6, 6); f3Hurt(x.c, n); lines.push(`${esc(x.c.name)}: −${n} ОЗ`); }
+  const nx = r.pos.x + b.dx, ny = r.pos.y + b.dy;
+  if (inBounds(nx, ny) && tileType(nx, ny) === "floor") { r.pos = { x: nx, y: ny }; visit(nx, ny); lines.push("Отряд отброшен на клетку."); }
+  logRun(`Валун сбил ${fail.map(x => x.c.name).join(", ")}.`);
+  dgUi.res = { title: "Валун!", roll: "Ловкость Сл 14", lines };
+}
+// Клетка прохода (для бега — обе): вход в зону, ловушка, валун, охотник.
+function f3Step(x, y) {
+  const r = state.run; if (r.floor !== 3) return;
+  const F = f3(), inZ = isTrapZone(x, y);
+  if (inZ && !F.inZone) f3Perception();
+  F.inZone = inZ;
+  if (inZ) { const tr = F.traps[tkey(x, y)]; if (tr) f3Trap(tkey(x, y), tr); }
+  const b = F.boulders.find(b => b.x === x && b.y === y); if (b && inZ) f3Boulder(b);
+  if (F.hunt.mon && F.hunt.mon.x === x && F.hunt.mon.y === y) f3HuntContact();
+}
+function f3Bfs(from) {
+  const dist = { [tkey(from.x, from.y)]: 0 }, q = [[from.x, from.y]];
+  for (let i = 0; i < q.length; i++) { const [x, y] = q[i]; for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const nx = x + dx, ny = y + dy, k = tkey(nx, ny); if (inBounds(nx, ny) && dist[k] === undefined && isHunt(nx, ny)) { dist[k] = dist[tkey(x, y)] + 1; q.push([nx, ny]); } } }
+  return dist;
+}
+function f3HuntRef(pos) {          // охотничья клетка, к которой идёт хищник: где отряд, а если он в другой зоне — ближайшая к нему (у границы)
+  if (isHunt(pos.x, pos.y)) return { x: pos.x, y: pos.y };
+  let best = null, bd = 1e9; for (let y = 0; y < F3_SIZE; y++) for (let x = 0; x < F3_SIZE; x++) if (isHunt(x, y)) { const d = Math.abs(x - pos.x) + Math.abs(y - pos.y); if (d < bd) { bd = d; best = { x, y }; } }
+  return best;
+}
+function f3Spawn() {
+  const r = state.run, H = f3().hunt, ref = f3HuntRef(r.pos); if (!ref) return;
+  const dist = f3Bfs(ref), ent = Object.entries(dist), maxD = Math.max(...ent.map(([, d]) => d)), D = Math.max(6, maxD - 8 * H.kills);          // в следующий раз — ближе
+  const best = Math.max(...ent.filter(([, d]) => d <= D).map(([, d]) => d)), pool = ent.filter(([, d]) => d === best), [sx, sy] = pool[rnd(pool.length)][0].split(",").map(Number);
+  H.mon = { x: sx, y: sy }; H.anim = { x: sx, y: sy, until: Date.now() + 2600 };
+  logRun("??? учуял след."); toast("??? учуял след");
+  setTimeout(() => { try { if (state.run && state.run.f3 && state.run.f3.hunt.anim) { state.run.f3.hunt.anim = null; rerender(); } } catch (e) {} }, 2700);
+}
+function f3HuntContact() {
+  const H = f3().hunt; H.mon = null; H.acts = 0; H.need = 9; H.kills++;
+  logRun("Хищник охотничьих угодий настиг отряд.");
+  dgUi.res = { title: "Хищник настиг отряд", roll: "", lines: ["Босс охотничьих угодий ещё не создан. Счётчик охоты сброшен до 3 дней; в следующий раз хищник появится ближе и будет быстрее."] };
+}
+function f3Dawn() {
+  const r = state.run; if (!r || r.floor !== 3) return;
+  const H = f3().hunt, rested = H.rested; H.rested = false;
+  if (!H.mon) return;
+  const steps = (rested ? 2 : 1) + H.kills;
+  for (let i = 0; i < steps; i++) {
+    const ref = f3HuntRef(r.pos), m = H.mon; if (!ref) break;
+    if (m.x === ref.x && m.y === ref.y) { if (isHunt(r.pos.x, r.pos.y)) f3HuntContact(); break; }          // дошёл: либо нашёл отряд, либо ждёт у границы
+    const dist = f3Bfs(ref); let nxt = null;
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const k = tkey(m.x + dx, m.y + dy); if (dist[k] !== undefined && dist[k] < dist[tkey(m.x, m.y)]) { nxt = { x: m.x + dx, y: m.y + dy }; break; } }
+    if (!nxt) break;
+    H.mon = nxt; logRun(`??? ${rested ? "бежит" : "идёт"} по следу.`);
+    if (nxt.x === r.pos.x && nxt.y === r.pos.y && isHunt(r.pos.x, r.pos.y)) { f3HuntContact(); break; }
+  }
+  if (H.mon) toast(`??? ${rested ? "бежит" : "идёт"} по следу`);
+}
+// После каждого действия: валуны катятся на 2 клетки, считаются действия в охотничьих угодьях.
+function f3AfterAction(kind) {
+  const r = state.run; if (r.floor !== 3) return;
+  const F = f3(), H = F.hunt;
+  for (const b of F.boulders) for (let s = 0; s < 2; s++) {
+    let nx = b.x + b.dx, ny = b.y + b.dy;
+    if (!isTrapZone(nx, ny)) { b.dx = -b.dx; b.dy = -b.dy; nx = b.x + b.dx; ny = b.y + b.dy; if (!isTrapZone(nx, ny)) break; }
+    b.x = nx; b.y = ny; if (b.x === r.pos.x && b.y === r.pos.y && isTrapZone(r.pos.x, r.pos.y)) f3Boulder(b);
+  }
+  if (isTrapZone(r.pos.x, r.pos.y) && F.boulders.some(b => Math.max(Math.abs(b.x - r.pos.x), Math.abs(b.y - r.pos.y)) > 3 && Math.max(Math.abs(b.x - r.pos.x), Math.abs(b.y - r.pos.y)) <= 6)) logRun("Слышен грохот катящегося валуна.");
+  if (kind === "rest") H.rested = true;
+  if (isHunt(r.pos.x, r.pos.y)) { H.acts++; if (!H.mon && H.acts >= H.need) f3Spawn(); }
+}
+const f3Pen = () => { const r = state.run; if (r.floor !== 3) return false; const F = f3(); while (F.pen > 0) { F.pen--; tick(); if (advanceTime()) return true; } return false; };
+// Рисунки на сцене: подсвеченные ловушки (до 5 клеток), валуны и хищник в радиусе 3.
+const F3_ICON = {
+  bear: `<path d="M-12 5 L-8 -6 L-4 4 L0 -6 L4 4 L8 -6 L12 5Z" fill="#9aa0a8" stroke="#2a2e34" stroke-width="1.5"/><path d="M-13 7 H13" stroke="#2a2e34" stroke-width="2.5"/>`,
+  wire: `<circle cx="-13" r="3" fill="#7a5a34"/><circle cx="13" r="3" fill="#7a5a34"/><path d="M-13 0 H13" stroke="#e8e0c8" stroke-width="1.6" stroke-dasharray="4 2"/>`,
+  boulder: `<circle r="14" fill="#8a847a" stroke="#3a362e" stroke-width="2.5"/><path d="M-6 -5 L3 -9 M-9 3 L0 6 M4 -1 L9 4" stroke="#5a564e" stroke-width="1.5" fill="none"/>`,
+  hunter: `<circle r="15" fill="#1a1220" stroke="#8a4a5a" stroke-width="2.5"/><path d="M-9 -2 Q0 -9 9 -2 Q0 5 -9 -2Z" fill="#d8a0b0"/><circle r="2.6" cy="-2" fill="#1a1220"/><text y="13" text-anchor="middle" font-size="11" fill="#d8a0b0" font-family="Kelly Slab, Georgia, serif">???</text>`,
+};
+function f3Marks(px, py, up) {
+  const r = state.run, F = r.f3, out = []; if (!F || r.floor !== 3) return out;
+  for (const [k, tr] of Object.entries(F.traps)) { if (!tr.seen) continue; const [x, y] = k.split(",").map(Number); if (Math.abs(x - px) + Math.abs(y - py) > 5) continue; out.push(up((x - px) * T, (y - py) * T, `<g transform="scale(.9)" opacity=".95">${F3_ICON[tr.t]}</g>`)); }
+  for (const b of F.boulders) if (Math.max(Math.abs(b.x - px), Math.abs(b.y - py)) <= 3) out.push(up((b.x - px) * T, (b.y - py) * T, `<g transform="scale(.95)">${F3_ICON.boulder}<path d="M0 0 L${b.dx * 12} ${b.dy * 12}" stroke="#f4d48e" stroke-width="2.5" marker-end="none"/></g>`));
+  const m = F.hunt.mon; if (m && Math.max(Math.abs(m.x - px), Math.abs(m.y - py)) <= 3) out.push(up((m.x - px) * T, (m.y - py) * T, F3_ICON.hunter));
+  return out;
+}
+function huntAnimOverlay() {
+  const r = state.run, H = r.f3 && r.f3.hunt, a = H && H.anim; if (!a || Date.now() > a.until) return "";
+  const el = Math.max(0, 2.6 - (a.until - Date.now()) / 1000);
+  return `<div class="hunt-anim" style="animation-delay:-${el.toFixed(2)}s" aria-live="polite"><svg viewBox="-36 -36 72 72" width="150" height="150" aria-hidden="true"><defs>${ICON_DEFS}</defs><rect x="-32" y="-32" width="64" height="64" rx="4" fill="${tileFill(a.x, a.y)}" stroke="#8a4a5a" stroke-width="3"/>${tileDeco(a.x, a.y)}<g>${F3_ICON.hunter}</g></svg><p>??? учуял след</p></div>`;
+}
 // Состояние, привязанное к этажу, прячем при переходе и возвращаем при возврате.
-const FLOOR_KEYS = ["pos", "hidden", "spin", "visited", "cleared", "caches", "stay", "rare4", "elite7", "sp", "tier", "ponds"];
+const FLOOR_KEYS = ["pos", "hidden", "spin", "visited", "cleared", "caches", "stay", "rare4", "elite7", "sp", "tier", "ponds", "f3"];
 function switchFloor() {
   const r = state.run, pi = portalInfo(); if (!pi.ok) return;
   (r.fs ||= {})[r.floor] = { ...Object.fromEntries(FLOOR_KEYS.map(k => [k, r[k]])), variant: r.variant };          // вариант тоже помним: при возврате на 2 этаж карта и тайны остаются
@@ -4228,7 +4357,7 @@ function switchFloor() {
     else {
       const free = []; for (let y = 0; y < F3_SIZE; y++) for (let x = 0; x < F3_SIZE; x++) if (tileType(x, y) === "floor" && !(x === sx && y === sy)) free.push(tkey(x, y));
       const c1 = free.splice(rnd(free.length), 1)[0], c2 = free.splice(rnd(free.length), 1)[0];
-      Object.assign(r, { pos: { x: sx, y: sy }, hidden: [0, 90, 180, 270][rnd(4)], spin: 0, visited: [tkey(sx, sy)], cleared: { [tkey(sx, sy)]: absAct(r) }, caches: { compass: c1, map: c2 }, stay: { k: tkey(sx, sy), since: absAct(r) }, rare4: false, elite7: false, sp: undefined, tier: undefined, ponds: [] });
+      Object.assign(r, { pos: { x: sx, y: sy }, hidden: [0, 90, 180, 270][rnd(4)], spin: 0, visited: [tkey(sx, sy)], cleared: { [tkey(sx, sy)]: absAct(r) }, caches: { compass: c1, map: c2 }, stay: { k: tkey(sx, sy), since: absAct(r) }, rare4: false, elite7: false, sp: undefined, tier: undefined, ponds: [], f3: undefined });
     }
     logRun(`Отряд вошёл в портал: 3 этаж, ${F3_CORNER[pi.entry]} (день ${r.day}).`);
     ngEnterFloor(3);
@@ -4804,6 +4933,7 @@ function stageSvg() {
     const ft = flameTarget(from0);
     if (ft && inBounds(ft.x, ft.y)) parts.push(up((ft.x - px) * T, (ft.y - py) * T, `<circle r="26" fill="url(#torchGlow)"/><g style="color:#f4b443" transform="translate(-14 -14) scale(1.15)" pointer-events="none">${ICO_FLAME}</g>`));
   }
+  parts.push(...f3Marks(px, py, up));
   const darkHere = isDark(px, py) && !r.light;
   parts.push(sq(px, py, darkHere ? 'fill="#14100c" stroke="#f4d48e" stroke-width="2.5"' : `fill="${tileFill(px, py)}" stroke="#f4d48e" stroke-width="2.5"`));
   if (tileType(px, py) === "floor") parts.push(up(0, 0, `<g opacity="${darkHere ? .3 : 1}">${tileDeco(px, py)}</g>`));
@@ -5102,6 +5232,7 @@ function renderDungeon() {
   ${dgUi.phase === "rest" ? restOverlay() : ""}
   ${dgUi.phase === "explore" || dgUi.phase === "dig" ? searchOverlay() : ""}
   ${dgUi.phase === "portal" ? portalOverlay() : ""}
+  ${huntAnimOverlay()}
   ${dgUi.res ? resultOverlay() : ""}
   ${r.pending && !dgUi.enc && !dgUi.res ? rollOverlay() : ""}
   ${dgUi.enc ? encounterOverlay() : ""}`;
@@ -5116,6 +5247,7 @@ function floorMapOverlay() {
     const ic = tileIcon(x, y);
     if (ic) cells.push(`<g transform="translate(${x * S + S / 2} ${y * S + S / 2}) scale(.95)">${ic}</g>`);
   }
+  if (curFloor() === 3 && state.run.f3) for (const [k, tr] of Object.entries(state.run.f3.traps)) if (tr.seen) { const [x, y] = k.split(",").map(Number); cells.push(`<g transform="translate(${x * S + S / 2} ${y * S + S / 2}) scale(${S / T * .9})">${F3_ICON[tr.t]}</g>`); }
   const magic = dgUi.map === "magic", pos = state.run.pos;
   if (magic) cells.push(`<g transform="translate(${pos.x * S + S / 2} ${pos.y * S + S / 2}) scale(.85)"><circle r="17" fill="none" stroke="#9ad0ff" stroke-width="2" opacity=".8"><animate attributeName="r" values="14;19;14" dur="1.6s" repeatCount="indefinite"/></circle>${ICON.party}</g>`);
   return `<div class="mapov" role="dialog" aria-modal="true" aria-label="Карта этажа">
@@ -5155,7 +5287,7 @@ function advanceTime() {
   const r = state.run;
   if (r.day >= FL().days && r.act >= FL().acts) { endRun(); return true; }
   r.act++; chaliceTick(1);
-  if (r.act > FL().acts) { r.act = 1; r.day++; logRun(`Начался день ${r.day}.`); spDawn(); if (r.day === 2) f3Map(r); }
+  if (r.act > FL().acts) { r.act = 1; r.day++; logRun(`Начался день ${r.day}.`); spDawn(); if (r.day === 2) f3Map(r); f3Dawn(); }
   return false;
 }
 function endRun(early) {
@@ -5200,12 +5332,14 @@ function act(kind) {
     if (nearVoid) { logRun("Впереди неприглядный туман."); toast("Впереди неприглядный туман"); }
     if (!wasVoid && voidHere()) logRun("Безвременье: пропало чувство направления. Что слева, что справа — уже не понять; пройденное не запоминается.");
     else if (wasVoid && !voidHere()) logRun("Направление вернулось: отряд вышел из Безвременья.");
+    if (r.floor === 3) f3Step(r.pos.x, r.pos.y);
     if (voidHere() && tkey(r.pos.x, r.pos.y) === F3_VOID.boss) { dgUi.res = { title: "Центр Безвременья", roll: "", lines: ["В центре Безвременья ждёт местный босс. Он ещё не создан."] }; logRun("Отряд случайно дошёл до центра Безвременья."); }
   } else if (kind === "run") {
     const tired = state.party.filter(c => r.status[c.id].fat >= 3).map(c => c.name);
     if (r.flame && r.flame.left > 0) r.flame.left--;
     const t = dgUi.path[dgUi.path.length - 1]; r.pos = { x: t.x, y: t.y };
     r.stay = { k: tkey(t.x, t.y), since: absAct(r) + 1 };
+    if (r.floor === 3) { if (dgUi.path.length > 1) f3Step(dgUi.path[0].x, dgUi.path[0].y); f3Step(t.x, t.y); }
     dgUi.finFresh = !r.visited.includes(tkey(t.x, t.y));
     visit(t.x, t.y);                         // первый квадрат пробежали — он остаётся неоткрытым
     tick();
@@ -5286,8 +5420,10 @@ function act(kind) {
     if (r.torchLeft <= 0) { r.light = false; r.torchLeft = 0; logRun("Факел догорел."); }
   }
   dgUi.phase = "menu"; dgUi.path = []; dgUi.rest = null; dgUi.target = null; dgUi.sr = null;
+  f3AfterAction(kind);
   if (advanceTime()) return;
-  { const sp = spOf(); while (sp && sp.pen > 0) { sp.pen--; tick(); if (advanceTime()) return; } }          // паутина съела действие
+  { const sp = spOf(); while (sp && sp.pen > 0) { sp.pen--; tick(); if (advanceTime()) return; } }
+  if (f3Pen()) return;          // паутина съела действие
   if (kind !== "move" && kind !== "run") campCheck();
   spAfter();
   saveChar();
