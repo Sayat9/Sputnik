@@ -1889,8 +1889,8 @@ const DISTRICTS = [
 
 // Готовые рисованные картинки (webp) заменяют векторные заглушки.
 // Дата сборки для телефона: build.sh вписывает её сюда, в веб-версии строка пустая.
-const APP_BUILD = "26.10.2026 03:01";
-const APP_VERSION = 1792965682;                 // номер сборки, тоже вписывает build.sh
+const APP_BUILD = "26.10.2026 10:31";
+const APP_VERSION = 1792992692;                 // номер сборки, тоже вписывает build.sh
 const UPDATE_URL = "https://raw.githubusercontent.com/Sayat9/Sputnik/main/www/";
 const RASTER = new Set(["items/mace", "items/warhammer", "items/armor-leather", "items/armor-hide", "items/armor-chainmail", "items/steel-dagger", "items/steel-sword", "items/steel-greatsword", "items/steel-shield", "items/steel-tower-shield", "items/shortbow", "items/longbow", "items/rapier", "items/shield", "items/tower-shield", "items/unknown-mushroom", "items/stone-9", "items/stone-8", "items/stone-7", "items/ration", "items/potion", "items/torch", "items/arrows", "items/clothes", "items/shovel", "items/shovel-good", "items/shovel-best", "items/dagger", "items/sword", "items/greatsword", "items/spear", "monsters/goblin-king-face", "monsters/goblin-king-full", "monsters/goblin-bomber-face", "monsters/goblin-bomber-full", "monsters/hobgoblin-shield-face", "monsters/hobgoblin-shield-full", "races/barbarian", "races/human", "races/dwarf", "races/beastkin", "races/fairy", "races/dragon", "monsters/goblin-face", "monsters/goblin-full", "monsters/goblin-archer-face", "monsters/goblin-archer-full", "monsters/goblin-sword-face", "monsters/goblin-sword-full", "monsters/goblin-spear-face", "monsters/goblin-spear-full", "monsters/wolf-face", "monsters/wolf-full", "monsters/fox-face", "monsters/fox-full", "monsters/mouse-face", "monsters/mouse-full", "monsters/bat-face", "monsters/bat-full", "monsters/hobgoblin-face", "monsters/hobgoblin-full", "monsters/zombie-face", "monsters/zombie-full", "monsters/skeleton-face", "monsters/skeleton-full", "monsters/skeleton-archer-face", "monsters/skeleton-archer-full", "monsters/ghoul-face", "monsters/ghoul-full", "monsters/dark-bear-face", "monsters/dark-bear-full", "monsters/skeleton-warrior-face", "monsters/skeleton-warrior-full", "monsters/living-stone-face", "monsters/living-stone-full", "monsters/wisp-face", "monsters/wisp-full", "monsters/pixie-face", "monsters/pixie-full", "monsters/green-boulder-face", "monsters/green-boulder-full", "monsters/stone-guardian-face", "monsters/stone-guardian-full", "monsters/spider-queen-face", "monsters/spider-queen-full", "monsters/ash-wraith-face", "monsters/ash-wraith-full", "monsters/ash-spirit-face", "monsters/ash-spirit-full", "monsters/plague-fat-face", "monsters/plague-fat-full", "monsters/bone-hound-face", "monsters/bone-hound-full", "monsters/dust-crawler-face", "monsters/dust-crawler-full", "monsters/faceless-ringer-face", "monsters/faceless-ringer-full", "monsters/mirror-dead-face", "monsters/mirror-dead-full", "monsters/whisperer-face", "monsters/whisperer-full", "monsters/morok-face", "monsters/morok-full", "monsters/grey-shade-face", "monsters/grey-shade-full", "monsters/blackwing-face", "monsters/blackwing-full", "monsters/swamp-fang-face", "monsters/swamp-fang-full", "monsters/web-spider-face", "monsters/web-spider-full", "monsters/goblin-shaman-face", "monsters/goblin-shaman-full", "monsters/goblin-assassin-face", "monsters/goblin-assassin-full", "monsters/goblin-trapper-face", "monsters/goblin-trapper-full", "monsters/goblin-elder-face", "monsters/goblin-elder-full", "monsters/hobgoblin-brute-face", "monsters/hobgoblin-brute-full", "monsters/hobgoblin-thrower-face", "monsters/hobgoblin-thrower-full", "monsters/hobgoblin-driver-face", "monsters/hobgoblin-driver-full", "monsters/goblin-thief-face", "monsters/goblin-thief-full", "monsters/horned-hare-face", "monsters/horned-hare-full", "monsters/swamp-toad-face", "monsters/swamp-toad-full", "monsters/burrower-face", "monsters/burrower-full", "monsters/crow-face", "monsters/crow-full", "monsters/dire-wolf-face", "monsters/dire-wolf-full", "monsters/werewolf-face", "monsters/werewolf-full", "monsters/giant-mole-face", "monsters/giant-mole-full", "monsters/bone-knight-face", "monsters/bone-knight-full", "monsters/gravedigger-face", "monsters/gravedigger-full", "monsters/corpse-eater-face", "monsters/corpse-eater-full", "monsters/drop-face", "monsters/drop-full", "monsters/dust-whirl-face", "monsters/dust-whirl-full", "monsters/magma-hound-face", "monsters/magma-hound-full", "monsters/crystalloid-face", "monsters/crystalloid-full", "monsters/lake-spirit-face", "monsters/lake-spirit-full", "monsters/magma-golem-face", "monsters/magma-golem-full", "monsters/deep-serpent-face", "monsters/deep-serpent-full", "monsters/crystal-colossus-face", "monsters/crystal-colossus-full", "monsters/storm-spirit-face", "monsters/storm-spirit-full", "monsters/rift-heart-face", "monsters/rift-heart-full", "items/compass", "items/steel-mace", "items/steel-rapier", "items/unknown-herb", "items/twin-daggers", "items/unknown-stone", "items/steel-twin-daggers", "items/potion-good", "items/coins", "items/steel-spear", "items/steel-warhammer", "items/steel-shortbow", "items/steel-longbow", "items/steel-armor-leather", "items/steel-armor-hide", "items/steel-armor-chainmail", "items/gloves", "items/staff", "items/axe", "items/greataxe", "items/firstaid", "items/flute", "items/chalice", "items/once-more", "items/guard", "items/beginners-luck", "buildings/tower", "buildings/guild", "buildings/church", "buildings/library", "buildings/gate", "buildings/tavern", "buildings/shop", "buildings/forge", "monsters/rat-face", "monsters/rat-full", "monsters/rat-king-face", "monsters/rat-king-full", "monsters/rat-catcher-face", "monsters/rat-catcher-full"]);
 const artPath = p => `assets/${p}.${RASTER.has(p) ? "webp" : "svg"}`;
@@ -2575,7 +2575,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 34;
+const BATTLE_REV = 35;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }
@@ -3463,6 +3463,25 @@ const FLOOR2 = {
       return { name: "Каменные штреки", std: [["living-stone", 3], ["green-boulder", 2], ["pixie", 1], ["wisp", 1], ["stone-guardian", 1]], capOf: { "stone-guardian": 1 } };
     } },
 };
+/* ----- 3 этаж: 31 × 31, зоны, четыре входных портала (углы снизу и середины боковых сторон), портал дальше наверху посередине (пока не активен) -----
+   Решения автора (черновик в campaign/drafts.md → «3 этаж»): на 3 этаже 21 день; с 14-го дня порталы между 2 и 3 этажом отключены;
+   к какому входу ведёт портал каждого варианта 2 этажа — случайно, определяется в начале 2-го дня. Монстры и места 3 этажа ещё не описаны:
+   зоны пока без встреч. */
+const F3_SIZE = 31, F3_DAYS = 21, PORTAL_OFF_DAY = 14;
+const F3_ENTRIES = ["0,30", "30,30", "0,15", "30,15"], F3_NEXT = "15,0";
+const F3_PORTALS = { "0,30": "f3in", "30,30": "f3in", "0,15": "f3in", "30,15": "f3in", [F3_NEXT]: "f3next" };
+const F3_CORNER = { "0,30": "левый нижний угол", "30,30": "правый нижний угол", "0,15": "середина левой стороны", "30,15": "середина правой стороны" };
+const F3_ZONES = [["Северо-западные дебри", "Подступы к верхнему порталу", "Северо-восточные дебри"], ["Западные ворота", "Сердце этажа", "Восточные ворота"], ["Юго-западный вход", "Южная равнина", "Юго-восточный вход"]];
+const FLOOR3 = { n: 3, name: "3 этаж", zone: "stone", portalKind: "stone", dark: [],
+  zoneName: (x, y) => F3_ZONES[y < 10 ? 0 : y < 21 ? 1 : 2][x < 10 ? 0 : x < 21 ? 1 : 2],
+  placeAt(x, y) { return { name: this.zoneName(x, y), std: [] }; } };
+// Какой вход 3 этажа ждёт портал каждого варианта 2 этажа: перестановка четырёх входов, бросается в начале 2-го дня (или при первом обращении).
+function f3Map(r = state.run) {
+  if (!r) return {};
+  if (!r.f3map) { const e = F3_ENTRIES.slice(); for (let i = e.length - 1; i > 0; i--) { const j = rnd(i + 1); [e[i], e[j]] = [e[j], e[i]]; } r.f3map = { goblin: e[0], beast: e[1], undead: e[2], stone: e[3] }; }
+  return r.f3map;
+}
+const f3VariantOf = key => (Object.entries(f3Map()).find(([, k]) => k === key) || [])[0];
 const FLOOR_OF_PORTAL = { goblin: "goblin", wolf: "beast", zombie: "undead", stone: "stone" };
 // Свита короля гоблинов (решение автора): всего 5 — король, старый шаман, хобгоблин (кубик: 1–4 — один обычный, 5 — два, 6 — один с классом) и необычные гоблины 9 класса случайных видов (не ассасины).
 const kingEscort = () => {
@@ -3472,7 +3491,7 @@ const kingEscort = () => {
 };
 const hobTrio = () => { const ids = ["hobgoblin", "hobgoblin-brute", "hobgoblin-thrower", "hobgoblin-driver"], n = 1 + rnd(3); return Array.from({ length: n }, () => ids[rnd(ids.length)]); };
 // Конфиг текущего этажа: размер, порталы, число дней.
-function FL() { const r = state.run; if (r && r.floor === 2) { const v = FLOOR2[r.variant] || FLOOR2.goblin; return { n: 2, size: 11, days: 14, acts: 3, portals: { "0,10": "entry", "10,0": "exit" }, variant: v }; } return FLOOR1; }
+function FL() { const r = state.run; if (r && r.floor === 3) return { n: 3, size: F3_SIZE, days: F3_DAYS, acts: 3, portals: F3_PORTALS, variant: FLOOR3 }; if (r && r.floor === 2) { const v = FLOOR2[r.variant] || FLOOR2.goblin; return { n: 2, size: 11, days: 14, acts: 3, portals: { "0,10": "entry", "10,0": "exit" }, variant: v }; } return FLOOR1; }
 const T = 64;                                   // размер квадрата в SVG
 const tkey = (x, y) => x + "," + y;
 const inBounds = (x, y) => x >= 0 && y >= 0 && x < FL().size && y < FL().size;
@@ -3480,7 +3499,7 @@ const CENTER = Math.floor(FLOOR1.size / 2);
 // Тьма: портал и две полосы вокруг него (квадрат 3 × 3 в углу этажа).
 // Портал в 11-11 → тёмные квадраты с 9-9 по 11-11 (в коде координаты с нуля: 8..10).
 const DARK_RADIUS = 2;
-const isDark = (x, y) => (state.run && state.run.floor === 2 ? FL().variant.dark.some(([px, py]) => Math.abs(x - px) <= DARK_RADIUS && Math.abs(y - py) <= DARK_RADIUS) : false) || (!(state.run && state.run.floor === 2) && Object.keys(FLOOR1.portals).some(k => { const [px, py] = k.split(",").map(Number); return Math.abs(x - px) <= DARK_RADIUS && Math.abs(y - py) <= DARK_RADIUS; }));
+const isDark = (x, y) => (state.run && state.run.floor >= 2 ? FL().variant.dark.some(([px, py]) => Math.abs(x - px) <= DARK_RADIUS && Math.abs(y - py) <= DARK_RADIUS) : false) || (!(state.run && state.run.floor >= 2) && Object.keys(FLOOR1.portals).some(k => { const [px, py] = k.split(",").map(Number); return Math.abs(x - px) <= DARK_RADIUS && Math.abs(y - py) <= DARK_RADIUS; }));
 const hasDarkvision = c => c.race === "dwarf" || c.race === "darkfairy" || (c.essences || []).some(id => (ESSENCES[id]?.other || []).some(o => o.startsWith("Тёмное зрение")));
 const partyTorches = () => state.party.reduce((a, c) => a + countGear(c, "torch"), 0);
 const inDarkness = () => state.run && isDark(state.run.pos.x, state.run.pos.y) && !state.run.light;
@@ -3490,7 +3509,7 @@ const inDarkness = () => state.run && isDark(state.run.pos.x, state.run.pos.y) &
 const ZONE_OF_PORTAL = { goblin: "goblin", zombie: "undead", wolf: "beast", stone: "stone" };
 const ZONE_NAME = { goblin: "зона гоблинов", beast: "зона зверей", undead: "зона нежити", stone: "зона элементов" };
 function zoneAt(x, y) {
-  if (state.run && state.run.floor === 2) {                                       // 2 этаж: безопасны только порталы, остальное — зона варианта
+  if (state.run && state.run.floor >= 2) {                                       // 2–3 этаж: безопасны только порталы, остальное — зона варианта
     if (FL().portals[tkey(x, y)]) return { kind: "safe", zones: [] };
     return { kind: "zone", zones: [FL().variant.zone], place: FL().variant.placeAt(x, y) };
   }
@@ -3538,6 +3557,7 @@ function genEncounter(x, y, day, n = 1, forceRare = false, night = false) {
 function genEncounterRaw(x, y, day, n = 1, forceRare = false) {
   const z = zoneAt(x, y);
   if (z.kind === "safe") return null;
+  if (curFloor() >= 3) return null;                                  // 3 этаж: монстры ещё не описаны
   if (curFloor() >= 2) return genEncounter2(x, y, day, n, z);
   const zone = z.zones[rnd(z.zones.length)];
   // 8 класс: с 7-го дня у портала зоны — первая встреча там всегда он, дальше на к20 = 1–2. В одиночку.
@@ -3918,7 +3938,7 @@ function bellSave(ev) {
 }
 function resolvePass(p) {
   const r = state.run, n = p.pick, rollTxt = `к20 = ${n}`;
-  if (n <= p.amb) {
+  if (n <= p.amb && curFloor() < 3) {
     const enc = genEncounter(p.x, p.y, r.day, 1, r.day === 4 && !r.rare4);
     if (!enc) return;
     if (r.day === 4 && enc.list.some(id => MONSTERS.find(m => m.id === id).rare)) r.rare4 = true;
@@ -3931,7 +3951,7 @@ function resolvePass(p) {
     ev.init = rollInitiative(ev.list, ev.ambush);
     logRun(`Засада на бегу (${rollTxt}), отряд остановлен в пробегаемом квадрате: ${enc.list.map(id => MONSTERS.find(m => m.id === id).name).join(", ")}.`);
     dgUi.enc = ev;
-  } else if (n <= p.trap) {
+  } else if (n <= p.trap && curFloor() < 3) {
     logRun(`Ловушка гоблинов на бегу (${rollTxt}).`);
     dgUi.enc = { kind: "trap", title: "Ловушка!", raw: n, n, cause: "pass" };
   } else { logRun(`Пробежали квадрат без происшествий (${rollTxt}).`); toast("Пробежали без происшествий"); }
@@ -3943,7 +3963,7 @@ function resolveRoll() {
   if (p.cause === "camp") {
     if (p.pick > p.thr) { logRun(`Стоянка: никто не пришёл (к20 = ${p.pick}).`); toast("Никто не пришёл"); return; }
     const enc = genEncounter(p.x, p.y, r.day, p.pick);
-    if (!enc) return;
+    if (!enc) { logRun("Стоянка: тихо."); return; }
     const ev = { kind: "hard", title: "Нападение на стоянку!", raw: p.pick, n: p.pick, cause: "camp" };
     startFight(ev, p, enc);
     ev.init = rollInitiative(ev.list, false);
@@ -3953,6 +3973,7 @@ function resolveRoll() {
   const n = p.pick - (p.dark ? 2 : 0) - (p.blood ? 2 : 0);
   let [, kind, title] = eventOf(Math.max(1, n), isRuins(p.x, p.y));
   if (p.monsters && !MON_EVENTS.has(kind)) [, kind, title] = eventOf(12);
+  if (curFloor() >= 3 && MON_EVENTS.has(kind)) [, kind, title] = eventOf(16);          // 3 этаж: встреч пока нет — пустой фрагмент
   const ev = { kind, title, raw: p.pick, n, dark: p.dark, blood: p.blood, cause: p.cause };
   const rollTxt = `к20 = ${p.pick}${p.dark ? " − 2 (тьма)" : ""}${p.blood ? " − 2 (чует кровь)" : ""}${p.dark || p.blood ? ` = ${n}` : ""}`;
   if (MON_EVENTS.has(kind)) {
@@ -4169,7 +4190,15 @@ function portalInfo() {
     if (r.day > FLOOR1.days) return { title: "Портал на 1 этаж", text: "Срок 1 этажа (7 дней) уже истёк — вернуться на него нельзя.", ok: false };
     return { title: "Портал на 1 этаж", text: `Вернуться на 1 этаж можно, пока не прошёл 7-й день (сейчас день ${r.day}).`, ok: true, to: 1 };
   }
-  return { title: "Портал на 3 этаж", text: "3 этаж ещё не готов.", ok: false };
+  if (r.floor === 3) {
+    if (k === "f3next") return { title: "Портал дальше", text: "Портал наверху этажа пока не активен.", ok: false };
+    const v = f3VariantOf(tkey(r.pos.x, r.pos.y));
+    if (r.day >= PORTAL_OFF_DAY) return { title: "Портал на 2 этаж", text: `С ${PORTAL_OFF_DAY}-го дня порталы между этажами отключены (сейчас день ${r.day}).`, ok: false };
+    return { title: "Портал на 2 этаж", text: `Портал ведёт на 2 этаж: <b style="color:var(--fx-gold-hi)">${FLOOR_NAME[v]}</b>. Порталы между этажами отключатся с ${PORTAL_OFF_DAY}-го дня (сейчас день ${r.day}).`, ok: true, to: 2, variant: v };
+  }
+  if (r.day >= PORTAL_OFF_DAY) return { title: "Портал на 3 этаж", text: `С ${PORTAL_OFF_DAY}-го дня порталы между этажами отключены (сейчас день ${r.day}).`, ok: false };
+  const entry = f3Map()[r.variant];
+  return { title: "Портал на 3 этаж", text: `Портал ведёт на 3 этаж: ${F3_CORNER[entry]}. Порталы между этажами отключатся с ${PORTAL_OFF_DAY}-го дня (сейчас день ${r.day}).`, ok: true, to: 3, entry };
 }
 function portalOverlay() {
   const pi = portalInfo();
@@ -4186,7 +4215,20 @@ const FLOOR_KEYS = ["pos", "hidden", "spin", "visited", "cleared", "caches", "st
 function switchFloor() {
   const r = state.run, pi = portalInfo(); if (!pi.ok) return;
   (r.fs ||= {})[r.floor] = { ...Object.fromEntries(FLOOR_KEYS.map(k => [k, r[k]])), variant: r.variant };          // вариант тоже помним: при возврате на 2 этаж карта и тайны остаются
-  if (pi.to === 2) {
+  if (pi.to === 3) {
+    r.floor = 3; delete r.variant;
+    const saved = r.fs[3] && r.fs[3].visited ? r.fs[3] : null, [ex, ey] = pi.entry.split(",").map(Number), ring = [];
+    for (let y = 0; y < F3_SIZE; y++) for (let x = 0; x < F3_SIZE; x++) { const d = Math.max(Math.abs(x - ex), Math.abs(y - ey)); if (d === 2 || d === 3) ring.push([x, y]); }
+    const [sx, sy] = ring[rnd(ring.length)];
+    if (saved) { FLOOR_KEYS.forEach(k => { r[k] = saved[k]; }); r.pos = { x: sx, y: sy }; if (!r.visited.includes(tkey(sx, sy))) r.visited.push(tkey(sx, sy)); }
+    else {
+      const free = []; for (let y = 0; y < F3_SIZE; y++) for (let x = 0; x < F3_SIZE; x++) if (tileType(x, y) === "floor" && !(x === sx && y === sy)) free.push(tkey(x, y));
+      const c1 = free.splice(rnd(free.length), 1)[0], c2 = free.splice(rnd(free.length), 1)[0];
+      Object.assign(r, { pos: { x: sx, y: sy }, hidden: [0, 90, 180, 270][rnd(4)], spin: 0, visited: [tkey(sx, sy)], cleared: { [tkey(sx, sy)]: absAct(r) }, caches: { compass: c1, map: c2 }, stay: { k: tkey(sx, sy), since: absAct(r) }, rare4: false, elite7: false, sp: undefined, tier: undefined, ponds: [] });
+    }
+    logRun(`Отряд вошёл в портал: 3 этаж, ${F3_CORNER[pi.entry]} (день ${r.day}).`);
+    ngEnterFloor(3);
+  } else if (pi.to === 2) {
     r.floor = 2; r.variant = pi.variant;
     const saved = r.fs[2] && r.fs[2].variant === pi.variant ? r.fs[2] : null;
     if (saved) FLOOR_KEYS.forEach(k => { r[k] = saved[k]; });
@@ -4638,11 +4680,12 @@ const PX = (() => {
   };
 })();
 // Стиль плитки 2 этажа — по месту (логова, топь, паучьи кроны…); на 1 этаже — по зоне.
-const PLACE_STYLE = [[/Крысиные норы|Логово крысолова/, "warren"], [/Логово воров/, "den"], [/Руины/, "ruins"], [/Поселение/, "camp"], [/Медвежья пещера/, "cave"], [/Топь/, "swamp"], [/Паучьи кроны/, "web"], [/Волчьи холмы/, "hills"],
+const PLACE_STYLE = [[/Северо-западные дебри/, "web"], [/Северо-восточные дебри/, "hills"], [/Подступы к верхнему/, "ruins"], [/Западные ворота/, "cave"], [/Сердце этажа/, "garden"], [/Восточные ворота/, "mines"], [/Юго-западный вход/, "swamp"], [/Южная равнина/, "bonefield"], [/Юго-восточный вход/, "lava"],
+  [/Крысиные норы|Логово крысолова/, "warren"], [/Логово воров/, "den"], [/Руины/, "ruins"], [/Поселение/, "camp"], [/Медвежья пещера/, "cave"], [/Топь/, "swamp"], [/Паучьи кроны/, "web"], [/Волчьи холмы/, "hills"],
   [/Склеп/, "crypt"], [/Пепельная печь/, "furnace"], [/Костяные поля/, "bonefield"], [/Ветряные шахты/, "mines"], [/озеро/, "lake"], [/Лавовые/, "lava"], [/Кристальный сад/, "garden"]];
 const tileStyle = (x, y) => {
   const r = state.run;
-  if (r && r.floor === 2) { const pl = FL().variant.placeAt(x, y); if (pl) for (const [re, s] of PLACE_STYLE) if (re.test(pl.name)) return s; }
+  if (r && r.floor >= 2) { const pl = FL().variant.placeAt(x, y); if (pl) for (const [re, s] of PLACE_STYLE) if (re.test(pl.name)) return s; }
   return tileZone(x, y);
 };
 // Особая клетка (крупный рисунок на плитке): фиксированные места по варианту + гнездо ворон и часовня-колокольня, которые стоят случайно.
@@ -4693,12 +4736,14 @@ const portalIcon = kind => ICON.portalRing + ICON[kind];
 // Портал клетки: на 1 этаже — по зоне, на 2 этаже вход (значок своей зоны) и выход (стрелка вверх).
 function portalIconAt(x, y) {
   const k = FL().portals[tkey(x, y)];
+  if (k === "f3in") return ICON.portalRing + `<path d="M0 -8 V8 M-6 2 L0 9 L6 2" fill="none" stroke="#c9a2ff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>`;
+  if (k === "f3next") return `<g opacity=".55">${ICON.portalRing}<path d="M0 8 V-8 M-6 -2 L0 -9 L6 -2" fill="none" stroke="#8a7a9a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></g>`;
   if (k === "exit") return ICON.portalRing + `<path d="M0 8 V-8 M-6 -2 L0 -9 L6 -2" fill="none" stroke="#c9a2ff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>`;
   return portalIcon(k === "entry" ? FL().variant.portalKind : k);
 }
 function portalName(x, y) {
   const k = FL().portals[tkey(x, y)];
-  return k === "entry" ? "Портал на 1 этаж" : k === "exit" ? "Портал на 3 этаж" : PORTAL_NAME[k];
+  return k === "entry" ? "Портал на 1 этаж" : k === "exit" ? "Портал на 3 этаж" : k === "f3in" ? "Портал на 2 этаж" : k === "f3next" ? "Портал дальше (не активен)" : PORTAL_NAME[k];
 }
 function tileIcon(x, y) {
   const t = tileType(x, y);
@@ -5076,7 +5121,7 @@ function floorMapOverlay() {
         <text x="${n * S / 2}" y="-9" text-anchor="middle" font-family="Kelly Slab, Georgia, serif" font-size="14" fill="#e5806f">▲ С</text>
         ${cells.join("")}
       </svg>
-      <p>${magic ? "Магическая карта: светящаяся метка — где отряд сейчас." : (state.run && state.run.floor === 2 ? "Порталы по углам: вход внизу слева, выход вверху справа. Особые места рисуются своей клеткой: логова, алтари, склеп, курган, печь, паутина; гнездо ворон и туманная колокольня появляются, когда отряд там побывал. Тёмные квадраты — зоны тьмы. Где стоит отряд, карта не показывает." : "Статуя в центре, порталы по углам; тёмные квадраты вокруг порталов — зоны тьмы. Где стоит отряд, карта не показывает.")}</p>
+      <p>${magic ? "Магическая карта: светящаяся метка — где отряд сейчас." : (state.run && state.run.floor === 3 ? "Четыре входных портала — снизу в углах и посередине боковых сторон; наверху посередине — портал дальше (пока не активен). Зоны отличаются цветом плиток. Где стоит отряд, карта не показывает." : state.run && state.run.floor === 2 ? "Порталы по углам: вход внизу слева, выход вверху справа. Особые места рисуются своей клеткой: логова, алтари, склеп, курган, печь, паутина; гнездо ворон и туманная колокольня появляются, когда отряд там побывал. Тёмные квадраты — зоны тьмы. Где стоит отряд, карта не показывает." : "Статуя в центре, порталы по углам; тёмные квадраты вокруг порталов — зоны тьмы. Где стоит отряд, карта не показывает.")}</p>
     </div>
   </div>`;
 }
@@ -5104,7 +5149,7 @@ function advanceTime() {
   const r = state.run;
   if (r.day >= FL().days && r.act >= FL().acts) { endRun(); return true; }
   r.act++; chaliceTick(1);
-  if (r.act > FL().acts) { r.act = 1; r.day++; logRun(`Начался день ${r.day}.`); spDawn(); }
+  if (r.act > FL().acts) { r.act = 1; r.day++; logRun(`Начался день ${r.day}.`); spDawn(); if (r.day === 2) f3Map(r); }
   return false;
 }
 function endRun(early) {

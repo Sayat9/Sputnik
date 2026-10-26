@@ -382,7 +382,7 @@
     if (g && g.summary) {
       // справа от героев — кнопка переброса: тот же счётчик, что и у остальных бросков; результат заменяется новым
       const ownR = t => !!(B.Net && B.Net.remoteOwner && B.Net.remoteOwner(t));          // герой друга перебрасывает у себя на телефоне, а не у ведущего
-      const rows = () => list.map((t, i) => { const can = !!ctxs[i] && !out[i].ok && rerollOptions(t, "save").length > 0; return { name: t.name, side: t.side, total: out[i].total, nat: out[i].nat, ok: out[i].ok, canReroll: can && !ownR(t), rr: can, owner: B.Net && B.Net.ownerPid ? B.Net.ownerPid(t) : null }; });
+      const rows = () => list.map((t, i) => { const can = !!ctxs[i] && !out[i].ok && rerollOptions(t, "save").length > 0; return { name: t.name, side: t.side, total: out[i].total, nat: out[i].nat, ok: out[i].ok, canReroll: can && !ownR(t) && !(B.Net && B.Net.ownerPid && B.Net.ownerPid(t)), rr: can, owner: B.Net && B.Net.ownerPid ? B.Net.ownerPid(t) : null }; });
       const reroll = i => {
         const t = list[i], opt = rerollOptions(t, "save")[0]; if (!opt || !ctxs[i]) return rows();
         opt.spend(); const old = out[i].total, r = d20Core({ mods: ctxs[i].mods, adv: ctxs[i].adv, dis: ctxs[i].dis }), ok = r.total >= dc;
