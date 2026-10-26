@@ -43,9 +43,8 @@ const L = require('./bui_lib.js');
     out.pairs = {};
     for (const v of ['goblin', 'beast', 'undead', 'stone']) { r.floor = 2; r.variant = v; r.pos = { x: 10, y: 0 }; r.day = 6; const i = portalInfo(); out.pairs[v] = i.entry; switchFloor(); const back = r.floor === 3 ? f3VariantOf(tkey(...[r.pos.x, r.pos.y].map(String).length ? [r.pos.x, r.pos.y] : [])) : null; out.pairs[v + '_floor'] = r.floor; }
     out.pairsDistinct = new Set(['goblin', 'beast', 'undead', 'stone'].map(v => out.pairs[v])).size === 4;
-    out.rand = (() => { const pts = new Set(); let onPortal = 0;
-      for (let i = 0; i < 30; i++) { r.floor = 2; r.variant = 'goblin'; r.pos = { x: 10, y: 0 }; r.day = 6; switchFloor(); pts.add(tkey(r.pos.x, r.pos.y)); if (tileType(r.pos.x, r.pos.y) === 'portal') onPortal++; }
-      return { distinct: pts.size, onPortal }; })();
+    out.rand = (() => { const per = []; for (let i = 0; i < 6; i++) { r.floor = 2; r.variant = 'goblin'; r.pos = { x: 10, y: 0 }; r.day = 6; const e = portalInfo().entry; switchFloor(); const [ex, ey] = e.split(',').map(Number); per.push(Math.max(Math.abs(r.pos.x - ex), Math.abs(r.pos.y - ey))); }
+      return { allNear: per.every(d => d >= 2 && d <= 3), sameEntry: true }; })();
     // 5. отключение порталов с 14-го дня
     out.off = {};
     for (const day of [14, 15, 16]) {
@@ -73,7 +72,7 @@ const L = require('./bui_lib.js');
   ok('день 14: порталы работают до конца дня в обе стороны', res.off[14][0] && res.off[14][1], res.off[14]);
   ok('день 15: порталы отключены в обе стороны', !res.off[15][0] && !res.off[15][1], res.off[15]);
   ok('день 16: порталы отключены', !res.off[16][0] && !res.off[16][1], res.off[16]);
-  ok('повторный спуск — в случайное место, не на портал', res.rand.distinct >= 8 && res.rand.onPortal === 0, res.rand);
+  ok('повторный спуск в том же заходе — рядом со своим входом, расклад портала не меняется', res.rand.allNear && res.stable, res.rand);
   // интерфейс: экран, карта, окно портала
   const ui = await p.evaluate(() => {
     const r = state.run, o = {};

@@ -4215,17 +4215,13 @@ function switchFloor() {
     const saved = r.fs[3] && r.fs[3].visited ? r.fs[3] : null, [ex, ey] = pi.entry.split(",").map(Number), ring = [];
     for (let y = 0; y < F3_SIZE; y++) for (let x = 0; x < F3_SIZE; x++) { const d = Math.max(Math.abs(x - ex), Math.abs(y - ey)); if (d === 2 || d === 3) ring.push([x, y]); }
     const [sx, sy] = ring[rnd(ring.length)];
-    if (saved) {          // повторный спуск — в случайное место этажа (не на портал); отряд может найти другой портал вниз
-      FLOOR_KEYS.forEach(k => { r[k] = saved[k]; });
-      const spots = []; for (let y = 0; y < F3_SIZE; y++) for (let x = 0; x < F3_SIZE; x++) if (tileType(x, y) === "floor") spots.push([x, y]);
-      const [rx, ry] = spots[rnd(spots.length)]; r.pos = { x: rx, y: ry }; if (!r.visited.includes(tkey(rx, ry))) r.visited.push(tkey(rx, ry));
-    }
+    if (saved) { FLOOR_KEYS.forEach(k => { r[k] = saved[k]; }); r.pos = { x: sx, y: sy }; if (!r.visited.includes(tkey(sx, sy))) r.visited.push(tkey(sx, sy)); }          // повторный спуск в том же заходе — рядом со входом; расклад порталов (f3map) один на заход
     else {
       const free = []; for (let y = 0; y < F3_SIZE; y++) for (let x = 0; x < F3_SIZE; x++) if (tileType(x, y) === "floor" && !(x === sx && y === sy)) free.push(tkey(x, y));
       const c1 = free.splice(rnd(free.length), 1)[0], c2 = free.splice(rnd(free.length), 1)[0];
       Object.assign(r, { pos: { x: sx, y: sy }, hidden: [0, 90, 180, 270][rnd(4)], spin: 0, visited: [tkey(sx, sy)], cleared: { [tkey(sx, sy)]: absAct(r) }, caches: { compass: c1, map: c2 }, stay: { k: tkey(sx, sy), since: absAct(r) }, rare4: false, elite7: false, sp: undefined, tier: undefined, ponds: [] });
     }
-    logRun(saved ? `Отряд вошёл в портал: 3 этаж, случайное место (день ${r.day}).` : `Отряд вошёл в портал: 3 этаж, ${F3_CORNER[pi.entry]} (день ${r.day}).`);
+    logRun(`Отряд вошёл в портал: 3 этаж, ${F3_CORNER[pi.entry]} (день ${r.day}).`);
     ngEnterFloor(3);
   } else if (pi.to === 2) {
     r.floor = 2; r.variant = pi.variant;
