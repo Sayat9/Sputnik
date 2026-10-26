@@ -174,7 +174,7 @@
   const PHYS = ["pierce", "slash", "bludgeon"];
   B.isSpectral = t => !!(t && t.mon && (t.mon.spectral || (t.cb && t.cb.spectral)));
   B.isElem = t => isElemental(t) || !!(t && t.mon && (t.mon.zone === "stone" || /Элементаль/i.test(t.mon.size || "")));
-  B.physBlocked = (src, tgt, dt) => B.isSpectral(tgt) && PHYS.includes(dt) && !(src && src.race === "dragon");
+  B.physBlocked = (src, tgt, dt) => B.isSpectral(tgt) && PHYS.includes(dt) && !(src && (src.race === "dragon" || src.salted));          // дракон или оружие в серебряной соли
   P["race:beastkin"] = Object.assign(P["race:beastkin"] || {}, {
     checkMods(u, ctx) { if (ctx.skill === "perception" && B.inDark(u) && !u.dv) ctx.dis.push("звериная натура: темно"); },
   });

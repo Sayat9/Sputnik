@@ -212,3 +212,5 @@
 - `races/darkfairy-f` — `bust portrait of a slender dark fairy woman with slate-grey violet skin, long pointed ears, midnight-blue hair with small glowing moth-like motes, luminous pale violet eyes and delicate dusky wings behind her shoulders, fantasy, dark background with a cold violet rim light, realistic painterly style, looking at viewer, 4:5, no text`
 - `treasures/tollbell` — `small silver hand bell with a dark ribbon, faint cold glow along the rim, engraved wave pattern, resting on dark velvet, painted fantasy item icon, plain dark background`
 - `monsters/silence-keeper` — `full-body tall hooded spirit in a grey silver-trimmed robe, face hidden in shadow, one finger pressed to where the lips would be, heavy silver mace, ghostly mist at the feet, painted dark fantasy character, 1024x1536`
+- `items/silver-salt` — `small linen pouch of coarse glittering silver salt spilling a little onto dark wood, painted fantasy item icon, plain dark background`
+- `treasures/bell` — `small silver warning handbell with a short ribbon (renamed: Bubenets-predvestnik)`

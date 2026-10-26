@@ -44,6 +44,20 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
     // взвод из Инвентаря: преимущество на ментальные проверки той же способности
     state.run.day = 7; state.run.tollDay = null; state.run.tollArmed = { key: null }; B.S.round = 5;
     let advSeen = false; const orig = B.doSave; const sv = await B.doSave(hero, 'int', 1, { label: 'арм', from: k }); out.armed = { ok: sv.ok };
+    // 6. шум шага: тихий шаг снижает шкалу; ужасный провал +2, обычный +1 (шкала — через f3TollStep с подменой кубика)
+    f3().noise = 5; const rn0 = Math.random, stepWith = d => { Math.random = () => (d - 1) / 20 + 0.001; f3TollStep(); return f3().noise; };
+    const c0 = state.party.filter(c => !c.dead)[0]; const dx = mod(totals(c0).dex.total);
+    // кубик 20 → тихо; кубик 1 → ужасно; середина — обычный провал, если возможно
+    const quiet = stepWith(20); const awful = stepWith(1) - quiet; const midD = 8 - dx - 1; let bad1 = null;
+    if (midD >= 2) { f3().noise = 5; Math.random = () => (midD - 1) / 20 + 0.001; const b0 = f3().noise; f3TollStep(); bad1 = f3().noise - b0; }
+    Math.random = rn0; out.step = [quiet, awful, bad1, dx];
+    // 7. серебряная соль: спектральному физика не проходит, с солью проходит
+    const hh = B.heroes()[0], ghost = { side: 'mon', tags: [], id: 'g' };
+    const gh = { mon: { spectral: true } }, plain = { side: 'hero' };
+    out.salt = [B.physBlocked(plain, gh, 'slash'), B.physBlocked({ salted: true }, gh, 'slash'), B.physBlocked(plain, gh, 'fire')];
+    // колокольчик в Звоне: +3 шума
+    state.run.pos = { x: 15, y: 15 }; f3().noise = 0; state.run.day = 9; state.run.tollDay = null; B.S.round = 20;
+    await B.doSave(hero, 'wis', 99, { label: 'зв', from: k }); out.ring = f3().noise;
     out.errs = 0;
     return out;
   });
@@ -56,6 +70,9 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
   ok('силовой спасбросок колокольчик не трогает', true);
   ok('групповой ментальный спасбросок: перебросы у пострадавших', o.mass.used && o.mass.n === 2, o.mass);
   ok('взведённый колокольчик не ломает проверку', o.armed && typeof o.armed.ok === 'boolean', o.armed);
+  ok('шаг по Звону: тихо −1, провал +1, ужасный +2', o.step[0] === 4 && o.step[1] === 2 && (o.step[2] == null || o.step[2] === 1), o.step);
+  ok('соль: физика проходит по спектральному, без соли блокируется, огонь проходит', o.salt.join() === 'true,false,false', o.salt);
+  ok('колокольчик в Звоне: шум +3', o.ring === 3, o.ring);
   ok('нет ошибок страницы', errs.length === 0, errs.slice(0, 3));
   console.log('проверок:', R.length, 'не прошли:', R.filter(x => !x).length);
   await b.close();

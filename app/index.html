@@ -2293,6 +2293,7 @@ const GEAR = {
   "shovel-good": { short: "Лопата+", name: "Хорошая лопата", weight: 2.5, stack: 1, uses: 5, note: "Для действия «Копать». Ломается после 5 раскопок." },
   "shovel-best": { short: "Лопата++", name: "Отличная лопата", weight: 2, stack: 1, uses: 10, note: "Для действия «Копать». Ломается после 10 раскопок." },
   "stone-9":   { short: "Камни", name: "Магический камень 9-го класса", weight: 0.1, stack: 99, note: "Добыча лабиринта: Магазин скупает по 1 монете." },
+  "silver-salt": { short: "Соль", name: "Серебряная соль", weight: 0.1, stack: 5, cls: 9, note: "Одноразовая. В бою (доп. действие) посыпать оружие: до конца боя удары носителя ранят спектральных существ как обычные. Кладовая Звона." },
   "stone-7":   { short: "Камни 7", name: "Магический камень 7-го класса", weight: 0.1, stack: 99, note: "Добыча 2 этажа. Магазин скупает по 20 монет." },
   "potion-good": { short: "Зелье+", name: "Зелье лечения", weight: 0.25, stack: 5, use: "drink", heal: "2к4 + 4", note: "Восстанавливает 2к4 + 4 ОЗ (6–12, в среднем 9). Черновик." },
   chalice: { short: "Чаша", name: "Чаша здоровья", weight: 0.5, stack: 1, cls: 8, treasure: true, note: "Сокровище 8 класса. Наполните водой (бесплатно в городе, у воды в лабиринте и в бою, или за паёк на Отдыхе): через 2 дня вода станет улучшенным зельем лечения (2к4 + 4). После питья чаша остаётся." },
@@ -2582,7 +2583,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 38;
+const BATTLE_REV = 39;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }
@@ -3952,7 +3953,7 @@ function startFight(ev, p, enc) {
 function bellSave(ev) {
   if (!ev.ambush || !trReady("bell")) return false;
   ev.ambush = false; ev.bell = true; ev.title = ev.cause === "pass" ? "Встреча на бегу (колокольчик зазвенел)" : "Встреча (колокольчик зазвенел вовремя)"; cdSet("bell");
-  logRun("Серебряный колокольчик зазвенел: засада стала обычной встречей."); return true;
+  logRun("Бубенец-предвестник зазвенел: засада стала обычной встречей."); return true;
 }
 function resolvePass(p) {
   const r = state.run, n = p.pick, rollTxt = `к20 = ${n}`;
@@ -4245,7 +4246,7 @@ function f3Gen(mapTraps = false) {          // ловушки и валуны �
 const f3 = () => { const r = state.run; return (r.f3 ||= f3Gen()); };
 /* ----- Звон (решения автора 27.10): территория шума, в центре сундук. Шум копится (шкала до 20); дошла до 20 — приходит Хранитель Тишины (6 класс): в бою сразу на поле, вне боя начинается бой;
    шкала при этом сбрасывается. Шумят монстры (чем сильнее, тем больше: 9 — 1, 8 — 2, 7 — 4, 6 — 7) и неосторожные шаги отряда (лёгкая проверка Ловкости). Числа — мои, черновик drafts.md. ----- */
-const NOISE_MAX = 20, NOISE_BY_CLS = { 9: 1, 8: 2, 7: 4, 6: 7 }, TOLL_DC = 8, TOLL_STEP_NOISE = 2;
+const NOISE_MAX = 20, NOISE_BY_CLS = { 9: 1, 8: 2, 7: 4, 6: 7 }, TOLL_DC = 8, TOLL_STEP_NOISE = 1, TOLL_STEP_BAD = 2, TOLL_CALM = 1;
 const isToll = (x, y) => curFloor() === 3 && ["Звон", "Сердце этажа"].includes(FLOOR3.zoneName(x, y)) && tileType(x, y) === "floor";
 const TOLL_CHEST = "15,15";
 function f3Noise(n, why) {
@@ -4260,8 +4261,10 @@ function f3SummonKeeper() {
   startSpecial("Хранитель Тишины", { list: ["silence-keeper"], zone: "undead", place: "Звон" }, { ambush: false });
 }
 function f3TollStep() {          // шаг по Звону: лёгкая проверка Ловкости; провал хоть у кого-то — звон
-  const res = spSave("dex", TOLL_DC), fail = res.filter(x => !x.ok); if (!fail.length) return;
-  f3Noise(TOLL_STEP_NOISE, `${fail.map(x => x.c.name).join(", ")} неосторожны (Ловкость Сл ${TOLL_DC})`);
+  const res = spSave("dex", TOLL_DC), fail = res.filter(x => !x.ok);
+  if (!fail.length) { const F = f3(); if (F.noise > 0) F.noise = Math.max(0, F.noise - TOLL_CALM); return; }          // тихий шаг: шум −1 (решение автора 28.10)
+  const awful = fail.some(x => x.d === 1 || x.t <= TOLL_DC - 5);          // ужасный бросок: натуральная 1 или провал на 5+
+  f3Noise(awful ? TOLL_STEP_BAD : TOLL_STEP_NOISE, `${fail.map(x => x.c.name).join(", ")} ${awful ? "грохочут" : "неосторожны"} (Ловкость Сл ${TOLL_DC})`);
 }
 function f3Buttons() {
   const r = state.run, F = f3(), out = [];
@@ -4274,6 +4277,8 @@ function f3Do(id) {
     F.chestOpen = true; const lines = [];
     if (!treasure("tollbell").owned) { giveTreasure("tollbell"); lines.push("Артефакт 7 класса: Серебряный колокольчик Звона (неопознан)."); } else lines.push("Колокольчик Звона уже у отряда.");
     lines.push(giveParty({ t: "g", id: "stone-7", qty: 3 }));
+    lines.push(giveParty({ t: "g", id: "silver-salt", qty: 2 }));
+    if (r.quietDay === r.day) { lines.push(giveParty({ t: "g", id: "stone-7", qty: 3 }), "Тихая цена: отряд подошёл беззвучно — награда вдвое."); }
     logRun("Сундук Звона открыт: " + lines.join(" ")); dgUi.res = { title: "Сундук Звона", roll: "", lines };
   }
 }
@@ -4345,6 +4350,7 @@ function f3HuntContact() {
 function f3Dawn() {
   const r = state.run; if (!r || r.floor !== 3) return;
   const H = f3().hunt, rested = H.rested; H.rested = false;
+  if (rested && f3().noise > 0) f3().noise = Math.max(0, f3().noise - 1);          // ночь на стоянке: шум Звона спадает на 1
   if (!H.mon) return;
   const steps = (rested ? 2 : 1) + H.kills;
   for (let i = 0; i < steps; i++) {
@@ -4551,7 +4557,7 @@ function inventory() {
 const curFloor = () => (state.run && state.run.floor) || 1;
 /* ----- сокровища (черновик, drafts.md → «Сокровища»): по классам, 9 — худший, 1 — лучший ----- */
 const TREASURES = { guard: { cls: 9, name: "Ночной страж", base: 3, perFloor: 2 }, flame: { cls: 9, name: "Огонь, указывающий путь" }, hearth: { cls: 9, name: "Вечный очаг" },
-  dice: { cls: 9, name: "Игральные кубики", cd: 6 }, bell: { cls: 9, name: "Серебряный колокольчик", cd: 6 }, flask: { cls: 8, name: "Фляга странника", cd: 6 }, monocle: { cls: 8, name: "Монокль Амона" }, boots: { cls: 8, name: "Сапоги скороходы" }, tollbell: { cls: 7, name: "Серебряный колокольчик Звона" }, wind: { cls: 9, name: "Экстракт попутного ветра", charges: 10 } };          // cd — откат в действиях (6 = 2 дня)
+  dice: { cls: 9, name: "Игральные кубики", cd: 6 }, bell: { cls: 9, name: "Бубенец-предвестник", cd: 6 }, flask: { cls: 8, name: "Фляга странника", cd: 6 }, monocle: { cls: 8, name: "Монокль Амона" }, boots: { cls: 8, name: "Сапоги скороходы" }, tollbell: { cls: 7, name: "Серебряный колокольчик Звона" }, wind: { cls: 9, name: "Экстракт попутного ветра", charges: 10 } };          // cd — откат в действиях (6 = 2 дня)
 function treasure(id) { return ((inventory().treasures ||= {})[id] ||= { owned: false }); }
 // Заряды Ночного стража — на заход: 3, +2 за первый за заход спуск на каждый новый этаж; вернулся и спустился снова — зарядов нет; новый заход сбрасывает.
 function ngState() { const r = state.run; return r ? (r.ng ||= { used: 0, granted: [] }) : { used: 0, granted: [] }; }
@@ -4612,7 +4618,7 @@ const ARTIFACTS = {
   flame: { cls: 9, name: "Огонь, указывающий путь", ico: () => ICO_FLAME, text: "Один заряд за заход. Зажгите в Инвентаре: следующие 3 перемещения подсвечивают соседнюю клетку на кратчайшем пути до ближайшего портала." },
   hearth: { cls: 9, name: "Вечный очаг", ico: () => ICO_HEARTH, text: "Раз за заход: после Отдыха Усталость у всех героев снимается до 0." },
   dice: { cls: 9, name: "Игральные кубики", ico: () => ICO_DICE, text: "Любой бросок мастера на карте (событие, пробежка, стоянка, Исследование, Раскопки, бросок удачи) можно перебросить до последствий: результат виден до подтверждения. Откат 6 действий (2 дня)." },
-  bell: { cls: 9, name: "Серебряный колокольчик", ico: () => ICO_BELL, text: "Предупреждает об опасности: засада вместо неё становится обычной встречей. Откат 6 действий (2 дня)." },
+  bell: { cls: 9, name: "Бубенец-предвестник", ico: () => ICO_BELL, text: "Предупреждает об опасности: засада вместо неё становится обычной встречей. Откат 6 действий (2 дня)." },
   "once-more": { cls: 9, name: "«Ещё раз»", ico: () => ICO_AGAIN, text: "Одноразовый предмет: позволяет перебросить неудачный бросок на эссенцию после боя." },
   chalice: { cls: 8, name: "Чаша здоровья", ico: () => GEAR_ICON.chalice, text: GEAR.chalice.note },
   "beginners-luck": { cls: 8, name: "Удача новичка", ico: () => GEAR_ICON["beginners-luck"], text: GEAR["beginners-luck"].note },
@@ -5457,6 +5463,7 @@ function act(kind) {
     const fluteOn = !!(rs.flute && fluteHeroes().length), fluteFx = { fat: 0 };
     if (fluteOn) {
       tick(); const pl = fluteHeroes().sort((a, b) => (fluteItemOf(b).id === "calm-flute") - (fluteItemOf(a).id === "calm-flute"))[0], d20 = 1 + rnd(20), o = fluteOutcome(pl, d20);
+      if (state.run.floor === 3 && isToll(state.run.pos.x, state.run.pos.y)) f3Noise(1 + rnd(2), "игра на флейте");          // музыка в Звоне: шум +1–2
       fluteFx.fat = o.fat; const say = o.fat < 0 ? `Усталость отряда −${-o.fat}` : o.fat > 0 ? "фальшивая нота: Усталость отряда +1" : "мелодия не удалась, ничего не меняется";
       logRun(`${pl.name} играет на флейте (к20 = ${d20}, мод. ${o.mod >= 0 ? "+" : ""}${o.mod}, итого ${o.total}${o.skill ? ", с навыком" : ""}${o.calm ? ", флейта успокоения" : ""}): ${say}.`);
     }
@@ -5714,7 +5721,7 @@ document.addEventListener("click", e => {
     case "tr-tap": {
       const id = ds.id, r = state.run;
       if (id === "flame" && !r.flame) { r.flame = { left: 3 }; logRun("Следующие 3 перемещения подсветят дорогу к ближайшему порталу."); saveChar(); toast("Зажжено: 3 перемещения"); dgUi.inv = false; break; }
-      if (id === "tollbell" && tollReady() && !r.tollArmed) { r.tollArmed = { day: r.day }; r.tollDay = r.day; logRun("Серебряный колокольчик Звона взведён: ближайшие ментальные проверки команды — с преимуществом."); saveChar(); toast("Колокольчик взведён"); dgUi.inv = false; break; }
+      if (id === "tollbell" && tollReady() && !r.tollArmed) { r.tollArmed = { day: r.day }; r.tollDay = r.day; if (isToll(r.pos.x, r.pos.y)) f3Noise(3, "колокольчик звенит в Звоне"); logRun("Серебряный колокольчик Звона взведён: ближайшие ментальные проверки команды — с преимуществом."); saveChar(); toast("Колокольчик взведён"); dgUi.inv = false; break; }
       if (id === "boots" && bootsReady()) { r.boots = !r.boots; logRun(r.boots ? "Сапоги скороходы: следующее Движение — 2 клетки, следующий Бег — 3 клетки." : "Сапоги скороходы: отменено."); saveChar(); toast(r.boots ? "Сапоги включены" : "Сапоги выключены"); dgUi.inv = false; break; }
       if (id === "wind" && (treasure("wind").charges || 0) > 0) { r.wind = !r.wind; logRun(r.wind ? "Экстракт попутного ветра: следующий Бег — без Усталости, минусов и проверок." : "Экстракт попутного ветра: отменено."); saveChar(); toast(r.wind ? "Ветер применён" : "Отменено"); dgUi.inv = false; break; }
       trInfo(id); return;

@@ -355,6 +355,7 @@
     return "ready";
   }
   B.tollBell = tollBell;
+  const tollRing = u => { if (typeof isToll === "function" && state.run && isToll(state.run.pos.x, state.run.pos.y) && B.noise) B.noise(u, 3, "колокольчик звенит в Звоне"); };          // звон колокольчика на территории Звона: шум +3
   function saveCtx(u, abil, dc, o) {
     const mods = [{ l: ABIL_RU[abil], v: amod(u.abil[abil]) }]; if (u.saveB[abil]) mods.push({ l: "Эссенция", v: u.saveB[abil] });
     if (has(u, "weakened")) mods.push({ l: "Ослаблен", v: -1 });
@@ -381,7 +382,7 @@
     if (!ok) {
       const tb = tollBell(u, abil, o);
       if (tb) {
-        if (tb === "ready") { state.run.tollDay = state.run.day; B.S.tollKey = tollKey(o); }
+        if (tb === "ready") { state.run.tollDay = state.run.day; B.S.tollKey = tollKey(o); tollRing(u); }
         log(`Серебряный колокольчик звенит: ${u.name} перебрасывает с преимуществом.`, "good");
         const r2 = await ses.d20({ label: "Колокольчик: переброс", mods: ctx.mods, adv: [...ctx.adv, "Серебряный колокольчик"], dis: ctx.dis, vs: { dc }, cancel: false });
         ok = r2.total >= dc; Object.assign(r, { nat: r2.nat, total: r2.total, dice: r2.dice, mode: r2.mode });
@@ -405,7 +406,7 @@
     // колокольчик Звона: все пострадавшие герои (провалили ментальный спасбросок) перебрасывают с преимуществом, звон тратит один заряд на день
     list.forEach((t, i) => {
       if (!ctxs[i] || out[i].ok) return; const tb = tollBell(t, abil, o); if (!tb) return;
-      if (tb === "ready") { state.run.tollDay = state.run.day; B.S.tollKey = tollKey(o); }
+      if (tb === "ready") { state.run.tollDay = state.run.day; B.S.tollKey = tollKey(o); tollRing(t); }
       const old = out[i].total, r2 = d20Core({ mods: ctxs[i].mods, adv: [...ctxs[i].adv, "Серебряный колокольчик"], dis: ctxs[i].dis }), ok2 = r2.total >= dc;
       out[i] = { ok: ok2, nat: r2.nat, total: r2.total, dice: r2.dice, mode: r2.mode, again: old };
       log(`Серебряный колокольчик звенит: ${t.name} — ${r2.total} (было ${old}) против Сл ${dc} — ${ok2 ? "успех" : "провал"}.`, ok2 ? "save" : "fail");
