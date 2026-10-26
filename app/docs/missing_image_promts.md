@@ -38,6 +38,10 @@
 
 > `a worn leather-wrapped traveler's flask with a brass stopper on a chain, scuffs and stains on the leather, a faint warm glow around the cork, resting on a small cloth, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
 
+### Монокль Амона — `monocle`
+
+> `an ornate brass monocle with a thick round lens that shows a faint glowing eye-like iris, thin engraved rune ring around the rim and a short chain with a clasp, resting on a small cloth, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
 ## Находки (после определения)
 
 ### Целебная трава — `herb-heal`

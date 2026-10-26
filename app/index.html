@@ -3813,7 +3813,7 @@ function spTreasureHere() {
 }
 // Сокровище находят бросок к20 (решение автора): 1–8 камни (10–15 штук, чем выше бросок, тем больше и тем больше среди них 8 класса), 9–13 расходники (чем выше, тем больше),
 // 14–16 броня, 17 оружие (моё допущение: числа 17 в вашей таблице не было), 18–19 сокровище 9 класса, 20 сокровище 8 класса; какое именно — случайно из списка.
-const TREASURE_POOL = { 9: ["guard", "flame", "hearth", "dice", "bell", "once-more"], 8: ["chalice", "beginners-luck", "flask"] };
+const TREASURE_POOL = { 9: ["guard", "flame", "hearth", "dice", "bell", "once-more"], 8: ["chalice", "beginners-luck", "flask", "monocle"] };
 const treasureOwned = id => (TREASURES[id] ? treasure(id).owned : state.party.some(c => [...(c.bag || []), ...Object.values(c.equip || {})].some(e => e && e.id === id)));
 function treasurePick(cls) {
   const free = TREASURE_POOL[cls].filter(id => id === "once-more" || !treasureOwned(id));
@@ -4225,7 +4225,8 @@ function portalOverlay() {
    Числа (Сл, урон, радиусы) — мои, черновик в campaign/drafts.md. Босс охоты пока заглушка: при встрече показывается окно «босс ещё не создан». */
 const isTrapZone = (x, y) => curFloor() === 3 && FLOOR3.zoneName(x, y) === "Зона ловушек" && tileType(x, y) === "floor";
 const isHunt = (x, y) => curFloor() === 3 && FLOOR3.zoneName(x, y) === F3_FALLBACK && tileType(x, y) === "floor";
-function f3Gen() {
+function f3Gen(mapTraps = false) {          // ловушки и валуны — только в комнатах (решение автора 27.10), на самой карте их нет; mapTraps — для теста логики
+  if (!mapTraps) return { traps: {}, boulders: [], pen: 0, inZone: false, hunt: { acts: 0, need: 9, kills: 0, mon: null, rested: false, anim: null } };
   const cells = []; for (let y = 0; y < F3_SIZE; y++) for (let x = 0; x < F3_SIZE; x++) if (isTrapZone(x, y)) cells.push([x, y]);
   const traps = {}; for (const [x, y] of cells) if (Math.random() < .4) traps[tkey(x, y)] = { t: Math.random() < .45 ? "bear" : "wire", seen: false };
   const boulders = []; for (let i = 0; i < 3 && cells.length; i++) { const [x, y] = cells[rnd(cells.length)], [dx, dy] = [[1, 0], [-1, 0], [0, 1], [0, -1]][rnd(4)]; boulders.push({ x, y, dx, dy }); }
@@ -4236,7 +4237,9 @@ const f3Hurt = (c, n) => { c.hp = Math.max(1, hpOf(c) - n); };          // вн�
 const F3_TRAP_NAME = { bear: "капкан", wire: "растяжка" };
 const f3DexSaves = (dc, bonus = 0) => state.party.filter(c => !c.dead).map(c => { const d = 1 + rnd(20), t = d + mod(totals(c).dex.total) + bonus; return { c, t, d, ok: t >= dc }; });
 function f3Perception() {
-  const F = f3(), res = spSave("wis", 12), best = Math.max(-99, ...res.map(x => x.t)), keys = Object.keys(F.traps);
+  const F = f3(); if (!Object.keys(F.traps).length) return;
+  if (treasure("monocle").owned) { for (const tr of Object.values(F.traps)) tr.seen = true; logRun("Монокль Амона раскрыл все ловушки зоны."); dgUi.res = { title: "Монокль Амона", roll: "", lines: ["Все ловушки зоны подсвечены."] }; return; }
+  const res = spSave("wis", 12), best = Math.max(-99, ...res.map(x => x.t)), keys = Object.keys(F.traps);
   let shown = 0; for (const k of keys) if (!F.traps[k].seen && (best >= 17 || (best >= 12 && Math.random() < .55))) { F.traps[k].seen = true; shown++; }
   const all = keys.every(k => F.traps[k].seen), none = !keys.some(k => F.traps[k].seen);
   const txt = best >= 17 ? "Внимательность на высоте: ловушки зоны подсвечены все." : best >= 12 ? `Часть ловушек замечена и подсвечена (${keys.filter(k => F.traps[k].seen).length} из ${keys.length}).` : "Ловушек не заметили.";
@@ -4333,7 +4336,7 @@ const F3_ICON = {
 };
 function f3Marks(px, py, up) {
   const r = state.run, F = r.f3, out = []; if (!F || r.floor !== 3) return out;
-  for (const [k, tr] of Object.entries(F.traps)) { if (!tr.seen) continue; const [x, y] = k.split(",").map(Number); if (Math.abs(x - px) + Math.abs(y - py) > 5) continue; out.push(up((x - px) * T, (y - py) * T, `<g transform="scale(.9)" opacity=".95">${F3_ICON[tr.t]}</g>`)); }
+  for (const [k, tr] of Object.entries(F.traps)) { if (!tr.seen && !treasure("monocle").owned) continue; const [x, y] = k.split(",").map(Number); if (Math.abs(x - px) + Math.abs(y - py) > 5) continue; out.push(up((x - px) * T, (y - py) * T, `<g transform="scale(.9)" opacity=".95">${F3_ICON[tr.t]}</g>`)); }
   for (const b of F.boulders) if (Math.max(Math.abs(b.x - px), Math.abs(b.y - py)) <= 3) out.push(up((b.x - px) * T, (b.y - py) * T, `<g transform="scale(.95)">${F3_ICON.boulder}<path d="M0 0 L${b.dx * 12} ${b.dy * 12}" stroke="#f4d48e" stroke-width="2.5" marker-end="none"/></g>`));
   const m = F.hunt.mon; if (m && Math.max(Math.abs(m.x - px), Math.abs(m.y - py)) <= 3) out.push(up((m.x - px) * T, (m.y - py) * T, F3_ICON.hunter));
   return out;
@@ -4488,7 +4491,7 @@ function inventory() {
 const curFloor = () => (state.run && state.run.floor) || 1;
 /* ----- сокровища (черновик, drafts.md → «Сокровища»): по классам, 9 — худший, 1 — лучший ----- */
 const TREASURES = { guard: { cls: 9, name: "Ночной страж", base: 3, perFloor: 2 }, flame: { cls: 9, name: "Огонь, указывающий путь" }, hearth: { cls: 9, name: "Вечный очаг" },
-  dice: { cls: 9, name: "Игральные кубики", cd: 6 }, bell: { cls: 9, name: "Серебряный колокольчик", cd: 6 }, flask: { cls: 8, name: "Фляга странника", cd: 6 } };          // cd — откат в действиях (6 = 2 дня)
+  dice: { cls: 9, name: "Игральные кубики", cd: 6 }, bell: { cls: 9, name: "Серебряный колокольчик", cd: 6 }, flask: { cls: 8, name: "Фляга странника", cd: 6 }, monocle: { cls: 8, name: "Монокль Амона" } };          // cd — откат в действиях (6 = 2 дня)
 function treasure(id) { return ((inventory().treasures ||= {})[id] ||= { owned: false }); }
 // Заряды Ночного стража — на заход: 3, +2 за первый за заход спуск на каждый новый этаж; вернулся и спустился снова — зарядов нет; новый заход сбрасывает.
 function ngState() { const r = state.run; return r ? (r.ng ||= { used: 0, granted: [] }) : { used: 0, granted: [] }; }
@@ -4539,6 +4542,7 @@ const flameLabel = () => { const f = state.run && state.run.flame; return !f ? "
 function artMask(it, id) { return artKnown(id) ? it : { ...it, name: "??", short: "??", note: `Свойства неизвестны. Определить артефакт можно в Башне магов за ${artPrice(id)} монет.`, unknown: true }; }
 const ICO_DICE = `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><rect x="4" y="4" width="16" height="16" rx="3" fill="currentColor" opacity=".15"/><rect x="4" y="4" width="16" height="16" rx="3"/><circle cx="8.5" cy="8.5" r="1.1" fill="currentColor"/><circle cx="15.5" cy="8.5" r="1.1" fill="currentColor"/><circle cx="12" cy="12" r="1.1" fill="currentColor"/><circle cx="8.5" cy="15.5" r="1.1" fill="currentColor"/><circle cx="15.5" cy="15.5" r="1.1" fill="currentColor"/></svg>`;
 const ICO_BELL = `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M6 17c1.2-1.4 1.5-3 1.5-5.5a4.5 4.5 0 0 1 9 0c0 2.5.3 4.1 1.5 5.5z" fill="currentColor" opacity=".18"/><path d="M6 17c1.2-1.4 1.5-3 1.5-5.5a4.5 4.5 0 0 1 9 0c0 2.5.3 4.1 1.5 5.5zM10.5 19.5a1.6 1.6 0 0 0 3 0M12 5.5V4"/></svg>`;
+const ICO_MONOCLE = `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><circle cx="10" cy="10" r="6.5"/><circle cx="10" cy="10" r="3" fill="currentColor" opacity=".25"/><path d="M14.6 14.6 20 20M20 20c0 1.5-1 2.5-2.5 2.5M5.5 7.5A5 5 0 0 1 9 5"/></svg>`;
 const ICO_FLASK = `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M9 3h6v3l2 2v11a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V8l2-2z" fill="currentColor" opacity=".18"/><path d="M9 3h6v3l2 2v11a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V8l2-2zM9 6h6M7.5 12h9"/></svg>`;
 const ICO_AGAIN = `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M5 12a7 7 0 0 1 12-4.9L19 9M19 12a7 7 0 0 1-12 4.9L5 15"/><path d="M19 4v5h-5M5 20v-5h5"/></svg>`;
 const ARTIFACTS = {
@@ -4551,6 +4555,7 @@ const ARTIFACTS = {
   chalice: { cls: 8, name: "Чаша здоровья", ico: () => GEAR_ICON.chalice, text: GEAR.chalice.note },
   "beginners-luck": { cls: 8, name: "Удача новичка", ico: () => GEAR_ICON["beginners-luck"], text: GEAR["beginners-luck"].note },
   "calm-flute": { cls: 9, name: "Флейта успокоения", ico: () => GEAR_ICON.flute, text: GEAR["calm-flute"].note },
+  monocle: { cls: 8, name: "Монокль Амона", ico: () => ICO_MONOCLE, text: "Раскрывает ловушки на карте: пока монокль у отряда, все ловушки в зоне видны сразу, проверка внимательности при входе не нужна." },
   flask: { cls: 8, name: "Фляга странника", ico: () => ICO_FLASK, text: "На Отдыхе один съеденный паёк не тратится: он возвращается тому, кто его ел. Откат 6 действий (2 дня)." },
 };
 const ART_ID_PRICE = { 9: 20, 8: 80, 7: 320, 6: 1000, 5: 3000, 4: 8000, 3: 20000, 2: 50000, 1: 150000 };          // определение в Башне магов (черновик)
