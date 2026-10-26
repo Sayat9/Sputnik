@@ -16,7 +16,7 @@
   function atkFor(u, kind, dt, needWeapon) {
     let list = B.attacksOf(u).filter(a => a.kind === kind && !a.offhand && !a.thrown && !a.special && !(u.side === "hero" && a.id === "torchhit"));
     if (needWeapon && u.side === "hero") list = list.filter(a => a.w);
-    if (u.side === "hero") list = list.filter(a => !a.ammo || countGear(u.hero, "arrow") > 0);
+    if (u.side === "hero") list = list.filter(a => !a.ammo || B.arrowsLeft(u) > 0);
     if (dt) list = list.filter(a => a.dt === dt);
     if (u.side === "hero" && kind === "melee" && list.length > 1) list = list.filter(a => a.id !== "fist");
     return list.sort((a, b) => B.avgDice(b.dmg) - B.avgDice(a.dmg))[0] || null;

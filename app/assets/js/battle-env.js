@@ -59,7 +59,7 @@
     if (p8 && rnd(1000) < p8 * 1000) { (S.found ||= []).push({ t: "g", id: "stone-8", qty: 1 }); log(`Среди обломков блестит магический камень (8-й класс).`, "good"); }
   }
   // Походный сундучок (Ведьмин лес): обычно камни (иногда факел), в 5 % случаев внутри мимик — он появляется рядом и бьёт того, кто сломал.
-  D.stash = { mimic: 0.05, stone9: [1, 2], stone8: 0.2, torch: 0.08 };
+  D.stash = { place: 0.45, mimic: 0.05, stone9: [1, 2], stone8: 0.2, torch: 0.08 };
   function stashBreak(x, y, src) {
     const S = B.S, C = D.stash; let who = src && src.side && !src.isObj ? src : null;
     if (!who) who = B.heroes().filter(alive)[0] || null;
@@ -74,7 +74,7 @@
     (S.found ||= []).push({ t: "g", id: "stone-9", qty: n9 }); lines.push(`камни 9-го класса × ${n9}`);
     if (rnd(1000) < C.stone8 * 1000) { S.found.push({ t: "g", id: "stone-8", qty: 1 }); lines.push("камень 8-го класса"); }
     if (rnd(1000) < C.torch * 1000) { S.found.push({ t: "g", id: "torch", qty: 1 }); lines.push("факел"); }
-    if (rnd(1000) < 120) { S.found.push({ t: "g", id: "silver-salt", qty: 1 }); lines.push("серебряная соль"); }
+    if (rnd(1000) < 350) { S.found.push({ t: "g", id: "weak-salt", qty: 1 }); lines.push("слабая соль"); }
     log(`В обломках сундучка: ${lines.join(", ")}.`, "good");
   }
   B.flushStash = async function () {
@@ -267,7 +267,7 @@
     if (rnd(1000) < C.food * 1000) out.push({ t: "g", id: "ration", qty: 1 + rnd(2) });
     if (rnd(1000) < C.potion * 1000) out.push({ t: "g", id: "potion", qty: 1 });
     if (rnd(1000) < C.other * 1000) { const ids = Object.keys(FD()); out.push(rnd(2) ? { t: "g", id: "torch", qty: 1 + rnd(2) } : { t: "g", id: pick(ids), qty: 1 }); }
-    if (rnd(100) < 15) out.push({ t: "g", id: "silver-salt", qty: 1 });          // соль падает из всех сундуков (решение автора 28.10)
+    if (rnd(100) < 35) out.push({ t: "g", id: "weak-salt", qty: 1 });          // слабая соль падает из сундуков (решение автора 29.10)
     if (rnd(1000) < C.map * 1000) out.push({ map: "floorMap" });
     return out;
   }
@@ -283,7 +283,8 @@
   }
   function placeStashes(S, ev) {
     if (!(ev.stash || ev.void)) return;
-    const n = 2 + rnd(2);
+    if (rnd(1000) >= D.stash.place * 1000) return;          // сундучок бывает не в каждом бою (решение автора 29.10)
+    const n = 1;
     for (let i = 0, tries = 0; i < n && tries < 80; tries++) {
       const x = rnd(B.W), y = 2 + rnd(Math.max(1, B.H - 5));
       if (S.cells[y][x] || S.objs.some(o => o.x === x && o.y === y)) continue;

@@ -85,7 +85,7 @@
     const out = [], c = u.hero; if (!c) return out;
     const main = B.mainOf(u), off = B.offOf(u), act = B.timeOK(u, "action");
     if (main && main.id === "longbow") out.push({ id: "aim", cat: "attack", label: "Прицел", ico: "bow", sub: "действие: следующий выстрел +1к6 урона", time: "action",
-      enabled: act && !has(u, "aimed") && countGear(c, "arrow") > 0, why: !act ? "действие потрачено" : has(u, "aimed") ? "уже прицелились" : "нет стрел",
+      enabled: act && !has(u, "aimed") && B.arrowsLeft(u) > 0, why: !act ? "действие потрачено" : has(u, "aimed") ? "уже прицелились" : "нет стрел",
       run: async () => { B.spendTime(u, "action"); addStatus(u, "aimed", { k: 2, when: "end" }); log(`${u.name} целится: следующий выстрел +1к6.`, "good"); fx(u, "прицел", "good"); return true; } });
     if (((main && main.id === "gloves") || (off && off.id === "gloves"))) out.push({ id: "fistblock", cat: "defend", label: "Блок кулаками", ico: "defend", sub: "до начала хода: урон ближних атак −1к4 + Ловкость", time: "action",
       enabled: act && !has(u, "fistblock"), why: !act ? "действие потрачено" : "уже в блоке",

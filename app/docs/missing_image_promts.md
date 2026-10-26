@@ -216,3 +216,6 @@
 - `treasures/bell` — `small silver warning handbell with a short ribbon (renamed: Bubenets-predvestnik)`
 - `monsters/mimic` — `full-body treasure chest mimic mid-lunge, wooden chest with a wide toothy maw, long sticky tongue, glowing amber eyes under the lid, tiny gold coins stuck to its teeth, painted dark fantasy creature, 1024x1536`
 - `terrain/stash` — `small purple-grey travelling chest with a gold latch, top-down fantasy battle map tile`
+- `items/weak-salt` — `small linen pouch of fine grey salt flecked with silver dust, painted fantasy item icon, plain dark background`
+- `items/silver-salt` — `heavy silver-clasped pouch of glittering coarse silver salt spilling out, faint cold glow, painted fantasy artifact icon, plain dark background`
+- `items/director-quiver` — `ornate leather quiver embossed with theatre masks, ten white-fletched arrows sticking out, brass fittings, painted fantasy artifact icon, plain dark background`

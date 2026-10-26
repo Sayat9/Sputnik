@@ -62,10 +62,10 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
     const fl = []; for (const [f, v] of [[1, false], [2, false], [3, false], [3, true]]) { const Sx = B.newBattle({ list: ['goblin'], zone: 'goblin', floor: f, kind: 'hard', title: 'x', void: v }); fl.push(B.fleeDc()); }
     out.flee = fl;
     // 9. походные сундучки Ведьмина леса: ставятся, ломаются; награда или мимик
-    const Sv = B.newBattle({ list: ['goblin', 'goblin'], zone: 'goblin', floor: 3, kind: 'hard', title: 'x', void: true, stash: true }); S0 = null;
+    B.D.stash.place = 1; const Sv = B.newBattle({ list: ['goblin', 'goblin'], zone: 'goblin', floor: 3, kind: 'hard', title: 'x', void: true, stash: true }); S0 = null;
     B.placeHeroesDefault(Sv); B.placeMonsters(Sv);
     let sx = []; for (let y = 0; y < B.H; y++) for (let x = 0; x < B.W; x++) if (Sv.cells[y][x] === 'stash') sx.push([x, y]);
-    out.stash = { n: sx.length };
+    out.stash = { n: sx.length }; for (let y = 5; y < 8 && sx.length < 2; y++) for (let x = 0; x < B.W && sx.length < 2; x++) if (!Sv.cells[y][x] && !B.S.objs.some(o => o.x === x && o.y === y) && !B.S.units.some(u => u.x === x && u.y === y)) { Sv.cells[y][x] = 'stash'; sx.push([x, y]); }
     const hv = B.heroes()[0]; const rr = Math.random;
     B.D.stash.mimic = 0; Sv.found = []; B.destroyObject(sx[0][0], sx[0][1], hv); out.loot = { found: Sv.found.map(f => f.id), mons: B.mons().length };
     B.D.stash.mimic = 1; const before2 = B.mons().length; const hp0 = hv.hp; B.destroyObject(sx[1][0], sx[1][1], hv);
@@ -74,6 +74,16 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
     B.D.stash.mimic = 0.05;
     // 10. соль: оружие с флагом бьёт спектральных
     out.salted = !!itemOf({ t: 'w', id: 'sword', salt: true }).salt && /соль/.test(itemOf({ t: 'w', id: 'sword', salt: true }).note);
+    // 11. колчан режиссёра: 10 стрел не ломаются и не тратят обычные; потом обычные
+    const ar = B.heroes().find(h => h.hero && h.hero.equip) || B.heroes()[0], c2 = ar.hero; c2.bag = [{ t: 'g', id: 'director-quiver', qty: 1 }, { t: 'g', id: 'arrow', qty: 5 }]; ar.dq = undefined;
+    const start = B.dqLeft(ar); const atk = { ammo: 'arrow', kind: 'ranged', time: 'action' }; const L = B.arrowLog(c2.id);
+    const shoot = () => { if (B.dqLeft(ar) > 0) { ar.dq--; ar.dqShot = true; } else { ar.dqShot = false; takeGear(c2, 'arrow', 1); } return B.arrowFate(ar, { x: 0, y: 0 }, { nat: 5, total: 6, ac: 14, hit: true, crit: false }); };
+    const fates = []; for (let i = 0; i < 10; i++) fates.push(shoot().broken);
+    out.dq = { start, left: ar.dq, arrowsAfter10: countGear(c2, 'arrow'), anyBroken: fates.some(x => x), all: B.arrowsLeft(ar) };
+    shoot(); out.dq.after11 = countGear(c2, 'arrow');
+    // 12. слабая соль: 3 дня
+    const wp = { t: 'w', id: 'sword', qty: 1 }; c2.equip = c2.equip || {}; c2.equip.main = wp; wp.saltDays = 3;
+    out.weak = [!!itemOf(wp).salt]; saltTick(); saltTick(); out.weak.push(!!itemOf(wp).salt); saltTick(); out.weak.push(!!itemOf(wp).salt);
     out.errs = 0;
     return out;
   });
@@ -90,10 +100,12 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
   ok('соль: физика проходит по спектральному, без соли блокируется, огонь проходит', o.salt.join() === 'true,false,false', o.salt);
   ok('колокольчик в Звоне: шум +3', o.ring === 3, o.ring);
   ok('сложность побега: 1 эт. 5, 2 эт. 7, 3 эт. 8, Ведьмин лес 10', o.flee.join() === '5,7,8,10', o.flee);
-  ok('сундучки в бою Ведьмина леса', o.stash.n >= 2, o.stash);
+  ok('сундучки в бою Ведьмина леса', o.stash.n === 1, o.stash);
   ok('обычный сундучок даёт камни, мимик не появляется', o.loot.found.includes('stone-9') && o.mimic && true, o.loot);
   ok('5%: из сундучка выскакивает мимик и бьёт сломавшего', o.mimic.mons === 1 && o.mimic.hit, o.mimic);
   ok('посыпанное солью оружие описано и помечено', o.salted, o.salted);
+  ok('колчан режиссёра: 10 стрел не ломаются и не тратят обычные, потом обычные', o.dq.start === 10 && !o.dq.anyBroken && o.dq.arrowsAfter10 === 5 && o.dq.after11 === 4 && o.dq.all === 5, o.dq);
+  ok('слабая соль действует 3 дня', o.weak.join() === 'true,true,false', o.weak);
   ok('нет ошибок страницы', errs.length === 0, errs.slice(0, 3));
   console.log('проверок:', R.length, 'не прошли:', R.filter(x => !x).length);
   await b.close();

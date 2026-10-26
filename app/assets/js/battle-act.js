@@ -107,11 +107,18 @@
   Object.assign(B, { timeOK, spendTime });
 
   // tgt — цель атаки: туда падает брошенное оружие. o.free — атака входит в способность, отдельного времени не тратит («Двойной бросок»).
+  // Колчан режиссёра (артефакт 7 класса): 10 обычных стрел, которые стреляют первыми; на каждый бой пополняются.
+  B.dqLeft = u => { if (!u.hero) return 0; if (u.dq === undefined) u.dq = (u.hero.bag || []).some(e => e && e.id === "director-quiver") ? 10 : 0; return u.dq; };
+  B.arrowsLeft = u => B.dqLeft(u) + countGear(u.hero, "arrow");
   function commitAttack(u, atk, tgt, o = {}) {
     if (!o.free) spendTime(u, atk.time || "action");
     if (atk.alsoBonus) spendTime(u, "bonus");                                                    // «Крушащий удар»: действие и доп. действие
     if (!atk.offhand && !(atk.thrown && atk.slot === "off")) u.t.attacked = true;
-    if (atk.ammo && u.hero) { takeGear(u.hero, "arrow", 1); const L = B.arrowLog(u.hero.id); L.shot++; }
+    if (atk.ammo && u.hero) {
+      const L = B.arrowLog(u.hero.id);
+      if (B.dqLeft(u) > 0) { u.dq--; u.dqShot = true; L.dq = (L.dq || 0) + 1; }          // колчан режиссёра: стрелы не ломаются и возвращаются сами
+      else { u.dqShot = false; takeGear(u.hero, "arrow", 1); L.shot++; }
+    }
     if (atk.thrown && u.hero) {
       const c = u.hero, S = B.S, x = tgt ? tgt.x : u.x, y = tgt ? tgt.y : u.y;
       if (atk.bagEntry) {                                                                         // из рюкзака: запись остаётся в рюкзаке до итога боя, как и оружие из руки
@@ -558,9 +565,9 @@
     const t = u.t;
     // атаки
     for (const atk of heroAttacks(u)) {
-      const why = timeWhy(u, atk.time) || (atk.alsoBonus && timeWhy(u, "bonus") ? "нужно ещё и доп. действие" : null) || (atk.needTarget ? atk.needTarget(u) : (atk.ammo && countGear(u.hero, "arrow") < 1 ? "нет стрел" : ((B.attackTargets(u, atk).length || (B.objectTargets && B.objectTargets(u, atk).length)) ? null : "нет целей рядом")));
+      const why = timeWhy(u, atk.time) || (atk.alsoBonus && timeWhy(u, "bonus") ? "нужно ещё и доп. действие" : null) || (atk.needTarget ? atk.needTarget(u) : (atk.ammo && B.arrowsLeft(u) < 1 ? "нет стрел" : ((B.attackTargets(u, atk).length || (B.objectTargets && B.objectTargets(u, atk).length)) ? null : "нет целей рядом")));
       opts.push({ id: "atk:" + atk.id, cat: "attack", label: atk.n, ico: atk.ammo ? "bow" : atk.thrown ? "throwing" : atk.id === "fist" ? "fist" : atk.id === "torchhit" ? "torch" : "attack",
-        sub: `${atkWith(atk)} · ${atk.kind === "melee" ? "до " + (atk.reach || 1) + " кл." : atk.range[0] >= B.W - 1 ? "дальний · всё поле" : `дальний · ${atk.range[0]} кл., до ${Math.min(atk.range[1], 12)} с помехой`} · ${atk.dmg.n ? fmtDice(atk.dmg) : atk.dmg.b} ${D.DT[atk.dt]}${atk.penalty ? " · " + atk.penaltyLabel : ""}${atk.spin ? " · вращающийся удар" : ""}${atk.ammo ? " · стрел: " + countGear(u.hero, "arrow") : ""}`,
+        sub: `${atkWith(atk)} · ${atk.kind === "melee" ? "до " + (atk.reach || 1) + " кл." : atk.range[0] >= B.W - 1 ? "дальний · всё поле" : `дальний · ${atk.range[0]} кл., до ${Math.min(atk.range[1], 12)} с помехой`} · ${atk.dmg.n ? fmtDice(atk.dmg) : atk.dmg.b} ${D.DT[atk.dt]}${atk.penalty ? " · " + atk.penaltyLabel : ""}${atk.spin ? " · вращающийся удар" : ""}${atk.ammo ? " · стрел: " + B.arrowsLeft(u) : ""}`,
         time: atk.time, enabled: !why, why, atk, run: () => (atk.special && B.runSpecial ? B.runSpecial(u, atk) : runAttack(u, atk)) });
     }
     if (B.weapActions) opts.push(...B.weapActions(u));

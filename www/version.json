@@ -1,5 +1,5 @@
 {
- "version": 1793034501,
+ "version": 1793035573,
  "files": [
   "assets/buildings/church.webp",
   "assets/buildings/forge.webp",
@@ -393,21 +393,21 @@
   "assets/items/unknown-stone.webp": "0c888965995e38749cc8ce27373285bb",
   "assets/items/warhammer.svg": "146a73c3b76075dc5cf83d3f60f0d935",
   "assets/items/warhammer.webp": "96a5d7990847d290d359b35e7673e757",
-  "assets/js/battle-act.js": "2145985e45eb0fb7b08c899eae3ea38c",
-  "assets/js/battle-ai.js": "175c4fe11728c31c66c7e47e8428b8ee",
+  "assets/js/battle-act.js": "5d43ff3b4cff6e3232ebdf1fbde37f37",
+  "assets/js/battle-ai.js": "ea4b8bee5b46c2263419653fee717cf2",
   "assets/js/battle-core.js": "06b3e6de8c93728146a1db62f4c5d486",
   "assets/js/battle-data.js": "93e7ad3a4eb6d7cdc715f2fa29ef2414",
   "assets/js/battle-dice.js": "e45c4170169e0538b2b8519fd233bf0e",
   "assets/js/battle-end.js": "a8e205e4004205f56b67d0e2c8111e0b",
-  "assets/js/battle-env.js": "23c35e6a67c381bc44602e592d06af89",
-  "assets/js/battle-ess.js": "89dcbd7a747537548d6a3dbae23bf9e8",
+  "assets/js/battle-env.js": "f6428cb9f774843c565840e4650b9690",
+  "assets/js/battle-ess.js": "a6963d02544d4acf83a8399a125f39b9",
   "assets/js/battle-ess2.js": "540ab696b07fabe4bc4ad08ed51c52ef",
   "assets/js/battle-ext.js": "71cdb0ae150fac652989c8a2ef02a315",
   "assets/js/battle-menu.js": "861743e358d79477224aa77705a7c633",
   "assets/js/battle-net.js": "2ec8914d230f7ef8ef96df7662aa1e4e",
-  "assets/js/battle-rules.js": "3422d138aecf90abd420306ff019ebf7",
+  "assets/js/battle-rules.js": "1ba9bf8c333f295a9fe9acbd3c43e66b",
   "assets/js/battle-ui.js": "f3895514c0f26b5a2dbb26f301b2072d",
-  "assets/js/battle-weap.js": "06e18b6bd20fa0f32492d64a70858428",
+  "assets/js/battle-weap.js": "3222e3da37f0326a46db55389ceed633",
   "assets/js/battle.js": "cf7816a970e9fb0f9884938028260772",
   "assets/js/net.js": "110683a663d3cbfa576e7a56e5d09677",
   "assets/js/netglue.js": "57c46e99a7482a59b5196b9b40ba1c6d",
@@ -608,6 +608,6 @@
   "fonts/f8.woff2": "6cc1ee17091d59eb93821c3594e8f38f",
   "fonts/f9.woff2": "070433480b7b645f69b543f284e386ce",
   "fonts/fonts.css": "1585a72a8d157b26cb424ab433fd4e19",
-  "index.html": "f3214175d9f4c36cdd949ec1aecdfdc7"
+  "index.html": "1f8fe606e284ae097f333b4a9ca68b84"
  }
 }

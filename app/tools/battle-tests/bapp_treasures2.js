@@ -64,7 +64,7 @@ const L = require('./bui_lib.js');
   ok('все 20 исходов выпадают', D2.spread === 20, JSON.stringify(D2));
   const D3 = await p.evaluate(() => {
     state.party.forEach(c => { c.bag = []; c.equip = {}; }); state.sack = null; Object.keys(TREASURES).forEach(id => { treasure(id).owned = true; });
-    addToBag(state.party[0], { t: 'g', id: 'chalice', qty: 1 }); addToBag(state.party[0], { t: 'g', id: 'beginners-luck', qty: 1 });
+    addToBag(state.party[0], { t: 'g', id: 'chalice', qty: 1 }); addToBag(state.party[0], { t: 'g', id: 'silver-salt', qty: 1 }); addToBag(state.party[0], { t: 'g', id: 'beginners-luck', qty: 1 });
     const a = treasureRoll(18), b = treasureRoll(20);
     return { a: a.lines.join('|'), b: b.lines.join('|'), once: countGear(state.party[0], 'once-more') };
   });

@@ -272,6 +272,7 @@
   // и возвращается в колчан в конце боя (battle-end.js), если отряд не бежал.
   function arrowFate(att, tgt, f) {
     const L = B.arrowLog(att.hero.id), margin = f.total - f.ac;
+    if (att.dqShot) return { broken: false, note: f.hit ? "" : "стрела режиссёра вернётся" };          // колчан режиссёра: не ломается, на поле не остаётся
     let broken = false, note = "";
     if (f.nat === 1) { broken = true; note = "стрела сломалась"; }
     else if (!f.hit) note = "стрела упала на поле";

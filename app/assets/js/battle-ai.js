@@ -9,7 +9,7 @@
 
   const profileOf = u => {
     if (u.side === "mon" || u.summon) return u.ai || { int: 1, role: "melee", focus: ["nearest"] };
-    const ranged = B.attacksOf(u).some(a => a.kind === "ranged" && a.ammo && countGear(u.hero, "arrow") > 0);
+    const ranged = B.attacksOf(u).some(a => a.kind === "ranged" && a.ammo && B.arrowsLeft(u) > 0);
     return { int: 2, role: ranged ? "ranged" : "melee", keep: ranged ? 2 : 0, focus: ["wounded", "weak", "nearest"], kite: ranged };
   };
   const seenBy = (u, t) => !(has(t, "hidden") && (dist(u, t) > 1 || has(t, "hidden").data.invis) && !(u.blind && dist(u, t) <= u.blind) && !(u.tremor && dist(u, t) <= u.tremor && !B.isFlying(t)));
@@ -61,7 +61,7 @@
     const useRangedFirst = pr.ranged === "ifNoMelee";
     for (const atk of attacks) {
       if (atk.offhand || (atk.thrown && !(pr.throwWhenBroken && alliesOf(u).length === 0))) continue;
-      if (atk.ammo && u.hero && countGear(u.hero, "arrow") < 1) continue;
+      if (atk.ammo && u.hero && B.arrowsLeft(u) < 1) continue;
       if (u.side === "hero" && atk.id === "torchhit") continue;
       for (const t of ts) {
         if (!B.inAttackRange(u, t, atk)) continue;
