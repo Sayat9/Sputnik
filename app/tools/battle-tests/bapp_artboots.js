@@ -43,7 +43,7 @@ const L = require('./bui_lib.js');
     treasure('wind').charges = 1; r.wind = true; reset(3, 3); r.bootsDay = r.day; dgUi.phase = 'run'; dgUi.path = [{ x: 3, y: 4 }, { x: 3, y: 5 }]; act('run');
     out.windGone = !treasure('wind').owned && treasure('wind').charges === 0;
     // ---- уровни
-    const c0 = state.party[0]; c0.level = 1; c0.xp = 0; out.need = [xpNeed(c0)]; c0.level = 2; out.need.push(xpNeed(c0)); c0.level = 3; out.need.push(xpNeed(c0));
+    const c0 = state.party[0]; c0.level = 1; c0.xp = 0; out.need = [xpNeed(c0)]; c0.level = 2; out.need.push(xpNeed(c0)); c0.level = 3; out.need.push(xpNeed(c0)); c0.level = 4; out.need.push(xpNeed(c0)); out.monXp = [9, 8, 7, 6, 5].map(c => monXp({ cls: c }));
     c0.level = 2; c0.xp = 38; addXpAll(1); out.lvl2 = [c0.level, c0.xp]; addXpAll(1); out.lvl3 = [c0.level, c0.xp];
     c0.level = 1; c0.xp = 19; addXpAll(1); out.lvl1to2 = [c0.level, c0.xp];
     state.party.forEach(c => { c.level = 1; c.xp = 0; });
@@ -72,7 +72,8 @@ const L = require('./bui_lib.js');
   ok('экстракт: Бег без Усталости и без проверок, один заряд', res.windNoFat && res.windNoPass && res.windCharge, res);
   ok('экстракт действует на один Бег', res.windOnce);
   ok('экстракт расходуется после 10 зарядов', res.windGone);
-  ok('уровни: со 2-го за 20 опыта, с 3-го за 40', JSON.stringify(res.need) === '[20,40,40]', res.need);
+  ok('уровни: на 2-й 20 опыта, на 3-й 40, на 4-й 80', JSON.stringify(res.need) === '[20,40,80,80]', res.need);
+  ok('опыт за первого убитого вида: 9→1, 8→2, 7→3, 6→4, 5→5', JSON.stringify(res.monXp) === '[1,2,3,4,5]', res.monXp);
   ok('3 уровень: 39 опыта — ещё 2, 40 — 3-й, остаток 0', JSON.stringify(res.lvl2) === '[2,39]' && JSON.stringify(res.lvl3) === '[3,0]' && JSON.stringify(res.lvl1to2) === '[2,0]', [res.lvl2, res.lvl3, res.lvl1to2]);
   ok('достижение «портал на 2 этаж до конца 2-го дня»: +2 опыта каждому, один раз', res.ach1.xp.every(x => x === 2) && res.ach1.done && /Достижение/.test(res.ach1.res || '') && res.ach1again.every(x => x === 2), res.ach1);
   ok('на 3-й день и не на портале — достижения нет', res.ach1late && res.ach1notPortal);
