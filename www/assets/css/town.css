@@ -79,6 +79,12 @@
 .tw-sheet-in .tw-tabs { margin-bottom: 10px; }
 .tw-sheet-in .tw-tabs .fx-btn { background: rgb(255 248 225 / .6); color: #2a1a0c; border-color: #7a5a2a; }
 .tw-sheet-in .tw-tabs .fx-btn[aria-selected="true"] { background: #7a5a2a; color: #fff6dc; }
+/* строки внутри пергамента (скупка и починка в кузнице): тёмный текст на светлой бумаге */
+.tw-sheet-in .tw-lead { color: #4a3418; }
+.tw-sheet-in .tw-row { background: rgb(255 248 225 / .55); border-color: #8a6a3a; }
+.tw-sheet-in .tw-who b { color: #3a220e; }
+.tw-sheet-in .tw-who small { color: #5a4020; }
+.tw-sheet-in .tw-msg { color: #4a3418; }
 .tw-bag .cell { touch-action: none; }
 .tw-ghost { position: fixed; left: 0; top: 0; width: 56px; height: 56px; z-index: 95; pointer-events: none; border-radius: 8px; overflow: hidden; border: 2px solid var(--fx-gold-hi); background: #120E09; box-shadow: 0 6px 18px rgb(0 0 0 / .7); opacity: .92; display: grid; place-items: center; color: var(--fx-gold); }
 .tw-ghost img, .tw-ghost svg { width: 100%; height: 100%; object-fit: cover; }

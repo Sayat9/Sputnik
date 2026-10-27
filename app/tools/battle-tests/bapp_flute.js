@@ -30,7 +30,7 @@ const L = require('./bui_lib.js');
     // сундук крысолова
     state.inventory.treasures = {}; state.artifacts = null;
     ratChest(); const calmPossible = ARTIFACTS['calm-flute'].cls === 9;
-    out.chest = calmPossible; out.chestGot = Object.values(state.inventory.treasures).some(t => t.owned) || state.party.some(x => (x.bag || []).some(e => e && ['once-more', 'calm-flute'].includes(e.id)));
+    out.chest = calmPossible; out.chestGot = Object.values(state.inventory.treasures).some(t => t.owned) || state.party.some(x => (x.bag || []).some(e => e && (['once-more', 'calm-flute'].includes(e.id) || ARTIFACTS[e.id])));
     return out;
   });
   for (const [k, v] of Object.entries(A)) ok('flute ' + k, v === true, v);

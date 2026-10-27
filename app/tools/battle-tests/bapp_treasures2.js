@@ -51,8 +51,8 @@ const L = require('./bui_lib.js');
     out.sup = [9, 10, 11, 12, 13].map(d => byD[d].sack === 0 && byD[d].tr === '');
     out.armor = [14, 15, 16].every(d => /:a/.test(byD[d].bag));
     out.weapon = /:w/.test(byD[17].bag);
-    out.t9 = [18, 19].every(d => (byD[d].tr && TREASURES[byD[d].tr].cls === 9) || /once-more|silver-salt/.test(byD[d].bag));
-    out.t8 = (byD[20].tr && TREASURES[byD[20].tr].cls === 8) || /chalice|beginners-luck|flask|director-quiver/.test(byD[20].bag);
+    out.t9 = [18, 19].every(d => (byD[d].tr && TREASURES[byD[d].tr].cls === 9) || new RegExp(['once-more', ...TREASURE_POOL[9]].join('|')).test(byD[d].bag));
+    out.t8 = (byD[20].tr && TREASURES[byD[20].tr].cls === 8) || new RegExp([...TREASURE_POOL[8], ...TREASURE_POOL[7]].join('|')).test(byD[20].bag);
     out.byD = byD; return out;
   });
   ok('1 → 10 камней (без 8 класса), 8 → 15 камней (8 из них 8 класса)', D.stones[0] === 10 && D.stones[1] === 15 && D.c8[0] === 0 && D.c8[1] === 8, JSON.stringify([D.stones, D.c8]));
@@ -65,7 +65,7 @@ const L = require('./bui_lib.js');
   ok('все 20 исходов выпадают', D2.spread === 20, JSON.stringify(D2));
   const D3 = await p.evaluate(() => {
     state.party.forEach(c => { c.bag = []; c.equip = {}; }); state.sack = null; Object.keys(TREASURES).forEach(id => { treasure(id).owned = true; });
-    addToBag(state.party[0], { t: 'g', id: 'chalice', qty: 1 }); addToBag(state.party[0], { t: 'g', id: 'silver-salt', qty: 1 }); addToBag(state.party[0], { t: 'g', id: 'director-quiver', qty: 1 }); addToBag(state.party[0], { t: 'g', id: 'beginners-luck', qty: 1 });
+    Object.values(TREASURE_POOL).flat().filter(id => id !== 'once-more' && !TREASURES[id]).forEach((id, i) => state.party[i % state.party.length].bag.push({ t: 'g', id, qty: 1 }));          // все артефакты пулов уже у отряда
     const a = treasureRoll(18), b = treasureRoll(20);
     return { a: a.lines.join('|'), b: b.lines.join('|'), once: countGear(state.party[0], 'once-more') };
   });

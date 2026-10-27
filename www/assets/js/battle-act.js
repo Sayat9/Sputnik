@@ -48,8 +48,34 @@
   // Оружие в основной руке. Пока брошенное оружие лежит на земле (u.disarmed), рука пуста; сам предмет из снаряжения не убирается
   // (при перезагрузке посреди боя, ошибке или переходе на обычный экран ничего не теряется), насовсем он уходит только в итоге боя (battle-end.js).
   B.atkFrom = atkFrom;
-  B.offOf = u => (u.hero && !u.disarmedOff && u.hero.equip && u.hero.equip.off ? itemOf(u.hero.equip.off) : null);
-  B.mainOf = u => (u.hero && !u.disarmed && u.hero.equip && u.hero.equip.main ? itemOf(u.hero.equip.main) : null);
+  B.offOf = u => (u.hero && !u.disarmedOff && u.hero.equip && u.hero.equip.off && !u.hero.equip.off.broken ? itemOf(u.hero.equip.off) : null);
+  B.mainOf = u => (u.hero && !u.disarmed && u.hero.equip && u.hero.equip.main && !u.hero.equip.main.broken ? itemOf(u.hero.equip.main) : null);
+  /* Прочность (index.html, блок DUR): критический промах (1) портит оружие, а попадание монстра с натуральной 20 — броню; монстры будущего вызывают то же с любым n.
+     Сломанное уходит в рюкзак (если места нет — остаётся в руке, но не работает: mainOf/offOf его не отдают). */
+  function weaponEntryOf(u, atk) {
+    const eq = u.hero.equip || {};
+    if (atk.bagEntry) return { e: atk.bagEntry, slot: "bag" };
+    if (atk.slot === "off" || atk.offhand) return eq.off ? { e: eq.off, slot: "off" } : null;
+    const wid = atk.w && atk.w.id;
+    return eq.main && eq.main.id === wid ? { e: eq.main, slot: "main" } : eq.off && eq.off.id === wid ? { e: eq.off, slot: "off" } : null;
+  }
+  B.wearWeapon = (u, atk, n = 1) => {
+    if (!u.hero || !atk || !atk.w) return false;                          // кулак, факел и особые действия без оружия не портятся
+    const t = weaponEntryOf(u, atk); if (!t) return false;
+    const broke = durHit(u.hero, t.e, t.slot, n);
+    if (broke) { log(`${u.name}: ${itemOf(t.e).name.replace(" (сломано)", "")} ломается!`, "bad"); const g = ui(); if (g) g.fxText(u, "сломано", "miss"); }
+    return broke;
+  };
+  B.wearArmor = (u, n = 1) => {
+    const c = u.hero; if (!c || !c.equip) return null;
+    const cand = [];
+    for (const k of ["body", "off", "main"]) { const e = c.equip[k]; if (!e || !isDurable(e) || e.broken) continue; const it = itemOf(e); if (k === "body" || (it && (it.group === "shield" || it.id === "tower-shield"))) cand.push(k); }
+    if (!cand.length) return null;
+    const k = pick(cand), e = c.equip[k], before = derived(totals(c), c).ac, broke = durHit(c, e, k, n);
+    u.ac += derived(totals(c), c).ac - before;                            // доспех сломался — КД падает сразу
+    if (broke) { log(`${u.name}: ${itemOf(e).name.replace(" (сломано)", "")} разбит!`, "bad"); const g = ui(); if (g) g.fxText(u, "сломано", "miss"); }
+    return k;
+  };
   // Метательное оружие в рюкзаке («Полная перевязь» хобгоблина-метателя): каждая запись, ещё не брошенная в этом бою.
   function bagThrowEntries(u) {
     const c = u.hero; if (!c || !u.pass.includes("hobgoblin-thrower")) return [];

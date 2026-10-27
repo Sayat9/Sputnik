@@ -102,7 +102,7 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
         await w.run(); T('шёпот: отход и один раз', u.t.disengage === true && !Battle.actionsFor(u).find(o => o.id === 'whisper').enabled); Battle.S = null; }
     }
     // Академия
-    { const c = mkHero('mace'); T('академия: 9 курсов', ACADEMY.length === 9);
+    { const c = mkHero('mace'); T('академия: 11 курсов', ACADEMY.length === 11);
       T('курс трав: до — не знает, после — знает', !findKnown(c, 'herb-heal') && (eduLearn(c, 'herb'), findKnown(c, 'herb-heal')));
       T('курс камней', !findKnown(c, 'sstone-boom') && (eduLearn(c, 'sstone'), findKnown(c, 'sstone-boom')));
       state.party = [c]; T('курс монстров 9: только свой класс', (eduLearn(c, 'mon9'), monCourse(9) && !monCourse(8)));

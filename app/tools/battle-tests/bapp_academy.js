@@ -7,8 +7,8 @@ const L = require('./bui_lib.js');
   await p.evaluate(() => { state.run = null; state.townUnlocked = true; state.party.forEach(c => { c.gold = 2000; }); location.hash = 'town'; rerender(); });
   await p.waitForTimeout(300);
   await p.click('[data-bld="academy"]'); await p.waitForSelector('.tw-rows');
-  let total = 0; for (const k of ['gather', 'monsters', 'medicine', 'nav']) { await p.click(`[data-t="atab"][data-k="${k}"]`); total += await p.evaluate(() => document.querySelectorAll('.tw-row').length); }
-  ok('академия: 4 вкладки знаний, 9 курсов', total === 9, total);
+  let total = 0; for (const k of ['gather', 'monsters', 'medicine', 'nav', 'repair']) { await p.click(`[data-t="atab"][data-k="${k}"]`); total += await p.evaluate(() => document.querySelectorAll('.tw-row').length); }
+  ok('академия: 5 вкладок знаний, 11 курсов', total === 11, total);
   await p.click('[data-t="atab"][data-k="nav"]');
   await L.shot(p, 'academy');
   const nav2 = await p.evaluate(() => { const b = [...document.querySelectorAll('[data-t="learn"]')].find(x => x.dataset.id === 'nav2'); return b && b.disabled; });

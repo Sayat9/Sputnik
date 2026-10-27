@@ -305,6 +305,8 @@
     for (const [u, id] of ctx.consume) { if (id === "fooled:atk") { const f = has(u, "fooled"); if (f) f.data.atkUsed = true; } else removeStatus(u, id); }
     if (att.t && atk.kind === "melee") att.t.meleeAttacked = true;
     const nat = r.nat, total = r.total;
+    if (nat === 1 && att.side === "hero" && B.wearWeapon) B.wearWeapon(att, atk);                                  // критический промах: оружие теряет 1 прочности
+    if (nat === 20 && att.side === "mon" && tgt.side === "hero" && B.wearArmor) B.wearArmor(tgt, 1);                // натуральная 20 монстра: броня носителя теряет 1 прочности
     const hit = ctx.autoHit || nat === 20 || (nat !== 1 && total >= ctx.ac), crit = nat === 20 || (hit && ctx.autoCrit);
     const res = { hit, crit, nat, total, ac: ctx.ac, dealt: 0, parried: false, killed: false, att, tgt, atk, ctx, post: [] };
     const fused = has(tgt, "fuse");                                                    // бомба горит в руке: любое попадание по подрывнику взрывает её, даже если он упадёт

@@ -1,5 +1,5 @@
 {
- "version": 1793113169,
+ "version": 1793115414,
  "files": [
   "assets/buildings/church.webp",
   "assets/buildings/forge.webp",
@@ -322,7 +322,7 @@
   "assets/buildings/tavern.webp": "812c88667997f640e80c34b331e547b2",
   "assets/buildings/tower.webp": "a8d571c86cb743cdbcdfe7d63aaed744",
   "assets/css/battle.css": "4baf95b68fbe9dc266af7458ebc90ff1",
-  "assets/css/town.css": "00b1687a026df484e94c0dcd66f3e2f1",
+  "assets/css/town.css": "0d9fefca0d357671094e8ba60e4bde61",
   "assets/events/ambush.svg": "cc4762918cfd926e70eaa40ce53b322c",
   "assets/events/monsters.svg": "7bf5ba9509d2fa188e67d5774af858d6",
   "assets/events/nothing.svg": "f077766d33696a165cc87ebfb9bdb72b",
@@ -406,9 +406,9 @@
   "assets/items/unknown-stone.webp": "0c888965995e38749cc8ce27373285bb",
   "assets/items/warhammer.svg": "146a73c3b76075dc5cf83d3f60f0d935",
   "assets/items/warhammer.webp": "96a5d7990847d290d359b35e7673e757",
-  "assets/js/battle-act.js": "8555431007c6b2544d1757327475ede0",
+  "assets/js/battle-act.js": "6514ec805a14df2b055c6e4e61957b42",
   "assets/js/battle-ai.js": "f907668903d82b23b39f63ef23e60d97",
-  "assets/js/battle-core.js": "7230be34352d256fb75ab77dcabfb5d0",
+  "assets/js/battle-core.js": "1e3f004393bc648d72faf6648d1e6ee7",
   "assets/js/battle-data.js": "26ab332d51f2ed68926ab18591efe380",
   "assets/js/battle-dice.js": "e45c4170169e0538b2b8519fd233bf0e",
   "assets/js/battle-end.js": "7ddb3fce4618929cf70520afa7f72d47",
@@ -418,13 +418,13 @@
   "assets/js/battle-ext.js": "71cdb0ae150fac652989c8a2ef02a315",
   "assets/js/battle-menu.js": "ea51db940a3f9351c98a33827c083414",
   "assets/js/battle-net.js": "2ec8914d230f7ef8ef96df7662aa1e4e",
-  "assets/js/battle-rules.js": "1fa016bf33be4f78cf049c12c4d8040a",
+  "assets/js/battle-rules.js": "e9434271fc0aec369fd02fb8f886b81f",
   "assets/js/battle-ui.js": "f814008e872054cdd22493fc480d85af",
-  "assets/js/battle-weap.js": "3500b86abc47dfa499b8d248120d157f",
+  "assets/js/battle-weap.js": "cd641c2f55a95ffd4ddc833747704106",
   "assets/js/battle.js": "8dc9f4ee3391a3044e93de502fce98f9",
   "assets/js/net.js": "110683a663d3cbfa576e7a56e5d09677",
   "assets/js/netglue.js": "57c46e99a7482a59b5196b9b40ba1c6d",
-  "assets/js/town.js": "9f12d5b46f148fb2d0d68e90a361587a",
+  "assets/js/town.js": "3845cde6165b5ca47104ef12e90032df",
   "assets/logo-admin.png": "aa45354a89500a24e2f481f6d7d3ee4a",
   "assets/logo.png": "2eea126130fb32be9d28f407acbc25bb",
   "assets/monsters/ash-spirit-face.webp": "0a49a247b2edd2cef40b2346b19b27ff",
@@ -622,6 +622,6 @@
   "fonts/f8.woff2": "6cc1ee17091d59eb93821c3594e8f38f",
   "fonts/f9.woff2": "070433480b7b645f69b543f284e386ce",
   "fonts/fonts.css": "1585a72a8d157b26cb424ab433fd4e19",
-  "index.html": "cd1099c26df73eeab5475e322f63ee37"
+  "index.html": "a9ec4ba3ca5055c0dd61859c805d4693"
  }
 }

@@ -21,7 +21,8 @@
   const forgeDisc = p => ((state.party || []).some(c => c.race === "dwarf" && !c.dead) ? Math.max(1, Math.round(p * 0.9)) : p);          // дварф в отряде: скидка 10% в кузнице
   const FORGE_PRICE = { weapon: 10, armor: 15, steelWeapon: 25, steelArmor: 40 };               // решение автора
   const FORGE = {
-    base: [...FORGE_W.map(id => ({ key: "w:" + id, e: { t: "w", id, qty: 1 }, get price() { return forgeDisc(FORGE_PRICE.weapon); } })), ...FORGE_A.map(id => ({ key: "a:" + id, e: { t: "a", id, qty: 1 }, get price() { return forgeDisc(FORGE_PRICE.armor); } }))],
+    base: [...FORGE_W.map(id => ({ key: "w:" + id, e: { t: "w", id, qty: 1 }, get price() { return forgeDisc(FORGE_PRICE.weapon); } })), ...FORGE_A.map(id => ({ key: "a:" + id, e: { t: "a", id, qty: 1 }, get price() { return forgeDisc(FORGE_PRICE.armor); } })),
+      { key: "repair5", e: { t: "g", id: "repair-kit", qty: 5 }, price: 10, label: "Ремонтный набор ×5" }, { key: "repairpro5", e: { t: "g", id: "repair-kit-pro", qty: 5 }, price: 50, label: "Продвинутый ремонтный набор ×5" }],
     steel: [...FORGE_W.map(id => ({ key: "sw:" + id, e: { t: "w", id, qty: 1, steel: true }, get price() { return forgeDisc(FORGE_PRICE.steelWeapon); } })), ...FORGE_A.map(id => ({ key: "sa:" + id, e: { t: "a", id, qty: 1, steel: true }, get price() { return forgeDisc(FORGE_PRICE.steelArmor); } }))],
   };
   const COMPASS_INFO = () => ({ name: "Компас", icon: ICO_COMPASS, note: "Стрелка показывает север при любом повороте карты. Включается удержанием в инвентаре лабиринта.", weight: 0 });
@@ -181,9 +182,9 @@
     const c = hero(), forge = ui.b === "forge", title = forge ? "Кузница" : "Магазин";
     if (!c) return frame(title, "Рафдония", noParty());
     const left = `<aside class="tw-bagcol">${heroStrip()}<div class="gold-row">${COIN_SVG}<b>${goldOf(c)}</b><small>монет у героя</small></div>${bagGrid(c, ui.sel && ui.sel.side === "bag" ? ui.sel.i : null)}${forge ? "" : sackTile()}</aside>`;
-    const tabs = forge ? `<div class="tw-tabs"><button class="fx-btn" role="tab" aria-selected="${(ui.tab || "base") === "base"}" data-t="ftab" data-k="base">Обычное</button><button class="fx-btn" role="tab" aria-selected="${ui.tab === "steel"}" data-t="ftab" data-k="steel">Улучшенное</button><button class="fx-btn" role="tab" aria-selected="${ui.tab === "art"}" data-t="ftab" data-k="art">Скупка</button></div>` : "";
-    if (forge && ui.tab === "art") {
-      const right0 = `<section class="tw-shopcol"><div class="tw-keeper">${img("assets/npc/smith.webp", "Кузнец")}<div class="tw-bubble">Редкие вещи беру за хорошие деньги.</div></div><div class="tw-sheet"><div class="tw-rod"></div><div class="tw-sheet-in">${tabs}${artSellHtml("forge")}</div></div></section>`;
+    const tabs = forge ? `<div class="tw-tabs"><button class="fx-btn" role="tab" aria-selected="${(ui.tab || "base") === "base"}" data-t="ftab" data-k="base">Обычное</button><button class="fx-btn" role="tab" aria-selected="${ui.tab === "steel"}" data-t="ftab" data-k="steel">Улучшенное</button><button class="fx-btn" role="tab" aria-selected="${ui.tab === "art"}" data-t="ftab" data-k="art">Скупка</button><button class="fx-btn" role="tab" aria-selected="${ui.tab === "fix"}" data-t="ftab" data-k="fix">Починка</button></div>` : "";
+    if (forge && (ui.tab === "art" || ui.tab === "fix")) {
+      const right0 = `<section class="tw-shopcol"><div class="tw-keeper">${img("assets/npc/smith.webp", "Кузнец")}<div class="tw-bubble">${ui.tab === "fix" ? "Что сломалось — несите, всё починю." : "Редкие вещи беру за хорошие деньги."}</div></div><div class="tw-sheet"><div class="tw-rod"></div><div class="tw-sheet-in">${tabs}${ui.tab === "fix" ? fixHtml(c) : artSellHtml("forge")}</div></div></section>`;
       return `<div class="tw-panel fx-frame">${head(title, "Рафдония")}<div class="tw-shop">${left}${right0}</div><footer class="tw-foot">${msgLine()}</footer></div>`;
     }
     const sheet = `<div class="tw-sheet"><div class="tw-rod"></div><div class="tw-sheet-in">${tabs}<div class="tw-stock">${goodsOf().map(g => {
@@ -194,6 +195,33 @@
       <p class="tw-buyline">${forge ? "Оружие — 10, броня — 15, улучшенное оружие — 25, улучшенная броня — 40 монет. Сталь: +1 к атаке и урону, +1 КД." : `Скупаю камни из сумки: 9 класс — ${stonePrice(9)}, 8 класс — ${stonePrice(8)}, 7 класс — ${stonePrice(7)} монет. Перетащи сумку на лавочника или нажми на неё.`}</p></div></div>`;
     const right = `<section class="tw-shopcol"><div class="tw-keeper">${forge ? img("assets/npc/smith.webp", "Кузнец") : KEEPER}<div class="tw-bubble">${esc(ui.talk || (ui.talk = forge ? SMITH_TALK[Math.floor(Math.random() * SMITH_TALK.length)] : talk()))}</div></div>${sheet}</section>`;
     return `<div class="tw-panel fx-frame">${head(title, "Рафдония")}<div class="tw-shop">${left}${right}</div><footer class="tw-foot">${msgLine()}<div class="tw-sel">${shopSelInfo()}</div></footer>${ui.sk ? skHtml() : ""}</div>`;
+  }
+  /* ---------- починка в кузнице (решение автора 28.10): целое оружие и броню — до максимума за 5 монет (комплект — 10), сломанное — за 20 % полной цены ---------- */
+  const fixFull = e => (e.art ? artValue(e.art) : e.steel ? (e.t === "a" ? FORGE_PRICE.steelArmor : FORGE_PRICE.steelWeapon) : (e.t === "a" ? FORGE_PRICE.armor : FORGE_PRICE.weapon));
+  const fixPrice = e => (e.broken ? Math.max(1, Math.round(fixFull(e) * 0.2)) : 5);                // скидка дварфа на починку не действует: цены автора 5 / 10 / 20 %
+  const fixNeed = e => isDurable(e) && (e.broken || durOf(e) < durMax(e));
+  const fixItems = c => [...Object.entries(c.equip || {}).filter(([, e]) => isDurable(e)).map(([sl, e]) => ({ e, key: "eq:" + sl, where: ({ main: "в правой руке", off: "в левой руке", body: "надето" })[sl] || "надето" })),
+    ...(c.bag || []).map((e, i) => ({ e, key: "bag:" + i, where: "в рюкзаке" })).filter(x => isDurable(x.e))];
+  const fixSetItems = c => ["main", "off", "body"].map(sl => (c.equip || {})[sl]).filter(e => isDurable(e) && !e.broken && durOf(e) < durMax(e));
+  const fixSetPrice = c => Math.min(5 * fixSetItems(c).length, 10);
+  function fixHtml(c) {
+    const rows = fixItems(c).filter(x => fixNeed(x.e)).map(x => `<div class="tw-row"><div class="tw-who"><div><b>${esc(itemOf(x.e).name)}</b><small>${x.where} · прочность ${durOf(x.e)}/${durMax(x.e)}${x.e.broken ? " · сломано: 20 % цены" : ""}</small></div></div>
+      <button class="fx-btn primary" data-t="fixone" data-k="${x.key}"${partyGold() >= fixPrice(x.e) ? "" : " disabled"}>${fixPrice(x.e)}</button></div>`).join("");
+    const n = fixSetItems(c).length;
+    return `<p class="tw-lead">Целое оружие и броню кузнец доводит до полной прочности: 5 монет за вещь, 10 — за весь комплект (оружие, броня и второе оружие). Сломанное — 20 % полной цены вещи.</p>
+      ${n >= 2 ? `<div style="display:flex;justify-content:center;margin:6px 0"><button class="fx-btn primary" data-t="fixset"${partyGold() >= fixSetPrice(c) ? "" : " disabled"}>Весь комплект (${n}) — ${fixSetPrice(c)}</button></div>` : ""}
+      <div class="tw-rows">${rows || `<p class="tw-msg">У ${esc(c.name)} всё цело.</p>`}</div>`;
+  }
+  function fixOne(k) {
+    const c = hero(), [src, v] = k.split(":"), e = src === "eq" ? (c.equip || {})[v] : (c.bag || [])[+v];
+    if (!e || !fixNeed(e)) return;
+    const price = fixPrice(e); if (!payGold(c, price)) { ui.msg = "Не хватает монет."; return; }
+    const was = e.broken; durFix(e, 999); visit(); ui.msg = `${itemOf(e).name}: ${was ? "сломанное починено" : "починено до максимума"} за ${price}.`; saveChar();
+  }
+  function fixSet() {
+    const c = hero(), list = fixSetItems(c), price = fixSetPrice(c); if (list.length < 2) return;
+    if (!payGold(c, price)) { ui.msg = "Не хватает монет."; return; }
+    list.forEach(e => durFix(e, 999)); visit(); ui.msg = `Комплект починен (${list.length} вещи) за ${price}.`; saveChar();
   }
   // Сумка для камней в левой колонке: нажатие или перетаскивание на лавочника открывает окно продажи.
   function sackTile() {
@@ -643,7 +671,7 @@
     let slept = 0, ate = 0;
     for (const c of live) {
       const st = carryOf(c);
-      if (ui.sleep[c.id]) { st.fat = 0; st.awake = 0; c.hp = maxHp(c); c.mp = maxMp(c); c.insp = 1; c.flags = {}; slept++; }
+      if (ui.sleep[c.id]) { st.fat = 0; st.awake = 0; c.hp = maxHp(c); c.mp = maxMp(c); c.insp = 1; c.flags = {}; slept++; if (hasCharm(c, "repair-charm")) for (const e of Object.values(c.equip || {})) if (isDurable(e)) durFix(e, 1); }
       if (ui.food[c.id]) { st.sat = 9; st.starve = 0; ate++; }
     }
     spend(slept ? 3 : 1); ui.sleep = {}; ui.food = {};
@@ -734,6 +762,8 @@
       case "bag": ui.sel = ui.sel && ui.sel.side === "bag" && ui.sel.i === +ds.i ? null : { side: "bag", i: +ds.i }; break;
       case "stock": ui.sel = ui.sel && ui.sel.side === "shop" && ui.sel.key === ds.id ? null : { side: "shop", key: ds.id }; break;
       case "ftab": ui.tab = ds.k; ui.sel = null; break;
+      case "fixone": fixOne(ds.k); break;
+      case "fixset": fixSet(); break;
       case "sellopen": if (ui.sel && ui.sel.side === "bag") offer(ui.sel.i); break;
       case "sacktile": openSell(); break;
       case "sk-close": ui.sk = null; break;

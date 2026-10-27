@@ -91,7 +91,7 @@
       enabled: act && !has(u, "fistblock"), why: !act ? "действие потрачено" : "уже в блоке",
       run: async () => { B.spendTime(u, "action"); addStatus(u, "fistblock", { k: 1, when: "start" }); log(`${u.name} встаёт в блок кулаками.`, "good"); fx(u, "блок кулаками", "good"); return true; } });
     // «Смена оружия»: основное действие — поменять оружие в руке на то, что лежит в рюкзаке.
-    const cands = (c.bag || []).map((e, i) => ({ e, i, it: e && e.t === "w" ? itemOf(e) : null })).filter(x => x.it && x.it.kindOf === "weapon" && x.it.group !== "shield" && x.it.kind !== "Боеприпасы");
+    const cands = (c.bag || []).map((e, i) => ({ e, i, it: e && e.t === "w" ? itemOf(e) : null })).filter(x => x.it && x.it.kindOf === "weapon" && !x.it.broken && x.it.group !== "shield" && x.it.kind !== "Боеприпасы");
     if (cands.length) out.push({ id: "swapweapon", cat: "other", label: "Смена оружия", ico: "attack", sub: "основное действие: взять в руку оружие из рюкзака, прежнее уйдёт в рюкзак", time: "action",
       enabled: act && !u.disarmed, why: !act ? "действие потрачено" : "рука пуста: сначала подберите оружие",
       run: async () => {
@@ -105,7 +105,7 @@
         if (!bagFree) { toast("В рюкзаке нет места для прежнего оружия"); return false; }
         const t0 = totals(c), d0 = derived(t0, c);
         c.bag.splice(idx, 1);
-        c.equip.main = { t: entry.t, id: entry.id, ...(entry.steel ? { steel: true } : {}) };
+        c.equip.main = { t: entry.t, id: entry.id, ...(typeof durKeep === "function" ? durKeep(entry) : (entry.steel ? { steel: true } : {})) };
         if (oldMain) addToBag(c, { ...oldMain, qty: 1 });
         if (needOff) { addToBag(c, { ...c.equip.off, qty: 1 }); delete c.equip.off; }
         const t1 = totals(c), d1 = derived(t1, c);          // КД, Ловкость и скорость зависят от снаряжения

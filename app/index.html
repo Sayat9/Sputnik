@@ -700,6 +700,17 @@ body.forge-open { overflow: hidden; }
 .tv-res p { margin: 2px 0; }
 .tv-next { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
 .tv-hint { color: var(--fx-muted); text-align: center; font-size: 11.5px; }
+/* починка снаряжения на ночлеге */
+.rep-box { border: 1px solid #6e5634; border-radius: 6px; padding: 8px; margin: 6px 0; display: flex; flex-direction: column; gap: 6px; text-align: left; }
+.rep-box .rep-h b { font: 400 16px var(--f-display); color: var(--fx-gold-hi); }
+.rep-box small { color: var(--fx-muted); font-size: 11.5px; }
+.rep-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.rep-chips .fx-btn { padding: 4px 10px; font-size: 12.5px; }
+.rep-row { display: flex; justify-content: space-between; align-items: center; gap: 6px; flex-wrap: wrap; border-top: 1px solid rgb(110 86 52 / .35); padding-top: 4px; }
+.rep-row .fx-btn { padding: 3px 8px; font-size: 12px; margin-left: 4px; }
+.rep-fat { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.rep-plan { margin: 0; padding-left: 18px; font-size: 13px; }
+.ii-dur { margin: 4px 0; color: var(--fx-text); }
 .dg-menu { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; width: min(330px, 100%); }
 .dg-menu .fx-btn { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 6px; font-size: 17px; white-space: normal; }
 .dg-menu .fx-btn svg { width: 30px; height: 30px; }
@@ -1230,9 +1241,11 @@ const ACADEMY = [
   { id: "mon7", grp: "monsters", name: "Опознание монстров: 7 класс", price: 1000, cls: 7, text: "То же для монстров 7 класса." },
   { id: "aid", grp: "medicine", name: "Первая помощь", price: 250, text: "С набором первой помощи герой лечит заметно лучше: +2 и модификатор Мудрости к лечению, перевязка без броска." },
   { id: "nav1", grp: "nav", name: "Навигатор: 1 этаж", price: 400, nav: 1, text: "На 1 этаже карта показывает направление к ближайшему порталу на следующий этаж." },
+  { id: "rep1", grp: "repair", name: "Ученик ремонта", price: 800, text: "Герой чинит лучше: +3 к починке (дварфам +5) — ремонтные наборы и артефакты восстанавливают больше прочности." },
+  { id: "rep2", grp: "repair", name: "Мастер ремонта", price: 3500, need: "rep1", text: "Мастер: +9 к починке (дварфам +15) вместо ученика. Нужен курс «Ученик ремонта» — обучение с основ." },
   { id: "nav2", grp: "nav", name: "Навигатор: 2 этаж", price: 800, nav: 2, need: "nav1", text: "То же на 2 этаже. Нужен курс «Навигатор: 1 этаж» — обучение с основ." },
 ];
-const ACADEMY_GROUPS = [["gather", "Сбор"], ["monsters", "Монстры"], ["medicine", "Медицина"], ["nav", "Навигация"]];          // разделение курсов по знаниям
+const ACADEMY_GROUPS = [["gather", "Сбор"], ["monsters", "Монстры"], ["medicine", "Медицина"], ["nav", "Навигация"], ["repair", "Ремонт"]];          // разделение курсов по знаниям
 const eduHas = (c, id) => !!(c && c.edu && c.edu[id]);
 const eduKnows = (c, id) => { const k = ACADEMY.find(x => x.id === id); return !!k && (k.lore ? (c.lore || []).includes(k.lore) : eduHas(c, id)); };
 const eduLearn = (c, id) => { const k = ACADEMY.find(x => x.id === id); if (!k) return; (c.edu ||= {})[id] = true; if (k.lore) { c.lore ||= []; if (!c.lore.includes(k.lore)) c.lore.push(k.lore); } };
@@ -2345,6 +2358,17 @@ const GEAR = {
   "weak-salt": { short: "Слабая соль", name: "Слабая серебряная соль", weight: 0.1, stack: 10, use: "salt", note: "Мелкая серая соль с серебряной крошкой, в мешочке." },
   "director-quiver": { short: "Колчан+", name: "Колчан режиссёра", weight: 0.5, stack: 1, cls: 8, treasure: true, note: "Артефакт 8 класса. В нём 10 обычных стрел, которые не ломаются и в конце боя возвращаются сами. Лучник стреляет ими первыми, затем обычными." },
   "stone-7":   { short: "Камни 7", name: "Магический камень 7-го класса", weight: 0.1, stack: 99, note: "Добыча 2 этажа. Магазин скупает по 20 монет." },
+  "repair-kit": { short: "Ремонт", name: "Ремонтный набор", weight: 0.5, stack: 10, use: "repair", note: "Заплатки, клей, молоточек. На ночлеге чинит оружие или броню на 3 прочности (дварф — на 5, и берёт сразу два предмета). Расходуется. Продаёт кузнец: 10 монет за 5." },
+  "repair-kit-pro": { short: "Ремонт+", name: "Продвинутый ремонтный набор", weight: 1, stack: 10, use: "repair", note: "Закалённые инструменты и тонкие накладки. На ночлеге чинит оружие или броню на 13 прочности (дварф — на 15). Расходуется. Продаёт кузнец: 50 монет за 5." },
+  whetstone: { short: "Точило", name: "Точильный камень", weight: 0.5, stack: 1, cls: 9, treasure: true, use: "repair", note: "Артефакт 9 класса. Работает как ремонтный набор на ночлеге (+3 прочности, дварф +5), но не расходуется. Раз в 3 дня." },
+  "daedalus-hammer": { short: "Молот", name: "Молот Дедала", weight: 1.5, stack: 1, cls: 7, treasure: true, use: "repair", note: "Артефакт 7 класса. Как продвинутый ремонтный набор (+13 прочности, дварф +15), не ломается. Раз в 2 дня." },
+  "unbreakable-charm": { short: "Амулет", name: "Амулет несокрушимости", weight: 0, stack: 1, slot: "charm", cls: 6, treasure: true, note: "Амулет 6 класса. Всё оружие носителя не теряет прочности." },
+  "repair-charm": { short: "Амулет", name: "Амулет починки", weight: 0, stack: 1, slot: "charm", cls: 9, treasure: true, note: "Амулет 9 класса. В конце дня вся надетая экипировка носителя восстанавливает 1 прочность." },
+  "durable-charm": { short: "Амулет", name: "Амулет прочности", weight: 0, stack: 1, slot: "charm", cls: 8, treasure: true, note: "Амулет 8 класса. Пока носитель его носит, у всех его вещей временные +20 прочности (они отнимаются в последнюю очередь). Если амулет снять, а настоящей прочности у вещи нет, она сразу сломается и не восстановится, даже если амулет надеть снова." },
+  "regen-charm": { short: "Амулет", name: "Амулет регенерации", weight: 0, stack: 1, slot: "charm", cls: 8, treasure: true, note: "Амулет 8 класса. В конце дня носитель восстанавливает 2 ОЗ." },
+  "mana-charm": { short: "Амулет", name: "Амулет маны", weight: 0, stack: 1, slot: "charm", cls: 9, treasure: true, note: "Амулет 9 класса. В конце дня носитель восстанавливает 2 маны." },
+  "fatigue-charm": { short: "Амулет", name: "Амулет усталости", weight: 0, stack: 1, slot: "charm", cls: 7, treasure: true, note: "Амулет 7 класса. В конце дня носитель снимает 1 уровень Усталости." },
+  "hunger-charm": { short: "Амулет", name: "Амулет голода", weight: 0, stack: 1, slot: "charm", cls: 6, treasure: true, note: "Амулет 6 класса. В конце дня голод носителя утоляется, как после пайка." },
   "potion-good": { short: "Зелье+", name: "Зелье лечения", weight: 0.25, stack: 5, use: "drink", heal: "2к4 + 4", note: "Восстанавливает 2к4 + 4 ОЗ (6–12, в среднем 9). Черновик." },
   chalice: { short: "Чаша", name: "Чаша здоровья", weight: 0.5, stack: 1, cls: 8, treasure: true, note: "Сокровище 8 класса. Наполните водой (бесплатно в городе, у воды в лабиринте и в бою, или за паёк на Отдыхе): через 2 дня вода станет улучшенным зельем лечения (2к4 + 4). После питья чаша остаётся." },
   "beginners-luck": { short: "Удача", name: "Удача новичка", weight: 0, stack: 1, slot: "charm", cls: 8, treasure: true, note: "Талисман. Когда носитель сам (или его призванное существо) добивает монстра вида, который он ещё не убивал, к броску на эссенцию +5. Один раз на вид для каждого героя; действует и на арене." },
@@ -2374,6 +2398,13 @@ const GEAR_ICON = {
   custom: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="M9 12h6M12 9v6"/></svg>`,
 };
 GEAR_ICON["potion-good"] = GEAR_ICON.potion;
+const AMU = c => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M5 3c0 7 3 9 7 9s7-2 7-9" opacity=".6"/><circle cx="12" cy="15.5" r="4.5" fill="${c}" opacity=".35"/><circle cx="12" cy="15.5" r="4.5"/><path d="M10.5 14.5l1.5 2 2-3" opacity=".8"/></svg>`;
+GEAR_ICON["repair-kit"] = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><rect x="3.5" y="9" width="17" height="10" rx="2" fill="currentColor" opacity=".15"/><rect x="3.5" y="9" width="17" height="10" rx="2"/><path d="M9 9V6.5h6V9M12 12v4M10 14h4"/></svg>`;
+GEAR_ICON["repair-kit-pro"] = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><rect x="3.5" y="9" width="17" height="10" rx="2" fill="#f2c94c" opacity=".3"/><rect x="3.5" y="9" width="17" height="10" rx="2"/><path d="M9 9V6.5h6V9M7 13.5l2.5-2.5 2 2 3-3 2.5 2.5"/></svg>`;
+GEAR_ICON.whetstone = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><path d="M4 14l10-8 6 4-10 8z" fill="#9fb4c2" opacity=".35"/><path d="M4 14l10-8 6 4-10 8z"/><path d="M8 11.5l6 4M7 17l8 3" opacity=".6"/></svg>`;
+GEAR_ICON["daedalus-hammer"] = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><path d="M13 3l8 4-2 4-8-4z" fill="#f2c94c" opacity=".4"/><path d="M13 3l8 4-2 4-8-4z"/><path d="M13 9L5 21M4 20l2 2" /></svg>`;
+GEAR_ICON["unbreakable-charm"] = AMU("#9fb4c2"); GEAR_ICON["repair-charm"] = AMU("#d6a64c"); GEAR_ICON["durable-charm"] = AMU("#7ad0dc"); GEAR_ICON["regen-charm"] = AMU("#e0584a");
+GEAR_ICON["mana-charm"] = AMU("#5b8def"); GEAR_ICON["fatigue-charm"] = AMU("#9b7bd6"); GEAR_ICON["hunger-charm"] = AMU("#7bc653");
 GEAR_ICON["calm-flute"] = GEAR_ICON.flute;
 GEAR_ICON.chalice = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M6 4h12c0 5-2 8-6 8S6 9 6 4z" fill="currentColor" opacity=".2"/><path d="M6 4h12c0 5-2 8-6 8S6 9 6 4zM12 12v6M8 20h8"/><path d="M8 7c2 1 6 1 8 0" opacity=".7"/></svg>`;
 GEAR_ICON["once-more"] = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M5 12a7 7 0 0 1 12-4.9L19 9M19 12a7 7 0 0 1-12 4.9L5 15"/><path d="M19 4v5h-5M5 20v-5h5"/></svg>`;
@@ -2501,8 +2532,8 @@ function itemOf(v, holder) {
     if (g && ARTIFACTS[v.id]) return artMask({ ...g, id: v.id, kindOf: "gear", icon: GEAR_ICON[v.id] }, v.id);
     return g && { ...g, id: v.id, kindOf: "gear", art: ART.gear(v.id) || undefined, icon: GEAR_ICON[v.id] || (SHOVELS.includes(v.id) ? GEAR_ICON.shovel : GEAR_ICON.custom) };
   }
-  if (v.t === "w") { const w = WEAPONS.find(x => x.id === v.id); return w && { ...w, kindOf: "weapon", art: v.steel && RASTER.has("items/steel-" + w.id) ? artPath("items/steel-" + w.id) : ART.weapon(w.id), ...(v.steel ? steelWeapon(w) : {}), ...(v.salt || v.saltDays > 0 ? saltWeapon(v.steel ? steelWeapon(w) : w, v.salt ? 0 : v.saltDays) : {}), ...(v.art && ART_WEAPONS[v.art] ? artWeaponInfo(w, v.art) : {}) }; }
-  if (v.t === "a") { const a = ARMOR_FLAT.find(x => x.id === v.id); return a && { ...a, kindOf: "armor", art: v.steel && RASTER.has("items/steel-armor-" + a.id) ? artPath("items/steel-armor-" + a.id) : ART.armor(a.id), ...(v.steel ? steelArmor(a) : {}), ...(v.art && ART_ARMORS[v.art] ? artArmorInfo(a, v.art) : {}) }; }
+  if (v.t === "w") { const w = WEAPONS.find(x => x.id === v.id); return w && durWrap(v, { ...w, kindOf: "weapon", art: v.steel && RASTER.has("items/steel-" + w.id) ? artPath("items/steel-" + w.id) : ART.weapon(w.id), ...(v.steel ? steelWeapon(w) : {}), ...(v.salt || v.saltDays > 0 ? saltWeapon(v.steel ? steelWeapon(w) : w, v.salt ? 0 : v.saltDays) : {}), ...(v.art && ART_WEAPONS[v.art] ? artWeaponInfo(w, v.art) : {}) }); }
+  if (v.t === "a") { const a = ARMOR_FLAT.find(x => x.id === v.id); return a && durWrap(v, { ...a, kindOf: "armor", art: v.steel && RASTER.has("items/steel-armor-" + a.id) ? artPath("items/steel-armor-" + a.id) : ART.armor(a.id), ...(v.steel ? steelArmor(a) : {}), ...(v.art && ART_ARMORS[v.art] ? artArmorInfo(a, v.art) : {}) }); }
   if (v.t === "c") return { name: v.name, kindOf: "custom", weight: 0, icon: GEAR_ICON.custom };
   return null;
 }
@@ -2547,13 +2578,13 @@ function totals(c = char) {
 
 function derived(t, c = char) {
   const dex = mod(t.dex.total);
-  const armor = itemOf(c.equip.body);
+  const armor = liveItem(c.equip.body);
   let ac = 10 + dex, acSrc = armor && armor.kindOf === "gear" ? armor.name.toLowerCase() : "без брони";
   if (armor && armor.kindOf === "armor") {
     ac = armor.base + (armor.cat === "light" ? dex : armor.cat === "medium" ? Math.min(dex, 2) : 0);
     acSrc = armor.name;
   }
-  const off = itemOf(c.equip.off), main = itemOf(c.equip.main);
+  const off = liveItem(c.equip.off), main = liveItem(c.equip.main);
   const tower = main && main.id === "tower-shield";
   if (tower) { ac += 3 + (main.steel ? 1 : 0); acSrc += " + ростовой щит"; }
   else if (off && off.id === "shield" && !twoHanded(c)) ac += 2 + (off.steel ? 1 : 0);
@@ -2603,7 +2634,7 @@ function addToBag(c, e) {
   while (left > 0 && c.bag.length < bagSize(c)) {
     const n = Math.min(left, stackMax(e, c));
     const uses = e.t === "g" && GEAR[e.id].uses ? { uses: e.uses ?? GEAR[e.id].uses } : {};
-    c.bag.push(e.t === "c" ? { t: "c", name: e.name, qty: 1 } : { t: e.t, id: e.id, qty: n, ...uses, ...(e.steel ? { steel: true } : {}), ...(e.salt ? { salt: true } : {}), ...(e.saltDays > 0 ? { saltDays: e.saltDays } : {}), ...(e.art ? { art: e.art } : {}) });
+    c.bag.push(e.t === "c" ? { t: "c", name: e.name, qty: 1 } : { t: e.t, id: e.id, qty: n, ...uses, ...durKeep(e), ...(e.used != null ? { used: e.used } : {}) });
     left -= n;
   }
   return left;                                   // сколько не поместилось
@@ -2682,7 +2713,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 49;
+const BATTLE_REV = 50;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }
@@ -2801,7 +2832,7 @@ function loadNet() {
   return netLoad;
 }
 /* ----- здания города (assets/js/town.js грузится при первом входе в здание) ----- */
-const TOWN_REV = 13, TOWN_FILES = ["assets/css/town.css", "assets/js/town.js"];
+const TOWN_REV = 14, TOWN_FILES = ["assets/css/town.css", "assets/js/town.js"];
 let townLoad = null;
 function loadTown() {
   if (window.Town && window.Town.ready) return Promise.resolve(true);
@@ -3920,7 +3951,8 @@ function spTreasureHere() {
 }
 // Сокровище находят бросок к20 (решение автора): 1–8 камни (10–15 штук, чем выше бросок, тем больше и тем больше среди них 8 класса), 9–13 расходники (чем выше, тем больше),
 // 14–16 броня, 17 оружие (моё допущение: числа 17 в вашей таблице не было), 18–19 сокровище 9 класса, 20 сокровище 8 класса; какое именно — случайно из списка.
-const TREASURE_POOL = { 9: ["guard", "flame", "hearth", "dice", "bell", "once-more", "wind", "silver-salt"], 7: ["brotherhood-ring"], 8: ["chalice", "beginners-luck", "flask", "monocle", "boots", "director-quiver"] };
+const TREASURE_POOL = { 9: ["guard", "flame", "hearth", "dice", "bell", "once-more", "wind", "silver-salt", "whetstone", "repair-charm", "mana-charm"], 7: ["brotherhood-ring", "daedalus-hammer", "fatigue-charm"],
+  8: ["chalice", "beginners-luck", "flask", "monocle", "boots", "director-quiver", "durable-charm", "regen-charm"], 6: ["unbreakable-charm", "hunger-charm"] };
 const treasureOwned = id => (TREASURES[id] ? treasure(id).owned : state.party.some(c => [...(c.bag || []), ...Object.values(c.equip || {})].some(e => e && e.id === id)));
 function treasurePick(cls) {
   const free = TREASURE_POOL[cls].filter(id => id === "once-more" || !treasureOwned(id));
@@ -3937,7 +3969,9 @@ function treasureRoll(force) {
   else if (d === 17) { const w = pickOne(WEAPONS.filter(x => x.kind !== "Боеприпасы")); lines.push(giveParty({ t: "w", id: w.id, qty: 1 })); }
   else {
     let cls = d === 20 ? 8 : 9; if (!force && rnd(4) === 0) cls--;          // редкий подъём на класс выше: из 9 в 8, из 8 в 7 (колчан режиссёра — стандартное сокровище 7 класса)
+    if (cls === 7 && !force && rnd(3) === 0) cls = 6;                       // из 7 редко в 6 (амулеты несокрушимости и голода)
     let id = treasurePick(cls);
+    if (!id && cls === 6) { id = treasurePick(7); cls = 7; }
     if (!id && cls === 7) { id = treasurePick(8); cls = 8; }
     if (!id && cls === 8) { id = treasurePick(9); lines.push("Все сокровища 8 класса уже у вас — вместо них сокровище 9 класса:"); }
     if (!id) id = "once-more";
@@ -4406,6 +4440,125 @@ function travelersOverlay() {
     </div></div>`;
 }
 /*ENC-END*/
+/*DUR-BEGIN*/
+/* ===== Прочность оружия и брони (решение автора 28.10) =====
+   Обычное 10, стальное 30, артефакт 50. В записи предмета: dur — текущая (нет поля = полная), buf — временные очки «Амулета прочности», broken — сломан.
+   Оружие теряет 1 прочность за критический промах (натуральная 1), броня — когда по носителю бьёт натуральная 20 монстра (бьём один надетый предмет
+   брони: доспех или щит); монстры будущего смогут снижать её сами (B.wearWeapon / B.wearArmor). На 0 предмет ломается: «(сломано)», пользоваться им нельзя,
+   он лежит в рюкзаке (если места нет — остаётся в руке, но не работает). Чинят в кузнице и ремонтными наборами на ночлеге. */
+const durMax = e => (e && e.art ? 50 : e && e.steel ? 30 : 10);
+const isDurable = e => !!e && (e.t === "w" || e.t === "a");
+const durOf = e => (e.dur == null ? durMax(e) : e.dur);
+const isBroken = e => !!(e && e.broken);
+// Что передаётся вместе с предметом при перекладывании: сталь, соль, артефакт и прочность.
+const durKeep = e => ({ ...(e.steel ? { steel: true } : {}), ...(e.salt ? { salt: true } : {}), ...(e.saltDays > 0 ? { saltDays: e.saltDays } : {}), ...(e.art ? { art: e.art } : {}),
+  ...(e.dur != null ? { dur: e.dur } : {}), ...(e.buf != null ? { buf: e.buf } : {}), ...(e.broken ? { broken: true } : {}) });
+const durWrap = (v, it) => { if (!it) return it; it.dur = durOf(v); it.durMax = durMax(v); if (v.buf > 0) it.durBuf = v.buf; if (v.broken) { it.broken = true; it.name += " (сломано)"; } return it; };
+const liveItem = e => (e && e.broken ? null : itemOf(e));
+const hasCharm = (c, id) => !!(c && c.equip && c.equip.charm && c.equip.charm.id === id);
+const durSlots = c => [...Object.entries(c.equip || {}).filter(([, e]) => isDurable(e)).map(([slot, e]) => ({ e, slot })), ...(c.bag || []).filter(isDurable).map(e => ({ e, slot: "bag" }))];
+function durBreak(c, e, slot) {
+  e.broken = true; e.dur = 0; delete e.buf;
+  if (slot && slot !== "bag" && c.equip && c.equip[slot] === e && addToBag(c, { ...e, qty: 1 }) === 0) delete c.equip[slot];          // сломанное — в рюкзак
+}
+// Снизить прочность на n. Возвращает true, если предмет сломался. «Амулет несокрушимости»: всё оружие носителя не теряет прочности.
+function durHit(c, e, slot, n = 1) {
+  if (!isDurable(e) || isBroken(e) || !(n > 0)) return false;
+  if (e.t === "w" && hasCharm(c, "unbreakable-charm")) return false;
+  if (e.dur == null) e.dur = durMax(e);
+  for (let i = 0; i < n; i++) { if (e.dur > 0) e.dur--; else if (e.buf > 0) e.buf--; }
+  if (e.dur <= 0 && !(e.buf > 0)) { durBreak(c, e, slot); return true; }
+  return false;
+}
+function durFix(e, n) {
+  if (!isDurable(e)) return 0;
+  const before = durOf(e); e.dur = Math.min(durMax(e), before + n);
+  if (e.dur > 0) delete e.broken;
+  return e.dur - before;
+}
+// «Амулет прочности»: у всех вещей персонажа временные +20 (отнимаются в последнюю очередь). Без амулета они пропадают, а вещь с нулевой настоящей прочностью ломается насовсем.
+function durAmulet(c) {
+  const on = hasCharm(c, "durable-charm");
+  for (const { e, slot } of durSlots(c)) {
+    if (isBroken(e)) continue;
+    if (on) { if (e.buf == null) e.buf = 20; }
+    else if (e.buf != null) { delete e.buf; if (e.dur != null && e.dur <= 0) durBreak(c, e, slot); }
+  }
+}
+const durLine = e => (isDurable(e) ? `<p class="ii-dur">Прочность: <b>${durOf(e)}/${durMax(e)}</b>${e.buf > 0 ? ` <small>(+${e.buf} временной)</small>` : ""}${e.broken ? " — сломано, пользоваться нельзя" : ""}</p>` : "");
+
+/* ----- ремонт на ночлеге: наборы, артефакты, дварфы ----- */
+const REPAIR_BASE = { "repair-kit": [3, 5], "repair-kit-pro": [13, 15], whetstone: [3, 5], "daedalus-hammer": [13, 15] };          // обычные расы / дварф
+const REPAIR_CD = { whetstone: 3, "daedalus-hammer": 2 };                                                                      // «раз в N дней»
+const REPAIR_COURSE = [[0, 0], [3, 5], [9, 15]];                                                                              // курсы: нет / ученик / мастер (мастер заменяет ученика)
+const REPAIR_NAME = { "repair-kit": "ремонтный набор", "repair-kit-pro": "продвинутый набор", whetstone: "точильный камень", "daedalus-hammer": "молот Дедала" };
+const repairLevel = c => (eduKnows(c, "rep2") ? 2 : eduKnows(c, "rep1") ? 1 : 0);
+const isDwarf = c => c.race === "dwarf";
+const repairAmount = (c, tool) => REPAIR_BASE[tool][isDwarf(c) ? 1 : 0] + REPAIR_COURSE[repairLevel(c)][isDwarf(c) ? 1 : 0];
+// Сколько починок может сделать герой за ночлег: 1, дварф — 2, и ещё по 2 за каждую единицу усталости, потраченную дварфом (rs.fixFat).
+const repairOps = (c, rs) => 1 + (isDwarf(c) ? 1 + 2 * ((rs.fixFat || {})[c.id] || 0) : 0);
+function toolEntry(tool) { for (const c of state.party) { const e = (c.bag || []).find(x => x.t === "g" && x.id === tool); if (e) return { c, e }; } return null; }
+const toolCount = tool => state.party.reduce((a, c) => a + countGear(c, tool), 0);
+function toolAvail(tool) {
+  if (!REPAIR_CD[tool]) return toolCount(tool);
+  const te = toolEntry(tool), r = state.run; return te && (te.e.used == null || !r || r.day - te.e.used >= REPAIR_CD[tool]) ? 1 : 0;
+}
+function takeGearParty(id, n) { let need = n; for (const c of state.party) { if (need <= 0) break; need -= takeGear(c, id, need); } return n - need; }
+function damagedItems() {
+  const out = [], bad = e => isDurable(e) && (e.broken || durOf(e) < durMax(e));
+  for (const c of state.party) { if (c.dead) continue;
+    for (const [slot, e] of Object.entries(c.equip || {})) if (bad(e)) out.push({ c, e, src: "eq:" + slot });
+    (c.bag || []).forEach((e, i) => { if (bad(e)) out.push({ c, e, src: "bag:" + i }); }); }
+  return out;
+}
+function fixTarget(hid, src) {
+  const c = state.party.find(x => x.id === hid); if (!c) return null;
+  const [k, v] = src.split(":"), e = k === "eq" ? (c.equip || {})[v] : (c.bag || [])[+v];
+  return e && isDurable(e) ? { c, e, slot: k === "eq" ? v : "bag" } : null;
+}
+function execRepairs(rs) {
+  const lines = [], used = {};
+  for (const op of rs.fix || []) {
+    const by = state.party.find(x => x.id === op.by), tg = fixTarget(op.hid, op.src); if (!by || by.dead || !tg) continue;
+    used[op.by] = (used[op.by] || 0) + 1; if (used[op.by] > repairOps(by, rs) || !toolAvail(op.tool)) continue;
+    if (REPAIR_CD[op.tool]) toolEntry(op.tool).e.used = state.run.day; else takeGearParty(op.tool, 1);
+    const before = durOf(tg.e), was = tg.e.broken, got = durFix(tg.e, repairAmount(by, op.tool));
+    lines.push(`${by.name} чинит ${itemOf(tg.e).name.toLowerCase()} (${REPAIR_NAME[op.tool]}, +${got}${was ? ", снова целое" : ""}): ${before} → ${durOf(tg.e)}/${durMax(tg.e)}`);
+  }
+  return lines;
+}
+function repairHtml(rs) {
+  const tools = Object.keys(REPAIR_BASE).filter(t => toolCount(t) > 0), live = state.party.filter(c => !c.dead);
+  if (!tools.length || !live.length) return "";
+  rs.fix ||= []; rs.fixFat ||= {};
+  const by = live.find(c => c.id === rs.fixBy) || live.find(isDwarf) || live[0]; rs.fixBy = by.id;
+  const cap = repairOps(by, rs), mine = rs.fix.filter(o => o.by === by.id).length, f0 = (state.run.status[by.id] || {}).fat || 0, fu = rs.fixFat[by.id] || 0;
+  const planned = o => (rs.fix.filter(x => x.tool === o).length), left = t => toolAvail(t) - planned(t);
+  const dmg = damagedItems();
+  const toolBtn = (d, t) => `<button class="fx-btn" data-dg="fix-add" data-hid="${d.c.id}" data-src="${d.src}" data-tool="${t}"${left(t) > 0 && mine < cap ? "" : " disabled"} title="${REPAIR_NAME[t]}">${REPAIR_NAME[t]} +${repairAmount(by, t)}</button>`;
+  return `<div class="rep-box"><div class="rep-h"><b>Починка снаряжения</b> <small>на ночлеге, ходов у ${esc(by.name)}: ${mine}/${cap}</small></div>
+    <div class="rep-chips">${live.map(c => `<button class="fx-btn guard" data-dg="fix-by" data-id="${c.id}" aria-pressed="${c.id === by.id}">${esc(c.name)}${isDwarf(c) ? " (дварф)" : ""}${repairLevel(c) ? " · " + (repairLevel(c) === 2 ? "мастер" : "ученик") : ""}</button>`).join("")}</div>
+    <small>Есть: ${tools.map(t => `${REPAIR_NAME[t]} ×${REPAIR_CD[t] ? (toolAvail(t) ? "готов" : "откат") : toolCount(t)}`).join(", ")}.</small>
+    ${isDwarf(by) ? `<div class="rep-fat"><span>Усталость на починку: <b>${fu}</b> <small>(${fu === 0 ? "не тратится" : fu === 1 ? "без снятия усталости за сон" : "без снятия усталости, +" + (fu - 1) + " к усталости"}; за каждую ещё +2 починки)</small></span>
+      <button class="fx-btn" data-dg="fix-fat" data-d="-1"${fu > 0 ? "" : " disabled"} aria-label="Меньше">−</button><button class="fx-btn" data-dg="fix-fat" data-d="1"${(fu === 0 || f0 + fu <= 4) && !rs.guard[by.id] ? "" : " disabled"} aria-label="Больше">+</button></div>` : ""}
+    ${rs.fix.length ? `<ol class="rep-plan">${rs.fix.map((o, i) => { const tg = fixTarget(o.hid, o.src), who = state.party.find(c => c.id === o.by);
+      return `<li>${esc(who ? who.name : "?")}: ${tg ? esc(itemOf(tg.e).name) : "?"} (${esc(REPAIR_NAME[o.tool])}) <button class="fx-btn" data-dg="fix-del" data-i="${i}" aria-label="Убрать">✕</button></li>`; }).join("")}</ol>` : ""}
+    <div class="rep-list">${dmg.length ? dmg.map(d => `<div class="rep-row"><span>${esc(d.c.name)}: <b>${esc(itemOf(d.e).name)}</b> <small>${durOf(d.e)}/${durMax(d.e)}</small></span><span>${tools.map(t => toolBtn(d, t)).join("")}</span></div>`).join("") : `<small>Всё цело.</small>`}</div></div>`;
+}
+// Конец дня (амулеты): починка экипировки, +2 ОЗ, +2 маны, −1 Усталость, утоление голода. Работает в лабиринте при смене дня и в таверне после ночи.
+function amuletDayEnd() {
+  const r = state.run; if (!r) return;
+  for (const c of state.party) {
+    if (c.dead || !c.equip || !c.equip.charm) continue;
+    const ch = c.equip.charm.id, st = (r.status || {})[c.id], nm = ARTIFACTS[ch] ? ARTIFACTS[ch].name : ch;
+    if (ch === "repair-charm") { let n = 0; for (const e of Object.values(c.equip)) if (isDurable(e) && (e.broken || durOf(e) < durMax(e))) n += durFix(e, 1); if (n) logRun(`${nm} (${c.name}): экипировка восстановила ${n} прочн.`); }
+    else if (ch === "regen-charm") { const b = hpOf(c); c.hp = Math.min(maxHp(c), b + 2); if (c.hp > b) logRun(`${nm} (${c.name}): +${c.hp - b} ОЗ.`); }
+    else if (ch === "mana-charm") { const b = mpOf(c); c.mp = Math.min(maxMp(c), b + 2); if (c.mp > b) logRun(`${nm} (${c.name}): +${c.mp - b} маны.`); }
+    else if (ch === "fatigue-charm" && st && st.fat > 0) { st.fat--; logRun(`${nm} (${c.name}): Усталость −1.`); }
+    else if (ch === "hunger-charm" && st) { st.sat = Math.min(9, st.sat + 3); st.starve = 0; logRun(`${nm} (${c.name}): голод утолён.`); }
+  }
+}
+/*DUR-END*/
 /* ----- исследование и раскопки (числа — черновик в ../campaign/drafts.md, «Исследование, копание, удача») ----- */
 // Особые места этажа (с тайной): на 1 этаже — алтарь у статуи. Там таблицы наград другие, верх таблицы — подсказки о тайне.
 const FLOOR_SPECIAL = { 1: [{ x: CENTER, y: CENTER, name: "Алтарь (статуя)" }] };
@@ -4662,10 +4815,10 @@ function f3Buttons() {
 }
 // Сундук Пылающих земель (решение автора 29.10): всегда артефакт; бросок к20 определяет только класс; артефактное оружие и броня падают с бонусом +10 %.
 function fireChestRoll() {
-  const d = 1 + rnd(20); let cls = d <= 12 ? 9 : d <= 18 ? 8 : 7, id = null, boosted = false;
+  const d = 1 + rnd(20); let cls = d <= 12 ? 9 : d <= 18 ? 8 : 7, id = null, boosted = false; if (d === 20 && rnd(3) === 0) cls = 6;
   const left = ART_DROPS.filter(a => !artHeld(a));
   if (left.length && rnd(100) < FIRE_BOOST) { id = left[rnd(left.length)]; boosted = true; cls = (ART_WEAPONS[id] || ART_ARMORS[id]).cls; }
-  else { id = treasurePick(cls); if (!id && cls === 7) { id = treasurePick(8); cls = 8; } if (!id && cls === 8) { id = treasurePick(9); cls = 9; } if (!id) id = "once-more"; }
+  else { id = treasurePick(cls); if (!id && cls === 6) { id = treasurePick(7); cls = 7; } if (!id && cls === 7) { id = treasurePick(8); cls = 8; } if (!id && cls === 8) { id = treasurePick(9); cls = 9; } if (!id) id = "once-more"; }
   const tag = s => s.replace(/^[^—]*/, `Артефакт ${cls} класса (неопознан) `);
   let line;
   if (ART_WEAPONS[id]) line = tag(giveParty({ t: "w", id: ART_WEAPONS[id].base, art: id, qty: 1 }));
@@ -5069,6 +5222,7 @@ const ARTIFACTS = {
   "once-more": { cls: 9, name: "«Ещё раз»", ico: () => ICO_AGAIN, text: "Одноразовый предмет: позволяет перебросить неудачный бросок на эссенцию после боя." },
   chalice: { cls: 8, name: "Чаша здоровья", ico: () => GEAR_ICON.chalice, text: GEAR.chalice.note },
   "beginners-luck": { cls: 8, name: "Удача новичка", ico: () => GEAR_ICON["beginners-luck"], text: GEAR["beginners-luck"].note },
+  ...Object.fromEntries(["whetstone", "daedalus-hammer", "unbreakable-charm", "repair-charm", "durable-charm", "regen-charm", "mana-charm", "fatigue-charm", "hunger-charm"].map(id => [id, { cls: GEAR[id].cls, name: GEAR[id].name, ico: () => GEAR_ICON[id], text: GEAR[id].note }])),
   "calm-flute": { cls: 9, name: "Флейта успокоения", ico: () => GEAR_ICON.flute, text: GEAR["calm-flute"].note },
   tollbell: { cls: 7, name: "Серебряный колокольчик", ico: () => ICO_BELL, text: "Уникальный (сокровищница Звона). Раз в день: если монстр атаковал героя ментальной атакой или дебаффом и герой провалил проверку (Инт, Муд или Хар), колокольчик звенит сам — перебросок с преимуществом получает пострадавший и все остальные, кого задела та же способность. Можно взвести заранее из Инвентаря: тогда следующие ментальные проверки команды идут с преимуществом." },
   boots: { cls: 8, name: "Сапоги скороходы", ico: () => ICO_BOOTS, text: "Раз в день: Движение проходит сразу 2 клетки, а Бег — 3 клетки (одна из пробегаемых клеток — без проверки)." },
@@ -5081,7 +5235,7 @@ const artState = () => (state.artifacts ||= { seen: {}, known: {} });
 const artSeen = id => { if (ARTIFACTS[id]) artState().seen[id] = true; };                                         // получен: попадает в библиотеку артефактов
 // Цена артефактов растёт с классом (решение автора 28.10); «Удача новичка» — на уровне 7 класса. Кузница и Башня магов скупают артефакты;
 // «своя» лавка (Башня — аксессуары, Кузница — броня и оружие) платит на 10 % больше. Надбавку нигде не показываем.
-const ART_PRICE = { 9: 150, 8: 450, 7: 1500, 6: 5000 }, ART_PRICE_OVER = { "beginners-luck": 1500 }, ART_CAT = { boots: "armor" };
+const ART_PRICE = { 9: 150, 8: 450, 7: 1500, 6: 5000 }, ART_PRICE_OVER = { "beginners-luck": 1500 }, ART_CAT = { boots: "armor", whetstone: "armor", "daedalus-hammer": "armor" };
 const artValue = id => ART_PRICE_OVER[id] ?? ART_PRICE[ARTIFACTS[id].cls] ?? 100;
 const artBuyerMult = (id, b) => ((ART_CAT[id] || (typeof ART_WEAPONS !== "undefined" && (ART_WEAPONS[id] || ART_ARMORS[id]) ? "armor" : "acc")) === "acc") === (b === "tower") ? 1.1 : 1;
 for (const id of Object.keys(ARTIFACTS)) ARTIFACTS[id].price = artValue(id);
@@ -5574,7 +5728,7 @@ function stageOverlay() {
 }
 
 // Строки «Снаряжения»: показываются только те расходники, что есть хоть у кого-то.
-const SUPPLY_ROWS = [["ration", "Еда (пайки)"], ["potion", "Зелья лечения"], ["torch", "Факелы"], ["arrow", "Стрелы"], ["shovel", "Лопаты"], ["shovel-good", "Хорошие лопаты"], ["shovel-best", "Отличные лопаты"]];
+const SUPPLY_ROWS = [["ration", "Еда (пайки)"], ["potion", "Зелья лечения"], ["torch", "Факелы"], ["arrow", "Стрелы"], ["shovel", "Лопаты"], ["shovel-good", "Хорошие лопаты"], ["shovel-best", "Отличные лопаты"], ["repair-kit", "Ремонтные наборы"], ["repair-kit-pro", "Продвинутые ремонтные наборы"]];
 const partyFood = () => state.party.reduce((a, c) => a + countGear(c, "ration"), 0);
 function restOverlay() {
   const r = state.run, rs = dgUi.rest, eaten = Object.values(rs.eat).reduce((a, b) => a + b, 0), cups = Object.values(rs.cup || {}).filter(Boolean).length, left = partyFood() - eaten - cups;
@@ -5588,6 +5742,7 @@ function restOverlay() {
       ${treasure("hearth").owned ? `<button class="fx-btn guard" data-dg="hearth-toggle" aria-pressed="${!!rs.hearth}"${r.hearthUsed ? " disabled" : ""} style="display:flex;align-items:center;gap:8px;justify-content:center;width:100%;margin:2px 0 8px"><span style="width:22px;height:22px;display:inline-flex">${ICO_HEARTH}</span>${artKnown("hearth") ? "Вечный очаг" : "Артефакт ??"} · ${r.hearthUsed ? "использован в этом заходе" : rs.hearth ? "применится после сна" : "готов (раз за заход)"}</button>` : ""}
       ${fluteHeroes().length ? `<button class="fx-btn guard" data-dg="flute-toggle" aria-pressed="${!!rs.flute}" style="display:flex;align-items:center;gap:8px;justify-content:center;width:100%;margin:2px 0 8px">${fluteItemOf(fluteHeroes()[0]).id === "calm-flute" ? "Флейта успокоения" : "Флейта"} (${esc(fluteHeroes()[0].name)}): играть, +1 действие, бросок к20 + Лов/Инт — Усталость отряда</button>` : ""}
       ${treasure("flask").owned ? `<button class="fx-btn guard" data-dg="flask-toggle" aria-pressed="${!!rs.flask}"${trReady("flask") ? "" : " disabled"} style="display:flex;align-items:center;gap:8px;justify-content:center;width:100%;margin:2px 0 8px"><span style="width:22px;height:22px;display:inline-flex">${ICO_FLASK}</span>${artKnown("flask") ? "Фляга странника" : "Артефакт ??"} · ${rs.flask ? "один паёк не тратится" : cdText("flask")}</button>` : ""}
+      ${repairHtml(rs)}
       ${rs.together ? `<p style="color:var(--fx-gold-hi)">Путники делят с вами костёр: караул не нужен, ночной встречи не будет, бонусы отдыха работают как обычно.</p>` : ""}
       ${rs.ng ? `<p style="color:var(--fx-gold-hi)">Ночной страж сторожит лагерь: все спят, ночной встречи не будет. Потратится 1 заряд.</p>` : ""}
       <div class="rest-list">${state.party.map(c => `<div class="rest-row">
@@ -5813,7 +5968,7 @@ function advanceTime() {
   const r = state.run;
   if (r.day >= FL().days && r.act >= FL().acts) { endRun(); return true; }
   r.act++; chaliceTick(1);
-  if (r.act > FL().acts) { r.act = 1; r.day++; saltTick(); logRun(`Начался день ${r.day}.`); spDawn(); if (r.day === 2) f3Map(r); f3Dawn(); }
+  if (r.act > FL().acts) { amuletDayEnd(); r.act = 1; r.day++; saltTick(); logRun(`Начался день ${r.day}.`); spDawn(); if (r.day === 2) f3Map(r); f3Dawn(); }
   return false;
 }
 function endRun(early) {
@@ -5897,6 +6052,7 @@ function act(kind) {
       const hc = state.party.find(c => (rs.eat[c.id] || 0) > 0);
       if (hc) { addToBag(hc, { t: "g", id: "ration", qty: 1 }); cdSet("flask"); eaten--; logRun(`Фляга странника: один паёк возвращён ${hc.name}.`); }
     }
+    for (const l of execRepairs(rs)) logRun(l);
     tick(sleepers);
     const fluteOn = !!(rs.flute && fluteHeroes().length), fluteFx = { fat: 0 };
     if (fluteOn) {
@@ -5916,7 +6072,9 @@ function act(kind) {
       c.mp = maxMp(c); c.flags = {};                       // длинный отдых: мана и дневные способности
       c.insp = Math.min(inspMax(c), (c.insp ?? inspMax(c)) + 1);          // переброс возвращает только сон: по одному за ночь, гном хранит два
       if (c.hp > before) healed.push(`${c.name} +${c.hp - before}`);
-      if (!stoneAt("lava")) st.fat = Math.max(0, st.fat - (st.starve >= 3 ? 1 : 2) );          // «Жар» лавовых трещин: отдых не снимает Усталость
+      const fu = (rs.fixFat || {})[c.id] | 0;          // дварф тратит усталость на починку: 1 — не снимает усталость за сон, дальше +1 за каждую
+      if (fu >= 1) st.fat = Math.min(4, st.fat + fu - 1);
+      else if (!stoneAt("lava")) st.fat = Math.max(0, st.fat - (st.starve >= 3 ? 1 : 2) );          // «Жар» лавовых трещин: отдых не снимает Усталость
       st.awake = 0;
     }
     if (fluteFx.fat) for (const c of state.party) if (!c.dead) { const st = r.status[c.id]; st.fat = Math.max(0, Math.min(4, st.fat + fluteFx.fat)); }
@@ -6181,6 +6339,14 @@ document.addEventListener("click", e => {
     case "cup-toggle": { const rs = dgUi.rest; rs.cup ||= {}; rs.cup[ds.id] = !rs.cup[ds.id]; break; }
     case "flute-toggle": { const rs = dgUi.rest; rs.flute = !rs.flute; break; }
     case "hearth-toggle": { const rs = dgUi.rest; if (!state.run.hearthUsed) rs.hearth = !rs.hearth; break; }
+    case "fix-by": { const rs = dgUi.rest; rs.fixBy = ds.id; break; }
+    case "fix-add": { const rs = dgUi.rest, by = state.party.find(c => c.id === rs.fixBy), t = ds.tool; if (!by) break;
+      if (rs.fix.filter(o => o.by === by.id).length >= repairOps(by, rs) || toolAvail(t) - rs.fix.filter(o => o.tool === t).length <= 0) break;
+      rs.fix.push({ by: by.id, tool: t, hid: ds.hid, src: ds.src }); break; }
+    case "fix-del": { const rs = dgUi.rest; rs.fix.splice(Number(ds.i), 1); const by = state.party.find(c => c.id === rs.fixBy); if (by) { const over = rs.fix.filter(o => o.by === by.id).length - repairOps(by, rs); for (let k = 0; k < over; k++) { const j = rs.fix.map(o => o.by).lastIndexOf(by.id); if (j >= 0) rs.fix.splice(j, 1); } } break; }
+    case "fix-fat": { const rs = dgUi.rest, by = state.party.find(c => c.id === rs.fixBy); if (!by || !isDwarf(by)) break; rs.fixFat ||= {}; const f0 = (state.run.status[by.id] || {}).fat || 0;
+      let u = Math.max(0, (rs.fixFat[by.id] || 0) + Number(ds.d)); if (u > 0 && f0 + u - 1 > 4) u--; rs.fixFat[by.id] = u;
+      const over = rs.fix.filter(o => o.by === by.id).length - repairOps(by, rs); for (let k = 0; k < over; k++) { const j = rs.fix.map(o => o.by).lastIndexOf(by.id); if (j >= 0) rs.fix.splice(j, 1); } break; }
     case "ng-toggle": { const rs = dgUi.rest; if (rs.together) break; if (rs.ng) rs.ng = false; else if (ngCharges() > 0) { rs.ng = true; rs.guard = {}; } break; }
     case "give-compass": inv.compass.owned = true; saveChar(); toast("Мастер выдал компас"); break;
     case "give-map": invItem("map").owned = true; saveChar(); toast("Мастер выдал карту этажа"); break;
@@ -6243,7 +6409,7 @@ function showItemInfo(e, holder, extra = "", ov = null) {
   const it = ov || itemOf(e, holder); if (!it) return;
   const $i = document.getElementById("iteminfo");
   $i.innerHTML = `<div class="ii-card fx-frame"><div class="ii-art">${it.art ? img(it.art, it.name) : (it.icon || GEAR_ICON.custom)}</div>
-    <h4>${esc(it.name)}${e && e.qty > 1 ? ` × ${e.qty}` : ""}</h4>${itemInfoText(it)}${extra}
+    <h4>${esc(it.name)}${e && e.qty > 1 ? ` × ${e.qty}` : ""}</h4>${itemInfoText(it)}${e ? durLine(e) : ""}${extra}
     <small>${it.weight ? kgf(it.weight) + " кг" : "вес не учитывается"}${e && e.uses != null ? ` · раскопок: ${e.uses}` : ""}</small>
     <button class="fx-btn" data-ii="close">Закрыть</button></div>`;
   $i.hidden = false;
@@ -6572,10 +6738,12 @@ $hero.addEventListener("click", e => {
       heroAfterChange(`Зелье: +${heal} ОЗ (${before} → ${c.hp})`); return;
     }
     case "equip": {
+      if (isBroken(entry)) { toast("Сломано: чинится в кузнице или ремонтным набором на ночлеге"); return; }
       const slot = ds.slotTo === "ring" ? (c.equip.ring1 ? "ring2" : "ring1") : ds.slotTo, it = itemOf(entry);
       c.bag.splice(heroUi.sel, 1); heroUi.sel = null;
       const prev = c.equip[slot];
-      c.equip[slot] = entry.t === "c" ? { t: "c", name: entry.name } : { t: entry.t, id: entry.id, ...(entry.steel ? { steel: true } : {}), ...(entry.salt ? { salt: true } : {}), ...(entry.saltDays > 0 ? { saltDays: entry.saltDays } : {}), ...(entry.art ? { art: entry.art } : {}) };
+      c.equip[slot] = entry.t === "c" ? { t: "c", name: entry.name } : { t: entry.t, id: entry.id, ...durKeep(entry), ...(entry.used != null ? { used: entry.used } : {}) };
+      durAmulet(c);
       if (prev) addToBag(c, { ...prev, qty: 1 });
       if (slot === "off" && isTwoHandedWeapon(it) && it.group !== "ranged" && c.race === "barbarian") c.giantGrip = true;          // второе двуручное в левую руку: «Великан» с большим штрафом
       if (slot === "main" && isTwoHandedWeapon(it) && it.group === "ranged" && c.equip.off && !lightMelee(itemOf(c.equip.off))) {
@@ -6591,7 +6759,7 @@ $hero.addEventListener("click", e => {
     case "unequip": {
       const e2 = c.equip[heroUi.slot];
       if (addToBag(c, { ...e2, qty: 1 })) { toast("Рюкзак полон"); return; }
-      delete c.equip[heroUi.slot]; heroUi.slot = null;
+      delete c.equip[heroUi.slot]; heroUi.slot = null; durAmulet(c);
       heroAfterChange("Снято в рюкзак"); return;
     }
     case "give": {

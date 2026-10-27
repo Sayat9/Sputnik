@@ -173,7 +173,7 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
     out.pike = { react: h.t.react, hurt: m2.hp < hpB, stopped: !!B.has(m2, 'spearstop') || m2.hp >= hpB };
     return out;
   });
-  ok('колчан режиссёра — 8 класса (пул 8), в пуле 7 — кольцо; новые артефакты: 6,7,6,7', o3.classes.join() === '6,7,6,7,8,8,true,1', o3.classes);
+  ok('колчан режиссёра — 8 класса (пул 8), в пуле 7 — кольцо, молот Дедала, амулет усталости; новые артефакты: 6,7,6,7', o3.classes.join() === '6,7,6,7,8,8,true,3', o3.classes);
   ok('Падающая звезда: атака в меню, тратит 1 ману, стрелу и действие', o3.star && o3.starRes.ok && o3.starRes.mp === 4 && o3.starRes.arrows === 1 && o3.starRes.action === 0, o3.starRes);
   ok('Падающая звезда: бьёт область, дальнюю цель нет, подсвечивает и снимает невидимость', o3.starRes.m1 && o3.starRes.m2 && o3.starRes.far && o3.starRes.lit && o3.starRes.hid, o3.starRes);
   ok('Падающая звезда: перезарядка 3 хода', /перезарядка/.test(o3.starCd || ''), o3.starCd);
@@ -243,7 +243,7 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
     out.backlash = { hurt: h.hp < hp0, moved: h.y > m1.y };
     return out;
   });
-  ok('классы: меч 6, топор 7, булава 7, кольцо 7 (пул 7 — кольцо)', o4.classes.join() === '6,7,7,7,brotherhood-ring', o4.classes);
+  ok('классы: меч 6, топор 7, булава 7, кольцо 7 (пул 7 — кольцо, молот Дедала, амулет усталости)', o4.classes.join() === '6,7,7,7,brotherhood-ring,daedalus-hammer,fatigue-charm', o4.classes);
   ok('Падающая звезда задевает и союзников (но подсвечивает только врагов)', o4.starFF.enemy && o4.starFF.ally && !o4.starFF.allyLit, o4.starFF);
   ok('Кольцо братского духа: от союзника урона нет, от врага есть', o4.ringAlly && o4.ringEnemy, [o4.ringAlly, o4.ringEnemy]);
   ok('Меч полумесяца: фазы сменяются сами каждый ход (0,1,2,3,0)', o4.moonCycle.join() === '0,1,2,3,0', o4.moonCycle);

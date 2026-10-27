@@ -36,6 +36,14 @@
 
 Стальное и более сильное снаряжение рисуется на лучшем фоне, чем обычное: «новое, блестящее» предмет (`new shiny steel …`), резная подставка (`decorated wooden display stand`), ниша-арсенал (`softly lit arsenal alcove`), знамёна и доспехи вдоль стен. Образец: `a new shiny steel warhammer with a squared head and a pointed back spike on a hardwood haft, standing upright, resting against a decorated wooden display stand, on a small stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit arsenal alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`.
 
+### Ремонтный набор — `repair-kit`
+
+> `a small worn leather roll-up repair kit lying open: a tiny hammer, a few steel rivets, a strip of leather patches, a pot of glue and a whetting file, scuffs and oil stains, on a small worn stone pedestal in a stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Продвинутый ремонтный набор — `repair-kit-pro`
+
+> `a sturdy well-kept dwarven toolbox with brass corners lying open: fine chisels, a small anvil block, tempered files, steel plates and neat coils of wire, used but cared for, on a small worn stone pedestal in a stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
 ## Сокровища и артефакты
 
 ### Флейта успокоения — `calm-flute`
@@ -73,6 +81,42 @@
 ### Экстракт попутного ветра — `wind`
 
 > `a small corked glass vial filled with swirling pale-blue and white mist like a tiny captive breeze, a worn leather cord and a hand-written paper tag around the neck, resting on a small cloth, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Точильный камень — `whetstone`
+
+> `a long smooth whetstone with a faint silver sheen and a few glowing runes along its edge, worn hollow in the middle by long use, lying on a folded cloth, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Молот Дедала — `daedalus-hammer`
+
+> `a compact smith's hammer with a bronze head engraved with a tiny labyrinth pattern and a dark wooden haft wrapped in worn leather, a few sparks of faint golden light floating around the head, resting against a small anvil block, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Амулет несокрушимости — `unbreakable-charm`
+
+> `an old iron amulet on a thick chain: a scratched round shield-shaped medallion with a tiny diamond set in the middle, dull but unbroken, resting on a small cloth, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Амулет починки — `repair-charm`
+
+> `a small bronze amulet on a cord shaped like a crossed hammer and needle, green patina and a faint warm glow, resting on a small cloth, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Амулет прочности — `durable-charm`
+
+> `a heavy round stone-and-iron amulet on a leather cord, a pale blue crystal in the center and thick plate-like rim, faint cyan glow, resting on a small cloth, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Амулет регенерации — `regen-charm`
+
+> `a small round amulet on a thin chain with a deep red heart-shaped stone wrapped in tiny green leaves, soft pulsing red glow, resting on a small cloth, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Амулет маны — `mana-charm`
+
+> `a small silver amulet on a chain with a deep blue teardrop crystal, tiny sparkles of blue light drifting around it, resting on a small cloth, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Амулет усталости — `fatigue-charm`
+
+> `a worn wooden-and-silver amulet shaped like a crescent moon with a closed eye engraved on it, faint violet glow, on a faded cord, resting on a small cloth, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Амулет голода — `hunger-charm`
+
+> `a small rustic amulet on a cord: a carved wooden bead ring around a tiny golden wheat ear, warm amber glow, resting on a small cloth, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
 
 ## Находки (после определения)
 
