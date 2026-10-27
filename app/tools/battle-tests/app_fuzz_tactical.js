@@ -48,11 +48,12 @@ const RUNS = +process.argv[2] || 12, STEPS = +process.argv[3] || 400;
         if (!UI.active) { await new Promise(r => setTimeout(r, 20)); if (!Battle.running) break; continue; }
         if (S) S.opts.autoHeroes = true;
         const md = document.querySelector('.bt-modal'); const yes = md && !md.hidden && md.querySelector('[data-m="yes"]'); if (yes) { yes.click(); await new Promise(r => setTimeout(r, 5)); continue; }
+        const sum = [...document.querySelectorAll('.bt-modal .fx-btn.primary')].find(b => b.offsetParent && !b.classList.contains('bt-done') && /^Готово$/.test(b.textContent.trim())); if (sum) { sum.click(); await new Promise(r => setTimeout(r, 5)); continue; }
         const sheetBtn = document.querySelector('.bd-ov:not(.out) .bd-ok:not([hidden])'); if (sheetBtn) { sheetBtn.click(); await new Promise(r => setTimeout(r, 5)); continue; }
         const roll = document.querySelector('.bd-ov:not(.out) .bd-roll:not([disabled])'); if (roll && !document.querySelector('.bd-ov:not(.out) .bd-row').hidden) { roll.click(); await new Promise(r => setTimeout(r, 30)); continue; }
         if (UI.mode === 'place' || UI.mode === 'ambush') { UI.placeDone(); }
         else if (UI.mode === 'hero' && UI.endTurn) { UI.endTurn(); }
-        else if (UI.mode === 'result') { const d = document.querySelector('.bt-done:not([hidden])'); if (d) d.click(); }
+        else if (UI.mode === 'result') { const lv = document.querySelector('.bt-ess [data-ec="leave"]:not([disabled])'); if (lv && lv.offsetParent) lv.click(); const d = document.querySelector('.bt-done:not([hidden])'); if (d) d.click(); }          // эссенцию путника надо решить: «Оставить»
         await new Promise(r => setTimeout(r, 10));
       }
       if (dgUi.enc && Battle.running) { issues.push('бой завис (60 с)'); try { Battle.abort(); Battle.UI.endTurn && Battle.UI.endTurn(); } catch (e) {} await new Promise(r => setTimeout(r, 300)); }

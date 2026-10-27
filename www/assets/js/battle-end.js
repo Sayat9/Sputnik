@@ -92,7 +92,7 @@
     const plan = rewardsPlan(S, outcome);
     for (const k of plan.kills) { const c = state.party.find(x => x.id === k.hid); if (c) { c.kills ||= {}; c.kills[k.id] = (c.kills[k.id] || 0) + 1; } }          // список убийств героя
     const gotLines = [];
-    for (const [id, it] of Object.entries(plan.stones)) { sackAdd(id, it.cls, it.n); gotLines.push(`Сумка для камней: ${MONSTERS.find(m => m.id === id).name} × ${it.n} (${it.cls} класс)`); }
+    for (const [id, it] of Object.entries(plan.stones)) { const own = id[0] !== "~"; sackAdd(own ? id : null, it.cls, it.n); gotLines.push(`Сумка для камней: ${own ? MONSTERS.find(m => m.id === id).name : "Путники"} × ${it.n} (${it.cls} класс)`); }          // «~класс» — камни путников, в сумке просто «Находки»
     if (ev.arena) { plan.arena = arenaRewards(S, plan); gotLines.push(...plan.arena.lines); plan.wins = plan.wins.map(w => ({ ...w, arena: true })); }          // арена: лута нет, платят монетами
     if (B.deliverFound && !ev.arena) gotLines.push(...B.deliverFound(S, outcome === "win" || outcome === "retreat" || outcome === "abort"));
     if (!(UI && UI.active)) { for (const w of plan.wins) if (!w.arena) essStash().push(w.id); if (plan.wins.length) saveChar(); }          // без экрана итога — в запас; с экраном игрок выбирает: впитать, сохранить, оставить
@@ -110,7 +110,7 @@
     UI.mode = "result"; UI.setHl(new Map()); UI.refreshNow();
     const [title, cls] = TITLE[outcome] || TITLE.flee;
     const fallen = B.heroes().filter(h => h.dead).map(h => h.name), downed = B.heroes().filter(h => h.down && !h.dead).map(h => h.name);
-    const xpLine = plan.xp ? `<li class="xp"><b>Опыт: +${plan.xp}</b> каждому герою <small>(новые виды: ${plan.fresh.map(id => esc(MONSTERS.find(m => m.id === id).name)).join(", ")})</small></li>` : (plan.species.length ? `<li class="muted">Опыт: эти виды уже убиты раньше</li>` : "");
+    const xpLine = plan.xp ? `<li class="xp"><b>Опыт: +${plan.xp}</b> каждому герою <small>(новые виды: ${plan.fresh.map(id => esc(xpInfo(id).name)).join(", ")})</small></li>` : (plan.species.length ? `<li class="muted">Опыт: эти виды уже убиты раньше</li>` : "");
     const stoneLines = gotLines.map(t => `<li class="stone">${esc(t)}</li>`).join("");
     const nothing = !plan.species.length;
     modal.hidden = false;
