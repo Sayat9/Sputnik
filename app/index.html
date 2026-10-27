@@ -2653,7 +2653,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 45;
+const BATTLE_REV = 46;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }
@@ -4745,7 +4745,7 @@ const ARTIFACTS = {
   "flurry-rapier": { cls: 7, name: "Рапира «Шквал»", ico: () => ICO_DAGGER, text: "Как стальная рапира. «Шквал выпадов» (2 маны, действие, откат 3 хода): три быстрых укола 1к4 + модификатор. «Серия» — все по одной цели, при трёх попаданиях ещё один, 1к8. «Веер» — по врагам в 2 клетках, каждый укол можно направить в любого из них." },
   "rift-hammer": { cls: 6, name: "Молот «Разлом»", ico: () => ICO_METEOR, text: "Как стальной боевой молот. «Раскол» (1 мана, действие, откат 3 хода): удар в землю открывает трещину по прямой на 3 клетки. Стоящие на ней (и свои) — Ловкость, иначе падают и получают 2к6; клетки трещины труднопроходны. Слабые рядом с трещиной (Сила ниже 12) — Телосложение, иначе теряют доп. действие. «Ударная волна»: толчок на клетку и 1к8 всем вокруг вас, и своим." },
   "bastion-shield": { cls: 6, name: "Крепостной щит", ico: () => ICO_MIRROR, text: "Как стальной ростовой щит. «Бастион» (1 мана, действие): до начала вашего хода вы стоите насмерть — скорость 0, вас не сбить с ног и не сдвинуть, +2 КД; союзники прямо за вами укрыты от дальних атак; враги в 4 клетках, видящие вас, атакуют других с помехой." },
-  "mirage-armor": { cls: 7, name: "Доспех-мираж", ico: () => ICO_STAR, text: "Как усиленный кожаный доспех. Первая атака по вам в каждом раунде идёт с помехой, к спасброскам Ловкости +2." },
+  "mirage-armor": { cls: 7, name: "Доспех-мираж", ico: () => ICO_STAR, text: "Как усиленный кожаный доспех. Когда по вам попадает ближняя атака — доп. проверка: к20 19+ и вы уклоняетесь. Дальняя атака с шансом 10 % не попадает. От области вокруг цели, где вы не главная цель (удар молотом вокруг точки), 30 % уклониться от урона. Критические попадания не уклоняются; молния, бьющая в точку и расходящаяся, тоже." },
   "magnet-mail": { cls: 7, name: "Магнитная кольчуга", ico: () => ICO_MAGNET, text: "Как усиленная кольчуга. Дальние атаки по союзникам в 2 клетках от вас с шансом 50 % притягиваются к вам." },
   "silver-salt": { cls: 9, name: "Серебряная соль", ico: () => GEAR_ICON.potion, text: GEAR["silver-salt"].note },
   "director-quiver": { cls: 8, name: "Колчан режиссёра", ico: () => GEAR_ICON.arrow, text: GEAR["director-quiver"].note },

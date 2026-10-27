@@ -105,6 +105,7 @@
   }
   /* Урон: parts — [{v, dt, label}]. Учитывает уязвимости, сопротивления, плоские поправки пассивок, мокроту и временные ОЗ. */
   async function applyDamage(src, tgt, parts, o = {}) {
+    if (o.splash && src && tgt.hero && B.dodgeSplash && B.dodgeSplash(src, tgt)) return { total: 0, absorbed: 0, notes: ["уклонение"] };          // доспех-мираж: область, где носитель не главная цель
     if (src && src !== tgt && src.side === tgt.side && tgt.hero && B.wearsRing && B.wearsRing(tgt)) { log(`${tgt.name}: кольцо братского духа гасит урон от ${src.name}.`, "good"); return { total: 0, absorbed: 0, notes: ["братский дух"] }; }
     if (src && tgt.hero && o.ctx && o.ctx.atk && o.ctx.atk.kind === "ranged" && !o.noReflect && B.mirrorTry) { const rf = await B.mirrorTry(src, tgt, parts); if (rf) return rf; }          // зеркальный щит
     const enc = has(tgt, "encased");
@@ -242,7 +243,6 @@
     if (has(tgt, "guarded")) { ac += 2; ctx.acNotes.push("прикрыт щитом +2"); }
     if (has(tgt, "pikeward") && melee) { ac += 1; ctx.acNotes.push("заслон пики +1"); }
     if (!melee) for (const a of alliesOf(tgt)) if (a !== tgt && has(a, "bastion") && alive(a) && B.lineCells(att, tgt).some(([x, y]) => footprint(a).some(([fx, fy]) => fx === x && fy === y))) { ac += 2; ctx.acNotes.push("укрытие за бастионом +2"); break; }
-    if (B.mirageDis) B.mirageDis(att, tgt, ctx);          // доспех-мираж: первая атака по носителю в раунде — с помехой
     for (const b of units()) if (b !== tgt && b.side === tgt.side && b.side !== att.side && has(b, "bastion") && alive(b) && dist(att, b) <= 4 && seesTarget(att, b)) { ctx.dis.push("провокация бастиона"); break; }
     const own = hookSum(tgt, "acBonus", ctx); if (own) { ac += own; ctx.acNotes.push(`пассивка ${sg(own)}`); }
     let aura = 0; for (const a of alliesOf(tgt)) aura = Math.max(aura, hookSum(a, "acAura", { ally: a, tgt, ctx }));
@@ -297,7 +297,6 @@
     if (tgt.isObj) return B.attackObject(att, atk, tgt, o);                            // способность или атака по камню и т. п.: бросок против КД объекта
     if (B.redirectAttack && !o.noRedirect) { const nt = await B.redirectAttack(att, tgt, atk, o); if (nt) tgt = nt; }          // двойник, «Принять удар»
     const ctx = attackCtx(att, tgt, atk, o);
-    if (B.mirageMark && ctx.dis.includes("доспех-мираж")) B.mirageMark(tgt);          // первая атака в раунде «потрачена»
     if (o.extra) ctx.extra.push(...o.extra);
     const ses = session(att, { kind: "attack", att, tgt, atk, title: atk.n, sub: `${att.name} → ${tgt.name}`, anim: animKind(atk) });
     const r = await ses.d20({ label: "Бросок атаки", mods: ctx.mods, adv: ctx.adv, dis: ctx.dis, vs: { ac: ctx.ac, notes: ctx.acNotes, name: tgt.name }, reroll: rerollOptions(att, "attack"), cancel: att.side === "hero" && o.cancelable !== false });
@@ -321,8 +320,8 @@
       hookAll(att, "onMiss", { ...ctx, res });
       if (!res.parried) hookAll(tgt, "onMissedBy", { ...ctx, res });                                // «Ложный образ»: промахнувшийся обманут
       const hitSide = !res.parried && !res.swapped && B.interceptShot ? await B.interceptShot(att, tgt, atk, res, ses) : null;          // низкий бросок: снаряд задевает кого-то на пути
-      const text = (res.swapped ? "Подмена: удар пришёлся на двойника" : res.parried ? "Парировано!" : nat === 1 ? "Критический промах" : "Промах") + (hitSide ? ` (${hitSide})` : "");
-      if (g) g.fxText(tgt, res.swapped ? "подмена" : res.parried ? "парирует" : "промах", "miss");
+      const text = (res.swapped ? "Подмена: удар пришёлся на двойника" : res.dodged ? "Уклонение!" : res.parried ? "Парировано!" : nat === 1 ? "Критический промах" : "Промах") + (hitSide ? ` (${hitSide})` : "");
+      if (g) g.fxText(tgt, res.swapped ? "подмена" : res.dodged ? "уклонение" : res.parried ? "парирует" : "промах", "miss");
       log(`${att.name}: ${atk.n} по ${tgt.name} — ${text.toLowerCase()} (${nat === total ? nat : `${nat} → ${total}`} против КД ${ctx.ac})${ar && ar.note ? ", " + ar.note : ""}.`, "miss");
       if (g && ses.auto) { g.banner(`${att.name} → ${tgt.name}: ${text.toLowerCase()} (${total} против КД ${ctx.ac})`); await sleep(650); }
       await ses.finish({ text: text + (ar && ar.note ? " · " + ar.note : ""), miss: true, anim: animKind(atk), tgt });

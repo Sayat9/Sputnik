@@ -128,7 +128,14 @@
     speedBonus(u) { const m = B.mainOf(u), o = B.offOf(u); return m && o && (m.props || []).includes("Можно со щитом") && o.id === "shield" ? -1 : 0; },          // пика со щитом: −1 клетка скорости
     acBonus(u) { return (has(u, "moonguard") ? 1 : 0) + (has(u, "bastion") ? 2 : 0); },          // лунная стойка +1 КД, бастион +2 КД
     immune(u, c) { return c.id === "prone" && has(u, "bastion"); },          // бастион: не сбить с ног
-    saveMods(u, ctx) { if (ctx.abil === "dex" && B.armorArt(u) === "mirage-armor") ctx.mods.push({ l: "Доспех-мираж", v: 2 }); },
+    // доспех-мираж: после попадания — доп. проверка уклонения (ближний бой: к20 19+, дальний: 10 %); критические попадания не уклоняются
+    reactHit(u, ctx) {
+      if (B.armorArt(u) !== "mirage-armor" || !ctx.atk || ctx.res.crit) return false;
+      let ok = false, how = "";
+      if (ctx.atk.kind === "melee") { const d = roll(1, 20).total; ok = d >= 19; how = `проверка уклонения: ${d}`; } else if (ctx.atk.kind === "ranged") { const d = roll(1, 100).total; ok = d <= 10; how = `уклонение от дальней атаки: ${d} из 100`; } else return false;
+      if (!ok) { log(`${u.name}: ${how} — не вышло.`); return false; }
+      log(`${u.name} уклоняется от удара (${how}).`, "skill"); fx(u, "уклонение", "good"); ctx.res.dodged = true; return true;
+    },
     redirectAlly(a, c) {          // магнитная кольчуга: дальняя атака по союзнику рядом притягивается к носителю
       if (B.armorArt(a) !== "magnet-mail" || !c.atk || c.atk.kind !== "ranged" || c.tgt === a || dist(a, c.tgt) > 2 || roll(1, 100).total > 50) return null;
       log(`Дальняя атака по ${c.tgt.name} притягивается к ${a.name} магнитной кольчугой!`, "skill"); fx(a, "магнит", "good"); return a;
@@ -366,7 +373,7 @@
     const half = Math.max(1, Math.floor((r.dealt || 0) / 2));
     for (const o of B.live()) {          // область бьёт и своих
       if (o === u || o === tgt || !alive(o) || o.down || B.distCell(o, cx, cy) > 1) continue;
-      await B.applyDamage(u, o, [{ v: half, dt: "bludgeon", label: "Метеорный удар" }], { src: u });
+      await B.applyDamage(u, o, [{ v: half, dt: "bludgeon", label: "Метеорный удар" }], { src: u, splash: true });
     }
     if (alive(tgt)) { const sv = await B.doSave(tgt, "str", 8 + (u.pb || 0) + Math.max(0, amod(u.abil.str)), { label: "метеорный удар", from: u }); if (!sv.ok) { B.knock(tgt, u); fx(tgt, "сбит с ног", "bad"); } }
     if (B.S.cells[cy] && !B.S.cells[cy][cx]) { B.S.cells[cy][cx] = "crater"; log("На месте удара остаётся кратер.", "skill"); const g = ui(); if (g) g.refresh(); }
@@ -420,7 +427,7 @@
     if (r.hit && ph === 0 && alive(tgt)) { addStatus(tgt, "dazzled", { k: 1, when: "end" }); log(`${tgt.name} ослеплён затмением: его следующая атака с помехой.`, "skill"); }
     if (r.hit && ph === 1) for (const o2 of B.live()) {          // полумесяц задевает всех вокруг цели, и своих
       if (o2 === u || o2 === tgt || !alive(o2) || o2.down || B.dist(o2, tgt) > 1) continue;
-      await B.applyDamage(u, o2, [{ v: roll(1, 6).total, dt: atk.dt, label: "Взмах полумесяца" }], { src: u });
+      await B.applyDamage(u, o2, [{ v: roll(1, 6).total, dt: atk.dt, label: "Взмах полумесяца" }], { src: u, splash: true });
     }
     return true;
   }
@@ -463,8 +470,11 @@
     return true;
   }
   B.armorArt = u => (u.hero && u.hero.equip && u.hero.equip.body ? (itemOf(u.hero.equip.body) || {}).artId || null : null);
-  B.mirageDis = (att, tgt, ctx) => { if (tgt.hero && B.armorArt(tgt) === "mirage-armor" && tgt.mirageAt !== B.S.round) ctx.dis.push("доспех-мираж"); };
-  B.mirageMark = tgt => { tgt.mirageAt = B.S.round; };
+  // область, где носитель не главная цель (удар вокруг точки): 30 % уклониться от урона; эффекты клетки при этом остаются. Молния, бьющая в точку и расходящаяся, не считается.
+  B.dodgeSplash = (src, tgt) => {
+    if (B.armorArt(tgt) !== "mirage-armor" || roll(1, 100).total > 30) return false;
+    log(`${tgt.name} уклоняется от области.`, "skill"); fx(tgt, "уклонение", "good"); return true;
+  };
   const FLURRY_MANA = 2, RIFT_MANA = 1, BASTION_MANA = 1;
   async function flurry(u, atk) {
     const fan = atk.special === "flurry2", base = { ...atk, kind: "melee", reach: fan ? 2 : 1, special: undefined, stretch: false }, b = atk.dmg.b;
@@ -510,7 +520,7 @@
     for (const t of B.live()) {          // область бьёт и своих (решение автора 29.10)
       if (!alive(t) || t.down || B.distCell(t, cx, cy) > 1) continue;
       const v = roll(STAR_DMG[0], STAR_DMG[1]).total;
-      await B.applyDamage(u, t, [{ v, dt: "radiant", label: "Падающая звезда" }], { src: u });
+      await B.applyDamage(u, t, [{ v, dt: "radiant", label: "Падающая звезда" }], { src: u, splash: true });
       if (alive(t) && t.side !== u.side) { addStatus(t, "starlit", { k: Infinity, data: { endAtStartOf: u.id } }); removeStatus(t, "hidden"); removeStatus(t, "unseen"); }
     }
     return true;
@@ -616,7 +626,7 @@
         run: async () => {
           const ts = B.live().filter(o => o !== u && alive(o) && !o.down && dist(u, o) <= 1); if (!ts.length) { toast("Рядом никого"); return false; }
           B.spendTime(u, "action"); B.setMp(u, u.mp - RIFT_MANA); u.riftCd = 3; u.t.attacked = true; log(`${u.name} бьёт молотом оземь: ударная волна!`, "skill"); const g = ui(); if (g) g.banner("Ударная волна!");
-          for (const o of ts) { await B.push(o, u.x, u.y, 1); if (alive(o)) await B.applyDamage(u, o, [{ v: roll(1, 8).total, dt: "bludgeon", label: "Ударная волна" }], { src: u }); }
+          for (const o of ts) { await B.push(o, u.x, u.y, 1); if (alive(o)) await B.applyDamage(u, o, [{ v: roll(1, 8).total, dt: "bludgeon", label: "Ударная волна" }], { src: u, splash: true }); }
           return true;
         } });
     }
@@ -648,7 +658,7 @@
           B.spendTime(u, "action"); u.t.attacked = true; const k = u.harvest; u.harvest = 0;
           log(`${u.name}: «Жатва» (${k} зар.) — круговой удар!`, "skill"); const g = ui(); if (g) g.banner("Жатва!");
           const dc = 8 + (u.pb || 0) + Math.max(0, amod(u.abil.str)), sv = await B.massSave(ts, "dex", dc, { label: "Жатва", title: "Жатва", from: u });
-          for (let i = 0; i < ts.length; i++) { let v = roll(k, 8).total; if (sv[i] && sv[i].ok) v = Math.floor(v / 2); await B.applyDamage(u, ts[i], [{ v: Math.max(1, v), dt: "slash", label: "Жатва" }], { src: u }); }
+          for (let i = 0; i < ts.length; i++) { let v = roll(k, 8).total; if (sv[i] && sv[i].ok) v = Math.floor(v / 2); await B.applyDamage(u, ts[i], [{ v: Math.max(1, v), dt: "slash", label: "Жатва" }], { src: u, splash: true }); }
           return true;
         } });
     }

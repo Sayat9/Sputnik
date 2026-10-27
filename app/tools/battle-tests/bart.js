@@ -266,7 +266,7 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
     // ---- Пика Заставы
     reset(); hero0.equip.main = { t: 'w', id: 'pike', art: 'rampart-pike' }; B.promptReaction = async () => true;
     h.y = 5; h.x = 5; m1.x = 5; m1.y = 3; ally.x = 4; ally.y = 5; B.S.round = 3; h.t.react = 0; out.free = B.freeReact(h);
-    const hp0 = m1.hp; await B.P.weap.reactEnter(h, m1, [5, 0]);
+    const hp0 = m1.hp; const daP = B.doAttack; B.doAttack = async (u, tg, atk, op) => { const res = { hit: true }; if (op.rider) await op.rider(res); tg.hp -= 5; return res; }; await B.P.weap.reactEnter(h, m1, [5, 0]); B.doAttack = daP;
     out.upor = { react: h.t.react, again: B.freeReact(h), stop: !!B.has(m1, 'spearstop') || m1.hp < hp0, ward: !!B.has(ally, 'pikeward') };
     out.wardAc = (() => { const c = B.attackCtx(m1, ally, { kind: 'melee', hit: 5, parts: [{ l: 'x', v: 5 }], dmg: { n: 1, s: 6, b: 0 }, dt: 'pierce' }); const base = ally.ac; return c.ac - base; })();
     // разбег
@@ -354,12 +354,16 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
     const cAlly = B.attackCtx(m1, ally, ranged, {}); out.cover = cAlly.acNotes.some(s => /бастион/.test(s));
     ally2.x = 8; ally2.y = 8; const cOther = B.attackCtx(m1, ally2, ranged, {}); out.prov = cOther.dis.some(s => /провокац/.test(s));
     const cHero = B.attackCtx(m1, h, ranged, {}); out.provSelf = cHero.dis.some(s => /провокац/.test(s));
-    // ---- Доспех-мираж
+    // ---- Доспех-мираж: уклонение
     reset(); hero0.equip = { body: { t: 'a', id: 'leather', art: 'mirage-armor' } };
-    const ranged2 = { kind: 'ranged', hit: 5, parts: [{ l: 'x', v: 5 }], dmg: { n: 1, s: 6, b: 0 }, dt: 'pierce' }; B.S.round = 4; h.mirageAt = undefined;
-    out.mirage1 = B.attackCtx(m1, h, ranged2, {}).dis.includes('доспех-мираж'); B.mirageMark(h); out.mirage2 = B.attackCtx(m1, h, ranged2, {}).dis.includes('доспех-мираж'); B.S.round = 5; out.mirage3 = B.attackCtx(m1, h, ranged2, {}).dis.includes('доспех-мираж');
-    const sc = B.attackCtx; const saveCtx = { mods: [], abil: 'dex' }; B.P.weap.saveMods(h, saveCtx); out.mirageSave = saveCtx.mods[0] && saveCtx.mods[0].v;
-    const sc2 = { mods: [], abil: 'str' }; B.P.weap.saveMods(h, sc2); out.mirageStr = sc2.mods.length;
+    const cnt = async (fn, n) => { let k = 0; for (let i = 0; i < n; i++) if (await fn()) k++; return k; };
+    out.dMelee = await cnt(() => B.P.weap.reactHit(h, { atk: { kind: 'melee' }, res: { crit: false } }), 600);
+    out.dRanged = await cnt(() => B.P.weap.reactHit(h, { atk: { kind: 'ranged' }, res: { crit: false } }), 600);
+    out.dCrit = await cnt(() => B.P.weap.reactHit(h, { atk: { kind: 'melee' }, res: { crit: true } }), 300);
+    out.dSplash = await cnt(async () => { const r = await B.applyDamage(m1, h, [{ v: 1, dt: 'bludgeon', label: 'метеор' }], { src: m1, splash: true }); h.hp = h.maxHp; return (r.notes || []).includes('уклонение'); }, 600);
+    out.dLightning = await cnt(async () => { const r = await B.applyDamage(m1, h, [{ v: 1, dt: 'lightning', label: 'молния' }], { src: m1 }); h.hp = h.maxHp; return (r.notes || []).includes('уклонение'); }, 300);
+    out.dFlag = (() => { const c = { atk: { kind: 'melee' }, res: { crit: false } }; let hit = 0; for (let i = 0; i < 400 && !hit; i++) { if (B.P.weap.reactHit(h, c) === true) hit = c.res.dodged ? 1 : 0; } return hit; })();
+    hero0.equip = {}; out.dNoArmor = await cnt(() => B.P.weap.reactHit(h, { atk: { kind: 'melee' }, res: { crit: false } }), 200);
     // ---- Магнитная кольчуга
     reset(); hero0.equip = {}; state.party[1].equip = { body: { t: 'a', id: 'chainmail', art: 'magnet-mail' } };
     out.magnet = { ally: B.armorArt(ally), eq: state.party[1].id === ally.hero.id };
@@ -377,7 +381,8 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
   ok('Молот «Раскол»: трещина на 3 клетки, цели на ней падают и получают 2к6, свои вне трещины целы, слабые рядом оглушены землёй, 1 мана, откат', o6.riftEn && o6.rift.cells.join() === 'fissure,fissure,fissure' && o6.rift.m1 && o6.rift.m2 && o6.rift.allyOff && o6.rift.near && o6.rift.cd === 3 && o6.rift.mana === 1 && o6.riftCd === false, o6.rift);
   ok('Молот «Ударная волна»: толчок и 1к8 всем вокруг (и своим), общий откат', o6.shock.m1 && o6.shock.ally && o6.shock.pushed && o6.shock.cd === 3, o6.shock);
   ok('Бастион: скорость 0, не сбить и не сдвинуть, +2 КД, 1 мана; союзник за ним укрыт, враги атакуют других с помехой, а его — нет', o6.shieldSteel && o6.bastion.st && o6.bastion.speed === 0 && o6.bastion.mana === 1 && o6.bastion.acb === 2 && o6.bastion.noProne && o6.bastion.push === 0 && o6.cover && o6.prov && !o6.provSelf, [o6.bastion, o6.cover, o6.prov, o6.provSelf]);
-  ok('Доспех-мираж: первая атака за раунд с помехой, вторая нет, в новом раунде снова; Ловкость +2, Сила нет', o6.mirage1 && !o6.mirage2 && o6.mirage3 && o6.mirageSave === 2 && o6.mirageStr === 0, [o6.mirage1, o6.mirage2, o6.mirage3, o6.mirageSave, o6.mirageStr]);
+  ok('Доспех-мираж: ближний бой — доп. проверка, уклонение при 19+ (~10 %), дальний ~10 %, критические не уклоняются, без брони нет', o6.dMelee >= 30 && o6.dMelee <= 95 && o6.dRanged >= 30 && o6.dRanged <= 95 && o6.dCrit === 0 && o6.dNoArmor === 0 && o6.dFlag === 1, [o6.dMelee, o6.dRanged, o6.dCrit, o6.dNoArmor, o6.dFlag]);
+  ok('Доспех-мираж: область вокруг цели — 30 % уклониться; молния, бьющая в точку и расходящаяся, не уклоняется', o6.dSplash >= 140 && o6.dSplash <= 230 && o6.dLightning === 0, [o6.dSplash, o6.dLightning]);
   ok('Магнитная кольчуга: дальние атаки по союзнику в 2 клетках притягиваются примерно в половине случаев; далеко и ближний бой — нет', o6.magnetRate >= 15 && o6.magnetRate <= 45 && o6.magnetFar === 0 && o6.magnetMelee === 0, [o6.magnet, o6.magnetRate, o6.magnetFar, o6.magnetMelee]);
   ok('нет ошибок страницы', errs.length === 0, errs.slice(0, 3));
   console.log('проверок:', R.length, 'не прошли:', R.filter(x => !x).length);
