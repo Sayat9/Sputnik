@@ -230,7 +230,8 @@
       speedC: cellsOfM(sp.walk), flyC: cellsOfM(sp.fly), climbC: cellsOfM(sp.climb), atk: (cb.atk || []).map(a => { const dm = parseDice(a.dmg), cut = D.monDmgCut[m.cls] || 0; return { ...a, dmg: { ...dm, b: Math.max(0, dm.b - cut) } }; }), seq: cb.seq || null, vuln: cb.vuln || [],
       skills: parseSkills(m.senses), initB: 0, face: ART.monsterFace(id), blind: cb.blind || 0, tremor: cb.tremor || 0, dv: /Тёмное зрение/.test(m.senses || ""), shield: !!cb.shield, rare: !!m.rare, cls: m.cls });
     ABIL.forEach((k, i) => { u.abil[k] = m.abil[i]; });
-    if (m.essence && ESSENCES[m.essence]) u.ess = [m.essence];
+    if (m.essences) u.ess = m.essences.filter(e => ESSENCES[e]);          // путники: до трёх эссенций
+    else if (m.essence && ESSENCES[m.essence]) u.ess = [m.essence];
     u.pass = [...u.ess, "body:" + id];
     return u;
   }
@@ -406,7 +407,7 @@
   function newBattle(ev) {
     const zone = D.zones[ev.zone] ? ev.zone : "goblin";
     B.setSize(((ev.floor || (state.run && state.run.floor) || 1) >= 3) ? 10 : 7);          // 3 этаж — поле 10×10
-    const S = { n: W, ev, zone, fog: ev.fog || 0, ambush: !!ev.ambush, dark: false, torch: false, units: [], order: [], turn: 0, round: 1, phase: "init", log: [], killed: [], objs: [], drops: [], opts: Object.assign({ showMonHp: false, autoSaves: false, autoEnd: true }, (state.settings && state.settings.battleOpts) || {}, { autoHeroes: false }), outcome: null, arrowLog: {}, zones: [], bodies: [], q: [], started: Date.now() };
+    const S = { n: W, ev, zone, fog: ev.fog || 0, ambush: !!ev.ambush, heroAmbush: !!ev.heroAmbush, dark: false, torch: false, units: [], order: [], turn: 0, round: 1, phase: "init", log: [], killed: [], objs: [], drops: [], opts: Object.assign({ showMonHp: false, autoSaves: false, autoEnd: true }, (state.settings && state.settings.battleOpts) || {}, { autoHeroes: false }), outcome: null, arrowLog: {}, zones: [], bodies: [], q: [], started: Date.now() };
     try { S.dark = typeof inDarkness === "function" && !!(state.run && isDark(state.run.pos.x, state.run.pos.y)) && !(state.run && state.run.light); S.torch = !!(state.run && state.run.light); } catch (e) { S.dark = false; }
     S.torchFixed = S.torch;          // факел, зажжённый на карте, горит весь бой; факел, зажжённый в бою, — 3 раунда (battle-act.js)
     if ((ev.list || []).includes("giant-mole")) { S.dark = true; S.torch = false; S.torchFixed = false; S.pitDark = true; }          // решение автора: дно пещеры крота — кромешная тьма

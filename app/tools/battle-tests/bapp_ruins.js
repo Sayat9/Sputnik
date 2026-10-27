@@ -19,7 +19,7 @@ const L = require('./bui_lib.js');
     // события: 1–12 без изменений, находка чаще
     const cnt = (ru) => { const m = {}; for (let n = 1; n <= 20; n++) { const k = eventOf(n, ru)[1]; m[k] = (m[k] || 0) + 1; } return m; };
     out.base = cnt(false); out.ruinsEv = cnt(true);
-    out.sameMon = [1, 4, 9, 12].every(n => eventOf(n, false)[1] === eventOf(n, true)[1]);
+    out.sameMon = Array.from({ length: 20 }, (_, i) => i + 1).every(n => eventOf(n, false)[1] === eventOf(n, true)[1]);          // новая таблица встреч (28.10) одна для всех квадратов
     // таблицы поиска
     r.pos = { x: 9, y: 1 };
     out.keys = [searchKey('explore', null), searchKey('dig', null), searchKey('explore', {})];
@@ -44,7 +44,7 @@ const L = require('./bui_lib.js');
   ok('руин ровно 4 клетки, соседние клетки не руины', A.ruins.split(' ').length === 4 && A.bound, A.ruins);
   ok('сам выходной портал безопасен (зона «safe»)', A.portalKind === 'safe', A.portalKind);
   ok('в других вариантах руин нет', A.no_goblin && A.no_undead);
-  ok('события 1–12 те же, находка в руинах вдвое чаще', A.sameMon && A.ruinsEv.find === 2 * A.base.find, JSON.stringify([A.base, A.ruinsEv]));
+  ok('таблица событий в руинах та же, что везде (прежний бонус находки снят новой таблицей)', A.sameMon && A.ruinsEv.find === A.base.find, JSON.stringify([A.base, A.ruinsEv]));
   ok('таблицы поиска руин подключены только в руинах', A.keys[0] === 'explore-ruins' && A.keys[1] === 'dig-ruins' && A.keys[2] === 'explore-special' && A.keysPlain.join() === 'explore,dig', JSON.stringify([A.keys, A.keysPlain]));
   ok('предметов в таблицах руин: 3 из 20 при исследовании (15 %) и 4 из 20 при раскопках (20 %) против 0', A.items[0] === 0 && A.items[2] === 0 && A.items[1] === 3 && A.items[3] === 4, JSON.stringify(A.items));
   ok('таблицы доходят до 20, награды выдаются', A.full && A.lines);

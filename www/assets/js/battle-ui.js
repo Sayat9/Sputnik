@@ -336,14 +336,14 @@
   /* ===== расстановка героев ===== */
   UI.placement = function (S) {
     return new Promise(resolve => {
-      S.hideMons = !S.ambush; if (!UI.built) build(S); UI.refreshNow();
+      S.hideMons = !S.ambush && !S.heroAmbush; if (!UI.built) build(S); UI.refreshNow();
       if (S.ambush) {
         UI.mode = "ambush"; UI.banner("Засада! Герои застигнуты врасплох", 3000);
         UI.panelPlace = { ambush: true, done: resolve }; if (UI.renderPanel) UI.renderPanel(); return;
       }
       UI.mode = "place"; UI.placeSel = B.heroes().filter(h => !h.dead)[0]?.id || null;
       UI.panelPlace = { ambush: false, done: resolve }; UI.paintPlace(); if (UI.renderPanel) UI.renderPanel();
-      UI.banner("Расставьте героев в трёх нижних рядах", 3200);
+      UI.banner(S.heroAmbush ? "Вы напали из засады! Враги стоят в линию: расставьте героев" : "Расставьте героев в трёх нижних рядах", 3200);
     });
   };
   // Онлайн: расстановка по очереди инициативы — на поле двигается только герой, чья очередь; «Готово» передаёт очередь дальше.
@@ -362,7 +362,7 @@
   };
   UI.placeDone = function () { UI.setHl(new Map()); UI.mode = "idle"; const p = UI.panelPlace; UI.panelPlace = null; if (p) p.done(); };
   UI.reveal = async function (S) { S.hideMons = false; UI.refreshNow(); const names = B.mons().filter(m => !has(m, "hidden")).map(m => m.name).join(", "); UI.banner(`Враги: ${names}`, 2600); await sleep(1000); };
-  UI.start = async function (S) { UI.refreshNow(); UI.banner(S.ambush ? "Засада! Монстры ходят первыми" : "Бой начался!", 1600); await sleep(600); };
+  UI.start = async function (S) { UI.refreshNow(); UI.banner(S.ambush ? "Засада! Монстры ходят первыми" : S.heroAmbush ? "Засада отряда! Герои ходят первыми" : "Бой начался!", 1600); await sleep(600); };
   UI.turnStart = async function (u) { UI.refreshNow(); UI.banner(u.side === "hero" ? `Ход: ${u.name}` : `Ходит: ${u.name}`, 1100); if (u.side === "mon") await sleep(350); };
   UI.turnEnd = function (u) { UI.refresh(); };
 })();

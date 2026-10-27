@@ -71,7 +71,7 @@
     const S = B.S, hs = B.heroes().filter(h => !h.dead), pp = UI.panelPlace || {};
     if (UI.placeOnly) { const h = B.byId(UI.placeOnly); p.innerHTML = `<div class="bt-prompt"><h4>Расстановка: ${esc(h ? h.name : "")}</h4><p>Нажмите свободную клетку в трёх нижних рядах — герой встанет туда. Когда готовы, нажмите «Готово»: очередь перейдёт дальше.</p><div class="btns"><button class="fx-btn primary big" data-ba="place-go">Готово</button></div></div>`; return; }
     if (pp.ambush) { p.innerHTML = `<div class="bt-prompt"><h4>Засада!</h4><p>Герои застигнуты врасплох и стоят в ряд на третьей линии. Монстры ходят первыми.</p><div class="btns"><button class="fx-btn primary big" data-ba="place-go">К бою!</button></div></div>`; return; }
-    p.innerHTML = `<div class="bt-prompt"><h4>Расстановка</h4><p>Выберите героя, затем клетку в трёх нижних рядах. Враги появятся после расстановки.</p>
+    p.innerHTML = `<div class="bt-prompt"><h4>${S.heroAmbush ? "Засада отряда" : "Расстановка"}</h4><p>Выберите героя, затем клетку в трёх нижних рядах. ${S.heroAmbush ? "Враги стоят в одну линию и не ждут нападения: герои ходят первыми." : "Враги появятся после расстановки."}</p>
       <div class="bt-chips">${hs.map(h => `<button class="bt-pchip${UI.placeSel === h.id ? " on" : ""}" data-ba="place-sel" data-id="${h.id}"><img src="${h.face}" alt=""><span>${esc(h.name)}</span></button>`).join("")}</div>
       <div class="btns"><button class="fx-btn primary big" data-ba="place-go">В бой!</button></div></div>`;
   }

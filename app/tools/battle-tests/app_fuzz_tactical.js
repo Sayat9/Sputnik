@@ -26,7 +26,7 @@ const RUNS = +process.argv[2] || 12, STEPS = +process.argv[3] || 400;
       if (r) {
         if (!(r.act >= 1 && r.act <= 3 && r.day >= 1 && r.day <= 7)) issues.push(`${tag}: время д${r.day} д${r.act}`);
         if (!inBounds(r.pos.x, r.pos.y)) issues.push(`${tag}: позиция вне карты ${JSON.stringify(r.pos)}`);
-        if (r.pending && !document.querySelector('[data-dg="roll-ok"]') && !dgUi.enc && !dgUi.res) issues.push(`${tag}: бросок ждёт, но окна нет (${r.pending.cause})`);
+        if (r.pending && !document.querySelector('.ev-roll') && !dgUi.enc && !dgUi.res) issues.push(`${tag}: бросок ждёт, но окна нет (${r.pending.cause})`);
         if (r.torchLeft < 0) issues.push(`${tag}: факел ${r.torchLeft}`);
       }
     };
@@ -69,12 +69,12 @@ const RUNS = +process.argv[2] || 12, STEPS = +process.argv[3] || 400;
           if (dgUi.enc) {
             const e = dgUi.enc;
             if (e.list && e.tactical) await playBattle();
-            else if (!e.list) clickSel('[data-dg="enc-done"]');
+            else if (!e.list) clickSel(e.trav ? '[data-dg="tv-act"],[data-dg="tv-fight"],[data-dg="tv-gift"],[data-dg="tv-rest"],[data-dg="enc-done"]' : '[data-dg="enc-done"]');
             else if (!e.outcome) { if (Math.random() < .3) clickSel('[data-dg="enc-next"]'); else clickSel('[data-dg="enc-out"]'); }
             else if (Math.random() < .3 && document.querySelector('[data-dg="enc-kill"]:not([disabled])')) clickSel('[data-dg="enc-kill"]');
             else { clickSel('[data-dg="enc-ok"]'); stats.fights++; }
           } else if (dgUi.res) clickSel('[data-dg="res-done"]');
-          else if (r.pending) { if (r.pending.cause === "camp") stats.camps++; clickSel('[data-dg="roll-n"]'); clickSel('[data-dg="roll-ok"]'); }
+          else if (r.pending) { if (r.pending.cause === "camp") stats.camps++; r.pending.pick = r.pending.pick || (1 + Math.floor(Math.random() * 20)); resolveRoll(); rerender(); }
           else if (dgUi.phase === "rest") { if (Math.random() < .3) clickSel('[data-guard]'); if (Math.random() < .3) clickSel('[data-eat]'); clickSel('[data-dg="rest-go"]'); stats.rests++; }
           else if (dgUi.phase === "explore" || dgUi.phase === "dig") {
             if (Math.random() < .15) { clickSel('.mapov [data-dg="cancel"]'); }

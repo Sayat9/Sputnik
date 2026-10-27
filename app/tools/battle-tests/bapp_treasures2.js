@@ -4,6 +4,7 @@ const L = require('./bui_lib.js');
   const { b, p } = await L.launch(400, 860);
   const R = [], ok = (name, cond, extra) => { R.push({ name, ok: !!cond }); if (!cond) console.log('  ✗', name, '—', extra == null ? '' : extra); };
   await L.setup(p, { heroes: ['barb2', 'archer', 'fairy'], autoEnd: false, tactical: true });
+  await p.evaluate(() => { window.RO = () => { const pn = state.run.pending; if (pn) { ROLL_SHOWN.add(pn); ROLL_ARM.set(pn, pn.pick); } return rollOverlay(); }; });          // окно броска без анимации: сразу результат
   // ---------- классы и «??»
   const A = await p.evaluate(() => {
     const out = {}, r = state.run;
@@ -76,14 +77,14 @@ const L = require('./bui_lib.js');
     state.party.forEach(c => { c.hp = maxHp(c); c.dead = false; });
     ['dice', 'bell', 'flask'].forEach(id => { giveTreasure(id); artState().known[id] = true; });
     // кубики: нужна выбранная цифра, показывают событие, перебрасывают, откат 6 действий
-    askRoll('move'); r.pending.pick = 3; const html1 = rollOverlay();
+    askRoll('move'); r.pending.pick = 3; const html1 = RO();
     out.preview = /Выпало: <b[^>]*>Тяжёлая встреча/.test(html1);
     out.btnOn = !/data-dg="dice-reroll" disabled/.test(html1);
     const left0 = cdLeft('dice', 6); out.cd0 = left0;
     // перебросить
     const skip = n => { const tt = (r.day - 1) * 3 + r.act - 1 + n; r.day = 1 + Math.floor(tt / 3); r.act = 1 + tt % 3; };
     out.rerollManual = (() => { const pn = r.pending; if (trReady('dice')) { pn.pick = null; cdSet('dice'); } return pn.pick === null && cdLeft('dice', 6) === 6; })();
-    r.pending.pick = 3; out.btnOff = /data-dg="dice-reroll" disabled/.test(rollOverlay());
+    r.pending.pick = 3; out.btnOff = /data-dg="dice-reroll" disabled/.test(RO());
     out.cdText = cdText('dice');
     // откат идёт по действиям карты
     skip(5); out.cd5 = cdLeft('dice', 6); skip(1); out.cd6 = cdLeft('dice', 6); out.ready = trReady('dice');
@@ -103,9 +104,9 @@ const L = require('./bui_lib.js');
     const out = {}, r = state.run; r.cd = {}; r.pending = null; r.pos = { x: 3, y: 3 }; artState().known.dice = true;
     const pass = { cause: 'pass', amb: 2, trap: 4, x: 3, y: 3, pick: 1 }; r.pending = pass;
     out.pass = [1, 3, 9].map(n => { pass.pick = n; return rollPreview(pass); }).join('|');
-    out.passHtml = /Выпало: <b[^>]*>Засада на бегу/.test((pass.pick = 1, rollOverlay())) && /data-dg="dice-reroll"/.test(rollOverlay()) && !/data-dg="dice-reroll" disabled/.test(rollOverlay());
+    out.passHtml = /Выпало: <b[^>]*>Засада на бегу/.test((pass.pick = 1, RO())) && /data-dg="dice-reroll"/.test(RO()) && !/data-dg="dice-reroll" disabled/.test(RO());
     const camp = { cause: 'camp', thr: 9, stayed: 7, x: 3, y: 3, pick: 5 }; r.pending = camp; out.camp = [rollPreview(camp), (camp.pick = 15, rollPreview(camp))].join('|');
-    out.campHtml = /Нападение на стоянку/.test((camp.pick = 5, rollOverlay()));
+    out.campHtml = /Нападение на стоянку/.test((camp.pick = 5, RO()));
     r.pending = null;
     // Исследование
     dgUi.phase = 'explore'; dgUi.sr = { pick: 14, luck: null }; const h1 = searchOverlay();

@@ -26,6 +26,11 @@
   function placeMonsters(S) {
     const mons = B.mons(), amb = S.ambush;
     const H = B.H, big = H > 7;
+    if (S.heroAmbush) {                                                                          // отряд напал из засады: враги стоят в одну линию (второй ряд сверху), герои выбирают расстановку
+      const row = big ? 3 : 2, ms = shuffle(mons.filter(m => !m.dead)), xs = spreadX(ms.length);
+      ms.forEach((m, i) => { const c = nearestFree(m, xs[i], row, [row, row + 1, row - 1]); if (c) { m.x = c.x; m.y = c.y; } m.startCell = [m.x, m.y]; });
+      return;
+    }
     const rowsBy = amb ? { front: [H - 4, H - 5], mid: [H - 5, H - 6], back: [H - 6, H - 7] } : big ? { front: [3, 2], mid: [2, 1, 3], back: [1, 0] } : { front: [2, 1], mid: [1, 2, 0], back: [0, 1] };
     const where = pr => (["ranged", "secondLine"].includes(pr.role) ? "back" : ["skirmisher", "skittish", "support"].includes(pr.role) ? "mid" : "front");
     const order = shuffle(mons).sort((a, b) => (b.size - a.size));
@@ -185,12 +190,13 @@
     const S = B.newBattle(ev);
     const g = ui();
     if (o.sim || !g) { placeHeroesDefault(S); placeMonsters(S); placeCoverMonsters(S); }
+    else if (S.heroAmbush) { placeMonsters(S); placeHeroesDefault(S); if (B.Net && B.Net.onlinePlacement()) { B.rollInitiative(); S.rolledEarly = true; await B.Net.placeInOrder(S); } else await g.placement(S); }          // засада отряда: враги видны и стоят в линию
     else if (!S.ambush && B.Net && B.Net.onlinePlacement()) { placeHeroesDefault(S); B.rollInitiative(); S.rolledEarly = true; await B.Net.placeInOrder(S); placeMonsters(S); placeCoverMonsters(S); }          // онлайн: расставляют по очереди инициативы
     else { placeHeroesDefault(S); await g.placement(S); placeMonsters(S); placeCoverMonsters(S); }
     preStart(S);                                                                                   // затаившиеся враги выбираются до показа поля, чтобы не выдать их
     if (g && !(o.sim || !g)) await g.reveal(S);
     if (!S.rolledEarly) B.rollInitiative();
-    S.phase = "fight"; log(S.ambush ? "Засада! Монстры ходят первыми." : "Бой начался.", "round");
+    S.phase = "fight"; log(S.ambush ? "Засада! Монстры ходят первыми." : S.heroAmbush ? "Вы напали из засады! Герои ходят первыми." : "Бой начался.", "round");
     if (g) await g.start(S);
     await loop(S);
     S.phase = "result";

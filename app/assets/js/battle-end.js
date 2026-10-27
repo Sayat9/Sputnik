@@ -45,12 +45,12 @@
 
   function rewardsPlan(S, outcome) {
     const ev = S.ev, killed = S.killed.slice(), species = killed.map(i => ev.list[i]);
-    const fresh = [...new Set(species)].filter(id => !(journal().known[id] && journal().known[id].xpDone));
-    const xp = fresh.reduce((a, id) => a + monXp(MONSTERS.find(m => m.id === id)), 0);
+    const fresh = [...new Set(species.map(xpKeyOf))].filter(id => !(journal().known[id] && journal().known[id].xpDone));          // путники: опыт по классу (trav-9/8/7), а не за каждого
+    const xp = fresh.reduce((a, id) => a + monXp(xpInfo(id)), 0);
     const stones = {};                                                                  // камни по видам монстров: id → { cls, n }, они идут в сумку для камней
     if (!ev.arena) for (const id of species) {
       const m = MONSTERS.find(x => x.id === id);
-      (stones[id] ||= { cls: Math.min(9, Math.max(1, m.cls)), n: 0 }).n++;
+      (stones[m.dyn ? "~" + m.cls : id] ||= { cls: Math.min(9, Math.max(1, m.cls)), n: 0 }).n++;          // камни путников — просто «Находки» своего класса
     }
     // броски на эссенцию считаем заранее; анимация показывает лучший результат
     // «Удача новичка»: +5 к броску, если носитель сам добил монстра вида, которого он ещё не убивал (раз на вид; первое такое убийство в этом бою)
@@ -58,10 +58,12 @@
     const rolls = killed.map((idx, i) => {
       const id = species[i], hid = S.killedBy && S.killedBy[idx], c = hid && state.party.find(x => x.id === hid), key = hid + "|" + id;
       let bonus = 0;
-      if (c) { if (c.equip && c.equip.charm && c.equip.charm.id === "beginners-luck" && !((c.kills || {})[id]) && !firstIn[key]) bonus = 5; firstIn[key] = true; kills.push({ hid, id }); }
+      if (c && !((MONSTERS.find(m => m.id === id) || {}).dyn)) { if (c.equip && c.equip.charm && c.equip.charm.id === "beginners-luck" && !((c.kills || {})[id]) && !firstIn[key]) bonus = 5; firstIn[key] = true; kills.push({ hid, id }); }
       const base = 1 + B.rnd(100); return { id, r: Math.min(100, base + bonus), base, bonus };
     });
-    const wins = S.forceWins ? S.forceWins.map(id => ({ id, r: 99 })) : rolls.filter(x => x.r >= ESS_CHANCE);          // forceWins — только для проверок
+    const wins = S.forceWins ? S.forceWins.map(id => ({ id, r: 99 })) : rolls.filter(x => x.r >= ESS_CHANCE && !((MONSTERS.find(m => m.id === x.id) || {}).dyn));          // forceWins — только для проверок
+    // Путник, убитый в бою, отдаёт все свои эссенции (допущение): они идут тем же экраном выбора «впитать / сохранить / оставить»
+    if (!S.forceWins) for (const id of species) { const m = MONSTERS.find(x => x.id === id); if (m && m.dyn) for (const e of m.essences || []) wins.push({ id: e, r: 99, trav: true }); }
     const best = S.forceWins ? wins[0] : rolls.length ? rolls.reduce((a, b) => (a.r >= b.r ? a : b)) : null;
     return { killed, species, fresh, xp, stones, rolls, wins, best, kills };
   }
@@ -132,7 +134,7 @@
       const reveal = async () => {
         if (!B.cfg.fast) await B.Dice.spinReveal(cv, digits(show), { stops: [1500, 2700], glow: ok, glowColor: "#ffe27a" });
         const luckNote = rollShown && rollShown.bonus ? ` <small>(выпало ${rollShown.base}, Удача новичка +${rollShown.bonus})</small>` : "";
-        resEl.innerHTML = ok ? `<b class="ok">${String(show).padStart(2, "0") === "00" ? 100 : show}</b> — выпала эссенция!${luckNote}` : `<b>${show}</b> — эссенция не выпала${luckNote}`;
+        resEl.innerHTML = ok && rollShown.trav ? `<b class="ok">✦</b> — путник нёс с собой эссенцию!` : ok ? `<b class="ok">${String(show).padStart(2, "0") === "00" ? 100 : show}</b> — выпала эссенция!${luckNote}` : `<b>${show}</b> — эссенция не выпала${luckNote}`;
         resEl.className = "bt-roll-res " + (ok ? "ok" : "no");
       };
       // Список всех бросков: анимация показывает один (лучший), а кидается по одному броску на каждого убитого монстра.

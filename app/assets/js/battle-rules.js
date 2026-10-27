@@ -572,7 +572,7 @@
     rows.forEach(r => { r.total = r.d20 + r.mod; });
     // в засаде монстры ходят первыми; герой, которого нельзя застать врасплох («Чует шаги»), идёт по своей инициативе вместе с ними
     const surprised = u => u.side === "hero" && !hookAny(u, "noSurprise", {});
-    rows.sort((a, b) => (S.ambush ? (surprised(a.u) ? 1 : 0) - (surprised(b.u) ? 1 : 0) : 0) || b.total - a.total || b.u.abil.dex - a.u.abil.dex || (a.u.side === "hero" ? -1 : 1));
+    rows.sort((a, b) => (S.ambush ? (surprised(a.u) ? 1 : 0) - (surprised(b.u) ? 1 : 0) : S.heroAmbush ? (a.u.side === "mon" ? 1 : 0) - (b.u.side === "mon" ? 1 : 0) : 0) || b.total - a.total || b.u.abil.dex - a.u.abil.dex || (a.u.side === "hero" ? -1 : 1));
     S.order = rows.map(r => r.u.id); S.initRows = rows.map(r => ({ id: r.u.id, d20: r.d20, mod: r.mod, total: r.total }));
     S.turn = 0; S.round = 1;
   }
