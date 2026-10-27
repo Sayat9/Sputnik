@@ -50,7 +50,8 @@
     const stones = {};                                                                  // камни по видам монстров: id → { cls, n }, они идут в сумку для камней
     if (!ev.arena) for (const id of species) {
       const m = MONSTERS.find(x => x.id === id);
-      (stones[m.dyn ? "~" + m.cls : id] ||= { cls: Math.min(9, Math.max(1, m.cls)), n: 0 }).n++;          // камни путников — просто «Находки» своего класса
+      if (m.dyn) { const cr = travCrystals(travOf(id) || { cls: m.cls, lvl: 1, ess: [] }); for (const [k, n] of Object.entries(cr)) (stones["~" + k] ||= { cls: +k, n: 0 }).n += n; }          // путники: кристаллы по формуле, в сумке — «Находки»
+      else (stones[id] ||= { cls: Math.min(9, Math.max(1, m.cls)), n: 0 }).n++;
     }
     // броски на эссенцию считаем заранее; анимация показывает лучший результат
     // «Удача новичка»: +5 к броску, если носитель сам добил монстра вида, которого он ещё не убивал (раз на вид; первое такое убийство в этом бою)
@@ -62,8 +63,6 @@
       const base = 1 + B.rnd(100); return { id, r: Math.min(100, base + bonus), base, bonus };
     });
     const wins = S.forceWins ? S.forceWins.map(id => ({ id, r: 99 })) : rolls.filter(x => x.r >= ESS_CHANCE && !((MONSTERS.find(m => m.id === x.id) || {}).dyn));          // forceWins — только для проверок
-    // Путник, убитый в бою, отдаёт все свои эссенции (допущение): они идут тем же экраном выбора «впитать / сохранить / оставить»
-    if (!S.forceWins) for (const id of species) { const m = MONSTERS.find(x => x.id === id); if (m && m.dyn) for (const e of m.essences || []) wins.push({ id: e, r: 99, trav: true }); }
     const best = S.forceWins ? wins[0] : rolls.length ? rolls.reduce((a, b) => (a.r >= b.r ? a : b)) : null;
     return { killed, species, fresh, xp, stones, rolls, wins, best, kills };
   }
@@ -93,6 +92,7 @@
     for (const k of plan.kills) { const c = state.party.find(x => x.id === k.hid); if (c) { c.kills ||= {}; c.kills[k.id] = (c.kills[k.id] || 0) + 1; } }          // список убийств героя
     const gotLines = [];
     for (const [id, it] of Object.entries(plan.stones)) { const own = id[0] !== "~"; sackAdd(own ? id : null, it.cls, it.n); gotLines.push(`Сумка для камней: ${own ? MONSTERS.find(m => m.id === id).name : "Путники"} × ${it.n} (${it.cls} класс)`); }          // «~класс» — камни путников, в сумке просто «Находки»
+    if (!ev.arena) { const lt = travLoot(plan.species.filter(id => travOf(id))); gotLines.push(...lt.map(t => "Добыча с путников: " + t)); }
     if (ev.arena) { plan.arena = arenaRewards(S, plan); gotLines.push(...plan.arena.lines); plan.wins = plan.wins.map(w => ({ ...w, arena: true })); }          // арена: лута нет, платят монетами
     if (B.deliverFound && !ev.arena) gotLines.push(...B.deliverFound(S, outcome === "win" || outcome === "retreat" || outcome === "abort"));
     if (!(UI && UI.active)) { for (const w of plan.wins) if (!w.arena) essStash().push(w.id); if (plan.wins.length) saveChar(); }          // без экрана итога — в запас; с экраном игрок выбирает: впитать, сохранить, оставить

@@ -238,17 +238,99 @@ const L = require('./bui_lib.js');
   ok('засада отряда: герои ходят первыми, враги выстроены в линию', PL.first === PL.n && PL.line >= PL.n * 0.8, JSON.stringify(PL));
   ok('автобои с путниками без ошибок и зависаний (36)', SIM.bad.length === 0 && SIM.st.n === 36, JSON.stringify(SIM));
 
-  // --- награды: опыт по классу, камни «Находки», эссенции путников ---
+  // --- награды (решение автора): кристаллы вместо эссенций, оружие, припасы ---
   const RW = await p.evaluate(() => {
     state.run.floor = 3; const g = genTravelers(3), ids = g.map(t => t.id);
     const S = { ev: { list: ids }, killed: ids.map((_, i) => i), killedBy: {} };
     const plan = Battle.End.plan(S);
-    const ess = g.reduce((a, t) => a + t.ess.length, 0);
-    return { fresh: plan.fresh, xp: plan.xp, stones: plan.stones, wins: plan.wins.length, ess, n: ids.length };
+    const exp = {}; for (const t of g) for (const [k, n] of Object.entries(travCrystals(t))) exp[k] = (exp[k] || 0) + n;
+    const got = {}; for (const [k, it] of Object.entries(plan.stones)) got[k.slice(1)] = it.n;
+    return { fresh: plan.fresh, xp: plan.xp, wins: plan.wins.length, exp, got, ess: g.reduce((a, t) => a + t.ess.length, 0) };
   });
   ok('награды: опыт один раз за класс путников', RW.fresh.length === 1 && RW.fresh[0] === 'tcls-7' && RW.xp === 3, JSON.stringify(RW));
-  ok('награды: камни путников — «Находки» 7 кл. (по числу убитых)', Object.keys(RW.stones).length === 1 && RW.stones['~7'] && RW.stones['~7'].n === RW.n, JSON.stringify(RW.stones));
-  ok('награды: все эссенции убитых путников выпадают', RW.wins === RW.ess && RW.ess >= 2, JSON.stringify(RW));
+  ok('награды: эссенции путников НЕ выпадают', RW.wins === 0 && RW.ess >= 2, JSON.stringify(RW));
+  ok('награды: кристаллы по формуле (враги × уровни × классы эссенций)', JSON.stringify(RW.exp) === JSON.stringify(RW.got), JSON.stringify(RW));
+  const CF = await p.evaluate(() => {
+    const e9 = Object.keys(ESSENCES).find(id => ESSENCES[id].cls === 9), e8 = Object.keys(ESSENCES).find(id => ESSENCES[id].cls === 8), e7 = Object.keys(ESSENCES).find(id => ESSENCES[id].cls === 7);
+    return [travCrystals({ cls: 9, lvl: 1, ess: [] }), travCrystals({ cls: 9, lvl: 1, ess: [e9] }), travCrystals({ cls: 8, lvl: 2, ess: [e9, e8] }), travCrystals({ cls: 7, lvl: 3, ess: [e8, e7] })];
+  });
+  ok('формула кристаллов: 1 эт. без эссенции — 1 кр. 9; с 9 кл. — 2 кр. 9', JSON.stringify(CF[0]) === '{"9":1}' && JSON.stringify(CF[1]) === '{"9":2}', JSON.stringify(CF));
+  ok('формула кристаллов: 2 эт. (9+8) — 1 кр. 8 + 1 кр. 9 + 2 кр. 8; 3 эт. (8+7) — 2 кр. 7 + 2 кр. 8 + 3 кр. 7', JSON.stringify(CF[2]) === '{"8":3,"9":1}' && JSON.stringify(CF[3]) === '{"7":5,"8":2}', JSON.stringify(CF));
+
+  // припасы определяются при создании группы
+  const CR = await p.evaluate(() => {
+    const o = { f1: { zero: 0, one: 0, other: 0 }, f2: new Set(), f3min: 9, ration: 99, torchMax: 0, comp: 0, map: 0, wpn: 0, n: 0 };
+    for (const f of [1, 2, 3]) for (let i = 0; i < 600; i++) for (const t of genTravelers(f)) {
+      const c = t.carry; o.n++; o.ration = Math.min(o.ration, c.ration);
+      if (f === 1) { c.potion === 0 ? o.f1.zero++ : c.potion === 1 ? o.f1.one++ : o.f1.other++; }
+      if (f === 2) o.f2.add(c.potion); if (f === 3) o.f3min = Math.min(o.f3min, c.potion);
+      o.torchMax = Math.max(o.torchMax, c.torch); if (c.compass) o.comp++; if (c.map) o.map++; if (c.weapon) o.wpn++;
+    }
+    o.f2 = [...o.f2].sort(); return o;
+  });
+  ok('еда: минимум 3 на путника', CR.ration >= 3, CR.ration);
+  ok('зелья: 1 эт. — не факт, что есть (0 или 1)', CR.f1.zero > 100 && CR.f1.one > 100 && CR.f1.other === 0, JSON.stringify(CR.f1));
+  ok('зелья: 2 этаж 0–2, на 3 этаже у каждого минимум 1', JSON.stringify(CR.f2) === '[0,1,2]' && CR.f3min === 1, JSON.stringify([CR.f2, CR.f3min]));
+  ok('компас — низкий шанс, карта этажа — около 5 %, оружие — около половины', CR.comp / CR.n > .02 && CR.comp / CR.n < .07 && CR.map / CR.n > .035 && CR.map / CR.n < .07 && CR.wpn / CR.n > .43 && CR.wpn / CR.n < .57, JSON.stringify([CR.comp, CR.map, CR.wpn, CR.n]));
+
+  // выдача добычи с убитых
+  const LT = await p.evaluate(() => {
+    state.run.floor = 2; const inv = inventory(); inv.compass.owned = false; invItem('map').owned = false;
+    const g = genTravelers(2).slice(0, 1); const t = g[0]; Object.assign(t.carry, { ration: 4, potion: 2, torch: 1, compass: true, map: true, weapon: true });
+    const before = { r: state.party.reduce((a, c) => a + countGear(c, 'ration'), 0), p: state.party.reduce((a, c) => a + countGear(c, 'potion'), 0), tc: state.party.reduce((a, c) => a + countGear(c, 'torch'), 0), w: state.party.reduce((a, c) => a + (c.bag || []).filter(e => e.t === 'w' && e.id === t.weapon).length, 0) };
+    const lines = travLoot([t.id]); const again = travLoot([t.id]);
+    const after = { r: state.party.reduce((a, c) => a + countGear(c, 'ration'), 0), p: state.party.reduce((a, c) => a + countGear(c, 'potion'), 0), tc: state.party.reduce((a, c) => a + countGear(c, 'torch'), 0), w: state.party.reduce((a, c) => a + (c.bag || []).filter(e => e.t === 'w' && e.id === t.weapon).length, 0) };
+    return { d: [after.r - before.r, after.p - before.p, after.tc - before.tc, after.w - before.w], compass: inv.compass.owned, map: invItem('map').owned, lines: lines.length, again: again.length };
+  });
+  ok('добыча: еда, зелья, факелы, оружие, компас и карта этажа достаются отряду, повторно — нет', JSON.stringify(LT.d) === '[4,2,1,1]' && LT.compass && LT.map && LT.again === 0, JSON.stringify(LT));
+  const LT2 = await p.evaluate(() => {
+    const inv = inventory(); inv.compass.owned = true; const m0 = invItem('map'); m0.owned = true;
+    const t = genTravelers(1)[0]; Object.assign(t.carry, { ration: 3, potion: 0, torch: 0, compass: true, map: true, weapon: false });
+    const lines = travLoot([t.id]).filter(l => /Компас|Карта/.test(l)); return lines.length;
+  });
+  ok('добыча: уже имеющиеся компас и карта не дублируются', LT2 === 0, LT2);
+
+  // путники пьют зелья доп. действием
+  const DR = await p.evaluate(async () => {
+    const B = Battle; B.cfg.fast = true; let drunk = 0, fights = 0, neg = 0, healed = 0;
+    for (let i = 0; i < 16; i++) {
+      state.run.floor = 3; state.party.forEach(c => { c.hp = maxHp(c); c.dead = false; c.mp = maxMp(c); });
+      const g = genTravelers(3); g.forEach(t => { t.carry.potion = 3; }); const before = g.reduce((a, t) => a + t.carry.potion, 0);
+      const ev = { kind: 'group', list: g.map(t => t.id), zone: 'goblin', floor: 3, killed: [] };
+      const S = await B.start(ev, { sim: true, autoHeroes: true }); fights++;
+      const after = g.reduce((a, t) => a + t.carry.potion, 0); drunk += before - after; if (g.some(t => t.carry.potion < 0)) neg++;
+      healed += S.log.filter(l => /пьёт зелье лечения/.test(l.t)).length;
+    }
+    return { drunk, fights, neg, healed };
+  });
+  ok('путники пьют зелья при низких ОЗ (доп. действием), запас не уходит в минус', DR.drunk > 0 && DR.neg === 0 && Math.abs(DR.healed - DR.drunk) <= 2, JSON.stringify(DR));
+
+  // экран итога боя: добыча и камни видны, эссенции не предлагаются
+  const UIF = await p.evaluate(async () => {
+    const B = Battle; B.cfg.fast = false; const out = { ok: 0, kills: 0, stones: 0, loot: 0, ess: 0, stuck: 0 };
+    for (let k = 0; k < 3; k++) {
+      state.run.floor = 3; state.run.pos = { x: 3, y: 3 }; state.run.cleared = {}; state.run.pending = null; dgUi.phase = 'menu'; state.sack = null;
+      state.party.forEach(c => { c.hp = maxHp(c); c.dead = false; });
+      const g = genTravelers(3); dgUi.enc = { kind: 'group', title: 'g', raw: 16, n: 16, cause: 'move', trav: { ids: g.map(t => t.id) } };
+      location.hash = 'labyrinth'; travFight('plain'); rerender(); for (let w = 0; w < 150 && !Battle.running; w++) await new Promise(r => setTimeout(r, 20));
+      B.cfg.fast = true; let txt = '', t0 = Date.now(), kl = 0;
+      for (let i = 0; i < 4000 && dgUi.enc && Date.now() - t0 < 30000; i++) {
+        const UI = B.UI, S = B.S; if (!UI.active) { await new Promise(r => setTimeout(r, 20)); if (!B.running) break; continue; }
+        if (S) S.opts.autoHeroes = true;
+        const md = document.querySelector('.bt-modal'); const yes = md && !md.hidden && md.querySelector('[data-m="yes"]'); if (yes) { yes.click(); await new Promise(r => setTimeout(r, 5)); continue; }
+        const sum = [...document.querySelectorAll('.bt-modal .fx-btn.primary')].find(b => b.offsetParent && !b.classList.contains('bt-done') && /^Готово$/.test(b.textContent.trim())); if (sum) { sum.click(); await new Promise(r => setTimeout(r, 5)); continue; }
+        const sheetBtn = document.querySelector('.bd-ov:not(.out) .bd-ok:not([hidden])'); if (sheetBtn) { sheetBtn.click(); await new Promise(r => setTimeout(r, 5)); continue; }
+        const roll = document.querySelector('.bd-ov:not(.out) .bd-roll:not([disabled])'); if (roll && !document.querySelector('.bd-ov:not(.out) .bd-row').hidden) { roll.click(); await new Promise(r => setTimeout(r, 30)); continue; }
+        if (UI.mode === 'place' || UI.mode === 'ambush') UI.placeDone(); else if (UI.mode === 'hero' && UI.endTurn) UI.endTurn();
+        else if (UI.mode === 'result') { const m = document.querySelector('.bt-rwd'); if (!m) { await new Promise(r => setTimeout(r, 20)); continue; } if (m.innerText.length > txt.length) txt = m.innerText; if (B.S) kl = Math.max(kl, B.S.killed.length); const d = document.querySelector('.bt-done:not([hidden])'); if (d) d.click(); }
+        await new Promise(r => setTimeout(r, 10));
+      }
+      if (dgUi.enc && B.running) { out.stuck++; try { B.abort(); } catch (e) {} dgUi.enc = null; continue; }
+      out.ok++; if (kl > 0) { out.kills++; if (sackTotal() > 0 && /Сумка для камней: Путники/.test(txt)) out.stones++; if (/Добыча с путников/.test(txt)) out.loot++; } if (/выпала эссенция|нёс с собой эссенцию|Бросок на эссенцию/.test(document.body.innerText) && document.querySelector('.bt-essgot:not([hidden])')) out.ess++;
+    }
+    return out;
+  });
+  ok('экран итога: бои закрываются, кристаллы и добыча в списке наград, эссенции не предлагаются', UIF.stuck === 0 && UIF.ok === 3 && UIF.kills >= 1 && UIF.stones === UIF.kills && UIF.loot === UIF.kills && UIF.ess === 0, JSON.stringify(UIF));
 
   // --- сохранение и бестиарий ---
   const SV = await p.evaluate(() => {

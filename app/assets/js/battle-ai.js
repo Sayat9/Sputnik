@@ -212,6 +212,11 @@
     takeGear(u.hero, pid, 1); B.spendTime(u, "bonus");
     const n = pid === "potion-good" ? roll(2, 4).total + 4 : roll(1, 4).total + 2; log(`${u.name} даёт зелье ${needy.name}.`); B.heal(needy, n, u);
   }
+  // Путники пьют зелья из своих запасов (число определено при создании группы) доп. действием, когда ОЗ низкие
+  async function aiMonPotion(u) {
+    const c = u.mon && u.mon.carry; if (u.side !== "mon" || !c || !(c.potion > 0) || !B.timeOK(u, "bonus") || u.hp >= u.maxHp * 0.4 || u.dead) return;
+    c.potion--; B.spendTime(u, "bonus"); const n = roll(1, 4).total + 2; log(`${u.name} пьёт зелье лечения.`); B.heal(u, n, u);
+  }
   AI.wantsOpportunity = (e, mover) => { const pr = profileOf(e); if (pr.still && pr.role === "ranged") return true; return true; };
 
   AI.takeTurn = async function (u) {
@@ -223,7 +228,7 @@
     if (u.side === "hero" && u.hero && B.dropsHere && B.dropsHere(u).length) await B.pickUpWeapon(u);          // стоит на своём оружии — подбирает (свободное действие)
     await moraleCheck(u, pr);
     if (shouldFlee(u, pr)) { if (await fleeTurn(u)) return; }
-    if (u.side === "hero") await aiPotion(u);
+    if (u.side === "hero") await aiPotion(u); else await aiMonPotion(u);
     // Крот гасит факел бонусным действием (решение автора); автобой героев зажигает его снова не более двух раз за бой
     if (u.side === "mon" && u.ref === "rat-catcher" && B.callRats) await B.callRats(u);
     if (u.side === "mon" && u.pass.includes("giant-mole") && S.torch && B.timeOK(u, "bonus")) { B.spendTime(u, "bonus"); S.torch = false; S.torchLeft = 0; S.torchFixed = false; log(`${u.name} гасит свет: тьма.`, "bad"); ui() && ui().fxText(u, "тьма", "bad"); ui() && ui().refresh(); await sleep(300); }
