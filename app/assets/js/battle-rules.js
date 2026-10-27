@@ -241,6 +241,9 @@
     if (has(tgt, "lunged")) { ac -= 1; ctx.acNotes.push("после выпада −1"); }
     if (has(tgt, "guarded")) { ac += 2; ctx.acNotes.push("прикрыт щитом +2"); }
     if (has(tgt, "pikeward") && melee) { ac += 1; ctx.acNotes.push("заслон пики +1"); }
+    if (!melee) for (const a of alliesOf(tgt)) if (a !== tgt && has(a, "bastion") && alive(a) && B.lineCells(att, tgt).some(([x, y]) => footprint(a).some(([fx, fy]) => fx === x && fy === y))) { ac += 2; ctx.acNotes.push("укрытие за бастионом +2"); break; }
+    if (B.mirageDis) B.mirageDis(att, tgt, ctx);          // доспех-мираж: первая атака по носителю в раунде — с помехой
+    for (const b of units()) if (b !== tgt && b.side === tgt.side && b.side !== att.side && has(b, "bastion") && alive(b) && dist(att, b) <= 4 && seesTarget(att, b)) { ctx.dis.push("провокация бастиона"); break; }
     const own = hookSum(tgt, "acBonus", ctx); if (own) { ac += own; ctx.acNotes.push(`пассивка ${sg(own)}`); }
     let aura = 0; for (const a of alliesOf(tgt)) aura = Math.max(aura, hookSum(a, "acAura", { ally: a, tgt, ctx }));
     if (aura) { ac += aura; ctx.acNotes.push(`стена щитов +${aura}`); }
@@ -294,6 +297,7 @@
     if (tgt.isObj) return B.attackObject(att, atk, tgt, o);                            // способность или атака по камню и т. п.: бросок против КД объекта
     if (B.redirectAttack && !o.noRedirect) { const nt = await B.redirectAttack(att, tgt, atk, o); if (nt) tgt = nt; }          // двойник, «Принять удар»
     const ctx = attackCtx(att, tgt, atk, o);
+    if (B.mirageMark && ctx.dis.includes("доспех-мираж")) B.mirageMark(tgt);          // первая атака в раунде «потрачена»
     if (o.extra) ctx.extra.push(...o.extra);
     const ses = session(att, { kind: "attack", att, tgt, atk, title: atk.n, sub: `${att.name} → ${tgt.name}`, anim: animKind(atk) });
     const r = await ses.d20({ label: "Бросок атаки", mods: ctx.mods, adv: ctx.adv, dis: ctx.dis, vs: { ac: ctx.ac, notes: ctx.acNotes, name: tgt.name }, reroll: rerollOptions(att, "attack"), cancel: att.side === "hero" && o.cancelable !== false });
@@ -547,7 +551,7 @@
   }
   // Принудительное перемещение на n клеток от точки (без провоцированных атак).
   async function push(u, fromX, fromY, n) {
-    let moved = 0;
+    let moved = 0; if (has(u, "bastion")) return 0;          // бастион: не сдвинуть
     for (let i = 0; i < n; i++) {
       const dx = Math.sign(u.x - fromX) || 0, dy = Math.sign(u.y - fromY) || 0; if (!dx && !dy) break;
       const nx = u.x + dx, ny = u.y + dy;
@@ -585,7 +589,7 @@
     if (B.expireOwned) B.expireOwned(u);                                                                   // «1 минута» кончается в начале хода хозяина через 10 раундов
     u.t = { move: 0, action: 1, bonus: 1, react: 1, dash: false, disengage: false, attacked: false, riteUsed: false, objUsed: false, moved: 0, startX: u.x, startY: u.y, rush: false, extraAttack: 0, straight: 0, sdir: null, packMark: false };
     if (has(u, "stunned")) { u.t.bonus = 0; u.t.react = 0; }
-    if (has(u, "overswung")) u.t.bonus = 0;                                       // «Тяжёлый замах»: нет доп. действия                                       // оглушение: нет доп. действия и реакции
+    if (has(u, "overswung") || has(u, "quaked")) u.t.bonus = 0;                                       // «Тяжёлый замах»: нет доп. действия                                       // оглушение: нет доп. действия и реакции
     tickStatuses(u, "start");
     hookAll(u, "turnStart", {});
     // начало хода: кровотечение, горение, хватка и т. п.

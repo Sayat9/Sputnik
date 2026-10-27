@@ -126,7 +126,13 @@
   /* ===== пассивки оружия ===== */
   P.weap = {
     speedBonus(u) { const m = B.mainOf(u), o = B.offOf(u); return m && o && (m.props || []).includes("Можно со щитом") && o.id === "shield" ? -1 : 0; },          // пика со щитом: −1 клетка скорости
-    acBonus(u) { return has(u, "moonguard") ? 1 : 0; },          // лунная стойка: +1 КД
+    acBonus(u) { return (has(u, "moonguard") ? 1 : 0) + (has(u, "bastion") ? 2 : 0); },          // лунная стойка +1 КД, бастион +2 КД
+    immune(u, c) { return c.id === "prone" && has(u, "bastion"); },          // бастион: не сбить с ног
+    saveMods(u, ctx) { if (ctx.abil === "dex" && B.armorArt(u) === "mirage-armor") ctx.mods.push({ l: "Доспех-мираж", v: 2 }); },
+    redirectAlly(a, c) {          // магнитная кольчуга: дальняя атака по союзнику рядом притягивается к носителю
+      if (B.armorArt(a) !== "magnet-mail" || !c.atk || c.atk.kind !== "ranged" || c.tgt === a || dist(a, c.tgt) > 2 || roll(1, 100).total > 50) return null;
+      log(`Дальняя атака по ${c.tgt.name} притягивается к ${a.name} магнитной кольчугой!`, "skill"); fx(a, "магнит", "good"); return a;
+    },
     attackMods(u, ctx) {
       const w = ctx.atk && ctx.atk.w; if (!w) return;
 
@@ -280,6 +286,7 @@
   const footprintOf = o => (B.footprint ? B.footprint(o) : [[o.x, o.y]]);
   B.artTurnStart = async u => {
     const S = B.S; if (!S) return;
+    if (u.flurryCd > 0) u.flurryCd--; if (u.riftCd > 0) u.riftCd--;
     const mw = u.hero ? B.mainOf(u) : null;
     if (mw && mw.artId === "moon-sword" && !u.disarmed) { if (u.moonCd > 0) u.moonCd--; u.moon = ((u.moon == null ? -1 : u.moon) + 1) % 4; log(`${u.name}: фаза луны — ${MOON[u.moon].n}${u.moonCd > 0 ? ` (меч в откате: ещё ${u.moonCd})` : ": " + MOON[u.moon].ab}.`, "skill"); fx(u, MOON[u.moon].n, "good"); }
     if (!S.lodged || !S.lodged.length) return;
@@ -431,6 +438,53 @@
     return true;
   }
   B.freeReact = e => !!(e.hero && !e.disarmed && (B.mainOf(e) || {}).artId === "rampart-pike" && e.pikeAt !== B.S.round);
+  async function rift(u) {
+    const S = B.S, dirs = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]], ends = [], lines = new Map();
+    for (const [dx, dy] of dirs) {
+      let len = 0; for (let k = 1; k <= 3; k++) { const x = u.x + dx * k, y = u.y + dy * k; if (!B.inB(x, y) || B.obstacleAt(x, y)) break; len = k; }
+      if (len) { const e = [u.x + dx * len, u.y + dy * len]; ends.push(e); lines.set(e.join(), { dx, dy, len }); }
+    }
+    if (!ends.length) { toast("Некуда бить"); return false; }
+    const pt = await UI().pickCell({ prompt: "Раскол: выберите конец трещины (до 3 клеток)", cells: ends, kind: "attack" }); if (!pt || pt.length !== 2) return false;
+    const ln = lines.get(pt.join()); if (!ln) return false;
+    B.spendTime(u, "action"); B.setMp(u, u.mp - RIFT_MANA); u.riftCd = 3; u.t.attacked = true;
+    const cells = []; for (let k = 1; k <= ln.len; k++) cells.push([u.x + ln.dx * k, u.y + ln.dy * k]);
+    log(`${u.name} раскалывает землю молотом: трещина на ${ln.len} кл.`, "skill"); const g = ui(); if (g) g.banner("Раскол!");
+    for (const [x, y] of cells) if (!S.cells[y][x]) S.cells[y][x] = "fissure";
+    const on = B.live().filter(o => o !== u && alive(o) && !o.down && B.footprint(o).some(([fx2, fy2]) => cells.some(([x, y]) => x === fx2 && y === fy2)));
+    const dc = 8 + (u.pb || 0) + Math.max(0, amod(u.abil.str));
+    if (on.length) {
+      const sv = await B.massSave(on, "dex", dc, { label: "Раскол", title: "Раскол", from: u });
+      for (let i = 0; i < on.length; i++) if (!sv[i].ok) { B.knock(on[i], u); await B.applyDamage(u, on[i], [{ v: roll(2, 6).total, dt: "bludgeon", label: "Раскол" }], { src: u }); }
+    }
+    const near = B.live().filter(o => o !== u && !on.includes(o) && alive(o) && !o.down && o.abil && o.abil.str < 12 && cells.some(([x, y]) => B.distCell(o, x, y) <= 1));
+    if (near.length) { const sv = await B.massSave(near, "con", dc, { label: "Раскол: сотрясение", title: "Раскол", from: u }); for (let i = 0; i < near.length; i++) if (!sv[i].ok) { addStatus(near[i], "quaked", { k: 1, when: "end" }); fx(near[i], "оглушён землёй", "bad"); } }
+    if (g) g.refresh();
+    return true;
+  }
+  B.armorArt = u => (u.hero && u.hero.equip && u.hero.equip.body ? (itemOf(u.hero.equip.body) || {}).artId || null : null);
+  B.mirageDis = (att, tgt, ctx) => { if (tgt.hero && B.armorArt(tgt) === "mirage-armor" && tgt.mirageAt !== B.S.round) ctx.dis.push("доспех-мираж"); };
+  B.mirageMark = tgt => { tgt.mirageAt = B.S.round; };
+  const FLURRY_MANA = 2, RIFT_MANA = 1, BASTION_MANA = 1;
+  async function flurry(u, atk) {
+    const fan = atk.special === "flurry2", base = { ...atk, kind: "melee", reach: fan ? 2 : 1, special: undefined, stretch: false }, b = atk.dmg.b;
+    const reachAtk = { ...base }; const pr = (n, s) => ({ ...base, dmg: { n, s, b }, n: "Шквал: укол" });
+    let hits = 0, first = true, tgt = null;
+    const commit = () => { B.commitAttack(u, atk, tgt); B.setMp(u, u.mp - FLURRY_MANA); u.flurryCd = 3; first = false; log(`${u.name}: шквал выпадов!`, "skill"); const g = ui(); if (g) g.banner("Шквал!"); };
+    for (let i = 0; i < 3; i++) {
+      const cands = B.attackTargets(u, reachAtk).filter(t => alive(t) && !t.down);
+      if (!cands.length) break;
+      if (!fan && tgt && alive(tgt)) { /* серия: цель та же */ } else tgt = await UI().pickUnit({ prompt: fan ? `Шквал: укол ${i + 1}/3 — выберите цель` : "Шквал: выберите цель серии", units: cands.map(x => x.id), cells: B.rangeCells(u, reachAtk), kind: "attack" });
+      if (!tgt) { if (first) return false; break; }
+      if (tgt.isObj) { if (first) return false; break; }
+      const r = await B.doAttack(u, tgt, pr(1, 4), { cancelable: first, onCommit: first ? commit : undefined });
+      if (r.cancelled) { if (first) return false; break; }
+      if (r.hit) hits++;
+      if (!fan && (!alive(tgt) || tgt.down)) break;
+    }
+    if (!fan && hits === 3 && tgt && alive(tgt)) await B.doAttack(u, tgt, pr(1, 8), { cancelable: false });
+    return true;
+  }
   const FANG_MANA = 3;
   const darkCells = u => {
     const S = B.S, out = []; if (!S.dark) return out;
@@ -464,6 +518,11 @@
   const ws0 = B.weapSpecials;
   B.weapSpecials = (u, main, off) => {
     const out = ws0(u, main, off);
+    if (main && main.artId === "flurry-rapier" && !u.disarmed) {
+      const base = B.atkFrom(u, main, "hand"), why = v => (v.mp < FLURRY_MANA ? `нужно ${FLURRY_MANA} маны` : v.flurryCd > 0 ? `откат: ещё ${v.flurryCd} х.` : null);
+      out.push({ ...base, id: "flurry:serial", n: "Шквал: серия", special: "flurry1", sub: `${FLURRY_MANA} маны, откат 3 х.: 3 укола 1к4 по одной цели, при трёх попаданиях ещё один 1к8`, needTarget: v => why(v) || (B.attackTargets(v, base).length ? null : "нет цели") });
+      out.push({ ...base, id: "flurry:fan", n: "Шквал: веер", special: "flurry2", reach: 2, sub: `${FLURRY_MANA} маны, откат 3 х.: 3 укола по врагам в 2 клетках, каждый в любого`, needTarget: v => why(v) || (B.attackTargets(v, { ...base, reach: 2 }).length ? null : "нет цели") });
+    }
     if (main && main.artId === "moon-sword" && !u.disarmed && u.moon != null && u.moon !== 3 && !(u.moonCd > 0)) { const base = B.atkFrom(u, main, "hand"); out.push({ ...base, id: "moon:sword", n: MOON[u.moon].ab, special: "moon", sub: `${MOON[u.moon].d} · после — откат ${MOON[u.moon].cd} х.` }); }
     if (main && main.artId === "storm-axe" && !u.disarmed) {
       const th = B.atkFrom(u, main, "thrown");
@@ -476,7 +535,7 @@
     return out;
   };
   const rs0 = B.runSpecial;
-  B.runSpecial = (u, atk) => (atk.special === "star" ? star(u, atk) : atk.special === "meteor" ? meteor(u, atk) : atk.special === "moon" ? moonAttack(u, atk) : atk.special === "charge" ? pikeCharge(u, atk) : atk.special === "axepull" || atk.special === "boomerang" ? axeSpecial(u, atk) : rs0(u, atk));
+  B.runSpecial = (u, atk) => (atk.special === "star" ? star(u, atk) : atk.special === "meteor" ? meteor(u, atk) : atk.special === "moon" ? moonAttack(u, atk) : atk.special === "charge" ? pikeCharge(u, atk) : atk.special === "axepull" || atk.special === "boomerang" ? axeSpecial(u, atk) : atk.special === "flurry1" || atk.special === "flurry2" ? flurry(u, atk) : rs0(u, atk));
 
   // Посох разрядов: потраченная мана копится зарядами; «Разряд» — 1к6 за заряд.
   B.staffCharge = (u, spent) => { const m = B.mainOf(u); if (m && m.artId === "discharge-staff") u.charges = Math.min(STAFF_MAX, (u.charges || 0) + spent); };
@@ -550,6 +609,22 @@
     const planted = lodged().find(r => r.kind === "cell" && r.hero === u.id && B.distCell(u, r.x, r.y) <= 1);
     if (planted && u.disarmed) out.push({ id: "spearpull", cat: "other", label: "Вытащить копьё", ico: "attack", sub: "свободное действие: копьё возвращается в руку", time: "free", enabled: true,
       run: async () => { B.S.cells[planted.y][planted.x] = ""; B.S.lodged = lodged().filter(r => r !== planted); u.disarmed = false; log(`${u.name} вытаскивает копьё из земли.`, "good"); const g = ui(); if (g) g.refresh(); return true; } });
+    if (main0 && main0.artId === "rift-hammer" && !u.disarmed) {
+      const why0 = !act0 ? "действие потрачено" : u.riftCd > 0 ? `откат: ещё ${u.riftCd} х.` : u.mp < RIFT_MANA ? "не хватает маны" : null;
+      out.push({ id: "rift", cat: "attack", label: "Раскол", ico: "attack", sub: `${RIFT_MANA} мана, откат 3 х.: трещина по прямой на 3 клетки — Ловкость или падение и 2к6 (и своим), труднопроходная; слабых рядом — Телосложение или потеря доп. действия`, time: "action", enabled: !why0, why: why0, run: () => rift(u) });
+      out.push({ id: "shockwave", cat: "attack", label: "Ударная волна", ico: "attack", sub: `${RIFT_MANA} мана, откат 3 х. (общий с «Расколом»): толчок на клетку и 1к8 всем вокруг, и своим`, time: "action", enabled: !why0, why: why0,
+        run: async () => {
+          const ts = B.live().filter(o => o !== u && alive(o) && !o.down && dist(u, o) <= 1); if (!ts.length) { toast("Рядом никого"); return false; }
+          B.spendTime(u, "action"); B.setMp(u, u.mp - RIFT_MANA); u.riftCd = 3; u.t.attacked = true; log(`${u.name} бьёт молотом оземь: ударная волна!`, "skill"); const g = ui(); if (g) g.banner("Ударная волна!");
+          for (const o of ts) { await B.push(o, u.x, u.y, 1); if (alive(o)) await B.applyDamage(u, o, [{ v: roll(1, 8).total, dt: "bludgeon", label: "Ударная волна" }], { src: u }); }
+          return true;
+        } });
+    }
+    if (main0 && main0.artId === "bastion-shield" && !u.disarmed) {
+      const why0 = !act0 ? "действие потрачено" : has(u, "bastion") ? "уже в бастионе" : u.mp < BASTION_MANA ? "не хватает маны" : null;
+      out.push({ id: "bastion", cat: "defend", label: "Бастион", ico: "shield", sub: `${BASTION_MANA} мана: до начала вашего хода скорость 0, не сбить и не сдвинуть, +2 КД, союзники за вами укрыты, враги в 4 клетках атакуют других с помехой`, time: "action", enabled: !why0, why: why0,
+        run: async () => { B.spendTime(u, "action"); B.setMp(u, u.mp - BASTION_MANA); u.t.move = 0; addStatus(u, "bastion", { k: Infinity, data: { endAtStartOf: u.id } }); log(`${u.name} вкапывает щит и встаёт бастионом.`, "good"); fx(u, "бастион", "good"); return true; } });
+    }
     if (main0 && main0.artId === "moon-sword" && !u.disarmed && u.moon === 3 && !(u.moonCd > 0)) {
       out.push({ id: "moonguard", cat: "defend", label: "Лунная стойка", ico: "defend", sub: `${MOON[3].d} · после — откат ${MOON[3].cd} х.`, time: "bonus", enabled: bon0, why: "доп. действие потрачено",
         run: async () => { B.spendTime(u, "bonus"); addStatus(u, "moonguard", { k: Infinity, data: { endAtStartOf: u.id } }); u.moonCd = MOON[3].cd; log(`${u.name} встаёт в лунную стойку.`, "good"); fx(u, "лунная стойка", "good"); return true; } });

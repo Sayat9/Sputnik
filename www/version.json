@@ -1,5 +1,5 @@
 {
- "version": 1793057136,
+ "version": 1793079105,
  "files": [
   "assets/buildings/church.webp",
   "assets/buildings/forge.webp",
@@ -396,20 +396,20 @@
   "assets/items/warhammer.svg": "146a73c3b76075dc5cf83d3f60f0d935",
   "assets/items/warhammer.webp": "96a5d7990847d290d359b35e7673e757",
   "assets/js/battle-act.js": "8555431007c6b2544d1757327475ede0",
-  "assets/js/battle-ai.js": "ea4b8bee5b46c2263419653fee717cf2",
-  "assets/js/battle-core.js": "06b3e6de8c93728146a1db62f4c5d486",
-  "assets/js/battle-data.js": "f36bbe4b2b9857dfb96e04961e5029d3",
+  "assets/js/battle-ai.js": "a4424611d815192486ce8298e278ff67",
+  "assets/js/battle-core.js": "8c19e3ec5e10dc8b00d29da0564d23cd",
+  "assets/js/battle-data.js": "26ab332d51f2ed68926ab18591efe380",
   "assets/js/battle-dice.js": "e45c4170169e0538b2b8519fd233bf0e",
   "assets/js/battle-end.js": "bf226e686dae2ea7486318a989e09e9e",
-  "assets/js/battle-env.js": "eea6d6a67c25997fe6a3ade924c892b3",
+  "assets/js/battle-env.js": "1539446bf631d7cbe4dc87c9d033b7b7",
   "assets/js/battle-ess.js": "a6963d02544d4acf83a8399a125f39b9",
   "assets/js/battle-ess2.js": "540ab696b07fabe4bc4ad08ed51c52ef",
   "assets/js/battle-ext.js": "71cdb0ae150fac652989c8a2ef02a315",
   "assets/js/battle-menu.js": "861743e358d79477224aa77705a7c633",
   "assets/js/battle-net.js": "2ec8914d230f7ef8ef96df7662aa1e4e",
-  "assets/js/battle-rules.js": "944a6e64646231011cdf85efb3933d05",
+  "assets/js/battle-rules.js": "8c400436c573a75076dca5496490f1b0",
   "assets/js/battle-ui.js": "f3895514c0f26b5a2dbb26f301b2072d",
-  "assets/js/battle-weap.js": "2f94fcfd03a1fbd54abaeb8b7ee29940",
+  "assets/js/battle-weap.js": "e0176f3853e860766e84c4f5ac203b0c",
   "assets/js/battle.js": "cf7816a970e9fb0f9884938028260772",
   "assets/js/net.js": "110683a663d3cbfa576e7a56e5d09677",
   "assets/js/netglue.js": "57c46e99a7482a59b5196b9b40ba1c6d",
@@ -610,6 +610,6 @@
   "fonts/f8.woff2": "6cc1ee17091d59eb93821c3594e8f38f",
   "fonts/f9.woff2": "070433480b7b645f69b543f284e386ce",
   "fonts/fonts.css": "1585a72a8d157b26cb424ab433fd4e19",
-  "index.html": "bcd94eea3054263ecabc93f079122492"
+  "index.html": "1347cffd58364cc478e5cc2731d04761"
  }
 }

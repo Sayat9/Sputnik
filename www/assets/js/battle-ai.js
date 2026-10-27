@@ -31,7 +31,7 @@
     return p;
   }
   function focusBonus(u, t, pr) {
-    let s = 0; const int = pr.int ?? 1;
+    let s = 0; const int = pr.int ?? 1; if (has(t, "bastion")) s += 6;          // провокация бастиона
     for (const f of pr.focus || ["nearest"]) {
       if (f === "wounded") s += (1 - t.hp / t.maxHp) * 4;
       else if (f === "weak") s += (1 - t.hp / t.maxHp) * 2 + (t.ac <= 11 ? 1.5 : 0);

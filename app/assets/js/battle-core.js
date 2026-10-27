@@ -277,7 +277,7 @@
   function speedOf(u) {
     let sp = Math.max(u.speedC, u.flyC) + hookSum(u, "speedBonus", {});                       // бонус к скорости («Лёгкие ноги») — до замедления, как строка статов
     for (const c of u.conds) {
-      if (["grappled", "restrained", "pinned", "trapped", "spearstop", "unconscious", "stable", "buried", "paralyzed", "underground", "mired", "encased"].includes(c.id)) return 0;
+      if (["grappled", "restrained", "pinned", "trapped", "spearstop", "bastion", "unconscious", "stable", "buried", "paralyzed", "underground", "mired", "encased"].includes(c.id)) return 0;
     }
     for (const c of u.conds) if (c.id === "slowed") { if (c.data.mult != null) sp = Math.floor(sp * c.data.mult); if (c.data.add) sp += c.data.add; }
     return Math.max(0, sp);

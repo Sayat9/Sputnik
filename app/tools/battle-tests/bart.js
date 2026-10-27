@@ -306,6 +306,79 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
   ok('Лук «Рикошет»: ближайший враг в 2 клетках получает половину, на 20 — полный, дальний нет', o5.rico.half === 5 && o5.rico.full === 10 && o5.rico.far, o5.rico);
   ok('Теневой клык: прыжок только в тёмную клетку, 3 маны, доп. действие; при свете нельзя', o5.dark && o5.stepEn && o5.stepRes.x === 6 && o5.stepRes.y === 7 && o5.stepRes.mana === 3 && o5.stepRes.bonus === 0 && o5.stepLight === false, [o5.dark, o5.stepEn, o5.stepRes, o5.stepLight]);
   ok('Секира «Жатва»: убийства копят заряды, с 3 — круговой удар по всем рядом (и своим), потом сброс', o5.harv === 3 && o5.reapEn && o5.reap.enemy && o5.reap.ally && o5.reap.far && o5.reap.reset === 0 && o5.reap.action === 0 && o5.reapLocked === false, [o5.harv, o5.reap, o5.reapLocked]);
+  const o6 = await p.evaluate(async () => {
+    const B = Battle, out = {};
+    const hero0 = state.party[0]; hero0.equip = {}; hero0.bag = [];
+    out.cls = [ART_WEAPONS['flurry-rapier'].cls, ART_WEAPONS['rift-hammer'].cls, ART_WEAPONS['bastion-shield'].cls, ART_ARMORS['mirage-armor'].cls, ART_ARMORS['magnet-mail'].cls];
+    out.drops = ['flurry-rapier', 'rift-hammer', 'bastion-shield', 'mirage-armor', 'magnet-mail'].every(id => ART_DROPS.includes(id));
+    // броня-артефакт: скрыта, КД как у стальной
+    const lea = { t: 'a', id: 'leather', art: 'mirage-armor' }; delete artState().known['mirage-armor'];
+    out.armorMask = [itemOf(lea).name, itemOf(lea).base === ARMOR_FLAT.find(a => a.id === 'leather').base + 1]; artState().known['mirage-armor'] = true; out.armorName = itemOf(lea).name;
+    // продажа брони-артефакта: кузница +10 %
+    out.mult = [artBuyerMult('magnet-mail', 'forge'), artBuyerMult('magnet-mail', 'tower')];
+    const S = B.newBattle({ list: ['goblin', 'goblin', 'goblin'], zone: 'goblin', floor: 3, kind: 'hard', title: 'x' }); S.opts.autoHeroes = true; B.placeHeroesDefault(S); B.placeMonsters(S); B.running = true;
+    for (let y = 0; y < B.H; y++) for (let x = 0; x < B.W; x++) S.cells[y][x] = '';
+    const [h, ally, ally2] = B.heroes(), [m1, m2, m3] = B.mons();
+    const reset = () => { h.x = 5; h.y = 9; ally.x = 4; ally.y = 9; ally2.x = 0; ally2.y = 9; m1.x = 5; m1.y = 8; m2.x = 5; m2.y = 7; m3.x = 9; m3.y = 0; for (const u of B.live()) { u.hp = u.maxHp = 100; } h.t = { move: 6, action: 1, bonus: 1, react: 1, moved: 0, startX: 5, startY: 9 }; h.mp = 6; h.maxMp = 6; h.flurryCd = 0; h.riftCd = 0; B.S.cells = B.S.cells.map(r => r.map(() => '')); };
+    // ---- Рапира «Шквал»
+    reset(); hero0.equip.main = { t: 'w', id: 'rapier', art: 'flurry-rapier' };
+    const sp = B.attacksOf(h).filter(a => a.special === 'flurry1' || a.special === 'flurry2'); out.flurrySp = sp.map(a => a.special);
+    const da = B.doAttack; const pu = B.UI.pickUnit; let calls = [];
+    B.doAttack = async (u, tg, atk, o) => { calls.push([tg.id, atk.dmg.s, !!o.cancelable]); if (o.onCommit) await o.onCommit(); return { hit: true, nat: 15, dealt: 3, cancelled: false }; };
+    B.UI.pickUnit = async () => m1; m1.x = 5; m1.y = 8; await B.runSpecial(h, sp[0]);
+    out.serial = { n: calls.length, last: calls[calls.length - 1][1], mana: 6 - h.mp, cd: h.flurryCd, action: h.t.action };
+    reset(); calls = []; let pickN = 0; B.UI.pickUnit = async (spec) => (pickN++ % 2 ? m2 : m1); m1.x = 5; m1.y = 8; m2.x = 5; m2.y = 7;
+    await B.runSpecial(h, sp[1]); out.fan = { n: calls.length, targets: [...new Set(calls.map(c => c[0]))].length, dice: calls.map(c => c[1]).join() };
+    reset(); calls = []; B.doAttack = async (u, tg, atk, o) => { calls.push(atk.dmg.s); if (o.onCommit) await o.onCommit(); return { hit: calls.length !== 2, nat: 15, dealt: 3, cancelled: false }; };
+    B.UI.pickUnit = async () => m1; m1.x = 5; m1.y = 8; await B.runSpecial(h, sp[0]); out.serialMiss = calls.join();
+    reset(); h.mp = 1; out.noMana = B.attacksOf(h).find(a => a.special === 'flurry1').needTarget(h);
+    B.doAttack = da; B.UI.pickUnit = pu;
+    // ---- Молот «Разлом»
+    reset(); hero0.equip.main = { t: 'w', id: 'warhammer', art: 'rift-hammer' }; for (const u of B.live()) u.abil.str = 10; h.abil.str = 14;
+    m1.x = 5; m1.y = 8; m2.x = 5; m2.y = 7; ally.x = 4; ally.y = 8; m3.x = 4; m3.y = 6;
+    const sv0 = B.massSave; B.massSave = async (list, abil) => list.map(() => ({ ok: abil !== 'dex' ? false : false }));
+    const pc = B.UI.pickCell; B.UI.pickCell = async () => [5, 6];
+    const riftA = B.weapActions(h).find(a => a.id === 'rift'); out.riftEn = riftA.enabled; await riftA.run(); B.UI.pickCell = pc; B.massSave = sv0;
+    out.rift = { cells: [S.cells[8][5], S.cells[7][5], S.cells[6][5]], m1: m1.hp < 100 && !!B.has(m1, 'prone'), m2: m2.hp < 100, allyOff: ally.hp === 100, near: !!B.has(ally, 'quaked') && !!B.has(m3, 'quaked'), cd: h.riftCd, mana: 6 - h.mp };
+    reset(); h.riftCd = 2; out.riftCd = B.weapActions(h).find(a => a.id === 'rift').enabled;
+    reset(); ally.x = 4; ally.y = 8; m1.x = 5; m1.y = 8; m2.x = 0; m2.y = 0; const swA = B.weapActions(h).find(a => a.id === 'shockwave'); await swA.run();
+    out.shock = { m1: m1.hp < 100, ally: ally.hp < 100, pushed: m1.y < 8, cd: h.riftCd };
+    // ---- Крепостной щит «Бастион»
+    reset(); hero0.equip.main = { t: 'w', id: 'tower-shield', art: 'bastion-shield' }; ally.x = 5; ally.y = 10 - 2;
+    out.shieldSteel = itemOf(hero0.equip.main).steel === true;
+    const bA = B.weapActions(h).find(a => a.id === 'bastion'); await bA.run();
+    out.bastion = { st: !!B.has(h, 'bastion'), speed: B.speedOf(h), mana: 6 - h.mp, acb: B.P.weap.acBonus(h), noProne: B.P.weap.immune(h, { id: 'prone' }), push: await B.push(h, 5, 5, 1) };
+    // укрытие союзника за бастионом: враг сверху -> бастион на линии
+    h.x = 5; h.y = 5; ally.x = 5; ally.y = 6; m1.x = 5; m1.y = 1; m2.x = 0; m2.y = 0;
+    const ranged = { kind: 'ranged', hit: 5, parts: [{ l: 'x', v: 5 }], dmg: { n: 1, s: 6, b: 0 }, dt: 'pierce' };
+    const cAlly = B.attackCtx(m1, ally, ranged, {}); out.cover = cAlly.acNotes.some(s => /бастион/.test(s));
+    ally2.x = 8; ally2.y = 8; const cOther = B.attackCtx(m1, ally2, ranged, {}); out.prov = cOther.dis.some(s => /провокац/.test(s));
+    const cHero = B.attackCtx(m1, h, ranged, {}); out.provSelf = cHero.dis.some(s => /провокац/.test(s));
+    // ---- Доспех-мираж
+    reset(); hero0.equip = { body: { t: 'a', id: 'leather', art: 'mirage-armor' } };
+    const ranged2 = { kind: 'ranged', hit: 5, parts: [{ l: 'x', v: 5 }], dmg: { n: 1, s: 6, b: 0 }, dt: 'pierce' }; B.S.round = 4; h.mirageAt = undefined;
+    out.mirage1 = B.attackCtx(m1, h, ranged2, {}).dis.includes('доспех-мираж'); B.mirageMark(h); out.mirage2 = B.attackCtx(m1, h, ranged2, {}).dis.includes('доспех-мираж'); B.S.round = 5; out.mirage3 = B.attackCtx(m1, h, ranged2, {}).dis.includes('доспех-мираж');
+    const sc = B.attackCtx; const saveCtx = { mods: [], abil: 'dex' }; B.P.weap.saveMods(h, saveCtx); out.mirageSave = saveCtx.mods[0] && saveCtx.mods[0].v;
+    const sc2 = { mods: [], abil: 'str' }; B.P.weap.saveMods(h, sc2); out.mirageStr = sc2.mods.length;
+    // ---- Магнитная кольчуга
+    reset(); hero0.equip = {}; state.party[1].equip = { body: { t: 'a', id: 'chainmail', art: 'magnet-mail' } };
+    out.magnet = { ally: B.armorArt(ally), eq: state.party[1].id === ally.hero.id };
+    let re = 0, none = 0; for (let i = 0; i < 60; i++) { const nt = await B.P.weap.redirectAlly(ally, { att: m1, tgt: h, atk: { kind: 'ranged' }, o: {} }); if (nt === ally) re++; }
+    out.magnetRate = re; h.x = 5; h.y = 9; ally.x = 5; ally.y = 6; let far = 0; for (let i = 0; i < 30; i++) { if (await B.P.weap.redirectAlly(ally, { att: m1, tgt: h, atk: { kind: 'ranged' }, o: {} })) far++; } out.magnetFar = far;
+    let mel = 0; ally.x = 4; ally.y = 9; for (let i = 0; i < 30; i++) { if (await B.P.weap.redirectAlly(ally, { att: m1, tgt: h, atk: { kind: 'melee' }, o: {} })) mel++; } out.magnetMelee = mel;
+    return out;
+  });
+  ok('классы: рапира 7, молот 6, щит 6, мираж 7, магнитная кольчуга 7; все в пуле сундука горнила', o6.cls.join() === '7,6,6,7,7' && o6.drops, o6);
+  ok('Артефактная броня: «??» до определения, КД как у стальной; после — название; кузница +10 %', o6.armorMask[0] === '??' && o6.armorMask[1] && o6.armorName === 'Доспех-мираж' && o6.mult.join() === '1.1,1', [o6.armorMask, o6.armorName, o6.mult]);
+  ok('Рапира «Шквал»: серия и веер в меню', o6.flurrySp.join() === 'flurry1,flurry2', o6.flurrySp);
+  ok('Серия: 3 укола по одной цели + 4-й (1к8) при трёх попаданиях; 2 маны, откат 3, действие', o6.serial.n === 4 && o6.serial.last === 8 && o6.serial.mana === 2 && o6.serial.cd === 3 && o6.serial.action === 0, o6.serial);
+  ok('Веер: 3 укола по разным врагам (по выбору), без 4-го; серия с промахом без добивающего', o6.fan.n === 3 && o6.fan.targets === 2 && o6.fan.dice === '4,4,4' && o6.serialMiss === '4,4,4', [o6.fan, o6.serialMiss]);
+  ok('Шквал без маны недоступен', /нужно 2 маны/.test(o6.noMana || ''), o6.noMana);
+  ok('Молот «Раскол»: трещина на 3 клетки, цели на ней падают и получают 2к6, свои вне трещины целы, слабые рядом оглушены землёй, 1 мана, откат', o6.riftEn && o6.rift.cells.join() === 'fissure,fissure,fissure' && o6.rift.m1 && o6.rift.m2 && o6.rift.allyOff && o6.rift.near && o6.rift.cd === 3 && o6.rift.mana === 1 && o6.riftCd === false, o6.rift);
+  ok('Молот «Ударная волна»: толчок и 1к8 всем вокруг (и своим), общий откат', o6.shock.m1 && o6.shock.ally && o6.shock.pushed && o6.shock.cd === 3, o6.shock);
+  ok('Бастион: скорость 0, не сбить и не сдвинуть, +2 КД, 1 мана; союзник за ним укрыт, враги атакуют других с помехой, а его — нет', o6.shieldSteel && o6.bastion.st && o6.bastion.speed === 0 && o6.bastion.mana === 1 && o6.bastion.acb === 2 && o6.bastion.noProne && o6.bastion.push === 0 && o6.cover && o6.prov && !o6.provSelf, [o6.bastion, o6.cover, o6.prov, o6.provSelf]);
+  ok('Доспех-мираж: первая атака за раунд с помехой, вторая нет, в новом раунде снова; Ловкость +2, Сила нет', o6.mirage1 && !o6.mirage2 && o6.mirage3 && o6.mirageSave === 2 && o6.mirageStr === 0, [o6.mirage1, o6.mirage2, o6.mirage3, o6.mirageSave, o6.mirageStr]);
+  ok('Магнитная кольчуга: дальние атаки по союзнику в 2 клетках притягиваются примерно в половине случаев; далеко и ближний бой — нет', o6.magnetRate >= 15 && o6.magnetRate <= 45 && o6.magnetFar === 0 && o6.magnetMelee === 0, [o6.magnet, o6.magnetRate, o6.magnetFar, o6.magnetMelee]);
   ok('нет ошибок страницы', errs.length === 0, errs.slice(0, 3));
   console.log('проверок:', R.length, 'не прошли:', R.filter(x => !x).length);
   await b.close();

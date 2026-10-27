@@ -1919,8 +1919,8 @@ const DISTRICTS = [
 
 // Готовые рисованные картинки (webp) заменяют векторные заглушки.
 // Дата сборки для телефона: build.sh вписывает её сюда, в веб-версии строка пустая.
-const APP_BUILD = "27.10.2026 04:25";
-const APP_VERSION = 1793057136;                 // номер сборки, тоже вписывает build.sh
+const APP_BUILD = "27.10.2026 10:31";
+const APP_VERSION = 1793079105;                 // номер сборки, тоже вписывает build.sh
 const UPDATE_URL = "https://raw.githubusercontent.com/Sayat9/Sputnik/main/www/";
 const RASTER = new Set(["items/mace", "items/warhammer", "items/armor-leather", "items/armor-hide", "items/armor-chainmail", "items/steel-dagger", "items/steel-sword", "items/steel-greatsword", "items/steel-shield", "items/steel-tower-shield", "items/shortbow", "items/longbow", "items/rapier", "items/shield", "items/tower-shield", "items/unknown-mushroom", "items/stone-9", "items/stone-8", "items/stone-7", "items/ration", "items/potion", "items/torch", "items/arrows", "items/clothes", "items/shovel", "items/shovel-good", "items/shovel-best", "items/dagger", "items/sword", "items/greatsword", "items/spear", "monsters/goblin-king-face", "monsters/goblin-king-full", "monsters/goblin-bomber-face", "monsters/goblin-bomber-full", "monsters/hobgoblin-shield-face", "monsters/hobgoblin-shield-full", "races/barbarian", "races/human", "races/dwarf", "races/beastkin", "races/fairy", "races/dragon", "monsters/goblin-face", "monsters/goblin-full", "monsters/goblin-archer-face", "monsters/goblin-archer-full", "monsters/goblin-sword-face", "monsters/goblin-sword-full", "monsters/goblin-spear-face", "monsters/goblin-spear-full", "monsters/wolf-face", "monsters/wolf-full", "monsters/fox-face", "monsters/fox-full", "monsters/mouse-face", "monsters/mouse-full", "monsters/bat-face", "monsters/bat-full", "monsters/hobgoblin-face", "monsters/hobgoblin-full", "monsters/zombie-face", "monsters/zombie-full", "monsters/skeleton-face", "monsters/skeleton-full", "monsters/skeleton-archer-face", "monsters/skeleton-archer-full", "monsters/ghoul-face", "monsters/ghoul-full", "monsters/dark-bear-face", "monsters/dark-bear-full", "monsters/skeleton-warrior-face", "monsters/skeleton-warrior-full", "monsters/living-stone-face", "monsters/living-stone-full", "monsters/wisp-face", "monsters/wisp-full", "monsters/pixie-face", "monsters/pixie-full", "monsters/green-boulder-face", "monsters/green-boulder-full", "monsters/stone-guardian-face", "monsters/stone-guardian-full", "monsters/spider-queen-face", "monsters/spider-queen-full", "monsters/ash-wraith-face", "monsters/ash-wraith-full", "monsters/ash-spirit-face", "monsters/ash-spirit-full", "monsters/plague-fat-face", "monsters/plague-fat-full", "monsters/bone-hound-face", "monsters/bone-hound-full", "monsters/dust-crawler-face", "monsters/dust-crawler-full", "monsters/faceless-ringer-face", "monsters/faceless-ringer-full", "monsters/mirror-dead-face", "monsters/mirror-dead-full", "monsters/whisperer-face", "monsters/whisperer-full", "monsters/morok-face", "monsters/morok-full", "monsters/grey-shade-face", "monsters/grey-shade-full", "monsters/blackwing-face", "monsters/blackwing-full", "monsters/swamp-fang-face", "monsters/swamp-fang-full", "monsters/web-spider-face", "monsters/web-spider-full", "monsters/goblin-shaman-face", "monsters/goblin-shaman-full", "monsters/goblin-assassin-face", "monsters/goblin-assassin-full", "monsters/goblin-trapper-face", "monsters/goblin-trapper-full", "monsters/goblin-elder-face", "monsters/goblin-elder-full", "monsters/hobgoblin-brute-face", "monsters/hobgoblin-brute-full", "monsters/hobgoblin-thrower-face", "monsters/hobgoblin-thrower-full", "monsters/hobgoblin-driver-face", "monsters/hobgoblin-driver-full", "monsters/goblin-thief-face", "monsters/goblin-thief-full", "monsters/horned-hare-face", "monsters/horned-hare-full", "monsters/swamp-toad-face", "monsters/swamp-toad-full", "monsters/burrower-face", "monsters/burrower-full", "monsters/crow-face", "monsters/crow-full", "monsters/dire-wolf-face", "monsters/dire-wolf-full", "monsters/werewolf-face", "monsters/werewolf-full", "monsters/giant-mole-face", "monsters/giant-mole-full", "monsters/bone-knight-face", "monsters/bone-knight-full", "monsters/gravedigger-face", "monsters/gravedigger-full", "monsters/corpse-eater-face", "monsters/corpse-eater-full", "monsters/drop-face", "monsters/drop-full", "monsters/dust-whirl-face", "monsters/dust-whirl-full", "monsters/magma-hound-face", "monsters/magma-hound-full", "monsters/crystalloid-face", "monsters/crystalloid-full", "monsters/lake-spirit-face", "monsters/lake-spirit-full", "monsters/magma-golem-face", "monsters/magma-golem-full", "monsters/deep-serpent-face", "monsters/deep-serpent-full", "monsters/crystal-colossus-face", "monsters/crystal-colossus-full", "monsters/storm-spirit-face", "monsters/storm-spirit-full", "monsters/rift-heart-face", "monsters/rift-heart-full", "items/compass", "items/steel-mace", "items/steel-rapier", "items/unknown-herb", "items/twin-daggers", "items/unknown-stone", "items/steel-twin-daggers", "items/potion-good", "items/coins", "items/steel-spear", "items/steel-warhammer", "items/steel-shortbow", "items/steel-longbow", "items/steel-armor-leather", "items/steel-armor-hide", "items/steel-armor-chainmail", "items/gloves", "items/staff", "items/axe", "items/greataxe", "items/firstaid", "items/flute", "items/chalice", "items/once-more", "items/guard", "items/beginners-luck", "buildings/tower", "buildings/guild", "buildings/church", "buildings/library", "buildings/gate", "buildings/tavern", "buildings/shop", "buildings/forge", "monsters/rat-face", "monsters/rat-full", "monsters/rat-king-face", "monsters/rat-king-full", "monsters/rat-catcher-face", "monsters/rat-catcher-full"]);
 const artPath = p => `assets/${p}.${RASTER.has(p) ? "webp" : "svg"}`;
@@ -2434,9 +2434,21 @@ const ART_WEAPONS = {
   "ricochet-bow": { base: "shortbow", name: "Лук «Рикошет»", cls: 7 },
   "shadow-fang": { base: "dagger", name: "Теневой клык", cls: 7 },
   "reaper-axe": { base: "greataxe", name: "Секира «Жатва»", cls: 7 },
+  "flurry-rapier": { base: "rapier", name: "Рапира «Шквал»", cls: 7 },
+  "rift-hammer": { base: "warhammer", name: "Молот «Разлом»", cls: 6 },
+  "bastion-shield": { base: "tower-shield", name: "Крепостной щит", cls: 6 },
 };
+// Артефактная броня: запись {t:"a", id:<база>, art:<id>}; статы как у усиленной стали (+1 КД). Эффекты общие, не привязаны к одной зоне или механике (решение автора 29.10).
+const ART_ARMORS = {
+  "mirage-armor": { base: "leather", name: "Доспех-мираж", cls: 7 },
+  "magnet-mail": { base: "chainmail", name: "Магнитная кольчуга", cls: 7 },
+};
+function artArmorInfo(a, id) {
+  const A = ART_ARMORS[id], s = steelArmor(a), known = typeof artKnown === "function" && artKnown(id), info = { artId: id, steel: true, base: s.base, ac: s.ac, treasure: true, cls: A.cls };
+  return known ? { ...info, name: A.name, note: ARTIFACTS[id].text } : { ...info, name: "??", short: "??", note: `Свойства неизвестны. Определить артефакт можно в Башне магов за ${artPrice(id)} монет.` };
+}
 function artWeaponInfo(w, id) {
-  const A = ART_WEAPONS[id], known = typeof artKnown === "function" && artKnown(id), sh = w.group === "shield", info = { artId: id, bonus: sh ? 0 : Math.max(1, w.bonus || 0), treasure: true, cls: A.cls, ...(sh ? { steel: true } : {}) };          // щит: +1 КД как у стального
+  const A = ART_WEAPONS[id], known = typeof artKnown === "function" && artKnown(id), sh = w.group === "shield" || w.id === "tower-shield", info = { artId: id, bonus: sh ? 0 : Math.max(1, w.bonus || 0), treasure: true, cls: A.cls, ...(sh ? { steel: true } : {}) };          // щит: +1 КД как у стального
   return known ? { ...info, name: A.name, note: ARTIFACTS[id].text } : { ...info, name: "??", short: "??", note: `Свойства неизвестны. Определить артефакт можно в Башне магов за ${artPrice(id)} монет.` };
 }
 const artHeld = id => state.party.some(c => [...Object.values(c.equip || {}), ...(c.bag || [])].some(e => e && e.art === id));
@@ -2466,7 +2478,7 @@ function itemOf(v, holder) {
     return g && { ...g, id: v.id, kindOf: "gear", art: ART.gear(v.id) || undefined, icon: GEAR_ICON[v.id] || (SHOVELS.includes(v.id) ? GEAR_ICON.shovel : GEAR_ICON.custom) };
   }
   if (v.t === "w") { const w = WEAPONS.find(x => x.id === v.id); return w && { ...w, kindOf: "weapon", art: v.steel && RASTER.has("items/steel-" + w.id) ? artPath("items/steel-" + w.id) : ART.weapon(w.id), ...(v.steel ? steelWeapon(w) : {}), ...(v.salt || v.saltDays > 0 ? saltWeapon(v.steel ? steelWeapon(w) : w, v.salt ? 0 : v.saltDays) : {}), ...(v.art && ART_WEAPONS[v.art] ? artWeaponInfo(w, v.art) : {}) }; }
-  if (v.t === "a") { const a = ARMOR_FLAT.find(x => x.id === v.id); return a && { ...a, kindOf: "armor", art: v.steel && RASTER.has("items/steel-armor-" + a.id) ? artPath("items/steel-armor-" + a.id) : ART.armor(a.id), ...(v.steel ? steelArmor(a) : {}) }; }
+  if (v.t === "a") { const a = ARMOR_FLAT.find(x => x.id === v.id); return a && { ...a, kindOf: "armor", art: v.steel && RASTER.has("items/steel-armor-" + a.id) ? artPath("items/steel-armor-" + a.id) : ART.armor(a.id), ...(v.steel ? steelArmor(a) : {}), ...(v.art && ART_ARMORS[v.art] ? artArmorInfo(a, v.art) : {}) }; }
   if (v.t === "c") return { name: v.name, kindOf: "custom", weight: 0, icon: GEAR_ICON.custom };
   return null;
 }
@@ -2646,7 +2658,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 44;
+const BATTLE_REV = 45;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }
@@ -4315,7 +4327,7 @@ const f3 = () => { const r = state.run; return (r.f3 ||= f3Gen()); };
 const TOLL_MSG = "Звон серебряного колокольчика возвращает воспоминания о доме";
 const NOISE_MAX = 20, NOISE_BY_CLS = { 9: 1, 8: 2, 7: 4, 6: 7 }, TOLL_DC = 8, TOLL_STEP_NOISE = 1, TOLL_STEP_BAD = 2, TOLL_CALM = 1;
 const isToll = (x, y) => curFloor() === 3 && ["Звон", "Сердце этажа"].includes(FLOOR3.zoneName(x, y)) && tileType(x, y) === "floor";
-const TOLL_CHEST = "15,15", FIRE_CHEST = "4,5", FIRE_BOOST = 10, ART_DROPS = ["thunder-spear", "magnet-gloves", "shadow-daggers", "falling-star", "echo-blade", "discharge-staff", "mirror-shield", "moon-sword", "storm-axe", "meteor-mace", "rampart-pike", "ricochet-bow", "shadow-fang", "reaper-axe"];          // сундук Пылающих земель: артефакт гарантирован
+const TOLL_CHEST = "15,15", FIRE_CHEST = "4,5", FIRE_BOOST = 10, ART_DROPS = ["thunder-spear", "magnet-gloves", "shadow-daggers", "falling-star", "echo-blade", "discharge-staff", "mirror-shield", "moon-sword", "storm-axe", "meteor-mace", "rampart-pike", "ricochet-bow", "shadow-fang", "reaper-axe", "flurry-rapier", "rift-hammer", "bastion-shield", "mirage-armor", "magnet-mail"];          // сундук Пылающих земель: артефакт гарантирован
 function f3Noise(n, why) {
   const r = state.run; if (!r || r.floor !== 3 || !(n > 0)) return;
   const F = f3(); F.noise = (F.noise || 0) + n;
@@ -4343,11 +4355,12 @@ function f3Buttons() {
 function fireChestRoll() {
   const d = 1 + rnd(20); let cls = d <= 12 ? 9 : d <= 18 ? 8 : 7, id = null, boosted = false;
   const left = ART_DROPS.filter(a => !artHeld(a));
-  if (left.length && rnd(100) < FIRE_BOOST) { id = left[rnd(left.length)]; boosted = true; cls = ART_WEAPONS[id].cls; }
+  if (left.length && rnd(100) < FIRE_BOOST) { id = left[rnd(left.length)]; boosted = true; cls = (ART_WEAPONS[id] || ART_ARMORS[id]).cls; }
   else { id = treasurePick(cls); if (!id && cls === 7) { id = treasurePick(8); cls = 8; } if (!id && cls === 8) { id = treasurePick(9); cls = 9; } if (!id) id = "once-more"; }
   const tag = s => s.replace(/^[^—]*/, `Артефакт ${cls} класса (неопознан) `);
   let line;
   if (ART_WEAPONS[id]) line = tag(giveParty({ t: "w", id: ART_WEAPONS[id].base, art: id, qty: 1 }));
+  else if (ART_ARMORS[id]) line = tag(giveParty({ t: "a", id: ART_ARMORS[id].base, art: id, qty: 1 }));
   else if (TREASURES[id]) { giveTreasure(id); line = `Артефакт ${TREASURES[id].cls} класса (неопознан): определите его в Башне магов`; }
   else line = tag(giveParty({ t: "g", id, qty: 1 }));
   return { d, cls, id, boosted, line };
@@ -4734,6 +4747,11 @@ const ARTIFACTS = {
   "ricochet-bow": { cls: 7, name: "Лук «Рикошет»", ico: () => ICO_BOW, text: "Как стальной короткий лук. Попавшая стрела отскакивает в ближайшего врага в 2 клетках от цели на половину урона; на 20 — на полный." },
   "shadow-fang": { cls: 7, name: "Теневой клык", ico: () => ICO_FANG, text: "Как стальной кинжал. «Теневой шаг»: доп. действие и 3 маны — прыжок до 3 клеток, но только в тёмную клетку." },
   "reaper-axe": { cls: 7, name: "Секира «Жатва»", ico: () => ICO_REAP, text: "Как стальная секира. Каждое убийство ею копит заряд (до 5). При 3+ зарядах действие «Жатва»: круговой удар по всем рядом (и по своим), 1к8 за заряд, Ловкость — вполовину." },
+  "flurry-rapier": { cls: 7, name: "Рапира «Шквал»", ico: () => ICO_DAGGER, text: "Как стальная рапира. «Шквал выпадов» (2 маны, действие, откат 3 хода): три быстрых укола 1к4 + модификатор. «Серия» — все по одной цели, при трёх попаданиях ещё один, 1к8. «Веер» — по врагам в 2 клетках, каждый укол можно направить в любого из них." },
+  "rift-hammer": { cls: 6, name: "Молот «Разлом»", ico: () => ICO_METEOR, text: "Как стальной боевой молот. «Раскол» (1 мана, действие, откат 3 хода): удар в землю открывает трещину по прямой на 3 клетки. Стоящие на ней (и свои) — Ловкость, иначе падают и получают 2к6; клетки трещины труднопроходны. Слабые рядом с трещиной (Сила ниже 12) — Телосложение, иначе теряют доп. действие. «Ударная волна»: толчок на клетку и 1к8 всем вокруг вас, и своим." },
+  "bastion-shield": { cls: 6, name: "Крепостной щит", ico: () => ICO_MIRROR, text: "Как стальной ростовой щит. «Бастион» (1 мана, действие): до начала вашего хода вы стоите насмерть — скорость 0, вас не сбить с ног и не сдвинуть, +2 КД; союзники прямо за вами укрыты от дальних атак; враги в 4 клетках, видящие вас, атакуют других с помехой." },
+  "mirage-armor": { cls: 7, name: "Доспех-мираж", ico: () => ICO_STAR, text: "Как усиленный кожаный доспех. Первая атака по вам в каждом раунде идёт с помехой, к спасброскам Ловкости +2." },
+  "magnet-mail": { cls: 7, name: "Магнитная кольчуга", ico: () => ICO_MAGNET, text: "Как усиленная кольчуга. Дальние атаки по союзникам в 2 клетках от вас с шансом 50 % притягиваются к вам." },
   "silver-salt": { cls: 9, name: "Серебряная соль", ico: () => GEAR_ICON.potion, text: GEAR["silver-salt"].note },
   "director-quiver": { cls: 8, name: "Колчан режиссёра", ico: () => GEAR_ICON.arrow, text: GEAR["director-quiver"].note },
   "once-more": { cls: 9, name: "«Ещё раз»", ico: () => ICO_AGAIN, text: "Одноразовый предмет: позволяет перебросить неудачный бросок на эссенцию после боя." },
@@ -4753,7 +4771,7 @@ const artSeen = id => { if (ARTIFACTS[id]) artState().seen[id] = true; };       
 // «своя» лавка (Башня — аксессуары, Кузница — броня и оружие) платит на 10 % больше. Надбавку нигде не показываем.
 const ART_PRICE = { 9: 150, 8: 450, 7: 1500, 6: 5000 }, ART_PRICE_OVER = { "beginners-luck": 1500 }, ART_CAT = { boots: "armor" };
 const artValue = id => ART_PRICE_OVER[id] ?? ART_PRICE[ARTIFACTS[id].cls] ?? 100;
-const artBuyerMult = (id, b) => ((ART_CAT[id] || (typeof ART_WEAPONS !== "undefined" && ART_WEAPONS[id] ? "armor" : "acc")) === "acc") === (b === "tower") ? 1.1 : 1;
+const artBuyerMult = (id, b) => ((ART_CAT[id] || (typeof ART_WEAPONS !== "undefined" && (ART_WEAPONS[id] || ART_ARMORS[id]) ? "armor" : "acc")) === "acc") === (b === "tower") ? 1.1 : 1;
 for (const id of Object.keys(ARTIFACTS)) ARTIFACTS[id].price = artValue(id);
 const artKnown = id => !!artState().known[id];
 const artName = id => (artKnown(id) ? ARTIFACTS[id].name : "??");

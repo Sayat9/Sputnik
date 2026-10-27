@@ -352,6 +352,8 @@
   D.terrain.spearstuck = { name: "Воткнутое копьё", obstacle: true, note: "Не пройти. Копьё торчит из земли: собьёте его любой атакой (1 ОЗ), и оно упадёт рядом." };
   D.SVG.crater = '<ellipse cx="50" cy="56" rx="38" ry="22" fill="#2a2018" opacity=".55"/><ellipse cx="50" cy="54" rx="30" ry="16" fill="#4a3a28"/><ellipse cx="50" cy="52" rx="20" ry="9" fill="#1a120c"/><path d="M14 54l8-4M86 54l-8-4M24 38l6 6M76 38l-6 6" stroke="#6b5640" stroke-width="3" stroke-linecap="round"/>';
   D.terrain.crater = { name: "Кратер", cost: 2, note: "Труднопроходен (клетка стоит 2). Воронка от метеорного удара." };
+  D.SVG.fissure = '<path d="M10 40 L35 52 L28 60 L55 68 L48 78 L90 86" fill="none" stroke="#120c08" stroke-width="9" stroke-linejoin="round"/><path d="M10 40 L35 52 L28 60 L55 68 L48 78 L90 86" fill="none" stroke="#6b5640" stroke-width="3" stroke-linejoin="round"/>';
+  D.terrain.fissure = { name: "Трещина", cost: 2, note: "Труднопроходна (клетка стоит 2). Разлом от удара молота." };
   D.terrain.chestopen = { name: "Открытый сундук", obstacle: true, note: "Не пройти. Уже пуст." };
 
   /* ===== вороны: последняя ворона в гнезде паникует; чернокрыл зовёт новых (rules.md → «Гнездо ворон и чернокрыл») ===== */
