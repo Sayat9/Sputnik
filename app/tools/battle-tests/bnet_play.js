@@ -12,7 +12,7 @@ const URL = 'http://localhost:8765/index.html';
   await h.evaluate(async () => {
     const mk = (id, name) => { const c = Object.assign(clone(DEFAULT_CHAR), { id, name, example: false, level: 3 }); c.base = { str: 16, dex: 12, con: 16, int: 10, wis: 10, cha: 10 }; c.equip = { main: { t: 'w', id: 'sword' } }; ensureKit(c); return c; };
     state.party = [mk('hA', 'Аргон'), mk('hB', 'Борис')]; state.townUnlocked = true; state.sessions = [{ n: 1, date: new Date().toISOString(), members: ['hA', 'hB'] }]; saveChar(); location.hash = 'labyrinth';
-    await loadBattle();
+    state.settings = { ...(state.settings || {}), monDice: false }; await loadBattle();
   });
   const code = await h.evaluate(async () => { await loadNet(); return await NetGlue.startHost(); });
   await c.goto(URL + '?net=loopback&mode=player'); await c.waitForTimeout(800);

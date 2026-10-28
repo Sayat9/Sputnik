@@ -6,7 +6,7 @@
   const jstr = JSON.stringify;
   const buildOf = () => (window.__TEST_BUILD != null ? String(window.__TEST_BUILD) : (typeof APP_BUILD === "string" ? APP_BUILD : ""));          // версия сборки; __TEST_BUILD — только для проверок
   const PLAYER_KEY = "sputnik.net.v1", HOST_KEY = "sputnik.nethost.v1";
-  const SKIP = new Set(["sessions", "example", "current", "runSnap", "fightSnap", "settings", "lastHash", "saves", "net"]);
+  const SKIP = new Set(["sessions", "example", "current", "runSnap", "fightSnap", "encSnap", "settings", "lastHash", "saves", "net"]);
   const GAME_HASH = ["", "town", "labyrinth"];
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const lsGet = k => { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } };
@@ -36,6 +36,7 @@
   body.net-player nav.tabs,body.net-player #dice-fab{display:none!important}
   body.net-player{padding-bottom:64px}
   body.net-player.bt-active #netbar,body.net-player.net-forge #netbar{display:none}
+  #net-rc{position:fixed;left:50%;top:6px;transform:translateX(-50%);z-index:8800;padding:8px 14px;border-radius:18px;font:600 13px/1.2 inherit;background:#5a2a1a;color:#ffe8c0;border:1px solid #d6a64c;box-shadow:0 2px 10px #000a}
   body.net-follow #view,body.net-follow #townov{pointer-events:none}
   body.net-follow #view [data-hero]{pointer-events:auto}                                                 /* карточки героев на экране ведущего: удержание открывает меню героя */
   body.net-follow #townov .tw-x{display:none}
@@ -111,7 +112,10 @@
       if (d.pid && H.banned && H.banned[d.pid]) { setTimeout(() => link.close(), 300); return { error: "kicked", why: "Ведущий исключил тебя из комнаты." }; }
       if (mine && d.build && d.build !== mine) { setTimeout(() => link.close(), 300); toast(`${String(d.name || "Игрок")}: версия игры не совпала (у него ${d.build})`); return { error: "version", host: mine, you: d.build }; }          // разные версии не играют вместе
       if (mine && !d.build) { setTimeout(() => link.close(), 300); return { error: "version", host: mine, you: "старая" }; }
-      const p = N.bind(link, d.pid || N.newPid(), String(d.name || "Игрок").slice(0, 24));
+      const nm = String(d.name || "Игрок").slice(0, 24);
+      let pid = d.pid && N.players[d.pid] ? d.pid : null;
+      if (!pid) { const same = Object.values(N.players).find(q => q.name.toLowerCase() === nm.toLowerCase() && (!d.pid || !q.online)); pid = same ? same.pid : (d.pid || N.newPid()); }          // нет прежнего номера, но такое имя уже есть — это тот же игрок, ник не дублируется
+      const p = N.bind(link, pid, nm);
       for (const h of d.heroes || []) adoptHero(h, p);
       p.sent = {};
       setTimeout(() => pushAll(true), 40);
@@ -247,6 +251,8 @@
     else showJoin();
   };
   function connect(code, name, pid) {
+    const old = lsGet(PLAYER_KEY) || {};
+    if (!pid && old.pid && (old.name || "").toLowerCase() === String(name || "").toLowerCase() && (!old.code || old.code.toUpperCase() === code.toUpperCase())) pid = old.pid;          // тот же игрок заходит заново — прежняя запись, а не новая
     lsSet(PLAYER_KEY, { code: code.toUpperCase(), name, pid });
     N.join(code, name, pid, () => ({ heroes: ownHeroes(), build: buildOf() }));
     updateBar();
@@ -333,7 +339,17 @@
     updateBar();
   }
   const STATUS_RU = { off: "не подключён", starting: "запуск", connecting: "подключаюсь…", reconnecting: "связь потеряна, переподключаюсь…", online: "в сети", hosting: "в сети" };
+  // В бою нижняя панель скрыта: при потере связи показываем кнопку «Переподключиться», чтобы вернуться прямо в бой.
+  function rcBtn() {
+    let b = document.getElementById("net-rc");
+    const need = !isMaster() && document.body.classList.contains("bt-active") && N.status !== "online" && !!(lsGet(PLAYER_KEY) || {}).code;
+    if (!need) { if (b) b.remove(); return; }
+    if (!b) { b = document.createElement("button"); b.id = "net-rc"; b.type = "button"; b.onclick = () => { N.kick(); b.textContent = "Подключаюсь…"; }; document.body.appendChild(b); }
+    b.textContent = N.status === "reconnecting" || N.status === "connecting" ? "Нет связи: подключаюсь… (нажми, чтобы сразу)" : "Нет связи — переподключиться";
+  }
+  setInterval(() => { try { rcBtn(); } catch (e) {} }, 1500);
   function updateBar() {
+    try { rcBtn(); } catch (e) {}
     if (isMaster()) { document.body.classList.remove("net-follow"); return; }                              // ведущий управляет экраном сам: «только смотрю» — режим игрока
     const el = document.getElementById("net-st"); if (el) el.textContent = STATUS_RU[N.status] || N.status;
     const hh = location.hash.slice(1), onGame = hh === "town" || hh === "labyrinth";
@@ -374,6 +390,7 @@
       ${APP_BUILD ? `<p class="net-ro-note">Версия от ${esc(APP_BUILD)}</p>` : ""}
       <button class="fx-btn" data-nb="map">Карта этажа</button>
       <button class="fx-btn" data-nb="lib">Библиотека</button>
+      <button class="fx-btn" data-action="settings" data-nb="closeov">Настройки</button>
       ${N.status !== "online" ? `<button class="fx-btn primary" data-nb="join">Подключиться к комнате</button>` : ""}
       <button class="fx-btn upd-btn" data-upd="${updUi.state === "downloaded" ? "apply" : updUi.state === "available" ? "ask" : "check"}">${UPD_LABEL[updUi.state]}</button>
       <button class="fx-btn danger" data-nb="leave">Выйти из комнаты</button><button class="fx-btn" data-nb="closeov">Закрыть</button></div>`;

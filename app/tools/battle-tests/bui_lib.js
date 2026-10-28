@@ -26,7 +26,7 @@ const HEROES = {
 async function setup(p, { heroes = ['barb2', 'archer', 'fairy'], tactical = true, level = 1, autoEnd = false } = {}) {
   await p.goto(process.env.APP_URL || 'file:///home/user/app/index.html'); await p.waitForTimeout(500);
   const ok = await p.evaluate(async ({ heroes, HEROES, tactical, level, autoEnd }) => {
-    state.settings = { tactical, battleOpts: { autoEnd } };
+    state.settings = { tactical, battleOpts: { autoEnd }, monDice: false };          // окна бросков монстров мешают ботам; в игре они включены
     state.party = heroes.map((k, i) => {
       const h = HEROES[k];
       const c = Object.assign(clone(state.example), { id: 'h' + i, example: false, name: h.name, race: h.race, level });

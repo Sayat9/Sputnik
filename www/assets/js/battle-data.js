@@ -284,7 +284,7 @@
       ai: { int: 1, role: "swarm", focus: ["wounded", "weak"], fleeHp: 0.3, openers: ["rush"], circle: true } },
     fox: { atk: [melee("bite", "Укус", 5, "1к4+3", "pierce")],
       ai: { int: 2, role: "skirmisher", focus: ["weak", "prone", "nearest"], fleeHp: 0.5, hitRun: true, hide: true, openers: ["trail"] } },
-    mouse: { atk: [melee("bite", "Укус", 4, "1к4", "pierce")],
+    mouse: { atk: [melee("bite", "Укус", 4, "1к4", "lightning")],
       ai: { int: 1, role: "skittish", focus: ["nearest", "cluster"], fleeHp: 0.5, openers: ["squeak"] } },
     bat: { atk: [melee("bite", "Укус", 5, "1к4+3", "pierce")], blind: 2,
       ai: { int: 1, role: "skirmisher", focus: ["torch", "nearest"], fleeHp: 0.4, hitRun: true, openers: ["envenom"] } },

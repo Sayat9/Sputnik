@@ -86,7 +86,7 @@
     let outcome = S.outcome || "flee";
     const display = outcome;                                           // win | retreat | flee | defeat
     const mapped = outcome === "defeat" ? "flee" : outcome;
-    state.fightSnap = null;
+    state.fightSnap = null; state.encSnap = null;
     cleanup(S, outcome);
     const plan = rewardsPlan(S, outcome);
     for (const k of plan.kills) { const c = state.party.find(x => x.id === k.hid); if (c) { c.kills ||= {}; c.kills[k.id] = (c.kills[k.id] || 0) + 1; } }          // список убийств героя
@@ -170,10 +170,10 @@
         await new Promise(resolve => {
           let left = plan.wins.length;
           const decide = (box, text) => { box.querySelector(".bt-esschoice").hidden = true; const pk = box.querySelector(".bt-esspick"); pk.hidden = false; pk.innerHTML = `<small class="muted">${esc(text)}</small>`; if (--left <= 0) resolve(); };
-          g.onclick = ev => {
+          g.onclick = async ev => {
             const btn = ev.target.closest("[data-ec],[data-eh]"); if (!btn || btn.disabled) return;
             const box = btn.closest(".bt-ess"), w = plan.wins[+box.dataset.i], e = ESSENCES[w.id];
-            if (btn.dataset.eh) { const c = state.party.find(x => x.id === btn.dataset.eh); if (!c) return; (c.essences ||= []).push(w.id); markEssNamed(w.id); c.mp = Math.min(maxMp(c), mpOf(c)); saveChar(); decide(box, `${c.name} впитал эссенцию.`); return; }
+            if (btn.dataset.eh) { const c = state.party.find(x => x.id === btn.dataset.eh); if (!c) return; if (window.askYesNo) { btn.disabled = true; const yes = await askYesNo({ title: "Впитать эссенцию?", text: `${c.name} впитает «${e.name}». Это нельзя отменить.`, yes: "Впитать" }); btn.disabled = false; if (!yes) return; } (c.essences ||= []).push(w.id); markEssNamed(w.id); c.mp = Math.min(maxMp(c), mpOf(c)); saveChar(); decide(box, `${c.name} впитал эссенцию.`); return; }
             if (btn.dataset.ec === "leave") { decide(box, "Эссенцию оставили."); return; }
             if (btn.dataset.ec === "absorb") {
               const pk = box.querySelector(".bt-esspick"); box.querySelector(".bt-esschoice").hidden = true; pk.hidden = false;

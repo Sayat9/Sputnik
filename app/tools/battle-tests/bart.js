@@ -129,7 +129,7 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
   ok('притяжение выполняется: цель встаёт вплотную', o2.pulled.ok1 && o2.pulled.y === 8, o2.pulled);
   ok('Порез теней: атака на 3 клетки, на 4 клетки не достаёт', o2.cut && o2.cut[0] === 'melee' && o2.cut[1] === 3 && o2.cutRange[0] === true && o2.cutFar === 0, [o2.cut, o2.cutRange, o2.cutFar]);
   ok('пика: со щитом не двуручная блокировка, с пустой рукой/мечом — двуручная', o2.pike.two === false && o2.pikeAlone === true && o2.pikeSword === true, o2);
-  ok('пика со щитом: скорость на клетку меньше, досягаемость 2', o2.pikeSpeed[0] === o2.pikeSpeed[1] - 1 && o2.pikeReach === 2, [o2.pikeSpeed, o2.pikeReach]);
+  ok('пика со щитом: скорость на клетку меньше, досягаемость 1 (решение автора 28.10)', o2.pikeSpeed[0] === o2.pikeSpeed[1] - 1 && o2.pikeReach === 1, [o2.pikeSpeed, o2.pikeReach]);
   ok('цены артефактного оружия: класс 6, кузница платит больше башни', o2.price[0] === 5000 && o2.price[1] === 1.1 && o2.price[2] === 1, o2.price);
   const o3 = await p.evaluate(async () => {
     const B = Battle, out = {};
@@ -169,7 +169,7 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
     // ---- Упор пики
     hero0.equip.off = null; hero0.equip.main = { t: 'w', id: 'pike', qty: 1 }; h.mp = 3; h.t.react = 1; h.x = 5; h.y = 5; m2.x = 5; m2.y = 1; m2.hp = 100;
     const rr = B.UI.confirm; B.promptReaction = async () => true;
-    const hpB = m2.hp; m2.x = 5; m2.y = 3; await B.P.weap.reactEnter(h, m2, [5, 1]);
+    const hpB = m2.hp; m2.x = 5; m2.y = 4; await B.P.weap.reactEnter(h, m2, [5, 2]);
     out.pike = { react: h.t.react, hurt: m2.hp < hpB, stopped: !!B.has(m2, 'spearstop') || m2.hp >= hpB };
     return out;
   });

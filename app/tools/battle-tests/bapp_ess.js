@@ -45,7 +45,7 @@ const L = require('./bui_lib.js'), F = require('./bui_flow.js');
     await p.evaluate(() => document.querySelector('[data-ec="absorb"]').click()); await L.sleep(200);
     const heroes = await p.evaluate(() => [...document.querySelectorAll('[data-eh]')].map(e => e.innerText));
     ok('впитать → выбор героя', heroes.length === 2, heroes.join('|'));
-    await p.evaluate(() => document.querySelector('[data-eh]:not([disabled])').click()); await L.sleep(300);
+    await p.evaluate(() => document.querySelector('[data-eh]:not([disabled])').click()); await L.sleep(300); await p.evaluate(() => { const y = document.querySelector('[data-yn="1"]'); if (y) y.click(); }); await L.sleep(300);
     ok('эссенция у героя', await p.evaluate(() => state.party.some(c => (c.essences || []).includes('goblin'))));
     await L.sleep(300); const dn = await p.$('.bt-done'); if (dn) await dn.click(); await L.sleep(500);
   }

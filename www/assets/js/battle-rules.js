@@ -25,7 +25,9 @@
   }
   function session(u, meta) {
     const c = ctlOf(u);
-    const s = c === "remote" && B.Net ? B.Net.remoteSession(u, meta, autoSession) : (c === "ui" && B.Dice && ui() ? B.Dice.session(u, meta) : autoSession(u, meta));
+    // Броски монстров и призванных тоже видны всем: окно с кубиками само бросает и закрывается (кнопка «Пропустить» — сразу к результату). Без окна: быстрые симуляции, режим «Авто», настройка «Пропускать броски».
+    const showAuto = c === "auto" && B.Dice && ui() && !B.cfg.fast && !B.S.opts.autoHeroes && !((typeof state !== "undefined" && state && state.settings) || {}).skipDice && ((typeof state !== "undefined" && state && state.settings) || {}).monDice !== false && (!B.Net || !B.Net.isClient || !B.Net.isClient());
+    const s = c === "remote" && B.Net ? B.Net.remoteSession(u, meta, autoSession) : (c === "ui" && B.Dice && ui() ? B.Dice.session(u, meta) : showAuto ? B.Dice.session(u, { ...meta, autoPlay: true }) : autoSession(u, meta));
     return B.Net && B.Net.watch ? B.Net.watch(u, meta, s) : s;          // онлайн: остальные игроки видят этот бросок
   }
   // Перебросы: расовое «Наследие обряда» (кости урона рукопашной атаки, раз в ход) и «Вдохновение» героя (любой бросок).

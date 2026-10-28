@@ -27,7 +27,7 @@
     const am = amod(u.abil[ab]);
     const dice = parseDice(f.versatile && !eq.off && mode === "hand" ? f.versatile : w.dmg);
     const atk = { id: mode + ":" + w.id, w, n: w.name, hit: am + u.pb + (w.bonus || 0), parts: [{ l: ABIL_RU[ab], v: am }, ...(u.pb ? [{ l: "Бонус мастерства", v: u.pb }] : []), ...(w.bonus ? [{ l: "Сталь", v: w.bonus }] : [])], dmg: { ...dice, b: dice.b + am + (w.bonus || 0) }, dt: DT[w.type] || "bludgeon", tags: [], mode, time: "action" };
-    if (mode === "hand" && !ranged) { atk.kind = "melee"; atk.reach = w.id === "spear" || w.id === "staff" || w.id === "pike" ? 2 : 1 + longArm(u, w); if (w.id === "spear" && !u.pass.includes("goblin-spear")) atk.stretch = true; if (w.id === "staff") { atk.stretch = true; atk.stretchPen = -2; }
+    if (mode === "hand" && !ranged) { atk.kind = "melee"; atk.reach = w.id === "spear" || w.id === "staff" ? 2 : w.id === "pike" ? (w.artId ? 2 : 1) : 1 + longArm(u, w); if (w.id === "spear" && !u.pass.includes("goblin-spear")) atk.stretch = true; if (w.id === "staff") { atk.stretch = true; atk.stretchPen = -2; }
       if (w.id === "mace") { atk.acIgnore = 1; } atk.sub = atk.reach > 1 ? `досягаемость ${atk.reach * 1.5} м`.replace(".", ",") : "ближний бой"; }
     else if (mode === "hand" && ranged) {
       atk.kind = "ranged"; atk.ammo = "arrow";
@@ -101,7 +101,11 @@
     for (const e of bagThrowEntries(u)) { const k = e.id; if (seenBag.has(k)) { seenBag.get(k).count++; continue; } const a = atkFrom(u, itemOf(e), "thrown", e); a.count = 1; seenBag.set(k, a); out.push(a); }
     for (const a of seenBag.values()) if (a.count > 1) a.n += ` ×${a.count}`;
     if (off && off.kindOf === "weapon" && off.group === "melee" && wprops(off).thrown && u.t && u.t.attacked) out.push(atkFrom(u, off, "thrown", null, "off"));          // два топора: второй тоже можно метнуть (доп. действие)
-    if (off && off.kindOf === "weapon" && off.group === "melee" && off.id !== "tower-shield" && u.t && u.t.attacked && main && main.group === "melee" && !wprops(main).two && !(main.id === "gloves" && off.id === "gloves")) out.push(atkFrom(u, off, "off"));
+    if (off && off.kindOf === "weapon" && off.group === "melee" && off.id !== "tower-shield" && main && main.group === "melee" && !wprops(main).two && !(main.id === "gloves" && off.id === "gloves")) {
+      // Парные клинки (решение автора): отдельной атаки доп. действием нет — один парный удар: обе атаки по одной цели, каждая с уроном −40 %
+      const hand = out.find(x => x.id === "hand:" + main.id);
+      if (hand && !hand.thrown) { hand.twin = true; hand.twinOff = atkFrom(u, off, "off"); hand.twinOff.dmgMult = 0.6; hand.dmgMult = 0.6; hand.sub = (hand.sub ? hand.sub + " · " : "") + "парный удар: две атаки по цели, урон −40 %"; }
+    }
     if (main && main.group === "ranged" && off && off.kindOf === "weapon" && off.group === "melee" && off.id !== "tower-shield") out.push(atkFrom(u, off, "hand"));          // лучник с ножом в другой руке: ближний бой этим оружием
     const strM = amod(u.abil.str);
     if (B.weapSpecials) out.push(...B.weapSpecials(u, main, off));
@@ -189,6 +193,10 @@
     if (!tgt) return false;
     if (tgt.isObj) { const r0 = await B.attackObject(u, atk, tgt, { onCommit: () => commitAttack(u, atk, tgt) }); return !r0.cancelled; }
     const r = await B.doAttack(u, tgt, atk, { onCommit: () => commitAttack(u, atk, tgt), scale: atk.spin ? SPIN_MAIN : undefined, extra: atk.extra });
+    if (atk.twin && atk.twinOff && !r.cancelled && alive(tgt) && !tgt.isObj) {          // вторая атака парного удара: та же цель, без траты времени и выбора
+      const r2 = await B.doAttack(u, tgt, atk.twinOff, { noRedirect: true });
+      if (!r2.cancelled && r2.hit === false && r.hit === false) log(`${u.name}: парный удар мимо.`);
+    }
     if (!r.cancelled && atk.w && atk.w.artId && B.artAfterAttack) await B.artAfterAttack(u, atk, tgt, r);          // копьё-громоотвод застревает в цели
     if (atk.spin && !r.cancelled && r.hit && r.raw) {          // враги по бокам от цели (рядом и с героем, и с целью) получают ещё меньше
       const sides = enemiesOf(u).filter(e => e !== tgt && alive(e) && !has(e, "underground") && dist(u, e) <= 1 && dist(e, tgt) <= 1);

@@ -181,7 +181,7 @@
     } catch (err) {
       console.error("бой (возврат):", err);
       try { if (B.UI) B.UI.close(); } catch (e) {}
-      B.running = false; B.S = null; state.fightSnap = null; ev.tactical = false; ev.battleStarted = false; toast("Бой не удалось восстановить — открыт обычный экран"); rerender();
+      B.running = false; B.S = null; state.fightSnap = null; state.encSnap = null; ev.tactical = false; ev.battleStarted = false; toast("Бой не удалось восстановить — открыт обычный экран"); rerender();
     }
   };
 
@@ -223,6 +223,7 @@
     if (typeof isMaster === "function" && !isMaster()) return;                          // клиент игрока бой не запускает: он видит бой ведущего (battle-net.js)
     if (B.running || ev.battleStarted) return;
     ev.battleStarted = true; B.running = true;
+    try { state.encSnap = JSON.parse(JSON.stringify({ ...ev, battleStarted: false })); saveChar(); } catch (e) {}          // встреча переживает перезапуск приложения даже до первого хода (расстановка)
     if (typeof autoSave === "function") autoSave("перед боем");
     (async () => {
       try {
@@ -230,7 +231,7 @@
         const S = await start(ev);
         if (S.outcome === "abort" && ev.arena) S.outcome = "flee";          // арену нельзя перенести на обычный экран
         if (S.outcome === "abort") {
-          state.fightSnap = null;         // игрок перешёл на обычный экран боя
+          state.fightSnap = null; state.encSnap = null;         // игрок перешёл на обычный экран боя
           B.End.cleanup(S, "abort");
           if (B.UI) B.UI.close();
           B.running = false; B.S = null; ev.battleStarted = false; ev.tactical = false; ev.killed = S.killed.slice();
@@ -238,7 +239,7 @@
         }
         await B.End.run(S);                 // экран итога и наград, затем возврат результата приложению
       } catch (err) {
-        console.error("бой:", err); state.fightSnap = null;
+        console.error("бой:", err); state.fightSnap = null; state.encSnap = null;
         try { if (B.UI) B.UI.close(); } catch (e) {}
         B.running = false; B.S = null;
         ev.tactical = false; toast("Ошибка боя — открыт обычный экран боя"); rerender();

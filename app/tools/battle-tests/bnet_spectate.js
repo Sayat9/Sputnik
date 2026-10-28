@@ -11,7 +11,7 @@ const URL = 'http://localhost:8765/index.html';
   await h.evaluate(async () => {
     const mk = (id, name) => { const c = Object.assign(clone(DEFAULT_CHAR), { id, name, example: false, level: 3, insp: 2 }); c.base = { str: 16, dex: 8, con: 16, int: 10, wis: 10, cha: 10 }; c.equip = { main: { t: 'w', id: 'sword' } }; ensureKit(c); return c; };
     state.party = [mk('hA', 'Аргон'), mk('hB', 'Борис'), mk('hC', 'Цезарь')]; state.townUnlocked = true; state.sessions = [{ n: 1, date: new Date().toISOString(), members: ['hA', 'hB', 'hC'] }]; saveChar(); location.hash = 'labyrinth';
-    await loadBattle();
+    state.settings = { ...(state.settings || {}), monDice: false }; await loadBattle();
   });
   const code = await h.evaluate(async () => { await loadNet(); return await NetGlue.startHost(); });
   const join = async (p, name) => { await p.goto(URL + '?net=loopback&mode=player'); await p.waitForTimeout(700); await p.fill('#nj-code', code); await p.fill('#nj-name', name); await p.click('[data-nj="go"]'); await p.waitForTimeout(1200); };

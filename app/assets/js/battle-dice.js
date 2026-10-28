@@ -118,7 +118,7 @@
       ctx.lineWidth = 1.6; ctx.strokeStyle = col[2]; ctx.stroke();
       // число на грани: плоскость грани проецируется в экран (аффинно), поэтому цифры сжимаются и наклоняются вместе с гранью
       const c = Q.rot(q, f.c), up = Q.rot(q, f.up), right = V3.cross(up, n);
-      const size = (s === 20 ? 0.62 : s === 12 ? 0.74 : s === 100 || s === 10 ? 0.64 : s === 8 ? 0.62 : s === 6 ? 0.9 : 0.7) * K / 100, tilt = Math.max(0.35, n[2]);
+      const size = (s === 20 ? 0.78 : s === 12 ? 0.9 : s === 100 || s === 10 ? 0.8 : s === 8 ? 0.76 : s === 6 ? 1.05 : 0.85) * K / 100, tilt = Math.max(0.35, n[2]);
       ctx.save(); ctx.transform(right[0] * size, -right[1] * size, -up[0] * size, up[1] * size, c[0] * K, -c[1] * K);
       ctx.globalAlpha = dim * Math.min(1, 0.35 + tilt);
       ctx.fillStyle = col[3]; ctx.textAlign = "center"; ctx.textBaseline = "middle";
@@ -177,7 +177,7 @@
     }
     resize() { this.w = Math.max(200, this.cv.clientWidth || 320); this.h = Math.max(120, this.cv.clientHeight || 180); this.cv.width = Math.round(this.w * this.dpr); this.cv.height = Math.round(this.h * this.dpr); }
     setDice(list) {
-      this.R = list.length > 4 ? 22 : list.length > 2 ? 26 : 32;
+      this.R = list.length > 4 ? 26 : list.length > 2 ? 31 : 38;
       this.bodies = list.map((d, i) => ({ s: d.s, pal: d.pal || "ivory", x: this.w * (0.5 + (i - (list.length - 1) / 2) * 0.22), y: this.h * 0.55, z: 0, vx: 0, vy: 0, vz: 0, ang: (rnd(100) / 100 - 0.5) * 0.6, w: 0, ph: rnd(628) / 100,
         face: d.s === 100 ? "00" : "?", state: "idle", final: null, flickT: 0, settleT: 0, glow: null, bounce: 0,
         q: Dice.polyOK(d.s) ? Dice.randQ() : null, axis: [rnd(200) / 100 - 1, rnd(200) / 100 - 1, rnd(200) / 100 - 1] }));
@@ -201,6 +201,13 @@
       this.start();
     }
     start() { if (this.running) return; this.running = true; this.t0 = performance.now(); const loop = t => { if (!this.running) return; const dt = Math.min(0.033, (t - this.t0) / 1000); this.t0 = t; this.update(dt); this.draw(); if (!this.rolling()) { this.running = false; return; } this.raf = requestAnimationFrame(loop); }; this.raf = requestAnimationFrame(loop); }
+    // «Пропустить»: все кубики сразу ложатся результатом вверх
+    forceSettle() {
+      if (!this.bodies.length || this.allDone()) return;
+      this.held = null;
+      for (const b of this.bodies) { if (b.state === "done") continue; if (b.final == null) b.final = this.finalFace(b); b.state = "done"; b.z = 0; b.ang = 0; b.sq = 1; b.vx = b.vy = 0; b.face = b.final; if (b.q) b.q = Dice.faceUp(b.s, b.final); }
+      this.stop(); this.draw(); if (this.hooks.onSettle) this.hooks.onSettle(this.bodies.map(x => x.final));
+    }
     stop() { this.running = false; if (this.raf) cancelAnimationFrame(this.raf); }
     destroy() { this.stop(); this.cv.removeEventListener("pointerdown", this._down); this.cv.removeEventListener("pointermove", this._move); this.cv.removeEventListener("pointerup", this._up); this.cv.removeEventListener("pointercancel", this._up); }
     pos(e) { const r = this.cv.getBoundingClientRect(); return [(e.clientX - r.left) * (this.w / r.width), (e.clientY - r.top) * (this.h / r.height)]; }
@@ -333,7 +340,7 @@
       <div class="bd-chips"></div><div class="bd-vs"></div>
       <div class="bd-arena"><canvas></canvas><div class="bd-hint">Зажми кубик, потяни и отпусти — или нажми «Бросить»</div></div>
       <div class="bd-res"></div>
-      <div class="bd-row"><button class="bd-roll fx-btn primary big" type="button">Бросить</button>
+      <div class="bd-row"><button class="bd-roll fx-btn primary big" type="button">Бросить</button><button class="bd-skip fx-btn" type="button">Пропустить</button>
         <button class="bd-reroll" type="button" aria-label="Перебросить" disabled>${ico("reroll")}<i></i></button></div>
       <button class="bd-ok fx-btn primary big" type="button" hidden>ОК</button></div>`;
     document.body.appendChild(root);
@@ -368,7 +375,8 @@
       $(".bd-vs").innerHTML = o.vs ? (o.vs.ac != null ? (B.Net && B.Net.isClient && B.Net.isClient() ? `Цель: ${esc(o.vs.name || "")}` : `Цель: ${esc(o.vs.name || "")} · <b>КД ${o.vs.ac}</b>${o.vs.notes && o.vs.notes.length ? ` <small>(${esc(o.vs.notes.join(", "))})</small>` : ""}`) : `Сложность <b>${o.vs.dc}</b>`) : (o.label ? esc(o.label) : "");
       $(".bd-res").innerHTML = ""; $(".bd-res").className = "bd-res";
       $(".bd-ok").hidden = true; $(".bd-row").hidden = false;
-      const rollBtn = $(".bd-roll"), rrBtn = $(".bd-reroll"), xBtn = $(".bd-x");
+      const rollBtn = $(".bd-roll"), rrBtn = $(".bd-reroll"), xBtn = $(".bd-x"), skipBtn = $(".bd-skip");
+      skipBtn.hidden = false; rollBtn.hidden = !!sh.autoPlay;
       rollBtn.disabled = false; rollBtn.textContent = "Бросить";
       const canCancel = !!o.cancel && !sh.committed;
       xBtn.hidden = !canCancel; sh.cancelStep = canCancel ? () => { resolve(null); } : null;
@@ -376,7 +384,8 @@
       const updReroll = () => { rrBtn.disabled = !(settled && rerolls.length); rrBtn.classList.toggle("on", !rrBtn.disabled); rrBtn.querySelector("i").textContent = rerolls.length ? "×" + rerolls.length : ""; rrBtn.title = rerolls.length ? rerolls[0].label : "Перебросов нет"; };
       arena.setDice(diceList); arena.enabled = true; arena.draw(); updReroll();
       const finishRoll = vals => {
-        settled = true; arena.enabled = false; lastVals = vals;
+        if (settled) return;
+        settled = true; skipBtn.hidden = true; arena.enabled = false; lastVals = vals;
         let res;
         if (o.kind === "d20") {
           const a = vals[0], b = o.dual ? vals[1] : null, nat = o.dual ? (o.dual === "adv" ? Math.max(a, b) : Math.min(a, b)) : a;
@@ -400,11 +409,14 @@
         res.total = res.total != null ? res.total : res.sum + (o.bonus || 0);
         rollBtn.disabled = true; $(".bd-row").hidden = false; updReroll();
         const ok = $(".bd-ok"); ok.hidden = false; ok.textContent = o.next || "Далее ▸"; sh.lastRes = res; sh.lastTotal = res.total;
-        ok.onclick = () => { ok.hidden = true; $(".bd-row").hidden = true; arena.enabled = false; resolve(Object.assign(res, { auto: false })); };
+        ok.onclick = () => { ok.hidden = true; $(".bd-row").hidden = true; arena.enabled = false; resolve(Object.assign(res, { auto: !!sh.autoPlay })); };
+        if (sh.autoPlay) { ok.textContent = "Далее ▸"; sh.autoT = setTimeout(() => { if (!sh.closed && !ok.hidden) ok.onclick(); }, 1100); }
         const rt = o.kind === "d20" ? res.nat : null;
         if (window.navigator && navigator.vibrate) { try { navigator.vibrate(rt === 20 ? [20, 40, 20] : 14); } catch (e) {} }
       };
       sh.onSettle = vals => finishRoll(vals);
+      skipBtn.onclick = () => { if (settled) return; sh.committed = true; xBtn.hidden = true; $(".bd-hint").classList.add("off"); rollBtn.disabled = true; arena.forceSettle(); };
+      if (sh.autoPlay) { sh.committed = true; xBtn.hidden = true; $(".bd-hint").classList.add("off"); setTimeout(() => { if (!sh.closed && !settled && arena.anyIdle()) arena.throwAll(); }, 320); }
       rollBtn.onclick = () => { if (!arena.anyIdle()) return; sh.committed = true; xBtn.hidden = true; $(".bd-hint").classList.add("off"); arena.throwAll(); rollBtn.disabled = true; };
       rrBtn.onclick = () => {
         if (rrBtn.disabled || !rerolls.length) return;
@@ -437,7 +449,9 @@
   }
 
   Dice.session = function (u, meta) {
-    const sh = createSheet(u, meta);
+    const st = (typeof state !== "undefined" && state && state.settings) || {};
+    if (st.skipDice && window.Battle && Battle.autoSession) return Battle.autoSession(u, meta);          // настройка «Пропускать броски»: сразу результат
+    const sh = createSheet(u, meta); if (meta && meta.autoPlay) { sh.autoPlay = true; sh.root.classList.add("autoplay"); }
     const cleanup = () => { if (sh.cancelStep) sh.cancelStep = null; };
     return {
       auto: false,
@@ -462,7 +476,7 @@
         if (o.ok === false) sh.$(".bd-res").className = "bd-res bad";
         sh.$(".bd-arena").classList.add("small");
         await playFx(sh, o);
-        await new Promise(res => { const ok = sh.$(".bd-ok"); ok.hidden = false; ok.textContent = "ОК"; ok.onclick = () => res(); });
+        await new Promise(res => { const ok = sh.$(".bd-ok"); ok.hidden = false; ok.textContent = "ОК"; ok.onclick = () => res(); if (sh.autoPlay) setTimeout(res, 1000); });
         closeSheet(sh);
       },
       close() { closeSheet(sh); },

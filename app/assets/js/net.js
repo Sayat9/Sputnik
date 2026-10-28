@@ -39,7 +39,10 @@
     const s = document.createElement("script"); s.src = "assets/vendor/peerjs.min.js"; s.onload = ok; s.onerror = () => { peerLoad = null; no(new Error("не загрузился PeerJS")); }; document.head.appendChild(s);
   }));
   const wrapDc = dc => { const c = { live: true, send(s) { if (this.live) dc.send(s); }, close() { this.live = false; try { dc.close(); } catch (e) {} } }; dc.on("data", d => c.onmessage && c.onmessage(typeof d === "string" ? d : String(d))); dc.on("close", () => { c.live = false; c.onclose && c.onclose(); }); dc.on("error", () => { c.live = false; c.onclose && c.onclose(); }); return c; };
-  const PEER_OPTS = { debug: 0 };
+  // Несколько STUN и публичный TURN-запасной путь: за мобильным NAT прямое соединение часто не поднимается, тогда трафик идёт через ретранслятор.
+  const PEER_OPTS = { debug: 0, config: { iceCandidatePoolSize: 4, iceServers: [
+    { urls: ["stun:stun.l.google.com:19302", "stun:stun1.l.google.com:19302", "stun:stun.cloudflare.com:3478"] },
+    { urls: ["turn:openrelay.metered.ca:80", "turn:openrelay.metered.ca:443", "turn:openrelay.metered.ca:443?transport=tcp"], username: "openrelayproject", credential: "openrelayproject" }] } };
   Tr.peer = {
     async host(code, onConn) {
       await loadPeer();
@@ -74,7 +77,7 @@
     };
     return { add(f) { subs.add(f); start(); }, del(f) { subs.delete(f); } };
   })();
-  const DEAD_MS = 45000;                                                                  // тишина дольше этого — связь потеряна (в фоне сообщения могут приходить реже)
+  const DEAD_MS = 30000;                                                                  // тишина дольше этого — связь потеряна (в фоне сообщения могут приходить реже)
 
   /* ===== Link: сообщения {t, d, id?}, ответы {re, d | err}, кусочки, пульс ===== */
   const CHUNK = 48000;
@@ -83,7 +86,7 @@
       this.conn = conn; this.alive = true; this.rpc = {}; this.seq = 1; this.parts = {}; this.last = Date.now(); this.tag = null;
       conn.onmessage = raw => this._in(raw); conn.onclose = () => this._closed();
       this.lastPing = 0;
-      this.tickf = () => { if (!this.alive) return; const n = Date.now(); if (n - this.lastPing >= 4000) { this.lastPing = n; this.raw({ t: "ping" }); } if (n - this.last > DEAD_MS) this._closed(); };
+      this.tickf = () => { if (!this.alive) return; const n = Date.now(); if (n - this.lastPing >= 3000) { this.lastPing = n; this.raw({ t: "ping" }); } if (n - this.last > DEAD_MS) this._closed(); };
       Tick.add(this.tickf);
     }
     raw(msg) {

@@ -70,7 +70,7 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
     // топоры
     { const { u, m } = await setup('axe', 'axe'); near(u, m, 3); const l = Battle.heroAttacks(u).map(x => x.id); T('топор: бросок основного в списке', l.includes('thrown:axe'), l);
       u.t.attacked = false; T('до атаки второй топор не метнуть', !Battle.heroAttacks(u).some(x => x.id === 'thrown-off:axe'));
-      u.t.attacked = true; const lo = Battle.heroAttacks(u); T('после атаки доступны оба: второй метнуть и ударить', lo.some(x => x.id === 'thrown-off:axe') && lo.some(x => x.id === 'off:axe'), lo.map(x => x.id));
+      u.t.attacked = true; const lo = Battle.heroAttacks(u); T('после атаки: второй метнуть; удар обеими — парный (twin), отдельной атаки второй рукой нет', lo.some(x => x.id === 'thrown-off:axe') && !lo.some(x => x.id === 'off:axe') && Battle.heroAttacks(u).find(x => x.id === 'hand:axe').twin === true, lo.map(x => x.id));
       const a = lo.find(x => x.id === 'thrown-off:axe'); u.t.bonus = 1; m.x = 3; m.y = 3; await Battle.runAttackBase(u, a); T('второй топор брошен', u.disarmedOff === true && Battle.S.drops.some(d => d.slot === 'off'), [u.disarmedOff, Battle.S.drops]); T('отдельный бонус потрачен', u.t.bonus === 0);
       T('второго топора больше нет в списке', !Battle.heroAttacks(u).some(x => x.id === 'thrown-off:axe' || x.id === 'off:axe')); Battle.S = null; }
     { const { u, m } = await setup('axe', null, 'hobgoblin-shield'); near(u, m); m.shield = true; const a = Battle.heroAttacks(u).find(x => x.w && x.w.id === 'axe'); const c = Battle.attackCtx(u, m, a); T('топор против щита +2', c.dmgPlus === 2, c.dmgPlus); Battle.S = null; }

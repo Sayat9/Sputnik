@@ -54,6 +54,13 @@
     try { history.pushState({ btBattle: 1 }, ""); UI._pushed = true; } catch (e) {}
     if (UI.onBack) UI.onBack();
   }
+  // Портрет не загрузился (слабая связь, обновление файлов): одна повторная попытка, затем силуэт по типу — пустой квадрат не остаётся.
+  document.addEventListener("error", e => {
+    const im = e.target; if (!im || im.tagName !== "IMG" || !/assets\/monsters\//.test(im.getAttribute("src") || "")) return;
+    const src = im.getAttribute("src");
+    if (!im.dataset.retry) { im.dataset.retry = "1"; setTimeout(() => { im.src = src.split("?")[0] + "?r=" + Date.now(); }, 600); return; }
+    if (im.dataset.retry === "1") { im.dataset.retry = "2"; const m = /monsters\/(.+?)-(face|full)\./.exec(src), mon = m && window.MONSTERS && MONSTERS.find(x => x.id === m[1]); im.src = "assets/monsters/ph-" + ((mon && mon.ph) || (mon && /Нежить|нежить/.test(mon.type || "") ? "undead" : "beast")) + "-" + (m ? m[2] : "face") + ".svg"; }
+  }, true);
   UI.close = function () {
     if (!UI.active) return;
     window.removeEventListener("resize", fit); window.removeEventListener("popstate", onPop);
@@ -177,7 +184,7 @@
     const m = root.querySelector(".bt-marks"), byCell = new Map();
     for (const w of S.drops) { if (!seenAt(w)) continue; const k = w.x + "," + w.y, e = byCell.get(k) || { x: w.x, y: w.y, weapons: [], arrows: 0 }; if (w.kind === "weapon") e.weapons.push(w); else e.arrows++; byCell.set(k, e); }
     m.innerHTML = [...byCell.values()].map(e => {
-      const wp = e.weapons.map(w => { const it = itemOf(w.item), hh = B.byId && B.heroes().find(u => u.hero && u.hero.id === w.hero); return `<span class="mk w" title="${esc((it ? it.name : "Оружие") + (hh ? " — " + hh.name : ""))} лежит на земле">${ico("throwing")}</span>`; }).join("");
+      const wp = e.weapons.map(w => { const it = itemOf(w.item), hh = B.byId && B.heroes().find(u => u.hero && u.hero.id === w.hero); const tu = UI.turnUnit, can = tu && tu.hero && tu.hero.id === w.hero, here = can && tu.x === w.x && tu.y === w.y; return `<span class="mk w${can ? " can" : ""}${here ? " here" : ""}" title="${esc((it ? it.name : "Оружие") + (hh ? " — " + hh.name : ""))} лежит на земле${can ? (here ? ": можно подобрать" : ": встаньте на клетку, чтобы подобрать") : ""}">${ico("throwing")}</span>`; }).join("");
       const ar = e.arrows ? `<span class="mk a" title="Стрелы на земле: ${e.arrows}">${ico("arrow")}<b>${e.arrows}</b></span>` : "";
       return `<div class="bt-mark" style="left:${e.x * cell}px;top:${e.y * cell}px;width:${cell}px;height:${cell}px">${wp}${ar}</div>`;
     }).join("");

@@ -342,3 +342,12 @@ body.bt-active .dice-fab { display: none; }
 .bt-sum li.ok b { color: #8fd18f; } .bt-sum li.bad b { color: #e07a6a; }
 .bt-istats .grey, .bt-istats .grey b { color: #8d8d8d; opacity: .85; }
 .bt-sum li .bt-rr { padding: 2px 8px; font-size: 12px; min-height: 0; }
+/* оружие на земле, которое может подобрать герой, чей сейчас ход */
+.bt-mark .mk.w.can { filter: drop-shadow(0 0 4px #ffd24a); animation: mkPulse 1.1s ease-in-out infinite; }
+.bt-mark .mk.w.here { filter: drop-shadow(0 0 7px #9fe870); }
+@keyframes mkPulse { 0%, 100% { transform: scale(1); opacity: .85; } 50% { transform: scale(1.25); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .bt-mark .mk.w.can { animation: none; } }
+/* кнопка «Пропустить» в окне броска */
+.bd-skip { flex: 0 0 auto; padding: 10px 12px; font-size: 13px; }
+.bd-skip[hidden], .bd-roll[hidden] { display: none; }
+.bd-ov.autoplay .bd-hint { display: none; }

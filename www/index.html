@@ -1070,7 +1070,7 @@ const WEAPONS = [
     note: "Самое дешёвое железо в оружейной. Древко ясеневое из Гномьего Древа, наконечник кованый. «Слабое место»: проверка Внимательности перед ударом — чем выше, тем больше урона (10–14: +1, 15–19: +1к4, 20+: +1к6); ниже 8 — помеха на атаку." },
   // Пика — укороченное копьё всадника для рук: двуручная, длинная, но с малым щитом носится со штрафом (−2 к Ловкости от щита и −1 клетка скорости). Особенность — на утверждении автора (drafts.md).
   { id: "pike", name: "Пика", group: "melee", kind: "Воинское", dmg: "1к10", type: "колющий", weight: 4, price: 30,
-    props: ["Двуручное", "Можно со щитом", "Досягаемость 3 м"],
+    props: ["Двуручное", "Можно со щитом"],
     note: "" },
   { id: "mace", name: "Булава", group: "melee", kind: "Простое", dmg: "1к6", type: "дробящий", weight: 2, price: 14,
     props: ["Пробивающее"],
@@ -1795,7 +1795,7 @@ const MONSTERS = [
       ["Хлопки грома", "Выскакивает из трещин в стенах; писк звучит как хлопок грома.", "behavior"],
       ["Глухая к себе", "От собственного грохота не страдает.", "behavior"],
       ["Шумная", "После боя с мышами мастер может бросить дополнительную встречу.", "behavior"],
-      ["Укус", "+4 к попаданию, 1к4 колющего.", "attacks"],
+      ["Укус", "+4 к попаданию, 1к4 молнией.", "attacks"],
     ], loot: "Камень 9-го класса.", essence: "mouse" },
   { id: "bat", zone: "beast", rare: false, weight: 2, name: "Ядовитая летучка", floor: 1, cls: 9, rank: "normal", size: "Маленький зверь", group: "Под потолком тёмных залов, по 2–6",
     type: "Зверь, монстр", sz: "маленький", areas: ["1 этаж: зона зверей", "2 этаж, Волчья чаща"],
@@ -1961,8 +1961,8 @@ const DISTRICTS = [
 
 // Готовые рисованные картинки (webp) заменяют векторные заглушки.
 // Дата сборки для телефона: build.sh вписывает её сюда, в веб-версии строка пустая.
-const APP_BUILD = "29.10.2026 01:01";
-const APP_VERSION = 1793217675;                 // номер сборки, тоже вписывает build.sh
+const APP_BUILD = "29.10.2026 02:21";
+const APP_VERSION = 1793222491;                 // номер сборки, тоже вписывает build.sh
 const UPDATE_URL = "https://raw.githubusercontent.com/Sayat9/Sputnik/main/www/";
 const RASTER = new Set(["items/mace", "items/warhammer", "items/armor-leather", "items/armor-hide", "items/armor-chainmail", "items/steel-dagger", "items/steel-sword", "items/steel-greatsword", "items/steel-shield", "items/steel-tower-shield", "items/shortbow", "items/longbow", "items/rapier", "items/shield", "items/tower-shield", "items/unknown-mushroom", "items/stone-9", "items/stone-8", "items/stone-7", "items/ration", "items/potion", "items/torch", "items/arrows", "items/clothes", "items/shovel", "items/shovel-good", "items/shovel-best", "items/dagger", "items/sword", "items/greatsword", "items/spear", "monsters/goblin-king-face", "monsters/goblin-king-full", "monsters/goblin-bomber-face", "monsters/goblin-bomber-full", "monsters/hobgoblin-shield-face", "monsters/hobgoblin-shield-full", "races/barbarian", "races/human", "races/dwarf", "races/beastkin", "races/fairy", "races/dragon", "monsters/goblin-face", "monsters/goblin-full", "monsters/goblin-archer-face", "monsters/goblin-archer-full", "monsters/goblin-sword-face", "monsters/goblin-sword-full", "monsters/goblin-spear-face", "monsters/goblin-spear-full", "monsters/wolf-face", "monsters/wolf-full", "monsters/fox-face", "monsters/fox-full", "monsters/mouse-face", "monsters/mouse-full", "monsters/bat-face", "monsters/bat-full", "monsters/hobgoblin-face", "monsters/hobgoblin-full", "monsters/zombie-face", "monsters/zombie-full", "monsters/skeleton-face", "monsters/skeleton-full", "monsters/skeleton-archer-face", "monsters/skeleton-archer-full", "monsters/ghoul-face", "monsters/ghoul-full", "monsters/dark-bear-face", "monsters/dark-bear-full", "monsters/skeleton-warrior-face", "monsters/skeleton-warrior-full", "monsters/living-stone-face", "monsters/living-stone-full", "monsters/wisp-face", "monsters/wisp-full", "monsters/pixie-face", "monsters/pixie-full", "monsters/green-boulder-face", "monsters/green-boulder-full", "monsters/stone-guardian-face", "monsters/stone-guardian-full", "monsters/spider-queen-face", "monsters/spider-queen-full", "monsters/ash-wraith-face", "monsters/ash-wraith-full", "monsters/ash-spirit-face", "monsters/ash-spirit-full", "monsters/plague-fat-face", "monsters/plague-fat-full", "monsters/bone-hound-face", "monsters/bone-hound-full", "monsters/dust-crawler-face", "monsters/dust-crawler-full", "monsters/faceless-ringer-face", "monsters/faceless-ringer-full", "monsters/mirror-dead-face", "monsters/mirror-dead-full", "monsters/whisperer-face", "monsters/whisperer-full", "monsters/morok-face", "monsters/morok-full", "monsters/grey-shade-face", "monsters/grey-shade-full", "monsters/blackwing-face", "monsters/blackwing-full", "monsters/swamp-fang-face", "monsters/swamp-fang-full", "monsters/web-spider-face", "monsters/web-spider-full", "monsters/goblin-shaman-face", "monsters/goblin-shaman-full", "monsters/goblin-assassin-face", "monsters/goblin-assassin-full", "monsters/goblin-trapper-face", "monsters/goblin-trapper-full", "monsters/goblin-elder-face", "monsters/goblin-elder-full", "monsters/hobgoblin-brute-face", "monsters/hobgoblin-brute-full", "monsters/hobgoblin-thrower-face", "monsters/hobgoblin-thrower-full", "monsters/hobgoblin-driver-face", "monsters/hobgoblin-driver-full", "monsters/goblin-thief-face", "monsters/goblin-thief-full", "monsters/horned-hare-face", "monsters/horned-hare-full", "monsters/swamp-toad-face", "monsters/swamp-toad-full", "monsters/burrower-face", "monsters/burrower-full", "monsters/crow-face", "monsters/crow-full", "monsters/dire-wolf-face", "monsters/dire-wolf-full", "monsters/werewolf-face", "monsters/werewolf-full", "monsters/giant-mole-face", "monsters/giant-mole-full", "monsters/bone-knight-face", "monsters/bone-knight-full", "monsters/gravedigger-face", "monsters/gravedigger-full", "monsters/corpse-eater-face", "monsters/corpse-eater-full", "monsters/drop-face", "monsters/drop-full", "monsters/dust-whirl-face", "monsters/dust-whirl-full", "monsters/magma-hound-face", "monsters/magma-hound-full", "monsters/crystalloid-face", "monsters/crystalloid-full", "monsters/lake-spirit-face", "monsters/lake-spirit-full", "monsters/magma-golem-face", "monsters/magma-golem-full", "monsters/deep-serpent-face", "monsters/deep-serpent-full", "monsters/crystal-colossus-face", "monsters/crystal-colossus-full", "monsters/storm-spirit-face", "monsters/storm-spirit-full", "monsters/rift-heart-face", "monsters/rift-heart-full", "items/compass", "items/steel-mace", "items/steel-rapier", "items/unknown-herb", "items/twin-daggers", "items/unknown-stone", "items/steel-twin-daggers", "items/potion-good", "items/coins", "items/steel-spear", "items/steel-warhammer", "items/steel-shortbow", "items/steel-longbow", "items/steel-armor-leather", "items/steel-armor-hide", "items/steel-armor-chainmail", "items/gloves", "items/staff", "items/axe", "items/greataxe", "items/firstaid", "items/flute", "items/chalice", "items/once-more", "items/guard", "items/beginners-luck", "buildings/tower", "buildings/guild", "buildings/church", "buildings/library", "buildings/gate", "buildings/tavern", "buildings/shop", "buildings/forge", "buildings/board", "buildings/hall", "races/gnome", "races/darkfairy", "monsters/rat-face", "monsters/rat-full", "monsters/rat-king-face", "monsters/rat-king-full", "monsters/rat-catcher-face", "monsters/rat-catcher-full"]);
 const artPath = p => `assets/${p}.${RASTER.has(p) ? "webp" : "svg"}`;
@@ -2718,7 +2718,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 50;
+const BATTLE_REV = 51;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }
@@ -2888,9 +2888,9 @@ function buryFallen() {
   saveChar(); rerender(); lines.forEach((t, i) => setTimeout(() => toast(t), 400 + i * 2500));
 }
 function battleDone(ev, res) {
-  if (ev.arena) { state.fightSnap = null; ev.outcome = res.outcome; ev.killed = res.killed.slice(); if (window.Town && window.Town.arenaDone) window.Town.arenaDone(ev, res); saveChar(); rerender(); return; }
+  if (ev.arena) { state.fightSnap = null; state.encSnap = null; ev.outcome = res.outcome; ev.killed = res.killed.slice(); if (window.Town && window.Town.arenaDone) window.Town.arenaDone(ev, res); saveChar(); rerender(); return; }
   if (dgUi.enc !== ev) return;
-  state.fightSnap = null; autoSave("после боя");
+  state.fightSnap = null; state.encSnap = null; autoSave("после боя");
   setTimeout(buryFallen, 0);
   ev.outcome = res.outcome; ev.killed = res.killed.slice();
   finishFight(); dgUi.stat = null; saveChar(); rerender();
@@ -3158,6 +3158,7 @@ function renderMain() {
       ${isMaster() ? `<button class="fx-btn primary big" data-action="start-adventure">Начать приключение</button>
       <button class="fx-btn" data-save="open">Сохранения</button>
       <button class="fx-btn" data-net="open">Онлайн: игра с друзьями</button>
+      <button class="fx-btn" data-action="settings">Настройки</button>
       <button class="fx-btn" data-set="tactical" aria-pressed="${!!settings().tactical}">Тактический бой (тест): ${settings().tactical ? "вкл" : "выкл"}</button>
       <button class="fx-btn" data-set="master" aria-pressed="${masterOn()}">Режим мастера (весь бестиарий): ${masterOn() ? "вкл" : "выкл"}</button>` : ""}
       ${last ? `
@@ -4431,7 +4432,7 @@ function travelersOverlay() {
     return `<div class="tv-card"><div class="tv-pic">${travPic(s)}</div><b>${esc(s.name)}</b><small>${raceById(s.race).name} · ${s.g === "m" ? "муж." : "жен."}</small><small>${w.name}${a ? ", " + a.name.toLowerCase() : ""}</small></div>`; };
   const acts = [["talk", "Поговорить", "обменяться словами"], ["leave", "Уйти", "тихо разойтись"], ["attack", "Напасть", "ударить первыми"], ["rob", "Ограбить", "проверка Ловкости"]];
   const nextBtn = !res ? "" : res.next === "fight" ? `<button class="fx-btn primary big" data-dg="tv-fight">К бою!</button>`
-    : res.next === "rest" ? `<button class="fx-btn primary big" data-dg="tv-rest" data-y="1">Отдохнуть вместе</button><button class="fx-btn" data-dg="tv-rest" data-y="0">Отказаться</button>`
+    : res.next === "rest" ? `<button class="fx-btn primary big" data-dg="tv-rest" data-yn="1">Отдохнуть вместе</button><button class="fx-btn" data-dg="tv-rest" data-yn="0">Отказаться</button>`
     : res.next === "gift" ? ["potion", "torch", "ration"].map(id => `<button class="fx-btn primary" data-dg="tv-gift" data-id="${id}">${GEAR[id].name}</button>`).join("")
     : `<button class="fx-btn primary big" data-dg="enc-done">Готово</button>`;
   return `<div class="mapov ev-roll" role="dialog" aria-modal="true" aria-label="Группа путников">
@@ -5304,7 +5305,7 @@ function rollbackRun() {
   const snap = JSON.parse(state.runSnap);
   state.party = snap.party; state.journal = snap.journal; state.inventory = snap.inventory; state.townUnlocked = snap.townUnlocked;
   state.runSnap = null;
-  state.run = null; dgUi = freshUi(); saveChar();
+  state.run = null; state.encSnap = null; dgUi = freshUi(); saveChar();
   location.hash = "town";
   setTimeout(() => toast("Заход откатан: отряд в городе, всё как до спуска."), 50);
 }
@@ -5980,7 +5981,7 @@ function endRun(early) {
   const FL_DAYS = FL().days, st = state.run && state.run.status;
   if (st) for (const c of state.party) if (st[c.id]) c.carry = { ...st[c.id] };          // усталость и голод переходят в город и в следующий заход, пока их не снимет таверна
   const tc = townClock(); tc.back = true; tc.t0 = tc.t; tc.trips = (tc.trips || 0) + 1; questsAfterRun();
-  state.run = null; state.runSnap = null; travPurge();
+  state.run = null; state.runSnap = null; state.encSnap = null; travPurge();
   state.townUnlocked = true;
   dgUi = freshUi();
   saveChar();
@@ -6539,7 +6540,7 @@ function selPanel(c) {
   if (it.slot === "ring") btns.push(`<button class="fx-btn" data-hx="equip" data-slot-to="ring">Надеть кольцо</button>`);
   if (it.use === "find") btns.push(`<button class="fx-btn primary" data-hx="usefind">${it.find === "mush" ? "Съесть" : "Применить"}</button>`);
   if (it.kindOf === "weapon" && it.group !== "shield" && it.kind !== "Боеприпасы") btns.push(`<button class="fx-btn" data-hx="equip" data-slot-to="main">В правую руку</button>`);
-  if (it.kindOf === "weapon" && (it.group === "shield" || (it.group === "melee" && (!isTwoHandedWeapon(it) || isBigGrip(c))))) { const mi = mainItem(c), bowBlock = mi && mi.group === "ranged" && !lightMelee(it); btns.push(`<button class="fx-btn" data-hx="equip" data-slot-to="off"${(twoHanded(c) && !(it.id === "shield" && mi && (mi.props || []).includes("Можно со щитом"))) || bowBlock ? " disabled" : ""}>В левую руку</button>`); }
+  if (it.kindOf === "weapon" && (it.group === "shield" || (it.group === "melee" && (!isTwoHandedWeapon(it) || isBigGrip(c) || c.race === "barbarian")))) { const mi = mainItem(c), bowBlock = mi && mi.group === "ranged" && !lightMelee(it); btns.push(`<button class="fx-btn" data-hx="equip" data-slot-to="off"${(twoHanded(c) && c.race !== "barbarian" && !(it.id === "shield" && mi && (mi.props || []).includes("Можно со щитом"))) || bowBlock ? " disabled" : ""}>В левую руку</button>`); }
   if (it.kindOf === "armor" || it.slot === "body") btns.push(`<button class="fx-btn" data-hx="equip" data-slot-to="body">Надеть</button>`);
   const others = state.party.filter(o => o.id !== c.id);
   if (others.length) btns.push(`<button class="fx-btn" data-hx="give-toggle" aria-expanded="${heroUi.give}">Передать</button>`);
@@ -6687,8 +6688,11 @@ $hero.addEventListener("click", e => {
       if (i < 0) return;
       if (mine.length >= c.level) { toast("Нет свободного слота эссенций"); return; }
       if (mine.includes(ds.essid)) { toast("У героя уже есть такая эссенция"); return; }
-      st.splice(i, 1); mine.push(ds.essid); markEssNamed(ds.essid); c.mp = Math.min(maxMp(c), mpOf(c));
-      heroAfterChange(`${c.name} впитал: ${ESSENCES[ds.essid].name}`); return;
+      askYesNo({ title: "Впитать эссенцию?", text: `${c.name} впитает «${ESSENCES[ds.essid].name}». Слот занят, пока эссенцию не высвободят.`, yes: "Впитать" }).then(ok => {
+        if (!ok) return; const j = st.indexOf(ds.essid); if (j < 0 || mine.length >= c.level) return;
+        st.splice(j, 1); mine.push(ds.essid); markEssNamed(ds.essid); c.mp = Math.min(maxMp(c), mpOf(c));
+        heroAfterChange(`${c.name} впитал: ${ESSENCES[ds.essid].name}`);
+      }); return;
     }
     case "ess-release": {
       const mine = c.essences || [], i = mine.indexOf(ds.essid); if (i < 0) return;
@@ -6750,12 +6754,13 @@ $hero.addEventListener("click", e => {
       c.equip[slot] = entry.t === "c" ? { t: "c", name: entry.name } : { t: entry.t, id: entry.id, ...durKeep(entry), ...(entry.used != null ? { used: entry.used } : {}) };
       durAmulet(c);
       if (prev) addToBag(c, { ...prev, qty: 1 });
-      if (slot === "off" && isTwoHandedWeapon(it) && it.group !== "ranged" && c.race === "barbarian") c.giantGrip = true;          // второе двуручное в левую руку: «Великан» с большим штрафом
+      if (slot === "off" && isTwoHandedWeapon(it) && it.group !== "ranged" && c.race === "barbarian") c.giantGrip = true;
+      if (c.race === "barbarian" && c.equip.main && c.equip.off) { const mi2 = itemOf(c.equip.main), oi2 = itemOf(c.equip.off); if ((isTwoHandedWeapon(mi2) && mi2.group !== "ranged" && !pikeShield(mi2, oi2)) || (isTwoHandedWeapon(oi2) && oi2.group !== "ranged")) c.giantGrip = true; }          // варвару можно двуручное (пика, ростовой щит) и вторую руку: «Великан», штраф к Ловкости в предупреждениях          // второе двуручное в левую руку: «Великан» с большим штрафом
       if (slot === "main" && isTwoHandedWeapon(it) && it.group === "ranged" && c.equip.off && !lightMelee(itemOf(c.equip.off))) {
         if (addToBag(c, { ...c.equip.off, qty: 1 })) { toast("Нет места для предмета из левой руки"); c.equip.main = prev; c.bag.push(entry); if (prev) takeLast(c, prev); saveChar(); renderHero(); return; }
         delete c.equip.off;
       }
-      else if (slot === "main" && isTwoHandedWeapon(it) && it.group !== "ranged" && !isBigGrip(c) && c.equip.off && !pikeShield(it, itemOf(c.equip.off))) {
+      else if (slot === "main" && isTwoHandedWeapon(it) && it.group !== "ranged" && !isBigGrip(c) && c.race !== "barbarian" && c.equip.off && !pikeShield(it, itemOf(c.equip.off))) {
         if (addToBag(c, { ...c.equip.off, qty: 1 })) { toast("Нет места для предмета из левой руки"); c.equip.main = prev; c.bag.push(entry); if (prev) takeLast(c, prev); saveChar(); renderHero(); return; }
         delete c.equip.off;
       }
@@ -7430,8 +7435,35 @@ document.addEventListener("click", e => {
   if (el && el.dataset.set === "tactical") setTactical(!settings().tactical);
   if (el && el.dataset.set === "master") { settings().master = !settings().master; saveChar(); toast(settings().master ? "Режим мастера: виден весь бестиарий" : "Режим мастера выключен"); rerender(); }
 });
-if (settings().tactical) loadBattle().then(ok => { if (ok && state.fightSnap) resumeFight(); }); else state.fightSnap = null;
-if (!isMaster()) { state.fightSnap = null; loadNet().then(ok => { if (ok) NetGlue.initPlayer(); else toast("Не загрузился онлайн-модуль"); }); }
+/* Окно подтверждения «Да / Нет» поверх всего (впитывание эссенции; позже — голосование группы). */
+function askYesNo(o) {
+  return new Promise(resolve => {
+    const ov = document.createElement("div"); ov.className = "mapov"; ov.style.zIndex = 9500; ov.setAttribute("role", "dialog"); ov.setAttribute("aria-modal", "true");
+    ov.innerHTML = `<div class="panel fx-frame" style="max-width:380px;display:flex;flex-direction:column;gap:10px;padding:16px"><h3 style="margin:0">${esc(o.title || "Подтвердить?")}</h3><p style="margin:0">${esc(o.text || "")}</p>
+      <div style="display:flex;gap:8px"><button class="fx-btn" data-yn="0" style="flex:1">${esc(o.no || "Отмена")}</button><button class="fx-btn primary" data-yn="1" style="flex:1">${esc(o.yes || "Да")}</button></div></div>`;
+    ov.addEventListener("click", e => { const b = e.target.closest("[data-yn]"); if (!b && e.target !== ov) return; ov.remove(); resolve(!!b && b.dataset.yn === "1"); });
+    document.body.appendChild(ov);
+  });
+}
+/* Настройки (хранятся на устройстве: state.settings). Звук пока ничего не делает; «Пропускать броски» — кубики сразу к результату. */
+function openSettings() {
+  let ov = document.getElementById("setov");
+  if (!ov) { ov = document.createElement("div"); ov.id = "setov"; ov.className = "mapov"; ov.setAttribute("role", "dialog"); ov.setAttribute("aria-modal", "true"); ov.setAttribute("aria-label", "Настройки"); document.body.appendChild(ov);
+    ov.addEventListener("click", e => {
+      if (e.target === ov || e.target.closest("[data-setx='close']")) { ov.hidden = true; return; }
+      const t = e.target.closest("[data-setk]"); if (!t) return;
+      const st = state.settings ||= {}, k = t.dataset.setk; st[k] = !st[k]; saveChar(); openSettings();
+    }); }
+  const st = settings(), row = (k, name, hint) => `<button class="fx-btn" data-setk="${k}" aria-pressed="${!!st[k]}" style="width:100%;text-align:left"><b>${name}: ${st[k] ? "вкл" : "выкл"}</b><br><small style="opacity:.75">${hint}</small></button>`;
+  ov.innerHTML = `<div class="panel fx-frame" style="max-width:420px;display:flex;flex-direction:column;gap:10px;padding:16px"><h3 style="margin:0">Настройки</h3>
+    ${row("sound", "Звук", "пока ничего не делает — звуки появятся позже")}
+    ${row("skipDice", "Пропускать броски кубиков", "кубики не бросаются на экране: сразу результат (перебросов нет)")}
+    <button class="fx-btn primary" data-setx="close">Закрыть</button></div>`;
+  ov.hidden = false;
+}
+document.addEventListener("click", e => { if (e.target.closest('[data-action="settings"]')) openSettings(); });
+if (settings().tactical) loadBattle().then(ok => { if (ok && state.fightSnap) resumeFight(); else if (ok && state.encSnap && state.run && isMaster() && !dgUi.enc) { dgUi.enc = { ...state.encSnap, battleStarted: false }; location.hash = "labyrinth"; rerender(); } }); else { state.fightSnap = null; state.encSnap = null; } state.encSnap = null;
+if (!isMaster()) { state.fightSnap = null; state.encSnap = null; loadNet().then(ok => { if (ok) NetGlue.initPlayer(); else toast("Не загрузился онлайн-модуль"); }); }
 document.addEventListener("click", e => { const el = e.target.closest("[data-net]"); if (el && el.dataset.net === "open" && isMaster()) loadNet().then(ok => ok ? NetGlue.openHostPanel() : toast("Не загрузился онлайн-модуль")); });
 state.party.forEach(ensureKit);       // старые герои получают стартовый набор
 // Первый запуск со слотами сохранений: текущая партия сохраняется сама, чтобы тесты ничего не испортили.
