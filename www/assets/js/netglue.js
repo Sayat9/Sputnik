@@ -37,6 +37,7 @@
   body.net-player{padding-bottom:64px}
   body.net-player.bt-active #netbar,body.net-player.net-forge #netbar{display:none}
   body.net-follow #view,body.net-follow #townov{pointer-events:none}
+  body.net-follow #view [data-hero]{pointer-events:auto}                                                 /* карточки героев на экране ведущего: удержание открывает меню героя */
   body.net-follow #townov .tw-x{display:none}
   .net-team{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;width:100%;margin:10px 0}
   .net-team .pc{min-width:0;width:auto}
@@ -333,6 +334,7 @@
   }
   const STATUS_RU = { off: "не подключён", starting: "запуск", connecting: "подключаюсь…", reconnecting: "связь потеряна, переподключаюсь…", online: "в сети", hosting: "в сети" };
   function updateBar() {
+    if (isMaster()) { document.body.classList.remove("net-follow"); return; }                              // ведущий управляет экраном сам: «только смотрю» — режим игрока
     const el = document.getElementById("net-st"); if (el) el.textContent = STATUS_RU[N.status] || N.status;
     const hh = location.hash.slice(1), onGame = hh === "town" || hh === "labyrinth";
     document.body.classList.toggle("net-follow", (G.follow && N.status === "online") || onGame);          // экран ведущего игрок только смотрит: даже во время переподключения он не отвечает на нажатия          // без связи экран не «чужой»: можно листать своё
