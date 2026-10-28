@@ -779,6 +779,8 @@ body.forge-open { overflow: hidden; }
 .shield-pick { display: grid !important; grid-template-columns: 96px minmax(0, 1fr); gap: 12px; align-items: center; text-align: left; margin-top: 4px; }
 .shield-pick .wpn-art { margin: 0; }
 .shield-pick:disabled { opacity: .45; }
+.shield-pick.dim { opacity: .35; filter: grayscale(.8); }
+.shield-pick.avail { box-shadow: 0 0 0 1px var(--fx-gold, #d6a64c), 0 0 14px rgb(244 212 142 / .45); }
 .kit-note { padding: 12px 14px; font-size: 14.5px; color: var(--fx-muted); text-align: center; }
 .kit-note b { color: var(--fx-gold-hi); font-weight: 500; }
 .pc { touch-action: pan-x; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; cursor: pointer; transition: transform .15s; }
@@ -2713,7 +2715,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 51;
+const BATTLE_REV = 52;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }
@@ -3244,10 +3246,10 @@ function forgeWeapon() {
     </div>
     ${(() => { const sh = WEAPONS.find(x => x.id === "shield"), block = w && (isTwoHandedWeapon(w) || w.group === "ranged") && !(d.race === "barbarian") && !(w.props || []).includes("Можно со щитом");
       const bow = !!w && w.group === "ranged", light = w && (bow || canTwinWeapon(w, d.race)), kn = light && d.knife, sec = bow ? WEAPONS.find(x => x.id === "dagger") : w;
-      return (light ? `<button class="race-card fx-frame shield-pick" data-fx-knife aria-pressed="${!!kn}">
+      return (light ? `<button class="race-card fx-frame shield-pick avail" data-fx-knife aria-pressed="${!!kn}">
         <div class="wpn-art">${img(ART.weapon(sec.id), sec.name)}${kn ? `<span class="tick">${TICK}</span>` : ""}</div>
         <div><h3>${bow ? "Кинжал" : w.id === "gloves" ? "Вторая перчатка" : w.id === "axe" ? "Второй топор" : isTwoHandedWeapon(w) ? "Второе двуручное" : "Второй клинок"} в левую руку</h3><div class="bonus-box"><div class="st">${sec.dmg} ${sec.type} · ${kgf(sec.weight)} кг</div>
-        <ul><li>${bow ? "Ближний бой, если враг вплотную; вместо щита" : w.id === "gloves" ? "Две перчатки: +2 КД, урон 2к4; вместо щита" : isTwoHandedWeapon(w) ? "Большой штраф: −6 к Ловкости (два двуручных)" : "Удар второй рукой — доп. действием; вместо щита"}</li></ul></div></div></button>` : "") + `<button class="race-card fx-frame shield-pick" data-fx-shield aria-pressed="${!!d.shield && !block && !kn}"${block || kn ? " disabled" : ""}>
+        <ul><li>${bow ? "Ближний бой, если враг вплотную; вместо щита" : w.id === "gloves" ? "Две перчатки: +2 КД, урон 2к4; вместо щита" : isTwoHandedWeapon(w) ? "Большой штраф: −6 к Ловкости (два двуручных)" : "Удар второй рукой — доп. действием; вместо щита"}</li></ul></div></div></button>` : "") + `<button class="race-card fx-frame shield-pick ${block || kn ? "dim" : "avail"}" data-fx-shield aria-pressed="${!!d.shield && !block && !kn}"${block || kn ? " disabled" : ""}>
         <div class="wpn-art">${img(ART.weapon("shield"), sh.name)}${d.shield && !block && !kn ? `<span class="tick">${TICK}</span>` : ""}</div>
         <div><h3>Щит в левую руку</h3><div class="bonus-box"><div class="st">${sh.dmg} · ${kgf(sh.weight)} кг</div>
         <ul><li>${block ? "Не с двуручным оружием и луком" : kn ? "Занята вторым клинком" : "Можно взять вместе с оружием"}</li></ul></div></div></button>`; })()}
@@ -7460,6 +7462,13 @@ document.addEventListener("click", e => { if (e.target.closest('[data-action="se
 if (settings().tactical) loadBattle().then(ok => { if (ok && state.fightSnap) resumeFight(); else if (ok && state.encSnap && state.run && isMaster() && !dgUi.enc) { dgUi.enc = { ...state.encSnap, battleStarted: false }; location.hash = "labyrinth"; rerender(); } }); else { state.fightSnap = null; state.encSnap = null; } state.encSnap = null;
 if (!isMaster()) { state.fightSnap = null; state.encSnap = null; loadNet().then(ok => { if (ok) NetGlue.initPlayer(); else toast("Не загрузился онлайн-модуль"); }); }
 document.addEventListener("click", e => { const el = e.target.closest("[data-net]"); if (el && el.dataset.net === "open" && isMaster()) loadNet().then(ok => ok ? NetGlue.openHostPanel() : toast("Не загрузился онлайн-модуль")); });
+// Все нарисованные картинки монстров, рас и зданий подгружаются заранее в фоне (кэш приложения), чтобы в бою и в справочнике они не появлялись с задержкой и не терялись при слабой связи.
+(function preloadArt() {
+  const list = [...RASTER].filter(k => /^(monsters|races|buildings)\//.test(k)).map(k => artPath(k)); let i = 0, run = 0;
+  const next = () => { while (run < 3 && i < list.length) { const src = list[i++], im = new Image(); run++; const done = () => { run--; next(); }; im.onload = done; im.onerror = () => { setTimeout(() => { const r = new Image(); r.onload = r.onerror = () => {}; r.src = src + "?r=" + Date.now(); }, 2000); done(); }; im.src = src; } };
+  const go = () => setTimeout(next, 1500);
+  if (document.readyState === "complete") go(); else window.addEventListener("load", go);
+})();
 state.party.forEach(ensureKit);       // старые герои получают стартовый набор
 // Первый запуск со слотами сохранений: текущая партия сохраняется сама, чтобы тесты ничего не испортили.
 if (!readSaves().length && state.party.length) makeSave("Партия до тестов (сохранено автоматически)");
