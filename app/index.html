@@ -1969,8 +1969,8 @@ const ART = {
   armor: id => artPath(`items/armor-${id}`),
   race: id => artPath(`races/${id}`),
   // Монстр без своей картинки (ph: "beast" | "undead" | "elemental") получает силуэт-заглушку по типу.
-  monsterFace: id => { const m = MONSTERS.find(x => x.id === id); return m && m.face ? m.face : m && m.ph ? `assets/monsters/ph-${m.ph}-face.svg` : artPath(`monsters/${id}-face`); },
-  monsterFull: id => { const m = MONSTERS.find(x => x.id === id); return m && m.full ? m.full : m && m.ph ? `assets/monsters/ph-${m.ph}-full.svg` : artPath(`monsters/${id}-full`); },
+  monsterFace: id => { const m = MONSTERS.find(x => x.id === id); return m && m.face ? m.face : m && m.ph && !RASTER.has(`monsters/${id}-face`) ? `assets/monsters/ph-${m.ph}-face.svg` : artPath(`monsters/${id}-face`); },
+  monsterFull: id => { const m = MONSTERS.find(x => x.id === id); return m && m.full ? m.full : m && m.ph && !RASTER.has(`monsters/${id}-full`) ? `assets/monsters/ph-${m.ph}-full.svg` : artPath(`monsters/${id}-full`); },
 };
 const img = (src, alt, cls = "") => `<img src="${src}" alt="${alt}" loading="lazy" decoding="async"${cls ? ` class="${cls}"` : ""}>`;
 
@@ -2715,7 +2715,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 52;
+const BATTLE_REV = 53;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }
