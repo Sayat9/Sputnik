@@ -1,10 +1,12 @@
 {
- "version": 1793115414,
+ "version": 1793162578,
  "files": [
+  "assets/buildings/board.webp",
   "assets/buildings/church.webp",
   "assets/buildings/forge.webp",
   "assets/buildings/gate.webp",
   "assets/buildings/guild.webp",
+  "assets/buildings/hall.webp",
   "assets/buildings/library.webp",
   "assets/buildings/shop.webp",
   "assets/buildings/tavern.webp",
@@ -274,12 +276,14 @@
   "assets/races/barbarian.webp",
   "assets/races/beastkin.svg",
   "assets/races/beastkin.webp",
+  "assets/races/darkfairy.webp",
   "assets/races/dragon.svg",
   "assets/races/dragon.webp",
   "assets/races/dwarf.svg",
   "assets/races/dwarf.webp",
   "assets/races/fairy.svg",
   "assets/races/fairy.webp",
+  "assets/races/gnome.webp",
   "assets/races/human.svg",
   "assets/races/human.webp",
   "assets/travelers/ph.svg",
@@ -313,10 +317,12 @@
   "index.html"
  ],
  "hashes": {
+  "assets/buildings/board.webp": "60e036215b1738d1b2d1bdeaeb7ba980",
   "assets/buildings/church.webp": "c5a094fc01e76402890e7c18d3111859",
   "assets/buildings/forge.webp": "0fbd4b80c66e4ab05b37bdb2e438088c",
   "assets/buildings/gate.webp": "0a9bc3ac279b44346fd91479481694a9",
   "assets/buildings/guild.webp": "93334f4d69d6a3627a6a045e092ef67f",
+  "assets/buildings/hall.webp": "0abb04e407c3c88b5fafe6854cb4524d",
   "assets/buildings/library.webp": "e30725f9366b0ed9cac29e5e6249991c",
   "assets/buildings/shop.webp": "17557dbad4e5d0e8e446f2cb6ae3f870",
   "assets/buildings/tavern.webp": "812c88667997f640e80c34b331e547b2",
@@ -586,12 +592,14 @@
   "assets/races/barbarian.webp": "241f0a0bc1c3a74bcb4966514fca1ebe",
   "assets/races/beastkin.svg": "e08ef272becfa6f28d47238cec331d3d",
   "assets/races/beastkin.webp": "337cb6a4b2e09e9fc3b663b525303a1a",
+  "assets/races/darkfairy.webp": "8791808957f969630801a15beba2df9e",
   "assets/races/dragon.svg": "216ddd8a76357a824fdd13052dbf6976",
   "assets/races/dragon.webp": "2887a2065dc54f6ff720335c5c6d8764",
   "assets/races/dwarf.svg": "afc0c4ed551c4bf3ef9844663b550a28",
   "assets/races/dwarf.webp": "435bd9c9a251aff376766cba301c8aef",
   "assets/races/fairy.svg": "7d76a795865c6d193f4b1426db534dce",
   "assets/races/fairy.webp": "6eb3d424a194585b93217fad96bd72e1",
+  "assets/races/gnome.webp": "955c08acc76f1470968efb2a01ad1e4e",
   "assets/races/human.svg": "ba557d3349220f21fe0f978d9dfe09e3",
   "assets/races/human.webp": "5c6d3bc095940eb13856ad31f3452ede",
   "assets/travelers/ph.svg": "31950afdec4cedc454ed59dd6f15e4d1",
@@ -622,6 +630,6 @@
   "fonts/f8.woff2": "6cc1ee17091d59eb93821c3594e8f38f",
   "fonts/f9.woff2": "070433480b7b645f69b543f284e386ce",
   "fonts/fonts.css": "1585a72a8d157b26cb424ab433fd4e19",
-  "index.html": "a9ec4ba3ca5055c0dd61859c805d4693"
+  "index.html": "526f533c26967875aa4b44cb10171616"
  }
 }

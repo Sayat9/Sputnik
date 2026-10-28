@@ -220,14 +220,6 @@
 
 ## Здания города
 
-### Доска объявлений — `bld-board`
-
-> `a large wooden notice board on two thick posts, covered with pinned parchment notices, wanted posters and a small roof of planks above it, dark fantasy city at dusk, warm window glow, hand-painted fantasy RPG building icon, stylized, painterly, clean readable silhouette, centered on a dark stone square, square 1:1, no text`
-
-### Ратуша — `bld-hall`
-
-> `a stately stone town hall with a clock tower, a banner of the city and a broad stair to a double door, a notice stand with a tax ledger, dark fantasy city at dusk, warm window glow, hand-painted fantasy RPG building icon, stylized, painterly, clean readable silhouette, centered on a dark stone square, square 1:1, no text`
-
 ### Банк — `bld-bank`
 
 > `a solid stone bank with thick columns, iron-barred windows, a heavy vault door and a carved gold coin emblem above the entrance, dark fantasy city at dusk, warm window glow, hand-painted fantasy RPG building icon, stylized, painterly, clean readable silhouette, centered on a dark stone square, square 1:1, no text`
@@ -274,9 +266,7 @@
 
 Шаблон рас: погрудный, 4:5, тёмный фон.
 
-- `races/gnome` — `bust portrait of a short stocky gnome man with a huge round nose, bushy grey-brown beard braided with brass cogs, round goggles pushed up on his forehead, leather workshop apron straps and a mischievous clever look, fantasy, dark background with a warm rim light, realistic painterly style, looking at viewer, 4:5, no text`
 - `races/gnome-f` — `bust portrait of a short gnome woman with a round freckled face, curly auburn hair tied with a bright scarf and small brass tools tucked in it, ink-stained fingers, clever smile, leather apron straps, fantasy, dark background with a warm rim light, realistic painterly style, looking at viewer, 4:5, no text`
-- `races/darkfairy` — `bust portrait of a slender dark fairy man with slate-grey violet skin, long pointed ears, silver-white hair, glowing pale violet eyes and a thin shadowy cloak with faint dusky wings behind his shoulders, fantasy, dark background with a cold violet rim light, realistic painterly style, looking at viewer, 4:5, no text`
 - `races/darkfairy-f` — `bust portrait of a slender dark fairy woman with slate-grey violet skin, long pointed ears, midnight-blue hair with small glowing moth-like motes, luminous pale violet eyes and delicate dusky wings behind her shoulders, fantasy, dark background with a cold violet rim light, realistic painterly style, looking at viewer, 4:5, no text`
 - `treasures/tollbell` — `small silver hand bell with a dark ribbon, faint cold glow along the rim, engraved wave pattern, resting on dark velvet, painted fantasy item icon, plain dark background`
 - `monsters/silence-keeper` — `full-body tall hooded spirit in a grey silver-trimmed robe, face hidden in shadow, one finger pressed to where the lips would be, heavy silver mace, ghostly mist at the feet, painted dark fantasy character, 1024x1536`
