@@ -145,6 +145,7 @@
       try { if (forge && forge.open && forge.step === "team") renderForge(true); else if (!location.hash.slice(1)) rerender(); } catch (e) {}          // ведущий сразу видит нового героя в отряде
       return { ok: true, id: c.id };
     });
+    N.handle("sfx", (d, link, p) => { if (!d || !window.Sfx) return; Sfx.play(d.name, d.i); N.broadcast("sfx", { ...d, from: (p && p.pid) || d.from }); });          // звук от игрока: ведущий играет и рассылает остальным
     N.handle("bye", (d, link, p) => { if (p) { p.link = null; p.online = false; } renderHostPanel(); });
   }
   G.startHost = async function () {
@@ -234,6 +235,7 @@
     document.body.classList.add("net-player", "net-follow");
     buildBar(); buildJoin();
     N.handle("view", d => { applyPatch(d); });
+    N.handle("sfx", d => { if (d && window.Sfx && d.from !== myPid()) Sfx.play(d.name, d.i); });
     N.handle("kicked", () => { const cr = lsGet(PLAYER_KEY) || {}; lsSet(PLAYER_KEY, { name: cr.name }); N.leave(); C.msg = "Ведущий исключил тебя из комнаты."; toast(C.msg); showJoin(); updateJoinMsg(); });
     N.on((ev, d) => {
       if (ev === "status") { updateBar(); keepAlive(d === "online" || d === "reconnecting" || d === "connecting"); if (d === "online") hideJoin(); else if (d === "off") goOffline(); }          // при коротком обрыве экран не прыгает: переподключение идёт само

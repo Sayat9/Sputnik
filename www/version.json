@@ -1,5 +1,5 @@
 {
- "version": 1793359117,
+ "version": 1793360064,
  "files": [
   "assets/buildings/board.webp",
   "assets/buildings/church.webp",
@@ -286,6 +286,7 @@
   "assets/races/gnome.webp",
   "assets/races/human.svg",
   "assets/races/human.webp",
+  "assets/sfx/README.md",
   "assets/travelers/ph.svg",
   "assets/ui/backpack.webp",
   "assets/ui/showcase.webp",
@@ -416,7 +417,7 @@
   "assets/js/battle-ai.js": "f907668903d82b23b39f63ef23e60d97",
   "assets/js/battle-core.js": "1e3f004393bc648d72faf6648d1e6ee7",
   "assets/js/battle-data.js": "94bdf7f94cdcfaf987384a6cb7035668",
-  "assets/js/battle-dice.js": "e9911eb5f4b8abf27bfba3432a4d9ca8",
+  "assets/js/battle-dice.js": "14b7ec294b3de6f108fc4436db88d849",
   "assets/js/battle-end.js": "bf8d2a8aadcae976bb01ea572fc64736",
   "assets/js/battle-env.js": "1539446bf631d7cbe4dc87c9d033b7b7",
   "assets/js/battle-ess.js": "a6963d02544d4acf83a8399a125f39b9",
@@ -424,12 +425,12 @@
   "assets/js/battle-ext.js": "71cdb0ae150fac652989c8a2ef02a315",
   "assets/js/battle-menu.js": "ea51db940a3f9351c98a33827c083414",
   "assets/js/battle-net.js": "2ec8914d230f7ef8ef96df7662aa1e4e",
-  "assets/js/battle-rules.js": "7ddced1591afed86efc83ee87104af83",
-  "assets/js/battle-ui.js": "82bbeabf034cb3194429a79519cf832c",
+  "assets/js/battle-rules.js": "01581ea541b6365504708d534925f2bd",
+  "assets/js/battle-ui.js": "0aa0c692ee7d7f116357c2307d782c88",
   "assets/js/battle-weap.js": "cd641c2f55a95ffd4ddc833747704106",
   "assets/js/battle.js": "f7d6ffbb9da14df8b780d65812556151",
   "assets/js/net.js": "f8b3a6c09f533769bf8716e56889de1a",
-  "assets/js/netglue.js": "9e05b9a479b1cbdd3d9fb1ae814f7290",
+  "assets/js/netglue.js": "bcd9567ff48bb2e27e34c8b5ef1eb42d",
   "assets/js/town.js": "3845cde6165b5ca47104ef12e90032df",
   "assets/logo-admin.png": "aa45354a89500a24e2f481f6d7d3ee4a",
   "assets/logo.png": "2eea126130fb32be9d28f407acbc25bb",
@@ -602,6 +603,7 @@
   "assets/races/gnome.webp": "955c08acc76f1470968efb2a01ad1e4e",
   "assets/races/human.svg": "ba557d3349220f21fe0f978d9dfe09e3",
   "assets/races/human.webp": "5c6d3bc095940eb13856ad31f3452ede",
+  "assets/sfx/README.md": "cf1ac3d5c9218e23fec5835ec417f71e",
   "assets/travelers/ph.svg": "31950afdec4cedc454ed59dd6f15e4d1",
   "assets/ui/backpack.webp": "b3369f2ea587591a1f7d9794ad0b915c",
   "assets/ui/showcase.webp": "e85d639be6a601cbff150d58ac3e9f10",
@@ -630,6 +632,6 @@
   "fonts/f8.woff2": "6cc1ee17091d59eb93821c3594e8f38f",
   "fonts/f9.woff2": "070433480b7b645f69b543f284e386ce",
   "fonts/fonts.css": "1585a72a8d157b26cb424ab433fd4e19",
-  "index.html": "c11d3d43eebbcf44bbb1ddd354bbac3a"
+  "index.html": "63dafd843a7b5955712aec7a0cb8274e"
  }
 }

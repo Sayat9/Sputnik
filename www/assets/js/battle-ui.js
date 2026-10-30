@@ -37,7 +37,7 @@
       <div class="bt-boardwrap"><div class="bt-board"><div class="bt-bg"></div><div class="bt-cells"></div><div class="bt-zonelay"></div><div class="bt-objs"></div><canvas class="bt-shadow" aria-hidden="true"></canvas><div class="bt-tokens"></div><div class="bt-marks"></div><svg class="bt-pathsvg" aria-hidden="true"></svg><div class="bt-fx"></div></div>
         <div class="bt-zone"></div><div class="bt-toast" hidden></div></div>
       <div class="bt-panel"></div><div class="bt-modal" hidden></div>`;
-    document.body.appendChild(root); document.body.classList.add("forge-open", "bt-active");
+    document.body.appendChild(root); document.body.classList.add("forge-open", "bt-active"); if (window.Sfx) Sfx.setMusic("battle");
     board = root.querySelector(".bt-board");
     UI.active = true; UI.mode = "idle"; UI.hl = new Map(); UI.pick = null; UI.busy = false; UI.turnUnit = null; UI.built = false; UI.cat = null;
     window.addEventListener("resize", fit); fit();
@@ -66,7 +66,7 @@
     window.removeEventListener("resize", fit); window.removeEventListener("popstate", onPop);
     if (UI._pushed) { UI._pushed = false; try { history.back(); } catch (e) {} }
     if (root) root.remove(); root = null; board = null; cellEls = []; tokenEls = new Map(); UI.active = false; UI.built = false;
-    document.body.classList.remove("forge-open", "bt-active");
+    document.body.classList.remove("forge-open", "bt-active"); if (window.Sfx) Sfx.setMusic(null);
   };
   function fit() {
     if (!root) return;

@@ -19,7 +19,7 @@
   }
   function autoSession() {
     return { auto: true,
-      async d20(o) { return Object.assign(d20Core(o), { auto: true }); },
+      async d20(o) { const r = d20Core(o); if (window.Sfx && !B.cfg.fast) { if (r.nat === 1) Sfx.cue("fail"); else if (r.nat === 20) Sfx.cue("crit"); } return Object.assign(r, { auto: true }); },
       async dice(o) { const r = roll(o.n, o.s); return { rolls: r.rolls, sum: r.total, auto: true }; },
       note() {}, async finish() {}, close() {} };
   }

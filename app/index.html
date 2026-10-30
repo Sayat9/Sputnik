@@ -2715,7 +2715,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 54;
+const BATTLE_REV = 55;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }
@@ -7358,7 +7358,7 @@ document.addEventListener("click", e => {
   const ds = el.dataset;
   if (ds.go === "library") { openLibrary(); return; }
   if (ds.go !== undefined) { location.hash = ds.go; return; }
-  if (ds.tab !== undefined) { location.hash = ds.tab; return; }          // «Главная» — всегда главное меню; вернуться в игру — кнопка «Продолжить»
+  if (ds.tab !== undefined) { const onFx = ["", "town", "labyrinth"].includes(location.hash.slice(1)); location.hash = ds.tab === "" && !onFx && lastFx ? lastFx : ds.tab; return; }          // из справочника «Главная» ведёт обратно на игровой экран, с игрового — в главное меню
   if (ds.f) {
     const scope = el.closest("[data-scope]").dataset.scope;
     const st = scope === "w" ? wf : scope === "a" ? af : mf;
@@ -7436,12 +7436,45 @@ function askYesNo(o) {
     document.body.appendChild(ov);
   });
 }
-/* Звук — заготовка (пока ничего не играет). Везде в игре вызывается Sfx.play("имя"); когда появятся файлы, достаточно заполнить SFX_FILES (имя → assets/sfx/<файл>) и включить Sfx.ready.
-   Имена событий: ui-click, ui-open, dice-throw, dice-bounce, dice-settle, hit, miss, crit, heal, death, spell, step, turn-start, victory, defeat, loot, essence, level-up. Настройка «Звук» — state.settings.sound. */
-const SFX_FILES = {};
-const Sfx = { ready: false, cache: {}, on() { return !!(state && state.settings && state.settings.sound); },
-  play(name) { if (!this.ready || !this.on() || !SFX_FILES[name]) return; try { const a = this.cache[name] || (this.cache[name] = new Audio("assets/sfx/" + SFX_FILES[name])); a.currentTime = 0; a.play().catch(() => {}); } catch (e) {} } };
-window.Sfx = Sfx;
+/* Звук. Манифест SFX_MAN (копия assets/sfx/sfx.json) описывает файлы (нет файла — тишина): { ambient: [{file, start, end}], battle: {file, vol}, fail: {...}, crit: {...} }.
+   start/end — секунды отрезка внутри файла, поэтому исходники можно класть целиком, без нарезки. Включает настройка «Звук» (на каждом телефоне своя).
+   • ambient — в пещере (экран лабиринта вне боя) раз в 10–20 с звучит случайный звук; его выбирает ведущий и слышат все игроки;
+   • battle — музыка боя, зациклена, пока открыт бой; • fail — выпала 1, crit — выпала 20 (слышат все). Вызов из кода: Sfx.cue("fail"). */
+const SFX_MAN = {"ambient": [{"file": "cave-1.mp3", "start": 0, "end": 0}, {"file": "cave-2.mp3", "start": 0, "end": 0}, {"file": "cave-3.mp3", "start": 0, "end": 0}, {"file": "cave-4.mp3", "start": 0, "end": 0}, {"file": "cave-5.mp3", "start": 0, "end": 0}], "battle": {"file": "battle-cave.mp3", "vol": 0.6}, "fail": {"file": "fail.mp3", "start": 0, "end": 1}, "crit": {"file": "crit.mp3", "start": 5, "end": 7}};          // то же, что assets/sfx/sfx.json
+const Sfx = {
+  man: null, loaded: false, music: null, musicName: null, timer: null, cache: {},
+  on() { return !!(state && state.settings && state.settings.sound); },
+  async load() { this.loaded = true; this.man = SFX_MAN; },
+  audio(file) { let a = this.cache[file]; if (!a) { a = this.cache[file] = new Audio("assets/sfx/" + file); a.preload = "auto"; } return a; },
+  async playClip(c) {
+    if (!c || !c.file || !this.on()) return; await this.load();
+    try { const a = this.audio(c.file).cloneNode(); a.volume = c.vol == null ? 1 : c.vol; a.currentTime = c.start || 0; a.play().catch(() => {});
+      if (c.end) setTimeout(() => { try { a.pause(); } catch (e) {} }, Math.max(100, (c.end - (c.start || 0)) * 1000)); } catch (e) {}
+  },
+  // Играет у себя: name = "fail" | "crit" | "ambient" (i — номер звука из списка).
+  async play(name, i) { await this.load(); const m = this.man || {}; const c = name === "ambient" ? (m.ambient || [])[i == null ? 0 : i % Math.max(1, (m.ambient || []).length)] : m[name]; return this.playClip(c); },
+  // Играет у всех: сообщение уходит по сети (ведущий — всем, игрок — ведущему, тот — остальным).
+  cue(name, i) {
+    this.play(name, i);
+    try { if (window.Net && Net.role === "host") Net.broadcast("sfx", { name, i }); else if (window.Net && Net.role === "client") Net.toHost("sfx", { name, i, from: Net.pid() }); } catch (e) {}
+  },
+  // Музыка боя (зациклена). setMusic("battle") / setMusic(null).
+  async setMusic(name) {
+    if (this.musicName === name) return; this.musicName = name;
+    if (this.music) { try { this.music.pause(); } catch (e) {} this.music = null; }
+    if (!name || !this.on()) return; await this.load(); const c = (this.man || {})[name]; if (!c || !c.file || this.musicName !== name) return;
+    try { const a = this.audio(c.file).cloneNode(); a.loop = true; a.volume = c.vol == null ? 0.6 : c.vol; a.currentTime = c.start || 0; this.music = a; a.play().catch(() => {}); } catch (e) {}
+  },
+  // Фоновые звуки пещеры: каждые 10–20 с, пока отряд в лабиринте и нет боя. Выбирает ведущий.
+  tick() {
+    clearTimeout(this.timer);
+    this.timer = setTimeout(() => { try {
+      const inCave = location.hash === "#labyrinth" && state.run && !(window.Battle && Battle.running);
+      if (inCave && isMaster() && this.on() && this.man && (this.man.ambient || []).length) this.cue("ambient", Math.floor(Math.random() * this.man.ambient.length));
+    } catch (e) {} this.tick(); }, (10 + Math.random() * 10) * 1000);
+  },
+};
+window.Sfx = Sfx; Sfx.load().then(() => Sfx.tick());
 /* Настройки (хранятся на устройстве: state.settings). Звук пока ничего не делает; «Пропускать броски» — кубики сразу к результату. */
 function openSettings() {
   let ov = document.getElementById("setov");

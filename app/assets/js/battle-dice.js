@@ -385,13 +385,14 @@
       arena.setDice(diceList); arena.enabled = true; arena.draw(); updReroll();
       const finishRoll = vals => {
         if (settled) return;
-        if (window.Sfx) Sfx.play("dice-settle");
+        
         settled = true; skipBtn.hidden = true; arena.enabled = false; lastVals = vals;
         let res;
         if (o.kind === "d20") {
           const a = vals[0], b = o.dual ? vals[1] : null, nat = o.dual ? (o.dual === "adv" ? Math.max(a, b) : Math.min(a, b)) : a;
           const sum = (o.mods || []).reduce((s, m) => s + m.v, 0);
           res = { dice: o.dual ? [a, b] : [a], nat, mode: o.dual || null, sum, total: nat + sum };
+          if (window.Sfx) { if (nat === 1) Sfx.cue("fail"); else if (nat === 20) Sfx.cue("crit"); }
           if (o.dual) arena.dim(vals.indexOf(nat) === 0 ? 1 : 0, 0.45);
           let txt = `<b class="n">${nat}</b> ${sum ? (sum > 0 ? "+" : "−") + " " + Math.abs(sum) : ""} = <b class="t">${res.total}</b>`;
           let cls = "";
@@ -418,7 +419,7 @@
       sh.onSettle = vals => finishRoll(vals);
       skipBtn.onclick = () => { if (settled) return; sh.committed = true; xBtn.hidden = true; $(".bd-hint").classList.add("off"); rollBtn.disabled = true; arena.forceSettle(); };
       if (sh.autoPlay) { sh.committed = true; xBtn.hidden = true; $(".bd-hint").classList.add("off"); setTimeout(() => { if (!sh.closed && !settled && arena.anyIdle()) arena.throwAll(); }, 320); }
-      rollBtn.onclick = () => { if (!arena.anyIdle()) return; if (window.Sfx) Sfx.play("dice-throw"); sh.committed = true; xBtn.hidden = true; $(".bd-hint").classList.add("off"); arena.throwAll(); rollBtn.disabled = true; };
+      rollBtn.onclick = () => { if (!arena.anyIdle()) return; sh.committed = true; xBtn.hidden = true; $(".bd-hint").classList.add("off"); arena.throwAll(); rollBtn.disabled = true; };
       rrBtn.onclick = () => {
         if (rrBtn.disabled || !rerolls.length) return;
         const opt = rerolls.shift(); if (opt.spend) opt.spend();
