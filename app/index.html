@@ -2715,7 +2715,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 53;
+const BATTLE_REV = 54;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }
@@ -3144,7 +3144,7 @@ const fmtDate = iso => { try { return new Date(iso).toLocaleDateString("ru-RU", 
 function renderMain() {
   if (!isMaster() && window.NetGlue && NetGlue.teamScreen) return NetGlue.teamScreen();          // клиент игрока: вместо главного меню — окно команды
   const last = state.sessions[state.sessions.length - 1];
-  const members = last ? last.members.map(id => state.party.find(c => c.id === id)).filter(Boolean) : [];
+  const hasSave = !!(state.party.length && last);
   return `
     <div class="fx-home">
       <div class="crest">${CREST}</div>
@@ -3152,20 +3152,11 @@ function renderMain() {
       <h2 class="fx-title">Лабиринт Рафдонии</h2>
       <div class="fx-rule"><span></span></div>
       <p class="fx-sub">Раз в месяц открываются врата лабиринта. Собери отряд, спустись за камнями и вернись живым.</p>
-      ${isMaster() ? `<button class="fx-btn primary big" data-action="start-adventure">Начать приключение</button>
+      ${isMaster() ? `<button class="fx-btn primary big" data-action="${hasSave ? "continue" : "start-adventure"}">${hasSave ? "Продолжить" : "Начать приключение"}</button>
       <button class="fx-btn" data-save="open">Сохранения</button>
       <button class="fx-btn" data-net="open">Онлайн: игра с друзьями</button>
-      <button class="fx-btn" data-action="settings">Настройки</button>
-      <button class="fx-btn" data-set="tactical" aria-pressed="${!!settings().tactical}">Тактический бой (тест): ${settings().tactical ? "вкл" : "выкл"}</button>
-      <button class="fx-btn" data-set="master" aria-pressed="${masterOn()}">Режим мастера (весь бестиарий): ${masterOn() ? "вкл" : "выкл"}</button>` : ""}
-      ${last ? `
-        <div class="fx-card fx-frame">
-          <span class="fx-eyebrow" style="font-size:12px">Последняя сессия</span>
-          <h3>Сессия №${last.n}</h3>
-          <p>Начата ${fmtDate(last.date)}</p>
-          <div class="fx-chips">${members.map(c => `<span class="fx-chip">${esc(c.name)} · ${raceById(c.race).name}</span>`).join("")}</div>
-          <button class="fx-btn" data-go="town" style="align-self:flex-start;margin-top:4px">В город</button>
-        </div>` : `<p class="fx-hint">${isMaster() ? "В первый раз приложение попросит создать героев отряда." : "Ждём, когда ведущий начнёт партию."}</p>`}
+      <button class="fx-btn" data-action="settings">Настройки</button>` : ""}
+      ${hasSave ? "" : `<p class="fx-hint">${isMaster() ? "В первый раз приложение попросит создать героев отряда." : "Ждём, когда ведущий начнёт партию."}</p>`}
       ${APP_BUILD ? `<div class="upd-box"><p class="fx-hint" style="opacity:.6;font-size:12px">Версия от ${APP_BUILD}</p>
         <button class="fx-btn upd-btn" data-upd="${updUi.state === "downloaded" ? "apply" : updUi.state === "available" ? "ask" : "check"}"${updUi.state === "checking" ? " disabled" : ""}>${UPD_LABEL[updUi.state]}</button>
         ${updUi.note ? `<small class="upd-note">${updUi.note}</small>` : ""}</div>` : ""}
@@ -3340,10 +3331,10 @@ function forgeTeam() {
             <div><dt>Пол</dt><dd>${GENDERS[c.gender] || "—"}</dd></div>
           </dl>
         </article>`; }).join("")}
-      <button class="add-member" data-fx="add" aria-label="Добавить героя">
+      ${state.run ? `<p class="fx-hint" style="text-align:center">Новых героев добавляют только в городе: сначала верните отряд из лабиринта.</p>` : `<button class="add-member" data-fx="add" aria-label="Добавить героя">
         <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="24" cy="24" r="21" stroke-width="1.5" stroke-dasharray="3 4"/><path d="M24 14v20M14 24h20"/></svg>
         Добавить героя
-      </button>
+      </button>`}
     </div>
   </div></div>
   <div class="fx-footer"><button class="fx-btn primary big" data-fx="complete"${state.party.length ? "" : " disabled"}>Завершить</button></div>`;
@@ -3442,7 +3433,7 @@ $forge.addEventListener("click", e => {
     case "next-w": if (forge.draft.weapon) { forge.step = "identity"; renderForge(); } break;
     case "back": forge.step = "weapon"; forge.errors = []; renderForge(); break;
     case "discard": if (!isMaster()) { closeForge(); break; } forge.step = "team"; forge.draft = null; renderForge(); break;
-    case "add": forge.mode = "more"; forge.step = "race"; forge.draft = newDraft(); forge.errors = []; renderForge(); break;
+    case "add": if (state.run) { toast("Новых героев добавляют только в городе"); break; } forge.mode = "more"; forge.step = "race"; forge.draft = newDraft(); forge.errors = []; renderForge(); break;
     case "finish": finishDraft(); break;
     case "complete": completeTeam(); break;
     case "close": closeForge(); break;
@@ -7126,6 +7117,7 @@ function route(keepScroll) {
     $view.innerHTML = renderHome();
     renderResults();
   }
+  if (key === "town" || key === "labyrinth") state.lastGame = key;
   if (fx) lastFx = key;                                         // «Главная» вернёт на последний игровой экран (город, подземелье)
   state.lastHash = key;
   const activeTab = tab ? key : fx ? "" : "ref";
@@ -7329,6 +7321,7 @@ function renderSaves() {
   const list = readSaves(), c = saveUi.confirm;
   $saves.innerHTML = `<div class="dice-sheet">
     <div class="ph-head"><h3>Сохранения</h3><button class="fx-btn" data-save="close" aria-label="Закрыть" style="width:42px;height:42px;padding:0;display:grid;place-items:center">${ICO_X}</button></div>
+    ${(() => { const ls = state.sessions[state.sessions.length - 1]; if (!ls) return ""; const ms = ls.members.map(id => state.party.find(c => c.id === id)).filter(Boolean); return `<div class="fx-card fx-frame"><span class="fx-eyebrow" style="font-size:12px">Последняя сессия</span><h3>Сессия №${ls.n}</h3><p>Начата ${fmtDate(ls.date)}</p><div class="fx-chips">${ms.map(c => `<span class="fx-chip">${esc(c.name)} · ${raceById(c.race).name}</span>`).join("")}</div></div>`; })()}
     <p class="save-note">Сейчас: ${esc(saveSummary(state))}. Сохранения лежат на этом телефоне. Перед загрузкой текущая игра сохраняется автоматически.</p>
     <button class="fx-btn primary big" data-save="new">Сохранить текущую игру</button>
     <button class="fx-btn${c === "reset" ? " danger" : ""}" data-save="reset" style="margin-top:8px">${c === "reset" ? "Точно начать с нуля? Ещё раз" : "Начать с нуля (удалить героев)"}</button>
@@ -7365,7 +7358,7 @@ document.addEventListener("click", e => {
   const ds = el.dataset;
   if (ds.go === "library") { openLibrary(); return; }
   if (ds.go !== undefined) { location.hash = ds.go; return; }
-  if (ds.tab !== undefined) { const onFx = ["", "town", "labyrinth"].includes(location.hash.slice(1)); location.hash = ds.tab === "" && !onFx && lastFx ? lastFx : ds.tab; return; }          // из справочника «Главная» ведёт обратно в подземелье или город
+  if (ds.tab !== undefined) { location.hash = ds.tab; return; }          // «Главная» — всегда главное меню; вернуться в игру — кнопка «Продолжить»
   if (ds.f) {
     const scope = el.closest("[data-scope]").dataset.scope;
     const st = scope === "w" ? wf : scope === "a" ? af : mf;
@@ -7392,6 +7385,7 @@ document.addEventListener("click", e => {
   if (ds.action === "save-char") saveEdit();
   if (ds.action === "reset-char") { state.example = clone(DEFAULT_CHAR); saveChar(); closeSheet(); rerender(); }
   if (ds.action === "library") openLibrary();
+  if (ds.action === "continue") { const g = state.lastGame; location.hash = g === "labyrinth" && state.run ? "labyrinth" : "town"; return; }
   if (ds.action === "start-adventure") openForge(state.party.length ? "team" : "race", state.party.length ? "more" : "first");
   if (ds.member) { state.current = ds.member; saveChar(); rerender(); }
   if (ds.bld) {
@@ -7442,18 +7436,28 @@ function askYesNo(o) {
     document.body.appendChild(ov);
   });
 }
+/* Звук — заготовка (пока ничего не играет). Везде в игре вызывается Sfx.play("имя"); когда появятся файлы, достаточно заполнить SFX_FILES (имя → assets/sfx/<файл>) и включить Sfx.ready.
+   Имена событий: ui-click, ui-open, dice-throw, dice-bounce, dice-settle, hit, miss, crit, heal, death, spell, step, turn-start, victory, defeat, loot, essence, level-up. Настройка «Звук» — state.settings.sound. */
+const SFX_FILES = {};
+const Sfx = { ready: false, cache: {}, on() { return !!(state && state.settings && state.settings.sound); },
+  play(name) { if (!this.ready || !this.on() || !SFX_FILES[name]) return; try { const a = this.cache[name] || (this.cache[name] = new Audio("assets/sfx/" + SFX_FILES[name])); a.currentTime = 0; a.play().catch(() => {}); } catch (e) {} } };
+window.Sfx = Sfx;
 /* Настройки (хранятся на устройстве: state.settings). Звук пока ничего не делает; «Пропускать броски» — кубики сразу к результату. */
 function openSettings() {
   let ov = document.getElementById("setov");
   if (!ov) { ov = document.createElement("div"); ov.id = "setov"; ov.className = "mapov"; ov.setAttribute("role", "dialog"); ov.setAttribute("aria-modal", "true"); ov.setAttribute("aria-label", "Настройки"); document.body.appendChild(ov);
     ov.addEventListener("click", e => {
       if (e.target === ov || e.target.closest("[data-setx='close']")) { ov.hidden = true; return; }
+      const m = e.target.closest("[data-setm]");
+      if (m) { if (m.dataset.setm === "tactical") setTactical(!settings().tactical); else { settings().master = !settings().master; saveChar(); toast(settings().master ? "Режим мастера: виден весь бестиарий" : "Режим мастера выключен"); rerender(); } setTimeout(openSettings, 50); return; }
       const t = e.target.closest("[data-setk]"); if (!t) return;
       const st = state.settings ||= {}, k = t.dataset.setk; st[k] = !st[k]; saveChar(); openSettings();
     }); }
   const st = settings(), row = (k, name, hint) => `<button class="fx-btn" data-setk="${k}" aria-pressed="${!!st[k]}" style="width:100%;text-align:left"><b>${name}: ${st[k] ? "вкл" : "выкл"}</b><br><small style="opacity:.75">${hint}</small></button>`;
   ov.innerHTML = `<div class="panel fx-frame" style="max-width:420px;display:flex;flex-direction:column;gap:10px;padding:16px"><h3 style="margin:0">Настройки</h3>
     ${row("sound", "Звук", "пока ничего не делает — звуки появятся позже")}
+    ${isMaster() ? `<button class="fx-btn" data-setm="tactical" aria-pressed="${!!st.tactical}" style="width:100%;text-align:left"><b>Тактический бой (тест): ${st.tactical ? "вкл" : "выкл"}</b></button>
+    <button class="fx-btn" data-setm="master" aria-pressed="${masterOn()}" style="width:100%;text-align:left"><b>Режим мастера (весь бестиарий): ${masterOn() ? "вкл" : "выкл"}</b></button>` : ""}
     ${row("skipDice", "Пропускать броски кубиков", "кубики не бросаются на экране: сразу результат (перебросов нет)")}
     <button class="fx-btn primary" data-setx="close">Закрыть</button></div>`;
   ov.hidden = false;

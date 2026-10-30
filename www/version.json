@@ -1,5 +1,5 @@
 {
- "version": 1793224024,
+ "version": 1793359117,
  "files": [
   "assets/buildings/board.webp",
   "assets/buildings/church.webp",
@@ -416,7 +416,7 @@
   "assets/js/battle-ai.js": "f907668903d82b23b39f63ef23e60d97",
   "assets/js/battle-core.js": "1e3f004393bc648d72faf6648d1e6ee7",
   "assets/js/battle-data.js": "94bdf7f94cdcfaf987384a6cb7035668",
-  "assets/js/battle-dice.js": "9bb1bcc5899589c4332b6572d4426839",
+  "assets/js/battle-dice.js": "e9911eb5f4b8abf27bfba3432a4d9ca8",
   "assets/js/battle-end.js": "bf8d2a8aadcae976bb01ea572fc64736",
   "assets/js/battle-env.js": "1539446bf631d7cbe4dc87c9d033b7b7",
   "assets/js/battle-ess.js": "a6963d02544d4acf83a8399a125f39b9",
@@ -630,6 +630,6 @@
   "fonts/f8.woff2": "6cc1ee17091d59eb93821c3594e8f38f",
   "fonts/f9.woff2": "070433480b7b645f69b543f284e386ce",
   "fonts/fonts.css": "1585a72a8d157b26cb424ab433fd4e19",
-  "index.html": "6411d306ae2317b0333813b5a86d9ab4"
+  "index.html": "c11d3d43eebbcf44bbb1ddd354bbac3a"
  }
 }

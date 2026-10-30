@@ -385,6 +385,7 @@
       arena.setDice(diceList); arena.enabled = true; arena.draw(); updReroll();
       const finishRoll = vals => {
         if (settled) return;
+        if (window.Sfx) Sfx.play("dice-settle");
         settled = true; skipBtn.hidden = true; arena.enabled = false; lastVals = vals;
         let res;
         if (o.kind === "d20") {
@@ -417,7 +418,7 @@
       sh.onSettle = vals => finishRoll(vals);
       skipBtn.onclick = () => { if (settled) return; sh.committed = true; xBtn.hidden = true; $(".bd-hint").classList.add("off"); rollBtn.disabled = true; arena.forceSettle(); };
       if (sh.autoPlay) { sh.committed = true; xBtn.hidden = true; $(".bd-hint").classList.add("off"); setTimeout(() => { if (!sh.closed && !settled && arena.anyIdle()) arena.throwAll(); }, 320); }
-      rollBtn.onclick = () => { if (!arena.anyIdle()) return; sh.committed = true; xBtn.hidden = true; $(".bd-hint").classList.add("off"); arena.throwAll(); rollBtn.disabled = true; };
+      rollBtn.onclick = () => { if (!arena.anyIdle()) return; if (window.Sfx) Sfx.play("dice-throw"); sh.committed = true; xBtn.hidden = true; $(".bd-hint").classList.add("off"); arena.throwAll(); rollBtn.disabled = true; };
       rrBtn.onclick = () => {
         if (rrBtn.disabled || !rerolls.length) return;
         const opt = rerolls.shift(); if (opt.spend) opt.spend();
