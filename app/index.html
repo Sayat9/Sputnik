@@ -2715,7 +2715,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 65;
+const BATTLE_REV = 66;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }
@@ -5889,8 +5889,7 @@ function renderDungeon() {
     <div class="stage" id="stage">
       ${stageSvg()}
       ${stageOverlay()}
-      ${menu ? `<button class="fx-btn corner-btn l" data-dg="inv" aria-expanded="${dgUi.inv}">${ICO_BAG}Инвентарь</button>
-        <button class="fx-btn corner-btn r" data-dg="sup" aria-expanded="${dgUi.sup}">${ICO_PACK}Снаряжение</button>` : ""}
+      ${menu ? `<button class="fx-btn corner-btn r" data-dg="sup" aria-expanded="${dgUi.sup}">${ICO_PACK}Снаряжение</button>` : ""}
       ${moving ? `<button class="fx-btn corner-btn r" data-dg="cancel" aria-label="Отменить действие">${ICO_X}Отмена</button>
         <div class="phase-pill">${pill}</div>
         <div class="zoom"><button class="fx-btn" data-dg="zoom-in" aria-label="Приблизить">+</button><button class="fx-btn" data-dg="zoom-out" aria-label="Отдалить">−</button></div>` : ""}
@@ -6562,7 +6561,7 @@ function selPanel(c) {
     <div class="btn-row">${btns.join("")}</div>
     ${it.use === "salt" && heroUi.salt ? `<div class="btn-row">${saltTargets(c).map(w => `<button class="fx-btn" data-hx="salt-do" data-wk="${w.k}">${esc(w.name)}</button>`).join("") || "<span>Нет подходящего оружия.</span>"}</div>` : ""}
     ${heroUi.give ? `<div class="btn-row">${others.map(o => `<button class="fx-btn" data-hx="give" data-to="${o.id}">${esc(o.name)} (${(o.bag || []).length}/${bagSize(o)})</button>`).join("")}</div>
-      ${e.qty > 1 ? `<p>Передаётся вся стопка.</p>` : ""}` : ""}
+      ${e.qty > 1 ? (() => { const n = Math.max(1, Math.min(e.qty, heroUi.giveN || e.qty)); return `<div class="btn-row" style="align-items:center"><button class="fx-btn" data-hx="give-n" data-d="-1" aria-label="Меньше">−</button><b style="min-width:3.2em;text-align:center">${n} из ${e.qty}</b><button class="fx-btn" data-hx="give-n" data-d="1" aria-label="Больше">+</button><button class="fx-btn" data-hx="give-n" data-all="1">Все</button><button class="fx-btn" data-hx="give-n" data-half="1">Половина</button></div><p>Передастся: ${n}.</p>`; })() : ""}` : ""}
   </div>`;
 }
 
@@ -6716,7 +6715,8 @@ $hero.addEventListener("click", e => {
       const to = heroById(ds.to), n = Math.min(heroUi.coinAmt || 1, goldOf(c)); if (!to || n < 1) return;
       c.gold = goldOf(c) - n; addGold(to, n); heroAfterChange(`${n} монет: ${c.name} → ${to.name}`); return;
     }
-    case "give-toggle": heroUi.give = !heroUi.give; renderHero(); return;
+    case "give-toggle": heroUi.give = !heroUi.give; heroUi.giveN = 0; renderHero(); return;
+    case "give-n": { const q = entry ? (entry.qty || 1) : 1, cur = Math.max(1, Math.min(q, heroUi.giveN || q)); heroUi.giveN = ds.all ? q : ds.half ? Math.max(1, Math.floor(q / 2)) : Math.max(1, Math.min(q, cur + (+ds.d))); renderHero(); return; }
     case "salt-toggle": heroUi.salt = !heroUi.salt; renderHero(); return;
     case "salt-do": {
       const w = saltTargets(c).find(x => x.k === ds.wk); if (!w || !entry || !["silver-salt", "weak-salt"].includes(entry.id)) return;
@@ -6785,10 +6785,11 @@ $hero.addEventListener("click", e => {
     }
     case "give": {
       const to = heroById(ds.to);
-      const left = addToBag(to, { ...entry });
-      if (left === entry.qty) { toast(`У ${to.name} рюкзак полон`); return; }
-      entry.qty = left; if (!entry.qty) c.bag.splice(heroUi.sel, 1);
-      heroUi.sel = null; heroUi.give = false;
+      const want = Math.max(1, Math.min(entry.qty || 1, heroUi.giveN || entry.qty || 1)), rest = (entry.qty || 1) - want;          // сколько передать
+      const left = addToBag(to, { ...entry, qty: want });
+      if (left === want) { toast(`У ${to.name} рюкзак полон`); return; }
+      entry.qty = left + rest; if (!entry.qty) c.bag.splice(heroUi.sel, 1);
+      heroUi.sel = null; heroUi.give = false; heroUi.giveN = 0;
       heroAfterChange(left ? `Передано частично: у ${to.name} не хватило места` : `Передано: ${to.name}`); return;
     }
     case "drop-all": {
@@ -6835,7 +6836,7 @@ function unlockJournal(cls) {
   const j = journal();
   if (!j.unlocked || !j.tiers.includes(cls)) { j.unlocked = true; if (!j.tiers.includes(cls)) j.tiers.push(cls); }
 }
-const libMonsters = () => MONSTERS.filter(m => m.floor === 1 && !m.draft && journal().tiers.includes(m.cls));
+const libMonsters = () => MONSTERS.filter(m => !m.dyn && (journal().known[m.id] || (m.floor === 1 && !m.draft && journal().tiers.includes(m.cls))));          // монстры любого этажа попадают в библиотеку, как только записаны (встреча, поиск, гильдия); неизвестные «?» показываются только для открытых классов 1 этажа
 const MON_PH = `<svg viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" fill="#120e09"/><circle cx="50" cy="42" r="18" fill="#2a2016" stroke="#6e5634"/><path d="M18 100 C22 74 36 66 50 66 C64 66 78 74 82 100Z" fill="#2a2016" stroke="#6e5634"/></svg>`;
 const monArt = (m, full) => (full ? ART.monsterFull(m.id) : ART.monsterFace(m.id));
 

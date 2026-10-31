@@ -161,7 +161,7 @@
     const it = goodInfo(g), q = g.e ? g.e.qty : 1;
     if (owned(g)) return `<b>${esc(it.name)}</b><span class="tw-hint">Компас у отряда уже есть.</span>`;
     const can = partyGold() >= g.price, can5 = g.many && partyGold() >= g.price * 5;
-    return `<b>${esc(it.name)}${q > 1 ? " × " + q : ""}</b><span class="tw-btns"><button class="fx-btn primary" data-t="buy" data-n="1"${can ? "" : " disabled"}>Купить · −${g.price}</button>${g.many ? `<button class="fx-btn" data-t="buy" data-n="5"${can5 ? "" : " disabled"}>×5 · −${g.price * 5}</button>` : ""}</span>
+    return `<b>${esc(it.name)}${q > 1 ? " × " + q : ""}</b><span class="tw-btns"><button class="fx-btn primary" data-t="buy" data-n="1"${can ? "" : " disabled"}>Купить · −${g.price}</button>${g.many ? `<button class="fx-btn" data-t="buy" data-n="5"${can5 ? "" : " disabled"}>×5 · −${g.price * 5}</button>` : ""}${g.special !== "compass" && g.e ? `<button class="fx-btn" data-t="bm-open"${can ? "" : " disabled"}>Купить несколько…</button>` : ""}</span>
       <span class="tw-hint">Получит и заплатит: ${esc(c.name)}${goldOf(c) < g.price ? " (остальное добавят другие)" : ""}</span>`;
   }
   const SMITH = `<svg viewBox="0 0 220 128" aria-label="Кузнец">
@@ -196,7 +196,7 @@
         <span class="tw-name">${esc(it.name)}</span><span class="tw-price${partyGold() < g.price ? " no" : ""}">${COIN_SVG}${own ? "есть" : g.price}</span></button>`; }).join("")}</div>
       <p class="tw-buyline">${forge ? "Оружие — 10, броня — 15, улучшенное оружие — 25, улучшенная броня — 40 монет. Сталь: +1 к атаке и урону, +1 КД." : `Скупаю камни из сумки: 9 класс — ${stonePrice(9)}, 8 класс — ${stonePrice(8)}, 7 класс — ${stonePrice(7)} монет. Перетащи сумку на лавочника или нажми на неё.`}</p></div></div>`;
     const right = `<section class="tw-shopcol"><div class="tw-keeper">${forge ? img("assets/npc/smith.webp", "Кузнец") : KEEPER}<div class="tw-bubble">${esc(ui.talk || (ui.talk = forge ? SMITH_TALK[Math.floor(Math.random() * SMITH_TALK.length)] : talk()))}</div></div>${sheet}</section>`;
-    return `<div class="tw-panel fx-frame">${head(title, "Рафдония")}<div class="tw-shop">${left}${right}</div><footer class="tw-foot">${msgLine()}<div class="tw-sel">${shopSelInfo()}</div></footer>${ui.sk ? skHtml() : ""}</div>`;
+    return `<div class="tw-panel fx-frame">${head(title, "Рафдония")}<div class="tw-shop">${left}${right}</div><footer class="tw-foot">${msgLine()}<div class="tw-sel">${shopSelInfo()}</div></footer>${ui.sk ? skHtml() : ""}${ui.bm ? bmHtml() : ""}</div>`;
   }
   /* ---------- починка в кузнице (решение автора 28.10): целое оружие и броню — до максимума за 5 монет (комплект — 10), сломанное — за 20 % полной цены ---------- */
   const fixFull = e => (e.art ? artValue(e.art) : e.steel ? (e.t === "a" ? FORGE_PRICE.steelArmor : FORGE_PRICE.steelWeapon) : (e.t === "a" ? FORGE_PRICE.armor : FORGE_PRICE.weapon));
@@ -244,6 +244,17 @@
           <span class="tw-sk-pick"><input type="range" class="tw-range tw-sk-range" min="1" max="${r.qty}" value="${r.take || 1}" data-key="${r.key}"${r.on ? "" : " disabled"} aria-label="Сколько продать: ${esc(r.name)}"><output class="tw-sk-n">${r.take}/${r.qty}</output></span>
           <span class="tw-sk-sum">${r.on ? "+" + r.take * r.price : "—"}</span></div>`).join("")}</div>` : `<p class="tw-lead" style="padding:14px 4px">В сумке пусто: камни падают с монстров и попадают сюда.</p>`}
       <div class="tw-sk-foot"><span class="tw-sk-total">Продать <b>${t.n}</b> камней → <b>+${t.g}</b> монет</span><button class="fx-btn primary big" data-t="sk-sell"${t.n ? "" : " disabled"}>Продать</button></div></div></div>`;
+  }
+  // «Купить несколько»: окно с ползунком (сколько штук/наборов), максимум — сколько позволяют монеты отряда (до 99)
+  const bmMax = g => Math.max(1, Math.min(99, Math.floor(partyGold() / Math.max(1, g.price))));
+  function bmHtml() {
+    const g = goodByKey(ui.bm.key); if (!g) return "";
+    const it = goodInfo(g), q = g.e ? g.e.qty : 1, max = bmMax(g), n = Math.min(ui.bm.n, max), cost = g.price * n, can = partyGold() >= g.price;
+    return `<div class="tw-dlg" role="dialog" aria-label="Купить несколько"><div class="tw-dlg-card fx-frame">
+      <div class="tw-dlg-top"><div><b>${esc(it.name)}${q > 1 ? " × " + q : ""}</b><small>${g.price} монет за ${q > 1 ? "набор" : "штуку"}</small></div></div>
+      <div class="tw-dlg-row"><button class="fx-btn" data-t="bm-d" data-d="-1" aria-label="Меньше">−</button><input type="range" class="tw-range tw-bm-range" min="1" max="${max}" value="${n}" aria-label="Сколько купить"><button class="fx-btn" data-t="bm-d" data-d="1" aria-label="Больше">+</button></div>
+      <p class="tw-dlg-sum">Купить <b class="tw-bm-n">${n}</b>${q > 1 ? " × " + q + " = " + n * q + " шт." : ""} · <b class="tw-bm-cost">−${cost}</b> монет</p>
+      <div class="tw-btns"><button class="fx-btn" data-t="bm-close">Отмена</button><button class="fx-btn primary" data-t="bm-buy"${can ? "" : " disabled"}>Купить</button></div></div></div>`;
   }
   function openSell() { if (!sellsStones()) return; ui.sk = skInit(); }
   function skSell() {
@@ -727,7 +738,8 @@
   for (const ev of ["pointerup", "pointercancel", "pointerleave"]) host.addEventListener(ev, () => clearTimeout(hold.t), true);
   host.addEventListener("pointermove", e => { if (Math.hypot(e.clientX - hold.x, e.clientY - hold.y) > 10) clearTimeout(hold.t); });
   host.addEventListener("input", e => {
-    const el = e.target; if (!ui || !ui.sk) return;
+    const el = e.target; if (ui && ui.bm && el.classList.contains("tw-bm-range")) { ui.bm.n = +el.value; const g = goodByKey(ui.bm.key), q = g && g.e ? g.e.qty : 1; host.querySelector(".tw-bm-n").textContent = ui.bm.n; host.querySelector(".tw-bm-cost").textContent = "−" + (g.price * ui.bm.n); return; }
+    if (!ui || !ui.sk) return;
     if (el.classList.contains("tw-sk-range")) {
       ui.sk.num[el.dataset.key] = +el.value; const r = skRows().find(x => x.key === el.dataset.key); if (!r) return;
       const row = el.closest(".tw-sk-row"); row.querySelector(".tw-sk-n").textContent = `${r.take}/${r.qty}`; row.querySelector(".tw-sk-sum").textContent = "+" + r.take * r.price;
@@ -778,6 +790,10 @@
       case "sellopen": if (ui.sel && ui.sel.side === "bag") offer(ui.sel.i); break;
       case "sacktile": openSell(); break;
       case "sk-close": ui.sk = null; break;
+      case "bm-open": if (ui.sel && ui.sel.key) ui.bm = { key: ui.sel.key, n: 1 }; break;
+      case "bm-close": ui.bm = null; break;
+      case "bm-d": { const g = ui.bm && goodByKey(ui.bm.key); if (g) ui.bm.n = Math.max(1, Math.min(bmMax(g), ui.bm.n + (+ds.d))); break; }
+      case "bm-buy": { const g = ui.bm && goodByKey(ui.bm.key), n = ui.bm ? Math.min(ui.bm.n, g ? bmMax(g) : 1) : 0; if (g && n) { ui.sel = { side: "shop", key: ui.bm.key }; buy(n); } ui.bm = null; break; }
       case "sk-chk": {
         ui.sk.sel[ds.key] = el.checked; const row = el.closest(".tw-sk-row"), r = skRows().find(x => x.key === ds.key);
         row.classList.toggle("off", !el.checked); row.querySelector(".tw-sk-range").disabled = !el.checked; row.querySelector(".tw-sk-sum").textContent = el.checked ? "+" + r.take * r.price : "—";

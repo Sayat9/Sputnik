@@ -161,7 +161,7 @@
     const l = root.querySelector(".bt-zonelay"); if (!l) return;
     let h = "";
     const vis = S.phase === "fight" || S.phase === "result" ? B.visionCells() : null;
-    for (const z of S.zones || []) for (const [x, y] of B.zoneCells(z)) if (!vis || vis.has(x + "," + y)) h += `<div class="bt-zcell k-${z.kind}" style="left:${x * cell}px;top:${y * cell}px;width:${cell}px;height:${cell}px"></div>`;
+    for (const z of S.zones || []) { const ow = z.owner ? B.byId(z.owner) : null; if (vis && ow && ow.side === "mon" && !B.seenByParty(ow)) continue; for (const [x, y] of B.zoneCells(z)) if (!vis || vis.has(x + "," + y)) h += `<div class="bt-zcell k-${z.kind}" style="left:${x * cell}px;top:${y * cell}px;width:${cell}px;height:${cell}px"></div>`; }          // зона невидимого монстра не показывается
     l.innerHTML = h;
   }
   // Мягкая тень от полных укрытий и тумана: тёмный слой по клеткам (чем меньше героев видят клетку, тем гуще), размытый, чтобы края были с полутенью.
@@ -313,8 +313,9 @@
   UI.fxAbility = (u, name, targets) => defer(() => {
     const fx = root && root.querySelector(".bt-fx"); if (!fx) return;
     const mk = (t, cls) => { const el = document.createElement("div"); el.className = cls; el.style.cssText = `left:${t.x * cell}px;top:${t.y * cell}px;width:${(t.size || 1) * cell}px;height:${(t.size || 1) * cell}px`; fx.appendChild(el); setTimeout(() => el.remove(), 1200); };
-    mk(u, "bt-cast"); for (const t of targets || []) if (t && t.id !== u.id) mk(t, "bt-cast tgt");
-    UI.banner(`${u.name}: ${name}`, 1500);
+    const unseen = u.side === "mon" && B.S && B.S.phase === "fight" && !B.seenByParty(u);          // невидимый монстр: ни вспышки на его клетке, ни названия
+    if (!unseen) mk(u, "bt-cast"); for (const t of targets || []) if (t && t.id !== u.id && (!unseen || B.seenByParty(t) || t.side === "hero")) mk(t, "bt-cast tgt");
+    UI.banner(unseen ? "Враг во мраке применяет способность" : `${u.name}: ${name}`, 1500);
   });
   UI.fxCube = (ax, ay, size) => defer(() => {
     const fx = root.querySelector(".bt-fx"), el = document.createElement("div"); el.className = "bt-cube"; el.style.cssText = `left:${ax * cell}px;top:${ay * cell}px;width:${size * cell}px;height:${size * cell}px`;

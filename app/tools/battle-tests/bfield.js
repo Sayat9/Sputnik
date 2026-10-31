@@ -17,7 +17,7 @@ const L = require('./bui_lib.js');
     o.afterFire = [B.terrain(3, 4), B.terrain(4, 4), B.terrain(3, 5)];
     o.far = B.terrain(1, 1);
     // горение: за 3 раунда перекидывается/догорает
-    for (let i = 0; i < 4; i++) B.onRound(i + 2);
+    for (let i = 0; i < 14; i++) B.onRound(i + 2);
     o.after = [B.terrain(3, 4), B.terrain(4, 4), B.terrain(3, 3)];
     o.fireOld = Object.keys(S.fireOld || {}).length;
     // удар о преграду: толчок в край поля и в стену
@@ -37,7 +37,7 @@ const L = require('./bui_lib.js');
   ok('сцена по месту «Паучьи кроны»', A.scene === 'forest', A.scene);
   ok('огонь по бойцу поджигает паутину и сухую траву рядом', A.afterFire[0] === 'fire' && A.afterFire[1] === 'fire', A.afterFire);
   ok('дальняя паутина не горит сама', A.far === 'web', A.far);
-  ok('после 4 раундов всё догорело, огня не осталось', A.after[0] === '' && A.after[1] === '' && A.fireOld === 0, [A.after, A.fireOld]);
+  ok('через 14 раундов всё догорело, огня не осталось', A.after[0] === '' && A.after[1] === '' && A.fireOld === 0, [A.after, A.fireOld]);
   ok('толчок в край поля ранит', A.pushEdge[0] === 0 && A.pushEdge[1] > 0, A.pushEdge);
   ok('толчок в стену ранит', A.pushWall[0] === 0 && A.pushWall[1] > 0, A.pushWall);
   ok('толчок на свободную клетку не ранит', A.pushFree[0] === 1 && A.pushFree[1] === 0, A.pushFree);
