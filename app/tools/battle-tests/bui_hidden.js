@@ -8,7 +8,7 @@ const L = require('./bui_lib.js'), F = require('./bui_flow.js');
   await L.waitMode(p, 'place'); await p.click('[data-ba="place-go"]');
   ok('дошёл ход героя', await F.waitHero(p, { tries: 160 }));
   const vis = () => p.evaluate(() => { const B = Battle, ids = B.mons().map(m => m.id); return { tokens: ids.map(id => { const el = document.querySelector(`.bt-token[data-id="${id}"]`); return !!el && !el.hidden; }), order: ids.map(id => !!document.querySelector(`.bt-order [data-id="${id}"]`)) }; });
-  await p.evaluate(() => { const B = Battle, S = B.S, u = B.UI.turnUnit; for (const r of S.cells) r.fill(''); u.x = 3; u.y = 5; const [a, c] = B.mons(); a.x = 3; a.y = 0; c.x = 5; c.y = 1; a.ac = 1; c.maxHp = c.hp = 300; B.removeStatus(a, 'hidden'); B.addStatus(c, 'hidden', { k: Infinity, data: { unseen: true, dc: 99 } }); B.UI.refreshNow(); B.UI.renderPanel(); });
+  await p.evaluate(() => { const B = Battle, S = B.S, u = B.UI.turnUnit; for (const r of S.cells) r.fill(''); u.x = 3; u.y = 5; const [a, c] = B.mons(); a.x = 3; a.y = 1; c.x = 5; c.y = 2; a.ac = 1; c.maxHp = c.hp = 300; B.removeStatus(a, 'hidden'); B.addStatus(c, 'hidden', { k: Infinity, data: { unseen: true, dc: 99 } }); B.UI.refreshNow(); B.UI.renderPanel(); });
   await L.sleep(300);
   let v = await vis(); ok('затаившийся не нарисован, остальной — да', v.tokens[0] && !v.tokens[1], JSON.stringify(v));
   ok('затаившегося нет в порядке ходов', v.order[0] && !v.order[1], JSON.stringify(v));

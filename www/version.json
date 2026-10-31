@@ -1,5 +1,5 @@
 {
- "version": 1793443158,
+ "version": 1793446123,
  "files": [
   "assets/buildings/board.webp",
   "assets/buildings/church.webp",
@@ -435,7 +435,7 @@
   "assets/items/warhammer.svg": "146a73c3b76075dc5cf83d3f60f0d935",
   "assets/items/warhammer.webp": "96a5d7990847d290d359b35e7673e757",
   "assets/js/battle-act.js": "9ae38a7f3499fce36faf5119d3fdc850",
-  "assets/js/battle-ai.js": "c924327d4b6652d674c9b0f64a9446a2",
+  "assets/js/battle-ai.js": "660fc350cf83f87ddcb65b3014f6e96b",
   "assets/js/battle-core.js": "930b2fa8f263cee9f464179ba2e7842b",
   "assets/js/battle-data.js": "94bdf7f94cdcfaf987384a6cb7035668",
   "assets/js/battle-dice.js": "14b7ec294b3de6f108fc4436db88d849",
@@ -674,6 +674,6 @@
   "fonts/f8.woff2": "6cc1ee17091d59eb93821c3594e8f38f",
   "fonts/f9.woff2": "070433480b7b645f69b543f284e386ce",
   "fonts/fonts.css": "1585a72a8d157b26cb424ab433fd4e19",
-  "index.html": "06a29aaaff62673b58a6966bd6fdefad"
+  "index.html": "73dff08305f2aef0be6e18992ded7bbd"
  }
 }

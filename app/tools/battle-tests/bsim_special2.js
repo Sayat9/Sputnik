@@ -48,7 +48,7 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
       ok('туман: монстр в 2 клетках виден', B.seenByParty(M[0]) === true);
       ok('туман: монстр в 5 клетках не виден', B.seenByParty(M[1]) === false);
       const v = B.visionCells(); ok('туман: клетка в 2 шагах видна, в 4 — нет', v.has('3,4') && !v.has('3,2'), v.size);
-      S.fog = 0; ok('без тумана дальний монстр виден', B.seenByParty(M[1]) === true);
+      S.fog = 0; M[1].y = 2; ok('без тумана монстр в 4 клетках виден', B.seenByParty(M[1]) === true); M[1].y = 1;
       S.cells[3][3] = 'palisade'; for (const h of B.heroes()) { h.x = 3; h.y = 6; } M[1].y = 1; const v2 = B.visionCells();
       ok('частокол: клетки прямо за ним не видны, перед ним видны', !v2.has('3,2') && !v2.has('3,1') && v2.has('3,4'));
       ok('частокол: монстр за ним не виден', B.seenByParty(M[1]) === false);

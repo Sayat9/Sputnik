@@ -294,7 +294,7 @@
   };
   // Никого не видно: идёт к ближайшему врагу, пока не заметит его (обзор команды ограничен)
   const searchMove = async u => {
-    if (u.side !== "mon" || !canAct(u) || speedOf(u) <= 0 || has(u, "grappled") || has(u, "restrained") || has(u, "buried")) return;
+    if (!canAct(u) || speedOf(u) <= 0 || has(u, "grappled") || has(u, "restrained") || has(u, "buried")) return;
     const foes = enemiesOf(u).filter(e => alive(e) && !e.down && !has(e, "underground")); if (!foes.length) return;
     const map = B.pathMap(u, u.t.move, {}); let bc = null, cur = Math.min(...foes.map(e => dist(u, e)));
     for (const v of map.values()) { if ((v.x === u.x && v.y === u.y) || !B.canStand(u, v.x, v.y) || !frightenOK(u, v.x, v.y)) continue; const dm = Math.min(...foes.map(e => distCell(e, v.x, v.y))); if (dm < cur && (!bc || dm < bc.dm)) bc = { v, dm }; }
