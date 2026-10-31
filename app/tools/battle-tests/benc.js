@@ -244,7 +244,7 @@ const L = require('./bui_lib.js');
     const S = { ev: { list: ids }, killed: ids.map((_, i) => i), killedBy: {} };
     const plan = Battle.End.plan(S);
     const exp = {}; for (const t of g) for (const [k, n] of Object.entries(travCrystals(t))) exp[k] = (exp[k] || 0) + n;
-    const got = {}; for (const [k, it] of Object.entries(plan.stones)) got[k.slice(1)] = it.n;
+    const got = {}; for (const [k, it] of Object.entries(plan.stones)) got[it.cls] = (got[it.cls] || 0) + it.n;          // камни теперь — случайные камни монстров класса
     return { fresh: plan.fresh, xp: plan.xp, wins: plan.wins.length, exp, got, ess: g.reduce((a, t) => a + t.ess.length, 0) };
   });
   ok('награды: опыт один раз за класс путников', RW.fresh.length === 1 && RW.fresh[0] === 'tcls-7' && RW.xp === 3, JSON.stringify(RW));
@@ -326,7 +326,7 @@ const L = require('./bui_lib.js');
         await new Promise(r => setTimeout(r, 10));
       }
       if (dgUi.enc && B.running) { out.stuck++; try { B.abort(); } catch (e) {} dgUi.enc = null; continue; }
-      out.ok++; if (kl > 0) { out.kills++; if (sackTotal() > 0 && /Сумка для камней: Путники/.test(txt)) out.stones++; if (/Добыча с путников/.test(txt)) out.loot++; } if (/выпала эссенция|нёс с собой эссенцию|Бросок на эссенцию/.test(document.body.innerText) && document.querySelector('.bt-essgot:not([hidden])')) out.ess++;
+      out.ok++; if (kl > 0) { out.kills++; if (sackTotal() > 0 && /Сумка для камней:/.test(txt)) out.stones++; if (/Добыча с путников/.test(txt)) out.loot++; } if (/выпала эссенция|нёс с собой эссенцию|Бросок на эссенцию/.test(document.body.innerText) && document.querySelector('.bt-essgot:not([hidden])')) out.ess++;
     }
     return out;
   });

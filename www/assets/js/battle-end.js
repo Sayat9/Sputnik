@@ -50,7 +50,15 @@
     const stones = {};                                                                  // камни по видам монстров: id → { cls, n }, они идут в сумку для камней
     if (!ev.arena) for (const id of species) {
       const m = MONSTERS.find(x => x.id === id);
-      if (m.dyn) { const cr = travCrystals(travOf(id) || { cls: m.cls, lvl: 1, ess: [] }); for (const [k, n] of Object.entries(cr)) (stones["~" + k] ||= { cls: +k, n: 0 }).n += n; }          // путники: кристаллы по формуле, в сумке — «Находки»
+      if (m.dyn) {          // путники: камни — случайные камни монстров того же класса с этого этажа (решение автора)
+        const cr = travCrystals(travOf(id) || { cls: m.cls, lvl: 1, ess: [] }), fl = ev.floor || 1;
+        for (const [k, n] of Object.entries(cr)) {
+          let pool = MONSTERS.filter(x => !x.dyn && !x.draft && x.cls === +k && x.floor === fl);
+          if (!pool.length) pool = MONSTERS.filter(x => !x.dyn && !x.draft && x.cls === +k && x.floor <= fl);
+          if (!pool.length) pool = MONSTERS.filter(x => !x.dyn && x.cls === +k);
+          for (let i = 0; i < n; i++) { if (!pool.length) { (stones["~" + k] ||= { cls: +k, n: 0 }).n++; continue; } const pm = pool[B.rnd(pool.length)]; (stones[pm.id] ||= { cls: +k, n: 0 }).n++; }
+        }
+      }          // путники: кристаллы по формуле, в сумке — «Находки»
       else (stones[id] ||= { cls: Math.min(9, Math.max(1, m.cls)), n: 0 }).n++;
     }
     // броски на эссенцию считаем заранее; анимация показывает лучший результат

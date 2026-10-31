@@ -14,7 +14,7 @@
     { key: "potion", e: { t: "g", id: "potion", qty: 1 }, price: 3, many: true }, { key: "potion-good", e: { t: "g", id: "potion-good", qty: 1 }, price: 12, many: true },
     { key: "arrow40", e: { t: "g", id: "arrow", qty: 40 }, price: 10, label: "Колчан на 40 стрел" }, { key: "arrow20", e: { t: "g", id: "arrow", qty: 20 }, price: 5, label: "Колчан на 20 стрел" },
     { key: "shovel", e: { t: "g", id: "shovel", qty: 1 }, price: 8 }, { key: "shovel-good", e: { t: "g", id: "shovel-good", qty: 1 }, price: 15 },
-    { key: "flute", e: { t: "g", id: "flute", qty: 1 }, price: 8 }, { key: "firstaid", e: { t: "g", id: "firstaid", qty: 1 }, price: 20, many: true }, { key: "compass", special: "compass", price: 30 },
+    { key: "flute", e: { t: "g", id: "flute", qty: 1 }, price: 8 }, { key: "firstaid", e: { t: "g", id: "firstaid", qty: 3 }, price: 20, many: true, label: "Набор первой помощи (3 заряда)" }, { key: "compass", special: "compass", price: 30 },
   ];
   const FORGE_W = ["dagger", "spear", "pike", "mace", "warhammer", "sword", "rapier", "greatsword", "gloves", "staff", "axe", "greataxe", "shortbow", "longbow", "shield", "tower-shield"];
   const FORGE_A = ["leather", "hide", "chainmail"];
@@ -60,8 +60,8 @@
   };
   T.state = () => ui;
   // Клиент игрока: показывает здание, открытое у ведущего (только просмотр, время не тратится).
-  T.mirror = snap => { ui = { ...snap, mirror: true }; host.hidden = false; document.body.classList.add("forge-open"); render(); };
-  T.unmirror = () => { if (ui && ui.mirror) { ui = null; host.hidden = true; host.innerHTML = ""; document.body.classList.remove("forge-open"); } };
+  T.mirror = snap => { ui = { ...snap, mirror: true }; host.classList.add("tw-mirror"); host.hidden = false; document.body.classList.add("forge-open"); render(); };
+  T.unmirror = () => { host.classList.remove("tw-mirror"); if (ui && ui.mirror) { ui = null; host.hidden = true; host.innerHTML = ""; document.body.classList.remove("forge-open"); } };
   const spend = n => { ui.cost += n; };
   const visit = () => { ui.cost = Math.max(ui.cost, 1); };
 
@@ -154,6 +154,7 @@
     if (!sel) return `<span class="tw-hint">Нажми предмет, чтобы купить${sellsStones() ? "; свои расходники — нажми в рюкзаке, камни — из сумки" : ""}. Удержи: описание.</span>`;
     if (sel.side === "bag") {
       const e = (c.bag || [])[sel.i], it = e && itemOf(e, c); if (!it) return "";
+      if (e.art && ARTIFACTS[e.art] && (ui.b === "forge" || ui.b === "shop")) { const row = artRows().find(r => r.key === `b:${c.id}:${sel.i}`); if (row) return `<b>${esc(artName(e.art))}</b><span class="tw-btns"><button class="fx-btn primary" data-t="artsell" data-key="${row.key}" data-b="forge">Продать · +${artPay(row, "forge")}</button></span><span class="tw-hint">Артефакты скупает кузнец.</span>`; }
       if (ui.b === "shop" && unitPrice(e) > 0) { const q = e.qty || 1, one = sellValue(e, 1), all = sellValue(e, q); return `<b>${esc(it.name)}${q > 1 ? " × " + q : ""}</b><span class="tw-btns">${one ? `<button class="fx-btn" data-t="sell1" data-i="${sel.i}">Продать 1 · +${one}</button>` : ""}<button class="fx-btn primary" data-t="sellall" data-i="${sel.i}"${all ? "" : " disabled"}>Продать${q > 1 ? " все" : ""} · +${all}</button></span><span class="tw-hint">Стандартная цена: за штуку ${(Math.round(unitPrice(e) * 100) / 100)} монет.</span>`; }
       return `<b>${esc(it.name)}${e.qty > 1 ? " × " + e.qty : ""}</b><span class="tw-hint">${sellsStones() ? "Магазин скупает камни (из сумки) и расходники: пайки, зелья, факелы, стрелы, лопаты, аптечки." : "Кузнец ничего не скупает."}</span>`;
     }
@@ -184,8 +185,8 @@
     const c = hero(), forge = ui.b === "forge", title = forge ? "Кузница" : "Магазин";
     if (!c) return frame(title, "Рафдония", noParty());
     const left = `<aside class="tw-bagcol">${heroStrip()}<div class="gold-row">${COIN_SVG}<b>${goldOf(c)}</b><small>монет у героя</small></div>${bagGrid(c, ui.sel && ui.sel.side === "bag" ? ui.sel.i : null)}${forge ? "" : sackTile()}</aside>`;
-    const tabs = forge ? `<div class="tw-tabs"><button class="fx-btn" role="tab" aria-selected="${(ui.tab || "base") === "base"}" data-t="ftab" data-k="base">Обычное</button><button class="fx-btn" role="tab" aria-selected="${ui.tab === "steel"}" data-t="ftab" data-k="steel">Улучшенное</button><button class="fx-btn" role="tab" aria-selected="${ui.tab === "art"}" data-t="ftab" data-k="art">Скупка</button><button class="fx-btn" role="tab" aria-selected="${ui.tab === "fix"}" data-t="ftab" data-k="fix">Починка</button></div>` : "";
-    if (forge && (ui.tab === "art" || ui.tab === "fix")) {
+    const tabs = forge ? `<div class="tw-tabs"><button class="fx-btn" role="tab" aria-selected="${(ui.tab || "base") === "base"}" data-t="ftab" data-k="base">Обычное</button><button class="fx-btn" role="tab" aria-selected="${ui.tab === "steel"}" data-t="ftab" data-k="steel">Улучшенное</button><button class="fx-btn" role="tab" aria-selected="${ui.tab === "fix"}" data-t="ftab" data-k="fix">Починка</button></div>` : "";
+    if (forge && ui.tab === "fix") {
       const right0 = `<section class="tw-shopcol"><div class="tw-keeper">${img("assets/npc/smith.webp", "Кузнец")}<div class="tw-bubble">${ui.tab === "fix" ? "Что сломалось — несите, всё починю." : "Редкие вещи беру за хорошие деньги."}</div></div><div class="tw-sheet"><div class="tw-rod"></div><div class="tw-sheet-in">${tabs}${ui.tab === "fix" ? fixHtml(c) : artSellHtml("forge")}</div></div></section>`;
       return `<div class="tw-panel fx-frame">${head(title, "Рафдония")}<div class="tw-shop">${left}${right0}</div><footer class="tw-foot">${msgLine()}</footer></div>`;
     }
@@ -595,15 +596,14 @@
     B.tower = {
       render() {
         const c = hero(); if (!c) return frame("Башня магов", "Рафдония", noParty());
-        const tab = ui.tab === "art" ? "art" : ui.tab === "sell" ? "sell" : "ess";
-        const tabs = `<div class="tw-tabs"><button class="fx-btn" role="tab" aria-selected="${tab === "ess"}" data-t="ttab" data-k="ess">Эссенции</button><button class="fx-btn" role="tab" aria-selected="${tab === "sell"}" data-t="ttab" data-k="sell">Скупка</button><button class="fx-btn" role="tab" aria-selected="${tab === "art"}" data-t="ttab" data-k="art">Артефакты</button></div>`;
-        if (tab === "sell") return frame("Башня магов", "Рафдония", `${heroStrip()}${tabs}<p class="tw-lead">Маг скупает артефакты. Золото получает выбранный герой.</p>${artSellHtml("tower")}${msgLine()}`);
+        const tab = ui.tab === "art" ? "art" : "ess";
+        const tabs = `<div class="tw-tabs"><button class="fx-btn" role="tab" aria-selected="${tab === "ess"}" data-t="ttab" data-k="ess">Эссенции</button><button class="fx-btn" role="tab" aria-selected="${tab === "art"}" data-t="ttab" data-k="art">Артефакты</button></div>`;
         if (tab === "art") {
           artSync();
           const ids = Object.keys(ARTIFACTS).filter(id => artState().seen[id]);
           const rows = ids.map(id => { const A = ARTIFACTS[id], known = artKnown(id), price = artPrice(id);
             return `<div class="tw-row"><div class="tw-who"><span class="tw-ph sq" style="display:grid;place-items:center;color:var(--fx-gold)">${A.ico()}</span><div><b>${esc(artName(id))}</b><small>${known ? `${A.cls} класс · цена ${artValue(id)} з. · ${esc(A.text)}` : `${A.cls} класс · свойства неизвестны`}</small></div></div>
-              ${known ? `<span class="tw-done">${ICO_CHECK}</span>` : `<button class="fx-btn primary" data-t="aid" data-id="${id}"${partyGold() >= price ? "" : " disabled"}>${price}</button>`}</div>`; }).join("");
+              <span class="tw-btns" style="flex-wrap:nowrap">${known ? `<span class="tw-done">${ICO_CHECK}</span>` : `<button class="fx-btn primary" data-t="aid" data-id="${id}"${partyGold() >= price ? "" : " disabled"}>${price}</button>`}${(() => { const own = artRows().find(x => x.id === id); return own ? `<button class="fx-btn" data-t="artsell" data-key="${own.key}" data-b="tower" title="Продать магу">Продать · +${artPay(own, "tower")}</button>` : ""; })()}</span></div>`; }).join("");
           return frame("Башня магов", "Рафдония", `${heroStrip()}${tabs}<p class="tw-lead">Маг определит артефакт за деньги: откроются название и свойства, сведения попадут в библиотеку артефактов.</p>
             ${ids.length ? `<div class="tw-rows">${rows}</div>` : `<p class="tw-msg">Артефактов пока нет: они появляются, когда отряд находит сокровища.</p>`}${msgLine()}`);
         }
@@ -636,7 +636,7 @@
         const known = eduKnows(c, k.id), locked = k.need && !eduKnows(c, k.need), can = !known && !locked && partyGold() >= k.price;
         return `<div class="tw-row"><div class="tw-who"><div><b>${esc(k.name)}</b><small>${esc(k.text)}${locked ? " · сначала «" + esc(ACADEMY.find(x => x.id === k.need).name) + "»" : ""}</small></div></div>
           ${known ? `<span class="tw-done">${ICO_CHECK}</span>` : `<button class="fx-btn primary" data-t="learn" data-id="${k.id}"${can ? "" : " disabled"}>${k.price}</button>`}</div>`; }).join("");
-      return frame("Академия", "Рафдония", `${heroStrip()}${tabs}<p class="tw-lead">Выбери героя и оплати курс. Знания остаются за ним одним — у остальных курсов нет.</p><div class="tw-rows">${rows}</div>${msgLine()}`);
+      return frame("Академия", "Рафдония", `<button class="fx-btn primary" data-t="recruit" style="width:100%">Завербовать героя</button><p class="tw-hint" style="margin:0">Новый наёмник создаётся как обычный герой и вступает в отряд.</p>${heroStrip()}${tabs}<p class="tw-lead">Выбери героя и оплати курс. Знания остаются за ним одним — у остальных курсов нет.</p><div class="tw-rows">${rows}</div>${msgLine()}`);
     },
   };
 
@@ -696,7 +696,7 @@
       if (ui.sleep[c.id]) { st.fat = 0; st.awake = 0; c.hp = maxHp(c); c.mp = maxMp(c); c.insp = 1; c.flags = {}; slept++; if (hasCharm(c, "repair-charm")) for (const e of Object.values(c.equip || {})) if (isDurable(e)) durFix(e, 1); }
       if (ui.food[c.id]) { st.sat = 9; st.starve = 0; ate++; }
     }
-    spend(slept ? 3 : 1); ui.sleep = {}; ui.food = {};
+    ui.cost = slept ? Math.max(ui.cost, 3) : Math.max(ui.cost, 1); ui.sleep = {}; ui.food = {};          // ночь в таверне — ровно 3 городских действия (раньше прибавлялось к посещению: выходило 4)
     ui.msg = `Оплачено ${total}: спали ${slept}, поели ${ate}.`; saveChar();
   }
   function analyze(id) {
@@ -801,6 +801,7 @@
       }
       case "sk-sell": skSell(); break;
       case "buy": buy(+ds.n); break;
+      case "recruit": { const c = hero(); T.close(); if (typeof openForge === "function") openForge("race", "more"); return; }
       case "sell1": sellItem(+ds.i, false); break;
       case "sellall": sellItem(+ds.i, true); break;
       case "tv": { const m = ui[ds.k]; m[ds.id] = !m[ds.id]; break; }

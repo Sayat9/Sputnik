@@ -171,3 +171,14 @@
 .tw-sk-total { font-size: 14px; color: var(--fx-text); text-align: center; }
 .tw-sk-total b { color: var(--fx-gold-hi); font: 700 16px var(--f-data); }
 .tw-clock { display: grid; gap: 1px; text-align: right; font-size: 11px; line-height: 1.2; color: var(--fx-muted, #b9a98a); margin-right: 8px; } .tw-clock b { color: var(--fx-gold-hi, #f4d48e); font-size: 12px; }
+
+/* окно здания у игрока (смотрит то, что делает ведущий): листать и открывать подробности нельзя */
+#townov.tw-mirror, #townov.tw-mirror * { pointer-events: none !important; }
+#townov.tw-mirror .tw-scroll, #townov.tw-mirror .tw-bagcol, #townov.tw-mirror .tw-shopcol { overflow: hidden !important; }
+
+/* ничего не выходит за рамку здания: строки переносятся, кнопки переносят текст */
+.tw-shopcol, .tw-bagcol, .tw-sheet, .tw-sheet-in, .tw-scroll { min-width: 0; max-width: 100%; box-sizing: border-box; }
+.tw-sheet-in { overflow-x: hidden; overflow-wrap: anywhere; }
+.tw-row { flex-wrap: wrap; } .tw-who { flex: 1 1 140px; } .tw-row .fx-btn, .tw-btns .fx-btn { white-space: normal; text-align: center; }
+.tw-foot .tw-btns { justify-content: stretch; } .tw-foot .tw-btns .fx-btn { flex: 1 1 auto; }
+.tw-tabs .fx-btn { min-width: 0; white-space: normal; }

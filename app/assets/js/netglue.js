@@ -145,6 +145,13 @@
       try { if (forge && forge.open && forge.step === "team") renderForge(true); else if (!location.hash.slice(1)) rerender(); } catch (e) {}          // ведущий сразу видит нового героя в отряде
       return { ok: true, id: c.id };
     });
+    // Игрок передаёт предмет герою, который ему не принадлежит (герой ведущего или другого игрока): ведущий кладёт предмет в рюкзак получателя.
+    N.handle("giveItem", (d, link, p) => {
+      const to = d && heroById(d.to); if (!p || !to || !d.entry || !d.entry.id) return { ok: false, why: "нет получателя" };
+      const e = { ...d.entry, qty: Math.max(1, Math.min(99, parseInt(d.entry.qty, 10) || 1)) }, left = addToBag(to, e);
+      saveChar(); schedule(); toast(`${p.name} передал(а) ${to.name}: ${(itemOf(e) || {}).name || e.id}${e.qty > 1 ? " × " + (e.qty - left) : ""}`);
+      return { ok: true, left };
+    });
     N.handle("sfx", (d, link, p) => { if (!d || !window.Sfx) return; Sfx.play(d.name, d.i); N.broadcast("sfx", { ...d, from: (p && p.pid) || d.from }); });          // звук от игрока: ведущий играет и рассылает остальным
     N.handle("bye", (d, link, p) => { if (p) { p.link = null; p.online = false; } renderHostPanel(); });
   }
@@ -230,6 +237,7 @@
   G.keepAlive = keepAlive;
   const myPid = () => N.pid();
   const ownHeroes = () => (state.party || []).filter(c => c.owner && c.owner === myPid());
+  G.giveTo = async (toId, entry) => { try { return await N.callHost("giveItem", { to: toId, entry }, 8000); } catch (e) { return { ok: false, why: String(e && e.message || e) }; } };
   G.isMine = c => !!(c && c.owner && c.owner === myPid());
 
   G.initPlayer = function () {

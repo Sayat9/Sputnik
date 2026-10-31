@@ -398,6 +398,8 @@ body.fx-page { background: radial-gradient(ellipse at 50% -10%, #3A2B1A 0%, var(
 body.fx-page::before { background: var(--fx-bg); }
 body.fx-page header.top { display: none; }
 body.forge-open { overflow: hidden; }
+html, body { overscroll-behavior: none; }
+body.forge-open, body.bt-active, body:has(.mapov:not([hidden])), body:has(.bt-root) { overflow: hidden; }          /* экран под окнами не двигается (правило автора: не вмещается — скролл внутри окна или переделать) */
 
 .fx-btn {
   font: 700 17px/1.1 var(--f-fancy); letter-spacing: .05em; color: var(--fx-gold-hi); cursor: pointer;
@@ -1141,7 +1143,7 @@ const ARMOR = [
   { cat: "heavy", label: "Тяжёлая", rule: "КД без Ловкости · надеть 10 мин · снять 5 мин",
     desc: "Без нужной Силы скорость падает на 3 м. Тяжёлую броню трудно нести и долго снимать перед Отдыхом.",
     items: [
-      { id: "chainmail", name: "Кольчуга", base: 16, ac: "16", str: 13, stealth: true, weight: 27.5, price: 120,
+      { id: "chainmail", name: "Кольчуга", base: 14, ac: "14", str: 13, stealth: true, weight: 27.5, price: 120,
         note: "Полная кольчуга с подкольчужником. Кольца местами в ржавчине, но целые." },
     ]},
 ];
@@ -2349,7 +2351,7 @@ const GEAR = {
   ration:  { short: "Паёк", name: "Паёк", weight: 1, stack: 10, use: "eat", note: "Еда и вода на сутки. 1 паёк = сыт 3 действия." },
   potion:  { short: "Зелье", name: "Слабое зелье лечения", weight: 0.25, stack: 5, use: "drink", heal: "1к4 + 2", note: "Восстанавливает 1к4 + 2 ОЗ (3–6, в среднем 4,5): около трети ОЗ героя 1-го уровня." },
   torch:   { short: "Факел", name: "Факел", weight: 0.5, stack: 5, note: "Горит около часа, яркий свет 6 м." },
-  firstaid: { short: "Аптечка", name: "Набор первой помощи", weight: 0.5, stack: 3, note: "Бинты, мазь и иглы. В бою — действие «Первая помощь»: останавливает кровотечение, лечит 1к4 ОЗ и поднимает павшего союзника. Научившись на курсе первой помощи в Академии, герой лечит заметно лучше." },
+  firstaid: { short: "Аптечка", name: "Набор первой помощи", weight: 0.5, stack: 3, note: "Набор на 3 заряда: каждое применение тратит один. Бинты, мазь и иглы. В бою — действие «Первая помощь»: останавливает кровотечение, лечит 1к4 ОЗ и поднимает павшего союзника. Научившись на курсе первой помощи в Академии, герой лечит заметно лучше." },
   flute:   { short: "Флейта", name: "Флейта", weight: 0.25, stack: 1, note: "Музыкальный инструмент. Играть на привале: проверка к20 + Ловкость или Интеллект (лучшее). Без навыка: ниже 10 — +1 Усталость отряду, 10–15 — ничего, 16+ снимает 1 Усталость. С навыком (эссенция гоблина-крысолова): Сл 5, 6–15 снимает 1, 16+ снимает 2. Игра занимает действие." },
   "calm-flute": { short: "Флейта+", name: "Флейта успокоения", weight: 0.25, stack: 1, cls: 9, treasure: true, note: "Артефакт 9 класса. Играть на привале: наказания за провал нет, Усталость снимается гарантированно (минимум 1). В бою: действие — всему отряду +2 клетки скорости до конца боя; раз в день." },
   arrow:   { short: "Стрелы", name: "Стрелы", weight: 0.025, stack: 40, note: "Боеприпасы для луков, колчан на 40. В бою стрела может сломаться; целые остаются на поле и подбираются после боя, если отряд не бежал." },
@@ -2717,7 +2719,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 68;
+const BATTLE_REV = 69;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }
@@ -3232,10 +3234,6 @@ function forgeWeapon() {
           <ul>${(x.props.length ? x.props : ["Без особых свойств"]).map(p => `<li class="tap" data-fx-info="weapon:${x.id}:${esc(p)}">${p}</li>`).join("")}</ul>
         </div>
       </button>`).join("")}
-      ${(() => { const dg = WEAPONS.find(x => x.id === "dagger"), on = d.weapon === "dagger" && d.knife; return `<button class="race-card fx-frame" data-fx-twin aria-pressed="${on}">
-        <div class="wpn-art">${img(ART.weapon("twin-daggers"), "Парные кинжалы")}${on ? `<span class="tick">${TICK}</span>` : ""}</div>
-        <h3>Парные кинжалы</h3>
-        <div class="bonus-box"><div class="st">${dg.dmg} ${dg.type} ×2 · ${kgf(dg.weight * 2)} кг</div><ul><li>Лёгкое</li><li>По кинжалу в каждой руке</li></ul></div></button>`; })()}
     </div>
     ${(() => { const sh = WEAPONS.find(x => x.id === "shield"), block = w && (isTwoHandedWeapon(w) || w.group === "ranged") && !(d.race === "barbarian") && !(w.props || []).includes("Можно со щитом");
       const bow = !!w && w.group === "ranged", light = w && (bow || canTwinWeapon(w, d.race)), kn = light && d.knife, sec = bow ? WEAPONS.find(x => x.id === "dagger") : w;
@@ -6788,6 +6786,14 @@ $hero.addEventListener("click", e => {
     case "give": {
       const to = heroById(ds.to);
       const want = Math.max(1, Math.min(entry.qty || 1, heroUi.giveN || entry.qty || 1)), rest = (entry.qty || 1) - want;          // сколько передать
+      if (!isMaster() && window.NetGlue && NetGlue.giveTo && !NetGlue.isMine(to)) {          // чужой герой: передаёт ведущий (у игрока копия только для просмотра)
+        NetGlue.giveTo(to.id, { ...entry, qty: want }).then(r => {
+          if (!r || !r.ok) { toast("Не удалось передать: " + ((r && r.why) || "нет связи")); return; }
+          const given = want - (r.left || 0); entry.qty = (entry.qty || 1) - given; if (entry.qty <= 0) c.bag.splice(c.bag.indexOf(entry), 1);
+          heroUi.sel = null; heroUi.give = false; heroUi.giveN = 0; heroAfterChange(r.left ? `Передано частично: у ${to.name} не хватило места` : `Передано: ${to.name}`);
+        });
+        return;
+      }
       const left = addToBag(to, { ...entry, qty: want });
       if (left === want) { toast(`У ${to.name} рюкзак полон`); return; }
       entry.qty = left + rest; if (!entry.qty) c.bag.splice(heroUi.sel, 1);

@@ -50,7 +50,7 @@ const L = require('./bui_lib.js');
     return out;
   });
   ok('название стального меча', res.name === 'Стальной меч', res.name);
-  ok('кольчуга +1 КД и название', res.chainName === 'Стальная кольчуга' && res.chainAc === '17', res.chainName + res.chainAc);
+  ok('кольчуга +1 КД и название', res.chainName === 'Стальная кольчуга' && res.chainAc === '15', res.chainName + res.chainAc);
   ok('стальной щит: название', res.shieldName === 'Стальной щит', res.shieldName);
   ok('КД: кольчуга +1 и щит +1 = +2', res.acDiff === 2, res.acDiff);
   ok('стальной меч: +1 к атаке и +1 к урону', res.hit === 1 && res.dmg === 1 && res.parts, JSON.stringify(res));

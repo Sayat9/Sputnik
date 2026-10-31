@@ -184,7 +184,7 @@
     const l = root.querySelector(".bt-objs"); let h = "";
     const visAll = S.phase === "fight" || S.phase === "result" ? B.visionCells() : null, seenAt = o => !visAll || visAll.has(o.x + "," + o.y);          // за полным укрытием и в тумане ничего не видно
     for (const o of S.objs) if (seenAt(o) && o.kind === "trap" && (!o.hidden || o.owner === "hero")) h += `<div class="bt-obj trap" style="left:${o.x * cell}px;top:${o.y * cell}px;width:${cell}px;height:${cell}px"><svg viewBox="0 0 100 100">${D.SVG.trap}</svg></div>`;
-    for (const o of S.objs) if (seenAt(o) && o.kind === "find" && typeof FINDS !== "undefined" && FINDS[o.fid]) { const f = FINDS[o.fid]; h += `<div class="bt-obj find" style="left:${o.x * cell}px;top:${o.y * cell}px;width:${cell}px;height:${cell}px"><i>${FIND_KIND[f.kind].icon(f.color)}</i></div>`; }
+    for (const o of S.objs) if (seenAt(o) && o.kind === "find" && typeof FINDS !== "undefined" && FINDS[o.fid]) { const f = FINDS[o.fid]; h += `<div class="bt-obj find" style="left:${o.x * cell}px;top:${o.y * cell}px;width:${cell}px;height:${cell}px"><i>${FIND_KIND[f.kind].icon(findKnownNow(o.fid) ? f.color : ({ herb: "#8fbf6a", mush: "#cfc6b0", stone: "#9aa7b5" }[f.kind] || "#aab"))}</i></div>`; }          // неизвестная находка одного цвета на весь вид: по цвету не угадать
     for (const o of S.objs) if (seenAt(o) && o.kind === "illusion") h += `<div class="bt-obj illusion" title="Иллюзия «Морока»" style="left:${o.x * cell}px;top:${o.y * cell}px;width:${cell}px;height:${cell}px">${ico("eye")}</div>`;
     for (const b of S.bodies || []) if (!b.eaten && seenAt(b)) h += `<div class="bt-obj body" title="Павший: ${esc(b.name)}" style="left:${b.x * cell}px;top:${b.y * cell}px;width:${cell}px;height:${cell}px">${ico("skull")}</div>`;
     l.innerHTML = h;
@@ -197,6 +197,7 @@
       return `<div class="bt-mark" style="left:${e.x * cell}px;top:${e.y * cell}px;width:${cell}px;height:${cell}px">${wp}${ar}</div>`;
     }).join("");
   }
+  const findKnownNow = fid => { try { const hs = B.heroes(); return typeof findKnown === "function" ? hs.some(h => h.hero && findKnown(h.hero, fid)) : true; } catch (e) { return true; } };
   function renderOrder(S) {
     const el = root.querySelector(".bt-order"), rd = root.querySelector(".bt-round b"); if (rd) rd.textContent = S.round;
     if (!S.order.length) { el.innerHTML = ""; return; }
