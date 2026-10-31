@@ -2715,7 +2715,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 62;
+const BATTLE_REV = 63;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }
@@ -5059,10 +5059,10 @@ function achCheck() {
 const xpKeyOf = id => (MONSTERS.find(m => m.id === id) || {}).xpKey || id;
 const xpInfo = key => { const m = MONSTERS.find(x => x.id === key); return m ? { cls: m.cls, name: m.name } : { cls: +key.slice(5), name: `Путники (${key.slice(5)} класс)` }; };
 function awardXp(ids) {
-  const j = journal(), fresh = [...new Set(ids.map(xpKeyOf))].filter(id => !j.known[id]?.xpDone);
+  const j = journal(), fresh = [...new Set(ids.map(xpKeyOf))].filter(id => /^tcls-/.test(id) || !j.known[id]?.xpDone);          // путники дают опыт каждый раз (по классу группы), монстры — только за новый вид
   if (!fresh.length || !state.party.length) return;
   const total = fresh.reduce((a, id) => a + monXp(xpInfo(id)), 0);
-  fresh.forEach(id => { seenKeys(id, []); j.known[id].xpDone = new Date().toISOString(); });
+  fresh.forEach(id => { if (/^tcls-/.test(id)) return; seenKeys(id, []); j.known[id].xpDone = new Date().toISOString(); });
   const ups = addXpAll(total);
   logRun(`Опыт за первых убитых (${fresh.map(id => xpInfo(id).name).join(", ")}): +${total} каждому герою.${ups.length ? " Новый уровень: " + ups.join(", ") + "." : ""}`);
   setTimeout(() => toast(ups.length ? "Новый уровень: " + ups.join(", ") : `+${total} опыта каждому`), 30);

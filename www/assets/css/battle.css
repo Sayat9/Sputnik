@@ -351,3 +351,6 @@ body.bt-active .dice-fab { display: none; }
 .bd-skip { flex: 0 0 auto; padding: 10px 12px; font-size: 13px; }
 .bd-skip[hidden], .bd-roll[hidden] { display: none; }
 .bd-ov.autoplay .bd-hint { display: none; }
+/* Меню боя: длинные подписи переносятся, кнопки не выходят за экран */
+.bt-switches .fx-btn, .bt-modal .fx-btn { white-space: normal; overflow-wrap: anywhere; box-sizing: border-box; max-width: 100%; line-height: 1.25; height: auto; min-height: 44px; padding: 10px 12px; }
+.bt-switches { min-width: 0; }

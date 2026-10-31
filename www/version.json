@@ -1,5 +1,5 @@
 {
- "version": 1793459265,
+ "version": 1793460714,
  "files": [
   "assets/buildings/board.webp",
   "assets/buildings/church.webp",
@@ -349,7 +349,7 @@
   "assets/buildings/shop.webp": "17557dbad4e5d0e8e446f2cb6ae3f870",
   "assets/buildings/tavern.webp": "812c88667997f640e80c34b331e547b2",
   "assets/buildings/tower.webp": "a8d571c86cb743cdbcdfe7d63aaed744",
-  "assets/css/battle.css": "d58113a8f944a331d10020fe1545b45c",
+  "assets/css/battle.css": "ab2a9625084a6890fe2a598a47c66f1c",
   "assets/css/town.css": "0d9fefca0d357671094e8ba60e4bde61",
   "assets/events/ambush.svg": "cc4762918cfd926e70eaa40ce53b322c",
   "assets/events/monsters.svg": "7bf5ba9509d2fa188e67d5774af858d6",
@@ -439,17 +439,17 @@
   "assets/js/battle-core.js": "7ef9809931f747ede35b3eaef1f305ba",
   "assets/js/battle-data.js": "94bdf7f94cdcfaf987384a6cb7035668",
   "assets/js/battle-dice.js": "14b7ec294b3de6f108fc4436db88d849",
-  "assets/js/battle-end.js": "bf8d2a8aadcae976bb01ea572fc64736",
+  "assets/js/battle-end.js": "9aa62e1984adda1320a266a0353b796b",
   "assets/js/battle-env.js": "1539446bf631d7cbe4dc87c9d033b7b7",
   "assets/js/battle-ess.js": "9ae198ae5b6f2f82777810e7a33a91dd",
   "assets/js/battle-ess2.js": "540ab696b07fabe4bc4ad08ed51c52ef",
   "assets/js/battle-ext.js": "71cdb0ae150fac652989c8a2ef02a315",
-  "assets/js/battle-menu.js": "ea51db940a3f9351c98a33827c083414",
-  "assets/js/battle-net.js": "2ec8914d230f7ef8ef96df7662aa1e4e",
+  "assets/js/battle-menu.js": "1a5d62c0e63b6a0a433654966d4db281",
+  "assets/js/battle-net.js": "cfdc7c13d23baa0d0817006301eb8b18",
   "assets/js/battle-rules.js": "01581ea541b6365504708d534925f2bd",
-  "assets/js/battle-ui.js": "0aa0c692ee7d7f116357c2307d782c88",
+  "assets/js/battle-ui.js": "2f17aeeb68e57d1e54ab83761d0d5f83",
   "assets/js/battle-weap.js": "cd641c2f55a95ffd4ddc833747704106",
-  "assets/js/battle.js": "f7d6ffbb9da14df8b780d65812556151",
+  "assets/js/battle.js": "b24ea2eaa0a9a5e4dde35ea055fbb633",
   "assets/js/net.js": "2e8be9ea96e5cf1bd44c120e636e4520",
   "assets/js/netglue.js": "539b5ecbf51cd84a85bf26062119c931",
   "assets/js/town.js": "3845cde6165b5ca47104ef12e90032df",
@@ -674,6 +674,6 @@
   "fonts/f8.woff2": "6cc1ee17091d59eb93821c3594e8f38f",
   "fonts/f9.woff2": "070433480b7b645f69b543f284e386ce",
   "fonts/fonts.css": "1585a72a8d157b26cb424ab433fd4e19",
-  "index.html": "454ba0e181a5bcf93c4d362ba763c90f"
+  "index.html": "88869170c9268f3b7ccceb2a893b4be9"
  }
 }

@@ -368,7 +368,7 @@
     UI.setHl(map);
   };
   UI.placeDone = function () { UI.setHl(new Map()); UI.mode = "idle"; const p = UI.panelPlace; UI.panelPlace = null; if (p) p.done(); };
-  UI.reveal = async function (S) { S.hideMons = false; UI.refreshNow(); const names = B.mons().filter(m => !has(m, "hidden")).map(m => m.name).join(", "); UI.banner(`Враги: ${names}`, 2600); await sleep(1000); };
+  UI.reveal = async function (S) { S.hideMons = false; UI.refreshNow(); const names = B.mons().filter(m => !has(m, "hidden") && B.seenByParty(m)).map(m => m.name).join(", "); UI.banner(names ? `Враги: ${names}` : "Врагов пока не видно", 2600); await sleep(1000); };
   UI.start = async function (S) { UI.refreshNow(); UI.banner(S.ambush ? "Засада! Монстры ходят первыми" : S.heroAmbush ? "Засада отряда! Герои ходят первыми" : "Бой начался!", 1600); await sleep(600); };
   UI.turnStart = async function (u) { UI.refreshNow(); UI.banner(u.side === "hero" ? `Ход: ${u.name}` : `Ходит: ${u.name}`, 1100); if (u.side === "mon") await sleep(350); };
   UI.turnEnd = function (u) { UI.refresh(); };

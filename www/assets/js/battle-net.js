@@ -143,7 +143,7 @@
   function watchBox() {
     if (wEl && document.body.contains(wEl)) return wEl;
     wEl = document.createElement("div"); wEl.id = "bnwatch";
-    wEl.style.cssText = "position:fixed;left:50%;top:58px;transform:translateX(-50%);z-index:9300;width:min(92vw,360px);padding:10px 14px;border-radius:12px;background:rgba(20,14,8,.94);border:1px solid #6e5634;color:#f4e8cc;text-align:center;pointer-events:none;box-shadow:0 6px 24px rgba(0,0,0,.5);font:14px/1.35 inherit";
+    wEl.style.cssText = "position:fixed;left:50%;top:58px;transform:translateX(-50%);z-index:9300;width:min(92vw,380px);padding:14px 16px;border-width:2px;border-radius:12px;background:rgba(20,14,8,.94);border:1px solid #6e5634;color:#f4e8cc;text-align:center;pointer-events:none;box-shadow:0 6px 24px rgba(0,0,0,.5);font:14px/1.35 inherit";
     document.body.appendChild(wEl); return wEl;
   }
   BN.show = function (m) {
@@ -153,11 +153,11 @@
     const el = watchBox(); el.hidden = false;
     const head = `<small style="opacity:.75">${m.side === "hero" ? "Герой" : "Враг"}: ${esc(m.who || "")}</small><br><b>${esc(m.title || "Бросок")}</b>${m.sub ? `<br><small>${esc(m.sub)}</small>` : ""}`;
     let body = "";
-    if (m.k === "start") body = `<div style="margin-top:4px;opacity:.8">бросает кубики…</div>`;
-    else if (m.k === "res") body = `<div style="margin-top:4px;font-size:26px;font-weight:700;color:#f4d48e">${m.total}</div>${m.nat != null && m.nat !== m.total ? `<small>на кубике ${m.nat}</small>` : ""}`;
+    if (m.k === "start") body = `<div style="margin-top:6px;font-size:20px;opacity:.9">🎲 бросает кубики…</div>`;
+    else if (m.k === "res") body = `<div style="margin-top:4px;font-size:44px;line-height:1.1;font-weight:700;color:#f4d48e">${m.total}</div>${m.nat != null && m.nat !== m.total ? `<small>на кубике ${m.nat}</small>` : ""}`;
     else if (m.k === "fin") body = `<div style="margin-top:4px;color:${m.ok === false ? "#e8a090" : "#b8e0a0"}">${esc(m.text || "")}</div>`;
     el.innerHTML = head + body;
-    clearTimeout(wT); wT = setTimeout(() => { if (wEl) wEl.hidden = true; }, m.k === "start" ? 9000 : 3200);
+    clearTimeout(wT); wT = setTimeout(() => { if (wEl) wEl.hidden = true; }, m.k === "start" ? 12000 : 5000);
   };
   const esc = s => String(s == null ? "" : s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   // Сводка спасбросков: ведущий показывает всем; перебросить можно только за своего героя, и только на своём телефоне.

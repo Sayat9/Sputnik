@@ -45,7 +45,7 @@
 
   function rewardsPlan(S, outcome) {
     const ev = S.ev, killed = S.killed.slice(), species = killed.map(i => ev.list[i]);
-    const fresh = [...new Set(species.map(xpKeyOf))].filter(id => !(journal().known[id] && journal().known[id].xpDone));          // путники: опыт по классу (trav-9/8/7), а не за каждого
+    const fresh = [...new Set(species.map(xpKeyOf))].filter(id => /^tcls-/.test(id) || !(journal().known[id] && journal().known[id].xpDone));          // путники — опыт каждый раз          // путники: опыт по классу (trav-9/8/7), а не за каждого
     const xp = fresh.reduce((a, id) => a + monXp(xpInfo(id)), 0);
     const stones = {};                                                                  // камни по видам монстров: id → { cls, n }, они идут в сумку для камней
     if (!ev.arena) for (const id of species) {
@@ -64,7 +64,8 @@
     });
     const wins = S.forceWins ? S.forceWins.map(id => ({ id, r: 99 })) : rolls.filter(x => x.r >= ESS_CHANCE && !((MONSTERS.find(m => m.id === x.id) || {}).dyn));          // forceWins — только для проверок
     const best = S.forceWins ? wins[0] : rolls.length ? rolls.reduce((a, b) => (a.r >= b.r ? a : b)) : null;
-    return { killed, species, fresh, xp, stones, rolls, wins, best, kills };
+    const people = species.length > 0 && species.every(id => (MONSTERS.find(m => m.id === id) || {}).dyn);          // убиты одни путники: эссенций у них нет, броска нет
+    return { killed, species, fresh, xp, stones, rolls: people ? [] : rolls, wins, best: people ? null : best, kills, people };
   }
   const digits = r => { const v = r % 100; return [Math.floor(v / 10), v % 10]; };
 
@@ -96,7 +97,7 @@
     if (ev.arena) { plan.arena = arenaRewards(S, plan); gotLines.push(...plan.arena.lines); plan.wins = plan.wins.map(w => ({ ...w, arena: true })); }          // арена: лута нет, платят монетами
     if (B.deliverFound && !ev.arena) gotLines.push(...B.deliverFound(S, outcome === "win" || outcome === "retreat" || outcome === "abort"));
     if (!(UI && UI.active)) { for (const w of plan.wins) if (!w.arena) essStash().push(w.id); if (plan.wins.length) saveChar(); }          // без экрана итога — в запас; с экраном игрок выбирает: впитать, сохранить, оставить
-    if (UI && UI.active) await showScreens(S, display, plan, gotLines);
+    if (UI && UI.active) { try { await showScreens(S, display, plan, gotLines); } catch (err) { console.error("экран итога:", err); try { for (const w of plan.wins) if (!w.arena) essStash().push(w.id); if (plan.wins.length) saveChar(); toast("Экран итога не открылся (" + (err && err.message || err) + "). Награды выданы, эссенции — в запасе отряда."); } catch (e2) {} } }
     if (B.Net && B.Net.endClose) B.Net.endClose();
     const res = { outcome: mapped, killed: S.killed.slice(), plan };
     if (UI && UI.active) UI.close();
@@ -121,12 +122,12 @@
       <div class="bt-rwd"><h5>Награды</h5>${nothing ? `<p class="muted">Никто не убит — награды нет.</p>` : `<ul>${xpLine}${stoneLines}</ul>`}
         ${S.gear && S.gear.length ? `<h5>Снаряжение</h5><ul class="bt-gearl">${S.gear.map(g => `<li class="${g.ok ? "ok" : "lost"}">${esc(g.t)}</li>`).join("")}</ul>` : ""}
         <div class="bt-hlist">${B.heroes().map(h => `<span class="bt-hchip${h.dead ? " dead" : ""}"><img src="${h.face}" alt="">${esc(h.name)} <b>${h.dead ? "погиб" : Math.max(h.down ? 1 : 0, h.hp) + "/" + h.maxHp}</b></span>`).join("")}</div></div>
-      ${nothing ? "" : `<div class="bt-roll" hidden><p>Бросок на эссенцию <small>— нужно ${ESS_CHANCE}+ из 100</small></p><canvas></canvas><div class="bt-roll-res"></div><button class="bt-rolls-btn" type="button" aria-expanded="false" aria-label="Показать все броски на эссенцию" hidden><span>все броски</span><i aria-hidden="true">▾</i></button><div class="bt-rolls" hidden></div></div>`}
+      ${nothing || plan.people ? "" : `<div class="bt-roll" hidden><p>Бросок на эссенцию <small>— нужно ${ESS_CHANCE}+ из 100</small></p><canvas></canvas><div class="bt-roll-res"></div><button class="bt-rolls-btn" type="button" aria-expanded="false" aria-label="Показать все броски на эссенцию" hidden><span>все броски</span><i aria-hidden="true">▾</i></button><div class="bt-rolls" hidden></div></div>`}
       <div class="bt-essgot" hidden></div>
       <button class="fx-btn primary big bt-done" hidden>Готово</button></div>`;
     if (B.Net && B.Net.announceEnd) { const essLine = plan.wins.length ? "Выпала эссенция!" : (plan.species.length ? "Эссенция не выпала" : ""); B.Net.announceEnd(`<div class="bt-endscr fx-frame ${cls}"><small class="bt-eyebrow">Бой окончен · раундов: ${S.round}</small><h2 class="bt-title ${cls}">${title}</h2>${fallen.length ? `<p class="bt-bad">Погибли: ${esc(fallen.join(", "))}</p>` : ""}<div class="bt-rwd"><h5>Награды</h5>${nothing ? `<p class="muted">Никто не убит — награды нет.</p>` : `<ul>${xpLine}${stoneLines}</ul>`}${essLine ? `<p><b>${essLine}</b></p>` : ""}<div class="bt-hlist">${B.heroes().map(h => `<span class="bt-hchip${h.dead ? " dead" : ""}"><img src="${h.face}" alt="">${esc(h.name)} <b>${h.dead ? "погиб" : Math.max(h.down ? 1 : 0, h.hp) + "/" + h.maxHp}</b></span>`).join("")}</div></div></div>`); }
     const done = modal.querySelector(".bt-done"), finish = new Promise(res => { done.onclick = res; });
-    if (!nothing && plan.best) {
+    if (!nothing && plan.best && !plan.people) {
       await sleep(900);
       const roll = modal.querySelector(".bt-roll"), cv = roll.querySelector("canvas"), resEl = roll.querySelector(".bt-roll-res"); roll.hidden = false;
       await sleep(120);

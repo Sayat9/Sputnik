@@ -150,7 +150,7 @@
   UI.inspect = function (u, note) {
     const S = B.S, hero = !!u.hero, mine = u.side === "hero";
     const atk = B.attacksOf(u).filter(a => !a.offhand).map(a => `<li><b>${esc(a.n)}</b> · ${a.kind === "melee" ? "ближний" : "дальний"} · ${a.hit != null ? "+" + (a.hit) : ""} · ${a.dmg.n ? B.fmtDice(a.dmg) : a.dmg.b} ${D.DT[a.dt] || ""}${a.dmgMult === 0.5 ? " (вполсилы)" : ""}</li>`).join("");
-    const ess = (!hero && !u.summon && B.Net && B.Net.isClient && B.Net.isClient() ? [] : u.ess).map(id => { const e = ESSENCES[id]; return `<li><b>${esc(e.passive.name)} (П).</b> ${esc(e.passive.text)}</li><li><b>${esc(e.active.name)} (А).</b> ${e.active.mana} маны, ${esc(e.active.time)}. ${esc(e.active.text)}</li>`; }).join("");
+    const ess = (!hero && !u.summon ? [] : u.ess).map(id => { const e = ESSENCES[id]; return `<li><b>${esc(e.passive.name)} (П).</b> ${esc(e.passive.text)}</li><li><b>${esc(e.active.name)} (А).</b> ${e.active.mana} маны, ${esc(e.active.time)}. ${esc(e.active.text)}</li>`; }).join("");
     const sts = u.conds.filter(c => D.status[c.id]).map(c => `<li><span class="bt-stchip ${D.status[c.id].good ? "good" : "bad"}" data-sid="${c.id}" data-uid="${u.id}">${stIco(c.id)}${esc(D.status[c.id].name)}</span> ${esc(D.status[c.id].desc)}</li>`).join("");
     const owner = u.summon ? B.byId(u.owner) : null;
     const sub = hero ? esc(raceById(u.race).name) + " · " + u.level + " ур." : u.summon ? (u.kind === "double" ? `Двойник · ${esc(owner ? owner.name : "")} · исчезает от любого урона` : `Призванный волк · ${esc(owner ? owner.name : "")}`) : esc(u.mon.size) + " · " + u.cls + " класс" + (typeof monCourse === "function" && monCourse(u.cls) ? ` · <b class="bt-rankbadge">${esc(monBadge(u.mon))}</b>` : "");
@@ -227,8 +227,7 @@
         <button class="fx-btn" data-m="autosave">Спасброски героев: ${S.opts.autoSaves ? "авто" : "вручную"}</button>
         <button class="fx-btn" data-m="autoend">Конец хода сам, когда кончились действия: ${S.opts.autoEnd ? "вкл" : "выкл"}</button>
         ${PLAYER ? "" : `<button class="fx-btn" data-m="auto">Авто-бой героев: ${S.opts.autoHeroes ? "вкл" : "выкл"}</button>
-        <button class="fx-btn" data-m="gm">Мастер: завершить бой…</button>
-        <button class="fx-btn" data-m="legacy">Обычный экран боя (без поля)</button>`}</div>
+        <button class="fx-btn" data-m="gm">Мастер: завершить бой…</button>`}</div>
       <h5>Журнал боя</h5><div class="bt-log">${lines}</div></div>`);
     m.onclick = async e => {
       const b = e.target.closest("[data-m]"); if (!b && e.target !== m) return; const k = b && b.dataset.m;

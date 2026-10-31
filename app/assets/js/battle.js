@@ -239,10 +239,14 @@
         }
         await B.End.run(S);                 // экран итога и наград, затем возврат результата приложению
       } catch (err) {
-        console.error("бой:", err); state.fightSnap = null; state.encSnap = null;
+        // Ошибка боя: старый экран боя убран. Бой закрывается, результат (если он уже известен) сохраняется, ошибка показывается текстом.
+        console.error("бой:", err); const msg = err && err.message || String(err);
+        try { if (window.Net && Net.dbg) Net.dbg("ошибка боя: " + msg); } catch (e) {}
+        const S = B.S, out = S && S.outcome && S.outcome !== "abort" ? S.outcome : "flee";
         try { if (B.UI) B.UI.close(); } catch (e) {}
-        B.running = false; B.S = null;
-        ev.tactical = false; toast("Ошибка боя — открыт обычный экран боя"); rerender();
+        B.running = false; B.S = null; ev.battleStarted = false;
+        try { state.fightSnap = null; state.encSnap = null; if (typeof battleDone === "function") battleDone(ev, { outcome: out === "defeat" ? "flee" : out, killed: S ? S.killed.slice() : [], plan: null }); } catch (e2) { console.error(e2); }
+        toast("Ошибка боя: " + msg);
       }
     })();
   };
