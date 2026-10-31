@@ -404,6 +404,16 @@
     return out;
   }
   Object.assign(B, { visionCells, seenByParty, visionLevels, visibleTo, sightRange, canSightCell });
+  // Номер у одинаковых монстров появляется, когда отряд увидел хотя бы двоих; потом не пропадает.
+  B.syncNames = function () {
+    const S = B.S; if (!S) return; const by = {};
+    for (const m of S.units) if (m.side === "mon" && m.numName) (by[m.ref] ||= []).push(m);
+    for (const g of Object.values(by)) {
+      const vis = S.phase === "fight" ? g.filter(m => !m.dead && m.alive !== false && !B.isUnseen(m) && seenByParty(m)) : [];
+      if (vis.length >= 2) vis.forEach(m => { m.named = true; });
+      for (const m of g) m.name = m.named || S.phase === "result" ? m.numName : m.base;
+    }
+  };
   Object.assign(B, { meleeReach, center, lineCells, coverBetween, lineBlocked, hasLOS, sightBlockAt });
 
   /* ===== свет и тьма ===== */
@@ -436,7 +446,7 @@
     const names = {};
     ev.list.forEach(id => { names[id] = (names[id] || 0) + 1; });
     const seen = {};
-    ev.list.forEach((id, idx) => { const m = monUnit(id, idx); seen[id] = (seen[id] || 0) + 1; if (names[id] > 1) m.name = m.base + " " + seen[id]; S.units.push(m); if (B.initUnit) B.initUnit(m); });
+    ev.list.forEach((id, idx) => { const m = monUnit(id, idx); seen[id] = (seen[id] || 0) + 1; if (names[id] > 1) { m.numName = m.base + " " + seen[id]; m.name = m.base; } S.units.push(m); if (B.initUnit) B.initUnit(m); });
     return S;
   }
   B.newBattle = newBattle;

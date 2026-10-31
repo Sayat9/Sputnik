@@ -1,5 +1,5 @@
 {
- "version": 1793463841,
+ "version": 1793464508,
  "files": [
   "assets/buildings/board.webp",
   "assets/buildings/church.webp",
@@ -436,7 +436,7 @@
   "assets/items/warhammer.webp": "96a5d7990847d290d359b35e7673e757",
   "assets/js/battle-act.js": "64b26065747be538e6506c5082224427",
   "assets/js/battle-ai.js": "660fc350cf83f87ddcb65b3014f6e96b",
-  "assets/js/battle-core.js": "3045639097528d49b84d97b307bb1274",
+  "assets/js/battle-core.js": "73585ae67ebdeeb82aab6e5987a1296e",
   "assets/js/battle-data.js": "d87d05bf721da43032fd8e64d31413c0",
   "assets/js/battle-dice.js": "8a569bb2af606340f01e5fb4b1d81197",
   "assets/js/battle-end.js": "9aa62e1984adda1320a266a0353b796b",
@@ -447,7 +447,7 @@
   "assets/js/battle-menu.js": "6901a79555f27caba8d0e97518fbf46b",
   "assets/js/battle-net.js": "cfdc7c13d23baa0d0817006301eb8b18",
   "assets/js/battle-rules.js": "74dfb9d870ed904b81e51260ed0629f9",
-  "assets/js/battle-ui.js": "be0bfd496474880d9e12e05d2f8de278",
+  "assets/js/battle-ui.js": "e93584545e82adf12c8292a20412e55b",
   "assets/js/battle-weap.js": "cd641c2f55a95ffd4ddc833747704106",
   "assets/js/battle.js": "8ca2e1ff84a499a0c706c422556394e8",
   "assets/js/net.js": "2e8be9ea96e5cf1bd44c120e636e4520",
@@ -674,6 +674,6 @@
   "fonts/f8.woff2": "6cc1ee17091d59eb93821c3594e8f38f",
   "fonts/f9.woff2": "070433480b7b645f69b543f284e386ce",
   "fonts/fonts.css": "1585a72a8d157b26cb424ab433fd4e19",
-  "index.html": "5e6cf1dde44c3dd5b34e2561650a6057"
+  "index.html": "d6608acd013246e8a4b0fbdeaf5dd3a6"
  }
 }
