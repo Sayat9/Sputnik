@@ -181,7 +181,10 @@
     } catch (err) {
       console.error("бой (возврат):", err);
       try { if (B.UI) B.UI.close(); } catch (e) {}
-      B.running = false; B.S = null; state.fightSnap = null; state.encSnap = null; ev.tactical = false; ev.battleStarted = false; toast("Бой не удалось восстановить — открыт обычный экран"); rerender();
+      const msg = err && err.message || String(err); try { if (window.Net && Net.dbg) Net.dbg("ошибка возврата в бой: " + msg); } catch (e) {}
+      B.running = false; B.S = null; state.fightSnap = null; state.encSnap = null; ev.battleStarted = false;
+      try { if (typeof battleDone === "function") battleDone(ev, { outcome: "flee", killed: [], plan: null }); } catch (e2) { console.error(e2); }
+      toast("Бой не удалось восстановить (" + msg + "): отряд отступил");
     }
   };
 
