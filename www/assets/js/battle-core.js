@@ -375,6 +375,7 @@
     const S = B.S || {}; let r = 4 + (S.sight || 0); const t = tinfo(u.x, u.y);
     if (!S.noElev && t && t.elevated) r += 2;
     if (isFlying(u)) r += 2;
+    if (S.dark && !S.torch) r -= 2;          // тьма без факела: −2 к обзору (горящий факел — без штрафа)
     if (S.fog > 0) r = Math.min(r, S.fog);
     return Math.max(1, r);
   };

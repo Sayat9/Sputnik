@@ -2715,7 +2715,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 57;
+const BATTLE_REV = 58;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }
@@ -4821,6 +4821,29 @@ function fireChestRoll() {
   else line = tag(giveParty({ t: "g", id, qty: 1 }));
   return { d, cls, id, boosted, line };
 }
+// Ведьмин дом (решение автора 31.10): вход вместо встреч с людьми; внутри отряд отдыхает и ест не из запасов; каждый отдых — 1 действие; через день (3 действия) выбрасывает в любом случае, добровольно можно выйти после любого отдыха. Шанс найти дом на новом квадрате леса 1 из 6 — моё допущение.
+async function witchHouse() {
+  const r = state.run;
+  if (!await askYesNo({ title: "Ведьмин дом", text: "Из тумана проступает дом с тёплым окном. Войти? Внутри можно отдохнуть и поесть, не тратя припасов.", yes: "Войти", no: "Не входить" })) { logRun("Ведьмин дом: отряд прошёл мимо."); return; }
+  logRun("Отряд входит в Ведьмин дом.");
+  for (let n = 1; n <= FL().acts; n++) {
+    for (const c of state.party) { const st = r.status[c.id]; st.sat = Math.max(st.sat, 3); st.starve = 0; }
+    tick(new Set(state.party.map(c => c.id)));
+    const healed = [];
+    for (const c of state.party) if (!c.dead) {
+      const st = r.status[c.id], before = hpOf(c);
+      c.hp = Math.min(maxHp(c), before + restHeal(c, st.fat, false)); c.mp = maxMp(c); c.flags = {};
+      if (n === 1) c.insp = Math.min(inspMax(c), (c.insp ?? inspMax(c)) + 1);
+      st.fat = Math.max(0, st.fat - 2); st.awake = 0;
+      if (c.hp > before) healed.push(`${c.name} +${c.hp - before}`);
+    }
+    logRun(`Ведьмин дом: отдых и еда (${n}-й; припасы не тронуты).${healed.length ? " ОЗ: " + healed.join(", ") + "." : ""}`);
+    if (advanceTime()) return;
+    saveChar(); rerender();
+    if (n >= FL().acts) { logRun("Прошёл день: ведьма выставляет отряд за дверь."); toast("Ведьмин дом выпроваживает отряд."); return; }
+    if (!await askYesNo({ title: "Ведьмин дом", text: `Отдохнуть и поесть ещё раз? Это ещё одно действие. До выставления за дверь: ${FL().acts - n}.`, yes: "Остаться", no: "Выйти" })) { logRun("Отряд выходит из Ведьмина дома."); return; }
+  }
+}
 function f3Do(id) {
   const r = state.run, F = f3();
   if (id === "f3fire" && !F.fireOpen) {
@@ -6090,7 +6113,7 @@ function act(kind) {
     const pn = dgUi.path.length, p0 = kind === "run" && pn > 1 && !windUsed ? dgUi.path[pn - 2] : null;          // последняя пробегаемая клетка; при Беге в 3 клетки первая — без проверки (сапоги)
     if (p0 && zoneAt(p0.x, p0.y).kind !== "safe" && !isQuiet(r, tkey(p0.x, p0.y))) askPass(p0.x, p0.y, { key: tkey(r.pos.x, r.pos.y), fresh: dgUi.finFresh });
     if (z.kind !== "safe" && spEnter()) { /* особое место: бой начат */ }
-    else if (z.kind !== "safe" && voidHere()) { /* Ведьмин лес: встречи пока не описаны */ }
+    else if (z.kind !== "safe" && voidHere()) { if (!isQuiet(r, tkey(r.pos.x, r.pos.y)) && rnd(6) === 0) witchHouse(); }          // Ведьмин лес: людей не встретить, зато иногда виден вход в Ведьмин дом
     else if (z.kind !== "safe") {
       if (isQuiet(r, tkey(r.pos.x, r.pos.y))) logRun("Квадрат недавно зачищен: пусто, бросок не нужен.");
       else { logRun("Новый квадрат: мастер, брось к20."); askRoll(kind); }

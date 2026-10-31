@@ -8,7 +8,7 @@ const L = require('./bui_lib.js');
   const A = await p.evaluate(() => {
     const B = Battle, o = {}; B.cfg.fast = true;
     B.newBattle({ list: ['goblin'], zone: 'goblin', floor: 1 }); const S = B.S, h = B.heroes()[0];
-    S.cells = S.cells.map(r => r.map(() => null)); S.objs = [];
+    S.cells = S.cells.map(r => r.map(() => null)); S.objs = []; S.dark = false;
     h.x = 3; h.y = 5; S.phase = 'fight';
     const seen = (x, y) => B.canSightCell(h, x, y);
     o.base = [seen(3, 1), seen(3, 0), seen(8, 5)];
