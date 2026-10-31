@@ -8,6 +8,7 @@
   const emit = (ev, d) => { for (const f of N.listeners) { try { f(ev, d); } catch (e) { console.error("net:", e); } } };
   N.on = f => { N.listeners.push(f); return () => { const i = N.listeners.indexOf(f); if (i >= 0) N.listeners.splice(i, 1); }; };
   N.handle = (t, fn) => { N.handlers[t] = fn; };                                     // обработчик входящего сообщения или запроса: fn(данные, link, игрок)
+  N.logs = []; const dbg = N.dbg = m => { N.logs.push(new Date().toTimeString().slice(0, 8) + " " + m); if (N.logs.length > 40) N.logs.shift(); };          // журнал связи: показывается кнопкой «Журнал» при обрыве
   const setStatus = s => { if (N.status !== s) { N.status = s; emit("status", s); } };
 
   /* ===== транспорты: Conn { send(строка), onmessage, onclose, close() } ===== */
@@ -38,7 +39,7 @@
   const loadPeer = () => peerLoad || (peerLoad = window.Peer ? Promise.resolve() : new Promise((ok, no) => {
     const s = document.createElement("script"); s.src = "assets/vendor/peerjs.min.js"; s.onload = ok; s.onerror = () => { peerLoad = null; no(new Error("не загрузился PeerJS")); }; document.head.appendChild(s);
   }));
-  const wrapDc = dc => { const c = { live: true, send(s) { if (this.live) dc.send(s); }, close() { this.live = false; try { dc.close(); } catch (e) {} } }; dc.on("data", d => c.onmessage && c.onmessage(typeof d === "string" ? d : String(d))); dc.on("close", () => { c.live = false; c.onclose && c.onclose(); }); dc.on("error", () => { c.live = false; c.onclose && c.onclose(); }); return c; };
+  const wrapDc = dc => { const c = { live: true, send(s) { if (this.live) dc.send(s); }, close() { this.live = false; try { dc.close(); } catch (e) {} } }; dc.on("data", d => c.onmessage && c.onmessage(typeof d === "string" ? d : String(d))); dc.on("close", () => { dbg("канал закрылся"); c.live = false; c.onclose && c.onclose(); }); dc.on("error", e => { dbg("ошибка канала: " + (e && (e.type || e.message) || e)); c.live = false; c.onclose && c.onclose(); }); return c; };
   // Несколько STUN и публичный TURN-запасной путь: за мобильным NAT прямое соединение часто не поднимается, тогда трафик идёт через ретранслятор.
   const PEER_OPTS = { debug: 0, config: { iceCandidatePoolSize: 4, iceServers: [
     { urls: ["stun:stun.l.google.com:19302", "stun:stun1.l.google.com:19302", "stun:stun.cloudflare.com:3478"] },
@@ -86,9 +87,9 @@
   class Link {
     constructor(conn) {
       this.conn = conn; this.alive = true; this.rpc = {}; this.seq = 1; this.parts = {}; this.last = Date.now(); this.tag = null;
-      conn.onmessage = raw => this._in(raw); conn.onclose = () => this._closed();
+      conn.onmessage = raw => this._in(raw); conn.onclose = () => this._closed("канал закрыт");
       this.lastPing = 0;
-      this.tickf = () => { if (!this.alive) return; const n = Date.now(); if (n - this.lastPing >= 3000) { this.lastPing = n; this.raw({ t: "ping" }); } if (n - this.last > DEAD_MS) this._closed(); };
+      this.tickf = () => { if (!this.alive) return; const n = Date.now(); if (n - this.lastPing >= 3000) { this.lastPing = n; this.raw({ t: "ping" }); } if (n - this.last > DEAD_MS) this._closed("тишина " + Math.round((n - this.last) / 1000) + " с"); };
       Tick.add(this.tickf);
     }
     raw(msg) {
@@ -97,7 +98,7 @@
       try {
         if (s.length <= CHUNK) this.conn.send(s);
         else { const id = "k" + (this.seq++), n = Math.ceil(s.length / CHUNK); for (let i = 0; i < n; i++) this.conn.send(JSON.stringify({ t: "chunk", id, i, n, d: s.slice(i * CHUNK, (i + 1) * CHUNK) })); }
-      } catch (e) { return false; }
+      } catch (e) { dbg("отправка не удалась: " + (e && e.message || e)); return false; }
       return true;
     }
     send(t, d) { return this.raw({ t, d }); }
@@ -121,13 +122,13 @@
       Promise.resolve().then(() => h(m.d, this, this.player)).then(res => { if (m.id != null) this.raw({ re: m.id, d: res === undefined ? null : res }); },
         err => { console.error("net handler", m.t, err); if (m.id != null) this.raw({ re: m.id, err: String(err && err.message || err) }); });
     }
-    _closed() {
-      if (!this.alive) return; this.alive = false; Tick.del(this.tickf);
+    _closed(why) {
+      if (!this.alive) return; this.alive = false; dbg("связь закрыта: " + (why || "?")); Tick.del(this.tickf);
       for (const r of Object.values(this.rpc)) { r.clear && r.clear(); r.no(new Error("связь оборвана")); } this.rpc = {};
       try { this.conn.close(); } catch (e) {}
       if (this.onclose) this.onclose();
     }
-    close() { this._closed(); }
+    close() { this._closed("закрыта этой стороной"); }
   }
   N.Link = Link;
 
@@ -193,15 +194,15 @@
   N.toHost = (t, d) => !!(link && link.alive && link.send(t, d));
   async function connectLoop(my) {
     while (!cancelled && want && my === gen) {
-      setStatus(retry ? "reconnecting" : "connecting");
+      setStatus(retry ? "reconnecting" : "connecting"); dbg("попытка " + (retry + 1));
       try {
         const conn = await Tr[N.transport].join(want.code); if (my !== gen) { try { conn.close(); } catch (e) {} return; }
-        const l = new Link(conn); link = l;
+        dbg("канал открыт, шлю hello"); const l = new Link(conn); link = l;
         const hello = typeof want.helloData === "function" ? want.helloData() : (want.helloData || {});
         const w = await l.call("hello", { ver: N.ver, pid: want.pid, name: want.name, ...hello }, 8000);
         if (w && w.error) { cancelled = true; want = null; l.onclose = null; l.close(); link = null; N.role = null; N.code = null; setStatus("off"); emit("refused", w); return; }          // ведущий не пустил: другая версия или исключён
         if (w && w.pid) want.pid = w.pid;
-        retry = 0; setStatus("online"); emit("welcome", w);
+        dbg("hello принят"); retry = 0; setStatus("online"); emit("welcome", w);
         await new Promise(res => { l.onclose = res; });
         if (link === l) link = null; if (cancelled || my !== gen) return;
         setStatus("reconnecting"); emit("lost");

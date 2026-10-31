@@ -184,6 +184,7 @@
         <div class="fx-section">Герои и игроки</div>
         ${(state.party || []).length ? state.party.map(c => `<div class="net-row"><span>${esc(c.name)}</span><select data-nx="own" data-id="${c.id}" aria-label="Чей герой ${esc(c.name)}"><option value="">Ведущий</option>${players.map(p => `<option value="${p.pid}"${c.owner === p.pid ? " selected" : ""}>${esc(p.name)}</option>`).join("")}</select></div>`).join("") : `<p class="net-msg">В отряде нет героев.</p>`}
         <p class="net-ro-note">Герой игрока хранится и у него: при подключении ведущий забирает его сохранение.</p>
+        <details><summary style="font-size:12px;opacity:.75">Журнал связи</summary><pre style="white-space:pre-wrap;font-size:11px;max-height:30vh;overflow:auto;margin:6px 0 0">${esc((N.logs || []).slice(-25).join("\n") || "пусто")}</pre></details>
         <button class="fx-btn danger" data-nx="stop">Закрыть комнату</button><button class="fx-btn" data-nx="close">Скрыть окно</button>`;
     }
     ov.hidden = false;
@@ -346,8 +347,9 @@
   function rcBtn() {
     let b = document.getElementById("net-rc");
     const need = !isMaster() && document.body.classList.contains("bt-active") && N.status !== "online" && !!(lsGet(PLAYER_KEY) || {}).code;
-    if (!need) { if (b) b.remove(); return; }
+    if (!need) { if (b) b.remove(); const l0 = document.getElementById("net-rclog"); if (l0) l0.remove(); return; }
     if (!b) { b = document.createElement("button"); b.id = "net-rc"; b.type = "button"; b.onclick = () => { N.kick(); b.textContent = "Подключаюсь…"; }; document.body.appendChild(b); }
+    let lg = document.getElementById("net-rclog"); if (!lg) { lg = document.createElement("button"); lg.id = "net-rclog"; lg.type = "button"; lg.textContent = "Журнал связи"; lg.style.cssText = "position:fixed;left:8px;bottom:56px;z-index:9600;font-size:12px;padding:4px 8px;opacity:.85"; lg.className = "fx-btn"; lg.onclick = () => { const o = document.createElement("div"); o.className = "mapov"; o.style.zIndex = 9700; o.innerHTML = `<div class="panel fx-frame" style="width:min(420px,calc(100vw - 32px));box-sizing:border-box;padding:14px"><h3 style="margin:0 0 8px">Журнал связи</h3><pre style="white-space:pre-wrap;font-size:11px;max-height:55vh;overflow:auto;margin:0 0 10px">${esc((N.logs || []).slice(-30).join("\n") || "пусто")}</pre><button class="fx-btn primary" style="width:100%">Закрыть</button></div>`; o.onclick = ev => { if (ev.target === o || ev.target.closest("button")) o.remove(); }; document.body.appendChild(o); }; document.body.appendChild(lg); }
     b.textContent = (N.status === "reconnecting" || N.status === "connecting" ? "Нет связи: подключаюсь… (нажми, чтобы сразу)" : "Нет связи — переподключиться") + (C.lastErr ? " · " + C.lastErr : "");
   }
   setInterval(() => { try { rcBtn(); } catch (e) {} }, 1500);
