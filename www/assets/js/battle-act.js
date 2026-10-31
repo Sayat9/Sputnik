@@ -125,7 +125,7 @@
     if (atk.kind === "melee") return dd <= (atk.reach || 1) && !(atk.stretch && dd > 1 && B.lineBlocked(u, t));          // копьё через клетку: между ними не должно быть полного укрытия
     return dd <= atk.range[1] && !B.lineBlocked(u, t);
   };
-  B.attackTargets = (u, atk) => enemiesOf(u).filter(t => !has(t, "underground") && B.inAttackRange(u, t, atk));          // «Нырок под землю»: закопавшегося атаковать нельзя
+  B.attackTargets = (u, atk) => enemiesOf(u).filter(t => !has(t, "underground") && B.visibleTo(u, t) && B.inAttackRange(u, t, atk));          // «Нырок под землю»: закопавшегося атаковать нельзя
   function rangeCells(u, atk) {
     const r = atk.kind === "melee" ? (atk.reach || 1) : atk.range[1], out = [];
     for (let y = 0; y < B.H; y++) for (let x = 0; x < B.W; x++) if (distCell(u, x, y) <= r && distCell(u, x, y) > 0) out.push([x, y]);

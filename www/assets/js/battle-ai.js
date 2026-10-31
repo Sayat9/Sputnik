@@ -13,7 +13,7 @@
     return { int: 2, role: ranged ? "ranged" : "melee", keep: ranged ? 2 : 0, focus: ["wounded", "weak", "nearest"], kite: ranged };
   };
   const seenBy = (u, t) => !(has(t, "hidden") && (dist(u, t) > 1 || has(t, "hidden").data.invis) && !(u.blind && dist(u, t) <= u.blind) && !(u.tremor && dist(u, t) <= u.tremor && !B.isFlying(t)));
-  const targetsOf = u => enemiesOf(u).filter(t => seenBy(u, t) && !t.dead && !has(t, "underground"));
+  const targetsOf = u => enemiesOf(u).filter(t => seenBy(u, t) && !t.dead && !has(t, "underground") && B.visibleTo(u, t));
   const abilityReady = (u, id) => {
     const A = B.A && B.A[id], eb = ESSENCES[id] && ESSENCES[id].active; if (!A || !eb || A.reaction) return false;
     if (!B.timeOK(u, A.time)) return false;
@@ -237,7 +237,7 @@
     if (has(u, "mired") && B.timeOK(u, "action") && !(bestAction(u, pr))) { B.spendTime(u, "action"); removeStatus(u, "mired"); u.bogStill = 0; u.t.move = speedOf(u); log(`${u.name} выбирается из топи.`, "good"); }          // автобой: вылезает, если некого бить
     // сдавленный/опутанный: пробуем вырваться, если некого бить
     const stuck = has(u, "grappled") || has(u, "trapped") || has(u, "restrained") || has(u, "pinned") || has(u, "buried");
-    const es = targetsOf(u); if (!es.length) return;
+    const es = targetsOf(u); if (!es.length) { await searchMove(u); return; }
     await preBonus(u, pr);
     if (!alive(u) || u.down) return;
     if (B.hookAllAsync) await B.hookAllAsync(u, "aiBonus", {});                          // доп. действия пассивок: «Пожиратель»
@@ -291,6 +291,14 @@
         const [x, y] = spots[0]; u.flags.relocated = true; log(`${u.name} гаснет и вспыхивает в другом месте.`); ui() && ui().fxText(u, "гаснет", ""); const from = [u.x, u.y]; u.x = x; u.y = y; ui() && await ui().animMove(u, from, [x, y]);
       }
     }
+  };
+  // Никого не видно: идёт к ближайшему врагу, пока не заметит его (обзор команды ограничен)
+  const searchMove = async u => {
+    if (u.side !== "mon" || !canAct(u) || speedOf(u) <= 0 || has(u, "grappled") || has(u, "restrained") || has(u, "buried")) return;
+    const foes = enemiesOf(u).filter(e => alive(e) && !e.down && !has(e, "underground")); if (!foes.length) return;
+    const map = B.pathMap(u, u.t.move, {}); let bc = null, cur = Math.min(...foes.map(e => dist(u, e)));
+    for (const v of map.values()) { if ((v.x === u.x && v.y === u.y) || !B.canStand(u, v.x, v.y) || !frightenOK(u, v.x, v.y)) continue; const dm = Math.min(...foes.map(e => distCell(e, v.x, v.y))); if (dm < cur && (!bc || dm < bc.dm)) bc = { v, dm }; }
+    if (bc) await doMoveTo(u, bc.v, map);
   };
   AI.tryEscape = async function (u) {
     const holds = B.holdsOf(u); if (!holds.length) return;

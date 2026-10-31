@@ -369,28 +369,40 @@
   const sightBlockAt = (x, y) => { const t = tinfo(x, y); return !!(t && t.block); };
   const hasLOS = (a, b) => !lineCells(a, b).some(([x, y]) => sightBlockAt(x, y));
   const lineBlocked = (a, b) => !hasLOS(a, b) || lineCells(a, b).filter(([x, y]) => obstacleAt(x, y)).length >= 3;
-    // Что видит отряд: клетка видна, если до неё есть линия обзора хотя бы у одного стоящего героя (или призванного).
-  const watchers = () => live().filter(u => u.side === "hero" && !u.down && !has(u, "underground"));
+    // Обзор: 4 клетки вокруг бойца; −1 за каждое малое препятствие на линии; возвышенность и полёт +2 (зона может сдвинуть обзор: S.sight, и отменить бонус высоты: S.noElev);
+    // полное укрытие (стена) закрывает всё; туман часовни (S.fog) ограничивает обзор сверху. Команда видит то, что видит любой её боец.
+  const sightRange = u => {
+    const S = B.S || {}; let r = 4 + (S.sight || 0); const t = tinfo(u.x, u.y);
+    if (!S.noElev && t && t.elevated) r += 2;
+    if (isFlying(u)) r += 2;
+    if (S.fog > 0) r = Math.min(r, S.fog);
+    return Math.max(1, r);
+  };
+  const canSightCell = (w, x, y) => {
+    const r = sightRange(w), d = distCell(w, x, y); if (d > r) return false;
+    if (d <= 1) return true;
+    const ln = lineCells(w, { x, y, size: 1, id: "cell" });
+    if (ln.some(([cx, cy]) => sightBlockAt(cx, cy))) return false;
+    return d <= r - ln.filter(([cx, cy]) => obstacleAt(cx, cy)).length;
+  };
+  const watchersOf = side => live().filter(u => u.side === side && !u.down && !u.fled && !u.escaped && !has(u, "underground") && !has(u, "blinded"));
+  const watchers = () => watchersOf("hero");
+  const seenBy = (ws, m) => !ws.length || footprint(m).some(([x, y]) => ws.some(w => canSightCell(w, x, y)));
+  const seenByParty = m => seenBy(watchers(), m);
+  // видит ли боец u юнит t глазами своей команды (у героев — вся партия, у монстров — все монстры)
+  const visibleTo = (u, t) => !u || !t || u.side === t.side || ((B.S && B.S.phase) !== "fight") || seenBy(watchersOf(u.side), t);
   function visionCells() {
     const set = new Set(), ws = watchers();
-    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const pt = { x, y, size: 1, id: "cell" }; if (!ws.length || (ws.some(w => hasLOS(w, pt)) && !fogHides(ws, x, y))) set.add(key(x, y)); }
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (!ws.length || ws.some(w => canSightCell(w, x, y))) set.add(key(x, y));
     return set;
   }
-  // Туман (Туманная часовня): дальше S.fog клеток (3 м = 2) от ближайшего героя ничего не видно.
-  const fogHides = (ws, x, y) => { const f = (B.S && B.S.fog) || 0; return f > 0 && ws.length > 0 && !ws.some(w => distCell(w, x, y) <= f); };
-  const seenByParty = m => { const ws = watchers(); return !ws.length || (ws.some(w => hasLOS(w, m)) && !footprint(m).every(([x, y]) => fogHides(ws, x, y))); };
-  // Освещённость клеток для тени: доля стоящих героев, у которых до клетки есть линия обзора (0 — никто не видит, 1 — все). Нужна только для картинки: мягкая тень от стен.
+  // Освещённость клеток для тени: доля стоящих героев, которые видят клетку (0 — никто, 1 — все).
   function visionLevels() {
     const out = new Map(), ws = watchers();
-    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
-      if (!ws.length) { out.set(key(x, y), 1); continue; }
-      const pt = { x, y, size: 1, id: "cell" }; let n = 0;
-      for (const w of ws) if (hasLOS(w, pt) && !fogHides([w], x, y)) n++;
-      out.set(key(x, y), n / ws.length);
-    }
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) out.set(key(x, y), ws.length ? ws.filter(w => canSightCell(w, x, y)).length / ws.length : 1);
     return out;
   }
-  Object.assign(B, { visionCells, seenByParty, visionLevels });
+  Object.assign(B, { visionCells, seenByParty, visionLevels, visibleTo, sightRange, canSightCell });
   Object.assign(B, { meleeReach, center, lineCells, coverBetween, lineBlocked, hasLOS, sightBlockAt });
 
   /* ===== свет и тьма ===== */
@@ -408,7 +420,7 @@
   function newBattle(ev) {
     const zone = D.zones[ev.zone] ? ev.zone : "goblin";
     B.setSize(((ev.floor || (state.run && state.run.floor) || 1) >= 3) ? 10 : 7);          // 3 этаж — поле 10×10
-    const S = { n: W, ev, zone, fog: ev.fog || 0, ambush: !!ev.ambush, heroAmbush: !!ev.heroAmbush, dark: false, torch: false, units: [], order: [], turn: 0, round: 1, phase: "init", log: [], killed: [], objs: [], drops: [], opts: Object.assign({ showMonHp: false, autoSaves: false, autoEnd: true }, (state.settings && state.settings.battleOpts) || {}, { autoHeroes: false }), outcome: null, arrowLog: {}, zones: [], bodies: [], q: [], started: Date.now() };
+    const S = { n: W, ev, zone, fog: ev.fog || 0, sight: ev.sight != null ? ev.sight : (ev.void ? -2 : 0), noElev: !!(ev.noElev || ev.void), ambush: !!ev.ambush, heroAmbush: !!ev.heroAmbush, dark: false, torch: false, units: [], order: [], turn: 0, round: 1, phase: "init", log: [], killed: [], objs: [], drops: [], opts: Object.assign({ showMonHp: false, autoSaves: false, autoEnd: true }, (state.settings && state.settings.battleOpts) || {}, { autoHeroes: false }), outcome: null, arrowLog: {}, zones: [], bodies: [], q: [], started: Date.now() };
     try { S.dark = typeof inDarkness === "function" && !!(state.run && isDark(state.run.pos.x, state.run.pos.y)) && !(state.run && state.run.light); S.torch = !!(state.run && state.run.light); } catch (e) { S.dark = false; }
     S.torchFixed = S.torch;          // факел, зажжённый на карте, горит весь бой; факел, зажжённый в бою, — 3 раунда (battle-act.js)
     if ((ev.list || []).includes("giant-mole")) { S.dark = true; S.torch = false; S.torchFixed = false; S.pitDark = true; }          // решение автора: дно пещеры крота — кромешная тьма

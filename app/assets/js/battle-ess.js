@@ -7,7 +7,7 @@
   const dcOf = (u, ab) => 8 + u.pb + amod(u.abil[ab]);
   B.dcOf = dcOf;
   const isShieldHolder = u => (u.side === "mon" ? !!u.shield : !!(u.hero && ((u.hero.equip.off && itemOf(u.hero.equip.off) && itemOf(u.hero.equip.off).id === "shield") || (u.hero.equip.main && itemOf(u.hero.equip.main) && itemOf(u.hero.equip.main).id === "tower-shield"))));
-  const within = (u, r) => enemiesOf(u).filter(e => dist(u, e) <= r && !has(e, "underground"));        // закопавшегося в землю выбрать нельзя
+  const within = (u, r) => enemiesOf(u).filter(e => dist(u, e) <= r && !has(e, "underground") && B.visibleTo(u, e));        // закопавшегося в землю выбрать нельзя
   const around = (u, r) => live().filter(o => o.id !== u.id && dist(u, o) <= r && !has(o, "underground"));      // все существа вокруг, включая союзников
   const cellsAround = (u, r) => { const out = []; for (let y = 0; y < B.H; y++) for (let x = 0; x < B.W; x++) { const dd = distCell(u, x, y); if (dd > 0 && dd <= r) out.push([x, y]); } return out; };
   const durEnd = (u, n = 1) => ({ endAtEndOf: u.id, endTurnNo: u.turnsTaken + n });
