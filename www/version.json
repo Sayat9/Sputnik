@@ -1,5 +1,5 @@
 {
- "version": 1793453059,
+ "version": 1793456967,
  "files": [
   "assets/buildings/board.webp",
   "assets/buildings/church.webp",
@@ -674,6 +674,6 @@
   "fonts/f8.woff2": "6cc1ee17091d59eb93821c3594e8f38f",
   "fonts/f9.woff2": "070433480b7b645f69b543f284e386ce",
   "fonts/fonts.css": "1585a72a8d157b26cb424ab433fd4e19",
-  "index.html": "5f2e4d95b0bce97fde123f4395c0ee6d"
+  "index.html": "5be6cd05d8345d42464db0c65e2d1384"
  }
 }

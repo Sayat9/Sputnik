@@ -2715,7 +2715,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 58;
+const BATTLE_REV = 59;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }
@@ -7466,7 +7466,7 @@ function askYesNo(o) {
 const SFX_MAN = {"ambient": [{"file": "cave-1.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-2.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-3.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-4.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-5.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-6.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-7.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-8.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-9.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-10.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-11.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-12.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-13.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-14.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-15.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-16.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-17.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-18.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-19.mp3", "start": 0, "end": 0, "vol": 0.8}], "battle": {"file": "battle-cave.mp3", "vol": 0.6}, "fail": {"file": "fail.mp3", "start": 0, "end": 1}, "crit": {"file": "crit.mp3", "start": 5, "end": 7}};          // то же, что assets/sfx/sfx.json
 const Sfx = {
   man: null, loaded: false, music: null, musicName: null, timer: null, cache: {},
-  on() { return !!(state && state.settings && state.settings.sound); },
+  on() { return !!state && (!state.settings || state.settings.sound !== false); },          // звук включён по умолчанию
   async load() { this.loaded = true; this.man = SFX_MAN; },
   audio(file) { let a = this.cache[file]; if (!a) { a = this.cache[file] = new Audio("assets/sfx/" + file); a.preload = "auto"; } return a; },
   async playClip(c) {
@@ -7507,14 +7507,15 @@ function openSettings() {
       const m = e.target.closest("[data-setm]");
       if (m) { if (m.dataset.setm === "tactical") setTactical(!settings().tactical); else { settings().master = !settings().master; saveChar(); toast(settings().master ? "Режим мастера: виден весь бестиарий" : "Режим мастера выключен"); rerender(); } setTimeout(openSettings, 50); return; }
       const t = e.target.closest("[data-setk]"); if (!t) return;
-      const st = state.settings ||= {}, k = t.dataset.setk; st[k] = !st[k]; saveChar(); openSettings();
+      const st = state.settings ||= {}, k = t.dataset.setk; st[k] = !(k === "sound" ? st.sound !== false : st[k]); saveChar(); openSettings(); if (k === "sound" && st.sound) { try { Sfx.tick(); } catch (e) {} }
     }); }
-  const st = settings(), row = (k, name, hint) => `<button class="fx-btn" data-setk="${k}" aria-pressed="${!!st[k]}" style="width:100%;text-align:left"><b>${name}: ${st[k] ? "вкл" : "выкл"}</b><br><small style="opacity:.75">${hint}</small></button>`;
-  ov.innerHTML = `<div class="panel fx-frame" style="max-width:420px;display:flex;flex-direction:column;gap:10px;padding:16px"><h3 style="margin:0">Настройки</h3>
-    ${row("sound", "Звук", "пока ничего не делает — звуки появятся позже")}
-    ${isMaster() ? `<button class="fx-btn" data-setm="tactical" aria-pressed="${!!st.tactical}" style="width:100%;text-align:left"><b>Тактический бой (тест): ${st.tactical ? "вкл" : "выкл"}</b></button>
-    <button class="fx-btn" data-setm="master" aria-pressed="${masterOn()}" style="width:100%;text-align:left"><b>Режим мастера (весь бестиарий): ${masterOn() ? "вкл" : "выкл"}</b></button>` : ""}
-    ${row("skipDice", "Пропускать броски кубиков", "кубики не бросаются на экране: сразу результат (перебросов нет)")}
+  const st = settings(), W = "width:100%;box-sizing:border-box;text-align:left;white-space:normal;overflow-wrap:anywhere;height:auto;line-height:1.25;padding:10px 12px";
+  const row = (k, name, hint) => { const on = k === "sound" ? st.sound !== false : !!st[k]; return `<button class="fx-btn" data-setk="${k}" aria-pressed="${on}" style="${W}"><b>${name}: ${on ? "вкл" : "выкл"}</b><br><small style="opacity:.75">${hint}</small></button>`; };
+  ov.innerHTML = `<div class="panel fx-frame" style="width:min(420px,calc(100vw - 32px));box-sizing:border-box;max-height:calc(100vh - 32px);overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding:16px"><h3 style="margin:0">Настройки</h3>
+    ${row("sound", "Звук", "фон пещеры, музыка боя, звуки единицы и двадцатки")}
+    ${isMaster() ? `<button class="fx-btn" data-setm="tactical" aria-pressed="${!!st.tactical}" style="${W}"><b>Тактический бой (тест): ${st.tactical ? "вкл" : "выкл"}</b></button>
+    <button class="fx-btn" data-setm="master" aria-pressed="${masterOn()}" style="${W}"><b>Режим мастера (весь бестиарий): ${masterOn() ? "вкл" : "выкл"}</b></button>` : ""}
+    ${row("skipDice", "Пропускать броски кубиков", "сразу результат, без кубиков на экране")}
     <button class="fx-btn primary" data-setx="close">Закрыть</button></div>`;
   ov.hidden = false;
 }

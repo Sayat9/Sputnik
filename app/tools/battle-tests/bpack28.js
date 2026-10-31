@@ -98,9 +98,9 @@ const L = require('./bui_lib.js');
   await p.click('[data-action="settings"]');
   const S = await p.evaluate(() => ({ open: !document.getElementById('setov').hidden, txt: document.getElementById('setov').textContent }));
   ok('настройки: звук и пропуск бросков', S.open && /Звук/.test(S.txt) && /Пропускать броски/.test(S.txt), S);
-  await p.click('[data-setk="sound"]'); await p.click('[data-setk="skipDice"]');
-  ok('настройки сохраняются', await p.evaluate(() => state.settings.sound === true && state.settings.skipDice === true));
-  await p.evaluate(() => { state.settings.skipDice = false; state.settings.sound = false; document.getElementById('setov').hidden = true; });
+  await p.click('[data-setk="skipDice"]');
+  ok('настройки сохраняются', await p.evaluate(() => state.settings.sound !== false && state.settings.skipDice === true));
+  await p.evaluate(() => { state.settings.skipDice = false; document.getElementById('setov').hidden = true; });
 
   console.log('>>', '// подтверждение эссенции');
   // подтверждение эссенции в меню героя
