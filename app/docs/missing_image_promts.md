@@ -8,12 +8,6 @@
 
 Вылетают при шаге отряда после броска к20. Файлы `assets/events/<имя>.webp`, 1536 × 1024 (3:2); пока картинки нет, показывается SVG-заглушка `assets/events/<имя>.svg`. Положили файл — добавьте `events/<имя>` в `RASTER` и удалите промт отсюда.
 
-### Перемещение в лабиринт — `events/to-labyrinth`
-
-Заставка при входе через врата города (`travelOverlay("in")`).
-
-> `a party of four adventurers seen from behind stepping through an ancient carved stone archway filled with a swirling pale-green magical portal, on the other side a misty forest-dungeon of mossy stone walls and roots glimpsed through the light, small motes of green energy drifting around them, the cobbled town square fading behind, sense of departure into the unknown, hand-painted fantasy RPG event illustration, stylized, painterly, dark fantasy tone, wide 3:2 composition, no text`
-
 ## Монстры
 
 Все монстры нарисованы — промптов нет. Новый монстр без картинки: промпт сюда (полный рост 1024 × 1536, 2:3; лицо вырезается из него).
@@ -222,22 +216,8 @@
 
 > `a stately stone academy building with a small copper dome, a tall arched door, carved columns, open book emblem above the entrance and lit windows, dark fantasy city at dusk, warm window glow, hand-painted fantasy RPG building icon, stylized, painterly, clean readable silhouette, centered on a dark stone square, square 1:1, no text`
 
-## Портреты рас
+## Разное (3 этаж, оружие, артефакты)
 
-### fairy (женский) — `races/fairy-f`
-
-> `bust portrait of a slender fairy woman with long pointed ears, pale luminous skin, silver-green hair with leaves woven in and sharp curious eyes, fantasy, dark background with a warm rim light, realistic painterly style, looking at viewer, 4:5, no text`
-
-### dragon (женский) — `races/dragon-f`
-
-> `bust portrait of a proud dragonborn woman with fine copper scales, a crest of small horns, golden slit eyes and a regal composed face, fantasy, dark background with a warm rim light, realistic painterly style, looking at viewer, 4:5, no text`
-
-### Портреты новых рас (гном и тёмная фея, мужской и женский)
-
-Шаблон рас: погрудный, 4:5, тёмный фон.
-
-- `races/gnome-f` — `bust portrait of a short gnome woman with a round freckled face, curly auburn hair tied with a bright scarf and small brass tools tucked in it, ink-stained fingers, clever smile, leather apron straps, fantasy, dark background with a warm rim light, realistic painterly style, looking at viewer, 4:5, no text`
-- `races/darkfairy-f` — `bust portrait of a slender dark fairy woman with slate-grey violet skin, long pointed ears, midnight-blue hair with small glowing moth-like motes, luminous pale violet eyes and delicate dusky wings behind her shoulders, fantasy, dark background with a cold violet rim light, realistic painterly style, looking at viewer, 4:5, no text`
 - `treasures/tollbell` — `small silver hand bell with a dark ribbon, faint cold glow along the rim, engraved wave pattern, resting on dark velvet, painted fantasy item icon, plain dark background`
 - `monsters/silence-keeper` — `full-body tall hooded spirit in a grey silver-trimmed robe, face hidden in shadow, one finger pressed to where the lips would be, heavy silver mace, ghostly mist at the feet, painted dark fantasy character, 1024x1536`
 - `items/silver-salt` — `small linen pouch of coarse glittering silver salt spilling a little onto dark wood, painted fantasy item icon, plain dark background`

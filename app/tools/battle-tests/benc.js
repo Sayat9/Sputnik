@@ -21,7 +21,7 @@ const L = require('./bui_lib.js');
       state.run.floor = f; const seen = new Set();
       for (let i = 0; i < 300; i++) {
         state.sack = null; findStones();
-        const it = sack().items; const by = {}; for (const k in it) if (it[k].qty > 0) by[it[k].cls] = it[k].qty;
+        const it = sack().items; const by = {}; for (const k in it) if (it[k].qty > 0) by[it[k].cls] = (by[it[k].cls] || 0) + it[k].qty;
         seen.add(JSON.stringify(by));
       }
       out[f] = [...seen].sort();
