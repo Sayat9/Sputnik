@@ -83,7 +83,7 @@
   const DEAD_MS = 45000;                                                                  // тишина дольше этого — связь потеряна (в фоне сообщения могут приходить реже)
 
   /* ===== Link: сообщения {t, d, id?}, ответы {re, d | err}, кусочки, пульс ===== */
-  const CHUNK = 48000;
+  const CHUNK = 5000;          // «message too big»: у части телефонов предел сообщения канала ~16 КБ, а кириллица в UTF-8 занимает по 2 байта — режем мелко
   class Link {
     constructor(conn) {
       this.conn = conn; this.alive = true; this.rpc = {}; this.seq = 1; this.parts = {}; this.last = Date.now(); this.tag = null;
