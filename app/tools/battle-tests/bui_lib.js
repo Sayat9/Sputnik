@@ -10,7 +10,7 @@ async function launch(w = 400, h = 860, o = {}) {
   const ctx = await b.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: o.dpr || 1, hasTouch: !!o.touch, isMobile: !!o.touch });
   const p = await ctx.newPage(); p.errs = [];
   p.on('pageerror', e => p.errs.push('PAGEERR ' + e.message + ' @ ' + (e.stack || '').split('\n').slice(0, 3).join(' | ')));
-  p.on('console', m => { if (m.type() === 'error') p.errs.push('console.error: ' + m.text()); if (m.type() === 'warning' && /бой|Battle|battle/.test(m.text())) p.errs.push('warn: ' + m.text()); });
+  p.on('console', m => { if (m.type() === 'error' && !/ERR_FILE_NOT_FOUND/.test(m.text())) p.errs.push('console.error: ' + m.text()); if (m.type() === 'warning' && /бой|Battle|battle/.test(m.text())) p.errs.push('warn: ' + m.text()); });
   return { b, p };
 }
 

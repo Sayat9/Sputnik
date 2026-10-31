@@ -34,7 +34,8 @@
   }
   // Пассивные способности эссенций — справка под списком навыков.
   function passiveRows(u) {
-    const rows = u.ess.map(id => ESSENCES[id]).filter(Boolean).map(e => `<div class="bt-prow"><b>${esc(e.passive.name)}</b><small>${esc(e.passive.text)}</small></div>`);
+    const known = id => typeof essSeen !== "function" || essSeen(id, "ess-passive");          // описание пассивки видно, только если оно изучено (библиотека, анализ в башне)
+    const rows = u.ess.filter(id => ESSENCES[id]).map(id => { const e = ESSENCES[id]; return known(id) ? `<div class="bt-prow"><b>${esc(e.passive.name)}</b><small>${esc(e.passive.text)}</small></div>` : `<div class="bt-prow"><b>Неизвестная пассивка</b><small>свойства этой эссенции ещё не изучены</small></div>`; });
     return rows.length ? `<h6 class="bt-ph">Пассивные способности</h6>${rows.join("")}` : "";
   }
   const CATS = { attack: ["Атака", ["attack"]], skill: ["Навыки", ["skill"]], other: ["Прочие действия", ["other", "move"]], item: ["Предметы", ["item"]] };
@@ -149,17 +150,19 @@
   // note — HTML сноски справа с эффектом поля (долгое нажатие на клетку с бойцом).
   UI.inspect = function (u, note) {
     const S = B.S, hero = !!u.hero, mine = u.side === "hero";
+    const GM = typeof masterOn === "function" && masterOn(), foe = !mine && !u.summon, rev = foe && !GM ? ((typeof journal === "function" && (journal().known[u.ref || (u.mon && u.mon.id)] || {}).revealed) || []) : null;          // обычному игроку про врага видно только раскрытое в библиотеке; мастеру — всё, если включён «Режим мастера»
+    const kStats = !rev || rev.includes("stats"), kType = !rev || rev.includes("type") || rev.includes("stats"), kAtk = !rev || rev.includes("attacks") || rev.includes("stats");
     const atk = B.attacksOf(u).filter(a => !a.offhand).map(a => `<li><b>${esc(a.n)}</b> · ${a.kind === "melee" ? "ближний" : "дальний"} · ${a.hit != null ? "+" + (a.hit) : ""} · ${a.dmg.n ? B.fmtDice(a.dmg) : a.dmg.b} ${D.DT[a.dt] || ""}${a.dmgMult === 0.5 ? " (вполсилы)" : ""}</li>`).join("");
     const ess = (!hero && !u.summon ? [] : u.ess).map(id => { const e = ESSENCES[id]; return `<li><b>${esc(e.passive.name)} (П).</b> ${esc(e.passive.text)}</li><li><b>${esc(e.active.name)} (А).</b> ${e.active.mana} маны, ${esc(e.active.time)}. ${esc(e.active.text)}</li>`; }).join("");
     const sts = u.conds.filter(c => D.status[c.id]).map(c => `<li><span class="bt-stchip ${D.status[c.id].good ? "good" : "bad"}" data-sid="${c.id}" data-uid="${u.id}">${stIco(c.id)}${esc(D.status[c.id].name)}</span> ${esc(D.status[c.id].desc)}</li>`).join("");
     const owner = u.summon ? B.byId(u.owner) : null;
-    const sub = hero ? esc(raceById(u.race).name) + " · " + u.level + " ур." : u.summon ? (u.kind === "double" ? `Двойник · ${esc(owner ? owner.name : "")} · исчезает от любого урона` : `Призванный волк · ${esc(owner ? owner.name : "")}`) : esc(u.mon.size) + " · " + u.cls + " класс" + (typeof monCourse === "function" && monCourse(u.cls) ? ` · <b class="bt-rankbadge">${esc(monBadge(u.mon))}</b>` : "");
+    const sub = hero ? esc(raceById(u.race).name) + " · " + u.level + " ур." : u.summon ? (u.kind === "double" ? `Двойник · ${esc(owner ? owner.name : "")} · исчезает от любого урона` : `Призванный волк · ${esc(owner ? owner.name : "")}`) : (kType ? esc(u.mon.size) + " · " + u.cls + " класс" : "") + (kType && typeof monCourse === "function" && monCourse(u.cls) ? ` · <b class="bt-rankbadge">${esc(monBadge(u.mon))}</b>` : "");
     const body = `<div class="bt-dlg fx-frame insp"><div class="bt-ihead"><div class="bt-cface ${u.side}${u.spectral ? " ghost" : ""}"><img src="${u.face}" alt=""></div><div><h4>${esc(u.name)}</h4><small>${sub}</small></div><button class="bt-x" data-m="close" aria-label="Закрыть">${ico("close")}</button></div>
-      <div class="bt-istats">${hero || u.summon ? `<span>КД <b>${u.ac}</b></span>` : ""}<span title="Клеток хода в бою">Скорость <b>${B.speedOf(u)} кл.</b></span>${mine || S.opts.showMonHp ? `<span>ОЗ <b>${u.hp}/${u.maxHp}</b></span>` : `<span>ОЗ <b>скрыты</b></span>`}${hero ? `<span>Мана <b>${u.mp}/${u.maxMp}</b></span>` : ""}</div>
-      <div class="bt-iabil">${["str", "dex", "con", "int", "wis", "cha"].map(k => `<span>${B.ABIL_RU[k].slice(0, 3)} <b>${u.abil[k]}</b></span>`).join("")}</div>
-      ${sts ? `<h5>Состояния</h5><ul>${sts}</ul>` : ""}<h5>Атаки</h5><ul>${atk}</ul>${ess ? `<h5>Навыки эссенции</h5><ul>${ess}</ul>` : ""}</div>`;
+      <div class="bt-istats">${hero || u.summon ? `<span>КД <b>${u.ac}</b></span>` : ""}${kStats ? `<span title="Клеток хода в бою">Скорость <b>${B.speedOf(u)} кл.</b></span>` : ""}${mine || S.opts.showMonHp ? `<span>ОЗ <b>${u.hp}/${u.maxHp}</b></span>` : `<span>ОЗ <b>скрыты</b></span>`}${hero ? `<span>Мана <b>${u.mp}/${u.maxMp}</b></span>` : ""}</div>
+      ${kStats ? `<div class="bt-iabil">${["str", "dex", "con", "int", "wis", "cha"].map(k => `<span>${B.ABIL_RU[k].slice(0, 3)} <b>${u.abil[k]}</b></span>`).join("")}</div>` : ""}
+      ${sts ? `<h5>Состояния</h5><ul>${sts}</ul>` : ""}${kAtk ? `<h5>Атаки</h5><ul>${atk}</ul>` : ""}${ess ? `<h5>Навыки эссенции</h5><ul>${ess}</ul>` : ""}</div>`;
     const m = showModal(note ? `<div class="bt-insp-wrap">${body}<aside class="bt-fieldnote fx-frame" aria-label="Эффект поля">${note}</aside></div>` : body);
-    m.onclick = e => { if (e.target.closest("[data-m]") || e.target === m) hideModal(); };
+    m.onclick = e => { if (e.target.closest("[data-m]") || !e.target.closest(".bt-dlg, .bt-fieldnote")) hideModal(); };          // клик по свободной части экрана закрывает окно
   };
   /* ===== эффекты клетки: долгое нажатие по полю ===== */
   // Список строк «что здесь»: местность, свет, ловушка, зона, иллюзия, тело, лежащее оружие.

@@ -377,4 +377,36 @@
     }
     if (added) log(`Прилетают новые вороны: ${added}.`, "skill");
   };
+
+  /* ===== огонь и горючая местность: паутина и сухая трава горят, пламя перекидывается, потом остаётся голая земля ===== */
+  const FIRE_ROUNDS = 3;
+  const flam = (x, y) => { if (!B.inB(x, y)) return false; const t = B.tinfo(x, y); return !!(t && t.flammable); };
+  B.igniteAt = function (x, y, who) {
+    const S = B.S; if (!S || !flam(x, y)) return false;
+    const k = B.key(x, y), old = B.terrain(x, y);
+    (S.fireOld ||= {})[k] = { old, left: FIRE_ROUNDS }; S.cells[y][x] = "fire";
+    B.log(`${D.terrain[old].name} вспыхивает${who ? " (" + who + ")" : ""}.`, "bad");
+    const g = B.UI && B.UI.active ? B.UI : null; if (g) { try { g.fxText({ x, y, size: 1, id: "cell" }, "пламя", "bad"); g.refreshNow(); } catch (e) {} }
+    const u = B.occupant(x, y); if (u && B.alive(u) && !B.isFlying(u) && !B.has(u, "wet")) B.addStatus(u, "burning", { k: 3, when: "end" });
+    return true;
+  };
+  // Огонь по бойцу поджигает горючее под ним и в соседних клетках.
+  B.igniteAround = function (tgt) {
+    if (!tgt || tgt.x == null || !B.S || B.has(tgt, "wet")) return;
+    for (const [x, y] of B.footprint(tgt)) for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) if (!dx || !dy || (!dx && !dy)) B.igniteAt(x + dx, y + dy, "огонь");
+  };
+  const prevRoundFire = B.onRound;
+  B.onRound = function (round) {
+    if (prevRoundFire) prevRoundFire.apply(this, arguments);
+    const S = B.S; if (!S || !S.fireOld) return;
+    const burning = Object.entries(S.fireOld);
+    for (const [k, f] of burning) {          // пламя перекидывается на соседнюю горючую клетку
+      const [x, y] = k.split(",").map(Number);
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) if (flam(x + dx, y + dy) && B.rnd(2) === 0) B.igniteAt(x + dx, y + dy, "перекинулось");
+    }
+    for (const [k, f] of burning) {
+      if (--f.left <= 0) { const [x, y] = k.split(",").map(Number); if (B.terrain(x, y) === "fire") S.cells[y][x] = ""; delete S.fireOld[k]; B.log("Пламя догорает: остаётся голая земля.", "round"); }
+    }
+    if (B.UI && B.UI.active) B.UI.refreshNow();
+  };
 })();

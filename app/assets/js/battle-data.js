@@ -60,6 +60,9 @@
     tomb: '<ellipse cx="50" cy="80" rx="40" ry="11" fill="#2a2430" opacity=".7"/><path d="M26 80 L26 40 Q26 22 50 22 Q74 22 74 40 L74 80Z" fill="#7f7c8c" stroke="#2f2d38" stroke-width="3" stroke-linejoin="round" transform="rotate(-6 50 80)"/>' +
       '<path d="M50 34 V56 M41 43 H59" stroke="#47455a" stroke-width="4" stroke-linecap="round" transform="rotate(-6 50 80)"/><path d="M14 82 Q22 72 30 82 M66 82 Q76 70 86 82" stroke="#3f6a30" stroke-width="3" fill="none" stroke-linecap="round"/>' +
       '<path d="M34 80 L40 70 L48 80 M54 80 L62 68 L70 80" fill="#1a1720" opacity=".7"/>',
+    brush: '<path d="M14 86 Q18 54 26 40 M30 86 Q32 50 42 30 M46 86 Q48 56 56 38 M62 86 Q62 52 74 34 M78 86 Q80 60 88 46" stroke="#b8a050" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M24 86 Q30 62 36 52 M54 86 Q58 64 66 54" stroke="#d8c46a" stroke-width="4" fill="none" stroke-linecap="round"/>',
+    log: '<ellipse cx="50" cy="80" rx="44" ry="9" fill="#000" opacity=".28"/><rect x="6" y="50" width="88" height="28" rx="13" fill="#6b4a2a" stroke="#2f1f0e" stroke-width="3"/><ellipse cx="90" cy="64" rx="7" ry="13" fill="#a47a46" stroke="#2f1f0e" stroke-width="2.5"/><path d="M18 58 H70 M24 70 H76" stroke="#4a3118" stroke-width="2.5" opacity=".7"/>',
+    stalag: '<ellipse cx="50" cy="88" rx="34" ry="7" fill="#000" opacity=".3"/><path d="M20 88 L34 34 L42 14 L52 40 L60 22 L76 88Z" fill="#8a98a6" stroke="#2e3842" stroke-width="3" stroke-linejoin="round"/><path d="M42 14 L40 50 M60 22 L58 56" stroke="#c3cfda" stroke-width="2.5" opacity=".7"/>',
     web: '<path d="M50 8 V92 M8 50 H92 M18 18 L82 82 M82 18 L18 82" stroke="#e6e9ee" stroke-width="2" opacity=".8"/><circle cx="50" cy="50" r="14" fill="none" stroke="#e6e9ee" stroke-width="2" opacity=".8"/><circle cx="50" cy="50" r="28" fill="none" stroke="#e6e9ee" stroke-width="2" opacity=".7"/>',
   };
   // Свойства клеток. cost — стоимость входа (2 = труднопроходная), cover — укрытие для занявшего клетку (дальние атаки +2 КД).
@@ -87,6 +90,10 @@
     cryptwall: { name: "Стена склепа", obstacle: true, block: true, note: "Полное укрытие: не пройти и не перелезть, закрывает обзор — за ним не видно клеток, туда нельзя стрелять, метать и колдовать." },
     cliff:   { name: "Скальный выступ", obstacle: true, block: true, note: "Полное укрытие: не пройти и не перелезть, закрывает обзор — за ним не видно клеток, туда нельзя стрелять, метать и колдовать." },
     hill:    { name: "Возвышенность", elevated: true, note: "Высота: +2 к броску атаки тому, кто стоит здесь, и +2 к броскам атак по нему (черновик). Подъём стоит как обычная клетка." },
+    web:     { name: "Паутина", cost: 2, flammable: true, note: "Труднопроходна. Горит: огонь (любой урон огнём по тому, кто стоит в ней или рядом, факел, костёр) поджигает паутину — клетка вспыхивает." },
+    brush:   { name: "Сухая трава", flammable: true, hide: true, note: "Можно прятаться. Горит: огонь поджигает траву, пламя перекидывается на соседнюю сухую траву и паутину." },
+    log:     { name: "Поваленное дерево", cover: 2, cost: 2, note: "Труднопроходно. +2 КД от дальних атак за ним." },
+    stalag:  { name: "Сталагмит", obstacle: true, note: "Не пройти. Укрытие." },
     tomb:    { name: "Старое надгробие", cost: 2, cover: 2, hide: true, note: "Просевшая могила с покосившимся камнем (клетка стоит 2). +2 КД от дальних атак, под камнем можно прятаться." },
   };
   // Высота (черновик, campaign/drafts.md): бонус к броску атаки, если атакующий стоит на возвышенности, и отдельно — если на ней стоит цель.
@@ -104,15 +111,26 @@
   // minCover — сколько клеток с укрытием (препятствия, заросли, туман) хотим иметь; *Chance — вероятность подсыпки; thicketN — размер пятна зарослей.
   D.gen = { wallChance: 0.55, wallLen: [1, 2], minCover: 5, coverChance: 0.75, thicketChance: 0.6, thicketN: [2, 4] };
   D.zones = {
-    goblin: { name: "Лагерь гоблинов", soil: true, obst: ["tent", "crate", "rock"], nObst: [3, 5], wall: "palisade", thicket: "thorns", feats: [["hill", 0, 3, true], ["stakes", 1, 2], ["mud", 1, 3, true], ["fire", 0, 1], ["puddle", 0, 2, true]], traps: [0, 2],
+    goblin: { name: "Лагерь гоблинов", soil: true, obst: ["tent", "crate", "rock"], nObst: [3, 5], wall: "palisade", thicket: "thorns", feats: [["hill", 0, 3, true], ["stakes", 1, 2], ["mud", 1, 3, true], ["fire", 0, 1], ["puddle", 0, 2, true], ["brush", 1, 3, true]], traps: [0, 2],
       bg: { base: "#4a4026", base2: "#2b2414", dots: ["#6a5a36", "#3a301a", "#7d6c40"], tufts: "#6b7a2e", label: "Лагерь гоблинов" } },
-    beast: { name: "Звериная чаща", soil: true, obst: ["tree", "rock"], nObst: [3, 5], wall: "deadfall", thicket: "bush", feats: [["hill", 0, 3, true], ["bush", 2, 4], ["mud", 0, 2, true], ["puddle", 1, 3, true]], traps: [0, 0],
+    beast: { name: "Звериная чаща", soil: true, obst: ["tree", "rock"], nObst: [3, 5], wall: "deadfall", thicket: "bush", feats: [["hill", 0, 3, true], ["bush", 2, 4], ["mud", 0, 2, true], ["puddle", 1, 3, true], ["brush", 2, 4, true], ["log", 1, 2], ["web", 0, 2, true]], traps: [0, 0],
       bg: { base: "#2f4a24", base2: "#17260f", dots: ["#3f6a30", "#22381a", "#587a3c"], tufts: "#6ea04a", label: "Звериная чаща" } },
-    undead: { name: "Погост", soil: true, obst: ["grave", "rock"], nObst: [3, 5], wall: "cryptwall", thicket: "thorns", feats: [["hill", 0, 3, true], ["bones", 2, 3], ["fog", 2, 4, true], ["puddle", 0, 2, true]], traps: [0, 0],
+    undead: { name: "Погост", soil: true, obst: ["grave", "rock"], nObst: [3, 5], wall: "cryptwall", thicket: "thorns", feats: [["hill", 0, 3, true], ["bones", 2, 3], ["fog", 2, 4, true], ["puddle", 0, 2, true], ["web", 1, 3, true]], traps: [0, 0],
       bg: { base: "#3a3744", base2: "#1c1a24", dots: ["#55526a", "#2a2834", "#6e6a84"], tufts: "#5b6a4a", label: "Погост" } },
-    stone: { name: "Каменная пещера", obst: ["rock", "crystal"], nObst: [3, 5], wall: "cliff", thicket: "shrooms", feats: [["moss", 1, 3], ["puddle", 1, 3, true]], traps: [0, 0],
+    stone: { name: "Каменная пещера", obst: ["rock", "crystal", "stalag"], nObst: [3, 5], wall: "cliff", thicket: "shrooms", feats: [["moss", 1, 3], ["puddle", 1, 3, true], ["web", 0, 2, true]], traps: [0, 0],
       bg: { base: "#3b4650", base2: "#1c2228", dots: ["#556573", "#2b343c", "#6f8394"], tufts: "#4f7a3a", label: "Каменная пещера" } },
   };
+
+  // Сцены фона по месту боя (ev.place): если место известно, фон рисуется под него, иначе — по зоне.
+  D.scenes = {
+    cave:   { name: "Пещера", re: /пещер|шахт|логово пауч|паутин|нор[ыа]|логово/i, base: "#303844", base2: "#12161c", dots: ["#46525e", "#222a32", "#5a6874"], tufts: "#3f5a46" },
+    swamp:  { name: "Топь", re: /топ[ьи]|болот/i, base: "#34452a", base2: "#141d12", dots: ["#46603a", "#222f1c", "#5e7a46"], tufts: "#7fa04e" },
+    crypt:  { name: "Склеп", re: /склеп|часовн|курган|кладбищ|гробниц/i, base: "#383442", base2: "#17151f", dots: ["#524e66", "#262330", "#6a6682"], tufts: "#5b6a4a" },
+    ember:  { name: "Пылающие земли", re: /печь|лав[аы]|пылающ|горнил|уголь|пепел/i, base: "#4a2a1e", base2: "#1c0e0a", dots: ["#6a3a26", "#2a1610", "#8a4a2c"], tufts: "#a04a28" },
+    lake:   { name: "Берег озера", re: /озер|берег|водопад/i, base: "#2c4658", base2: "#10202c", dots: ["#3e6278", "#1c3040", "#5a8298"], tufts: "#5a9a6a" },
+    forest: { name: "Лес", re: /лес|чащ|кроны|гнездо|холм|угодь|ведьм|поляна|сад/i, base: "#2a4a26", base2: "#122410", dots: ["#3a6a32", "#1e3818", "#52803a"], tufts: "#6ea04a" },
+  };
+  D.sceneOf = ev => { const t = String((ev && (ev.place || "")) || ""); if (!t) return null; for (const [k, sc] of Object.entries(D.scenes)) if (sc.re.test(t)) return k; return null; };
 
   /* ---------- скорость в бою ---------- */
   // Все, и герои и монстры, двигаются в бою медленнее: от обычных клеток скорости (1 клетка = 1,5 м) отнимается speedCut клеток.

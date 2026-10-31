@@ -425,7 +425,7 @@
         const opt = rerolls.shift(); if (opt.spend) opt.spend();
         prev = o.kind === "d20" ? (sh.last ? sh.last.nat : null) : (lastVals ? lastVals.reduce((a, v) => a + v, 0) : null);
         settled = false; $(".bd-ok").hidden = true; $(".bd-res").innerHTML = ""; updReroll();
-        arena.setDice(diceList); arena.enabled = false; arena.throwAll(); rollBtn.disabled = true;
+        arena.setDice(diceList); arena.enabled = false; arena.throwAll(); rollBtn.disabled = true; skipBtn.hidden = false; skipBtn.disabled = false;          // после переброса анимацию тоже можно пропустить
       };
     });
   }

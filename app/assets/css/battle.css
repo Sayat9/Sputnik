@@ -354,3 +354,8 @@ body.bt-active .dice-fab { display: none; }
 /* Меню боя: длинные подписи переносятся, кнопки не выходят за экран */
 .bt-switches .fx-btn, .bt-modal .fx-btn { white-space: normal; overflow-wrap: anywhere; box-sizing: border-box; max-width: 100%; line-height: 1.25; height: auto; min-height: 44px; padding: 10px 12px; }
 .bt-switches { min-width: 0; }
+/* Окно бойца: длинные значения переносятся, ничего не вылезает за рамку */
+.bt-dlg.insp { overflow-x: hidden; overflow-wrap: anywhere; min-width: 0; box-sizing: border-box; }
+.bt-dlg.insp ul { padding-left: 16px; margin: 4px 0; }
+.bt-dlg.insp .bt-ihead { min-width: 0; } .bt-dlg.insp .bt-ihead h4 { overflow-wrap: anywhere; min-width: 0; }
+.bt-istats, .bt-iabil { gap: 4px 10px; } .bt-istats span, .bt-iabil span { min-width: 0; white-space: normal; }

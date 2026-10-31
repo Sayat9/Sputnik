@@ -107,6 +107,7 @@
   }
   /* Урон: parts — [{v, dt, label}]. Учитывает уязвимости, сопротивления, плоские поправки пассивок, мокроту и временные ОЗ. */
   async function applyDamage(src, tgt, parts, o = {}) {
+    if (parts && B.igniteAround && parts.some(p => p.dt === "fire" && p.v > 0)) B.igniteAround(tgt);          // огонь поджигает паутину и сухую траву рядом
     if (o.splash && src && tgt.hero && B.dodgeSplash && B.dodgeSplash(src, tgt)) return { total: 0, absorbed: 0, notes: ["уклонение"] };          // доспех-мираж: область, где носитель не главная цель
     if (src && src !== tgt && src.side === tgt.side && tgt.hero && B.wearsRing && B.wearsRing(tgt)) { log(`${tgt.name}: кольцо братского духа гасит урон от ${src.name}.`, "good"); return { total: 0, absorbed: 0, notes: ["братский дух"] }; }
     if (src && tgt.hero && o.ctx && o.ctx.atk && o.ctx.atk.kind === "ranged" && !o.noReflect && B.mirrorTry) { const rf = await B.mirrorTry(src, tgt, parts); if (rf) return rf; }          // зеркальный щит
@@ -558,7 +559,12 @@
     for (let i = 0; i < n; i++) {
       const dx = Math.sign(u.x - fromX) || 0, dy = Math.sign(u.y - fromY) || 0; if (!dx && !dy) break;
       const nx = u.x + dx, ny = u.y + dy;
-      if (!B.canStand(u, nx, ny)) break;
+      if (!B.canStand(u, nx, ny)) {
+        // упёрся в стену, край поля или непроходимую местность: удар о преграду (бойцом на пути он не считается)
+        const t = B.inB(nx, ny) ? B.tinfo(nx, ny) : null, wall = !B.inB(nx, ny) || (t && (t.block || t.obstacle)) || (u.size > 1 && footprint(u, nx, ny).some(([fx, fy]) => !B.inB(fx, fy)));
+        if (wall && alive(u)) { const dmg = roll(1, 6).total; log(`${u.name} врезается в преграду: ${dmg} урона.`, "bad"); await applyDamage(null, u, [{ v: dmg, dt: "bludgeon", label: "Удар о преграду" }], { noReflect: true }); }
+        break;
+      }
       const from = [u.x, u.y]; u.x = nx; u.y = ny; moved++;
       const g = ui(); if (g) await g.animMove(u, from, [nx, ny]);
       breakGrapples(u);                                                                // оттолкнули от того, кто держит (или от пленника) — хватка рвётся

@@ -13,13 +13,21 @@
 
   /* ===== фон по зоне ===== */
   function mulberry(a) { return () => { a |= 0; a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
-  function bgSvg(zone, seed) {
-    const z = D.zones[zone] || D.zones.goblin, c = z.bg, r = mulberry(seed), N = 700, out = [];
+  function bgSvg(zone, seed, scene) {
+    const z = D.zones[zone] || D.zones.goblin, sc = scene && D.scenes && D.scenes[scene], c = sc ? { base: sc.base, base2: sc.base2, dots: sc.dots, tufts: sc.tufts } : z.bg, r = mulberry(seed), N = 700, out = [];
     const P = (a, b) => a + r() * (b - a);
     out.push(`<defs><radialGradient id="bgg" cx=".5" cy=".45" r=".75"><stop offset="0" stop-color="${c.base}"/><stop offset="1" stop-color="${c.base2}"/></radialGradient></defs><rect width="${N}" height="${N}" fill="url(#bgg)"/>`);
     const dot = () => c.dots[Math.floor(r() * c.dots.length)];
     for (let i = 0; i < 46; i++) out.push(`<ellipse cx="${P(0, N)}" cy="${P(0, N)}" rx="${P(14, 60)}" ry="${P(8, 30)}" fill="${dot()}" opacity="${P(.12, .3)}"/>`);
     for (let i = 0; i < 70; i++) { const x = P(0, N), y = P(0, N), h = P(5, 13); out.push(`<path d="M${x} ${y} l${P(-3, 3)} ${-h} M${x + 3} ${y} l${P(-3, 3)} ${-h * .8} M${x - 3} ${y} l${P(-3, 3)} ${-h * .7}" stroke="${c.tufts}" stroke-width="1.6" opacity="${P(.3, .65)}" fill="none" stroke-linecap="round"/>`); }
+    if (sc) {          // украшения сцены по месту боя
+      if (scene === "cave") { for (let i = 0; i < 16; i++) { const x = P(0, N), w = P(14, 34), h = P(26, 70); out.push(`<path d="M${x - w / 2} 0 L${x} ${h} L${x + w / 2} 0Z" fill="#1a2028" opacity="${P(.35, .6)}"/>`); } for (let i = 0; i < 12; i++) { let x = P(0, N), y = P(0, N), d = `M${x} ${y}`; for (let k = 0; k < 4; k++) { x += P(-26, 26); y += P(8, 30); d += ` L${x} ${y}`; } out.push(`<path d="${d}" stroke="#0e1318" stroke-width="2.2" fill="none" opacity=".5"/>`); } }
+      else if (scene === "forest") { for (let i = 0; i < 10; i++) out.push(`<ellipse cx="${P(0, N)}" cy="${P(0, N)}" rx="${P(50, 120)}" ry="${P(30, 70)}" fill="#0c1a0a" opacity="${P(.12, .26)}"/>`); for (let i = 0; i < 60; i++) out.push(`<ellipse cx="${P(0, N)}" cy="${P(0, N)}" rx="${P(5, 9)}" ry="${P(3, 5)}" fill="${["#7a9a3a", "#a8863a", "#5a8a3a", "#8a5a2a"][Math.floor(r() * 4)]}" opacity="${P(.25, .6)}" transform="rotate(${P(0, 180)} ${N / 2} ${N / 2})"/>`); }
+      else if (scene === "swamp") { for (let i = 0; i < 14; i++) out.push(`<ellipse cx="${P(0, N)}" cy="${P(0, N)}" rx="${P(30, 90)}" ry="${P(16, 40)}" fill="#1c3a30" opacity="${P(.3, .55)}"/>`); for (let i = 0; i < 10; i++) out.push(`<ellipse cx="${P(0, N)}" cy="${P(0, N)}" rx="${P(60, 140)}" ry="${P(20, 40)}" fill="#a8c8b0" opacity="${P(.05, .12)}"/>`); }
+      else if (scene === "crypt") { for (let y = 0; y < N; y += 70) out.push(`<path d="M0 ${y} H${N}" stroke="#14121c" stroke-width="2" opacity=".45"/>`); for (let x = 0; x < N; x += 70) out.push(`<path d="M${x} 0 V${N}" stroke="#14121c" stroke-width="2" opacity=".35"/>`); for (let i = 0; i < 20; i++) out.push(`<circle cx="${P(0, N)}" cy="${P(0, N)}" r="${P(1.5, 4)}" fill="#9a96b0" opacity=".25"/>`); }
+      else if (scene === "ember") { for (let i = 0; i < 16; i++) { let x = P(0, N), y = P(0, N), d = `M${x} ${y}`; for (let k = 0; k < 5; k++) { x += P(-30, 30); y += P(10, 34); d += ` L${x} ${y}`; } out.push(`<path d="${d}" stroke="#ff7a2a" stroke-width="2.6" fill="none" opacity="${P(.35, .7)}"/>`); } for (let i = 0; i < 30; i++) out.push(`<circle cx="${P(0, N)}" cy="${P(0, N)}" r="${P(1.5, 3.5)}" fill="#ffb060" opacity="${P(.25, .6)}"/>`); }
+      else if (scene === "lake") { for (let i = 0; i < 18; i++) out.push(`<ellipse cx="${P(0, N)}" cy="${P(0, N)}" rx="${P(30, 90)}" ry="${P(8, 20)}" fill="none" stroke="#9ac4d8" stroke-width="2" opacity="${P(.12, .3)}"/>`); }
+    }
     if (zone === "goblin") for (let i = 0; i < 16; i++) { const x = P(20, N - 20), y = P(20, N - 20); out.push(`<path d="M${x} ${y} l14 3 M${x + 2} ${y + 6} l14 3" stroke="#d6c28a" stroke-width="1.6" opacity=".45" stroke-linecap="round"/>`); out.push(`<ellipse cx="${x}" cy="${y}" rx="5" ry="3" fill="#2a2010" opacity=".35"/>`); }
     if (zone === "beast") for (let i = 0; i < 40; i++) out.push(`<ellipse cx="${P(0, N)}" cy="${P(0, N)}" rx="${P(5, 9)}" ry="${P(3, 5)}" fill="${["#7a9a3a", "#a8863a", "#5a8a3a", "#8a5a2a"][Math.floor(r() * 4)]}" opacity="${P(.25, .6)}" transform="rotate(${P(0, 180)} ${N / 2} ${N / 2})"/>`);
     if (zone === "undead") { for (let i = 0; i < 14; i++) { let x = P(0, N), y = P(0, N), d = `M${x} ${y}`; for (let k = 0; k < 4; k++) { x += P(-30, 30); y += P(10, 34); d += ` L${x} ${y}`; } out.push(`<path d="${d}" stroke="#14121c" stroke-width="2.4" fill="none" opacity=".55"/>`); } for (let i = 0; i < 9; i++) out.push(`<path d="M${P(0, N)} ${P(0, N)} l${P(10, 22)} ${P(-8, 8)}" stroke="#d6ccb4" stroke-width="3.5" stroke-linecap="round" opacity=".28"/>`); }
@@ -81,9 +89,9 @@
   function build(S) {
     fit();                                                                           // размер поля (7×7 или 10×10) мог измениться
     const bg = root.querySelector(".bt-bg"); S.bgSeed = S.bgSeed || Math.floor(Math.random() * 1e9);
-    bg.innerHTML = bgSvg(S.zone, S.bgSeed);
-    const have = (D.bgImages || {})[S.zone] || 0; if (have) { const n = 1 + (S.bgSeed % have), im = new Image(), src = `assets/bg/${S.zone}-${n}.webp`; im.onload = () => { bg.style.backgroundImage = `url(${src})`; bg.style.backgroundSize = "cover"; bg.style.backgroundPosition = "center"; const sv = bg.querySelector("svg"); if (sv) sv.style.opacity = "0"; }; im.src = src; }          // нарисованный фон поля (assets/bg/<зона>-1..3.webp), если файл есть; иначе рисуется схемой
-    root.querySelector(".bt-zone").textContent = (D.zones[S.zone] || {}).name || "";
+    bg.innerHTML = bgSvg(S.zone, S.bgSeed, S.scene);
+    const have = S.scene ? 0 : (D.bgImages || {})[S.zone] || 0; if (have) { const n = 1 + (S.bgSeed % have), im = new Image(), src = `assets/bg/${S.zone}-${n}.webp`; im.onload = () => { bg.style.backgroundImage = `url(${src})`; bg.style.backgroundSize = "cover"; bg.style.backgroundPosition = "center"; const sv = bg.querySelector("svg"); if (sv) sv.style.opacity = "0"; }; im.src = src; }          // нарисованный фон поля (assets/bg/<зона>-1..3.webp), если файл есть; иначе рисуется схемой
+    root.querySelector(".bt-zone").textContent = (S.scene && D.scenes[S.scene] ? D.scenes[S.scene].name : (D.zones[S.zone] || {}).name) || "";
     root.dataset.zone = S.zone; root.classList.toggle("dark", !!S.dark && !S.torch);
     const cells = root.querySelector(".bt-cells"); cells.innerHTML = ""; cellEls = [];
     for (let y = 0; y < B.H; y++) { cellEls[y] = []; for (let x = 0; x < B.W; x++) { const c = document.createElement("div"); c.className = "bt-cell"; c.dataset.x = x; c.dataset.y = y; c.dataset.t = ""; cells.appendChild(c); cellEls[y][x] = c; } }
