@@ -79,7 +79,8 @@
     return `<div class="tw-heroes" role="tablist" aria-label="Герои">${state.party.map(c => `<button class="tw-h${c.id === ui.hero ? " on" : ""}" role="tab" aria-selected="${c.id === ui.hero}" data-t="hero" data-id="${c.id}">
       ${portrait(c)}<span class="tw-hn">${esc(c.name)}</span>${showGold ? `<span class="tw-hg">${goldOf(c)}</span>` : ""}</button>`).join("")}</div>`;
   }
-  const head = (title, sub = "") => `<header class="tw-head"><div><div class="fx-eyebrow">${sub}</div><h3>${title}</h3></div><div class="tw-gold" title="Монет в отряде">${COIN_SVG}<b>${partyGold()}</b></div>${closeBtn}</header>`;
+  const clockChip = () => { try { const c = townClock(), gi = gateInfo(), n = c.t % 3 + 1; return `<div class="tw-clock" title="Городское время: действие внутри дня и врата лабиринта"><small>День ${Math.floor(c.t / 3) + 1} · действие ${n}/3</small><b>${gi.open ? "врата открыты" : "врата через " + gi.left}</b></div>`; } catch (e) { return ""; } };          // счётчик городского времени
+  const head = (title, sub = "") => `<header class="tw-head"><div><div class="fx-eyebrow">${sub}</div><h3>${title}</h3></div>${clockChip()}<div class="tw-gold" title="Монет в отряде">${COIN_SVG}<b>${partyGold()}</b></div>${closeBtn}</header>`;
   const msgLine = () => `<p class="tw-msg" role="status">${ui.msg || ""}</p>`;
   const noParty = () => state.party.length ? "" : `<p class="tw-msg">В отряде нет героев.</p>`;
   const frame = (title, sub, body, foot = "") => `<div class="tw-panel fx-frame">${head(title, sub)}<div class="tw-scroll">${body}</div>${foot ? `<footer class="tw-foot">${foot}</footer>` : ""}</div>`;
@@ -150,10 +151,11 @@
   };
   function shopSelInfo() {
     const c = hero(), sel = ui.sel;
-    if (!sel) return `<span class="tw-hint">Нажми предмет, чтобы купить${sellsStones() ? "; камни продаются из сумки" : ""}. Удержи: описание.</span>`;
+    if (!sel) return `<span class="tw-hint">Нажми предмет, чтобы купить${sellsStones() ? "; свои расходники — нажми в рюкзаке, камни — из сумки" : ""}. Удержи: описание.</span>`;
     if (sel.side === "bag") {
       const e = (c.bag || [])[sel.i], it = e && itemOf(e, c); if (!it) return "";
-      return `<b>${esc(it.name)}${e.qty > 1 ? " × " + e.qty : ""}</b><span class="tw-hint">${sellsStones() ? "Магазин скупает только камни — они лежат в сумке для камней." : "Кузнец ничего не скупает."}</span>`;
+      if (ui.b === "shop" && unitPrice(e) > 0) { const q = e.qty || 1, one = sellValue(e, 1), all = sellValue(e, q); return `<b>${esc(it.name)}${q > 1 ? " × " + q : ""}</b><span class="tw-btns">${one ? `<button class="fx-btn" data-t="sell1" data-i="${sel.i}">Продать 1 · +${one}</button>` : ""}<button class="fx-btn primary" data-t="sellall" data-i="${sel.i}"${all ? "" : " disabled"}>Продать${q > 1 ? " все" : ""} · +${all}</button></span><span class="tw-hint">Стандартная цена: за штуку ${(Math.round(unitPrice(e) * 100) / 100)} монет.</span>`; }
+      return `<b>${esc(it.name)}${e.qty > 1 ? " × " + e.qty : ""}</b><span class="tw-hint">${sellsStones() ? "Магазин скупает камни (из сумки) и расходники: пайки, зелья, факелы, стрелы, лопаты, аптечки." : "Кузнец ничего не скупает."}</span>`;
     }
     const g = goodByKey(sel.key); if (!g) return "";
     const it = goodInfo(g), q = g.e ? g.e.qty : 1;
@@ -358,7 +360,7 @@
   }
   function lrRoll(n) {
     const lr = ui.lr; if (!lr || lr.step !== "stage" || lr.choosing) return;
-    const c = state.party.find(x => x.id === lr.hero) || hero(), bonus = libBonus(c), dc = LIB_DC[lr.cls], die = n || 1 + rnd(20), total = die + bonus, pass = total >= dc;
+    const c = state.party.find(x => x.id === lr.hero) || hero(), bonus = libBonus(c), dc = LIB_DC[lr.cls], die = n || window.__libDie || 1 + rnd(20), total = die + bonus, pass = total >= dc;
     visit();
     const name = STAGES[lr.stage][1];
     if (STAGES[lr.stage][0] === "info" && die >= 19) lr.essOK = true;
@@ -388,9 +390,8 @@
       const c = state.party.find(x => x.id === lr.hero) || hero(), bonus = libBonus(c), dc = LIB_DC[lr.cls], opts = lrOptions(lr);
       const head = `<p class="tw-lead"><b>Этап ${lr.stage + 1} из ${STAGES.length}: ${STAGES[lr.stage][1]}.</b> Проверяет ${esc(c.name)}: бонус ${bonus >= 0 ? "+" : ""}${bonus}, Сл ${dc}. Успех — выбираешь сам, провал — случайно.</p>`;
       if (lr.choosing) return `${head}${log}<div class="tw-rows">${opts.map(o => `<div class="tw-row"><div class="tw-who"><div><b>${esc(o.label)}</b></div></div><button class="fx-btn primary" data-t="lr-pick" data-v="${esc(o.v)}">Выбрать</button></div>`).join("")}</div>`;
-      return `${head}${log}<p class="tw-lead">Бросок к20 (физический кубик — число ниже; или кнопка «Бросить за приложение»).</p>
-        <div class="roll-grid">${Array.from({ length: 20 }, (_, i) => `<button class="fx-btn" data-t="lr-roll" data-n="${i + 1}">${i + 1}</button>`).join("")}</div>
-        <button class="fx-btn primary" data-t="lr-roll" data-n="0" style="margin-top:8px">Бросить за приложение</button>`;
+      return `${head}${log}<p class="tw-lead">Проверку бросает сама библиотека, в итоге видно только результат.</p>
+        <button class="fx-btn primary" data-t="lr-roll" data-n="0" style="margin-top:8px">Провести проверку</button>`;
     }
     if (lr.step === "done") return `${log}<div class="tw-result fx-frame"><p><b>Найдено:</b> ${esc(lr.result)}</p><p style="opacity:.75;font-size:13px">Запись попала в библиотеку (кнопка «Библиотека» на главном экране и в лабиринте).</p></div>
       <button class="fx-btn primary" data-t="lr-restart">Ещё одно исследование</button>`;
@@ -648,7 +649,17 @@
 
   /* ---------- действия ---------- */
   // Предмет предложен лавочнику (перетаскиванием из рюкзака): обычные вещи он не скупает, камни лежат в сумке.
-  function offer(i) { ui.msg = sellsStones() ? "Магазин скупает только камни — они лежат в сумке для камней." : "Кузнец ничего не скупает."; }
+  // Расходники магазин скупает по стандартной цене (цена товара на одну штуку); камни — из сумки; кузнец ничего не скупает.
+  const unitPrice = e => { const g = GOODS.find(x => x.e && x.e.t === "g" && e && e.t === "g" && x.e.id === e.id); return g ? g.price / g.e.qty : 0; };
+  const sellValue = (e, n) => Math.floor(unitPrice(e) * n + 1e-9);
+  function sellItem(i, all) {
+    const c = hero(), e = (c.bag || [])[i]; if (!e || ui.b !== "shop") return;
+    const have = e.qty || 1, n = all ? have : 1, g = sellValue(e, n);
+    if (!g) { ui.msg = n === 1 && unitPrice(e) > 0 ? "Одну штуку так мало, что лавочник не платит — продай стопку." : "Это магазин не скупает."; return; }
+    const it = itemOf(e, c); if (!takeGear(c, e.id, n)) { ui.msg = "Не получилось забрать предмет."; return; }
+    addGold(c, g); visit(); ui.sel = null; ui.talk = talk(); ui.msg = `Продано: ${it.name}${n > 1 ? " × " + n : ""} за ${g} монет — ${c.name}.`; saveChar();
+  }
+  function offer(i) { if (ui.b === "shop") { const e = ((hero().bag || [])[i]); if (e && unitPrice(e) > 0) { sellItem(i, true); return; } } ui.msg = sellsStones() ? "Магазин скупает камни (из сумки) и расходники." : "Кузнец ничего не скупает."; }
   function buy(n) {
     const c = hero(), g = goodByKey(ui.sel.key); if (!g || owned(g)) return;
     const cost = g.price * n;
@@ -774,6 +785,8 @@
       }
       case "sk-sell": skSell(); break;
       case "buy": buy(+ds.n); break;
+      case "sell1": sellItem(+ds.i, false); break;
+      case "sellall": sellItem(+ds.i, true); break;
       case "tv": { const m = ui[ds.k]; m[ds.id] = !m[ds.id]; break; }
       case "tv-all": for (const c of state.party.filter(x => !x.dead)) { if (!state.arenaLock) ui.sleep[c.id] = true; ui.food[c.id] = true; } break;
       case "tv-pay": tavernPay(); break;

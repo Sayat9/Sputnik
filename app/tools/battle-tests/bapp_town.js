@@ -21,7 +21,7 @@ const L = require('./bui_lib.js');
   await p.click('[data-t="hero"][data-id="h0"]');
   const drag = async sel => { const a = await (await p.$(sel)).boundingBox(), z = await (await p.$('.tw-keeper')).boundingBox(); await p.mouse.move(a.x + a.width / 2, a.y + a.height / 2); await p.mouse.down(); await p.mouse.move(a.x + a.width / 2 + 30, a.y + a.height / 2 + 5, { steps: 4 }); await p.mouse.move(z.x + z.width / 2, z.y + z.height / 2, { steps: 8 }); await p.mouse.up(); };
   await drag('.tw-bag .cell[aria-label*="Паёк"]');
-  ok('пайки лавочнику не продаются', await p.evaluate(() => /только камни/.test(document.querySelector('.tw-msg').textContent) && countGear(state.party[0], 'ration') >= 1));
+  ok('пайки лавочник скупает по стандартной цене (5 за монету)', await p.evaluate(() => /Продано: .*Паёк/.test(document.querySelector('.tw-msg').textContent) && countGear(state.party[0], 'ration') === 0 && state.party[0].gold === 37), await p.evaluate(() => [document.querySelector('.tw-msg').textContent, state.party[0].gold]));
   await p.evaluate(() => { state.party[0].gold = 36; });
   // покупка
   await p.click('[data-t="stock"][data-id="torch"]'); await p.click('[data-t="buy"][data-n="5"]');
@@ -66,13 +66,13 @@ const L = require('./bui_lib.js');
   await p.click('[data-t="lr-cat"][data-k="monsters"]'); await p.click('[data-t="lr-hero"]'); await p.click('[data-t="lr-cls"][data-n="9"]');
   ok('библиотека: первая проверка — тип', await p.evaluate(() => /Этап 1 из 4/.test(document.querySelector('.tw-scroll').innerText)));
   const known0 = await p.evaluate(() => Object.keys(journal().known).length + JSON.stringify(Object.values(journal().known).map(r => r.revealed)));
-  for (let i = 0; i < 6; i++) { if (!(await p.$('[data-t="lr-roll"][data-n="20"]'))) break; await p.click('[data-t="lr-roll"][data-n="20"]'); const pick = await p.$('[data-t="lr-pick"]'); if (pick) await pick.click(); }
+  for (let i = 0; i < 6; i++) { if (!(await p.$('[data-t="lr-roll"]'))) break; await p.evaluate(() => { window.__libDie = 20; }); await p.click('[data-t="lr-roll"]'); const pick = await p.$('[data-t="lr-pick"]'); if (pick) await pick.click(); }
   ok('библиотека: после успешных проверок — найдено сведение', await p.evaluate(() => /Найдено/.test(document.querySelector('.tw-scroll').innerText)), await p.evaluate(() => document.querySelector('.tw-scroll').innerText.slice(0, 300)));
   const known1 = await p.evaluate(() => Object.keys(journal().known).length + JSON.stringify(Object.values(journal().known).map(r => r.revealed)));
   ok('библиотека: запись изменилась', known0 !== known1);
   ok('библиотека: исследование — 1 действие', await p.evaluate(() => Town.state().cost) === 1);
   await p.click('[data-t="lr-restart"]'); await p.click('[data-t="lr-hero"]'); await p.click('[data-t="lr-cls"][data-n="9"]');
-  for (let i = 0; i < 6; i++) { if (!(await p.$('[data-t="lr-roll"][data-n="1"]'))) break; await p.click('[data-t="lr-roll"][data-n="1"]'); if (await p.$('[data-t="lr-pick"]')) break; }
+  for (let i = 0; i < 6; i++) { if (!(await p.$('[data-t="lr-roll"]'))) break; await p.evaluate(() => { window.__libDie = 1; }); await p.click('[data-t="lr-roll"]'); if (await p.$('[data-t="lr-pick"]')) break; }
   ok('библиотека: провал — случайный выбор без меню', await p.evaluate(() => /провал/.test(document.querySelector('.tw-scroll').innerText)));
   await p.click('[data-t="close"]');
   // --- доска
