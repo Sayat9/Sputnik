@@ -50,8 +50,8 @@
         h += pickPromptHtml();
       } else {
         const opts = B.actionsFor(u), noLeft = !(u.t.action > 0) && !(u.t.bonus > 0) && !(u.t.move > 0), pop = opts.find(o => o.pop && o.enabled);
-        if (pop) h += `<button class="bt-pickup" data-ba="pickup">${ico("throwing")}<span><b>${esc(pop.label)}</b><small>свободное действие — вы стоите на нём</small></span></button>`;
         h += `<div class="bt-dock">${(u.summon ? DOCK.filter(d => ["attack", "move", "end"].includes(d[0])) : DOCK).map(([id, label, ic]) => `<button class="bt-dk${UI.cat === id ? " on" : ""}${id === "end" && noLeft ? " pulse" : ""}" data-ba="dock" data-id="${id}"><span>${ico(ic)}</span><small>${label}</small></button>`).join("")}</div>`;
+        if (pop) h += `<button class="bt-pickup" data-ba="pickup">${ico("throwing")}<span><b>${esc(pop.label)}</b><small>свободное действие — вы стоите на нём</small></span></button>`;          // доп. действия — только под основной панелью
         if (UI.cat && CATS[UI.cat]) {
           const list = opts.filter(o => CATS[UI.cat][1].includes(o.cat) && !(UI.cat === "other" && o.id === "move"));
           h += `<div class="bt-list"><div class="bt-listh"><b>${CATS[UI.cat][0]}</b><button class="bt-x" data-ba="dock" data-id="${UI.cat}" aria-label="Свернуть">${ico("close")}</button></div>${list.length ? list.map(optionHtml).join("") : `<p class="bt-empty">Здесь пока ничего нет.</p>`}${UI.cat === "skill" ? passiveRows(u) : ""}</div>`;

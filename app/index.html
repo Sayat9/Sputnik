@@ -1590,7 +1590,9 @@ const ESSENCES = {
   },
 };
 
-const KIND_RU = { goblin: "Гоблины", beast: "Звери", undead: "Нежить", stone: "Элементали" };          // вид монстра по зоне (фильтры и библиотека)
+// Общие категории монстров (решение автора 31.10): по виду существа, а не по зоне. monCat(m) берёт их из поля type.
+const KIND_RU = { humanoid: "Гуманоиды", beast: "Звери", undead: "Нежить", spirit: "Духи и элементали", thing: "Твари" };
+const monCat = m => { const t = String((m && m.type) || "").toLowerCase(); return /нежить/.test(t) ? "undead" : /дух|элементал/.test(t) ? "spirit" : /зверь|животн/.test(t) ? "beast" : /гуманоид/.test(t) ? "humanoid" : "thing"; };
 const RANKS = { normal: "Обычный", rare: "Редкий", special: "Особый", guardian: "Страж", lord: "Лорд этажа" };
 const rankOf = m => m.rank === "normal" && m.rare ? "rare" : m.rank;
 const MONSTERS = [
@@ -2249,7 +2251,7 @@ function renderBestiary() {
     (mf.floor === "all" || m.floors.includes(+mf.floor)) &&
     (mf.cls === "all" || m.cls === +mf.cls) &&
     (mf.rank === "all" || rankOf(m) === mf.rank) &&
-    (mf.kind === "all" || m.zone === mf.kind));
+    (mf.kind === "all" || monCat(m) === mf.kind));
   const changed = JSON.stringify(mf) !== JSON.stringify(MF_DEFAULT);
   return `
     <div class="filters" data-scope="m">
@@ -2715,7 +2717,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 66;
+const BATTLE_REV = 67;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }
@@ -4994,7 +4996,7 @@ function switchFloor() {
     logRun(`Отряд вошёл в портал: 3 этаж, ${F3_CORNER[pi.entry]} (день ${r.day}).`);
     ngEnterFloor(3);
   } else if (pi.to === 2) {
-    r.floor = 2; r.variant = pi.variant;
+    r.floor = 2; r.variant = pi.variant; journal().seenFloor2 = true; unlockJournal(8); unlockJournal(7);
     const saved = r.fs[2] && r.fs[2].variant === pi.variant ? r.fs[2] : null;
     if (saved) FLOOR_KEYS.forEach(k => { r[k] = saved[k]; });
     else {
@@ -6836,7 +6838,7 @@ function unlockJournal(cls) {
   const j = journal();
   if (!j.unlocked || !j.tiers.includes(cls)) { j.unlocked = true; if (!j.tiers.includes(cls)) j.tiers.push(cls); }
 }
-const libMonsters = () => MONSTERS.filter(m => !m.dyn && (journal().known[m.id] || (m.floor === 1 && !m.draft && journal().tiers.includes(m.cls))));          // монстры любого этажа попадают в библиотеку, как только записаны (встреча, поиск, гильдия); неизвестные «?» показываются только для открытых классов 1 этажа
+const libMonsters = () => MONSTERS.filter(m => !m.dyn && (journal().known[m.id] || (!m.draft && journal().tiers.includes(m.cls) && (m.floor === 1 || (m.floor === 2 && journal().seenFloor2)))));          // монстры 2 этажа появляются «?» после первого спуска на 2 этаж          // монстры любого этажа попадают в библиотеку, как только записаны (встреча, поиск, гильдия); неизвестные «?» показываются только для открытых классов 1 этажа
 const MON_PH = `<svg viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" fill="#120e09"/><circle cx="50" cy="42" r="18" fill="#2a2016" stroke="#6e5634"/><path d="M18 100 C22 74 36 66 50 66 C64 66 78 74 82 100Z" fill="#2a2016" stroke="#6e5634"/></svg>`;
 const monArt = (m, full) => (full ? ART.monsterFull(m.id) : ART.monsterFace(m.id));
 
@@ -6902,7 +6904,7 @@ function libMonstersTab() {
   const j = journal();
   if (!j.unlocked) return `<div class="lib-empty">${ICO_BOOK}<b style="color:var(--fx-gold-hi);font:400 20px var(--f-display)">Пока пусто</b>
     <span>Записи о монстрах появятся после первого спуска в лабиринт.</span></div>`;
-  const kindSel = libUi.kind || "all", all = libMonsters().filter(m => kindSel === "all" || m.zone === kindSel), known = all.filter(m => j.known[m.id]), unknown = all.filter(m => !j.known[m.id]);
+  const kindSel = libUi.kind || "all", all = libMonsters().filter(m => kindSel === "all" || monCat(m) === kindSel), known = all.filter(m => j.known[m.id]), unknown = all.filter(m => !j.known[m.id]);
   return `
     <div class="lib-kinds" style="display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px">${[["all", "Все"], ...Object.entries(KIND_RU)].map(([v, l]) => `<button class="chip" data-lx="kind" data-v="${v}" aria-pressed="${kindSel === v}">${l}</button>`).join("")}</div>
     ${known.length ? `<div class="lib-sec">Известные · ${known.length}</div>
