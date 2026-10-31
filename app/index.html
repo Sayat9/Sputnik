@@ -399,6 +399,9 @@ body.fx-page::before { background: var(--fx-bg); }
 body.fx-page header.top { display: none; }
 body.forge-open { overflow: hidden; }
 html, body { overscroll-behavior: none; }
+#heroov .cell, #heroov .eq { touch-action: none; }
+#heroov .cell img, #heroov .eq img { -webkit-user-drag: none; user-select: none; pointer-events: none; }
+#heroov .cell, #heroov .eq { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }          /* перетаскивание предметов в окне героя */
 body.forge-open, body.bt-active, body:has(.mapov:not([hidden])), body:has(.bt-root) { overflow: hidden; }          /* экран под окнами не двигается (правило автора: не вмещается — скролл внутри окна или переделать) */
 
 .fx-btn {
@@ -2719,7 +2722,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 69;
+const BATTLE_REV = 70;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }
@@ -6593,9 +6596,9 @@ function heroInv(c) {
     <div class="fx-section">Надето</div>
     <div class="eq-list">${slots.map(([k, label]) => {
       const e = c.equip[k], it = itemOf(e);
-      if (k === "off" && two) return `<div class="eq empty"><span class="ic">${GEAR_ICON.custom}</span><span><small>${label}</small><b>занята двуручным</b></span></div>`;
-      return it ? `<button class="eq" data-hslot="${k}" aria-pressed="${heroUi.slot === k}"><span class="ic">${itemThumb(e)}</span><span><small>${label}</small><b>${esc(it.name)}</b></span></button>`
-        : `<div class="eq empty"><span class="ic"></span><span><small>${label}</small><b>пусто</b></span></div>`;
+      if (k === "off" && two) return `<div class="eq empty" data-eqslot="${k}"><span class="ic">${GEAR_ICON.custom}</span><span><small>${label}</small><b>занята двуручным</b></span></div>`;
+      return it ? `<button class="eq" data-hslot="${k}" data-eqslot="${k}" aria-pressed="${heroUi.slot === k}"><span class="ic">${itemThumb(e)}</span><span><small>${label}</small><b>${esc(it.name)}</b></span></button>`
+        : `<div class="eq empty" data-eqslot="${k}"><span class="ic"></span><span><small>${label}</small><b>пусто</b></span></div>`;
     }).join("")}</div>
     <button class="fx-btn" data-hx="sack" style="display:flex;align-items:center;gap:8px;justify-content:center;width:100%;margin:6px 0"><span style="width:22px;height:22px;display:inline-flex">${ICO_SACK}</span>Сумка для камней · ${sackTotal()}</button>
     <div class="fx-section">Рюкзак · ${(c.bag || []).length}/${bagSize(c)}</div>
@@ -6656,6 +6659,26 @@ function heroAfterChange(msg) {
 }
 
 let holdInfo = { t: 0, fired: false, x: 0, y: 0 };
+/* Перетаскивание в окне героя: предмет из рюкзака — на ячейку экипировки (надеть), надетое — на рюкзак (снять). */
+let heroDrag = null;
+$hero.addEventListener("pointerdown", e => {
+  const el = e.target.closest("[data-hbag],[data-hslot]"); if (!el) return;
+  heroDrag = { bag: el.dataset.hbag !== undefined ? +el.dataset.hbag : null, slot: el.dataset.hslot || null, x: e.clientX, y: e.clientY, on: false, ghost: null };
+});
+$hero.addEventListener("pointermove", e => {
+  const d = heroDrag; if (!d) return;
+  if (!d.on && Math.hypot(e.clientX - d.x, e.clientY - d.y) > 14) { d.on = true; const g = document.createElement("div"); g.style.cssText = "position:fixed;z-index:9999;pointer-events:none;width:52px;height:52px;border:2px solid #f4d48e;border-radius:8px;background:#120e09;opacity:.92;overflow:hidden"; const c = heroById(heroUi.id), it = d.bag !== null ? c.bag[d.bag] : c.equip[d.slot]; g.innerHTML = it ? itemThumb(it, c) : ""; document.body.appendChild(g); d.ghost = g; }
+  if (d.on && d.ghost) { d.ghost.style.left = (e.clientX - 26) + "px"; d.ghost.style.top = (e.clientY - 26) + "px"; e.preventDefault(); }
+}, { passive: false });
+const endHeroDrag = e => {
+  const d = heroDrag; heroDrag = null; if (!d || !d.on) return; if (d.ghost) d.ghost.remove();
+  const t = document.elementFromPoint(e.clientX, e.clientY); if (!t) return; $hero.dataset.dragged = "1"; setTimeout(() => { delete $hero.dataset.dragged; }, 400);
+  const c = heroById(heroUi.id); if (!c) return;
+  if (d.bag !== null && t.closest("[data-eqslot]")) { const slot = t.closest("[data-eqslot]").dataset.eqslot; heroUi.sel = d.bag; heroUi.slot = null; heroUi.give = false; renderHero(); const btns = [...$hero.querySelectorAll('[data-hx="equip"]')]; const b = btns.find(x => x.dataset.slotTo === slot) || btns[0]; if (b && !b.disabled) b.click(); else toast("Сюда это не надеть"); }
+  else if (d.slot && t.closest(".packwrap")) { heroUi.slot = d.slot; heroUi.sel = null; renderHero(); const b = $hero.querySelector('[data-hx="unequip"]'); if (b) b.click(); }
+};
+$hero.addEventListener("pointerup", endHeroDrag); $hero.addEventListener("pointercancel", () => { if (heroDrag && heroDrag.ghost) heroDrag.ghost.remove(); heroDrag = null; });
+$hero.addEventListener("click", e => { if ($hero.dataset.dragged && e.isTrusted) { e.stopPropagation(); e.preventDefault(); } }, true);
 $hero.addEventListener("pointerdown", e => {
   holdInfo.fired = false;
   const el = e.target.closest("[data-hbag],[data-hslot]"); if (!el || !heroUi) return; holdInfo.x = e.clientX; holdInfo.y = e.clientY; clearTimeout(holdInfo.t);

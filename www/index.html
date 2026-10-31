@@ -402,6 +402,9 @@ body.fx-page::before { background: var(--fx-bg); }
 body.fx-page header.top { display: none; }
 body.forge-open { overflow: hidden; }
 html, body { overscroll-behavior: none; }
+#heroov .cell, #heroov .eq { touch-action: none; }
+#heroov .cell img, #heroov .eq img { -webkit-user-drag: none; user-select: none; pointer-events: none; }
+#heroov .cell, #heroov .eq { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }          /* перетаскивание предметов в окне героя */
 body.forge-open, body.bt-active, body:has(.mapov:not([hidden])), body:has(.bt-root) { overflow: hidden; }          /* экран под окнами не двигается (правило автора: не вмещается — скролл внутри окна или переделать) */
 
 .fx-btn {
@@ -1967,8 +1970,8 @@ const DISTRICTS = [
 
 // Готовые рисованные картинки (webp) заменяют векторные заглушки.
 // Дата сборки для телефона: build.sh вписывает её сюда, в веб-версии строка пустая.
-const APP_BUILD = "31.10.2026 22:34";
-const APP_VERSION = 1793468044;                 // номер сборки, тоже вписывает build.sh
+const APP_BUILD = "31.10.2026 22:51";
+const APP_VERSION = 1793469068;                 // номер сборки, тоже вписывает build.sh
 const UPDATE_URL = "https://raw.githubusercontent.com/Sayat9/Sputnik/main/www/";
 const RASTER = new Set(["items/mace", "items/warhammer", "items/armor-leather", "items/armor-hide", "items/armor-chainmail", "items/steel-dagger", "items/steel-sword", "items/steel-greatsword", "items/steel-shield", "items/steel-tower-shield", "items/shortbow", "items/longbow", "items/rapier", "items/shield", "items/tower-shield", "items/unknown-mushroom", "items/stone-9", "items/stone-8", "items/stone-7", "items/ration", "items/potion", "items/torch", "items/arrows", "items/clothes", "items/shovel", "items/shovel-good", "items/shovel-best", "items/dagger", "items/sword", "items/greatsword", "items/spear", "monsters/goblin-king-face", "monsters/goblin-king-full", "monsters/goblin-bomber-face", "monsters/goblin-bomber-full", "monsters/hobgoblin-shield-face", "monsters/hobgoblin-shield-full", "races/barbarian", "races/human", "races/dwarf", "races/beastkin", "races/fairy", "races/dragon", "monsters/goblin-face", "monsters/goblin-full", "monsters/goblin-archer-face", "monsters/goblin-archer-full", "monsters/goblin-sword-face", "monsters/goblin-sword-full", "monsters/goblin-spear-face", "monsters/goblin-spear-full", "monsters/wolf-face", "monsters/wolf-full", "monsters/fox-face", "monsters/fox-full", "monsters/mouse-face", "monsters/mouse-full", "monsters/bat-face", "monsters/bat-full", "monsters/hobgoblin-face", "monsters/hobgoblin-full", "monsters/zombie-face", "monsters/zombie-full", "monsters/skeleton-face", "monsters/skeleton-full", "monsters/skeleton-archer-face", "monsters/skeleton-archer-full", "monsters/ghoul-face", "monsters/ghoul-full", "monsters/dark-bear-face", "monsters/dark-bear-full", "monsters/skeleton-warrior-face", "monsters/skeleton-warrior-full", "monsters/living-stone-face", "monsters/living-stone-full", "monsters/wisp-face", "monsters/wisp-full", "monsters/pixie-face", "monsters/pixie-full", "monsters/green-boulder-face", "monsters/green-boulder-full", "monsters/stone-guardian-face", "monsters/stone-guardian-full", "monsters/spider-queen-face", "monsters/spider-queen-full", "monsters/ash-wraith-face", "monsters/ash-wraith-full", "monsters/ash-spirit-face", "monsters/ash-spirit-full", "monsters/plague-fat-face", "monsters/plague-fat-full", "monsters/bone-hound-face", "monsters/bone-hound-full", "monsters/dust-crawler-face", "monsters/dust-crawler-full", "monsters/faceless-ringer-face", "monsters/faceless-ringer-full", "monsters/mirror-dead-face", "monsters/mirror-dead-full", "monsters/whisperer-face", "monsters/whisperer-full", "monsters/morok-face", "monsters/morok-full", "monsters/grey-shade-face", "monsters/grey-shade-full", "monsters/blackwing-face", "monsters/blackwing-full", "monsters/swamp-fang-face", "monsters/swamp-fang-full", "monsters/web-spider-face", "monsters/web-spider-full", "monsters/goblin-shaman-face", "monsters/goblin-shaman-full", "monsters/goblin-assassin-face", "monsters/goblin-assassin-full", "monsters/goblin-trapper-face", "monsters/goblin-trapper-full", "monsters/goblin-elder-face", "monsters/goblin-elder-full", "monsters/hobgoblin-brute-face", "monsters/hobgoblin-brute-full", "monsters/hobgoblin-thrower-face", "monsters/hobgoblin-thrower-full", "monsters/hobgoblin-driver-face", "monsters/hobgoblin-driver-full", "monsters/goblin-thief-face", "monsters/goblin-thief-full", "monsters/horned-hare-face", "monsters/horned-hare-full", "monsters/swamp-toad-face", "monsters/swamp-toad-full", "monsters/burrower-face", "monsters/burrower-full", "monsters/crow-face", "monsters/crow-full", "monsters/dire-wolf-face", "monsters/dire-wolf-full", "monsters/werewolf-face", "monsters/werewolf-full", "monsters/giant-mole-face", "monsters/giant-mole-full", "monsters/bone-knight-face", "monsters/bone-knight-full", "monsters/gravedigger-face", "monsters/gravedigger-full", "monsters/corpse-eater-face", "monsters/corpse-eater-full", "monsters/drop-face", "monsters/drop-full", "monsters/dust-whirl-face", "monsters/dust-whirl-full", "monsters/magma-hound-face", "monsters/magma-hound-full", "monsters/crystalloid-face", "monsters/crystalloid-full", "monsters/lake-spirit-face", "monsters/lake-spirit-full", "monsters/magma-golem-face", "monsters/magma-golem-full", "monsters/deep-serpent-face", "monsters/deep-serpent-full", "monsters/crystal-colossus-face", "monsters/crystal-colossus-full", "monsters/storm-spirit-face", "monsters/storm-spirit-full", "monsters/rift-heart-face", "monsters/rift-heart-full", "items/compass", "items/steel-mace", "items/steel-rapier", "items/unknown-herb", "items/twin-daggers", "items/unknown-stone", "items/steel-twin-daggers", "items/potion-good", "items/coins", "items/steel-spear", "items/steel-warhammer", "items/steel-shortbow", "items/steel-longbow", "items/steel-armor-leather", "items/steel-armor-hide", "items/steel-armor-chainmail", "items/gloves", "items/staff", "items/axe", "items/greataxe", "items/firstaid", "items/flute", "items/chalice", "items/once-more", "items/guard", "items/beginners-luck", "buildings/tower", "buildings/guild", "buildings/church", "buildings/library", "buildings/gate", "buildings/tavern", "buildings/shop", "buildings/forge", "buildings/board", "buildings/hall", "races/gnome", "races/darkfairy", "monsters/rat-face", "monsters/rat-full", "monsters/rat-king-face", "monsters/rat-king-full", "monsters/rat-catcher-face", "monsters/rat-catcher-full"]);
 const artPath = p => `assets/${p}.${RASTER.has(p) ? "webp" : "svg"}`;
@@ -2724,7 +2727,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 69;
+const BATTLE_REV = 70;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }
@@ -6598,9 +6601,9 @@ function heroInv(c) {
     <div class="fx-section">Надето</div>
     <div class="eq-list">${slots.map(([k, label]) => {
       const e = c.equip[k], it = itemOf(e);
-      if (k === "off" && two) return `<div class="eq empty"><span class="ic">${GEAR_ICON.custom}</span><span><small>${label}</small><b>занята двуручным</b></span></div>`;
-      return it ? `<button class="eq" data-hslot="${k}" aria-pressed="${heroUi.slot === k}"><span class="ic">${itemThumb(e)}</span><span><small>${label}</small><b>${esc(it.name)}</b></span></button>`
-        : `<div class="eq empty"><span class="ic"></span><span><small>${label}</small><b>пусто</b></span></div>`;
+      if (k === "off" && two) return `<div class="eq empty" data-eqslot="${k}"><span class="ic">${GEAR_ICON.custom}</span><span><small>${label}</small><b>занята двуручным</b></span></div>`;
+      return it ? `<button class="eq" data-hslot="${k}" data-eqslot="${k}" aria-pressed="${heroUi.slot === k}"><span class="ic">${itemThumb(e)}</span><span><small>${label}</small><b>${esc(it.name)}</b></span></button>`
+        : `<div class="eq empty" data-eqslot="${k}"><span class="ic"></span><span><small>${label}</small><b>пусто</b></span></div>`;
     }).join("")}</div>
     <button class="fx-btn" data-hx="sack" style="display:flex;align-items:center;gap:8px;justify-content:center;width:100%;margin:6px 0"><span style="width:22px;height:22px;display:inline-flex">${ICO_SACK}</span>Сумка для камней · ${sackTotal()}</button>
     <div class="fx-section">Рюкзак · ${(c.bag || []).length}/${bagSize(c)}</div>
@@ -6661,6 +6664,26 @@ function heroAfterChange(msg) {
 }
 
 let holdInfo = { t: 0, fired: false, x: 0, y: 0 };
+/* Перетаскивание в окне героя: предмет из рюкзака — на ячейку экипировки (надеть), надетое — на рюкзак (снять). */
+let heroDrag = null;
+$hero.addEventListener("pointerdown", e => {
+  const el = e.target.closest("[data-hbag],[data-hslot]"); if (!el) return;
+  heroDrag = { bag: el.dataset.hbag !== undefined ? +el.dataset.hbag : null, slot: el.dataset.hslot || null, x: e.clientX, y: e.clientY, on: false, ghost: null };
+});
+$hero.addEventListener("pointermove", e => {
+  const d = heroDrag; if (!d) return;
+  if (!d.on && Math.hypot(e.clientX - d.x, e.clientY - d.y) > 14) { d.on = true; const g = document.createElement("div"); g.style.cssText = "position:fixed;z-index:9999;pointer-events:none;width:52px;height:52px;border:2px solid #f4d48e;border-radius:8px;background:#120e09;opacity:.92;overflow:hidden"; const c = heroById(heroUi.id), it = d.bag !== null ? c.bag[d.bag] : c.equip[d.slot]; g.innerHTML = it ? itemThumb(it, c) : ""; document.body.appendChild(g); d.ghost = g; }
+  if (d.on && d.ghost) { d.ghost.style.left = (e.clientX - 26) + "px"; d.ghost.style.top = (e.clientY - 26) + "px"; e.preventDefault(); }
+}, { passive: false });
+const endHeroDrag = e => {
+  const d = heroDrag; heroDrag = null; if (!d || !d.on) return; if (d.ghost) d.ghost.remove();
+  const t = document.elementFromPoint(e.clientX, e.clientY); if (!t) return; $hero.dataset.dragged = "1"; setTimeout(() => { delete $hero.dataset.dragged; }, 400);
+  const c = heroById(heroUi.id); if (!c) return;
+  if (d.bag !== null && t.closest("[data-eqslot]")) { const slot = t.closest("[data-eqslot]").dataset.eqslot; heroUi.sel = d.bag; heroUi.slot = null; heroUi.give = false; renderHero(); const btns = [...$hero.querySelectorAll('[data-hx="equip"]')]; const b = btns.find(x => x.dataset.slotTo === slot) || btns[0]; if (b && !b.disabled) b.click(); else toast("Сюда это не надеть"); }
+  else if (d.slot && t.closest(".packwrap")) { heroUi.slot = d.slot; heroUi.sel = null; renderHero(); const b = $hero.querySelector('[data-hx="unequip"]'); if (b) b.click(); }
+};
+$hero.addEventListener("pointerup", endHeroDrag); $hero.addEventListener("pointercancel", () => { if (heroDrag && heroDrag.ghost) heroDrag.ghost.remove(); heroDrag = null; });
+$hero.addEventListener("click", e => { if ($hero.dataset.dragged && e.isTrusted) { e.stopPropagation(); e.preventDefault(); } }, true);
 $hero.addEventListener("pointerdown", e => {
   holdInfo.fired = false;
   const el = e.target.closest("[data-hbag],[data-hslot]"); if (!el || !heroUi) return; holdInfo.x = e.clientX; holdInfo.y = e.clientY; clearTimeout(holdInfo.t);

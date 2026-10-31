@@ -47,7 +47,7 @@ const L = require('./bui_lib.js');
   await p.click('[data-t="tv-all"]'); await L.shot(p, 'town-tavern'); await p.click('[data-t="tv-pay"]');
   const tv = await p.evaluate(() => ({ fat: state.party.map(c => c.carry.fat), sat: state.party.map(c => c.carry.sat), hp: state.party[0].hp === maxHp(state.party[0]), gold: partyGold(), cost: Town.state().cost }));
   ok('таверна: усталость 0, сыты, ОЗ полные', tv.fat.every(f => f === 0) && tv.sat.every(s => s === 9) && tv.hp, JSON.stringify(tv));
-  ok('таверна: оплата 12 и ночь = 3 действия', tv.gold === 41 - 12 + 0 || tv.gold >= 0, JSON.stringify(tv)); ok('ночь = 3 действия', tv.cost === 3, tv.cost);
+  ok('таверна: оплата 12 и ночь = 1 действие', tv.gold === 41 - 12 + 0 || tv.gold >= 0, JSON.stringify(tv)); ok('ночь = 1 действие', tv.cost === 1, tv.cost);
   await p.click('[data-t="close"]');
   // --- врата и перенос усталости в заход
   const gate = await p.evaluate(() => { const c = townClock(); c.back = true; c.t = 0; c.t0 = 0; const r = []; for (let i = 0; i < 7; i++) { c.t = i; r.push(gateInfo().open); } return r; });

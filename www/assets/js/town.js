@@ -155,6 +155,7 @@
     if (sel.side === "bag") {
       const e = (c.bag || [])[sel.i], it = e && itemOf(e, c); if (!it) return "";
       if (e.art && ARTIFACTS[e.art] && (ui.b === "forge" || ui.b === "shop")) { const row = artRows().find(r => r.key === `b:${c.id}:${sel.i}`); if (row) return `<b>${esc(artName(e.art))}</b><span class="tw-btns"><button class="fx-btn primary" data-t="artsell" data-key="${row.key}" data-b="forge">Продать · +${artPay(row, "forge")}</button></span><span class="tw-hint">Артефакты скупает кузнец.</span>`; }
+      if ((ui.b === "shop" || ui.b === "forge") && gearMarket(e)) return `<b>${esc(it.name)}</b><span class="tw-btns"><button class="fx-btn primary" data-t="sellall" data-i="${sel.i}">Продать · +${gearPay(e)}</button></span><span class="tw-hint">${ui.b === "forge" ? "Кузнец берёт на 10 % ниже рыночной цены" : "Магазин берёт на 20 % ниже рыночной цены"}${e.broken ? "; сломанное — пятая часть" : ""}. Надетое сначала снимите во вкладке героя.</span>`;
       if (ui.b === "shop" && unitPrice(e) > 0) { const q = e.qty || 1, one = sellValue(e, 1), all = sellValue(e, q); return `<b>${esc(it.name)}${q > 1 ? " × " + q : ""}</b><span class="tw-btns">${one ? `<button class="fx-btn" data-t="sell1" data-i="${sel.i}">Продать 1 · +${one}</button>` : ""}<button class="fx-btn primary" data-t="sellall" data-i="${sel.i}"${all ? "" : " disabled"}>Продать${q > 1 ? " все" : ""} · +${all}</button></span><span class="tw-hint">Стандартная цена: за штуку ${(Math.round(unitPrice(e) * 100) / 100)} монет.</span>`; }
       return `<b>${esc(it.name)}${e.qty > 1 ? " × " + e.qty : ""}</b><span class="tw-hint">${sellsStones() ? "Магазин скупает камни (из сумки) и расходники: пайки, зелья, факелы, стрелы, лопаты, аптечки." : "Кузнец ничего не скупает."}</span>`;
     }
@@ -454,7 +455,7 @@
           <p class="tw-msg">${ui.msg || ""}</p></div></div>`;
     },
   };
-  function questAccept(id) { const q = questBoard().list.find(x => x.id === +id); if (!q || q.taken) return; q.taken = true; q.runs = 0; ui.msg = `Задание принято всем отрядом: ${questMon(q).name}, ${q.need} камней (уже лежащие в сумке считаются).`; saveChar(); }
+  function questAccept(id) { const q = questBoard().list.find(x => x.id === +id); if (!q || q.taken) return; if (questBoard().list.filter(x => x.taken).length >= 4) { ui.msg = "Больше 4 заданий одновременно не взять: сдайте или дождитесь срока."; return; } q.taken = true; q.runs = 0; ui.msg = `Задание принято всем отрядом: ${questMon(q).name}, ${q.need} камней (уже лежащие в сумке считаются).`; saveChar(); }
   function questDone(id) {
     const q = questBoard().list.find(x => x.id === +id); if (!q || !q.taken || questStones(q) < q.need) return;
     const name = questMon(q).name, reward = q.reward; questTurnIn(q); visit(); ui.msg = `Задание выполнено: «${name}». Награда ${reward} монет поделена на отряд.`; saveChar();
@@ -661,16 +662,19 @@
   /* ---------- действия ---------- */
   // Предмет предложен лавочнику (перетаскиванием из рюкзака): обычные вещи он не скупает, камни лежат в сумке.
   // Расходники магазин скупает по стандартной цене (цена товара на одну штуку); камни — из сумки; кузнец ничего не скупает.
+  // Оружие и броня: рыночная цена — как в кузнице (обычное 10/15, стальное 25/40); кузнец берёт −10 %, магазин −20 %; сломанное — пятая часть. Продаётся только из рюкзака.
+  const gearMarket = e => { if (!e || (e.t !== "w" && e.t !== "a") || e.art) return 0; const base = e.t === "w" ? (e.steel ? FORGE_PRICE.steelWeapon : FORGE_PRICE.weapon) : (e.steel ? FORGE_PRICE.steelArmor : FORGE_PRICE.armor); return e.broken ? Math.max(1, Math.round(base * 0.2)) : base; };
+  const gearPay = e => Math.max(1, Math.round(gearMarket(e) * (ui && ui.b === "forge" ? 0.9 : 0.8)));
   const unitPrice = e => { const g = GOODS.find(x => x.e && x.e.t === "g" && e && e.t === "g" && x.e.id === e.id); return g ? g.price / g.e.qty : 0; };
   const sellValue = (e, n) => Math.floor(unitPrice(e) * n + 1e-9);
   function sellItem(i, all) {
-    const c = hero(), e = (c.bag || [])[i]; if (!e || ui.b !== "shop") return;
-    const have = e.qty || 1, n = all ? have : 1, g = sellValue(e, n);
+    const c = hero(), e = (c.bag || [])[i]; if (!e || (ui.b !== "shop" && !(ui.b === "forge" && gearMarket(e)))) return;
+    const have = e.qty || 1, n = all ? have : 1, g = gearMarket(e) ? gearPay(e) * n : sellValue(e, n);
     if (!g) { ui.msg = n === 1 && unitPrice(e) > 0 ? "Одну штуку так мало, что лавочник не платит — продай стопку." : "Это магазин не скупает."; return; }
-    const it = itemOf(e, c); if (!takeGear(c, e.id, n)) { ui.msg = "Не получилось забрать предмет."; return; }
+    const it = itemOf(e, c); if (gearMarket(e)) { c.bag.splice(i, 1); } else if (!takeGear(c, e.id, n)) { ui.msg = "Не получилось забрать предмет."; return; }
     addGold(c, g); visit(); ui.sel = null; ui.talk = talk(); ui.msg = `Продано: ${it.name}${n > 1 ? " × " + n : ""} за ${g} монет — ${c.name}.`; saveChar();
   }
-  function offer(i) { if (ui.b === "shop") { const e = ((hero().bag || [])[i]); if (e && unitPrice(e) > 0) { sellItem(i, true); return; } } ui.msg = sellsStones() ? "Магазин скупает камни (из сумки) и расходники." : "Кузнец ничего не скупает."; }
+  function offer(i) { if (ui.b === "shop" || ui.b === "forge") { const e = ((hero().bag || [])[i]); if (e && (gearMarket(e) || (ui.b === "shop" && unitPrice(e) > 0))) { sellItem(i, true); return; } } ui.msg = sellsStones() ? "Магазин скупает камни (из сумки) и расходники." : "Кузнец ничего не скупает."; }
   function buy(n) {
     const c = hero(), g = goodByKey(ui.sel.key); if (!g || owned(g)) return;
     const cost = g.price * n;
@@ -696,7 +700,7 @@
       if (ui.sleep[c.id]) { st.fat = 0; st.awake = 0; c.hp = maxHp(c); c.mp = maxMp(c); c.insp = 1; c.flags = {}; slept++; if (hasCharm(c, "repair-charm")) for (const e of Object.values(c.equip || {})) if (isDurable(e)) durFix(e, 1); }
       if (ui.food[c.id]) { st.sat = 9; st.starve = 0; ate++; }
     }
-    ui.cost = slept ? Math.max(ui.cost, 3) : Math.max(ui.cost, 1); ui.sleep = {}; ui.food = {};          // ночь в таверне — ровно 3 городских действия (раньше прибавлялось к посещению: выходило 4)
+    ui.cost = Math.max(ui.cost, 1);          // сон в таверне — 1 городское действие (решение автора 31.10) ui.sleep = {}; ui.food = {};          // ночь в таверне — ровно 3 городских действия (раньше прибавлялось к посещению: выходило 4)
     ui.msg = `Оплачено ${total}: спали ${slept}, поели ${ate}.`; saveChar();
   }
   function analyze(id) {

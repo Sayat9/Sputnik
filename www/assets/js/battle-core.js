@@ -388,7 +388,8 @@
   };
   const watchersOf = side => live().filter(u => u.side === side && !u.down && !u.fled && !u.escaped && !has(u, "underground") && !has(u, "blinded"));
   const watchers = () => watchersOf("hero");
-  const seenBy = (ws, m) => !ws.length || footprint(m).some(([x, y]) => ws.some(w => canSightCell(w, x, y)));
+  const isInvis = m => { const h = has(m, "hidden"); return !!(h && h.data && h.data.invis); };          // невидимый: чужая сторона его не видит и атаковать не может
+  const seenBy = (ws, m) => !ws.length || (!(ws[0].side !== m.side && isInvis(m)) && footprint(m).some(([x, y]) => ws.some(w => canSightCell(w, x, y))));
   const seenByParty = m => seenBy(watchers(), m);
   // видит ли боец u юнит t глазами своей команды (у героев — вся партия, у монстров — все монстры)
   const visibleTo = (u, t) => !u || !t || u.side === t.side || ((B.S && B.S.phase) !== "fight") || seenBy(watchersOf(u.side), t);
