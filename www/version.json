@@ -1,5 +1,5 @@
 {
- "version": 1793469068,
+ "version": 1793472399,
  "files": [
   "assets/buildings/board.webp",
   "assets/buildings/church.webp",
@@ -350,7 +350,7 @@
   "assets/buildings/tavern.webp": "812c88667997f640e80c34b331e547b2",
   "assets/buildings/tower.webp": "a8d571c86cb743cdbcdfe7d63aaed744",
   "assets/css/battle.css": "a408fdd6468f834c59abfc7d0fea9267",
-  "assets/css/town.css": "350d4dbfddc3b66ce02a00ea5272fdb2",
+  "assets/css/town.css": "c469024dd2712923cec321dbc00b5c8d",
   "assets/events/ambush.svg": "cc4762918cfd926e70eaa40ce53b322c",
   "assets/events/monsters.svg": "7bf5ba9509d2fa188e67d5774af858d6",
   "assets/events/nothing.svg": "f077766d33696a165cc87ebfb9bdb72b",
@@ -436,15 +436,15 @@
   "assets/items/warhammer.webp": "96a5d7990847d290d359b35e7673e757",
   "assets/js/battle-act.js": "64b26065747be538e6506c5082224427",
   "assets/js/battle-ai.js": "660fc350cf83f87ddcb65b3014f6e96b",
-  "assets/js/battle-core.js": "9387698ec8f66e3e567b5933f8d683fe",
+  "assets/js/battle-core.js": "dc8b8eef3c9dc9dab60a49d822942b3e",
   "assets/js/battle-data.js": "d87d05bf721da43032fd8e64d31413c0",
   "assets/js/battle-dice.js": "8a569bb2af606340f01e5fb4b1d81197",
-  "assets/js/battle-end.js": "94538647063d7e6fe7e11e144a66db3e",
-  "assets/js/battle-env.js": "293876edd45230747a7bed225be528d6",
+  "assets/js/battle-end.js": "b3bef39e0090ecef1910c4cce0a251cc",
+  "assets/js/battle-env.js": "8b084e2e9fda39082c235286816ba2c4",
   "assets/js/battle-ess.js": "9ae198ae5b6f2f82777810e7a33a91dd",
   "assets/js/battle-ess2.js": "540ab696b07fabe4bc4ad08ed51c52ef",
   "assets/js/battle-ext.js": "71cdb0ae150fac652989c8a2ef02a315",
-  "assets/js/battle-menu.js": "6901a79555f27caba8d0e97518fbf46b",
+  "assets/js/battle-menu.js": "52669659702071f6bb31ccc6f661ad74",
   "assets/js/battle-net.js": "cfdc7c13d23baa0d0817006301eb8b18",
   "assets/js/battle-rules.js": "74dfb9d870ed904b81e51260ed0629f9",
   "assets/js/battle-ui.js": "daa3ff4f332d8c22c0514aefd3b928ed",
@@ -674,6 +674,6 @@
   "fonts/f8.woff2": "6cc1ee17091d59eb93821c3594e8f38f",
   "fonts/f9.woff2": "070433480b7b645f69b543f284e386ce",
   "fonts/fonts.css": "1585a72a8d157b26cb424ab433fd4e19",
-  "index.html": "f1412e4f8a53974ace45818421840e8e"
+  "index.html": "f3352de27bcc568965f111476cdcf955"
  }
 }

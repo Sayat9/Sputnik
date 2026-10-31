@@ -4,13 +4,15 @@ const L = require('./bui_lib.js');
   const { b, p } = await L.launch(400, 860);
   const R = [], ok = (name, cond, extra) => { R.push({ name, ok: !!cond }); if (!cond) console.log('  ✗', name, '—', extra == null ? '' : extra); };
   await L.setup(p, { heroes: ['barb2', 'archer'], tactical: false });
-  const r = await p.evaluate(() => {
+  const r = await p.evaluate(async () => {
     const out = {}; state.run = null; state.townUnlocked = true; state.journal = null; unlockJournal(9);
     const c = state.party[0]; c.essences = []; c.level = 3; state.inventory = null; essStash().push('goblin', 'wolf');
     out.nameHidden = essTitle('goblin') === 'Эссенция ??' && essFace('goblin').startsWith('data:');
     openHero('h0'); heroUi.tab = 'skills'; renderHero();
     out.cardHidden = /Эссенция \?\?/.test(document.querySelector('#heroov').innerText) && !/Эссенция гоблина/.test(document.querySelector('#heroov').innerText);
     document.querySelector('#heroov [data-hx="ess-take"][data-essid="goblin"]').click();
+    out.askHidesName = !!document.querySelector('[data-yn="1"]') && !new RegExp(ESSENCES.goblin.name).test((document.querySelector('[data-yn="1"]').closest('[role=dialog], .mapov') || document.body).innerText);
+    document.querySelector('[data-yn="1"]').click(); await new Promise(r => setTimeout(r, 30));
     out.nameKnown = essNameKnown('goblin') && essTitle('goblin') === ESSENCES.goblin.name;
     out.propsHidden = !essSeen('goblin', 'ess-stats') && !essSeen('goblin', 'ess-passive') && essActiveLevel('goblin') === 0;
     out.cardName = new RegExp(ESSENCES.goblin.name).test(document.querySelector('#heroov').innerText);
@@ -21,7 +23,7 @@ const L = require('./bui_lib.js');
     out.libToEss = essSeen('wolf', 'ess-stats') && essSeen('wolf', 'ess-passive') && !essSeen('wolf', 'ess-active') && essNameKnown('wolf');
     return out;
   });
-  for (const [k, t] of Object.entries({ nameHidden: 'до впитывания название скрыто', cardHidden: 'в запасе «Эссенция ??»', nameKnown: 'после впитывания название известно', propsHidden: 'свойства всё ещё скрыты', cardName: 'карточка героя показывает название', stillHiddenOther: 'другая эссенция по-прежнему скрыта', libToEss: 'прочитанное в библиотеке открыто у эссенции' })) ok(t, r[k] === true, JSON.stringify(r));
+  for (const [k, t] of Object.entries({ nameHidden: 'до впитывания название скрыто', cardHidden: 'в запасе «Эссенция ??»', askHidesName: 'окно «Впитать?» не выдаёт название', nameKnown: 'после впитывания название известно', propsHidden: 'свойства всё ещё скрыты', cardName: 'карточка героя показывает название', stillHiddenOther: 'другая эссенция по-прежнему скрыта', libToEss: 'прочитанное в библиотеке открыто у эссенции' })) ok(t, r[k] === true, JSON.stringify(r));
   // башня магов → библиотека → эссенция
   await p.evaluate(() => { const c = state.party[0]; c.gold = 100; journal().known = {}; location.hash = 'town'; rerender(); });
   await p.click('[data-bld="tower"]'); await p.waitForSelector('[data-t="analyze"]'); await p.click('[data-t="analyze"]');

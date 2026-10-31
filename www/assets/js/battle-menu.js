@@ -7,7 +7,7 @@
   const TIME_BADGE = { action: ["Д", "действие"], bonus: ["Б", "доп. действие"], reaction: ["Р", "реакция"], free: ["С", "свободно"], move: ["П", "перемещение"] };
   const DOCK = [["attack", "Атака", "attack"], ["skill", "Навыки", "skills"], ["move", "Движение", "move"], ["defend", "Оборона", "defend"],
     ["other", "Ещё", "more"], ["item", "Предметы", "items"], ["flee", "Побег", "flee"], ["end", "Конец хода", "end"]];
-  const q = s => UI.root().querySelector(s);
+  const q = s => { const r = UI.root(); return r ? r.querySelector(s) : null; };          // поле уже закрыто — запоздалые таймеры ничего не трогают
 
   /* ===== панель ===== */
   const barHtml = (cls, cur, max) => `<div class="bt-meter ${cls}"><i style="width:${max ? Math.round(Math.max(0, Math.min(1, cur / max)) * 100) : 0}%"></i></div>`;
@@ -127,8 +127,13 @@
   };
 
   /* ===== окна ===== */
-  function showModal(html) { const m = q(".bt-modal"); m.innerHTML = html; m.hidden = false; return m; }
-  function hideModal() { const m = q(".bt-modal"); if (m) { m.hidden = true; m.innerHTML = ""; } }
+  const rolling = () => !!document.querySelector(".bd-ov:not(.out)");          // идёт бросок кубиков — окна осмотра и меню не открываем поверх
+  function showModal(html) {
+    const m = q(".bt-modal");
+    if (!m || m.querySelector(".bt-endscr")) { const d = document.createElement("div"); d.innerHTML = html; return d; }          // экран итога не затираем окнами осмотра/меню
+    m.innerHTML = html; m.hidden = false; return m;
+  }
+  function hideModal() { const m = q(".bt-modal"); if (m && !m.querySelector(".bt-endscr")) { m.hidden = true; m.innerHTML = ""; } }
   UI.confirm = function (o) {
     return new Promise(resolve => {
       const m = showModal(`<div class="bt-dlg fx-frame"><h4>${esc(o.title)}</h4><p>${esc(o.text || "")}</p><div class="btns"><button class="fx-btn" data-m="no">${esc(o.no || "Отмена")}</button><button class="fx-btn primary" data-m="yes">${esc(o.yes || "Да")}</button></div></div>`);
@@ -148,7 +153,7 @@
     });
   };
   // note — HTML сноски справа с эффектом поля (долгое нажатие на клетку с бойцом).
-  UI.inspect = function (u, note) {
+  UI.inspect = function (u, note) { if (rolling()) return;
     const S = B.S, hero = !!u.hero, mine = u.side === "hero";
     const GM = typeof masterOn === "function" && masterOn(), foe = !mine && !u.summon, rev = foe && !GM ? ((typeof journal === "function" && (journal().known[u.ref || (u.mon && u.mon.id)] || {}).revealed) || []) : null;          // обычному игроку про врага видно только раскрытое в библиотеке; мастеру — всё, если включён «Режим мастера»
     const kStats = !rev || rev.includes("stats"), kType = !rev || rev.includes("type") || rev.includes("stats"), kAtk = !rev || rev.includes("attacks") || rev.includes("stats");
@@ -166,7 +171,7 @@
   };
   /* ===== эффекты клетки: долгое нажатие по полю ===== */
   // Список строк «что здесь»: местность, свет, ловушка, зона, иллюзия, тело, лежащее оружие.
-  UI.cellEffects = function (x, y) {
+  UI.cellEffects = function (x, y) { if (rolling()) return;
     const S = B.S, t = B.tinfo(x, y), tid = B.terrain(x, y), out = [];
     out.push({ h: t ? t.name : "Ровная земля", t: t ? t.note : "Обычная земля: ничего особенного." });
     const od = B.objAt && B.objAt(x, y); if (od) out.push({ h: "Можно разрушить", t: `КД ${od.ac}, ОЗ ${od.hp}/${od.maxHp}. Бьют оружием (молот и тяжёлое оружие — с преимуществом, обычное по камню может отдать в руку) или областью: взрывом, обвалом.` });
@@ -188,13 +193,13 @@
   };
   const effectsHtml = (x, y) => `<small class="bt-eyebrow">Поле ${x + 1}:${y + 1}</small>` + UI.cellEffects(x, y).map(e => `<h6>${esc(e.h)}</h6><p>${esc(e.t)}</p>`).join("");
   // Сноска о состоянии: название, что делает, сколько ещё действует.
-  UI.statusNote = function (uid, sid) {
+  UI.statusNote = function (uid, sid) { if (rolling()) return;
     const u = B.byId(uid), st = D.status[sid], c = u && u.conds.find(q => q.id === sid); if (!st) return;
     const left = c ? (c.k === Infinity ? "пока не снимут" : (() => { const n = c.k - (u.turnsTaken || 0); return n > 0 ? `ещё ${n} ${n === 1 ? "ход" : n < 5 ? "хода" : "ходов"} ${u.name}` : "до конца текущего хода"; })()) : "";
     const m = showModal(`<div class="bt-dlg fx-frame cellinfo"><div class="bt-ihead"><h4>${esc(st.name)}</h4><button class="bt-x" data-m="close" aria-label="Закрыть">${ico("close")}</button></div><p class="left">${esc(st.desc || "")}</p>${left ? `<p class="left"><small>${esc(u.name)}: ${esc(left)}.</small></p>` : ""}</div>`);
     m.onclick = e => { if (e.target.closest("[data-m]") || e.target === m) hideModal(); };
   };
-  UI.cellInfo = function (x, y) {
+  UI.cellInfo = function (x, y) { if (rolling()) return;
     const u = B.occupant(x, y);
     if (u) { UI.inspect(u, effectsHtml(x, y)); return; }                                         // боец на клетке: его окно, справа — сноска поля
     const m = showModal(`<div class="bt-dlg fx-frame cellinfo"><div class="bt-ihead"><h4>Клетка ${x + 1}:${y + 1}</h4><button class="bt-x" data-m="close" aria-label="Закрыть">${ico("close")}</button></div>${UI.cellEffects(x, y).map(e => `<h5>${esc(e.h)}</h5><p class="left">${esc(e.t)}</p>`).join("")}</div>`);
@@ -221,7 +226,7 @@
       };
     });
   };
-  UI.menu = function () {
+  UI.menu = function () { if (rolling()) return;
     const S = B.S, PLAYER = typeof isMaster === "function" && !isMaster();          // у игрока в меню боя нет функций ведущего
     const lines = S.log.slice(-30).reverse().map(l => `<p class="${l.c}">${esc(l.t)}</p>`).join("");
     const m = showModal(`<div class="bt-dlg fx-frame menu"><div class="bt-ihead"><h4>Меню боя</h4><button class="bt-x" data-m="close" aria-label="Закрыть">${ico("close")}</button></div>

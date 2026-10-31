@@ -1970,8 +1970,8 @@ const DISTRICTS = [
 
 // Готовые рисованные картинки (webp) заменяют векторные заглушки.
 // Дата сборки для телефона: build.sh вписывает её сюда, в веб-версии строка пустая.
-const APP_BUILD = "31.10.2026 22:51";
-const APP_VERSION = 1793469068;                 // номер сборки, тоже вписывает build.sh
+const APP_BUILD = "31.10.2026 23:46";
+const APP_VERSION = 1793472399;                 // номер сборки, тоже вписывает build.sh
 const UPDATE_URL = "https://raw.githubusercontent.com/Sayat9/Sputnik/main/www/";
 const RASTER = new Set(["items/mace", "items/warhammer", "items/armor-leather", "items/armor-hide", "items/armor-chainmail", "items/steel-dagger", "items/steel-sword", "items/steel-greatsword", "items/steel-shield", "items/steel-tower-shield", "items/shortbow", "items/longbow", "items/rapier", "items/shield", "items/tower-shield", "items/unknown-mushroom", "items/stone-9", "items/stone-8", "items/stone-7", "items/ration", "items/potion", "items/torch", "items/arrows", "items/clothes", "items/shovel", "items/shovel-good", "items/shovel-best", "items/dagger", "items/sword", "items/greatsword", "items/spear", "monsters/goblin-king-face", "monsters/goblin-king-full", "monsters/goblin-bomber-face", "monsters/goblin-bomber-full", "monsters/hobgoblin-shield-face", "monsters/hobgoblin-shield-full", "races/barbarian", "races/human", "races/dwarf", "races/beastkin", "races/fairy", "races/dragon", "monsters/goblin-face", "monsters/goblin-full", "monsters/goblin-archer-face", "monsters/goblin-archer-full", "monsters/goblin-sword-face", "monsters/goblin-sword-full", "monsters/goblin-spear-face", "monsters/goblin-spear-full", "monsters/wolf-face", "monsters/wolf-full", "monsters/fox-face", "monsters/fox-full", "monsters/mouse-face", "monsters/mouse-full", "monsters/bat-face", "monsters/bat-full", "monsters/hobgoblin-face", "monsters/hobgoblin-full", "monsters/zombie-face", "monsters/zombie-full", "monsters/skeleton-face", "monsters/skeleton-full", "monsters/skeleton-archer-face", "monsters/skeleton-archer-full", "monsters/ghoul-face", "monsters/ghoul-full", "monsters/dark-bear-face", "monsters/dark-bear-full", "monsters/skeleton-warrior-face", "monsters/skeleton-warrior-full", "monsters/living-stone-face", "monsters/living-stone-full", "monsters/wisp-face", "monsters/wisp-full", "monsters/pixie-face", "monsters/pixie-full", "monsters/green-boulder-face", "monsters/green-boulder-full", "monsters/stone-guardian-face", "monsters/stone-guardian-full", "monsters/spider-queen-face", "monsters/spider-queen-full", "monsters/ash-wraith-face", "monsters/ash-wraith-full", "monsters/ash-spirit-face", "monsters/ash-spirit-full", "monsters/plague-fat-face", "monsters/plague-fat-full", "monsters/bone-hound-face", "monsters/bone-hound-full", "monsters/dust-crawler-face", "monsters/dust-crawler-full", "monsters/faceless-ringer-face", "monsters/faceless-ringer-full", "monsters/mirror-dead-face", "monsters/mirror-dead-full", "monsters/whisperer-face", "monsters/whisperer-full", "monsters/morok-face", "monsters/morok-full", "monsters/grey-shade-face", "monsters/grey-shade-full", "monsters/blackwing-face", "monsters/blackwing-full", "monsters/swamp-fang-face", "monsters/swamp-fang-full", "monsters/web-spider-face", "monsters/web-spider-full", "monsters/goblin-shaman-face", "monsters/goblin-shaman-full", "monsters/goblin-assassin-face", "monsters/goblin-assassin-full", "monsters/goblin-trapper-face", "monsters/goblin-trapper-full", "monsters/goblin-elder-face", "monsters/goblin-elder-full", "monsters/hobgoblin-brute-face", "monsters/hobgoblin-brute-full", "monsters/hobgoblin-thrower-face", "monsters/hobgoblin-thrower-full", "monsters/hobgoblin-driver-face", "monsters/hobgoblin-driver-full", "monsters/goblin-thief-face", "monsters/goblin-thief-full", "monsters/horned-hare-face", "monsters/horned-hare-full", "monsters/swamp-toad-face", "monsters/swamp-toad-full", "monsters/burrower-face", "monsters/burrower-full", "monsters/crow-face", "monsters/crow-full", "monsters/dire-wolf-face", "monsters/dire-wolf-full", "monsters/werewolf-face", "monsters/werewolf-full", "monsters/giant-mole-face", "monsters/giant-mole-full", "monsters/bone-knight-face", "monsters/bone-knight-full", "monsters/gravedigger-face", "monsters/gravedigger-full", "monsters/corpse-eater-face", "monsters/corpse-eater-full", "monsters/drop-face", "monsters/drop-full", "monsters/dust-whirl-face", "monsters/dust-whirl-full", "monsters/magma-hound-face", "monsters/magma-hound-full", "monsters/crystalloid-face", "monsters/crystalloid-full", "monsters/lake-spirit-face", "monsters/lake-spirit-full", "monsters/magma-golem-face", "monsters/magma-golem-full", "monsters/deep-serpent-face", "monsters/deep-serpent-full", "monsters/crystal-colossus-face", "monsters/crystal-colossus-full", "monsters/storm-spirit-face", "monsters/storm-spirit-full", "monsters/rift-heart-face", "monsters/rift-heart-full", "items/compass", "items/steel-mace", "items/steel-rapier", "items/unknown-herb", "items/twin-daggers", "items/unknown-stone", "items/steel-twin-daggers", "items/potion-good", "items/coins", "items/steel-spear", "items/steel-warhammer", "items/steel-shortbow", "items/steel-longbow", "items/steel-armor-leather", "items/steel-armor-hide", "items/steel-armor-chainmail", "items/gloves", "items/staff", "items/axe", "items/greataxe", "items/firstaid", "items/flute", "items/chalice", "items/once-more", "items/guard", "items/beginners-luck", "buildings/tower", "buildings/guild", "buildings/church", "buildings/library", "buildings/gate", "buildings/tavern", "buildings/shop", "buildings/forge", "buildings/board", "buildings/hall", "races/gnome", "races/darkfairy", "monsters/rat-face", "monsters/rat-full", "monsters/rat-king-face", "monsters/rat-king-full", "monsters/rat-catcher-face", "monsters/rat-catcher-full"]);
 const artPath = p => `assets/${p}.${RASTER.has(p) ? "webp" : "svg"}`;
@@ -2727,7 +2727,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 70;
+const BATTLE_REV = 71;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }
@@ -2846,7 +2846,7 @@ function loadNet() {
   return netLoad;
 }
 /* ----- здания города (assets/js/town.js грузится при первом входе в здание) ----- */
-const TOWN_REV = 14, TOWN_FILES = ["assets/css/town.css", "assets/js/town.js"];
+const TOWN_REV = 15, TOWN_FILES = ["assets/css/town.css", "assets/js/town.js"];
 let townLoad = null;
 function loadTown() {
   if (window.Town && window.Town.ready) return Promise.resolve(true);
@@ -3849,10 +3849,21 @@ function spDawn() {                                                  // новы
   logRun(`Белая пыль${hot ? " (у печи гуще)" : ""}: спасбросок ТЕЛ Сл ${dc}, провалили: ${res.filter(x => !x.ok).map(x => x.c.name).join(", ") || "никто"}.`);
   dgUi.res = { title: "Белая пыль", roll: `Телосложение Сл ${dc}`, lines: [...lines] };
 }
+// Паутина на карте (решение автора 31.10) горит сама: отряд с горящим факелом на тайле паутины, поджог паутины в бою на этом тайле.
+// Кнопка «Поджечь паутину» есть, только если отряд знает условие появления паучихи (раздел «Условия появления» в библиотеке).
+function spBurnWeb(k, why) {
+  const r = state.run, sp = spOf(); if (!sp || !sp.web || !sp.web[k]) return false;
+  sp.web[k] = false; sp.burned = (sp.burned || 0) + 1; logRun(`Паутина горит${why ? " (" + why + ")" : ""}: ${sp.burned} из 3.`);
+  if (sp.burned >= 3 && sp.queen === "none") { sp.queen = "chase"; sp.chaseT0 = absAct(r); logRun("Из глубины крон доносится шипение: паучиха проснулась и идёт по следу."); setTimeout(() => toast("Паучиха проснулась!"), 60); }
+  return true;
+}
+const queenKnown = () => { const rec = journal().known["spider-queen"]; return !!(rec && rec.revealed && rec.revealed.includes("spawn")); };
+const spTorchBurn = () => { const r = state.run, sp = spOf(); if (r && r.light && sp && sp.web && sp.web[spTileKey()] && !r.tier) spBurnWeb(spTileKey(), "от факела"); };
 // Вход в тайл: паутина, гнездо, логово паучихи, неупокоенные. true — начался бой, обычный бросок события не нужен.
 function spEnter() {
   const r = state.run, sp = spOf(); if (!sp || r.tier) return false;
   const k = spTileKey(), [x, y] = [r.pos.x, r.pos.y];
+  if (sp.web && sp.web[k] && r.light) { spBurnWeb(k, "от факела"); }          // факел горит — паутина вспыхивает, увязнуть не успели
   if (sp.web && sp.web[k]) {
     const res = spSave("dex", 12), fail = res.some(v => !v.ok);
     if (fail) sp.pen = (sp.pen || 0) + 1;
@@ -3919,6 +3930,7 @@ function spAfter() {
 }
 // Конец боя: зачистка ярусов, паучиха, гнездо, сокровище чернокрыла, неупокоенные, охрана сокровищ.
 function spFightDone(e, killedIds) {
+  if (e && e.webBurned && e.webTile) spBurnWeb(e.webTile, "подожгли в бою");
   const r = state.run, sp = spOf(); if (!sp) return;
   const ok = e.outcome === "win" || e.outcome === "retreat", k = e.sp && e.sp.k;
   if (k === "nest") {
@@ -4002,7 +4014,7 @@ function spButtons() {
     if (S.tiers && k === "0,0") out.push({ id: "tier-in:" + S.tiers, label: "Спуститься", sub: SP_TIERS[S.tiers].name });
     if (sp.chapel && sp.chapel.at === k && (sp.chapel.entered || r.act === 3)) out.push({ id: "tier-in:chapel", label: "Войти в часовню", sub: "маяк из тумана" });
     if (sp.stone) { const el = Object.entries({ air: "0,0", water: "10,5", fire: "10,10", earth: sp.stone.earth }).find(([, at]) => at === k); if (el && sp.stone.shard[el[0]] && !sp.stone.lit[el[0]]) out.push({ id: "altar:" + el[0], label: "Зажечь алтарь", sub: `осколок ${SP_ALTAR_NAME[el[0]]}` }); }
-    if (sp.web && sp.web[k]) out.push({ id: "burn", label: "Поджечь паутину", sub: r.light ? "горящий факел" : "нужен горящий факел", disabled: !r.light });
+    if (sp.web && sp.web[k] && queenKnown()) out.push({ id: "burn", label: "Поджечь паутину", sub: r.light ? "горящий факел" : "нужен горящий факел", disabled: !r.light });          // только если знают, как вызвать паучиху
     if (sp.unq && sp.unq[k]) out.push({ id: "cremate", label: "Сжечь останки", sub: partyTorches() ? "действие и факел" : "нужен факел", disabled: !partyTorches() });
   }
   const t = spTreasureHere();
@@ -4027,9 +4039,7 @@ function spDo(id) {
   if (id.startsWith("tier-in:")) { const kind = id.slice(8); r.tier = { k: kind, n: 1 }; if (kind === "chapel") sp.chapel.entered = true; spEnterTier(); }
   else if (id === "tier-next") { r.tier.n++; spEnterTier(); }
   else if (id === "tier-prev") { if (r.tier.n > 1) { r.tier.n--; spEnterTier(); } else { logRun(`Отряд вышел ${spSet(r.tier.k).exit}.`); r.tier = null; } }
-  else if (id === "burn") {
-    sp.web[k] = false; sp.burned++; logRun(`Паутина горит (${sp.burned} из 3).`);
-    if (sp.burned >= 3 && sp.queen === "none") { sp.queen = "chase"; sp.chaseT0 = absAct(r); logRun("Из глубины крон доносится шипение: паучиха проснулась и идёт по следу."); setTimeout(() => toast("Паучиха проснулась"), 150); }
+  else if (id === "burn") { spBurnWeb(k);
   } else if (id.startsWith("altar:")) {
     const el = id.slice(6), st = sp.stone; st.lit[el] = true; const n = Object.values(st.lit).filter(Boolean).length;
     logRun(`Алтарь ${SP_ALTAR_NAME[el]} горит (${n} из 4).`);
@@ -4083,6 +4093,7 @@ function rollInitiative(list, ambush) {
 function startFight(ev, p, enc) {
   if (voidHere()) ev.void = true;          // бой в Ведьмином лесу: сундучки на поле, побег сложнее
   Object.assign(ev, enc, { key: tkey(p.x, p.y), outcome: null, killed: [], turn: 0, round: 1, tactical: tacticalOn(), floor: curFloor(), water: waterLevel(p.x, p.y) });
+  try { const sp = spOf(); if (sp && sp.web && sp.web[tkey(p.x, p.y)] && !state.run.tier) ev.webTile = tkey(p.x, p.y); } catch (e) {}          // бой на тайле паутины: на поле много паутины, подожгли её — сгорает и тайл
   enc.list.forEach(id => { const m = MONSTERS.find(x => x.id === id); if (m && m.dyn) return; seenKeys(id, ["area"]); if (m && monCourse(m.cls)) { seenKeys(id, ["type"]); const h = (journal().hints[id] ||= []); for (const k of ["type", "portrait"]) if (!h.includes(k)) h.push(k); } });     // встреча открывает портрет, имя и места обитания; курс «Опознание монстров» — ещё и тип
   spFightStart(ev);
 }
@@ -6316,8 +6327,8 @@ document.addEventListener("click", e => {
     case "zoom-out": dgUi.zoom = clampZoom(dgUi.zoom / 1.25); applyRotation(); return;
     case "close-map": dgUi.map = false; break;
     case "torch-on":
-      if (r.torchLeft > 0) { r.light = true; logRun(`Факел снова зажжён (осталось ${r.torchLeft} д.).`); saveChar(); break; }
-      { const h = burnTorch(); if (h) { r.light = true; r.torchLeft = 4; logRun(`${h.name} зажёг факел: яркий свет 6 м на 4 действия. Скрытно двигаться нельзя, летучки летят на свет.`); saveChar(); } }
+      if (r.torchLeft > 0) { r.light = true; logRun(`Факел снова зажжён (осталось ${r.torchLeft} д.).`); spTorchBurn(); saveChar(); break; }
+      { const h = burnTorch(); if (h) { r.light = true; r.torchLeft = 4; setTimeout(spTorchBurn, 0); logRun(`${h.name} зажёг факел: яркий свет 6 м на 4 действия. Скрытно двигаться нельзя, летучки летят на свет.`); saveChar(); } }
       break;
     case "torch-off": r.light = false; logRun(`Факел погашен (хватит ещё на ${r.torchLeft} д.).`); saveChar(); break;
     case "enc-done": dgUi.enc = null; break;
@@ -6726,9 +6737,9 @@ $hero.addEventListener("click", e => {
       if (i < 0) return;
       if (mine.length >= c.level) { toast("Нет свободного слота эссенций"); return; }
       if (mine.includes(ds.essid)) { toast("У героя уже есть такая эссенция"); return; }
-      askYesNo({ title: "Впитать эссенцию?", text: `${c.name} впитает «${ESSENCES[ds.essid].name}». Слот занят, пока эссенцию не высвободят.`, yes: "Впитать" }).then(ok => {
+      askYesNo({ title: "Впитать эссенцию?", text: `${c.name} впитает «${essTitle(ds.essid)}». Слот занят, пока эссенцию не высвободят.`, yes: "Впитать" }).then(ok => {
         if (!ok) return; const j = st.indexOf(ds.essid); if (j < 0 || mine.length >= c.level) return;
-        st.splice(j, 1); mine.push(ds.essid); markEssNamed(ds.essid); c.mp = Math.min(maxMp(c), mpOf(c));
+        const hp0 = hpOf(c), mx0 = maxHp(c); st.splice(j, 1); mine.push(ds.essid); markEssNamed(ds.essid); c.hp = Math.min(maxHp(c), hp0 + Math.max(0, maxHp(c) - mx0)); c.mp = Math.min(maxMp(c), mpOf(c));
         heroAfterChange(`${c.name} впитал: ${ESSENCES[ds.essid].name}`);
       }); return;
     }

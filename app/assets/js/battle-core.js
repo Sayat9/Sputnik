@@ -86,12 +86,13 @@
     while (q.length) { const [x, y] = q.pop(); for (const [dx, dy] of DIRS) { const nx = x + dx, ny = y + dy; if (inB(nx, ny) && !seen.has(key(nx, ny)) && !(cells[ny][nx] && D.terrain[cells[ny][nx]].obstacle)) { seen.add(key(nx, ny)); q.push([nx, ny]); } } }
     return seen.size === free.length;
   }
-  function genTerrain(zone, floor, water, bog) {
+  function genTerrain(zone, floor, water, bog, web) {
     const base = D.zones[zone] || D.zones.goblin, G = D.gen, deep = floor >= 2 && D.deep[zone];
     let zc = deep ? Object.assign({}, base, { feats: base.feats.concat(deep.feats) }) : base;
     if (water) zc = Object.assign({}, zc, { feats: zc.feats.concat([["puddle", water > 1 ? 3 : 1, water > 1 ? 5 : 3, true]]) });          // пруд: заметно больше воды; топь — чуть больше
     if (bog === "lake") zc = Object.assign({}, zc, { feats: zc.feats.concat([["deep", 7, 10, true]]) });          // бой с глубинным змеем: озеро на поле
     else if (bog) zc = Object.assign({}, zc, { feats: zc.feats.concat([["mire", 9, 13, true]]) });          // бой с болотным клыком: топь пятнами
+    if (web) zc = Object.assign({}, zc, { feats: zc.feats.concat([["web", 4, 7, true]]) });          // бой на тайле паутины
     const AREA = (H * W) / 49, sc = v => Math.round(v * AREA);          // на поле 10×10 препятствий и украшений пропорционально больше
     for (let attempt = 0; attempt < 30; attempt++) {
       const cells = Array.from({ length: H }, () => Array(W).fill(null));
@@ -438,7 +439,7 @@
     if ((ev.list || []).includes("giant-mole")) { S.dark = true; S.torch = false; S.torchFixed = false; S.pitDark = true; }          // решение автора: дно пещеры крота — кромешная тьма
     S.floor = ev.floor || (state.run && state.run.floor) || 1;
     S.bog = (ev.list || []).includes("swamp-fang"); S.lake = (ev.list || []).includes("deep-serpent");
-    const g = genTerrain(zone, S.floor, ev.water, S.lake ? "lake" : S.bog); S.cells = g.cells; S.objs = g.objs; S.found = []; S.objHp = {};
+    const g = genTerrain(zone, S.floor, ev.water, S.lake ? "lake" : S.bog, !!ev.webTile); S.cells = g.cells; S.objs = g.objs; S.found = []; S.objHp = {};
     if (B.placeEnv && !ev.arena) B.placeEnv(S, ev);
     uidSeq = 1;
     B.S = S;

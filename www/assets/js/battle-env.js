@@ -385,6 +385,7 @@
     const S = B.S; if (!S || !flam(x, y)) return false;
     const k = B.key(x, y), old = B.terrain(x, y);
     (S.fireOld ||= {})[k] = { old, left: FIRE_ROUNDS }; S.cells[y][x] = "fire";
+    if (old === "web" && S.ev) S.ev.webBurned = true;          // паутина на поле сгорела — после боя горит и паутина на тайле карты
     B.log(`${D.terrain[old].name} вспыхивает${who ? " (" + who + ")" : ""}.`, "bad");
     const g = B.UI && B.UI.active ? B.UI : null; if (g) { try { g.fxText({ x, y, size: 1, id: "cell" }, "пламя", "bad"); g.refreshNow(); } catch (e) {} }
     const u = B.occupant(x, y); if (u && B.alive(u) && !B.isFlying(u) && !B.has(u, "wet")) B.addStatus(u, "burning", { k: 3, when: "end" });

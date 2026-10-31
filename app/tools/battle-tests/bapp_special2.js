@@ -80,6 +80,8 @@ const L = require('./bui_lib.js');
     let sp = go('beast', 8, 4, 3, 1); let rnd0 = window.__RND || Math.random; window.__RND = rnd0;
     Math.random = () => 0; r.pos = { x: 9, y: 4 }; out.webSaveFail = spEnter() === false && sp.pen === 1; Math.random = rnd0; sp.pen = 0; dgUi.res = null;
     Math.random = () => 0.99; spEnter(); out.webSaveOk = sp.pen === 0; Math.random = rnd0; dgUi.res = null; dgUi.enc = null;
+    out.noBurnUnknown = !spButtons().some(x => x.id === 'burn');
+    journal().known['spider-queen'] = { revealed: ['spawn'] };
     out.burnNeedsLight = spButtons().find(x => x.id === 'burn').disabled === true;
     r.light = true; out.burnEnabled = spButtons().find(x => x.id === 'burn').disabled === false;
     for (const [x, y] of [[8, 4], [9, 4], [8, 5]]) { r.pos = { x, y }; dgUi.spDo = 'burn'; act('sp'); dgUi.enc = null; dgUi.res = null; }
@@ -88,6 +90,13 @@ const L = require('./bui_lib.js');
     done(dgUi.enc, 'flee', []); out.fleeGuard = sp.queen === 'guard'; dgUi.enc = null;
     r.pos = { x: 10, y: 6 }; out.queenAmbush = (() => { Math.random = () => 0.99; const f = spEnter(); Math.random = rnd0; return f && dgUi.enc.sp.k === 'queen' && dgUi.enc.ambush; })();
     done(dgUi.enc, 'win'); out.queenDead = sp.queen === 'dead'; dgUi.enc = null; dgUi.res = null;
+    // факел на паутине: зашли с горящим факелом — паутина горит сама; зажгли факел стоя на паутине — тоже
+    { const sp2 = go('beast', 8, 4, 3, 1); delete journal().known['spider-queen']; r.light = true; const w0 = Object.values(sp2.web).filter(Boolean).length;
+      r.pos = { x: 8, y: 4 }; spEnter(); out.torchEnter = sp2.web['8,4'] === false && sp2.burned === 1 && !sp2.pen; dgUi.res = null; dgUi.enc = null;
+      r.light = false; r.pos = { x: 9, y: 4 }; Math.random = () => 0.99; spEnter(); Math.random = rnd0; dgUi.res = null; r.light = true; spTorchBurn(); out.torchLit = sp2.web['9,4'] === false && sp2.burned === 2;
+      // бой на тайле паутины: на поле паутина подожжена — тайл сгорает
+      r.light = false; r.pos = { x: 8, y: 5 }; { const ev = { kind: 'hard', title: 'Бой', cause: 'test' }; startFight(ev, { x: 8, y: 5 }, { zone: 'forest', place: '', list: ['web-spider'], border: false, fog: 0 }); ev.init = rollInitiative(ev.list, false); dgUi.enc = ev; } out.fightWebTile = dgUi.enc && dgUi.enc.webTile === '8,5';
+      dgUi.enc.webBurned = true; done(dgUi.enc, 'win'); out.fightBurned = sp2.web['8,5'] === false && sp2.burned === 3 && sp2.queen === 'chase'; dgUi.enc = null; dgUi.res = null; }
     // погоня заканчивается: ушли далеко
     sp = go('beast', 2, 2); sp.queen = 'chase'; sp.chaseT0 = absAct(r); spAfter(); out.chaseFar = sp.queen === 'guard';
     sp = go('beast', 9, 5); sp.queen = 'chase'; sp.chaseT0 = absAct(r) - 3; spAfter(); out.chase3 = sp.queen === 'guard' && !dgUi.enc;
@@ -136,7 +145,7 @@ const L = require('./bui_lib.js');
     sp = go('beast', 0, 10, 3, 1); sp.marker = 7; r.pos = { x: 0, y: 10 }; switchFloor(); out.floor1Back = r.floor === 1; r.pos = { x: 0, y: 10 }; r.floor = 1; r.pos = { x: 0, y: 10 };
     return out;
   });
-  const nm2 = { webSaveFail: 'паутина: провал — квадрат съест действие', webSaveOk: 'паутина: все прошли', burnNeedsLight: 'поджечь без факела нельзя', burnEnabled: 'с горящим факелом можно', burned: '3 тайла сожжены — паучиха проснулась',
+  const nm2 = { webSaveFail: 'паутина: провал — квадрат съест действие', webSaveOk: 'паутина: все прошли', noBurnUnknown: 'кнопки «Поджечь» нет, пока не знают условий паучихи', torchEnter: 'вошли с факелом — паутина сгорела сама', torchLit: 'зажгли факел на паутине — сгорела', fightWebTile: 'бой на паутине помечен', fightBurned: 'паутину подожгли в бою — тайл сгорел, 3 тайла → погоня', burnNeedsLight: 'поджечь без факела нельзя', burnEnabled: 'с горящим факелом можно', burned: '3 тайла сожжены — паучиха проснулась',
     chaseRoll: 'погоня: к6 ≤ 3 — бой с паучихой', fleeGuard: 'побег от паучихи: она сторожит паутину', queenAmbush: 'вход в паутину при сторожащей паучихе — засада', queenDead: 'паучиха убита', chaseFar: 'ушли далеко — отстала', chase3: '3 действия — отстала',
     lair: 'логово: 4–5 пауков', lairTreasure: 'после логова можно забрать сокровище',
     noBeaconMorning: 'часовни нет не на 3-м действии', beacon: 'на 3-м действии на тайле — маяк', chime: 'звон: расстояние и сторона', chapelIn: 'ярус 1: серые тени и мороки', chapelTiers: 'ярусы 2–4 по таблице', chapelTop: 'вершина: сокровище только украсть, дальше подъёма нет',

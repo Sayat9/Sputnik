@@ -2722,7 +2722,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 70;
+const BATTLE_REV = 71;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }
@@ -2841,7 +2841,7 @@ function loadNet() {
   return netLoad;
 }
 /* ----- здания города (assets/js/town.js грузится при первом входе в здание) ----- */
-const TOWN_REV = 14, TOWN_FILES = ["assets/css/town.css", "assets/js/town.js"];
+const TOWN_REV = 15, TOWN_FILES = ["assets/css/town.css", "assets/js/town.js"];
 let townLoad = null;
 function loadTown() {
   if (window.Town && window.Town.ready) return Promise.resolve(true);
@@ -3844,10 +3844,21 @@ function spDawn() {                                                  // новы
   logRun(`Белая пыль${hot ? " (у печи гуще)" : ""}: спасбросок ТЕЛ Сл ${dc}, провалили: ${res.filter(x => !x.ok).map(x => x.c.name).join(", ") || "никто"}.`);
   dgUi.res = { title: "Белая пыль", roll: `Телосложение Сл ${dc}`, lines: [...lines] };
 }
+// Паутина на карте (решение автора 31.10) горит сама: отряд с горящим факелом на тайле паутины, поджог паутины в бою на этом тайле.
+// Кнопка «Поджечь паутину» есть, только если отряд знает условие появления паучихи (раздел «Условия появления» в библиотеке).
+function spBurnWeb(k, why) {
+  const r = state.run, sp = spOf(); if (!sp || !sp.web || !sp.web[k]) return false;
+  sp.web[k] = false; sp.burned = (sp.burned || 0) + 1; logRun(`Паутина горит${why ? " (" + why + ")" : ""}: ${sp.burned} из 3.`);
+  if (sp.burned >= 3 && sp.queen === "none") { sp.queen = "chase"; sp.chaseT0 = absAct(r); logRun("Из глубины крон доносится шипение: паучиха проснулась и идёт по следу."); setTimeout(() => toast("Паучиха проснулась!"), 60); }
+  return true;
+}
+const queenKnown = () => { const rec = journal().known["spider-queen"]; return !!(rec && rec.revealed && rec.revealed.includes("spawn")); };
+const spTorchBurn = () => { const r = state.run, sp = spOf(); if (r && r.light && sp && sp.web && sp.web[spTileKey()] && !r.tier) spBurnWeb(spTileKey(), "от факела"); };
 // Вход в тайл: паутина, гнездо, логово паучихи, неупокоенные. true — начался бой, обычный бросок события не нужен.
 function spEnter() {
   const r = state.run, sp = spOf(); if (!sp || r.tier) return false;
   const k = spTileKey(), [x, y] = [r.pos.x, r.pos.y];
+  if (sp.web && sp.web[k] && r.light) { spBurnWeb(k, "от факела"); }          // факел горит — паутина вспыхивает, увязнуть не успели
   if (sp.web && sp.web[k]) {
     const res = spSave("dex", 12), fail = res.some(v => !v.ok);
     if (fail) sp.pen = (sp.pen || 0) + 1;
@@ -3914,6 +3925,7 @@ function spAfter() {
 }
 // Конец боя: зачистка ярусов, паучиха, гнездо, сокровище чернокрыла, неупокоенные, охрана сокровищ.
 function spFightDone(e, killedIds) {
+  if (e && e.webBurned && e.webTile) spBurnWeb(e.webTile, "подожгли в бою");
   const r = state.run, sp = spOf(); if (!sp) return;
   const ok = e.outcome === "win" || e.outcome === "retreat", k = e.sp && e.sp.k;
   if (k === "nest") {
@@ -3997,7 +4009,7 @@ function spButtons() {
     if (S.tiers && k === "0,0") out.push({ id: "tier-in:" + S.tiers, label: "Спуститься", sub: SP_TIERS[S.tiers].name });
     if (sp.chapel && sp.chapel.at === k && (sp.chapel.entered || r.act === 3)) out.push({ id: "tier-in:chapel", label: "Войти в часовню", sub: "маяк из тумана" });
     if (sp.stone) { const el = Object.entries({ air: "0,0", water: "10,5", fire: "10,10", earth: sp.stone.earth }).find(([, at]) => at === k); if (el && sp.stone.shard[el[0]] && !sp.stone.lit[el[0]]) out.push({ id: "altar:" + el[0], label: "Зажечь алтарь", sub: `осколок ${SP_ALTAR_NAME[el[0]]}` }); }
-    if (sp.web && sp.web[k]) out.push({ id: "burn", label: "Поджечь паутину", sub: r.light ? "горящий факел" : "нужен горящий факел", disabled: !r.light });
+    if (sp.web && sp.web[k] && queenKnown()) out.push({ id: "burn", label: "Поджечь паутину", sub: r.light ? "горящий факел" : "нужен горящий факел", disabled: !r.light });          // только если знают, как вызвать паучиху
     if (sp.unq && sp.unq[k]) out.push({ id: "cremate", label: "Сжечь останки", sub: partyTorches() ? "действие и факел" : "нужен факел", disabled: !partyTorches() });
   }
   const t = spTreasureHere();
@@ -4022,9 +4034,7 @@ function spDo(id) {
   if (id.startsWith("tier-in:")) { const kind = id.slice(8); r.tier = { k: kind, n: 1 }; if (kind === "chapel") sp.chapel.entered = true; spEnterTier(); }
   else if (id === "tier-next") { r.tier.n++; spEnterTier(); }
   else if (id === "tier-prev") { if (r.tier.n > 1) { r.tier.n--; spEnterTier(); } else { logRun(`Отряд вышел ${spSet(r.tier.k).exit}.`); r.tier = null; } }
-  else if (id === "burn") {
-    sp.web[k] = false; sp.burned++; logRun(`Паутина горит (${sp.burned} из 3).`);
-    if (sp.burned >= 3 && sp.queen === "none") { sp.queen = "chase"; sp.chaseT0 = absAct(r); logRun("Из глубины крон доносится шипение: паучиха проснулась и идёт по следу."); setTimeout(() => toast("Паучиха проснулась"), 150); }
+  else if (id === "burn") { spBurnWeb(k);
   } else if (id.startsWith("altar:")) {
     const el = id.slice(6), st = sp.stone; st.lit[el] = true; const n = Object.values(st.lit).filter(Boolean).length;
     logRun(`Алтарь ${SP_ALTAR_NAME[el]} горит (${n} из 4).`);
@@ -4078,6 +4088,7 @@ function rollInitiative(list, ambush) {
 function startFight(ev, p, enc) {
   if (voidHere()) ev.void = true;          // бой в Ведьмином лесу: сундучки на поле, побег сложнее
   Object.assign(ev, enc, { key: tkey(p.x, p.y), outcome: null, killed: [], turn: 0, round: 1, tactical: tacticalOn(), floor: curFloor(), water: waterLevel(p.x, p.y) });
+  try { const sp = spOf(); if (sp && sp.web && sp.web[tkey(p.x, p.y)] && !state.run.tier) ev.webTile = tkey(p.x, p.y); } catch (e) {}          // бой на тайле паутины: на поле много паутины, подожгли её — сгорает и тайл
   enc.list.forEach(id => { const m = MONSTERS.find(x => x.id === id); if (m && m.dyn) return; seenKeys(id, ["area"]); if (m && monCourse(m.cls)) { seenKeys(id, ["type"]); const h = (journal().hints[id] ||= []); for (const k of ["type", "portrait"]) if (!h.includes(k)) h.push(k); } });     // встреча открывает портрет, имя и места обитания; курс «Опознание монстров» — ещё и тип
   spFightStart(ev);
 }
@@ -6311,8 +6322,8 @@ document.addEventListener("click", e => {
     case "zoom-out": dgUi.zoom = clampZoom(dgUi.zoom / 1.25); applyRotation(); return;
     case "close-map": dgUi.map = false; break;
     case "torch-on":
-      if (r.torchLeft > 0) { r.light = true; logRun(`Факел снова зажжён (осталось ${r.torchLeft} д.).`); saveChar(); break; }
-      { const h = burnTorch(); if (h) { r.light = true; r.torchLeft = 4; logRun(`${h.name} зажёг факел: яркий свет 6 м на 4 действия. Скрытно двигаться нельзя, летучки летят на свет.`); saveChar(); } }
+      if (r.torchLeft > 0) { r.light = true; logRun(`Факел снова зажжён (осталось ${r.torchLeft} д.).`); spTorchBurn(); saveChar(); break; }
+      { const h = burnTorch(); if (h) { r.light = true; r.torchLeft = 4; setTimeout(spTorchBurn, 0); logRun(`${h.name} зажёг факел: яркий свет 6 м на 4 действия. Скрытно двигаться нельзя, летучки летят на свет.`); saveChar(); } }
       break;
     case "torch-off": r.light = false; logRun(`Факел погашен (хватит ещё на ${r.torchLeft} д.).`); saveChar(); break;
     case "enc-done": dgUi.enc = null; break;
@@ -6721,9 +6732,9 @@ $hero.addEventListener("click", e => {
       if (i < 0) return;
       if (mine.length >= c.level) { toast("Нет свободного слота эссенций"); return; }
       if (mine.includes(ds.essid)) { toast("У героя уже есть такая эссенция"); return; }
-      askYesNo({ title: "Впитать эссенцию?", text: `${c.name} впитает «${ESSENCES[ds.essid].name}». Слот занят, пока эссенцию не высвободят.`, yes: "Впитать" }).then(ok => {
+      askYesNo({ title: "Впитать эссенцию?", text: `${c.name} впитает «${essTitle(ds.essid)}». Слот занят, пока эссенцию не высвободят.`, yes: "Впитать" }).then(ok => {
         if (!ok) return; const j = st.indexOf(ds.essid); if (j < 0 || mine.length >= c.level) return;
-        st.splice(j, 1); mine.push(ds.essid); markEssNamed(ds.essid); c.mp = Math.min(maxMp(c), mpOf(c));
+        const hp0 = hpOf(c), mx0 = maxHp(c); st.splice(j, 1); mine.push(ds.essid); markEssNamed(ds.essid); c.hp = Math.min(maxHp(c), hp0 + Math.max(0, maxHp(c) - mx0)); c.mp = Math.min(maxMp(c), mpOf(c));
         heroAfterChange(`${c.name} впитал: ${ESSENCES[ds.essid].name}`);
       }); return;
     }

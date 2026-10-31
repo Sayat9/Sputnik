@@ -182,7 +182,7 @@
           g.onclick = async ev => {
             const btn = ev.target.closest("[data-ec],[data-eh]"); if (!btn || btn.disabled) return;
             const box = btn.closest(".bt-ess"), w = plan.wins[+box.dataset.i], e = ESSENCES[w.id];
-            if (btn.dataset.eh) { const c = state.party.find(x => x.id === btn.dataset.eh); if (!c) return; if (window.askYesNo) { btn.disabled = true; const yes = await askYesNo({ title: "Впитать эссенцию?", text: `${c.name} впитает «${e.name}». Это нельзя отменить.`, yes: "Впитать" }); btn.disabled = false; if (!yes) return; } (c.essences ||= []).push(w.id); markEssNamed(w.id); c.mp = Math.min(maxMp(c), mpOf(c)); saveChar(); decide(box, `${c.name} впитал эссенцию.`); return; }
+            if (btn.dataset.eh) { const c = state.party.find(x => x.id === btn.dataset.eh); if (!c) return; if (window.askYesNo) { btn.disabled = true; const yes = await askYesNo({ title: "Впитать эссенцию?", text: `${c.name} впитает «${typeof essTitle === "function" ? essTitle(w.id) : e.name}». Это нельзя отменить.`, yes: "Впитать" }); btn.disabled = false; if (!yes) return; } const hp0 = hpOf(c), mx0 = maxHp(c); (c.essences ||= []).push(w.id); markEssNamed(w.id); c.hp = Math.min(maxHp(c), hp0 + Math.max(0, maxHp(c) - mx0)); c.mp = Math.min(maxMp(c), mpOf(c)); saveChar(); decide(box, `${c.name} впитал эссенцию.`); return; }
             if (btn.dataset.ec === "leave") { decide(box, "Эссенцию оставили."); return; }
             if (btn.dataset.ec === "absorb") {
               const pk = box.querySelector(".bt-esspick"); box.querySelector(".bt-esschoice").hidden = true; pk.hidden = false;
