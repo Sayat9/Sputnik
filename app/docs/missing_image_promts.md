@@ -14,12 +14,6 @@
 
 > `a party of four adventurers seen from behind stepping through an ancient carved stone archway filled with a swirling pale-green magical portal, on the other side a misty forest-dungeon of mossy stone walls and roots glimpsed through the light, small motes of green energy drifting around them, the cobbled town square fading behind, sense of departure into the unknown, hand-painted fantasy RPG event illustration, stylized, painterly, dark fantasy tone, wide 3:2 composition, no text`
 
-### Перемещение в город — `events/to-town`
-
-Заставка, когда время в лабиринте вышло или отряд уходит сам (`travelOverlay("out")`), — отряд выходит на Площадь измерений.
-
-> `a tired, battle-worn party of adventurers stumbling out of a glowing golden portal archway onto a sunlit cobblestone town plaza, medieval rooftops, towers and banners in warm late-afternoon light, dust and fading golden sparks around their feet, one hero leaning on another, bags heavy with loot, relief and homecoming mood, hand-painted fantasy RPG event illustration, stylized, painterly, warm light against dark fantasy tone, wide 3:2 composition, no text`
-
 ## Монстры
 
 Все монстры нарисованы — промптов нет. Новый монстр без картинки: промпт сюда (полный рост 1024 × 1536, 2:3; лицо вырезается из него).
@@ -229,22 +223,6 @@
 > `a stately stone academy building with a small copper dome, a tall arched door, carved columns, open book emblem above the entrance and lit windows, dark fantasy city at dusk, warm window glow, hand-painted fantasy RPG building icon, stylized, painterly, clean readable silhouette, centered on a dark stone square, square 1:1, no text`
 
 ## Портреты рас
-
-### human (женский) — `races/human-f`
-
-> `bust portrait of a middle-aged human woman adventurer with a braided dark-brown hair, a scar over one eyebrow, a worn leather collar and a calm determined gaze, fantasy, dark background with a warm rim light, realistic painterly style, looking at viewer, 4:5, no text`
-
-### barbarian (женский) — `races/barbarian-f`
-
-> `bust portrait of a tall powerful barbarian woman with long braided red hair, war paint on her cheeks, fur pauldrons and a stern proud look, fantasy, dark background with a warm rim light, realistic painterly style, looking at viewer, 4:5, no text`
-
-### dwarf (женский) — `races/dwarf-f`
-
-> `bust portrait of a sturdy dwarf woman with thick braided auburn hair decorated with small metal rings, soot on her cheek, a leather smith's collar and a confident half-smile, fantasy, dark background with a warm rim light, realistic painterly style, looking at viewer, 4:5, no text`
-
-### beastkin (женский) — `races/beastkin-f`
-
-> `bust portrait of a lithe beastkin woman with a sleek fox-like face, tall pointed ears, amber eyes, short russet fur and a wary alert expression, fantasy, dark background with a warm rim light, realistic painterly style, looking at viewer, 4:5, no text`
 
 ### fairy (женский) — `races/fairy-f`
 

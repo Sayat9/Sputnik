@@ -74,7 +74,7 @@
   }
 
   /* ---------- общие части ---------- */
-  const portrait = c => `<span class="tw-ph">${phPortrait(raceById(c.race))}</span>`;
+  const portrait = c => `<span class="tw-ph">${phPortrait(raceById(c.race), c.gender)}</span>`;
   function heroStrip(showGold = true) {
     return `<div class="tw-heroes" role="tablist" aria-label="Герои">${state.party.map(c => `<button class="tw-h${c.id === ui.hero ? " on" : ""}" role="tab" aria-selected="${c.id === ui.hero}" data-t="hero" data-id="${c.id}">
       ${portrait(c)}<span class="tw-hn">${esc(c.name)}</span>${showGold ? `<span class="tw-hg">${goldOf(c)}</span>` : ""}</button>`).join("")}</div>`;
@@ -394,7 +394,7 @@
       <div class="tw-rows"><div class="tw-row"><div class="tw-who"><div><b>Предметы</b><small>скоро</small></div></div><button class="fx-btn" disabled>Скоро</button></div>
       <div class="tw-row"><div class="tw-who"><div><b>Монстры</b><small>тип, ранг, место обитания, особенности</small></div></div><button class="fx-btn primary" data-t="lr-cat" data-k="monsters">Выбрать</button></div></div>`;
     if (lr.step === "hero") return `<p class="tw-lead">Кто проходит проверки? Бонус — модификатор Интеллекта плюс Проницательности (Мудрости).</p>
-      <div class="tw-rows">${state.party.filter(c => !c.dead).map(c => `<div class="tw-row"><div class="tw-who"><span class="tw-ph">${phPortrait(raceById(c.race))}</span><div><b>${esc(c.name)}</b><small>бонус ${libBonus(c) >= 0 ? "+" : ""}${libBonus(c)}</small></div></div><button class="fx-btn primary" data-t="lr-hero" data-id="${c.id}">Выбрать</button></div>`).join("")}</div>
+      <div class="tw-rows">${state.party.filter(c => !c.dead).map(c => `<div class="tw-row"><div class="tw-who"><span class="tw-ph">${phPortrait(raceById(c.race), c.gender)}</span><div><b>${esc(c.name)}</b><small>бонус ${libBonus(c) >= 0 ? "+" : ""}${libBonus(c)}</small></div></div><button class="fx-btn primary" data-t="lr-hero" data-id="${c.id}">Выбрать</button></div>`).join("")}</div>
       <button class="fx-btn" data-t="lr-back">← Назад</button>`;
     if (lr.step === "cls") return `<p class="tw-lead">О каких монстрах искать? Чем выше класс, тем сложнее проверки (растёт с 9 класса).</p>
       <div class="tw-rows">${Object.keys(LIB_DC).map(Number).map(cl => { const open = journal().tiers.includes(cl) && libCands(cl).length; return `<div class="tw-row"><div class="tw-who"><div><b>${cl} класс</b><small>Сл ${LIB_DC[cl]}${open ? "" : " · пока не открыт"}</small></div></div><button class="fx-btn primary" data-t="lr-cls" data-n="${cl}"${open ? "" : " disabled"}>Выбрать</button></div>`; }).join("")}</div>
