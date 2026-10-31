@@ -57,12 +57,14 @@
     async join(code) {
       await loadPeer();
       const peer = new Peer(PEER_OPTS);
-      await new Promise((ok, no) => { peer.on("open", ok); peer.on("error", e => no(e)); setTimeout(() => no(new Error("нет связи с сервером рукопожатий")), 10000); });
-      const dc = peer.connect(PREFIX + code, { reliable: true, serialization: "json" });
-      await new Promise((ok, no) => { dc.on("open", ok); dc.on("error", e => no(e)); peer.on("error", e => no(e)); setTimeout(() => no(new Error("ведущий не отвечает")), 12000); });
-      const c = wrapDc(dc); const close = c.close; c.close = function () { close.call(this); try { peer.destroy(); } catch (e) {} };
-      dc.on("close", () => { try { peer.destroy(); } catch (e) {} });
-      return c;
+      try {                                                                                        // неудачная попытка обязана освободить соединение с сервером рукопожатий: накопившиеся пустые подключения не давали вернуться
+        await new Promise((ok, no) => { peer.on("open", ok); peer.on("error", e => no(e)); setTimeout(() => no(new Error("нет связи с сервером рукопожатий")), 10000); });
+        const dc = peer.connect(PREFIX + code, { reliable: true, serialization: "json" });
+        await new Promise((ok, no) => { dc.on("open", ok); dc.on("error", e => no(e)); peer.on("error", e => no(e)); setTimeout(() => no(new Error("ведущий не отвечает")), 12000); });
+        const c = wrapDc(dc); const close = c.close; c.close = function () { close.call(this); try { peer.destroy(); } catch (e) {} };
+        dc.on("close", () => { try { peer.destroy(); } catch (e) {} });
+        return c;
+      } catch (e) { try { peer.destroy(); } catch (x) {} throw e; }
     },
   };
 
@@ -77,7 +79,7 @@
     };
     return { add(f) { subs.add(f); start(); }, del(f) { subs.delete(f); } };
   })();
-  const DEAD_MS = 30000;                                                                  // тишина дольше этого — связь потеряна (в фоне сообщения могут приходить реже)
+  const DEAD_MS = 45000;                                                                  // тишина дольше этого — связь потеряна (в фоне сообщения могут приходить реже)
 
   /* ===== Link: сообщения {t, d, id?}, ответы {re, d | err}, кусочки, пульс ===== */
   const CHUNK = 48000;

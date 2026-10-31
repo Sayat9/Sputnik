@@ -240,7 +240,8 @@
     N.on((ev, d) => {
       if (ev === "status") { updateBar(); keepAlive(d === "online" || d === "reconnecting" || d === "connecting"); if (d === "online") hideJoin(); else if (d === "off") goOffline(); }          // при коротком обрыве экран не прыгает: переподключение идёт само
       if (ev === "welcome" && d && d.pid) { const cr = lsGet(PLAYER_KEY) || {}; cr.pid = d.pid; lsSet(PLAYER_KEY, cr); C.msg = ""; }
-      if (ev === "joinerror") { C.msg = "Нет связи: " + d; updateJoinMsg(); }
+      if (ev === "joinerror") { C.msg = "Нет связи: " + d; C.lastErr = String(d).slice(0, 60); updateJoinMsg(); try { updateBar(); } catch (e) {} }
+      if (ev === "welcome") C.lastErr = "";
       if (ev === "refused") {
         C.msg = d.error === "version" ? `Версии игры не совпадают: у ведущего «${d.host}», у тебя «${buildOf() || "—"}». Нажми «Проверить обновление» и зайди снова.` : (d.why || "Ведущий не пустил в комнату.");
         const cr = lsGet(PLAYER_KEY) || {}; if (d.error === "kicked") lsSet(PLAYER_KEY, { name: cr.name });
@@ -347,7 +348,7 @@
     const need = !isMaster() && document.body.classList.contains("bt-active") && N.status !== "online" && !!(lsGet(PLAYER_KEY) || {}).code;
     if (!need) { if (b) b.remove(); return; }
     if (!b) { b = document.createElement("button"); b.id = "net-rc"; b.type = "button"; b.onclick = () => { N.kick(); b.textContent = "Подключаюсь…"; }; document.body.appendChild(b); }
-    b.textContent = N.status === "reconnecting" || N.status === "connecting" ? "Нет связи: подключаюсь… (нажми, чтобы сразу)" : "Нет связи — переподключиться";
+    b.textContent = (N.status === "reconnecting" || N.status === "connecting" ? "Нет связи: подключаюсь… (нажми, чтобы сразу)" : "Нет связи — переподключиться") + (C.lastErr ? " · " + C.lastErr : "");
   }
   setInterval(() => { try { rcBtn(); } catch (e) {} }, 1500);
   function updateBar() {

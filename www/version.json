@@ -1,5 +1,5 @@
 {
- "version": 1793456967,
+ "version": 1793457702,
  "files": [
   "assets/buildings/board.webp",
   "assets/buildings/church.webp",
@@ -450,8 +450,8 @@
   "assets/js/battle-ui.js": "0aa0c692ee7d7f116357c2307d782c88",
   "assets/js/battle-weap.js": "cd641c2f55a95ffd4ddc833747704106",
   "assets/js/battle.js": "f7d6ffbb9da14df8b780d65812556151",
-  "assets/js/net.js": "f8b3a6c09f533769bf8716e56889de1a",
-  "assets/js/netglue.js": "bcd9567ff48bb2e27e34c8b5ef1eb42d",
+  "assets/js/net.js": "e7146a3d815daef1bc53e8a04756d3b9",
+  "assets/js/netglue.js": "869c1e9713383fc44e76f951d305d689",
   "assets/js/town.js": "3845cde6165b5ca47104ef12e90032df",
   "assets/logo-admin.png": "aa45354a89500a24e2f481f6d7d3ee4a",
   "assets/logo.png": "2eea126130fb32be9d28f407acbc25bb",
@@ -674,6 +674,6 @@
   "fonts/f8.woff2": "6cc1ee17091d59eb93821c3594e8f38f",
   "fonts/f9.woff2": "070433480b7b645f69b543f284e386ce",
   "fonts/fonts.css": "1585a72a8d157b26cb424ab433fd4e19",
-  "index.html": "5be6cd05d8345d42464db0c65e2d1384"
+  "index.html": "ee2d5dbd79d70702d047094b9debc215"
  }
 }
