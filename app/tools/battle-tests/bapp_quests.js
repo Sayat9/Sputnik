@@ -34,7 +34,8 @@ const L = require('./bui_lib.js');
     b.list[0].runs = 2; const g0 = sackCount('goblin'); const S3 = await fight(['goblin'], 'goblin'); out.lastChance = sackCount('goblin') - g0 === S3.killed.length; b.list[0].runs = 0;
     b.list[0].taken = false; const g1 = sackCount('goblin'); const S4 = await fight(['goblin'], 'goblin'); out.untaken = sackCount('goblin') - g1 === S4.killed.length; b.list[0].taken = true;
     // найденные камни (без монстра) и камни 8 класса — отдельные строки
-    addToBag(state.party[0], { t: 'g', id: 'stone-9', qty: 3 }); addToBag(state.party[1], { t: 'g', id: 'stone-8', qty: 2 });
+    const tot0 = sackTotal(); addToBag(state.party[0], { t: 'g', id: 'stone-9', qty: 1 }); out.conv = sackTotal() === tot0 + 1 && !sack().items['c:9']; Object.values(sack().items).forEach(it => { if (it.qty && !['goblin', 'wolf'].includes(it.mon)) it.qty = 0; });
+    sackAddRaw(sack(), null, 9, 3); sackAddRaw(sack(), null, 8, 2);          // строки «Находки» из старых сохранений: продаются как обычно
     out.found = sack().items['c:9'].qty === 3 && sack().items['c:8'].qty === 2 && state.party.every(c => (c.bag || []).length === 0);
     out.rows = sackRows().map(r => r.name + ':' + r.cls + ':' + r.qty + ':' + r.price);
     out.sorted = sackRows().every((r, i, a) => !i || a[i - 1].cls >= r.cls);
@@ -43,7 +44,7 @@ const L = require('./bui_lib.js');
   });
   ok('камни убитых гоблинов (' + B.k1 + ') легли в сумку по виду', B.sackGoblin, JSON.stringify(B)); ok('в рюкзаках камней и камней задания нет', B.noQstone);
   ok('волки — отдельная строка, гоблины не тронуты', B.sackWolf); ok('в последний шанс камни тоже падают', B.lastChance); ok('и по непринятому заданию', B.untaken);
-  ok('найденные камни и камни 8 класса — отдельные строки, рюкзаки пусты', B.found, JSON.stringify(B.rows)); ok('список отсортирован по классу, цены 1/5/20', B.sorted && B.priceOk);
+  ok('камень без монстра стал камнем случайного монстра', B.conv); ok('найденные камни и камни 8 класса — отдельные строки, рюкзаки пусты', B.found, JSON.stringify(B.rows)); ok('список отсортирован по классу, цены 1/5/20', B.sorted && B.priceOk);
   // --- просмотр сумки (только чтение)
   await p.evaluate(() => { state.run = null; state.townUnlocked = true; state.party.forEach(c => { c.gold = 0; }); location.hash = 'town'; rerender(); openSack(); });
   ok('просмотр: колонки имя/класс/штук/цена выровнены в сетке', await p.evaluate(() => { const rows = [...document.querySelectorAll('.sk-row')]; if (!rows.length) return false; const xs = rows.map(r => [...r.children].map(c => Math.round(c.getBoundingClientRect().left))); return xs.every(x => x.join() === xs[0].join()) && getComputedStyle(rows[0]).display === 'grid'; }));
@@ -114,9 +115,9 @@ const L = require('./bui_lib.js');
   // --- перенос старых камней из рюкзаков в сумку
   const M = await p.evaluate(() => {
     state.sack = null; const c = state.party[0]; c.bag = [{ t: 'g', id: 'stone-9', qty: 4 }, { t: 'g', id: 'qstone', qid: 5, mon: 'goblin', cls: 9, qty: 3 }, { t: 'g', id: 'ration', qty: 2 }];
-    sack(); return { bag: c.bag.map(e => e.id).join(), c9: sack().items['c:9'].qty, gob: sackCount('goblin') };
+    sack(); return { bag: c.bag.map(e => e.id).join(), c9: Object.values(sack().items).filter(it => it.cls === 9).reduce((a, it) => a + it.qty, 0), raw: !!sack().items['c:9'], gob: sackCount('goblin') };
   });
-  ok('старые камни и камни задания перенесены в сумку', M.bag === 'ration' && M.c9 === 4 && M.gob === 3, JSON.stringify(M));
+  ok('старые камни и камни задания перенесены в сумку', M.bag === 'ration' && M.c9 === 7 && !M.raw && M.gob >= 3, JSON.stringify(M));
   console.log('errs:', p.errs.length ? p.errs.slice(0, 5) : 'нет'); ok('нет ошибок страницы', !p.errs.length, p.errs.join(' | '));
   console.log(`проверок: ${R.length}, не прошли: ${R.filter(x => !x.ok).length}`);
   await b.close(); process.exit(R.every(x => x.ok) ? 0 : 1);

@@ -1,5 +1,5 @@
 {
- "version": 1793472399,
+ "version": 1793473221,
  "files": [
   "assets/buildings/board.webp",
   "assets/buildings/church.webp",
@@ -16,6 +16,8 @@
   "assets/events/ambush.svg",
   "assets/events/monsters.svg",
   "assets/events/nothing.svg",
+  "assets/events/to-labyrinth.svg",
+  "assets/events/to-town.svg",
   "assets/events/travelers.svg",
   "assets/events/treasure.svg",
   "assets/items/armor-chainmail.svg",
@@ -354,6 +356,8 @@
   "assets/events/ambush.svg": "cc4762918cfd926e70eaa40ce53b322c",
   "assets/events/monsters.svg": "7bf5ba9509d2fa188e67d5774af858d6",
   "assets/events/nothing.svg": "f077766d33696a165cc87ebfb9bdb72b",
+  "assets/events/to-labyrinth.svg": "eb988148cb7d42fcf05eee315a3b9eaf",
+  "assets/events/to-town.svg": "3ccd51d2718c3b8a971eced61b832c46",
   "assets/events/travelers.svg": "afa5112be9cff4a06f7d078ab5b1359f",
   "assets/events/treasure.svg": "b9cb168bd1f3149dc9b87b63bf2bac37",
   "assets/items/armor-chainmail.svg": "e40e4fb1059d07ed20cf160cba2800fc",
@@ -674,6 +678,6 @@
   "fonts/f8.woff2": "6cc1ee17091d59eb93821c3594e8f38f",
   "fonts/f9.woff2": "070433480b7b645f69b543f284e386ce",
   "fonts/fonts.css": "1585a72a8d157b26cb424ab433fd4e19",
-  "index.html": "f3352de27bcc568965f111476cdcf955"
+  "index.html": "4a0bd1540e766cc7ff77101c73d0321e"
  }
 }

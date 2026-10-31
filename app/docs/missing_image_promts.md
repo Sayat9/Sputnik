@@ -28,6 +28,18 @@
 
 > `a hidden stash in a crumbled dungeon wall niche: a small worn leather pouch spilling faintly glowing amber and cyan magic stones among old bones and rubble, warm golden glow lighting the dust, moment of discovery, hand-painted fantasy RPG event illustration, stylized, painterly, dark fantasy tone, wide 3:2 composition, no text`
 
+### Перемещение в лабиринт — `events/to-labyrinth`
+
+Заставка при входе через врата города (`travelOverlay("in")`).
+
+> `a party of four adventurers seen from behind stepping through an ancient carved stone archway filled with a swirling pale-green magical portal, on the other side a misty forest-dungeon of mossy stone walls and roots glimpsed through the light, small motes of green energy drifting around them, the cobbled town square fading behind, sense of departure into the unknown, hand-painted fantasy RPG event illustration, stylized, painterly, dark fantasy tone, wide 3:2 composition, no text`
+
+### Перемещение в город — `events/to-town`
+
+Заставка, когда время в лабиринте вышло или отряд уходит сам (`travelOverlay("out")`), — отряд выходит на Площадь измерений.
+
+> `a tired, battle-worn party of adventurers stumbling out of a glowing golden portal archway onto a sunlit cobblestone town plaza, medieval rooftops, towers and banners in warm late-afternoon light, dust and fading golden sparks around their feet, one hero leaning on another, bags heavy with loot, relief and homecoming mood, hand-painted fantasy RPG event illustration, stylized, painterly, warm light against dark fantasy tone, wide 3:2 composition, no text`
+
 ## Монстры
 
 Все монстры нарисованы — промптов нет. Новый монстр без картинки: промпт сюда (полный рост 1024 × 1536, 2:3; лицо вырезается из него).

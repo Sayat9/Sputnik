@@ -679,6 +679,7 @@ body.forge-open, body.bt-active, body:has(.mapov:not([hidden])), body:has(.bt-ro
 /* бросок события делает приложение: кубик крутится, потом вылетает картинка события */
 .ev-panel { position: relative; text-align: center; }
 .ev-stage { position: relative; width: 100%; aspect-ratio: 3 / 2; border-radius: 6px; overflow: hidden; background: radial-gradient(circle at 50% 40%, #2a2016, #0c0906); display: grid; place-items: center; border: 1px solid #6e5634; }
+.travel-art { position: relative; width: 100%; aspect-ratio: 3 / 2; border-radius: 8px; overflow: hidden; border: 1px solid var(--fx-line); background: #0E100F; }
 .ev-pic { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; animation: evpop .5s cubic-bezier(.2, 1.25, .4, 1) both; }
 .ev-die { position: relative; width: 104px; height: 104px; display: grid; place-items: center; z-index: 1; }
 .ev-die svg { position: absolute; inset: 0; width: 100%; height: 100%; animation: evspin .8s linear infinite; }
@@ -2722,7 +2723,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 71;
+const BATTLE_REV = 72;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }
@@ -2794,9 +2795,27 @@ function sack() {
       return true;
     });
   }
+  if (!s.mig2) {                                                                                     // старые «Находки» без монстра — раздать по случайным монстрам того же класса
+    s.mig2 = true;
+    for (const [k, it] of Object.entries(s.items)) if (!it.mon && it.qty > 0) { const pool = stonePool(it.cls, 0); if (!pool.length) continue; const q = it.qty; delete s.items[k]; for (let i = 0; i < q; i++) sackAddRaw(s, pool[Math.floor(Math.random() * pool.length)].id, it.cls, 1); }
+  }
   return s;
 }
-function sackAdd(mon, cls, n) { sackAddRaw(sack(), mon, cls, n); }
+// Камни без хозяина (находки, раскопки, сундуки, «20» и т. п.) — решение автора 31.10: каждый камень становится камнем случайного монстра того же класса с этого этажа.
+function stonePool(cls, fl) {
+  const ok = x => !x.dyn && !x.draft && x.cls === cls;
+  let pool = fl ? MONSTERS.filter(x => ok(x) && x.floor === fl) : [];
+  if (!pool.length && fl) pool = MONSTERS.filter(x => ok(x) && x.floor <= fl);
+  if (!pool.length) pool = MONSTERS.filter(ok);
+  return pool;
+}
+function sackAdd(mon, cls, n, fl) {
+  if (mon) { sackAddRaw(sack(), mon, cls, n); return null; }
+  const pool = stonePool(cls, fl || (state.run ? curFloor() : 0)), got = {};
+  for (let i = 0; i < n; i++) { const m = pool.length ? pool[Math.floor(Math.random() * pool.length)] : null; sackAddRaw(sack(), m ? m.id : null, cls, 1); if (m) got[m.id] = (got[m.id] || 0) + 1; }
+  return got;
+}
+const stoneGotText = got => Object.entries(got || {}).map(([id, k]) => `${(MONSTERS.find(m => m.id === id) || { name: id }).name} × ${k}`).join(", ");
 function sackRows() {
   return Object.entries(sack().items).filter(([, it]) => it.qty > 0).map(([key, it]) => {
     const m = it.mon && MONSTERS.find(x => x.id === it.mon);
@@ -4614,7 +4633,7 @@ const shovelsOf = () => state.party.flatMap(c => (c.bag || []).map((e, i) => ({ 
 const pickShovel = () => shovelsOf().sort((a, b) => a.e.uses - b.e.uses)[0] || null;
 const pickOne = arr => arr[rnd(arr.length)];
 function giveParty(e) {
-  if (e.t === "g" && /^stone-\d$/.test(e.id)) { const n = e.qty || 1, cls = +e.id.slice(6); sackAdd(null, cls, n); return `Камни ${cls}-го класса × ${n} — в сумку для камней`; }
+  if (e.t === "g" && /^stone-\d$/.test(e.id)) { const n = e.qty || 1, cls = +e.id.slice(6); const got = sackAdd(null, cls, n), gt = stoneGotText(got); return `Камни ${cls}-го класса × ${n}${gt ? " (" + gt + ")" : ""} — в сумку для камней`; }
   let name = (itemOf(e) || {}).name || e.id; const q = e.qty || 1;
   let left = q, got = [];
   for (const c of [...state.party].filter(x => !x.dead || state.party.every(y => y.dead)).sort((a, b) => (bagSize(b) - (b.bag || []).length) - (bagSize(a) - (a.bag || []).length))) {
@@ -5946,7 +5965,21 @@ function renderDungeon() {
   ${huntAnimOverlay()}
   ${dgUi.res ? resultOverlay() : ""}
   ${r.pending && !dgUi.enc && !dgUi.res ? rollOverlay() : ""}
-  ${dgUi.enc ? encounterOverlay() : ""}`;
+  ${dgUi.enc ? encounterOverlay() : ""}
+  ${!dgUi.enc && !dgUi.res && !r.pending && (r.ending || r.arrive) ? travelOverlay(r.ending ? "out" : "in") : ""}`;
+}
+// Заставка перемещения: в лабиринт (вход через врата) и в город (время вышло или отряд ушёл сам). Картинки — assets/events/to-labyrinth, to-town.
+function travelOverlay(dir) {
+  const r = state.run, early = r.ending === "early", master = isMaster();
+  const t = dir === "in" ? { pic: "to-labyrinth", title: "Врата лабиринта", text: `Свет арки гаснет за спиной — отряд стоит на ${r.floor || 1}-м этаже лабиринта. День ${r.day}, действие ${r.act}.`, btn: "В путь", dg: "travel-in" }
+    : { pic: "to-town", title: early ? "Возвращение в город" : "Время вышло", text: early ? "Отряд возвращается через врата на Площадь измерений." : `${FL().days} дней прошли: лабиринт выбрасывает отряд на Площадь измерений.`, btn: "На Площадь измерений", dg: "travel-out" };
+  return `<div class="mapov travelov" role="dialog" aria-modal="true" aria-label="${t.title}">
+    <div class="panel fx-frame enc-panel">
+      <div class="travel-art"><img class="ev-pic" src="${artPath("events/" + t.pic)}" alt=""></div>
+      <div class="ph-head"><h3>${t.title}</h3></div>
+      <p class="fx-p" style="margin:0;text-align:center">${t.text}</p>
+      <div style="display:flex;justify-content:center">${master ? `<button class="fx-btn primary big" data-dg="${t.dg}">${t.btn}</button>` : `<span class="fx-hint">Ждём ведущего…</span>`}</div>
+    </div></div>`;
 }
 
 function floorMapOverlay() {
@@ -5996,7 +6029,7 @@ function tick(sleepers = new Set()) {
 }
 function advanceTime() {
   const r = state.run;
-  if (r.day >= FL().days && r.act >= FL().acts) { endRun(); return true; }
+  if (r.day >= FL().days && r.act >= FL().acts) { r.ending ||= "time"; saveChar(); rerender(); return true; }          // сначала показать, что выпало на последнем действии, потом — заставка «в город»
   r.act++; chaliceTick(1);
   if (r.act > FL().acts) { amuletDayEnd(); r.act = 1; r.day++; saltTick(); logRun(`Начался день ${r.day}.`); spDawn(); if (r.day === 2) f3Map(r); f3Dawn(); }
   return false;
@@ -6026,7 +6059,7 @@ function eatRations(c, n) {
 }
 
 function act(kind) {
-  const r = state.run; if (!r) return;
+  const r = state.run; if (!r || r.ending) return;
   let windUsed = false;
   if (kind === "move") {
     if (r.flame && r.flame.left > 0) r.flame.left--;
@@ -6316,6 +6349,8 @@ document.addEventListener("click", e => {
     case "sr-l": dgUi.sr.luck = Number(ds.n); break;
     case "sr-ok": act(dgUi.phase); return;
     case "res-done": dgUi.res = null; break;
+    case "travel-in": delete state.run.arrive; break;
+    case "travel-out": endRun(state.run.ending === "early"); return;
     case "portal-go": switchFloor(); return;
     case "rest-go": act("rest"); return;
     case "zoom-in": dgUi.zoom = clampZoom(dgUi.zoom * 1.25); applyRotation(); return;
@@ -6381,7 +6416,7 @@ document.addEventListener("click", e => {
     case "give-compass": inv.compass.owned = true; saveChar(); toast("Мастер выдал компас"); break;
     case "give-map": invItem("map").owned = true; saveChar(); toast("Мастер выдал карту этажа"); break;
     case "give-mmap": invItem("mmap").owned = true; saveChar(); toast("Мастер выдал магическую карту"); break;
-    case "leave": if (dgUi.confirm !== "leave") { dgUi.confirm = "leave"; break; } endRun(true); return;
+    case "leave": if (dgUi.confirm !== "leave") { dgUi.confirm = "leave"; break; } dgUi.confirm = null; state.run.ending = "early"; break;
     case "rollback": if (!state.runSnap) break; if (dgUi.confirm !== "rollback") { dgUi.confirm = "rollback"; break; } rollbackRun(); return;
   }
   rerender();
@@ -7458,6 +7493,7 @@ document.addEventListener("click", e => {
     if (ds.bld === "gate") {
       const gi = gateInfo();
       if (!gi.open) { toast(`Врата закрыты: откроются через ${gi.left} городских действий.`); return; }
+      if (!state.run) { newRun(); if (state.run) { state.run.arrive = true; saveChar(); } }
       location.hash = "labyrinth"; return;
     }
     const b = TOWN.find(x => x.id === ds.bld);

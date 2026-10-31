@@ -75,6 +75,7 @@ const RUNS = +process.argv[2] || 12, STEPS = +process.argv[3] || 400;
             else if (Math.random() < .3 && document.querySelector('[data-dg="enc-kill"]:not([disabled])')) clickSel('[data-dg="enc-kill"]');
             else { clickSel('[data-dg="enc-ok"]'); stats.fights++; }
           } else if (dgUi.res) clickSel('[data-dg="res-done"]');
+          else if (document.querySelector('[data-dg="travel-out"],[data-dg="travel-in"]')) clickSel('[data-dg="travel-out"],[data-dg="travel-in"]');
           else if (r.pending) { if (r.pending.cause === "camp") stats.camps++; r.pending.pick = r.pending.pick || (1 + Math.floor(Math.random() * 20)); resolveRoll(); rerender(); }
           else if (dgUi.phase === "rest") { if (Math.random() < .3) clickSel('[data-guard]'); if (Math.random() < .3) clickSel('[data-eat]'); clickSel('[data-dg="rest-go"]'); stats.rests++; }
           else if (dgUi.phase === "explore" || dgUi.phase === "dig") {

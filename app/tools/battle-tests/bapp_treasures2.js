@@ -45,7 +45,7 @@ const L = require('./bui_lib.js');
     state.run = null;
     for (let d = 1; d <= 20; d++) {
       state.party.forEach(c => { c.bag = []; c.equip = {}; }); state.sack = null; state.inventory = null; state.artifacts = null;
-      const r = treasureRoll(d); byD[d] = { lines: r.lines.join('|'), sack: sackTotal(), bag: state.party.flatMap(c => c.bag.map(e => e.id + ':' + e.t)).join(), tr: Object.keys(TREASURES).filter(id => treasure(id).owned).join(), c8: (sack().items['c:8'] || { qty: 0 }).qty };
+      const r = treasureRoll(d); byD[d] = { lines: r.lines.join('|'), sack: sackTotal(), bag: state.party.flatMap(c => c.bag.map(e => e.id + ':' + e.t)).join(), tr: Object.keys(TREASURES).filter(id => treasure(id).owned).join(), c8: Object.values(sack().items).filter(it => it.cls === 8).reduce((a, it) => a + it.qty, 0) };
     }
     out.stones = [1, 8].map(d => byD[d].sack); out.c8 = [1, 8].map(d => byD[d].c8);
     out.sup = [9, 10, 11, 12, 13].map(d => byD[d].sack === 0 && byD[d].tr === '');
