@@ -8,26 +8,6 @@
 
 Вылетают при шаге отряда после броска к20. Файлы `assets/events/<имя>.webp`, 1536 × 1024 (3:2); пока картинки нет, показывается SVG-заглушка `assets/events/<имя>.svg`. Положили файл — добавьте `events/<имя>` в `RASTER` и удалите промт отсюда.
 
-### Засада — `events/ambush`
-
-> `a narrow torchlit stone dungeon corridor, dark shapes lunging out of shadowed alcoves on both sides with rusty blades and glowing eyes, a dropped torch sputtering on the floor, tense motion, dramatic low angle, strong red-orange rim light, hand-painted fantasy RPG event illustration, stylized, painterly, dark fantasy tone, wide 3:2 composition, no text`
-
-### Встреча с монстрами — `events/monsters`
-
-> `a snarling pack of dungeon monsters — goblins with crude weapons, a dire wolf and a hulking brute — blocking a torchlit cavern junction, claws and blades raised, menacing eyes, the warm light of the heroes' lantern reaching them from the left edge of the frame, hand-painted fantasy RPG event illustration, stylized, painterly, dark fantasy tone, wide 3:2 composition, no text`
-
-### Ничего — `events/nothing`
-
-> `an empty quiet dungeon passage in drifting pale mist, old scattered bones, a cracked cart wheel and a faint trail of footprints in the dust, a thin beam of cold light falling through a crack in the ceiling, eerie calm, nothing happening, hand-painted fantasy RPG event illustration, stylized, painterly, dark fantasy tone, wide 3:2 composition, no text`
-
-### Путник (группа путников) — `events/travelers`
-
-> `a small group of weary fellow adventurers of different races resting around a tiny campfire in a dungeon chamber, mismatched weapons and worn packs, one of them raising a hand in a wary greeting toward the viewer, warm firelight against cold stone, hand-painted fantasy RPG event illustration, stylized, painterly, dark fantasy tone, wide 3:2 composition, no text`
-
-### Сокровище (находка) — `events/treasure`
-
-> `a hidden stash in a crumbled dungeon wall niche: a small worn leather pouch spilling faintly glowing amber and cyan magic stones among old bones and rubble, warm golden glow lighting the dust, moment of discovery, hand-painted fantasy RPG event illustration, stylized, painterly, dark fantasy tone, wide 3:2 composition, no text`
-
 ### Перемещение в лабиринт — `events/to-labyrinth`
 
 Заставка при входе через врата города (`travelOverlay("in")`).

@@ -1,5 +1,5 @@
 {
- "version": 1793473221,
+ "version": 1793490377,
  "files": [
   "assets/buildings/board.webp",
   "assets/buildings/church.webp",
@@ -14,12 +14,17 @@
   "assets/css/battle.css",
   "assets/css/town.css",
   "assets/events/ambush.svg",
+  "assets/events/ambush.webp",
   "assets/events/monsters.svg",
+  "assets/events/monsters.webp",
   "assets/events/nothing.svg",
+  "assets/events/nothing.webp",
   "assets/events/to-labyrinth.svg",
   "assets/events/to-town.svg",
   "assets/events/travelers.svg",
+  "assets/events/travelers.webp",
   "assets/events/treasure.svg",
+  "assets/events/treasure.webp",
   "assets/items/armor-chainmail.svg",
   "assets/items/armor-chainmail.webp",
   "assets/items/armor-hide.svg",
@@ -354,12 +359,17 @@
   "assets/css/battle.css": "a408fdd6468f834c59abfc7d0fea9267",
   "assets/css/town.css": "c469024dd2712923cec321dbc00b5c8d",
   "assets/events/ambush.svg": "cc4762918cfd926e70eaa40ce53b322c",
+  "assets/events/ambush.webp": "5fcd1fb31bf6c99e7ec0ac72e84aee85",
   "assets/events/monsters.svg": "7bf5ba9509d2fa188e67d5774af858d6",
+  "assets/events/monsters.webp": "5e4f86cb8aa5c260474b4c7d30773bac",
   "assets/events/nothing.svg": "f077766d33696a165cc87ebfb9bdb72b",
+  "assets/events/nothing.webp": "2a4323d11ae97fbf99de28af4c5ac1bd",
   "assets/events/to-labyrinth.svg": "eb988148cb7d42fcf05eee315a3b9eaf",
   "assets/events/to-town.svg": "3ccd51d2718c3b8a971eced61b832c46",
   "assets/events/travelers.svg": "afa5112be9cff4a06f7d078ab5b1359f",
+  "assets/events/travelers.webp": "90dc18a68c50968349db1267d999e828",
   "assets/events/treasure.svg": "b9cb168bd1f3149dc9b87b63bf2bac37",
+  "assets/events/treasure.webp": "e794485001fa0c0b2382d19bd0279769",
   "assets/items/armor-chainmail.svg": "e40e4fb1059d07ed20cf160cba2800fc",
   "assets/items/armor-chainmail.webp": "67eac83ed73a977c377f2c950b002ec3",
   "assets/items/armor-hide.svg": "80ce5c64bc16c2d2f1073cd7707b7b4f",
@@ -678,6 +688,6 @@
   "fonts/f8.woff2": "6cc1ee17091d59eb93821c3594e8f38f",
   "fonts/f9.woff2": "070433480b7b645f69b543f284e386ce",
   "fonts/fonts.css": "1585a72a8d157b26cb424ab433fd4e19",
-  "index.html": "4a0bd1540e766cc7ff77101c73d0321e"
+  "index.html": "cf3e0e8dc45812b15b0e66d8360702b3"
  }
 }
