@@ -153,7 +153,7 @@
     });
   };
   // note — HTML сноски справа с эффектом поля (долгое нажатие на клетку с бойцом).
-  UI.inspect = function (u, note) { if (rolling()) return;
+  UI.inspect = function (u, note) { if (rolling() || hiddenFoe(u)) return;
     const S = B.S, hero = !!u.hero, mine = u.side === "hero";
     const GM = typeof masterOn === "function" && masterOn(), foe = !mine && !u.summon, rev = foe && !GM ? ((typeof journal === "function" && (journal().known[u.ref || (u.mon && u.mon.id)] || {}).revealed) || []) : null;          // обычному игроку про врага видно только раскрытое в библиотеке; мастеру — всё, если включён «Режим мастера»
     const kStats = !rev || rev.includes("stats"), kType = !rev || rev.includes("type") || rev.includes("stats"), kAtk = !rev || rev.includes("attacks") || rev.includes("stats");
@@ -199,8 +199,11 @@
     const m = showModal(`<div class="bt-dlg fx-frame cellinfo"><div class="bt-ihead"><h4>${esc(st.name)}</h4><button class="bt-x" data-m="close" aria-label="Закрыть">${ico("close")}</button></div><p class="left">${esc(st.desc || "")}</p>${left ? `<p class="left"><small>${esc(u.name)}: ${esc(left)}.</small></p>` : ""}</div>`);
     m.onclick = e => { if (e.target.closest("[data-m]") || e.target === m) hideModal(); };
   };
+  // Враг, которого отряд не видит (затаился, невидим, за укрытием, ещё не расставлен), для окон осмотра — пустая клетка.
+  const hiddenFoe = u => !!u && u.side === "mon" && (u.fled || B.S.hideMons || B.isUnseen(u) || (B.isInvis && B.isInvis(u)) || (B.S.phase === "fight" && B.seenByParty && !B.seenByParty(u)));
+  UI.hiddenFoe = hiddenFoe;
   UI.cellInfo = function (x, y) { if (rolling()) return;
-    const u = B.occupant(x, y);
+    let u = B.occupant(x, y); if (hiddenFoe(u)) u = null;
     if (u) { UI.inspect(u, effectsHtml(x, y)); return; }                                         // боец на клетке: его окно, справа — сноска поля
     const m = showModal(`<div class="bt-dlg fx-frame cellinfo"><div class="bt-ihead"><h4>Клетка ${x + 1}:${y + 1}</h4><button class="bt-x" data-m="close" aria-label="Закрыть">${ico("close")}</button></div>${UI.cellEffects(x, y).map(e => `<h5>${esc(e.h)}</h5><p class="left">${esc(e.t)}</p>`).join("")}</div>`);
     m.onclick = e => { if (e.target.closest("[data-m]") || e.target === m) hideModal(); };
@@ -421,7 +424,7 @@
     }
     if (UI.pick && UI.pickHandle) { UI.pickHandle(x, y); return; }
     const u = B.occupant(x, y);
-    if (u) { UI.inspect(u); return; }
+    if (u && !hiddenFoe(u)) { UI.inspect(u); return; }
     const t = B.tinfo(x, y); if (t) UI.toast(`${t.name}: ${t.note}`);
   };
   UI.onBtn = function (name, btn) {
