@@ -345,6 +345,7 @@ body.bt-active .dice-fab { display: none; }
 /* оружие на земле, которое может подобрать герой, чей сейчас ход */
 .bt-mark .mk.w.can { filter: drop-shadow(0 0 4px #ffd24a); animation: mkPulse 1.1s ease-in-out infinite; }
 .bt-mark .mk.w.here { filter: drop-shadow(0 0 7px #9fe870); }
+.bt-mark .mk.w.dim { opacity: .35; filter: grayscale(.85) brightness(.7); }          /* чужое оружие — затемнено, своё (можно взять) — подсвечено */
 @keyframes mkPulse { 0%, 100% { transform: scale(1); opacity: .85; } 50% { transform: scale(1.25); opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .bt-mark .mk.w.can { animation: none; } }
 /* кнопка «Пропустить» в окне броска */

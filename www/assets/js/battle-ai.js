@@ -13,7 +13,18 @@
     return { int: 2, role: ranged ? "ranged" : "melee", keep: ranged ? 2 : 0, focus: ["wounded", "weak", "nearest"], kite: ranged };
   };
   const seenBy = (u, t) => !(has(t, "hidden") && (dist(u, t) > 1 || has(t, "hidden").data.invis) && !(u.blind && dist(u, t) <= u.blind) && !(u.tremor && dist(u, t) <= u.tremor && !B.isFlying(t)));
-  const targetsOf = u => enemiesOf(u).filter(t => seenBy(u, t) && !t.dead && !has(t, "underground") && B.visibleTo(u, t));
+  const targetsOf = u => enemiesOf(u).filter(t => seenBy(u, t) && !t.dead && !has(t, "underground") && B.visibleTo(u, t) && !(u.spareDown && t.down));          // spareDown: пока до стоящего героя можно добраться, упавших не трогают
+  // Можно ли вообще добраться до стоящего врага (сразу или за несколько ходов): атака из текущей клетки или путь к клетке, откуда он в досягаемости.
+  function livingReachable(u) {
+    const living = enemiesOf(u).filter(t => seenBy(u, t) && !t.dead && !t.down && !has(t, "underground") && B.visibleTo(u, t)); if (!living.length) return false;
+    const atks = B.attacksOf(u); if (!atks.length) return true;
+    const canHit = () => living.some(t => atks.some(a => B.inAttackRange(u, t, a)));
+    if (canHit()) return true;
+    if (speedOf(u) <= 0) return false;
+    const map = B.pathMap(u, 60, {}), x0 = u.x, y0 = u.y; let ok = false;
+    for (const v of map.values()) { if (!B.canStand(u, v.x, v.y)) continue; u.x = v.x; u.y = v.y; if (living.some(t => atks.some(a => a.kind === "melee" ? dist(u, t) <= (a.reach || 1) : dist(u, t) <= a.range[1]))) { ok = true; break; } }
+    u.x = x0; u.y = y0; return ok;
+  }
   const abilityReady = (u, id) => {
     const A = B.A && B.A[id], eb = ESSENCES[id] && ESSENCES[id].active; if (!A || !eb || A.reaction) return false;
     if (!B.timeOK(u, A.time)) return false;
@@ -75,6 +86,7 @@
       if (!abilityReady(u, id)) continue;
       const A = B.A[id]; if (A.time !== "action") continue;
       const r = A.ai && A.ai(u); if (!r) continue;
+      if (u.spareDown) { if (r.unit && r.unit.down) continue; if (r.targets) { r.targets = r.targets.filter(t => !t.down); if (!r.targets.length) continue; } }
       let sc, picks = {};
       if (r.attackAbility) {
         let bt = null; for (const t of r.targets) { const s = scoreAttack(u, r.atk, t, pr); if (!bt || s > bt.s) bt = { t, s }; }
@@ -222,6 +234,10 @@
   AI.takeTurn = async function (u) {
     const S = B.S, pr = profileOf(u);
     if (!alive(u) || u.down || !canAct(u) || has(u, "underground")) return;
+    u.spareDown = false; u.spareDown = u.side === "mon" && livingReachable(u);          // решение автора: сначала бьют живых, упавших — только если до живых не добраться никак
+    try { return await takeTurnInner(u, S, pr); } finally { u.spareDown = false; }
+  };
+  async function takeTurnInner(u, S, pr) {
     u.startCell = u.startCell || [u.x, u.y];
     ui() && ui().focusUnit(u);
     if (has(u, "prone")) { const cost = B.standCost(u); if (u.t.move >= cost && speedOf(u) > 0) { removeStatus(u, "prone"); u.t.move -= cost; log(`${u.name} встаёт.`); await sleep(250); } }
@@ -291,7 +307,7 @@
         const [x, y] = spots[0]; u.flags.relocated = true; log(`${u.name} гаснет и вспыхивает в другом месте.`); ui() && ui().fxText(u, "гаснет", ""); const from = [u.x, u.y]; u.x = x; u.y = y; ui() && await ui().animMove(u, from, [x, y]);
       }
     }
-  };
+  }
   // Никого не видно: идёт к ближайшему врагу, пока не заметит его (обзор команды ограничен)
   const searchMove = async u => {
     if (!canAct(u) || speedOf(u) <= 0 || has(u, "grappled") || has(u, "restrained") || has(u, "buried")) return;

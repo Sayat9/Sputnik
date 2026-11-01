@@ -192,7 +192,7 @@
     const m = root.querySelector(".bt-marks"), byCell = new Map();
     for (const w of S.drops) { if (!seenAt(w)) continue; const k = w.x + "," + w.y, e = byCell.get(k) || { x: w.x, y: w.y, weapons: [], arrows: 0 }; if (w.kind === "weapon") e.weapons.push(w); else e.arrows++; byCell.set(k, e); }
     m.innerHTML = [...byCell.values()].map(e => {
-      const wp = e.weapons.map(w => { const it = itemOf(w.item), hh = B.byId && B.heroes().find(u => u.hero && u.hero.id === w.hero); const tu = UI.turnUnit, can = tu && tu.hero && tu.hero.id === w.hero, here = can && tu.x === w.x && tu.y === w.y; return `<span class="mk w${can ? " can" : ""}${here ? " here" : ""}" title="${esc((it ? it.name : "Оружие") + (hh ? " — " + hh.name : ""))} лежит на земле${can ? (here ? ": можно подобрать" : ": встаньте на клетку, чтобы подобрать") : ""}">${ico("throwing")}</span>`; }).join("");
+      const wp = e.weapons.map(w => { const it = itemOf(w.item), hh = B.byId && B.heroes().find(u => u.hero && u.hero.id === w.hero); const tu = UI.turnUnit, can = tu && tu.hero && tu.hero.id === w.hero, here = can && tu.x === w.x && tu.y === w.y; const dim = tu && tu.hero && !can; return `<span class="mk w${can ? " can" : ""}${here ? " here" : ""}${dim ? " dim" : ""}" title="${esc((it ? it.name : "Оружие") + (hh ? " — " + hh.name : ""))} лежит на земле${can ? (here ? ": можно подобрать" : ": встаньте на клетку, чтобы подобрать") : ""}">${ico("throwing")}</span>`; }).join("");
       const ar = e.arrows ? `<span class="mk a" title="Стрелы на земле: ${e.arrows}">${ico("arrow")}<b>${e.arrows}</b></span>` : "";
       return `<div class="bt-mark" style="left:${e.x * cell}px;top:${e.y * cell}px;width:${cell}px;height:${cell}px">${wp}${ar}</div>`;
     }).join("");

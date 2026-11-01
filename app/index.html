@@ -339,6 +339,18 @@ ul.plain { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 15
 body.forge-open .dice-fab { display: none; }
 .dice-fab svg { width: 100%; height: 100%; display: block; }
 .dice-fab:focus-visible { outline: 2px solid #f0c979; outline-offset: 2px; }
+#gameov { position: fixed; inset: 0; z-index: 9400; overflow-y: auto; overscroll-behavior: contain; display: flex; align-items: center; justify-content: center; padding: 24px 16px; color: var(--fx-text); color-scheme: dark;
+  background: radial-gradient(ellipse at 50% 30%, #3a1512 0%, #120806 70%), #0b0605; animation: go-in .9s ease both; }
+@keyframes go-in { from { opacity: 0; } to { opacity: 1; } }
+#gameov .go-box { width: min(480px, 100%); padding: 26px 18px 22px; text-align: center; display: grid; gap: 14px; justify-items: center; }
+#gameov h1 { margin: 0; font: 400 clamp(34px, 10vw, 52px)/1 var(--f-display); color: #e8786a; letter-spacing: .04em; text-shadow: 0 0 22px rgb(232 120 106 / .45); }
+#gameov p { margin: 0; color: var(--fx-muted); font-size: 15px; }
+#gameov .go-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin: 6px 0; }
+#gameov .go-hero { width: 92px; display: grid; gap: 4px; justify-items: center; }
+#gameov .go-hero .ph { width: 72px; filter: grayscale(1) brightness(.75); border-radius: 6px; overflow: hidden; }
+#gameov .go-hero b { font-size: 14px; color: var(--fx-gold-hi); overflow-wrap: anywhere; }
+#gameov .go-hero small { font-size: 12px; color: var(--fx-muted); }
+#gameov .go-note { font-size: 13px; }
 #diceov, #saveov { position: fixed; inset: 0; z-index: 50; background: rgb(0 0 0 / .72); display: flex; align-items: flex-end; justify-content: center; color: var(--fx-text); color-scheme: dark;
   padding: env(safe-area-inset-top, 0px) max(0px, env(safe-area-inset-right, 0px)) 0 max(0px, env(safe-area-inset-left, 0px)); }
 #diceov[hidden], #saveov[hidden] { display: none; }
@@ -792,6 +804,9 @@ img.art-pic { width: 100%; height: 100%; object-fit: cover; display: block; bord
 .wpn-grid .race-card.picked { border-color: #ffe6a6 !important; box-shadow: 0 0 0 3px #f4d48e, 0 0 26px rgb(255 214 120 / .85); transform: translateY(-2px); }
 .wpn-grid .race-card.twin { box-shadow: 0 0 0 3px #ffb347, 0 0 30px rgb(255 170 60 / .9); }
 .wpn-grid .race-card.off { opacity: .32; filter: grayscale(.85); }
+.wpn-grid .race-card.cand { box-shadow: 0 0 0 2px #9fe870, 0 0 16px rgb(159 232 112 / .45); }
+.wpn-grid .race-card.left { box-shadow: 0 0 0 3px #9fe870, 0 0 26px rgb(159 232 112 / .85); }
+.wpn-grid .x2.lh { background: #9fe870; color: #13200b; }
 .wpn-art .x2 { position: absolute; left: 6px; top: 6px; padding: 2px 8px; border-radius: 999px; background: #ffb347; color: #1d140a; font: 800 16px/1.2 var(--f-data, inherit); box-shadow: 0 2px 6px rgb(0 0 0 / .6); }
 .wpn-tip { margin-top: -4px; font-size: 13.5px; opacity: .85; }
 .kit-note { padding: 12px 14px; font-size: 14.5px; color: var(--fx-muted); text-align: center; }
@@ -1038,6 +1053,7 @@ dl.kv { margin: 0; }
 </button>
 <div id="diceov" role="dialog" aria-modal="true" aria-label="Кубики" hidden></div>
 <div id="saveov" role="dialog" aria-modal="true" aria-label="Сохранения" hidden></div>
+<div id="gameov" role="dialog" aria-modal="true" aria-label="Игра окончена" hidden></div>
 
 <nav class="tabs" aria-label="Разделы приложения">
   <div class="wrap">
@@ -2731,7 +2747,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 81;
+const BATTLE_REV = 82;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }
@@ -2928,7 +2944,7 @@ function battleDone(ev, res) {
   if (ev.arena) { state.fightSnap = null; state.encSnap = null; ev.outcome = res.outcome; ev.killed = res.killed.slice(); if (window.Town && window.Town.arenaDone) window.Town.arenaDone(ev, res); saveChar(); rerender(); return; }
   if (dgUi.enc !== ev) return;
   state.fightSnap = null; state.encSnap = null; autoSave("после боя");
-  setTimeout(buryFallen, 0);
+  setTimeout(() => { if (!gameOverCheck()) buryFallen(); }, 0);          // погибли все — экран «Игра окончена»
   ev.outcome = res.outcome; ev.killed = res.killed.slice();
   finishFight(); dgUi.stat = null; saveChar(); rerender();
 }
@@ -3257,6 +3273,14 @@ function forgeRace() {
 }
 
 const canTwinWeapon = (w, race) => !!w && ((w.props || []).includes("Лёгкое") || w.id === "axe" || w.id === "gloves" || (race === "barbarian" && isTwoHandedWeapon(w) && w.group !== "ranged"));          // можно взять по одному в каждую руку
+// Что можно взять во вторую руку к основному оружию w (кроме пары того же оружия и щита — у них свои кнопки):
+// варвар — любое оружие ближнего боя, в том числе двуручное и ростовой щит («Великан» держит его одной рукой); остальные — лёгкое к лёгкому, кинжал к перчатке.
+function offCandidate(w, x, race) {
+  if (!w || !x || x.id === w.id || w.group === "ranged" || x.group !== "melee") return false;
+  if (race === "barbarian") return true;
+  if (w.id === "gloves") return false;          // к одной перчатке кинжал — отдельной карточкой «Кинжал»
+  return canTwinWeapon(w, race) && canTwinWeapon(x, race) && !isTwoHandedWeapon(w) && !isTwoHandedWeapon(x);
+}
 const START_WEAPONS = () => WEAPONS.filter(w => w.group !== "shield" && w.kind !== "Боеприпасы");
 function forgeWeapon() {
   const d = forge.draft, w = WEAPONS.find(x => x.id === d.weapon);
@@ -3267,12 +3291,12 @@ function forgeWeapon() {
   <div class="fx-body"><div class="wrap">
     <h2 class="fx-h">С чем идёшь в лабиринт?</h2>
     <p class="fx-p">Выбери стартовое оружие. Оно сразу окажется в руке героя.</p>
-    <p class="fx-p wpn-tip">Нажми ещё раз на кинжал, перчатки или другое лёгкое оружие — возьмёшь пару (×2). Ещё раз — снять.</p>
-    <div class="wpn-grid${d.weapon && d.knife ? " twin-on" : ""}">${START_WEAPONS().map(x => { const on = d.weapon === x.id, twin = on && d.knife && canTwinWeapon(x, d.race), off = d.weapon && d.knife && !on;
-      const st = twin ? (x.id === "gloves" ? "пара: 2к4 · +2 КД" : isTwoHandedWeapon(x) ? `пара: ${x.dmg} ×2 · −6 к Ловкости` : `пара: ${x.dmg} ×2 одной атакой (каждый удар ×0,6)`) : `${x.dmg} ${x.type} · ${kgf(x.weight)} кг`;
+    <p class="fx-p wpn-tip">${d.weapon ? "Подсвечено то, что можно взять во вторую руку, — нажми, чтобы взять (ещё раз — убрать). " : ""}Нажми ещё раз на выбранное лёгкое оружие или перчатки — возьмёшь пару (×2).</p>
+    <div class="wpn-grid${d.weapon && d.knife ? " twin-on" : ""}">${START_WEAPONS().map(x => { const on = d.weapon === x.id, twin = on && d.knife && canTwinWeapon(x, d.race), cand = !!w && !d.knife && offCandidate(w, x, d.race), left = cand && d.offW === x.id, off = d.weapon && !on && !cand;          // подсвечено: можно во вторую руку; остальное затемнено
+      const st = left ? `левая рука · ${x.dmg} ${x.type}` : twin ? (x.id === "gloves" ? "пара: 2к4 · +2 КД" : isTwoHandedWeapon(x) ? `пара: ${x.dmg} ×2 · −6 к Ловкости` : `пара: ${x.dmg} ×2 одной атакой (каждый удар ×0,6)`) : `${x.dmg} ${x.type} · ${kgf(x.weight)} кг`;
       return `
-      <button class="race-card fx-frame${on ? " picked" : ""}${twin ? " twin" : ""}${off ? " off" : ""}" data-fx-weapon="${x.id}" aria-pressed="${on}">
-        <div class="wpn-art">${img(ART.weapon(x.id), x.name)}${on ? `<span class="tick">${TICK}</span>` : ""}${twin ? `<span class="x2">×2</span>` : ""}</div>
+      <button class="race-card fx-frame${on ? " picked" : ""}${twin ? " twin" : ""}${off ? " off" : ""}${cand ? " cand" : ""}${left ? " left" : ""}" data-fx-weapon="${x.id}" aria-pressed="${on || left}">
+        <div class="wpn-art">${img(ART.weapon(x.id), x.name)}${on ? `<span class="tick">${TICK}</span>` : ""}${twin ? `<span class="x2">×2</span>` : ""}${left ? `<span class="x2 lh">Л</span>` : ""}</div>
         <h3>${twin ? (x.id === "gloves" ? "Пара перчаток" : "Пара: " + x.name.toLowerCase()) : x.name}</h3>
         <div class="bonus-box">
           <div class="st">${st}</div>
@@ -3285,10 +3309,10 @@ function forgeWeapon() {
       return (light ? `<button class="race-card fx-frame shield-pick avail" data-fx-knife aria-pressed="${!!(kn || dg)}">
         <div class="wpn-art">${img(ART.weapon(sec.id), sec.name)}${kn || dg ? `<span class="tick">${TICK}</span>` : ""}</div>
         <div><h3>${bow || gl1 ? "Кинжал" : w.id === "gloves" ? "Вторая перчатка" : w.id === "axe" ? "Второй топор" : isTwoHandedWeapon(w) ? "Второе двуручное" : "Второй клинок"} в левую руку</h3><div class="bonus-box"><div class="st">${sec.dmg} ${sec.type} · ${kgf(sec.weight)} кг</div>
-        <ul><li>${bow ? "Ближний бой, если враг вплотную; вместо щита" : gl1 ? "Удар второй рукой — доп. действием; вместо щита" : w.id === "gloves" ? "Две перчатки: +2 КД, урон 2к4; вместо щита" : isTwoHandedWeapon(w) ? "Большой штраф: −6 к Ловкости (два двуручных)" : "Удар второй рукой — доп. действием; вместо щита"}</li></ul></div></div></button>` : "") + `<button class="race-card fx-frame shield-pick ${block || kn || dg ? "dim" : "avail"}" data-fx-shield aria-pressed="${!!d.shield && !block && !kn && !dg}"${block || kn || dg ? " disabled" : ""}>
-        <div class="wpn-art">${img(ART.weapon("shield"), sh.name)}${d.shield && !block && !kn && !dg ? `<span class="tick">${TICK}</span>` : ""}</div>
+        <ul><li>${bow ? "Ближний бой, если враг вплотную; вместо щита" : gl1 ? "Удар второй рукой — доп. действием; вместо щита" : w.id === "gloves" ? "Две перчатки: +2 КД, урон 2к4; вместо щита" : isTwoHandedWeapon(w) ? "Большой штраф: −6 к Ловкости (два двуручных)" : "Удар второй рукой — доп. действием; вместо щита"}</li></ul></div></div></button>` : "") + `<button class="race-card fx-frame shield-pick ${block || kn || dg || d.offW ? "dim" : "avail"}" data-fx-shield aria-pressed="${!!d.shield && !block && !kn && !dg && !d.offW}"${block || kn || dg || d.offW ? " disabled" : ""}>
+        <div class="wpn-art">${img(ART.weapon("shield"), sh.name)}${d.shield && !block && !kn && !dg && !d.offW ? `<span class="tick">${TICK}</span>` : ""}</div>
         <div><h3>Щит в левую руку</h3><div class="bonus-box"><div class="st">${sh.dmg} · ${kgf(sh.weight)} кг</div>
-        <ul><li>${block ? "Не с двуручным оружием и луком" : kn ? "Занята вторым клинком" : dg ? "Занята кинжалом" : "Можно взять вместе с оружием"}</li></ul></div></div></button>`; })()}
+        <ul><li>${block ? "Не с двуручным оружием и луком" : kn ? "Занята вторым клинком" : dg ? "Занята кинжалом" : d.offW ? "Занята вторым оружием" : "Можно взять вместе с оружием"}</li></ul></div></div></button>`; })()}
     <div class="kit-note fx-frame">Каждый герой также получает <b>простую одежду</b>, <b>7 пайков</b> и <b>2 слабых зелья лечения</b>${w && w.group === "ranged" ? " и <b>20 стрел</b>" : ""}. Рюкзак: ${d.race === "barbarian" ? 15 : 10} ячеек.</div>
   </div></div>`;
 }
@@ -3421,7 +3445,8 @@ function finishDraft() {
   const wpn = WEAPONS.find(x => x.id === d.weapon);
   if (d.knife && wpn.group === "ranged") c.equip.off = { t: "w", id: "dagger" };          // лук и кинжал в левой руке
   else if (d.knife && canTwinWeapon(wpn, d.race)) c.equip.off = { t: "w", id: wpn.id };                                   // два клинка вместо щита
-  else if (d.dag && wpn.id === "gloves") c.equip.off = { t: "w", id: "dagger" };                                            // перчатка и кинжал
+  else if (d.dag && wpn.id === "gloves") c.equip.off = { t: "w", id: "dagger" };
+  else if (d.offW && offCandidate(wpn, WEAPONS.find(x => x.id === d.offW), d.race)) { c.equip.off = { t: "w", id: d.offW }; if (c.race === "barbarian" && (isTwoHandedWeapon(wpn) || isTwoHandedWeapon(WEAPONS.find(x => x.id === d.offW)))) c.giantGrip = true; }          // второе оружие во вторую руку                                            // перчатка и кинжал
   else if (d.shield && (d.race === "barbarian" || !(isTwoHandedWeapon(wpn) || wpn.group === "ranged"))) c.equip.off = { t: "w", id: "shield" };
   if (d.race === "barbarian" && isTwoHandedWeapon(wpn) && c.equip.off) c.giantGrip = true;          // «Великан»: двуручное в одной руке, вторая рука держит щит (−2 к Ловкости за каждое)
   addToBag(c, { t: "g", id: "ration", qty: 7 });
@@ -3465,13 +3490,15 @@ $forge.addEventListener("click", e => {
   if (ds.fxRace) { forge.draft.race = ds.fxRace; renderForge(true); return; }
   if (ds.fxWeapon) {          // 1-е нажатие — выбрать, 2-е — пара (если можно), 3-е — снять
     const d = forge.draft, w = WEAPONS.find(x => x.id === ds.fxWeapon);
-    d.dag = false;
+    const mw = WEAPONS.find(x => x.id === d.weapon);
+    if (mw && d.weapon !== w.id && !d.knife && offCandidate(mw, w, d.race)) { d.offW = d.offW === w.id ? null : w.id; if (d.offW) { d.shield = false; d.dag = false; } renderForge(true); return; }          // подсвеченное — во вторую руку
+    d.dag = false; d.offW = null;
     if (d.weapon !== w.id) { d.weapon = w.id; d.knife = false; }
     else if (!d.knife && canTwinWeapon(w, d.race)) { d.knife = true; d.shield = false; }
     else { d.weapon = null; d.knife = false; }
     renderForge(true); return;
   }
-  if (ds.fxShield !== undefined) { forge.draft.shield = !forge.draft.shield; if (forge.draft.shield) forge.draft.dag = false; renderForge(true); return; }
+  if (ds.fxShield !== undefined) { forge.draft.shield = !forge.draft.shield; if (forge.draft.shield) { forge.draft.dag = false; forge.draft.offW = null; } renderForge(true); return; }
   if (ds.fxTwin !== undefined) { forge.draft.weapon = "dagger"; forge.draft.knife = true; forge.draft.shield = false; renderForge(true); return; }
   if (ds.fxKnife !== undefined && forge.draft.weapon === "gloves" && !forge.draft.knife) { forge.draft.dag = !forge.draft.dag; if (forge.draft.dag) forge.draft.shield = false; renderForge(true); return; }          // одна перчатка + кинжал
   if (ds.fxKnife !== undefined) { forge.draft.knife = !forge.draft.knife; if (forge.draft.knife) forge.draft.shield = false; renderForge(true); return; }
@@ -7461,6 +7488,35 @@ function loadSave(id) {
   setTimeout(() => toast("Загружено: " + sv.name), 50);
 }
 // Начать с нуля: текущая игра сохраняется в слот «Партия до сброса» (её можно загрузить обратно), потом всё стирается — отряд, город, библиотека, инвентарь.
+/* ----- конец игры: погиб весь отряд (решение автора 01.11) ----- */
+function gameOverCheck() {
+  if (typeof isMaster === "function" && !isMaster()) return false;
+  const p = state.party || []; if (!p.length || !p.every(c => c.dead)) return false;
+  showGameOver(); return true;
+}
+function showGameOver() {
+  const el = document.getElementById("gameov"), p = state.party || [], r = state.run;
+  el.innerHTML = `<div class="go-box fx-frame">
+    ${r ? `<small class="fx-eyebrow">День ${r.day} · ${curFloor()} этаж</small>` : ""}
+    <h1>Игра окончена</h1>
+    <p>Весь отряд пал в лабиринте.</p>
+    <div class="go-list">${p.map(c => { const rc = raceById(c.race); return `<div class="go-hero"><div class="ph">${phPortrait(rc, c.gender)}</div><b>${esc(c.name)}</b><small>${esc(rc.name)} · ${c.level} ур.</small></div>`; }).join("")}</div>
+    <button class="fx-btn primary big" data-go-restart>Начать заново</button>
+    <p class="go-note">Эта партия сохранится в «Сохранениях» как «Партия до гибели».</p></div>`;
+  el.hidden = false;
+}
+function restartAfterWipe() {
+  makeSave("Партия до гибели");
+  state = { party: [], sessions: [], current: null, example: clone(DEFAULT_CHAR) };
+  char = curChar(); dgUi = freshUi(); saveChar();
+  for (const id of ["gameov", "saveov"]) { const el = document.getElementById(id); if (el) el.hidden = true; }
+  if (!document.getElementById("libov").hidden) closeLibrary();
+  if (!document.getElementById("heroov").hidden) closeHero();
+  if (window.Battle && Battle.UI && Battle.UI.close) { try { Battle.UI.close(); } catch (e) {} }
+  location.hash = ""; rerender();
+  openForge("race", "first");          // сразу к созданию первого героя
+}
+document.getElementById("gameov").addEventListener("click", e => { if (e.target.closest("[data-go-restart]")) restartAfterWipe(); });
 function startOver() {
   makeSave("Партия до сброса");
   state = { party: [], sessions: [], current: null, example: clone(DEFAULT_CHAR) };
@@ -7652,6 +7708,7 @@ function openSettings() {
   ov.hidden = false;
 }
 document.addEventListener("click", e => { if (e.target.closest('[data-action="settings"]')) openSettings(); });
+setTimeout(() => { try { gameOverCheck(); } catch (e) {} }, 400);          // отряд погиб целиком до перезапуска — снова «Игра окончена»
 if (settings().tactical) loadBattle().then(ok => { if (ok && state.fightSnap) resumeFight(); else if (ok && state.encSnap && state.run && isMaster() && !dgUi.enc) { dgUi.enc = { ...state.encSnap, battleStarted: false }; location.hash = "labyrinth"; rerender(); } }); else { state.fightSnap = null; state.encSnap = null; } state.encSnap = null;
 if (!isMaster()) { state.fightSnap = null; state.encSnap = null; loadNet().then(ok => { if (ok) NetGlue.initPlayer(); else toast("Не загрузился онлайн-модуль"); }); }
 document.addEventListener("click", e => { const el = e.target.closest("[data-net]"); if (el && el.dataset.net === "open" && isMaster()) loadNet().then(ok => ok ? NetGlue.openHostPanel() : toast("Не загрузился онлайн-модуль")); });
