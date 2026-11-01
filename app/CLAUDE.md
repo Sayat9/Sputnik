@@ -197,3 +197,4 @@
 - Картинки артефактов (01.11): обёртка `ARTIFACTS[id].ico()` (перед `ART_ID_PRICE`) отдаёт `<img class="art-pic">` из `items/<id>` или `items/art-<id>`, если путь в `RASTER`, иначе прежний SVG-значок; нарисованы `items/{pike,bell,flask,monocle}`; баннер `npc/guild.webp` в Гильдии (town.js).
 - 01.11: нарисованы `items/{boots,wind,whetstone,daedalus-hammer,unbreakable-charm}`; артефакты-предметы в рюкзаке (`itemOf` → `artMask`) тоже берут картинку `ART.gear(id)`.
 - 01.11: нарисованы `items/{repair-charm,durable-charm,regen-charm,herb-heal,herb-mana}`; опознанные находки (травы/грибы/камни) берут картинку `ART.gear(id)`, неопознанные — общую «неизвестную».
+- 01.11: нарисованы `items/{herb-poison,herb-food,herb-rest}`, `npc/mage.webp` (Башня), новый `npc/guild.webp`; баннеры с нарисованной рамкой под текст — класс `.tw-npc.framed` (реплика внутри рамки внизу картинки).

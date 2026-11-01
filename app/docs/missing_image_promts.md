@@ -188,18 +188,6 @@
 
 ## Находки (после определения)
 
-### Горький корень — `herb-poison`
-
-> `тёмный фиолетовый узловатый корень с тонкими усиками, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
-
-### Сытный лист — `herb-food`
-
-> `широкие жёлто-зелёные плотные листья, сложенные пучком, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
-
-### Бодрящий пучок — `herb-rest`
-
-> `пучок розово-красных стеблей с ароматными цветками, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
-
 ### Живой гриб — `mush-heal`
 
 > `красный гриб с белыми крапинками, мягко светится, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
@@ -241,10 +229,6 @@
 > `голубой камень, покрытый инеем и ледяными иглами, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
 
 ## NPC и интерфейсы
-
-### Маг башни — `npc-mage`
-
-> `a lean elven mage in dark blue robes with a high collar, glowing pale-blue eyes and a crystal-tipped staff, floating arcane runes and bubbling alchemy glass around him, warm lantern light, hand-painted fantasy RPG character art, stylized, painterly, dark fantasy tone, bust portrait, wide 16:9 composition with empty space at the bottom for text, no text`
 
 ### Священник — `npc-priest`
 

@@ -578,7 +578,7 @@
             ${full.length ? `<div class="tw-rows">${full.map(m => `<div class="tw-row"><div class="tw-who"><span class="tw-ph sq">${img(monArt(m), m.name)}</span><div><b>${esc(m.name)}</b><small>${m.cls} класс · изучен полностью</small></div></div><button class="fx-btn primary" data-t="gsell" data-id="${m.id}">+${monWorth(m)}</button></div>`).join("")}</div>`
               : `<p class="tw-msg">Полностью изученных монстров, которых ещё не продавали, нет.</p>`}`;
         }
-        return frame("Гильдия приключений", "Рафдония", `<div class="tw-npc">${img("assets/npc/guild.webp", "Регистратор гильдии")}<span>Сведения о монстрах покупаем и продаём. Только без вранья — проверяем.</span></div>` + body + msgLine());
+        return frame("Гильдия приключений", "Рафдония", `<div class="tw-npc framed">${img("assets/npc/guild.webp", "Регистратор гильдии")}<span>Сведения о монстрах покупаем и продаём. Только без вранья — проверяем.</span></div>` + body + msgLine());
       },
     };
   }
@@ -605,14 +605,14 @@
           const rows = ids.map(id => { const A = ARTIFACTS[id], known = artKnown(id), price = artPrice(id);
             return `<div class="tw-row"><div class="tw-who"><span class="tw-ph sq" style="display:grid;place-items:center;color:var(--fx-gold)">${A.ico()}</span><div><b>${esc(artName(id))}</b><small>${known ? `${A.cls} класс · цена ${artValue(id)} з. · ${esc(A.text)}` : `${A.cls} класс · свойства неизвестны`}</small></div></div>
               <span class="tw-btns" style="flex-wrap:nowrap">${known ? `<span class="tw-done">${ICO_CHECK}</span>` : `<button class="fx-btn primary" data-t="aid" data-id="${id}"${partyGold() >= price ? "" : " disabled"}>${price}</button>`}${(() => { const own = artRows().find(x => x.id === id); return own ? `<button class="fx-btn" data-t="artsell" data-key="${own.key}" data-b="tower" title="Продать магу">Продать · +${artPay(own, "tower")}</button>` : ""; })()}</span></div>`; }).join("");
-          return frame("Башня магов", "Рафдония", `${heroStrip()}${tabs}<p class="tw-lead">Маг определит артефакт за деньги: откроются название и свойства, сведения попадут в библиотеку артефактов.</p>
+          return frame("Башня магов", "Рафдония", `<div class="tw-npc framed">${img("assets/npc/mage.webp", "Маг башни")}<span>Артефакты, эссенции, тайны крови — всё имеет цену. Что принесли?</span></div>${heroStrip()}${tabs}<p class="tw-lead">Маг определит артефакт за деньги: откроются название и свойства, сведения попадут в библиотеку артефактов.</p>
             ${ids.length ? `<div class="tw-rows">${rows}</div>` : `<p class="tw-msg">Артефактов пока нет: они появляются, когда отряд находит сокровища.</p>`}${msgLine()}`);
         }
         const ess = c.essences || [];
         const rows = ess.map(id => { const e = ESSENCES[id], n = essLvl(id), price = towerPrice(id);
           return `<div class="tw-row"><div class="tw-who"><div><b>${esc(essTitle(id))}</b><small>${e.cls} класс · изучено ${n} из 3</small></div></div>
             ${n === 3 ? `<span class="tw-done">${ICO_CHECK}</span>` : `<button class="fx-btn primary" data-t="analyze" data-id="${id}"${partyGold() >= price ? "" : " disabled"}>${price}</button>`}</div>`; }).join("");
-        return frame("Башня магов", "Рафдония", `${heroStrip()}${tabs}<p class="tw-lead">Маг заглянет в героя и расскажет всё о впитанных им эссенциях: статы, пассивную и активную способности. Цена — треть цены эссенции.</p>
+        return frame("Башня магов", "Рафдония", `<div class="tw-npc framed">${img("assets/npc/mage.webp", "Маг башни")}<span>Артефакты, эссенции, тайны крови — всё имеет цену. Что принесли?</span></div>${heroStrip()}${tabs}<p class="tw-lead">Маг заглянет в героя и расскажет всё о впитанных им эссенциях: статы, пассивную и активную способности. Цена — треть цены эссенции.</p>
           ${ess.length ? `<div class="tw-rows">${rows}</div>` : `<p class="tw-msg">У ${esc(c.name)} нет эссенций.</p>`}${msgLine()}`);
       },
     };
