@@ -482,6 +482,7 @@ body.forge-open, body.bt-active, body:has(.mapov:not([hidden])), body:has(.bt-ro
 .fx-input.bad { border-color: var(--fx-danger); }
 .fx-seg { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .fx-seg .fx-btn[aria-pressed="false"] { color: var(--fx-muted); }
+.gender-seg { margin: 0 0 14px; }
 .bonus-box ul.minus { margin-top: 6px; color: #e0a38a; }
 .bonus-box ul.minus li::marker { content: "− "; }
 .bonus-box li.tap { cursor: help; text-decoration: underline dotted rgb(244 212 142 / .55); text-underline-offset: 3px; }
@@ -3227,10 +3228,13 @@ function forgeRace() {
   return forgeBar(
     forge.mode === "more" ? `<button class="fx-btn" data-fx="discard">Отменить</button>` : "",
     "Шаг 1 из 3", "Раса",
-    `<button class="fx-btn primary" data-fx="next"${d.race ? "" : " disabled"}>Далее</button>`) + `
+    `<button class="fx-btn primary" data-fx="next"${d.race && d.gender ? "" : " disabled"}>Далее</button>`) + `
   <div class="fx-body"><div class="wrap">
     <h2 class="fx-h">Кто спускается в лабиринт?</h2>
-    <p class="fx-p">${forge.mode === "first" ? "Создай первого героя отряда." : "Новый герой для отряда."} Выбери расу и нажми «Далее».</p>
+    <p class="fx-p">${forge.mode === "first" ? "Создай первого героя отряда." : "Новый герой для отряда."} Выбери пол и расу — портреты меняются сразу.</p>
+    <div class="fx-seg gender-seg" role="group" aria-label="Пол">
+      ${Object.entries(GENDERS).map(([k, l]) => `<button class="fx-btn${d.gender === k ? " primary" : ""}" data-fx-gender="${k}" aria-pressed="${d.gender === k}">${k === "m" ? "♂" : "♀"} ${l}</button>`).join("")}
+    </div>
     <div class="race-grid">${RACES.map(r => `
       <button class="race-card fx-frame" data-fx-race="${r.id}" aria-pressed="${d.race === r.id}">
         <div class="ph">${phPortrait(r, d.gender)}${d.race === r.id ? `<span class="tick">${TICK}</span>` : ""}</div>
@@ -3292,10 +3296,7 @@ function forgeIdentity() {
     <div class="chosen fx-frame"><div class="ph">${phPortrait(r, d.gender)}</div><div><b>${r.name}</b><span>${raceMods(r)}</span></div></div>
     ${forge.errors.length ? `<div class="fx-errors" role="alert">Проверь поля:<ul>${forge.errors.map(e => `<li>${e.m}</li>`).join("")}</ul></div>` : ""}
 
-    <div class="fx-section">Имя и пол</div>
-    <div class="fx-seg" role="group" aria-label="Пол">
-      ${Object.entries(GENDERS).map(([k, l]) => `<button class="fx-btn${d.gender === k ? " primary" : ""}${bad.has("gender") ? " bad" : ""}" data-fx-gender="${k}" aria-pressed="${d.gender === k}">${k === "m" ? "♂" : "♀"} ${l}</button>`).join("")}
-    </div>
+    <div class="fx-section">Имя</div>
     <div class="fx-field"><label for="fx-name">Имя героя</label>
       <input class="fx-input${bad.has("name") ? " bad" : ""}" id="fx-name" data-draft="name" value="${esc(d.name)}" placeholder="Например: Бьорн, сын Яндела" autocomplete="off" maxlength="40"></div>
 
@@ -3468,7 +3469,7 @@ $forge.addEventListener("click", e => {
   if (ds.fxGender) { forge.draft.gender = ds.fxGender; forge.errors = forge.errors.filter(x => x.f !== "gender"); renderForge(true); return; }
   switch (ds.fx) {
     case "roll-stats": if (!forge.draft.rolls) { forge.draft.rolls = rollStatSet(); forge.draft.put = {}; forge.draft.chip = null; renderForge(true); } break;
-    case "next": if (forge.draft.race) { forge.step = "weapon"; renderForge(); } break;
+    case "next": if (forge.draft.race && forge.draft.gender) { forge.step = "weapon"; renderForge(); } break;
     case "back-race": forge.step = "race"; renderForge(); break;
     case "next-w": if (forge.draft.weapon) { forge.step = "identity"; renderForge(); } break;
     case "back": forge.step = "weapon"; forge.errors = []; renderForge(); break;

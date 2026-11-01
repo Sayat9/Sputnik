@@ -17,7 +17,7 @@ const W = +process.env.W || 400, H = +process.env.H || 860;
     const B = Battle, S = B.S, u = B.UI.turnUnit;
     for (const row of S.cells) row.fill(''); S.objs.length = 0; S.drops.length = 0; S.zones.length = 0; S.bodies.length = 0;
     B.heroes().forEach((h, i) => { h.x = 6; h.y = 6 - i; }); const m = B.mons()[0]; m.x = 6; m.y = 0; m.hp = m.maxHp = 300;
-    u.x = o.x != null ? o.x : 1; u.y = o.y != null ? o.y : 5; u.t.move = B.speedOf(u); u.t.action = 1; u.t.bonus = 1; u.t.react = 1;
+    u.x = o.x != null ? o.x : 1; u.y = o.y != null ? o.y : 5; u.t.move = Math.max(4, B.speedOf(u));          // первым может ходить герой со скоростью 3 — тест рассчитан на 4 клетки u.t.action = 1; u.t.bonus = 1; u.t.react = 1;
     B.UI.refreshNow(); B.UI.renderPanel();
     return { id: u.id, name: u.name, speed: B.speedOf(u) };
   }, { o });
@@ -60,7 +60,7 @@ const W = +process.env.W || 400, H = +process.env.H || 860;
   { const c = await L.cellXY(p, 5, 5); await p.mouse.click(c.x, c.y); await L.sleep(900); }
   const res = await p.evaluate(() => { const u = Battle.UI.turnUnit; return { pos: [u.x, u.y], vis: window.__vis.map(v => v.join(',')), trap: Battle.S.objs.some(o => o.id === 'tr'), hp: u.hp, maxHp: u.maxHp, move: u.t.move }; });
   ok('герой дошёл до (5,5), прошёл (3,4), ловушку обошёл', res.pos.join() === '5,5' && res.vis.includes('3,4') && !res.vis.includes('3,5') && res.trap && res.hp === res.maxHp, JSON.stringify(res));
-  ok('движение потрачено по длине маршрута (4 клетки)', res.move === info.speed - 4, res.move);
+  ok('движение потрачено по длине маршрута (4 клетки)', res.move === Math.max(4, info.speed) - 4, res.move);
   // без точки кратчайший путь задел бы ловушку (предупреждение)
   info = await prep({ x: 1, y: 5 });
   await p.evaluate(() => { Battle.S.objs.push({ id: 'tr', kind: 'trap', x: 3, y: 5, dc: 12, hidden: false, owner: 'mon', dmg: '1к6', dt: 'pierce' }); Battle.UI.refreshNow(); });
