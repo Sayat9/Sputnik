@@ -69,7 +69,7 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
       ok('15 находок, у каждой есть описание', Object.keys(FINDS).length === 15 && Object.keys(FINDS).every(id => GEAR[id].note));
       const S = setup([{ main: 'sword' }, { main: 'sword', ess: ['pixie'] }], ['goblin'], 'goblin', 1); const [H, K] = B.heroes();
       const c = H.hero;
-      ok('без навыка эффект неизвестен: имя «Узколистая трава»', itemOf({ t: 'g', id: 'herb-heal' }, c).name === 'Узколистая трава' && !findKnown(c, 'herb-heal'));
+      ok('без навыка эффект неизвестен: имя «Неизвестная трава»', itemOf({ t: 'g', id: 'herb-heal' }, c).name === 'Неизвестная трава' && itemOf({ t: 'g', id: 'herb-mana' }, c).name === 'Неизвестная трава' && !findKnown(c, 'herb-heal'));
       c.lore = ['herb']; ok('со знаниями — настоящее имя и описание', itemOf({ t: 'g', id: 'herb-heal' }, c).name === 'Целебная трава' && /ОЗ/.test(itemOf({ t: 'g', id: 'herb-heal' }, c).note)); c.lore = [];
       c.bag = []; addToBag(c, { t: 'g', id: 'herb-heal', qty: 3 }); ok('неизвестные лежат по одному на ячейку', c.bag.length === 3, c.bag.length);
       c.bag = []; c.lore = ['herb']; addToBag(c, { t: 'g', id: 'herb-heal', qty: 3 }); ok('известные — стопкой', c.bag.length === 1 && c.bag[0].qty === 3); c.lore = [];
@@ -84,7 +84,7 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
       const S3 = setup([{ main: 'sword', base: { wis: 14 } }], ['goblin']); const H3 = B.heroes()[0], G3 = B.mons()[0]; G3.x = 0; G3.y = 0; H3.x = 3; H3.y = 5; T(H3);
       S3.objs.push({ id: 'f1', kind: 'find', fid: 'mush-heal', x: 3, y: 4 }); H3.hero.bag = [];
       const opt = B.actionsFor(H3).find(o => o.id === 'gather:f1'); ok('рядом с находкой есть «Собрать»', !!opt && opt.enabled, opt && opt.label);
-      ok('название по знаниям героя (без навыка — «Красный гриб»)', /Красный гриб/.test(opt.label), opt.label);
+      ok('название по знаниям героя (без навыка — «Неизвестный гриб»)', /Неизвестный гриб/.test(opt.label), opt.label);
       F(1); await opt.run(); ok('провал проверки (натуральная 1): находка испорчена', !S3.objs.some(o => o.id === 'f1'));
       S3.objs.push({ id: 'f2', kind: 'find', fid: 'mush-heal', x: 3, y: 4 }); T(H3); F(20); await B.actionsFor(H3).find(o => o.id === 'gather:f2').run();
       ok('успех: гриб в рюкзаке, на поле его нет', H3.hero.bag.some(e => e.id === 'mush-heal') && !S3.objs.some(o => o.id === 'f2') && H3.t.action === 0);

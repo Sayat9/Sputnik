@@ -51,6 +51,15 @@ const URL = 'http://localhost:8765/index.html';
   ok('удержание чужого героя тоже открывает меню (только просмотр)', foreign.open && foreign.sel === '', foreign);
   ok('на экране игрока врата не нажимаются (вход выбирает ведущий)', await c.evaluate(() => { const g = document.querySelector('[data-bld="gate"]'); g.scrollIntoView({ block: 'center' }); const r = g.getBoundingClientRect(); const el = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return !(el && el.closest('[data-bld="gate"]')); }));
   ok('ошибок страницы нет', errs.length === 0, errs);
+  // окно героя у игрока: обновления от ведущего не перерисовывают его, если герой не менялся, и не мешают пальцу
+  await c.evaluate(() => { openHero('hC'); heroUi.tab = 'inv'; renderHero(); document.querySelector('#heroov .hero-panel').dataset.mark = '1'; });
+  await h.evaluate(() => { state.party[0].hp = 3; saveChar(); NetGlue.pushAll(); }); await c.waitForTimeout(700);
+  ok('чужой герой изменился — окно игрока не перерисовано', await c.evaluate(() => document.querySelector('#heroov .hero-panel')?.dataset.mark === '1'));
+  await c.evaluate(() => { document.querySelector('#heroov').dispatchEvent(new PointerEvent('pointerdown', { bubbles: true })); });
+  await h.evaluate(() => { state.party[2].hp = 4; saveChar(); NetGlue.pushAll(); }); await c.waitForTimeout(700);
+  ok('свой герой изменился, но палец на экране — окно не дёргается', await c.evaluate(() => document.querySelector('#heroov .hero-panel')?.dataset.mark === '1'));
+  await c.evaluate(() => { document.dispatchEvent(new PointerEvent('pointerup', { bubbles: true })); }); await c.waitForTimeout(1200);
+  ok('палец убран — окно обновилось', await c.evaluate(() => document.querySelector('#heroov .hero-panel') && !document.querySelector('#heroov .hero-panel').dataset.mark));
   console.log('проверок:', R.length, 'не прошли:', R.filter(x => !x).length);
   await b.close(); process.exit(R.every(Boolean) ? 0 : 1);
 })().catch(e => { console.error(e.message); process.exit(2); });

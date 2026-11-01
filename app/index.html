@@ -787,7 +787,12 @@ img.art-pic { width: 100%; height: 100%; object-fit: cover; display: block; bord
 .shield-pick .wpn-art { margin: 0; }
 .shield-pick:disabled { opacity: .45; }
 .shield-pick.dim { opacity: .35; filter: grayscale(.8); }
-.shield-pick.avail { box-shadow: 0 0 0 1px var(--fx-gold, #d6a64c), 0 0 14px rgb(244 212 142 / .45); }
+.shield-pick.avail { border-color: #f4d48e !important; box-shadow: 0 0 0 2px #f4d48e, 0 0 22px rgb(244 212 142 / .7); }
+.wpn-grid .race-card.picked { border-color: #ffe6a6 !important; box-shadow: 0 0 0 3px #f4d48e, 0 0 26px rgb(255 214 120 / .85); transform: translateY(-2px); }
+.wpn-grid .race-card.twin { box-shadow: 0 0 0 3px #ffb347, 0 0 30px rgb(255 170 60 / .9); }
+.wpn-grid .race-card.off { opacity: .32; filter: grayscale(.85); }
+.wpn-art .x2 { position: absolute; left: 6px; top: 6px; padding: 2px 8px; border-radius: 999px; background: #ffb347; color: #1d140a; font: 800 16px/1.2 var(--f-data, inherit); box-shadow: 0 2px 6px rgb(0 0 0 / .6); }
+.wpn-tip { margin-top: -4px; font-size: 13.5px; opacity: .85; }
 .kit-note { padding: 12px 14px; font-size: 14.5px; color: var(--fx-muted); text-align: center; }
 .kit-note b { color: var(--fx-gold-hi); font-weight: 500; }
 .pc { touch-action: pan-x; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; cursor: pointer; transition: transform .15s; }
@@ -2434,21 +2439,21 @@ const FIND_KIND = {
 // fx: heal [n, s, b] · mp · poison [n, s, b] · sat (действий сытости) · fat (уровней Усталости) · light (раундов) · boom [n, s, b] (съел — получил, бросил — по площади)
 // throw — применяется броском (в бою): radius, save, dc, dmg, dt, status, rounds. w — вес при выпадении.
 const FINDS = {
-  "herb-heal":   { kind: "herb", name: "Целебная трава",    alias: "Узколистая трава",  color: "#7bc653", w: 4, fx: { heal: [1, 6, 2] } },
-  "herb-mana":   { kind: "herb", name: "Серебрянка",        alias: "Серебристая трава", color: "#9fd4ee", w: 3, fx: { mp: 4 } },
-  "herb-poison": { kind: "herb", name: "Горький корень",    alias: "Тёмная трава",      color: "#6a4d8c", w: 2, fx: { poison: [1, 4, 0] } },
-  "herb-food":   { kind: "herb", name: "Сытный лист",       alias: "Широкая трава",     color: "#c9b04a", w: 4, fx: { sat: 2 } },
-  "herb-rest":   { kind: "herb", name: "Бодрящий пучок",    alias: "Пахучая трава",     color: "#e58bb0", w: 3, fx: { fat: 1 } },
-  "mush-heal":   { kind: "mush", name: "Живой гриб",        alias: "Красный гриб",      color: "#d4543a", w: 3, fx: { heal: [2, 6, 3] } },
-  "mush-mana":   { kind: "mush", name: "Синяя шляпка",      alias: "Синий гриб",        color: "#4a7fd0", w: 3, fx: { mp: 8 } },
-  "mush-poison": { kind: "mush", name: "Бледная поганка",   alias: "Бледный гриб",      color: "#cfd3a8", w: 2, fx: { poison: [2, 4, 0] } },
-  "mush-food":   { kind: "mush", name: "Сытный боровик",    alias: "Бурый гриб",        color: "#9a6a3a", w: 4, fx: { sat: 5 } },
-  "mush-rest":   { kind: "mush", name: "Бодрый груздь",     alias: "Жёлтый гриб",       color: "#e3c04a", w: 3, fx: { fat: 2 } },
-  "mush-light":  { kind: "mush", name: "Светляк",           alias: "Зеленоватый гриб",  color: "#7fe0b0", w: 2, fx: { light: 10 } },
-  "mush-boom":   { kind: "mush", name: "Пороховик",         alias: "Серый гриб",        color: "#8d8d92", w: 2, fx: { boom: [2, 6, 0] }, throw: { radius: 1, save: "dex", dc: 12, dmg: [2, 6, 0], dt: "fire" } },
-  "sstone-boom": { kind: "sstone", name: "Вспыхивающий камень", alias: "Рыжий камень",   color: "#e0743a", w: 3, fx: {}, throw: { radius: 1, save: "dex", dc: 12, dmg: [3, 6, 0], dt: "fire" } },
-  "sstone-para": { kind: "sstone", name: "Оцепеняющий камень",  alias: "Фиолетовый камень", color: "#9b6fd0", w: 2, fx: {}, throw: { radius: 0, save: "con", dc: 12, status: "paralyzed", rounds: 1 } },
-  "sstone-freeze": { kind: "sstone", name: "Морозный камень",   alias: "Голубой камень", color: "#7ad0ec", w: 2, fx: {}, throw: { radius: 1, save: "con", dc: 12, dmg: [2, 6, 0], dt: "cold", status: "slowed", rounds: 2 } },
+  "herb-heal":   { kind: "herb", name: "Целебная трава",    alias: "Неизвестная трава",  color: "#7bc653", w: 4, fx: { heal: [1, 6, 2] } },
+  "herb-mana":   { kind: "herb", name: "Серебрянка",        alias: "Неизвестная трава", color: "#9fd4ee", w: 3, fx: { mp: 4 } },
+  "herb-poison": { kind: "herb", name: "Горький корень",    alias: "Неизвестная трава",      color: "#6a4d8c", w: 2, fx: { poison: [1, 4, 0] } },
+  "herb-food":   { kind: "herb", name: "Сытный лист",       alias: "Неизвестная трава",     color: "#c9b04a", w: 4, fx: { sat: 2 } },
+  "herb-rest":   { kind: "herb", name: "Бодрящий пучок",    alias: "Неизвестная трава",     color: "#e58bb0", w: 3, fx: { fat: 1 } },
+  "mush-heal":   { kind: "mush", name: "Живой гриб",        alias: "Неизвестный гриб",      color: "#d4543a", w: 3, fx: { heal: [2, 6, 3] } },
+  "mush-mana":   { kind: "mush", name: "Синяя шляпка",      alias: "Неизвестный гриб",        color: "#4a7fd0", w: 3, fx: { mp: 8 } },
+  "mush-poison": { kind: "mush", name: "Бледная поганка",   alias: "Неизвестный гриб",      color: "#cfd3a8", w: 2, fx: { poison: [2, 4, 0] } },
+  "mush-food":   { kind: "mush", name: "Сытный боровик",    alias: "Неизвестный гриб",        color: "#9a6a3a", w: 4, fx: { sat: 5 } },
+  "mush-rest":   { kind: "mush", name: "Бодрый груздь",     alias: "Неизвестный гриб",       color: "#e3c04a", w: 3, fx: { fat: 2 } },
+  "mush-light":  { kind: "mush", name: "Светляк",           alias: "Неизвестный гриб",  color: "#7fe0b0", w: 2, fx: { light: 10 } },
+  "mush-boom":   { kind: "mush", name: "Пороховик",         alias: "Неизвестный гриб",        color: "#8d8d92", w: 2, fx: { boom: [2, 6, 0] }, throw: { radius: 1, save: "dex", dc: 12, dmg: [2, 6, 0], dt: "fire" } },
+  "sstone-boom": { kind: "sstone", name: "Вспыхивающий камень", alias: "Неизвестный камень",   color: "#e0743a", w: 3, fx: {}, throw: { radius: 1, save: "dex", dc: 12, dmg: [3, 6, 0], dt: "fire" } },
+  "sstone-para": { kind: "sstone", name: "Оцепеняющий камень",  alias: "Неизвестный камень", color: "#9b6fd0", w: 2, fx: {}, throw: { radius: 0, save: "con", dc: 12, status: "paralyzed", rounds: 1 } },
+  "sstone-freeze": { kind: "sstone", name: "Морозный камень",   alias: "Неизвестный камень", color: "#7ad0ec", w: 2, fx: {}, throw: { radius: 1, save: "con", dc: 12, dmg: [2, 6, 0], dt: "cold", status: "slowed", rounds: 2 } },
 };
 const dtxt = d => d[0] + "к" + d[1] + (d[2] ? " + " + d[2] : "");
 function findNote(f) {
@@ -2534,7 +2539,7 @@ function itemOf(v, holder) {
   if (v.t === "g") {
     const g = GEAR[v.id];
     if (g && g.find) {                                                                   // трава, гриб, камень: вид известен не всем
-      const known = holder === undefined ? true : findKnown(holder, v.id), ic = FIND_KIND[g.find].icon(g.fnd.color);
+      const known = holder === undefined ? true : findKnown(holder, v.id), ic = FIND_KIND[g.find].icon(known ? g.fnd.color : ({ herb: "#8fbf6a", mush: "#cfc6b0", sstone: "#9aa7b5" }[g.find] || "#aab"));          // неопознанные одного вида выглядят одинаково (решение автора 01.11)
       return known ? { ...g, id: v.id, kindOf: "gear", icon: ic, art: ART.gear(v.id) || undefined, known }
         : { ...g, id: v.id, kindOf: "gear", icon: ic, art: g.find === "mush" ? artPath("items/unknown-mushroom") : g.find === "herb" ? artPath("items/unknown-herb") : g.find === "sstone" ? artPath("items/unknown-stone") : undefined, known, name: g.alias, short: "?", use: g.use && "find", note: `Эффект неизвестен: нужен навык (${FIND_KIND[g.find].skills.map(k => Object.keys(SKILL_KEYS).find(n => SKILL_KEYS[n] === k)).join(" или ")}) или знания. Одноразовый.` };
     }
@@ -2861,7 +2866,7 @@ function loadNet() {
   return netLoad;
 }
 /* ----- здания города (assets/js/town.js грузится при первом входе в здание) ----- */
-const TOWN_REV = 19, TOWN_FILES = ["assets/css/town.css", "assets/js/town.js"];
+const TOWN_REV = 20, TOWN_FILES = ["assets/css/town.css", "assets/js/town.js"];
 let townLoad = null;
 function loadTown() {
   if (window.Town && window.Town.ready) return Promise.resolve(true);
@@ -3251,18 +3256,21 @@ function forgeWeapon() {
   <div class="fx-body"><div class="wrap">
     <h2 class="fx-h">С чем идёшь в лабиринт?</h2>
     <p class="fx-p">Выбери стартовое оружие. Оно сразу окажется в руке героя.</p>
-    <div class="wpn-grid">${START_WEAPONS().map(x => `
-      <button class="race-card fx-frame" data-fx-weapon="${x.id}" aria-pressed="${d.weapon === x.id && !(x.id === "dagger" && d.knife)}">
-        <div class="wpn-art">${img(ART.weapon(x.id), x.name)}${d.weapon === x.id && !(x.id === "dagger" && d.knife) ? `<span class="tick">${TICK}</span>` : ""}</div>
-        <h3>${x.name}</h3>
+    <p class="fx-p wpn-tip">Нажми ещё раз на кинжал, перчатки или другое лёгкое оружие — возьмёшь пару (×2). Ещё раз — снять.</p>
+    <div class="wpn-grid${d.weapon && d.knife ? " twin-on" : ""}">${START_WEAPONS().map(x => { const on = d.weapon === x.id, twin = on && d.knife && canTwinWeapon(x, d.race), off = d.weapon && d.knife && !on;
+      const st = twin ? (x.id === "gloves" ? "пара: 2к4 · +2 КД" : isTwoHandedWeapon(x) ? `пара: ${x.dmg} ×2 · −6 к Ловкости` : `пара: ${x.dmg} ×2 одной атакой (каждый удар ×0,6)`) : `${x.dmg} ${x.type} · ${kgf(x.weight)} кг`;
+      return `
+      <button class="race-card fx-frame${on ? " picked" : ""}${twin ? " twin" : ""}${off ? " off" : ""}" data-fx-weapon="${x.id}" aria-pressed="${on}">
+        <div class="wpn-art">${img(ART.weapon(x.id), x.name)}${on ? `<span class="tick">${TICK}</span>` : ""}${twin ? `<span class="x2">×2</span>` : ""}</div>
+        <h3>${twin ? (x.id === "gloves" ? "Пара перчаток" : "Пара: " + x.name.toLowerCase()) : x.name}</h3>
         <div class="bonus-box">
-          <div class="st">${x.dmg} ${x.type} · ${kgf(x.weight)} кг</div>
+          <div class="st">${st}</div>
           <ul>${(x.props.length ? x.props : ["Без особых свойств"]).map(p => `<li class="tap" data-fx-info="weapon:${x.id}:${esc(p)}">${p}</li>`).join("")}</ul>
         </div>
-      </button>`).join("")}
+      </button>`; }).join("")}
     </div>
     ${(() => { const sh = WEAPONS.find(x => x.id === "shield"), block = w && (isTwoHandedWeapon(w) || w.group === "ranged") && !(d.race === "barbarian") && !(w.props || []).includes("Можно со щитом");
-      const bow = !!w && w.group === "ranged", light = w && (bow || canTwinWeapon(w, d.race)), kn = light && d.knife, sec = bow ? WEAPONS.find(x => x.id === "dagger") : w;
+      const bow = !!w && w.group === "ranged", light = bow, kn = !!w && d.knife && (bow || canTwinWeapon(w, d.race)), sec = WEAPONS.find(x => x.id === "dagger");          // пара оружия выбирается повторным нажатием на карточку; здесь — только кинжал к луку
       return (light ? `<button class="race-card fx-frame shield-pick avail" data-fx-knife aria-pressed="${!!kn}">
         <div class="wpn-art">${img(ART.weapon(sec.id), sec.name)}${kn ? `<span class="tick">${TICK}</span>` : ""}</div>
         <div><h3>${bow ? "Кинжал" : w.id === "gloves" ? "Вторая перчатка" : w.id === "axe" ? "Второй топор" : isTwoHandedWeapon(w) ? "Второе двуручное" : "Второй клинок"} в левую руку</h3><div class="bonus-box"><div class="st">${sec.dmg} ${sec.type} · ${kgf(sec.weight)} кг</div>
@@ -3445,7 +3453,13 @@ $forge.addEventListener("click", e => {
   if (!el) return;
   const ds = el.dataset;
   if (ds.fxRace) { forge.draft.race = ds.fxRace; renderForge(true); return; }
-  if (ds.fxWeapon) { forge.draft.weapon = ds.fxWeapon; forge.draft.knife = false; renderForge(true); return; }
+  if (ds.fxWeapon) {          // 1-е нажатие — выбрать, 2-е — пара (если можно), 3-е — снять
+    const d = forge.draft, w = WEAPONS.find(x => x.id === ds.fxWeapon);
+    if (d.weapon !== w.id) { d.weapon = w.id; d.knife = false; }
+    else if (!d.knife && canTwinWeapon(w, d.race)) { d.knife = true; d.shield = false; }
+    else { d.weapon = null; d.knife = false; }
+    renderForge(true); return;
+  }
   if (ds.fxShield !== undefined) { forge.draft.shield = !forge.draft.shield; renderForge(true); return; }
   if (ds.fxTwin !== undefined) { forge.draft.weapon = "dagger"; forge.draft.knife = true; forge.draft.shield = false; renderForge(true); return; }
   if (ds.fxKnife !== undefined) { forge.draft.knife = !forge.draft.knife; if (forge.draft.knife) forge.draft.shield = false; renderForge(true); return; }
@@ -6673,7 +6687,7 @@ function heroInv(c) {
     </div>` : ""}`;
 }
 
-function renderHero() {
+function renderHero() { try { window.__heroSig = JSON.stringify(heroById(heroUi.id) || null); } catch (e) {}
   const c = heroById(heroUi.id);
   if (!c) { closeHero(); return; }
   ensureKit(c);
@@ -6711,6 +6725,19 @@ function heroAfterChange(msg) {
 }
 
 let holdInfo = { t: 0, fired: false, x: 0, y: 0 };
+/* Мягкая перерисовка окна героя (онлайн-обновления у игрока): не во время касания, прокрутки и перетаскивания — иначе палец теряет предмет и прокрутка сбивается. */
+let heroHold = false, heroScrollT = 0, heroPending = false, heroPendT = 0;
+const heroBusy = () => heroHold || !!heroDrag || Date.now() - heroScrollT < 700;
+function heroRenderSoft() {
+  if (!heroUi) return;
+  if (heroBusy()) { heroPending = true; clearTimeout(heroPendT); heroPendT = setTimeout(heroFlush, 750); return; }
+  heroPending = false; renderHero();
+}
+function heroFlush() { if (!heroPending) return; if (heroBusy()) { clearTimeout(heroPendT); heroPendT = setTimeout(heroFlush, 400); return; } heroPending = false; if (heroUi) renderHero(); }
+$hero.addEventListener("pointerdown", () => { heroHold = true; }, true);
+document.addEventListener("pointerup", () => { heroHold = false; if (heroPending) setTimeout(heroFlush, 60); }, true);
+document.addEventListener("pointercancel", () => { heroHold = false; if (heroPending) setTimeout(heroFlush, 60); }, true);
+$hero.addEventListener("scroll", () => { heroScrollT = Date.now(); }, true);
 /* Перетаскивание в окне героя: предмет из рюкзака — на ячейку экипировки (надеть), надетое — на рюкзак (снять). */
 let heroDrag = null;
 $hero.addEventListener("pointerdown", e => {

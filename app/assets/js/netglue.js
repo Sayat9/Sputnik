@@ -318,7 +318,7 @@
       const h = V.hash || "";
       if (GAME_HASH.includes(h) && location.hash.slice(1) !== h) location.hash = h; else if (GAME_HASH.includes(location.hash.slice(1))) rerender();
     } else if (!GAME_HASH.includes(location.hash.slice(1)) === false) { /* смотрит свой экран — основное не трогаем */ }
-    if (heroUi) { try { renderHero(); } catch (e) {} }
+    if (heroUi) { try { const hc = heroById(heroUi.id), hs = jstr(hc || null); if (hs !== window.__heroSig) { (typeof heroRenderSoft === "function" ? heroRenderSoft : renderHero)(); } } catch (e) {} }          // окно героя — только если герой изменился и не под пальцем
     // здание города
     loadTown().then(ok => { if (!ok) return; if (V.town) window.Town.mirror(V.town); else window.Town.unmirror && window.Town.unmirror(); });
     try { localStorage.setItem(STATE_KEY, jstr(state)); } catch (e) {}
