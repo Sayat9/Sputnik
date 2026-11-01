@@ -561,7 +561,7 @@ body.forge-open, body.bt-active, body:has(.mapov:not([hidden])), body:has(.bt-ro
 .bld .art { aspect-ratio: 1; max-width: 100%; border-radius: 4px; overflow: hidden; border: 1px solid var(--fx-line); background: #0F0C08; position: relative; }
 .bld .art svg { display: block; width: 100%; height: 100%; }
 .bld .art img { display: block; width: 100%; height: 100%; object-fit: cover; }
-.bld b { font: 700 13.5px/1.15 var(--f-fancy); letter-spacing: .04em; color: var(--fx-gold-hi); overflow-wrap: break-word; }
+.bld b { font: 700 13.5px/1.15 var(--f-fancy); letter-spacing: .02em; color: var(--fx-gold-hi); }
 .bld .gate-st { color: var(--fx-muted); font-size: 11.5px; text-align: center; }
 .bld.shut .art { filter: grayscale(.8) brightness(.7); animation: none; }
 .bld.locked { cursor: not-allowed; filter: grayscale(1) brightness(.62); }
@@ -760,7 +760,9 @@ img.art-pic { width: 100%; height: 100%; object-fit: cover; display: block; bord
 .confirm .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .party-bars { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x proximity; padding: 6px 2px 10px; scrollbar-width: thin; scrollbar-color: var(--fx-line) transparent; }
 .pc { flex: 0 0 158px; scroll-snap-align: start; padding: 8px 10px 10px; display: flex; flex-direction: column; gap: 5px; min-width: 0; }
-.pc .nm { font: 400 16px/1.1 var(--f-display); color: var(--fx-gold-hi); text-align: center; overflow-wrap: anywhere; }
+.pc .nm { font: 400 16px/1.1 var(--f-display); color: var(--fx-gold-hi); text-align: center; }
+.fit-1 { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; overflow-wrap: normal !important; min-width: 0; }
+.fit-w { overflow-wrap: normal !important; word-break: normal; hyphens: manual; min-width: 0; }          /* fitText: имя в одну строку / слова целиком — шрифт уменьшается сам */
 .meter { display: grid; grid-template-columns: 66px 1fr; align-items: center; gap: 6px; font-size: 12px; color: var(--fx-muted); }
 .meter .bar { height: 7px; border-radius: 4px; background: rgb(0 0 0 / .45); border: 1px solid rgb(110 86 52 / .6); overflow: hidden; }
 .meter .bar i { display: block; height: 100%; background: linear-gradient(90deg, #8a6a2a, var(--fx-gold-hi)); }
@@ -3329,7 +3331,7 @@ function forgeIdentity() {
 
     <div class="fx-section">Имя</div>
     <div class="fx-field"><label for="fx-name">Имя героя</label>
-      <input class="fx-input${bad.has("name") ? " bad" : ""}" id="fx-name" data-draft="name" value="${esc(d.name)}" placeholder="Например: Бьорн, сын Яндела" autocomplete="off" maxlength="40"></div>
+      <input class="fx-input${bad.has("name") ? " bad" : ""}" id="fx-name" data-draft="name" value="${esc(d.name)}" placeholder="Например: Бьорн" autocomplete="off" maxlength="${NAME_MAX}"></div>
 
     <div class="fx-section">Характеристики</div>
     <p class="fx-p" style="font-size:15px">Впиши значения, которые получил по правилам D&D: бросок кубов, стандартный набор или покупка очков. Бонус расы прибавится сам.</p>
@@ -3351,15 +3353,16 @@ function forgeIdentity() {
 
     <div class="fx-section">Телосложение</div>
     <div class="fx-trio">
-      <div class="fx-field"><label for="fx-age">Возраст</label><input class="fx-input${bad.has("age") ? " bad" : ""}" id="fx-age" data-draft="age" type="number" inputmode="numeric" min="1" value="${esc(d.age)}" placeholder="лет"></div>
-      <div class="fx-field"><label for="fx-height">Рост</label><input class="fx-input${bad.has("height") ? " bad" : ""}" id="fx-height" data-draft="height" type="number" inputmode="numeric" min="1" value="${esc(d.height)}" placeholder="см"></div>
-      <div class="fx-field"><label for="fx-weight">Вес</label><input class="fx-input${bad.has("weight") ? " bad" : ""}" id="fx-weight" data-draft="weight" type="number" inputmode="numeric" min="1" value="${esc(d.weight)}" placeholder="кг"></div>
+      <div class="fx-field"><label for="fx-age">Возраст</label><input class="fx-input${bad.has("age") ? " bad" : ""}" id="fx-age" data-draft="age" type="number" inputmode="numeric" min="1" max="${DRAFT_MAX.age}" value="${esc(d.age)}" placeholder="лет"></div>
+      <div class="fx-field"><label for="fx-height">Рост</label><input class="fx-input${bad.has("height") ? " bad" : ""}" id="fx-height" data-draft="height" type="number" inputmode="numeric" min="1" max="${DRAFT_MAX.height}" value="${esc(d.height)}" placeholder="см"></div>
+      <div class="fx-field"><label for="fx-weight">Вес</label><input class="fx-input${bad.has("weight") ? " bad" : ""}" id="fx-weight" data-draft="weight" type="number" inputmode="numeric" min="1" max="${DRAFT_MAX.weight}" value="${esc(d.weight)}" placeholder="кг"></div>
     </div>
   </div></div>`;
 }
 
 // Бросок характеристик по правилам D&D: 4к6 восемь раз, у каждого броска отбрасывается меньшая кость, из восьми сумм остаются шесть лучших; игрок раскладывает их сам.
-const STAT_IN_MAX = 18;          // наибольшее значение характеристики при создании (до бонуса расы) — максимум 4к6 без меньшей кости
+const STAT_IN_MAX = 18, NAME_MAX = 12, DRAFT_MAX = { age: 99, height: 220, weight: 150 };          // пределы при создании героя (решение автора 01.11): имя 12 знаков, возраст 99, рост 220 см, вес 150 кг
+          // наибольшее значение характеристики при создании (до бонуса расы) — максимум 4к6 без меньшей кости
 function rollStatSet() {
   const rows = Array.from({ length: 8 }, () => { const dice = Array.from({ length: 4 }, () => 1 + rnd(6)), low = dice.indexOf(Math.min(...dice)); return { dice, low, sum: dice.reduce((a, b) => a + b, 0) - dice[low] }; });
   const order = rows.map((r, i) => i).sort((a, b) => rows[b].sum - rows[a].sum), keep = new Set(order.slice(0, 6));
@@ -3390,7 +3393,7 @@ function forgeTeam() {
     <div class="team-row" id="team-row">
       ${state.party.map(c => { const r = raceById(c.race); return `
         <article class="member fx-frame">
-          <div class="nm">${esc(c.name)}</div>
+          <div class="nm fit-1">${esc(c.name)}</div>
           <div class="ph">${phPortrait(r, c.gender)}</div>
           <dl>
             <div><dt>Раса</dt><dd>${r.name}</dd></div>
@@ -3426,7 +3429,7 @@ function validateDraft() {
   const badStats = STAT_KEYS.filter(k => { const v = parseInt(d.base[k], 10); return !(v >= 1 && v <= STAT_IN_MAX); });
   badStats.forEach(k => errs.push({ f: k, m: `${STAT_NAME[k]}: число от 1 до ${STAT_IN_MAX}.` }));
   for (const [k, l] of [["age", "Возраст"], ["height", "Рост"], ["weight", "Вес"]]) {
-    if (d[k] !== "" && !(parseInt(d[k], 10) > 0)) errs.push({ f: k, m: `${l}: положительное число или пусто.` });
+    if (d[k] !== "" && !(parseInt(d[k], 10) > 0 && parseInt(d[k], 10) <= DRAFT_MAX[k])) errs.push({ f: k, m: `${l}: от 1 до ${DRAFT_MAX[k]} или пусто.` });
   }
   return errs;
 }
@@ -3436,7 +3439,7 @@ function finishDraft() {
   if (forge.errors.length) { renderForge(); return; }
   const d = forge.draft, num = v => (parseInt(v, 10) > 0 ? parseInt(v, 10) : null);
   const c = {
-    id: "c" + Date.now().toString(36), name: d.name.trim(), race: d.race, gender: d.gender, level: 1,
+    id: "c" + Date.now().toString(36), name: d.name.trim().slice(0, NAME_MAX), race: d.race, gender: d.gender, level: 1,
     age: num(d.age), height: num(d.height), weight: num(d.weight),
     base: Object.fromEntries(STAT_KEYS.map(k => [k, parseInt(d.base[k], 10)])),
     essences: [], giantGrip: false, kit: true,
@@ -3521,7 +3524,12 @@ $forge.addEventListener("click", e => {
 $forge.addEventListener("input", e => {
   const t = e.target;
   if (!forge.draft) return;
-  if (t.dataset.draft) { forge.draft[t.dataset.draft] = t.value; t.classList.remove("bad"); }
+  if (t.dataset.draft) {
+    const k = t.dataset.draft;
+    if (k === "name" && t.value.length > NAME_MAX) t.value = t.value.slice(0, NAME_MAX);
+    if (DRAFT_MAX[k] && parseInt(t.value, 10) > DRAFT_MAX[k]) t.value = String(DRAFT_MAX[k]);          // больше предела ввести нельзя
+    forge.draft[k] = t.value; t.classList.remove("bad");
+  }
   if (t.dataset.draftStat) {
     const k = t.dataset.draftStat;
     if (parseInt(t.value, 10) > STAT_IN_MAX) t.value = String(STAT_IN_MAX);          // больше, чем дают кубики (3×6), ввести нельзя
@@ -3597,7 +3605,7 @@ function renderTown() {
       const gate = b.id === "gate", locked = !gate && !open, gi = gate ? gateInfo() : null, soon = !!b.soon;
       return `<button class="bld fx-frame${gate ? " gate" : ""}${locked ? " locked" : ""}${gate && !gi.open ? " shut" : ""}" data-bld="${b.id}"${locked ? ' aria-disabled="true"' : ""} aria-label="${b.name}${locked ? ": закрыто" : ""}">
         <div class="art">${bldArt(b.shape)}${locked ? `<span class="lock">${LOCK}</span>` : ""}</div>
-        <b>${b.name}</b>${gate && open ? `<small class="gate-st">${gi.open ? "открыт сейчас" : "закрыт: ещё " + gi.left + " д."}</small>` : ""}${soon && open ? `<small class="gate-st">скоро</small>` : ""}
+        <b class="fit-w">${b.name}</b>${gate && open ? `<small class="gate-st">${gi.open ? "открыт сейчас" : "закрыт: ещё " + gi.left + " д."}</small>` : ""}${soon && open ? `<small class="gate-st">скоро</small>` : ""}
       </button>`; }).join("")}
     </div>
     <p class="town-note">${open ? `Врата лабиринта открываются на одно городское действие после пяти закрытых: ${gateInfo().open ? "сейчас открыты." : "ждите."} Каждое посещение здания с результатом — одно действие.` : "Остальные места откроются после первого захода в лабиринт."}</p>
@@ -5810,7 +5818,7 @@ function charBars(c) {
   if (ld.level !== "ok") deb.push(LOAD_TEXT[ld.level].split(":")[0] + (ld.noRun ? ", бег невозможен" : ""));
   else if (ld.noRun) deb.push("Перегруз: бег невозможен");
   return `<article class="pc fx-frame" data-hero="${c.id}" aria-label="${esc(c.name)}: удерживай, чтобы открыть меню">
-    <div class="nm">${esc(c.name)}</div>
+    <div class="nm fit-1">${esc(c.name)}</div>
     ${hpMeter(c)}${mpMeter(c)}
     <div class="meter"><span>Голод</span><div class="bar" title="${hungry ? "без еды" : "сыт"}"><i class="${satW < .34 ? "low" : ""}" style="width:${Math.round(satW * 100)}%"></i></div></div>
     <div class="meter"><span>Сон</span><div class="bar"><i class="${sleepW < .34 ? "low" : ""}" style="width:${Math.round(sleepW * 100)}%"></i></div></div>
@@ -6491,7 +6499,7 @@ document.addEventListener("click", e => {
 function townCard(c) {
   const ld = load(c);
   return `<article class="pc fx-frame" data-hero="${c.id}" aria-label="${esc(c.name)}: удерживай, чтобы открыть меню">
-    <div class="nm">${esc(c.name)}</div>
+    <div class="nm fit-1">${esc(c.name)}</div>
     <div class="sub">${raceById(c.race).name} · ${c.level} ур.</div>
     ${hpMeter(c)}${mpMeter(c)}
     <div class="meter"><span>Груз</span><div class="bar"><i class="${ld.level !== "ok" ? "low" : ""}" style="width:${Math.min(100, Math.round(ld.w / ld.cap * 100))}%"></i></div></div>
@@ -6738,7 +6746,7 @@ function renderHero() { try { window.__heroSig = JSON.stringify(heroById(heroUi.
   const race = raceById(c.race);
   $hero.innerHTML = `<div class="hero-panel fx-frame">
     <div class="hero-head"><div class="ph">${phPortrait(race, c.gender)}</div>
-      <div class="grow"><h3>${esc(c.name)}</h3><small>${race.name} · ${c.level} уровень</small></div>
+      <div class="grow"><h3 class="fit-1">${esc(c.name)}</h3><small>${race.name} · ${c.level} уровень</small></div>
       <button class="fx-btn" data-hx="close" aria-label="Закрыть меню героя" style="width:42px;height:42px;padding:0;display:grid;place-items:center">${ICO_X}</button></div>
     <div class="hero-tabs" role="tablist">
       <button class="fx-btn" role="tab" data-hx="tab" data-tab-to="stats" aria-selected="${heroUi.tab === "stats"}">Данные</button>
@@ -7488,6 +7496,18 @@ function loadSave(id) {
   setTimeout(() => toast("Загружено: " + sv.name), 50);
 }
 // Начать с нуля: текущая игра сохраняется в слот «Партия до сброса» (её можно загрузить обратно), потом всё стирается — отряд, город, библиотека, инвентарь.
+/* ----- подгон текста: имена в одну строку, слова не рвутся (решение автора 01.11: меню не должны «смыкаться» при длинном имени) ----- */
+function fitText(root = document) {
+  for (const el of root.querySelectorAll(".fit-1, .fit-w")) {
+    if (!el.getClientRects().length) continue;
+    el.style.fontSize = ""; const base = parseFloat(getComputedStyle(el).fontSize); let sz = base;
+    for (let i = 0; i < 14 && el.scrollWidth > el.clientWidth + 1 && sz > base * 0.5; i++) { sz *= 0.92; el.style.fontSize = sz.toFixed(1) + "px"; }
+  }
+}
+(() => { let q = 0, t = 0; const run = () => { q = 0; try { fitText(); } catch (e) {} };
+  const kick = () => { if (!q) q = requestAnimationFrame(run); clearTimeout(t); t = setTimeout(run, 350); };          // второй проход — после подгрузки шрифтов и картинок
+  new MutationObserver(kick).observe(document.body, { childList: true, subtree: true });
+  addEventListener("resize", kick); if (document.fonts && document.fonts.ready) document.fonts.ready.then(kick); })();
 /* ----- конец игры: погиб весь отряд (решение автора 01.11) ----- */
 function gameOverCheck() {
   if (typeof isMaster === "function" && !isMaster()) return false;
