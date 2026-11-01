@@ -247,7 +247,7 @@ const L = require('./bui_lib.js');
     const got = {}; for (const [k, it] of Object.entries(plan.stones)) got[it.cls] = (got[it.cls] || 0) + it.n;          // камни теперь — случайные камни монстров класса
     return { fresh: plan.fresh, xp: plan.xp, wins: plan.wins.length, exp, got, ess: g.reduce((a, t) => a + t.ess.length, 0) };
   });
-  ok('награды: опыт один раз за класс путников', RW.fresh.length === 1 && RW.fresh[0] === 'tcls-7' && RW.xp === 3, JSON.stringify(RW));
+  ok('награды: за путников опыта нет', RW.fresh.length === 0 && RW.xp === 0, JSON.stringify(RW));
   ok('награды: эссенции путников НЕ выпадают', RW.wins === 0 && RW.ess >= 2, JSON.stringify(RW));
   ok('награды: кристаллы по формуле (враги × уровни × классы эссенций)', JSON.stringify(RW.exp) === JSON.stringify(RW.got), JSON.stringify(RW));
   const CF = await p.evaluate(() => {
