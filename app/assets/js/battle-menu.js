@@ -62,8 +62,8 @@
       return;
     }
     // чужой ход; выбор, начатый до меню хода (вынырнуть из-под земли в начале хода), тоже показывает подсказку и кнопки
-    const cu = B.currentUnit();
-    p.innerHTML = (cu ? unitCard(cu) : "") + (UI.pick ? pickPromptHtml() : `<div class="bt-ticker">${(S.log.slice(-5)).reverse().map(l => `<p class="${l.c}">${esc(l.t)}</p>`).join("")}</div>`);
+    const cu = B.currentUnit(), cuHidden = cu && cu.side === "mon" && (S.phase !== "fight" || S.hideMons || B.isUnseen(cu) || (B.seenByParty && !B.seenByParty(cu)));          // невидимого или ещё не расставленного врага игрок не видит
+    p.innerHTML = (cu && !cuHidden ? unitCard(cu) : "") + (UI.pick ? pickPromptHtml() : `<div class="bt-ticker">${(S.log.slice(-5)).reverse().map(l => `<p class="${l.c}">${esc(l.t)}</p>`).join("")}</div>`);
   };
   // Подсказка выбора цели/клетки/пути с кнопками «Отмена» и «Готово».
   const pickPromptHtml = () => `<div class="bt-prompt"><p>${esc(UI.pick.prompt || "")}</p><div class="btns">${UI.pick.extraBtns || ""}<button class="fx-btn" data-ba="pick-cancel">Отмена</button>${UI.pick.confirmable ? `<button class="fx-btn primary" data-ba="pick-ok"${UI.pick.canOk ? "" : " disabled"}>${esc(UI.pick.okLabel || "Готово")}</button>` : ""}</div></div>`;
@@ -245,7 +245,7 @@
       if (k === "autoend" && S.opts.autoEnd && UI.turnUnit && UI.mode === "hero" && !UI.busy && !UI.pick && B.turnSpent(UI.turnUnit)) { hideModal(); endTurn(); return; }
       if (k === "auto") { S.opts.autoHeroes = !S.opts.autoHeroes; if (S.opts.autoHeroes && UI.endTurn) { hideModal(); endTurn(); return; } }
       if (k === "legacy") { hideModal(); if (await UI.confirm({ title: "Обычный экран боя", text: "Поле закроется: останутся порядок ходов и кнопки «Победа», «Бег», «Монстры убегают». Уже убитых монстров и потери ОЗ сохраним.", yes: "Перейти" })) { B.abort(); if (UI.endTurn) endTurn(); } return; }
-      if (k === "gm") { hideModal(); const r = await UI.choose({ title: "Завершить бой как…", options: [{ id: "win", label: "Победа (монстры повержены)" }, { id: "flee", label: "Отряд отступил" }, { id: "retreat", label: "Монстры убежали" }] }); if (r) { S.outcome = r; if (r === "win") B.mons().forEach(mm => { if (mm.alive) { mm.alive = false; mm.hp = 0; S.killed.push(mm.idx); } }); endTurn(); } return; }
+      if (k === "gm") { hideModal(); const r = await UI.choose({ title: "Завершить бой как…", options: [{ id: "win", label: "Победа (монстры повержены)" }, { id: "flee", label: "Отряд отступил" }, { id: "retreat", label: "Монстры убежали" }] }); if (r) { S.outcome = r; if (r === "win") B.mons().forEach(mm => { if (mm.alive) { mm.alive = false; mm.hp = 0; if (!mm.summon && mm.idx >= 0 && S.ev.list[mm.idx]) S.killed.push(mm.idx); } }); endTurn(); } return; }
       UI.refreshNow(); UI.menu();
     };
   };

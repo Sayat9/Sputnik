@@ -43,10 +43,14 @@ const URL = 'http://localhost:8765/index.html';
   const insp = await c2.evaluate(() => { const m = Battle.mons()[0]; Battle.UI.inspect(m); const t = document.querySelector('.bt-modal').textContent; document.querySelector('.bt-modal').hidden = true; return t; });
   ok('в окне монстра у игрока нет КД и эссенции', !/КД\s*\d/.test(insp) && !/\(П\)|\(А\)/.test(insp), insp.slice(0, 160));
   // чужой бросок виден зрителю
-  await c1.evaluate(() => Battle.Net.emit({ sid: 'tst', who: 'Аргон', side: 'hero', title: 'Бросок атаки', sub: 'Аргон → Гоблин', k: 'res', total: 17, nat: 12 }));
-  await c2.waitForTimeout(500);
-  ok('зритель видит чужой бросок', await c2.evaluate(() => { const e = document.getElementById('bnwatch'); return !!e && !e.hidden && /17/.test(e.textContent); }));
-  ok('ведущий тоже видит бросок игрока', await h.evaluate(() => { const e = document.getElementById('bnwatch'); return !!e && /17/.test(e.textContent); }));
+  await c1.evaluate(() => { const m = { sid: 'tst', who: 'Аргон', side: 'hero', title: 'Бросок атаки', sub: 'Аргон → Гоблин' }; Battle.Net.emit({ ...m, k: 'start', label: 'Бросок атаки', spec: { kind: 'd20', mods: [{ l: 'Бонус атаки', v: 5 }] } }); setTimeout(() => Battle.Net.emit({ ...m, k: 'res', kind: 'd20', total: 17, nat: 12, sum: 5, vals: [12] }), 300); });
+  await c2.waitForTimeout(400);
+  ok('зритель видит окно с кубиком, пока игрок бросает', await c2.evaluate(() => !!document.querySelector('.bd-ov.watch:not(.out) canvas')));
+  await c2.waitForTimeout(3200);
+  const seen = async pg => pg.evaluate(() => { const o = document.querySelector('.bd-ov.watch:not(.out)'); return o ? o.querySelector('.bd-res').textContent : ''; });
+  const c2t = await seen(c2), ht = await seen(h);
+  ok('зритель видит, что выпало (12 + 5 = 17)', /12/.test(c2t) && /17/.test(c2t), c2t);
+  ok('ведущий тоже видит бросок игрока с кубиками', /17/.test(ht), ht);
   // сводка спасбросков: перебросить может только владелец
   await h.evaluate(() => { const hs = Battle.heroes().filter(u => u.hero && u.hero.owner); window.sumP = Battle.massSave([hs[0], hs[1]], 'dex', 40, { title: 'Тест-сводка' }); });
   await c1.waitForTimeout(800);

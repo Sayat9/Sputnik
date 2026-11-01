@@ -131,10 +131,16 @@
   BN.watch = function (u, meta, ses) {
     if (!ses || !(hostOn() || clientOn())) return ses;
     const sid = N.rid(5), ex = hostOn() ? ownerPid(u) : null;
-    const send = m => BN.emit({ sid, who: u.name, side: u.side, title: meta.title, sub: meta.sub, ...m }, ex);
+    const send = m => BN.emit({ sid, who: u.name, uid: u.id, side: u.side, title: meta.title, sub: meta.sub, ...m }, ex);
     const out = Object.assign({}, ses);
-    out.d20 = async o => { send({ k: "start", label: o.label }); const r = await ses.d20(o); if (r) send({ k: "res", total: r.total, nat: r.nat, label: o.label }); return r; };
-    out.dice = async o => { send({ k: "start", label: o.label }); const r = await ses.dice(o); if (r) send({ k: "res", total: r.total, label: o.label }); return r; };
+    const plain = a => (a || []).map(x => (typeof x === "string" ? x : x && x.l != null ? { l: x.l, v: x.v } : String(x)));          // для показа: только подписи и числа
+    out.d20 = async o => {
+      const dual = (o.adv || []).length && !(o.dis || []).length ? "adv" : (o.dis || []).length && !(o.adv || []).length ? "dis" : null;
+      send({ k: "start", label: o.label, spec: { kind: "d20", dual, mods: plain(o.mods), adv: plain(o.adv), dis: plain(o.dis), save: !!o.save } });
+      const r = await ses.d20(o); if (r) send({ k: "res", total: r.total, nat: r.nat, vals: r.dice || [r.nat], sum: r.sum, kind: "d20", label: o.label }); return r; };
+    out.dice = async o => {
+      send({ k: "start", label: o.label, spec: { kind: "dmg", n: o.n, s: o.s, bonus: o.bonus || 0, heal: !!o.heal } });
+      const r = await ses.dice(o); if (r) send({ k: "res", total: r.total != null ? r.total : (r.sum || 0) + (o.bonus || 0), vals: r.rolls || [], bonus: o.bonus || 0, kind: "dmg", label: o.label }); return r; };
     out.finish = async o => { const r = await ses.finish(o); send({ k: "fin", text: o && o.text, ok: o && o.ok }); return r; };
     out.close = () => { try { ses.close(); } finally { send({ k: "end" }); } };
     return out;
@@ -146,9 +152,30 @@
     wEl.style.cssText = "position:fixed;left:50%;top:58px;transform:translateX(-50%);z-index:9300;width:min(92vw,380px);padding:14px 16px;border-width:2px;border-radius:12px;background:rgba(20,14,8,.94);border:1px solid #6e5634;color:#f4e8cc;text-align:center;pointer-events:none;box-shadow:0 6px 24px rgba(0,0,0,.5);font:14px/1.35 inherit";
     document.body.appendChild(wEl); return wEl;
   }
+  // Окна чужих бросков с кубиками (B.Dice.watch); если нельзя — прежняя плашка с числом.
+  const W = {};
+  const wClose = (sid, ms) => { const w = W[sid]; if (!w) return; clearTimeout(w.t); w.t = setTimeout(() => { if (W[sid] === w) { w.v.close(); delete W[sid]; } }, ms); };
+  function showDice(m) {
+    if (!B.Dice || !B.Dice.watch) return false;
+    let w = W[m.sid];
+    if (m.k === "start") {
+      if (!w) { const v = B.Dice.watch({ title: `${m.side === "hero" ? "" : "Враг: "}${m.who || ""} — ${m.title || "бросок"}`, sub: m.label || m.sub || "", att: B.byId && B.byId(m.uid) }); if (!v) return false; w = W[m.sid] = { v, q: Promise.resolve(), t: 0 }; }
+      clearTimeout(w.t); w.q = w.q.then(() => w.v.start(m.spec || { kind: "d20" })); wClose(m.sid, 20000); return true;
+    }
+    if (!w) return m.k !== "res";          // результат без окна — покажем плашкой
+    if (m.k === "res") {
+      const html = m.kind === "d20" ? `<b class="n">${m.nat}</b> ${m.sum ? (m.sum > 0 ? "+" : "−") + " " + Math.abs(m.sum) : ""} = <b class="t">${m.total}</b>${m.nat === 20 ? " — двадцать!" : m.nat === 1 ? " — единица" : ""}`
+        : `${(m.vals || []).join(" + ")}${m.bonus ? ` ${m.bonus > 0 ? "+" : "−"} ${Math.abs(m.bonus)}` : ""} = <b class="t">${m.total}</b>`;
+      w.q = w.q.then(() => w.v.roll(m.vals || [], html, m.nat === 20 ? "ok" : m.nat === 1 ? "bad" : "")); wClose(m.sid, 20000); return true;
+    }
+    if (m.k === "fin") { w.q = w.q.then(() => { w.v.text(m.text, m.ok === false ? "bad" : "ok"); wClose(m.sid, 1800); }); return true; }
+    if (m.k === "end") { w.q = w.q.then(() => wClose(m.sid, 1400)); return true; }
+    return false;
+  }
   BN.show = function (m) {
     if (!m || !B.UI || !B.UI.active) return;
     if (m.k === "sum" || m.k === "sumend") return BN.showSum(m);
+    if (showDice(m)) { if (wEl) wEl.hidden = true; return; }
     if (m.k === "end") return;
     const el = watchBox(); el.hidden = false;
     const head = `<small style="opacity:.75">${m.side === "hero" ? "Герой" : "Враг"}: ${esc(m.who || "")}</small><br><b>${esc(m.title || "Бросок")}</b>${m.sub ? `<br><small>${esc(m.sub)}</small>` : ""}`;

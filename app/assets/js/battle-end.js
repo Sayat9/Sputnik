@@ -44,7 +44,7 @@
   }
 
   function rewardsPlan(S, outcome) {
-    const ev = S.ev, killed = S.killed.slice(), species = killed.map(i => ev.list[i]);
+    const ev = S.ev, killed = [...new Set(S.killed)].filter(i => i >= 0 && ev.list[i]), species = killed.map(i => ev.list[i]);
     const fresh = [...new Set(species.map(xpKeyOf))].filter(id => !/^tcls-/.test(id) && !(journal().known[id] && journal().known[id].xpDone));          // путники опыта не дают (решение автора 01.11)          // путники — опыт каждый раз          // путники: опыт по классу (trav-9/8/7), а не за каждого
     const xp = fresh.reduce((a, id) => a + monXp(xpInfo(id)), 0);
     const stones = {};                                                                  // камни по видам монстров: id → { cls, n }, они идут в сумку для камней

@@ -453,6 +453,7 @@
   Dice.session = function (u, meta) {
     const st = (typeof state !== "undefined" && state && state.settings) || {};
     if (st.skipDice && window.Battle && Battle.autoSession) return Battle.autoSession(u, meta);          // настройка «Пропускать броски»: сразу результат
+    if (watchSh && !watchSh.closed) { closeSheet(watchSh); watchSh = null; }          // свой бросок важнее чужого
     const sh = createSheet(u, meta); if (meta && meta.autoPlay) { sh.autoPlay = true; sh.root.classList.add("autoplay"); }
     const cleanup = () => { if (sh.cancelStep) sh.cancelStep = null; };
     return {
@@ -482,6 +483,36 @@
         closeSheet(sh);
       },
       close() { closeSheet(sh); },
+    };
+  };
+  // Онлайн: окно чужого броска (другой игрок или монстр). Те же кубики, но падают гранями, которые выпали у бросающего.
+  let watchSh = null;
+  Dice.watch = function (meta) {
+    if (current && current !== watchSh) return null;                                   // у зрителя открыт свой бросок — тогда только текстовая плашка
+    if (watchSh && !watchSh.closed) closeSheet(watchSh);
+    const sh = createSheet(meta.att || null, meta); watchSh = sh; sh.committed = true; sh.root.classList.add("autoplay", "watch");
+    const $ = sh.$; $(".bd-x").hidden = true; $(".bd-row").hidden = true; $(".bd-hint").textContent = "бросает…";
+    return {
+      get closed() { return sh.closed; },
+      start(o) {
+        if (sh.closed) return;
+        const pal = o.kind === "dmg" ? (o.heal ? "green" : "blood") : (o.save ? "azure" : "ivory");
+        const list = o.kind === "d20" ? (o.dual ? [{ s: 20, pal }, { s: 20, pal }] : [{ s: 20, pal }]) : Array.from({ length: Math.max(1, o.n || 1) }, () => ({ s: o.s || 6, pal }));
+        $(".bd-chips").innerHTML = o.kind === "d20" ? chipsHtml(o.mods, o.adv, o.dis) : `<span class="bd-chip">${o.n}к${o.s}${o.bonus ? " " + sg(o.bonus) : ""}</span>`;
+        $(".bd-res").innerHTML = ""; $(".bd-res").className = "bd-res"; $(".bd-hint").classList.remove("off"); $(".bd-arena").classList.remove("small");
+        sh.arena.setDice(list); sh.arena.enabled = false; sh.arena.draw();
+      },
+      roll(vals, html, cls) {
+        if (sh.closed) return Promise.resolve();
+        return new Promise(res => {
+          let done = false; const fin = () => { if (done) return; done = true; if (!sh.closed) { $(".bd-res").innerHTML = html; $(".bd-res").className = "bd-res " + (cls || ""); } res(); };
+          (sh.arena.bodies || []).forEach((b, i) => { b.state = "idle"; b.pre = vals[i] != null ? vals[i] : null; });
+          $(".bd-hint").classList.add("off"); sh.onSettle = fin; sh.arena.throwAll();
+          setTimeout(() => { if (!sh.closed && !done) sh.arena.forceSettle(); fin(); }, 2600);
+        });
+      },
+      text(t, cls) { if (sh.closed) return; $(".bd-res").innerHTML = esc(t || ""); $(".bd-res").className = "bd-res " + (cls || ""); },
+      close() { closeSheet(sh); if (watchSh === sh) watchSh = null; },
     };
   };
   // Крестик в шапке: отмена до броска.

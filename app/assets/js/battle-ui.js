@@ -367,7 +367,7 @@
   // Онлайн: расстановка по очереди инициативы — на поле двигается только герой, чья очередь; «Готово» передаёт очередь дальше.
   UI.placeOne = function (u) {
     return new Promise(resolve => {
-      const S = B.S; S.hideMons = true; if (!UI.built) build(S);
+      const S = B.S; S.hideMons = !S.ambush && !S.heroAmbush; if (!UI.built) build(S);          // засада отряда: враги видны и при расстановке по очереди
       UI.mode = "place"; UI.placeSel = u.id; UI.placeOnly = u.id;
       UI.panelPlace = { ambush: false, done: () => { UI.placeOnly = null; UI.panelPlace = null; UI.mode = "idle"; UI.setHl(new Map()); if (UI.renderPanel) UI.renderPanel(); resolve(); } }; UI.paintPlace(); UI.refreshNow(); if (UI.renderPanel) UI.renderPanel();
       UI.banner(`Расстановка: ${u.name}`, 2200);

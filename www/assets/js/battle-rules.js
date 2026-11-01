@@ -79,6 +79,7 @@
     const S = B.S; if (!u.alive) return;
     u.alive = false; setHp(u, 0);
     if (u.summon) log(`${u.name} ${u.kind === "double" ? "рассеивается" : "гибнет"}.`, "kill");
+    else if (u.side === "mon" && !(u.idx >= 0 && S.ev && S.ev.list && S.ev.list[u.idx])) log(`${u.name} гибнет.`, "kill");          // не из списка встречи (призванный, выскочивший мимик) — наград не даёт
     else if (u.side === "mon") { S.killed.push(u.idx); (S.killedBy ||= {})[u.idx] = (() => { const k = by && by.summon && by.owner ? B.byId(by.owner) : by; return k && k.hero ? (typeof k.hero === "object" ? k.hero.id : k.hero) : null; })(); log(`${u.name} убит.`, "kill"); }          // кто добил: герой или его призванное существо (засчитывается хозяину)
     else { u.dead = true; u.down = true; if (u.hero) u.hero.dead = true; log(`${u.name} погибает.`, "bad"); }
     if (B.onDown) B.onDown(u, true);                                                // тела павших, двойники и зоны хозяина, концентрация
