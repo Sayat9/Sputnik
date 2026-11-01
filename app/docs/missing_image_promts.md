@@ -174,26 +174,6 @@
 
 > `a pair of worn bone dice with chipped corners and faded pips, one showing a tiny glint of amber inside, resting on a small leather pouch, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
 
-### Сапоги скороходы — `boots`
-
-> `a pair of sturdy travel boots of supple brown leather with small silver wing motifs along the ankles and a faint pale-blue gust swirling around the soles, scuffed toes and worn laces, resting on a small cloth, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
-
-### Экстракт попутного ветра — `wind`
-
-> `a small corked glass vial filled with swirling pale-blue and white mist like a tiny captive breeze, a worn leather cord and a hand-written paper tag around the neck, resting on a small cloth, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
-
-### Точильный камень — `whetstone`
-
-> `a long smooth whetstone with a faint silver sheen and a few glowing runes along its edge, worn hollow in the middle by long use, lying on a folded cloth, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
-
-### Молот Дедала — `daedalus-hammer`
-
-> `a compact smith's hammer with a bronze head engraved with a tiny labyrinth pattern and a dark wooden haft wrapped in worn leather, a few sparks of faint golden light floating around the head, resting against a small anvil block, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
-
-### Амулет несокрушимости — `unbreakable-charm`
-
-> `an old iron amulet on a thick chain: a scratched round shield-shaped medallion with a tiny diamond set in the middle, dull but unbroken, resting on a small cloth, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
-
 ### Амулет починки — `repair-charm`
 
 > `a small bronze amulet on a cord shaped like a crossed hammer and needle, green patina and a faint warm glow, resting on a small cloth, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
