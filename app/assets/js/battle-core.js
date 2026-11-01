@@ -409,11 +409,16 @@
   // Номер у одинаковых монстров появляется, когда отряд увидел хотя бы двоих; потом не пропадает.
   B.syncNames = function () {
     const S = B.S; if (!S) return; const by = {};
-    for (const m of S.units) if (m.side === "mon" && m.numName) (by[m.ref] ||= []).push(m);
+    for (const m of S.units) {
+      if (m.side !== "mon") continue;
+      if (!m.numName && m.summon && m.base && m.name !== m.base) m.numName = m.name;          // призванные (крысы, вороны) зовутся «Крыса 4» — номер тоже прячем
+      if (m.numName) (by[m.ref] ||= []).push(m);
+    }
     for (const g of Object.values(by)) {
-      const vis = S.phase === "fight" ? g.filter(m => !m.dead && m.alive !== false && !B.isUnseen(m) && seenByParty(m)) : [];
-      if (vis.length >= 2) vis.forEach(m => { m.named = true; });
-      for (const m of g) m.name = m.named || S.phase === "result" ? m.numName : m.base;
+      // номер виден, только пока отряд видит сразу двоих и больше такого вида (решение автора); в итоге боя — у всех
+      const vis = S.phase === "fight" ? g.filter(m => !m.dead && m.alive !== false && !m.fled && !B.isUnseen(m) && seenByParty(m)) : [];
+      const show = vis.length >= 2;
+      for (const m of g) m.name = S.phase === "result" || (show && vis.includes(m)) ? m.numName : m.base;
     }
   };
   Object.assign(B, { meleeReach, center, lineCells, coverBetween, lineBlocked, hasLOS, sightBlockAt });

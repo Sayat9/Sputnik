@@ -141,7 +141,10 @@
       await sleep(120);
       let ok = plan.wins.length > 0, rollShown = ok ? plan.wins.reduce((a, b) => (a.r >= b.r ? a : b)) : plan.best, show = rollShown.r;
       const reveal = async () => {
-        if (!B.cfg.fast) await B.Dice.spinReveal(cv, digits(show), { stops: [1500, 2700], glow: ok, glowColor: "#ffe27a" });
+        if (!B.cfg.fast) {
+          const sk = document.createElement("button"); sk.className = "fx-btn bt-rskip"; sk.type = "button"; sk.textContent = "Пропустить"; sk.onclick = () => { if (cv._skip) cv._skip(); sk.remove(); }; roll.insertBefore(sk, resEl);
+          await B.Dice.spinReveal(cv, digits(show), { stops: [1500, 2700], glow: ok, glowColor: "#ffe27a" }); sk.remove();
+        }
         const luckNote = rollShown && rollShown.bonus ? ` <small>(выпало ${rollShown.base}, Удача новичка +${rollShown.bonus})</small>` : "";
         resEl.innerHTML = ok && rollShown.trav ? `<b class="ok">✦</b> — путник нёс с собой эссенцию!` : ok ? `<b class="ok">${String(show).padStart(2, "0") === "00" ? 100 : show}</b> — выпала эссенция!${luckNote}` : `<b>${show}</b> — эссенция не выпала${luckNote}`;
         resEl.className = "bt-roll-res " + (ok ? "ok" : "no");

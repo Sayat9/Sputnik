@@ -7,6 +7,6 @@ const L = require('./bui_lib.js');
  const R = [], ok = (n, c, x) => { R.push(!!c); if (!c) console.log('  ✗', n, JSON.stringify(x)); };
  ok('виден один: без номера', o.one === 'Гоблин', o);
  ok('виден двое: с номерами', /Гоблин 1/.test(o.two[0]) && /Гоблин 2/.test(o.two[1]), o.two);
- ok('номер не пропадает', /Гоблин 1/.test(o.stay), o.stay);
+ ok('второй ушёл из виду — номер снова скрыт', o.stay === 'Гоблин', o.stay);
  ok('в итоге у всех номера', /Гоблин 3/.test(o.res), o.res); ok('ошибок нет', !errs.length, errs);
  console.log('проверок:', R.length, 'не прошли:', R.filter(x => !x).length); await b.close(); process.exit(R.every(Boolean) ? 0 : 1); })().catch(e => { console.error(e.message); process.exit(2); });

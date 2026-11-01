@@ -359,3 +359,4 @@ body.bt-active .dice-fab { display: none; }
 .bt-dlg.insp ul { padding-left: 16px; margin: 4px 0; }
 .bt-dlg.insp .bt-ihead { min-width: 0; } .bt-dlg.insp .bt-ihead h4 { overflow-wrap: anywhere; min-width: 0; }
 .bt-istats, .bt-iabil { gap: 4px 10px; } .bt-istats span, .bt-iabil span { min-width: 0; white-space: normal; }
+.bt-rskip { padding: 6px 14px; font-size: 13px; }

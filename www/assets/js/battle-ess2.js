@@ -1283,7 +1283,7 @@
   /* ===================== Лес гоблинов: крысы, крысиный король, гоблин-крысолов (черновик campaign/drafts.md) ===================== */
   const ratsOf = o => B.summonsOf(o).filter(s => s.kind === "rat");
   function spawnRat(owner, cell) {
-    const S = B.S, w = B.monUnit("rat", -1); S.ratSeq = (S.ratSeq || 0) + 1;
+    const S = B.S, w = B.monUnit("rat", -1); S.ratSeq = Math.max((S.ratSeq || 0), S.units.filter(x => x.ref === "rat").length) + 1;          // номер после крыс из списка встречи
     Object.assign(w, { summon: true, kind: "rat", owner: owner.id, side: owner.side, idx: null, ess: [], pass: ["body:rat"], auto: true, name: "Крыса " + S.ratSeq, base: "Крыса" });          // auto: призванные крысы ходят сами (ИИ), игрок их не водит
     w.ai = Object.assign({}, w.ai, { noFlee: true, fleeHp: null, morale: null, role: "swarm", focus: ["nearest", "weak"] });
     w.x = cell[0]; w.y = cell[1]; B.addUnit(w, owner.id); return w;

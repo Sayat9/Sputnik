@@ -419,6 +419,7 @@
       sh.onSettle = vals => finishRoll(vals);
       skipBtn.onclick = () => { if (settled) return; sh.committed = true; xBtn.hidden = true; $(".bd-hint").classList.add("off"); rollBtn.disabled = true; arena.forceSettle(); };
       if (sh.autoPlay) { sh.committed = true; xBtn.hidden = true; $(".bd-hint").classList.add("off"); setTimeout(() => { if (!sh.closed && !settled && arena.anyIdle()) arena.throwAll(); }, 320); }
+      else if (sh.quick) { rollBtn.hidden = true; setTimeout(() => { if (!sh.closed && !settled) skipBtn.onclick(); }, 0); }
       rollBtn.onclick = () => { if (!arena.anyIdle()) return; sh.committed = true; xBtn.hidden = true; $(".bd-hint").classList.add("off"); arena.throwAll(); rollBtn.disabled = true; };
       rrBtn.onclick = () => {
         if (rrBtn.disabled || !rerolls.length) return;
@@ -426,6 +427,7 @@
         prev = o.kind === "d20" ? (sh.last ? sh.last.nat : null) : (lastVals ? lastVals.reduce((a, v) => a + v, 0) : null);
         settled = false; $(".bd-ok").hidden = true; $(".bd-res").innerHTML = ""; updReroll();
         arena.setDice(diceList); arena.enabled = false; arena.throwAll(); rollBtn.disabled = true; skipBtn.hidden = false; skipBtn.disabled = false;          // после переброса анимацию тоже можно пропустить
+        if (sh.quick) arena.forceSettle();
       };
     });
   }
@@ -452,9 +454,9 @@
 
   Dice.session = function (u, meta) {
     const st = (typeof state !== "undefined" && state && state.settings) || {};
-    if (st.skipDice && window.Battle && Battle.autoSession) return Battle.autoSession(u, meta);          // настройка «Пропускать броски»: сразу результат
     if (watchSh && !watchSh.closed) { closeSheet(watchSh); watchSh = null; }          // свой бросок важнее чужого
     const sh = createSheet(u, meta); if (meta && meta.autoPlay) { sh.autoPlay = true; sh.root.classList.add("autoplay"); }
+    else if (st.skipDice) sh.quick = true;          // настройка «Пропускать броски»: кубики сразу ложатся, но окно с итогом и перебросом остаётся
     const cleanup = () => { if (sh.cancelStep) sh.cancelStep = null; };
     return {
       auto: false,
@@ -491,7 +493,11 @@
     if (current && current !== watchSh) return null;                                   // у зрителя открыт свой бросок — тогда только текстовая плашка
     if (watchSh && !watchSh.closed) closeSheet(watchSh);
     const sh = createSheet(meta.att || null, meta); watchSh = sh; sh.committed = true; sh.root.classList.add("autoplay", "watch");
-    const $ = sh.$; $(".bd-x").hidden = true; $(".bd-row").hidden = true; $(".bd-hint").textContent = "бросает…";
+    const $ = sh.$; $(".bd-x").hidden = true; $(".bd-hint").textContent = "бросает…";
+    // «Пропустить» чужой бросок: окно сразу закрывается (итог остаётся в журнале боя)
+    $(".bd-row").hidden = false; $(".bd-roll").hidden = true; $(".bd-reroll").hidden = true; $(".bd-ok").hidden = true;
+    const skip = $(".bd-skip"); skip.hidden = false; skip.disabled = false;
+    skip.onclick = () => { try { sh.arena.forceSettle(); } catch (e) {} closeSheet(sh); if (watchSh === sh) watchSh = null; };
     return {
       get closed() { return sh.closed; },
       start(o) {
@@ -527,8 +533,9 @@
   Dice.spinReveal = function (canvas, digits, o = {}) {
     const dpr = Math.min(2, window.devicePixelRatio || 1), r = canvas.getBoundingClientRect(), w = Math.max(220, r.width), h = Math.max(120, r.height);
     canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
-    const ctx = canvas.getContext("2d"), R = Math.min(46, w / 6), t0 = performance.now(), stops = o.stops || [1500, 2500], glowAll = o.glow;
-    const n = digits.length; let doneAt = null, raf = 0, alive = true, stoppedCount = 0;
+    const ctx = canvas.getContext("2d"), R = Math.min(46, w / 6), stops = o.stops || [1500, 2500], glowAll = o.glow;
+    const n = digits.length; let t0 = performance.now(), doneAt = null, raf = 0, alive = true, stoppedCount = 0;
+    canvas._skip = () => { t0 = performance.now() - Math.max(...stops) - 400; doneAt = -1e6; };          // «Пропустить»: кубики сразу встают на итог
     return new Promise(resolve => {
       const frame = now => {
         if (!alive) return;

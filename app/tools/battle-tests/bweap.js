@@ -50,7 +50,7 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
       T('щит разбит, КД упал', ok && m.ac <= 12, [m.shield, m.ac]); T('потрачено и доп. действие', u.t.bonus === 0); u.t.bonus = 0; u.t.action = 1; const o2 = Battle.actionsFor(u).find(o => o.id === 'atk:crush:greataxe'); T('без доп. действия крушить нельзя', o2 && !o2.enabled, o2 && o2.why); Battle.S = null; }
     // перчатки
     { const one = mkHero('gloves'), two = mkHero('gloves', 'gloves'), none = mkHero('mace'); const ac = c => derived(totals(c), c).ac;
-      T('перчатки: одна +1 КД, две +2 КД', ac(one) - ac(none) === 1 && ac(two) - ac(none) === 2, [ac(none), ac(one), ac(two)]);
+      T('перчатки: одна без КД, пара +2 КД', ac(one) - ac(none) === 0 && ac(two) - ac(none) === 2, [ac(none), ac(one), ac(two)]);
       const { u } = await setup('gloves', 'gloves'); T('блок кулаками в списке', !!Battle.actionsFor(u).find(o => o.id === 'fistblock'));
       await Battle.actionsFor(u).find(o => o.id === 'fistblock').run(); T('блок: статус', Battle.has(u, 'fistblock')); Battle.S = null;
       const { u: u1 } = await setup('gloves'); T('одна перчатка: блок есть', !!Battle.actionsFor(u1).find(o => o.id === 'fistblock'));

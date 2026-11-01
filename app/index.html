@@ -1110,7 +1110,7 @@ const WEAPONS = [
   // Оружие второй итерации (черновик, drafts.md → «Оружие — вторая итерация»).
   { id: "gloves", name: "Перчатки", group: "melee", kind: "Простое", dmg: "1к4", type: "дробящий", weight: 1, price: 10,
     props: ["Кастет", "Одна: +1 КД и «Блок кулаками»", "Две: +2 КД и урон 2к4"],
-    note: "Кожа с железными накладками на костяшках. Одна перчатка — оружие и чуть-чуть защиты (+1 КД) и действие «Блок кулаками»: до начала следующего хода урон ближних атак по вам снижается на 1к4 + Ловкость. В обеих руках — +2 КД, а удар кулаками наносит 2к4." },
+    note: "Кожа с железными накладками на костяшках. Одна перчатка — оружие и действие «Блок кулаками»; вторая рука свободна под щит или кинжал: до начала следующего хода урон ближних атак по вам снижается на 1к4 + Ловкость. В обеих руках — +2 КД, а удар кулаками наносит 2к4." },
   { id: "staff", name: "Посох", group: "melee", kind: "Простое", dmg: "1к4", type: "дробящий", weight: 2, price: 6,
     props: ["Двуручное", "Досягаемость 3 м (на 2-й клетке −2 к атаке)", "+1 к мане"],
     note: "Ясеневая жердь с железным оголовьем. Слабее копья, но на второй клетке бьёт с меньшим штрафом (−2 вместо помехи). Владельцу даёт +1 к максимуму маны." },
@@ -2611,8 +2611,8 @@ function derived(t, c = char) {
     if (armor && armor.kindOf === "armor") { ac -= 1; acSrc += " − 1 (гном)"; }
     if (hasShield) ac -= 1;
   }
-  const gl = (main && main.id === "gloves" ? 1 : 0) + (off && off.id === "gloves" ? 1 : 0);          // перчатки: одна +1 КД, две +2 КД
-  if (gl) { ac += gl; acSrc += ` + ${gl === 2 ? "две перчатки" : "перчатка"}`; }
+  const gl = (main && main.id === "gloves" ? 1 : 0) + (off && off.id === "gloves" ? 1 : 0);          // перчатки: КД даёт только пара (+2), одна — без КД (решение автора 01.11)
+  if (gl === 2) { ac += 2; acSrc += " + две перчатки"; }
   const ld = load(c, t);
   const warnings = [];
   if (armor && armor.str && t.str.total < armor.str) warnings.push(`Сила ${t.str.total} ниже ${armor.str}, нужной для доспеха «${armor.name}»: скорость −3 м.`);
@@ -2730,7 +2730,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 78;
+const BATTLE_REV = 79;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }
@@ -2811,7 +2811,13 @@ function sack() {
 // Камни без хозяина (находки, раскопки, сундуки, «20» и т. п.) — решение автора 31.10: каждый камень становится камнем случайного монстра того же класса с этого этажа.
 function stonePool(cls, fl) {
   const ok = x => !x.dyn && !x.draft && x.cls === cls;
-  let pool = fl ? MONSTERS.filter(x => ok(x) && x.floor === fl) : [];
+  let pool = [];
+  // Сначала монстры этого места, потом — той же зоны (на этаже элементалей — элементали), и только если таких нет — весь этаж
+  const r = state.run, here = fl && r && r.pos && curFloor() === fl;
+  if (here) { try { pool = tilePool(r.pos.x, r.pos.y).filter(ok); } catch (e) { pool = []; } }
+  if (!pool.length && here) { const zs = (zoneAt(r.pos.x, r.pos.y).zones || []).filter(Boolean);
+    if (zs.length) { pool = MONSTERS.filter(x => ok(x) && zs.includes(x.zone) && (x.floors || [x.floor]).includes(fl)); if (!pool.length) pool = MONSTERS.filter(x => ok(x) && zs.includes(x.zone) && x.floor <= fl); } }
+  if (!pool.length && fl) pool = MONSTERS.filter(x => ok(x) && x.floor === fl);
   if (!pool.length && fl) pool = MONSTERS.filter(x => ok(x) && x.floor <= fl);
   if (!pool.length) pool = MONSTERS.filter(ok);
   return pool;
@@ -3274,14 +3280,14 @@ function forgeWeapon() {
       </button>`; }).join("")}
     </div>
     ${(() => { const sh = WEAPONS.find(x => x.id === "shield"), block = w && (isTwoHandedWeapon(w) || w.group === "ranged") && !(d.race === "barbarian") && !(w.props || []).includes("Можно со щитом");
-      const bow = !!w && w.group === "ranged", light = bow, kn = !!w && d.knife && (bow || canTwinWeapon(w, d.race)), sec = WEAPONS.find(x => x.id === "dagger");          // пара оружия выбирается повторным нажатием на карточку; здесь — только кинжал к луку
-      return (light ? `<button class="race-card fx-frame shield-pick avail" data-fx-knife aria-pressed="${!!kn}">
-        <div class="wpn-art">${img(ART.weapon(sec.id), sec.name)}${kn ? `<span class="tick">${TICK}</span>` : ""}</div>
-        <div><h3>${bow ? "Кинжал" : w.id === "gloves" ? "Вторая перчатка" : w.id === "axe" ? "Второй топор" : isTwoHandedWeapon(w) ? "Второе двуручное" : "Второй клинок"} в левую руку</h3><div class="bonus-box"><div class="st">${sec.dmg} ${sec.type} · ${kgf(sec.weight)} кг</div>
-        <ul><li>${bow ? "Ближний бой, если враг вплотную; вместо щита" : w.id === "gloves" ? "Две перчатки: +2 КД, урон 2к4; вместо щита" : isTwoHandedWeapon(w) ? "Большой штраф: −6 к Ловкости (два двуручных)" : "Удар второй рукой — доп. действием; вместо щита"}</li></ul></div></div></button>` : "") + `<button class="race-card fx-frame shield-pick ${block || kn ? "dim" : "avail"}" data-fx-shield aria-pressed="${!!d.shield && !block && !kn}"${block || kn ? " disabled" : ""}>
-        <div class="wpn-art">${img(ART.weapon("shield"), sh.name)}${d.shield && !block && !kn ? `<span class="tick">${TICK}</span>` : ""}</div>
+      const bow = !!w && w.group === "ranged", gl1 = !!w && w.id === "gloves" && !d.knife, light = bow || gl1, kn = !!w && d.knife && (bow || canTwinWeapon(w, d.race)), dg = gl1 && !!d.dag, sec = WEAPONS.find(x => x.id === "dagger");          // одна перчатка: во вторую руку кинжал или щит          // пара оружия выбирается повторным нажатием на карточку; здесь — только кинжал к луку
+      return (light ? `<button class="race-card fx-frame shield-pick avail" data-fx-knife aria-pressed="${!!(kn || dg)}">
+        <div class="wpn-art">${img(ART.weapon(sec.id), sec.name)}${kn || dg ? `<span class="tick">${TICK}</span>` : ""}</div>
+        <div><h3>${bow || gl1 ? "Кинжал" : w.id === "gloves" ? "Вторая перчатка" : w.id === "axe" ? "Второй топор" : isTwoHandedWeapon(w) ? "Второе двуручное" : "Второй клинок"} в левую руку</h3><div class="bonus-box"><div class="st">${sec.dmg} ${sec.type} · ${kgf(sec.weight)} кг</div>
+        <ul><li>${bow ? "Ближний бой, если враг вплотную; вместо щита" : gl1 ? "Удар второй рукой — доп. действием; вместо щита" : w.id === "gloves" ? "Две перчатки: +2 КД, урон 2к4; вместо щита" : isTwoHandedWeapon(w) ? "Большой штраф: −6 к Ловкости (два двуручных)" : "Удар второй рукой — доп. действием; вместо щита"}</li></ul></div></div></button>` : "") + `<button class="race-card fx-frame shield-pick ${block || kn || dg ? "dim" : "avail"}" data-fx-shield aria-pressed="${!!d.shield && !block && !kn && !dg}"${block || kn || dg ? " disabled" : ""}>
+        <div class="wpn-art">${img(ART.weapon("shield"), sh.name)}${d.shield && !block && !kn && !dg ? `<span class="tick">${TICK}</span>` : ""}</div>
         <div><h3>Щит в левую руку</h3><div class="bonus-box"><div class="st">${sh.dmg} · ${kgf(sh.weight)} кг</div>
-        <ul><li>${block ? "Не с двуручным оружием и луком" : kn ? "Занята вторым клинком" : "Можно взять вместе с оружием"}</li></ul></div></div></button>`; })()}
+        <ul><li>${block ? "Не с двуручным оружием и луком" : kn ? "Занята вторым клинком" : dg ? "Занята кинжалом" : "Можно взять вместе с оружием"}</li></ul></div></div></button>`; })()}
     <div class="kit-note fx-frame">Каждый герой также получает <b>простую одежду</b>, <b>7 пайков</b> и <b>2 слабых зелья лечения</b>${w && w.group === "ranged" ? " и <b>20 стрел</b>" : ""}. Рюкзак: ${d.race === "barbarian" ? 15 : 10} ячеек.</div>
   </div></div>`;
 }
@@ -3414,6 +3420,7 @@ function finishDraft() {
   const wpn = WEAPONS.find(x => x.id === d.weapon);
   if (d.knife && wpn.group === "ranged") c.equip.off = { t: "w", id: "dagger" };          // лук и кинжал в левой руке
   else if (d.knife && canTwinWeapon(wpn, d.race)) c.equip.off = { t: "w", id: wpn.id };                                   // два клинка вместо щита
+  else if (d.dag && wpn.id === "gloves") c.equip.off = { t: "w", id: "dagger" };                                            // перчатка и кинжал
   else if (d.shield && (d.race === "barbarian" || !(isTwoHandedWeapon(wpn) || wpn.group === "ranged"))) c.equip.off = { t: "w", id: "shield" };
   if (d.race === "barbarian" && isTwoHandedWeapon(wpn) && c.equip.off) c.giantGrip = true;          // «Великан»: двуручное в одной руке, вторая рука держит щит (−2 к Ловкости за каждое)
   addToBag(c, { t: "g", id: "ration", qty: 7 });
@@ -3457,13 +3464,15 @@ $forge.addEventListener("click", e => {
   if (ds.fxRace) { forge.draft.race = ds.fxRace; renderForge(true); return; }
   if (ds.fxWeapon) {          // 1-е нажатие — выбрать, 2-е — пара (если можно), 3-е — снять
     const d = forge.draft, w = WEAPONS.find(x => x.id === ds.fxWeapon);
+    d.dag = false;
     if (d.weapon !== w.id) { d.weapon = w.id; d.knife = false; }
     else if (!d.knife && canTwinWeapon(w, d.race)) { d.knife = true; d.shield = false; }
     else { d.weapon = null; d.knife = false; }
     renderForge(true); return;
   }
-  if (ds.fxShield !== undefined) { forge.draft.shield = !forge.draft.shield; renderForge(true); return; }
+  if (ds.fxShield !== undefined) { forge.draft.shield = !forge.draft.shield; if (forge.draft.shield) forge.draft.dag = false; renderForge(true); return; }
   if (ds.fxTwin !== undefined) { forge.draft.weapon = "dagger"; forge.draft.knife = true; forge.draft.shield = false; renderForge(true); return; }
+  if (ds.fxKnife !== undefined && forge.draft.weapon === "gloves" && !forge.draft.knife) { forge.draft.dag = !forge.draft.dag; if (forge.draft.dag) forge.draft.shield = false; renderForge(true); return; }          // одна перчатка + кинжал
   if (ds.fxKnife !== undefined) { forge.draft.knife = !forge.draft.knife; if (forge.draft.knife) forge.draft.shield = false; renderForge(true); return; }
   if (ds.fxChip !== undefined) { const d = forge.draft, i = +ds.fxChip; d.chip = d.chip === i ? null : i; renderForge(true); return; }
   if (ds.fxPut) { const d = forge.draft, i = d.chip, k = ds.fxPut; if (i == null || !d.rolls) return; for (const o of Object.keys(d.put)) if (d.put[o] === i || o === k) { delete d.put[o]; if (o !== k) d.base[o] = ""; } d.put[k] = i; d.base[k] = String(d.rolls.pool[i]); d.chip = null; forge.errors = forge.errors.filter(x => x.f !== k); renderForge(true); return; }
@@ -7630,7 +7639,7 @@ function openSettings() {
     ${row("sound", "Звук", "фон пещеры, музыка боя, звуки единицы и двадцатки")}
     ${isMaster() ? `<button class="fx-btn" data-setm="tactical" aria-pressed="${!!st.tactical}" style="${W}"><b>Тактический бой (тест): ${st.tactical ? "вкл" : "выкл"}</b></button>
     <button class="fx-btn" data-setm="master" aria-pressed="${masterOn()}" style="${W}"><b>Режим мастера (весь бестиарий): ${masterOn() ? "вкл" : "выкл"}</b></button>` : ""}
-    ${row("skipDice", "Пропускать броски кубиков", "сразу результат, без кубиков на экране")}
+    ${row("skipDice", "Пропускать броски кубиков", "без анимации: сразу итог, переброс остаётся")}
     <button class="fx-btn primary" data-setx="close">Закрыть</button></div>`;
   ov.hidden = false;
 }

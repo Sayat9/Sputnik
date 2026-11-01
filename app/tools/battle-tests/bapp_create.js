@@ -17,7 +17,7 @@ const L = require('./bui_lib.js');
     ov.querySelector('[data-fxi-close]').click(); o.closed = ov.hidden;
     forge.draft.race = 'barbarian'; forge.step = 'weapon'; renderForge();
     document.querySelector('[data-fx-weapon="gloves"]').click();
-    o.twinBtn = !document.querySelector('[data-fx-knife]') && forge.draft.weapon === 'gloves' && !forge.draft.knife;          // отдельной кнопки пары больше нет
+    o.twinBtn = !!document.querySelector('[data-fx-knife]') && forge.draft.weapon === 'gloves' && !forge.draft.knife;          // пара — повторным нажатием; у одной перчатки есть карточка «Кинжал» во вторую руку
     document.querySelector('[data-fx-weapon="gloves"]').click();
     o.glovesTwin = forge.draft.knife === true && /×2/.test(document.querySelector('[data-fx-weapon="gloves"]').textContent) && /2к4/.test(document.querySelector('[data-fx-weapon="gloves"]').textContent) && document.querySelectorAll('.wpn-grid .race-card.off').length >= 3;
     document.querySelector('[data-fx-weapon="gloves"]').click();
