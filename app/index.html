@@ -2862,7 +2862,7 @@ function openKills(c) {
 }
 function openSack() { const $i = document.getElementById("iteminfo"); $i.innerHTML = sackViewHtml(); $i.hidden = false; }
 /* ----- онлайн (assets/js/net.js — связь, netglue.js — ведущий и игрок) ----- */
-const NET_REV = 1, NET_FILES = ["assets/js/net.js", "assets/js/netglue.js"];
+const NET_REV = 2, NET_FILES = ["assets/js/net.js", "assets/js/netglue.js"];
 let netLoad = null;
 function loadNet() {
   if (window.NetGlue && window.NetGlue.ready) return Promise.resolve(true);
@@ -6787,7 +6787,7 @@ $hero.addEventListener("click", e => {
   const el = e.target.closest("[data-hx],[data-hbag],[data-hslot],[data-hadd]");
   if (!el) return;
   const ds = el.dataset, c = heroById(heroUi.id);
-  if (ds.hbag !== undefined) { const i = +ds.hbag; heroUi.sel = heroUi.sel === i ? null : i; heroUi.slot = null; heroUi.give = false; renderHero(); return; }
+  if (ds.hbag !== undefined) { const i = +ds.hbag; heroUi.sel = heroUi.sel === i ? null : i; heroUi.slot = null; heroUi.give = false; renderHero(); const sp = heroUi.sel != null && $hero.querySelector(".sel-panel"); if (sp) sp.scrollIntoView({ block: "nearest", behavior: "smooth" }); return; }          // панель действий — под рюкзаком: прокрутить к ней
   if (ds.hslot) { heroUi.slot = heroUi.slot === ds.hslot ? null : ds.hslot; heroUi.sel = null; heroUi.give = false; renderHero(); return; }
   if (ds.hadd) {
     const [t, id, q] = ds.hadd.split(":");
@@ -6827,9 +6827,13 @@ $hero.addEventListener("click", e => {
     case "coin-amt": heroUi.coinAmt = +ds.n; renderHero(); return;
     case "coin-give": {
       const to = heroById(ds.to), n = Math.min(heroUi.coinAmt || 1, goldOf(c)); if (!to || n < 1) return;
+      if (!isMaster() && window.NetGlue && NetGlue.giveGoldTo && !NetGlue.isMine(to)) {          // чужой герой: монеты начисляет ведущий
+        NetGlue.giveGoldTo(to.id, n).then(r => { if (!r || !r.ok) { toast("Не удалось передать: " + ((r && r.why) || "нет связи")); return; } c.gold = goldOf(c) - n; heroAfterChange(`${n} монет: ${c.name} → ${to.name}`); });
+        return;
+      }
       c.gold = goldOf(c) - n; addGold(to, n); heroAfterChange(`${n} монет: ${c.name} → ${to.name}`); return;
     }
-    case "give-toggle": heroUi.give = !heroUi.give; heroUi.giveN = 0; renderHero(); return;
+    case "give-toggle": { heroUi.give = !heroUi.give; heroUi.giveN = 0; renderHero(); const sp = $hero.querySelector(".sel-panel"); if (sp) sp.scrollIntoView({ block: "nearest", behavior: "smooth" }); return; }
     case "give-n": { const q = entry ? (entry.qty || 1) : 1, cur = Math.max(1, Math.min(q, heroUi.giveN || q)); heroUi.giveN = ds.all ? q : ds.half ? Math.max(1, Math.floor(q / 2)) : Math.max(1, Math.min(q, cur + (+ds.d))); renderHero(); return; }
     case "salt-toggle": heroUi.salt = !heroUi.salt; renderHero(); return;
     case "salt-do": {

@@ -152,6 +152,11 @@
       saveChar(); schedule(); toast(`${p.name} передал(а) ${to.name}: ${(itemOf(e) || {}).name || e.id}${e.qty > 1 ? " × " + (e.qty - left) : ""}`);
       return { ok: true, left };
     });
+    // Игрок передаёт монеты чужому герою: ведущий начисляет их получателю (у отправителя игрок списывает сам).
+    N.handle("giveGold", (d, link, p) => {
+      const to = d && heroById(d.to), n = Math.max(0, Math.min(100000, parseInt(d && d.n, 10) || 0)); if (!p || !to || !n) return { ok: false, why: "нет получателя" };
+      addGold(to, n); saveChar(); schedule(); toast(`${p.name}: ${n} монет → ${to.name}`); return { ok: true };
+    });
     N.handle("sfx", (d, link, p) => { if (!d || !window.Sfx) return; Sfx.play(d.name, d.i); N.broadcast("sfx", { ...d, from: (p && p.pid) || d.from }); });          // звук от игрока: ведущий играет и рассылает остальным
     N.handle("bye", (d, link, p) => { if (p) { p.link = null; p.online = false; } renderHostPanel(); });
   }
@@ -237,6 +242,7 @@
   G.keepAlive = keepAlive;
   const myPid = () => N.pid();
   const ownHeroes = () => (state.party || []).filter(c => c.owner && c.owner === myPid());
+  G.giveGoldTo = async (toId, n) => { try { return await N.callHost("giveGold", { to: toId, n }, 8000); } catch (e) { return { ok: false, why: String(e && e.message || e) }; } };
   G.giveTo = async (toId, entry) => { try { return await N.callHost("giveItem", { to: toId, entry }, 8000); } catch (e) { return { ok: false, why: String(e && e.message || e) }; } };
   G.isMine = c => !!(c && c.owner && c.owner === myPid());
 
@@ -443,7 +449,7 @@
     let ok = hx !== undefined && VIEW_OK.has(hx);
     if (!ok && hx !== undefined && !FORBID.has(hx) && el.dataset.hadd === undefined) {
       ok = G.isMine(c) && !battleOn();
-      if (ok && (hx === "give" || hx === "coin-give")) { const to = heroById(el.dataset.to); ok = !!(to && to.owner === c.owner); }
+      if (ok && (hx === "give" || hx === "coin-give")) { const to = heroById(el.dataset.to); ok = !!to; }          // передать можно любому герою: чужому — через ведущего (giveItem / giveGold)
     }
     if (!ok) { e.stopImmediatePropagation(); e.preventDefault(); toast(FORBID.has(hx) || el.dataset.hadd !== undefined ? "Это делает ведущий" : battleOn() ? "Во время боя меню героя только для просмотра" : "Это чужой герой: можно только смотреть"); }
   }, true);
