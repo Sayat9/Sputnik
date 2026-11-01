@@ -197,7 +197,7 @@
         <span class="tw-img">${it.art ? img(it.art, it.name) : (it.icon || GEAR_ICON.custom)}${q > 1 ? `<span class="q">×${q}</span>` : ""}${it.steel ? `<span class="q st">сталь</span>` : ""}</span>
         <span class="tw-name">${esc(it.name)}</span><span class="tw-price${partyGold() < g.price ? " no" : ""}">${COIN_SVG}${own ? "есть" : g.price}</span></button>`; }).join("")}</div>
       <p class="tw-buyline">${forge ? "Оружие — 10, броня — 15, улучшенное оружие — 25, улучшенная броня — 40 монет. Сталь: +1 к атаке и урону, +1 КД." : `Скупаю камни из сумки: 9 класс — ${stonePrice(9)}, 8 класс — ${stonePrice(8)}, 7 класс — ${stonePrice(7)} монет. Перетащи сумку на лавочника или нажми на неё.`}</p></div></div>`;
-    const right = `<section class="tw-shopcol"><div class="tw-keeper">${forge ? img("assets/npc/smith.webp", "Кузнец") : KEEPER}<div class="tw-bubble">${esc(ui.talk || (ui.talk = forge ? SMITH_TALK[Math.floor(Math.random() * SMITH_TALK.length)] : talk()))}</div></div>${sheet}</section>`;
+    const right = `<section class="tw-shopcol"><div class="tw-keeper${forge ? "" : " under"}">${forge ? img("assets/npc/smith.webp", "Кузнец") : img("assets/npc/shopkeeper.webp", "Лавочник")}<div class="tw-bubble">${esc(ui.talk || (ui.talk = forge ? SMITH_TALK[Math.floor(Math.random() * SMITH_TALK.length)] : talk()))}</div></div>${sheet}</section>`;
     return `<div class="tw-panel fx-frame">${head(title, "Рафдония")}<div class="tw-shop">${left}${right}</div><footer class="tw-foot">${msgLine()}<div class="tw-sel">${shopSelInfo()}</div></footer>${ui.sk ? skHtml() : ""}${ui.bm ? bmHtml() : ""}</div>`;
   }
   /* ---------- починка в кузнице (решение автора 28.10): целое оружие и броню — до максимума за 5 монет (комплект — 10), сломанное — за 20 % полной цены ---------- */
@@ -637,7 +637,7 @@
         const known = eduKnows(c, k.id), locked = k.need && !eduKnows(c, k.need), can = !known && !locked && partyGold() >= k.price;
         return `<div class="tw-row"><div class="tw-who"><div><b>${esc(k.name)}</b><small>${esc(k.text)}${locked ? " · сначала «" + esc(ACADEMY.find(x => x.id === k.need).name) + "»" : ""}</small></div></div>
           ${known ? `<span class="tw-done">${ICO_CHECK}</span>` : `<button class="fx-btn primary" data-t="learn" data-id="${k.id}"${can ? "" : " disabled"}>${k.price}</button>`}</div>`; }).join("");
-      return frame("Академия", "Рафдония", `<button class="fx-btn primary" data-t="recruit" style="width:100%">Завербовать героя</button><p class="tw-hint" style="margin:0">Новый наёмник создаётся как обычный герой и вступает в отряд.</p>${heroStrip()}${tabs}<p class="tw-lead">Выбери героя и оплати курс. Знания остаются за ним одним — у остальных курсов нет.</p><div class="tw-rows">${rows}</div>${msgLine()}`);
+      return frame("Академия", "Рафдония", `<div class="tw-npc framed">${img("assets/npc/academy.webp", "Наставник Академии")}<span>Знание — лучшее оружие в лабиринте. Чему желаете научиться?</span></div><button class="fx-btn primary" data-t="recruit" style="width:100%">Завербовать героя</button><p class="tw-hint" style="margin:0">Новый наёмник создаётся как обычный герой и вступает в отряд.</p>${heroStrip()}${tabs}<p class="tw-lead">Выбери героя и оплати курс. Знания остаются за ним одним — у остальных курсов нет.</p><div class="tw-rows">${rows}</div>${msgLine()}`);
     },
   };
 
@@ -653,7 +653,7 @@
         const rows = ess.map(id => { const e = ESSENCES[id], price = churchPrice(id), ask = ui.confirm === id, nm = esc(essTitle(id));
           return `<div class="tw-row"><div class="tw-who"><div><b>${nm}</b><small>${e.cls} класс · освободит слот</small></div></div>
             <button class="fx-btn${ask ? " danger" : ""}" data-t="purge" data-id="${id}"${partyGold() >= price ? "" : " disabled"}>${ask ? "Точно? " + price : "Удалить · " + price}</button></div>`; }).join("");
-        return frame("Церковь", "Рафдония", `${heroStrip()}<p class="tw-lead">Священник очистит героя от впитанной эссенции — она исчезнет безвозвратно, слот освободится. Слотов: ${ess.length}/${c.level}.</p>
+        return frame("Церковь", "Рафдония", `<div class="tw-npc framed">${img("assets/npc/priest.webp", "Священник")}<span>Свет примет каждого. Что тяготит вас, дитя?</span></div>${heroStrip()}<p class="tw-lead">Священник очистит героя от впитанной эссенции — она исчезнет безвозвратно, слот освободится. Слотов: ${ess.length}/${c.level}.</p>
           ${ess.length ? `<div class="tw-rows">${rows}</div>` : `<p class="tw-msg">У ${esc(c.name)} нет эссенций.</p>`}${msgLine()}`);
       },
     };

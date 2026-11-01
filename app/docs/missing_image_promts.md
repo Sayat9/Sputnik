@@ -230,36 +230,10 @@
 
 ## NPC и интерфейсы
 
-### Священник — `npc-priest`
-
-> `a calm middle-aged priest in white and gold vestments with a small sunburst pendant, hands folded, candles and stained glass glowing behind him, warm lantern light, hand-painted fantasy RPG character art, stylized, painterly, dark fantasy tone, bust portrait, wide 16:9 composition with empty space at the bottom for text, no text`
-
-### Лавочник — `npc-shopkeeper`
-
-> `a cunning goblin merchant with green skin, a sly knowing grin showing small teeth, narrow amber eyes, a small gold crown-shaped hat and a red scarf, leaning over a wooden counter piled with gold coins, warm lantern light, hand-painted fantasy RPG character art, stylized, painterly, dark fantasy tone, bust portrait, wide 16:9 composition with empty space at the bottom for text, no text`
-
-### Банкир — `npc-banker`
-
-> `a thin precise human banker in a dark velvet coat with a monocle and ink-stained gloves, a heavy ring of keys at his belt, behind a counter with coin stacks and a vault door, warm lantern light, hand-painted fantasy RPG character art, stylized, painterly, dark fantasy tone, bust portrait, wide 16:9 composition with empty space at the bottom for text, no text`
-
-### Староста ратуши — `npc-mayor`
-
-> `a stern middle-aged town clerk in a tall hat and a heavy chain of office, holding a scroll with a wax seal, a town ledger and a stone hall banner behind him, warm lantern light, hand-painted fantasy RPG character art, stylized, painterly, dark fantasy tone, bust portrait, wide 16:9 composition with empty space at the bottom for text, no text`
-
 ### Кладовщик — `npc-storage`
 
 > `a broad bald warehouse keeper with a lantern on a hook-hand strap and a leather apron, tallying crates on a wooden board, stacked barrels and ropes behind him, warm lantern light, hand-painted fantasy RPG character art, stylized, painterly, dark fantasy tone, bust portrait, wide 16:9 composition with empty space at the bottom for text, no text`
 
-### NPC: наставник Академии — `npc-academy`
-
-> `an elderly human scholar-master in a dark green academy robe with a stitched book emblem, spectacles on a chain, ink-stained fingers holding a thick tome, a chalkboard with diagrams behind him, warm lantern light, hand-painted fantasy RPG character art, stylized, painterly, dark fantasy tone, bust portrait, wide 16:9 composition with empty space at the bottom for text, no text`
-
 ## Здания города
 
 Все 14 зданий нарисованы.
-
-## Поле боя
-
-### Походный сундучок (Ведьмин лес) — `terrain/stash`
-
-> `a small purple-grey travelling chest with a gold latch on dark forest ground, top-down view, fantasy battle map tile, hand-painted, square 1:1, no text`

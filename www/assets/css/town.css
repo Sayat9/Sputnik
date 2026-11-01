@@ -109,6 +109,7 @@
 .tw-npc.framed span { left: 5%; right: 5%; bottom: 2.5%; height: 14%; padding: 0 6px; border-radius: 0; background: none; box-shadow: none; display: flex; align-items: center; justify-content: center; text-align: center; color: #f3e3bf; font-size: 12.5px; text-shadow: 0 1px 2px #000; overflow: hidden; }
 .tw-npc span { position: absolute; left: 8px; right: 8px; bottom: 8px; padding: 6px 10px; border-radius: 8px; background: rgb(244 236 210 / .94); color: #2a1a0c; font: 600 13px/1.25 var(--f-body, inherit); box-shadow: 0 2px 6px rgb(0 0 0 / .5); }
 .tw-keeper img { display: block; width: 100%; height: auto; }
+.tw-keeper.under .tw-bubble { position: static; margin: 6px; }
 /* доска объявлений: деревянная стена с прибитыми листами */
 .tw-boardpanel { position: relative; margin: 0; padding: 0; background: none; }
 .tw-xc { position: absolute; right: 10px; top: 10px; z-index: 5; background: linear-gradient(#5a3d22, #3a2614); }
