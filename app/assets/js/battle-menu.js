@@ -248,7 +248,7 @@
       if (k === "autoend" && S.opts.autoEnd && UI.turnUnit && UI.mode === "hero" && !UI.busy && !UI.pick && B.turnSpent(UI.turnUnit)) { hideModal(); endTurn(); return; }
       if (k === "auto") { S.opts.autoHeroes = !S.opts.autoHeroes; if (S.opts.autoHeroes && UI.endTurn) { hideModal(); endTurn(); return; } }
       if (k === "legacy") { hideModal(); if (await UI.confirm({ title: "Обычный экран боя", text: "Поле закроется: останутся порядок ходов и кнопки «Победа», «Бег», «Монстры убегают». Уже убитых монстров и потери ОЗ сохраним.", yes: "Перейти" })) { B.abort(); if (UI.endTurn) endTurn(); } return; }
-      if (k === "gm") { hideModal(); const r = await UI.choose({ title: "Завершить бой как…", options: [{ id: "win", label: "Победа (монстры повержены)" }, { id: "flee", label: "Отряд отступил" }, { id: "retreat", label: "Монстры убежали" }] }); if (r) { S.outcome = r; if (r === "win") B.mons().forEach(mm => { if (mm.alive) { mm.alive = false; mm.hp = 0; if (!mm.summon && mm.idx >= 0 && S.ev.list[mm.idx]) S.killed.push(mm.idx); } }); endTurn(); } return; }
+      if (k === "gm") { hideModal(); const r = await UI.choose({ title: "Завершить бой как…", options: [{ id: "win", label: "Победа (монстры повержены)" }, { id: "flee", label: "Отряд отступил" }, { id: "retreat", label: "Монстры убежали" }] }); if (r) { S.outcome = r; if (r === "win") S.units.filter(mm => mm.side === "mon").forEach(mm => { if (mm.alive) { mm.alive = false; mm.hp = 0; B.regKill(mm, null); } }); endTurn(); } return; }
       UI.refreshNow(); UI.menu();
     };
   };

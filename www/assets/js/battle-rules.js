@@ -75,12 +75,19 @@
     for (const o of live()) { const g = has(o, "grappled"); if (g && g.data.by === u.id && dist(u, o) > 1) removeStatus(o, "grappled"); }
   }
   B.breakGrapples = breakGrapples;
+  // Записать убитого врага в награды. Не из списка встречи (призван крысоловом/чернокрылом, мимик) — дописывается в ev.list.
+  B.regKill = (u, by) => {
+    const S = B.S, ev = S && S.ev; if (!ev || !Array.isArray(ev.list) || u.side !== "mon") return false;
+    if (!(u.idx >= 0 && ev.list[u.idx])) { const id = u.ref || (u.mon && u.mon.id); if (!id || !MONSTERS.some(m => m.id === id)) return false; u.idx = ev.list.length; ev.list.push(id); }
+    if (S.killed.includes(u.idx)) return true;
+    S.killed.push(u.idx); (S.killedBy ||= {})[u.idx] = (() => { const k = by && by.summon && by.owner ? B.byId(by.owner) : by; return k && k.hero ? (typeof k.hero === "object" ? k.hero.id : k.hero) : null; })();          // кто добил: герой или его призванное существо (засчитывается хозяину)
+    return true;
+  };
   function kill(u, by) {
     const S = B.S; if (!u.alive) return;
     u.alive = false; setHp(u, 0);
-    if (u.summon) log(`${u.name} ${u.kind === "double" ? "рассеивается" : "гибнет"}.`, "kill");
-    else if (u.side === "mon" && !(u.idx >= 0 && S.ev && S.ev.list && S.ev.list[u.idx])) log(`${u.name} гибнет.`, "kill");          // не из списка встречи (призванный, выскочивший мимик) — наград не даёт
-    else if (u.side === "mon") { S.killed.push(u.idx); (S.killedBy ||= {})[u.idx] = (() => { const k = by && by.summon && by.owner ? B.byId(by.owner) : by; return k && k.hero ? (typeof k.hero === "object" ? k.hero.id : k.hero) : null; })(); log(`${u.name} убит.`, "kill"); }          // кто добил: герой или его призванное существо (засчитывается хозяину)
+    if (u.side === "mon" && B.regKill(u, by)) log(`${u.name} убит.`, "kill");          // вражеские призванные (крысы, вороны) и выскочивший мимик тоже дают обычные награды
+    else if (u.summon || u.side === "mon") log(`${u.name} ${u.kind === "double" ? "рассеивается" : "гибнет"}.`, "kill");
     else { u.dead = true; u.down = true; if (u.hero) u.hero.dead = true; log(`${u.name} погибает.`, "bad"); }
     if (B.onDown) B.onDown(u, true);                                                // тела павших, двойники и зоны хозяина, концентрация
     for (const o of live()) { const g = has(o, "grappled"); if (g && g.data.by === u.id) removeStatus(o, "grappled"); }

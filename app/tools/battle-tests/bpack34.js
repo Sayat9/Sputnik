@@ -16,7 +16,7 @@ const L = require('./bui_lib.js'), F = require('./bui_flow.js');
     B.UI.refreshNow(); const t = S.objs.find(x => x.kind === 'trap'); o.trapHidden = t && t.hidden === true;
     o.noTrapIcon = !document.querySelector('.bt-obj.trap'); o.logQuiet = !S.log.slice(logN).some(l => /ловушк/i.test(l.t || l));
     // «Осмотреться» есть всегда (даже без ловушек)
-    S.objs = S.objs.filter(x => x.kind !== 'trap'); const u = B.UI.turnUnit;
+    S.objs = S.objs.filter(x => x.kind !== 'trap'); const u = h.find(x => B.attacksOf(x).some(a => a.kind === 'ranged')) || B.UI.turnUnit;
     o.searchAlways = (B.extraOptions ? B.extraOptions(u) : []).length === 0 || true;
     // лук на 4+ клетки и ближе
     u.x = 3; u.y = 6; m.x = 3; m.y = 1; const atk = B.attacksOf(u).find(a => a.kind === 'ranged');
@@ -38,7 +38,7 @@ const L = require('./bui_lib.js'), F = require('./bui_flow.js');
   ok('«Осмотреться» есть, даже когда прятаться нечему', await p.evaluate(() => !!document.querySelector('[data-ba="opt"][data-id="search"]')), await p.evaluate(() => [...document.querySelectorAll('[data-ba="opt"]')].map(x => x.dataset.id).join()));
   await F.dockClick(p, 'other'); await L.sleep(200);
   // движение: поставить точку на всё движение — «Идти» доступно
-  await p.evaluate(() => { const B = Battle, u = B.UI.turnUnit; for (const m of B.mons()) { m.x = 6; m.y = 0; } u.x = 0; u.y = 6; B.UI.refreshNow(); });
+  await p.evaluate(() => { const B = Battle, u = B.UI.turnUnit; for (const m of B.mons()) { m.x = 6; m.y = 0; } u.x = 0; u.y = 6; B.heroes().filter(h => h !== u).forEach((h, i) => { h.x = 2 + i; h.y = 2; }); B.UI.refreshNow(); });
   await F.dockClick(p, 'move'); await L.sleep(300);
   const mv = await p.evaluate(async () => { const B = Battle, u = B.UI.turnUnit; const left = u.t ? u.t.move : 4; const tx = Math.min(6, left); B.UI.holdHandle(tx, 6); await new Promise(r => setTimeout(r, 100)); return { left, tx, ok: !!document.querySelector('[data-ba="pick-ok"]:not([disabled])'), txt: (document.querySelector('.bt-prompt') || document.querySelector('.bt-panel')).innerText.slice(0, 160) }; });
   ok('точки на всё движение — «Идти» нажимается', mv.ok, JSON.stringify(mv));
