@@ -349,15 +349,17 @@
         const full = sel ? [...base, ...nodePath(reach, sel.x, sel.y)] : base; UI.pathPreview = full.length ? full : null; UI.drawPath();
       };
       const note = () => {
+        if (!sel && endOnWay() && left <= 0) return `Точек: ${ways.length}, движение кончилось. «Идти» — до последней точки.`;
         if (!sel) return `Перемещение: осталось ${left} кл.${spec.standCost ? ` (встать: −${spec.standCost})` : ""} Нажмите клетку.${ways.length ? ` Точек: ${ways.length}.` : " Зажмите клетку — герой пройдёт через неё."}`;
         const full = [...flat(), ...nodePath(reach, sel.x, sel.y)], who = provokes(full), tr = trapsOn(full), cost = budget - left + reach.get(key(sel.x, sel.y)).cost;
         return `Идти на ${cost} кл.${who.length ? ` ⚠ атака по возможности: ${who.join(", ")}.` : ""}${tr ? ` ⚠ на пути ловушка или огонь (${tr}).` : ""} Нажмите ещё раз или «Идти».${ways.length ? "" : " Зажмите клетку — пройдёт через неё."}`;
       };
       const extra = () => `${spec.standCost ? `<button class="fx-btn" data-ba="pick-stand">Только встать</button>` : ""}${ways.length ? `<button class="fx-btn" data-ba="pick-clear">Снять точки</button>` : ""}`;
       const done = v => { endPick(); resolve(v); };
-      const p = { type: "move", prompt: "", cancel: () => done(null), confirmable: true, canOk: false, okLabel: "Идти", ok: () => { if (sel) go(); }, extraBtns: "" };
-      const refresh = () => { paint(); p.prompt = note(); p.canOk = !!sel; p.extraBtns = extra(); UI.renderPanel(); };
-      const go = () => { const path = [...flat(), ...nodePath(reach, sel.x, sel.y)]; done({ x: sel.x, y: sel.y, path }); };
+      const p = { type: "move", prompt: "", cancel: () => done(null), confirmable: true, canOk: false, okLabel: "Идти", ok: () => { if (sel || endOnWay()) go(); }, extraBtns: "" };
+      const endOnWay = () => { const w = ways[ways.length - 1]; return !!w && B.canStand(u, w[0], w[1]); };          // точки заданы, а клеток не осталось — можно идти до последней точки
+      const refresh = () => { paint(); p.prompt = note(); p.canOk = !!sel || endOnWay(); p.extraBtns = extra(); UI.renderPanel(); };
+      const go = () => { if (!sel) { const w = ways[ways.length - 1]; done({ x: w[0], y: w[1], path: flat() }); return; } const path = [...flat(), ...nodePath(reach, sel.x, sel.y)]; done({ x: sel.x, y: sel.y, path }); };
       UI.skipPick = () => done({ stay: true });
       UI.clearWays = () => { ways = []; recalc(); refresh(); };
       UI.pickHandle = (x, y) => {

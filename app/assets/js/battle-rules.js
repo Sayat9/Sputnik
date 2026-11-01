@@ -184,6 +184,8 @@
     const ctx = { att, tgt, atk, o, melee, d0, mods: [], adv: [], dis: [], notes: [], consume: [], extra: [], cover: 0, ac: tgt.ac, acNotes: [], autoCrit: false, autoHit: false };
     if (atk.parts) ctx.mods.push(...atk.parts); else ctx.mods.push({ l: "Бонус атаки", v: atk.hit });
     if (atk.penalty) ctx.mods.push({ l: atk.penaltyLabel || "Штраф", v: atk.penalty });
+    if (has(att, "fumbled")) { ctx.mods.push({ l: "Неловкость (крит. промах)", v: -3 }); ctx.consume.push([att, "fumbled"]); }          // решение автора 01.11
+    if (atk.kind === "ranged" && atk.w && /bow$/.test(atk.w.id) && dist(att, tgt) >= 4) { ctx.mods.push({ l: "Лук: дальний выстрел", v: 1 }); ctx.dmgPlus = (ctx.dmgPlus || 0) + 2; ctx.notes.push("лук на 4+ кл.: +1 к попаданию, +2 урона"); }          // решение автора 01.11 (числа — черновик)
     if (att.fat >= 3) ctx.mods.push({ l: "Усталость", v: -2 }); else if (att.fat === 2) ctx.mods.push({ l: "Усталость", v: -1 });
     if (has(att, "weakened")) ctx.mods.push({ l: "Ослаблен", v: -1 });
     if (atk.stretch && d0 > 1) { if (atk.stretchPen) ctx.mods.push({ l: "Посох на 2 клетки", v: atk.stretchPen }); else ctx.dis.push("копьё на 2 клетки"); }                                        // решение автора: копьё достаёт на клетку дальше, но с помехой
@@ -308,7 +310,8 @@
     for (const [u, id] of ctx.consume) { if (id === "fooled:atk") { const f = has(u, "fooled"); if (f) f.data.atkUsed = true; } else removeStatus(u, id); }
     if (att.t && atk.kind === "melee") att.t.meleeAttacked = true;
     const nat = r.nat, total = r.total;
-    if (nat === 1 && att.side === "hero" && B.wearWeapon) B.wearWeapon(att, atk);                                  // критический промах: оружие теряет 1 прочности
+    if (nat === 1 && att.side === "hero" && B.wearWeapon) B.wearWeapon(att, atk);
+    if (nat === 1 && att.side === "hero" && atk.kind === "melee" && !ctx.dmgOnly) addStatus(att, "fumbled", { k: 2, when: "end" });          // крит. промах в ближнем бою: −3 к следующей атаке                                  // критический промах: оружие теряет 1 прочности
     if (nat === 20 && att.side === "mon" && tgt.side === "hero" && B.wearArmor) B.wearArmor(tgt, 1);                // натуральная 20 монстра: броня носителя теряет 1 прочности
     const hit = ctx.autoHit || nat === 20 || (nat !== 1 && total >= ctx.ac), crit = nat === 20 || (hit && ctx.autoCrit);
     const res = { hit, crit, nat, total, ac: ctx.ac, dealt: 0, parried: false, killed: false, att, tgt, atk, ctx, post: [] };

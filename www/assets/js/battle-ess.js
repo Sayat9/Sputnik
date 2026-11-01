@@ -90,16 +90,19 @@
 
   // Гоблин — ловушка на соседней клетке.
   A.goblin = {
-    time: "action",
+    time: "action", secret: true,
     tgt(u) { const cells = cellsAround(u, 1).filter(([x, y]) => B.canStand({ ...u, size: 1, x, y, id: "tmp" }, x, y) && !B.S.objs.some(o => o.x === x && o.y === y) && !B.tinfo(x, y)?.obstacle); return { type: "cell", prompt: "Ловушка: выберите соседнюю клетку", cells, kind: "trap" }; },
     can(u) { const n = B.S.objs.filter(o => o.by === u.id).length; return n >= 3 ? "уже 3 ловушки" : true; },
     async run(u, pk, ctl) {
       ctl.commit(); const [x, y] = pk.cell;
       const trap = { id: "t" + Math.random().toString(36).slice(2, 7), kind: "trap", x, y, dc: dcOf(u, "dex"), hidden: true, owner: u.side, by: u.id, dmg: "1к6", dt: "pierce", noticed: [] };
       // ловушка скрыта: враги замечают её Восприятием против Сл (пассивным)
-      for (const e of enemiesOf(u)) if (B.passivePerceptionOf(e) >= trap.dc) { trap.noticed.push(e.id); if (e.side === "hero") trap.hidden = false; }
+      // ловушку врага герои не видят: найти её можно «Осмотреться» или наступив (решение автора 01.11); ловушку героя монстры замечают пассивным Восприятием
+      if (u.side === "hero") for (const e of enemiesOf(u)) if (B.passivePerceptionOf(e) >= trap.dc) trap.noticed.push(e.id);
       B.S.objs.push(trap);
-      log(`${u.name} ставит ловушку.`); ui() && (ui().fxText(u, "ловушка", ""), ui().refresh()); return true;
+      if (u.side === "hero") { log(`${u.name} ставит ловушку.`); ui() && (ui().fxText(u, "ловушка", ""), ui().refresh()); }
+      else { log(`${u.name} возится у земли.`); ui() && ui().refresh(); }
+      return true;
     },
     ai(u) {
       if (B.S.objs.filter(o => o.by === u.id).length >= 3) return null;

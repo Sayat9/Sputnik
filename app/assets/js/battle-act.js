@@ -409,7 +409,7 @@
     return true;
   }
   async function doSearch(u) {
-    const traps = B.S.objs.filter(t => t.kind === "trap" && t.hidden);
+    const traps = B.S.objs.filter(t => t.kind === "trap" && t.hidden && t.owner !== u.side);
     spendTime(u, "action");
     const r = await B.doCheck(u, "perception", { title: "Осмотреться", label: "ловушки и затаившиеся враги", dc: 12, tags: ["trapsearch"] });
     let found = 0;
@@ -566,7 +566,7 @@
     const A = B.A[id], eb = ESSENCES[id].active; let committed = false;
     if (u.side === "mon" && picks && A.tgt) picks = fitPicks(A, u, picks);          // монстр бьёт только допустимые цели в зоне: одна цель — одна, область — только внутри
     if (picks === null) return false;
-    if (u.side === "mon") { const g = ui(); if (g && g.fxAbility) { g.fxAbility(u, (A.state ? (A.state(u).label || eb.name) : eb.name), [...(picks && picks.units ? picks.units : []), picks && picks.unit].filter(x => x && typeof x === "object")); if (!B.cfg.fast) await B.sleep(420); } }          // небольшой эффект: монстр колдует
+    if (u.side === "mon" && !A.secret) { const g = ui(); if (g && g.fxAbility) { g.fxAbility(u, (A.state ? (A.state(u).label || eb.name) : eb.name), [...(picks && picks.units ? picks.units : []), picks && picks.unit].filter(x => x && typeof x === "object")); if (!B.cfg.fast) await B.sleep(420); } }          // небольшой эффект: монстр колдует
     const st = A.state ? A.state(u) : {};
     const mana = st.mana != null ? st.mana : eb.mana, cd = st.cd != null ? st.cd : (D.essCd[id] || 1);
     const commit = () => {
@@ -579,7 +579,7 @@
     const r = await A.run(u, picks, { commit, o });
     if (r === false && !committed) return false;
     if (!committed) commit();
-    log(`${u.name}: ${st.label || eb.name}.`, "skill");
+    if (!(A.secret && u.side !== "hero")) log(`${u.name}: ${st.label || eb.name}.`, "skill");          // скрытые приёмы врага (ловушка) не объявляются
     if (u.side === "hero" && typeof journal === "function") { (journal().essUsed ||= {})[id] = true; }          // после первого применения видны название, мана и урон
     if (B.flushQueue) await B.flushQueue();
     return true;
@@ -630,7 +630,7 @@
     if (netVictims(u).length) opts.push(simple("cutnet", "Разрезать путы", "attack", "рубящее оружие снимает сеть и паутину (5 урона)", () => doCutNet(u), { enabled: !act && netVictims(u).some(a => netAttack(u, has(a, "restrained").data.net)), why: act || "нужно рубящее оружие (для паутины — ещё огонь)" }));
     if (alliesOf(u).some(a => dist(u, a) <= 1 && has(a, "buried"))) opts.push(simple("dig", "Откопать союзника", "help", "союзник рядом на свободе", () => doDigOut(u), { enabled: !act, why: act }));
     if ([u, ...alliesOf(u)].some(a => has(a, "bleeding") && dist(u, a) <= 1 && !a.dead)) opts.push(simple("bandage", "Перевязать", "heart", "остановить кровотечение: Медицина Сл 10", () => doBandage(u), { enabled: !act, why: act }));
-    if (B.S.objs.some(o => o.kind === "trap" && o.hidden) || B.mons().some(m => B.isUnseen(m) && alive(m))) opts.push(simple("search", "Осмотреться", "search", "найти скрытые ловушки и затаившихся врагов", () => doSearch(u), { enabled: !act, why: act }));
+    if (true) opts.push(simple("search", "Осмотреться", "search", "найти скрытые ловушки и затаившихся врагов", () => doSearch(u), { enabled: !act, why: act }));
     // предметы
     if (countGear(u.hero, "firstaid") > 0) { const hurtNear = [u, ...alliesOf(u).filter(a => dist(u, a) <= 1 && !a.dead)].some(a => a.hp < a.maxHp || a.down || has(a, "bleeding"));
       opts.push(simple("firstaid", "Первая помощь", "heart", `набор: ${countGear(u.hero, "firstaid")} · кровотечение, 1к4 ОЗ, поднять павшего${typeof eduKnows === "function" && eduKnows(u.hero, "aid") ? " · обучен" : ""}`, () => doFirstAid(u), { enabled: !act && hurtNear, why: act || "некому помогать", useless: !hurtNear })); }
