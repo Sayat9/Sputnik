@@ -200,3 +200,4 @@
 - 01.11: нарисованы `items/{herb-poison,herb-food,herb-rest}`, `npc/mage.webp` (Башня), новый `npc/guild.webp`; баннеры с нарисованной рамкой под текст — класс `.tw-npc.framed` (реплика внутри рамки внизу картинки).
 - 01.11: баннеры NPC — `npc/priest` (Церковь), `npc/academy` (Академия), лавочник `npc/shopkeeper.webp` (рамка обрезана, облачко под картинкой: `.tw-keeper.under`; полная версия с рамкой — `npc/shopkeeper-framed.webp`), `npc/banker.webp` и `npc/mayor.webp` лежат до открытия Банка и Ратуши. Промт сундучка убран (только на поле, отдельная картинка не нужна).
 - 01.11: нарисованы `items/{weak-salt,silver-salt,tollbell,director-quiver,flame}`.
+- 01.11: нарисованы `items/{calm-flute,dice}` и первые артефакты `items/art-{falling-star,echo-blade,discharge-staff}` (`ART.gear` для calm-flute берёт свою картинку, а не обычную флейту).

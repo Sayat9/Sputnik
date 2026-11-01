@@ -1,5 +1,5 @@
 {
- "version": 1793492166,
+ "version": 1793492283,
  "files": [
   "assets/buildings/academy.webp",
   "assets/buildings/arena.webp",
@@ -39,11 +39,15 @@
   "assets/items/armor-leather.webp",
   "assets/items/arrows.svg",
   "assets/items/arrows.webp",
+  "assets/items/art-discharge-staff.webp",
+  "assets/items/art-echo-blade.webp",
+  "assets/items/art-falling-star.webp",
   "assets/items/axe.svg",
   "assets/items/axe.webp",
   "assets/items/beginners-luck.webp",
   "assets/items/bell.webp",
   "assets/items/boots.webp",
+  "assets/items/calm-flute.webp",
   "assets/items/chalice.webp",
   "assets/items/clothes.webp",
   "assets/items/coins.webp",
@@ -51,6 +55,7 @@
   "assets/items/daedalus-hammer.webp",
   "assets/items/dagger.svg",
   "assets/items/dagger.webp",
+  "assets/items/dice.webp",
   "assets/items/director-quiver.webp",
   "assets/items/durable-charm.webp",
   "assets/items/firstaid.webp",
@@ -429,11 +434,15 @@
   "assets/items/armor-leather.webp": "c95e861ca6ee0d1d60408fa5b21d7d0e",
   "assets/items/arrows.svg": "5f9ec40607bf57358d54e6bb4be1bf5c",
   "assets/items/arrows.webp": "8002700050ff26dd4c991edc2c9d4b8a",
+  "assets/items/art-discharge-staff.webp": "c87b8dd4a674896a47fc604f95fe8f9b",
+  "assets/items/art-echo-blade.webp": "90ef2bd5d1ea94b8a3a8bbfdd46049e2",
+  "assets/items/art-falling-star.webp": "03c01b8208ca5a5e0c2b7bb67c14069e",
   "assets/items/axe.svg": "58e5b3bb5eba56ad71e0c5457cf9bb4b",
   "assets/items/axe.webp": "f57f51b4aa2bff97ce674ffc6e7579f3",
   "assets/items/beginners-luck.webp": "54410cbd9905ebf3e4f95b281d73d842",
   "assets/items/bell.webp": "a635422f01db627c2de0212d5ca3c08d",
   "assets/items/boots.webp": "261eadf9c67034b98e790299bafcc1bb",
+  "assets/items/calm-flute.webp": "17fe0ddf680dc41aed8e42928ff02066",
   "assets/items/chalice.webp": "9d7733844b87c2fef81008b1770fbc50",
   "assets/items/clothes.webp": "0ab5ff8365e2f5134af32bcb0a665f41",
   "assets/items/coins.webp": "09c7d5bd4180a943a087c39b9e0fb212",
@@ -441,6 +450,7 @@
   "assets/items/daedalus-hammer.webp": "6c08fb0317a90b69e75b25fb92a0ee86",
   "assets/items/dagger.svg": "09672325ca1050506b3f8168ad099f73",
   "assets/items/dagger.webp": "0e11638bb3aa183c801a4501f199364e",
+  "assets/items/dice.webp": "f9e45278658a5dd3d37ee877d33eeea4",
   "assets/items/director-quiver.webp": "8c51de4df8e572ad801987d875a021cb",
   "assets/items/durable-charm.webp": "0e0ffdc2bedcdeb635e919c3a0a1e4b6",
   "assets/items/firstaid.webp": "c887a552c34382a8fbc21eb259b3519e",
@@ -778,6 +788,6 @@
   "fonts/f8.woff2": "6cc1ee17091d59eb93821c3594e8f38f",
   "fonts/f9.woff2": "070433480b7b645f69b543f284e386ce",
   "fonts/fonts.css": "1585a72a8d157b26cb424ab433fd4e19",
-  "index.html": "6a23a047167ab2e986cf02f5d4eff030"
+  "index.html": "eeafe0016c5dc8181a4ba313d1f14ed8"
  }
 }
