@@ -32,6 +32,10 @@
           : { ok: false, t: `${c.name}: выпущено стрел ${lg.shot}, ${lying ? `${lying} осталось на поле` : "все сломаны"}${brk}` });
       }
     }
+    // Стрелы путников: целые с поля — отряду, если поле осталось за ним; остаток в колчане запоминается (живые уйдут с ним, с убитых — в добычу)
+    const foeArrows = S.drops.filter(d => d.kind === "arrow" && d.mon).length;
+    if (foeArrows && keeps && typeof giveParty === "function") S.gear.push({ ok: true, t: "Стрелы путников с поля: " + giveParty({ t: "g", id: "arrow", qty: foeArrows }) });
+    for (const u of S.units) if (u.side === "mon" && u.arrows != null && typeof travOf === "function") { const sp = travOf(u.ref); if (sp && sp.carry) sp.carry.arrows = u.arrows; }
     S.drops.length = 0;
     for (const u of B.heroes()) {
       const c = u.hero; if (!c) continue;

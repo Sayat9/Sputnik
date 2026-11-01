@@ -2731,7 +2731,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 79;
+const BATTLE_REV = 80;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }
@@ -4292,6 +4292,7 @@ function genTravelers(f) {
     for (let pts = 15 + rnd(4); pts > 0;) { const k = STAT_KEYS[rnd(6)]; if (base[k] < 16) { base[k]++; pts--; } }
     list.push({ id: `trav-${state.travSeq = (state.travSeq || 0) + 1}`, name: used[g].pop(), race: pick1(RACES).id, g, weapon: pick1(TRAV_W), armor: f >= 3 && Math.random() < .5 ? pick1(TRAV_A) : null,
       base, ess: [], lvl: Math.max(1, f), floor: Math.max(1, f), cls: TRAV_CLS[Math.min(3, Math.max(1, f))], carry: travCarry(Math.max(1, f)) });
+    const last = list[list.length - 1]; if (travBow(last.weapon)) last.carry.arrows = 20 + rnd(21);          // лучник несёт 20–40 стрел (тратятся и ломаются по правилам)
   }
   const give = (t, id) => { if (t && id && !t.ess.includes(id) && t.ess.length < t.lvl) { t.ess.push(id); return true; } return false; };
   if (f <= 1) { for (const t of list) if (Math.random() < .12) give(t, pick1(essPool(9, [1]))); }                 // низкий шанс случайной 9 кл.
@@ -4315,15 +4316,15 @@ function genTravelers(f) {
 function travCrystals(sp) { const out = {}, add = (cls, n) => { out[cls] = (out[cls] || 0) + n; }; add(sp.cls, Math.ceil(sp.lvl / 2)); for (const e of sp.ess || []) { const k = (ESSENCES[e] || {}).cls || 9; add(k, 10 - k); } return out; }
 const wpick = rows => { let t = Math.random(), v = rows[rows.length - 1][0]; for (const [x, w] of rows) { t -= w; if (t < 0) { v = x; break; } } return v; };
 function travCarry(f) {
-  return { ration: 3 + rnd(3), potion: f <= 1 ? (Math.random() < .4 ? 1 : 0) : f === 2 ? wpick([[0, .2], [1, .55], [2, .25]]) : wpick([[1, .4], [2, .4], [3, .2]]),
+  return { arrows: null, ration: 3 + rnd(3), potion: f <= 1 ? (Math.random() < .4 ? 1 : 0) : f === 2 ? wpick([[0, .2], [1, .55], [2, .25]]) : wpick([[1, .4], [2, .4], [3, .2]]),
     torch: Math.random() < (f >= 2 ? .5 : .3) ? 1 + (f >= 3 ? rnd(2) : 0) : 0, compass: Math.random() < .04, map: Math.random() < .05, weapon: Math.random() < .5 };
 }
 // Добыча с убитых путников: строки для экрана итога (оружие, еда, зелья, факелы, компас, карта этажа).
 function travLoot(ids) {
-  const sum = { ration: 0, potion: 0, torch: 0 }, weapons = [], lines = []; let compass = false, map = false;
+  const sum = { arrow: 0, ration: 0, potion: 0, torch: 0 }, weapons = [], lines = []; let compass = false, map = false;
   for (const id of ids) { const sp = travOf(id); if (!sp || !sp.carry || sp.carry.looted) continue; const c = sp.carry; c.looted = true;
-    sum.ration += c.ration; sum.potion += c.potion; sum.torch += c.torch; if (c.weapon) weapons.push(sp.weapon); compass ||= c.compass; map ||= c.map; }
-  for (const [id, n] of Object.entries({ ration: sum.ration, potion: sum.potion, torch: sum.torch })) if (n > 0) lines.push(giveParty({ t: "g", id, qty: n }));
+    sum.arrow += c.arrows || 0; sum.ration += c.ration; sum.potion += c.potion; sum.torch += c.torch; if (c.weapon) weapons.push(sp.weapon); compass ||= c.compass; map ||= c.map; }
+  for (const [id, n] of Object.entries({ arrow: sum.arrow, ration: sum.ration, potion: sum.potion, torch: sum.torch })) if (n > 0) lines.push(giveParty({ t: "g", id, qty: n }));          // стрелы — сколько осталось в колчане
   for (const w of weapons) lines.push(giveParty({ t: "w", id: w, qty: 1 }));
   const inv = inventory();
   if (compass && !inv.compass.owned) { inv.compass.owned = true; lines.push("Компас — отряд забирает его"); }
@@ -4331,7 +4332,9 @@ function travLoot(ids) {
   return lines;
 }
 // Боевая запись путника: как у героя (ОЗ, КД, оружие), оформлена обычным статблоком монстра, чтобы бой, ИИ и награды работали без особых случаев.
+const travBow = id => { const w = WEAPONS.find(x => x.id === id); return !!w && w.group === "ranged" && (w.props || []).some(p => /Боеприпасы/.test(p)); };
 function travMon(sp) {
+  if (travBow(sp.weapon) && sp.carry && sp.carry.arrows == null) sp.carry.arrows = 20 + rnd(21);          // старые сохранения: стрелы раздаются при первой встрече
   const race = raceById(sp.race), w = WEAPONS.find(x => x.id === sp.weapon), ar = sp.armor && ARMOR_FLAT.find(a => a.id === sp.armor);
   const ab = {}; STAT_KEYS.forEach(k => { ab[k] = sp.base[k] + (race.mods[k] || 0) + sp.ess.reduce((s, e) => s + (((ESSENCES[e] || {}).stats || {})[k] || 0), 0); });
   const sm = mod(ab.str), dm = mod(ab.dex), cm = mod(ab.con);
@@ -4348,7 +4351,7 @@ function travMon(sp) {
   return { id: sp.id, name: sp.name, zone: "goblin", rare: false, weight: 1, floor: sp.floor, floors: [sp.floor], cls: sp.cls, rank: "normal",
     size: sp.race === "gnome" ? "Маленький гуманоид" : "Средний гуманоид", sz: sp.race === "gnome" ? "маленький" : "средний", group: "Путник", type: `Гуманоид, путник (${race.name.toLowerCase()})`, areas: [`${sp.floor} этаж: путники`],
     ac: String(ac), hp: `${hp} (${sp.lvl} ур.)`, speed: "9 м", cr: "—", abil: STAT_KEYS.map(k => ab[k]),
-    senses: sp.race === "dwarf" || sp.race === "darkfairy" ? "Тёмное зрение 18 м." : "", traits: [[w.name, atk, "attacks"]], loot: "", essences: sp.ess.slice(), carry: sp.carry,
+    senses: sp.race === "dwarf" || sp.race === "darkfairy" ? "Тёмное зрение 18 м." : "", traits: [[w.name, atk, "attacks"], ...(ranged ? [["Удар кулаком", `${(sm >= 0 ? "+" : "−") + Math.abs(sm)} к попаданию, 1к1${sm ? (sm > 0 ? "+" : "−") + Math.abs(sm) : ""} дробящего (когда кончились стрелы).`, "attacks"]] : [])], loot: "", essences: sp.ess.slice(), carry: sp.carry,
     draft: true, dyn: true, xpKey: "tcls-" + sp.cls, face: portrait, full: portrait };
 }
 function travRegister(sp) {

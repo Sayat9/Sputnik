@@ -301,6 +301,15 @@
     return { broken, note };
   }
   B.arrowFate = arrowFate;
+  // Стрелы путника-лучника: те же правила (1 — ломается, попадание впритык — ломается, иначе стрела лежит на поле; её подберут, если поле осталось за отрядом).
+  function monArrowFate(att, tgt, f) {
+    att.arrows = Math.max(0, att.arrows - 1);
+    const broken = f.nat === 1 || (f.hit && !f.crit && f.total - f.ac <= D.arrow.breakMargin);
+    if (!broken) B.S.drops.push({ kind: "arrow", mon: att.id, x: tgt.x, y: tgt.y });
+    if (att.arrows === 0) log(`${att.name}: стрелы кончились.`);
+    return { broken, note: broken ? "стрела сломалась" : f.hit ? "" : "стрела упала на поле" };
+  }
+  B.monArrowFate = monArrowFate;
   async function doAttack(att, tgt, atk, o = {}) {
     const g0 = ui(); if (g0 && atk.kind !== "melee" && g0.setTraj) g0.setTraj([{ a: att, b: tgt }]);          // траектория выстрела видна на поле, пока идёт бросок
     try { return await doAttack0(att, tgt, atk, o); } finally { if (g0 && g0.setTraj) g0.setTraj(null); }
@@ -330,7 +339,7 @@
       // реакции цели до урона (парирование щитом и т. п.)
       for (const id of tgt.pass) { const P = B.P && B.P[id]; if (P && P.reactHit && canAct(tgt) && !res.parried) { const rr = await P.reactHit(tgt, { ...ctx, res, total }); if (rr) { res.parried = true; res.hit = false; if (rr === "swap") res.swapped = true; } } }
     }
-    const ar = atk.ammo && att.side === "hero" && att.hero ? arrowFate(att, tgt, { nat, total, ac: ctx.ac, hit: res.hit, crit }) : null;
+    const ar = atk.ammo && att.side === "hero" && att.hero ? arrowFate(att, tgt, { nat, total, ac: ctx.ac, hit: res.hit, crit }) : atk.ammo && att.arrows != null ? monArrowFate(att, tgt, { nat, total, ac: ctx.ac, hit: res.hit, crit }) : null;
     res.arrow = ar;
     if (!res.hit) {
       hookAll(att, "onMiss", { ...ctx, res });

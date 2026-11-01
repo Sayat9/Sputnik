@@ -232,6 +232,7 @@
       speedC: cellsOfM(sp.walk), flyC: cellsOfM(sp.fly), climbC: cellsOfM(sp.climb), atk: (cb.atk || []).map(a => { const dm = parseDice(a.dmg), cut = D.monDmgCut[m.cls] || 0; return { ...a, dmg: { ...dm, b: Math.max(0, dm.b - cut) } }; }), seq: cb.seq || null, vuln: cb.vuln || [],
       skills: parseSkills(m.senses), initB: 0, face: ART.monsterFace(id), blind: cb.blind || 0, tremor: cb.tremor || 0, dv: /Тёмное зрение/.test(m.senses || ""), shield: !!cb.shield, rare: !!m.rare, cls: m.cls });
     ABIL.forEach((k, i) => { u.abil[k] = m.abil[i]; });
+    if (m.carry && m.carry.arrows != null && u.atk.some(a => a.kind === "ranged")) { u.arrows = m.carry.arrows; u.atk.forEach(a => { if (a.kind === "ranged" && !/метнуть/.test(a.n)) a.ammo = true; }); }          // путник-лучник: стрелы считаются
     if (m.essences) u.ess = m.essences.filter(e => ESSENCES[e]);          // путники: до трёх эссенций
     else if (m.essence && ESSENCES[m.essence]) u.ess = [m.essence];
     u.pass = [...u.ess, "body:" + id];
