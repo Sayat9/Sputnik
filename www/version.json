@@ -1,5 +1,5 @@
 {
- "version": 1793491789,
+ "version": 1793491858,
  "files": [
   "assets/buildings/academy.webp",
   "assets/buildings/arena.webp",
@@ -51,6 +51,7 @@
   "assets/items/daedalus-hammer.webp",
   "assets/items/dagger.svg",
   "assets/items/dagger.webp",
+  "assets/items/durable-charm.webp",
   "assets/items/firstaid.webp",
   "assets/items/flask.webp",
   "assets/items/flute.webp",
@@ -61,6 +62,8 @@
   "assets/items/greatsword.svg",
   "assets/items/greatsword.webp",
   "assets/items/guard.webp",
+  "assets/items/herb-heal.webp",
+  "assets/items/herb-mana.webp",
   "assets/items/longbow.svg",
   "assets/items/longbow.webp",
   "assets/items/mace.svg",
@@ -74,6 +77,8 @@
   "assets/items/rapier.svg",
   "assets/items/rapier.webp",
   "assets/items/ration.webp",
+  "assets/items/regen-charm.webp",
+  "assets/items/repair-charm.webp",
   "assets/items/shield.svg",
   "assets/items/shield.webp",
   "assets/items/shortbow.svg",
@@ -421,6 +426,7 @@
   "assets/items/daedalus-hammer.webp": "6c08fb0317a90b69e75b25fb92a0ee86",
   "assets/items/dagger.svg": "09672325ca1050506b3f8168ad099f73",
   "assets/items/dagger.webp": "0e11638bb3aa183c801a4501f199364e",
+  "assets/items/durable-charm.webp": "0e0ffdc2bedcdeb635e919c3a0a1e4b6",
   "assets/items/firstaid.webp": "c887a552c34382a8fbc21eb259b3519e",
   "assets/items/flask.webp": "d14806c694e0839545dee09732135f32",
   "assets/items/flute.webp": "bd69255af95899fbd3f4bfe204e0375a",
@@ -431,6 +437,8 @@
   "assets/items/greatsword.svg": "7d307b17519341dce5630d8ffeb11990",
   "assets/items/greatsword.webp": "d60742c758c48d2c2f3815672dfcd021",
   "assets/items/guard.webp": "dc017fb733094bda21afdb98f79cee05",
+  "assets/items/herb-heal.webp": "474984715d33c7b5fe65a62791fcfd5c",
+  "assets/items/herb-mana.webp": "17b80fae3ba5f45725c31073413307f8",
   "assets/items/longbow.svg": "1a2b0af6eba29659dbf31e2e266836bc",
   "assets/items/longbow.webp": "2a9cd310dbfde5691cf80b055a113b3a",
   "assets/items/mace.svg": "fab57d17e339f0379c491f94ba0cd38b",
@@ -444,6 +452,8 @@
   "assets/items/rapier.svg": "3aecd801d7612fda9c41ae000d6fdf83",
   "assets/items/rapier.webp": "879b4b3095be0cb981e6268b341d59ae",
   "assets/items/ration.webp": "9b9bd1e2d7a74c3fd2316cba4eb5ebd3",
+  "assets/items/regen-charm.webp": "6e59e0478ee64771fbcc3c77e30d80d2",
+  "assets/items/repair-charm.webp": "31a0cbeedfbf3cdf6d8b0d34e305bf35",
   "assets/items/shield.svg": "00ea21595fe4981b1d2a674dc7b64e40",
   "assets/items/shield.webp": "97793154187c73153eba06e956710277",
   "assets/items/shortbow.svg": "831b7b39327eaf5334ddb0041f08de7c",
@@ -738,6 +748,6 @@
   "fonts/f8.woff2": "6cc1ee17091d59eb93821c3594e8f38f",
   "fonts/f9.woff2": "070433480b7b645f69b543f284e386ce",
   "fonts/fonts.css": "1585a72a8d157b26cb424ab433fd4e19",
-  "index.html": "1dd1c4cf1a1187c87d2c4e5ba04ade89"
+  "index.html": "015dd030e3e9b04888f38d4d1aedaa0c"
  }
 }

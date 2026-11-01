@@ -174,18 +174,6 @@
 
 > `a pair of worn bone dice with chipped corners and faded pips, one showing a tiny glint of amber inside, resting on a small leather pouch, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
 
-### Амулет починки — `repair-charm`
-
-> `a small bronze amulet on a cord shaped like a crossed hammer and needle, green patina and a faint warm glow, resting on a small cloth, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
-
-### Амулет прочности — `durable-charm`
-
-> `a heavy round stone-and-iron amulet on a leather cord, a pale blue crystal in the center and thick plate-like rim, faint cyan glow, resting on a small cloth, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
-
-### Амулет регенерации — `regen-charm`
-
-> `a small round amulet on a thin chain with a deep red heart-shaped stone wrapped in tiny green leaves, soft pulsing red glow, resting on a small cloth, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
-
 ### Амулет маны — `mana-charm`
 
 > `a small silver amulet on a chain with a deep blue teardrop crystal, tiny sparkles of blue light drifting around it, resting on a small cloth, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
@@ -199,14 +187,6 @@
 > `a small rustic amulet on a cord: a carved wooden bead ring around a tiny golden wheat ear, warm amber glow, resting on a small cloth, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
 
 ## Находки (после определения)
-
-### Целебная трава — `herb-heal`
-
-> `узколистая светло-зелёная трава с блестящими капельками на листьях, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
-
-### Серебрянка — `herb-mana`
-
-> `пучок серебристых листьев с тонкой голубой жилкой, светится слабым серебристым светом, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
 
 ### Горький корень — `herb-poison`
 
