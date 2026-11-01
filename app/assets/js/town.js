@@ -412,7 +412,7 @@
   }
   function B_library() {
     B.library = {
-      render() { return frame("Библиотека", "Рафдония", `${noParty()}${state.party.length ? lrHtml() : ""}${lrMsg()}`); },
+      render() { return frame("Библиотека", "Рафдония", `<div class="tw-npc">${img("assets/npc/librarian.webp", "Библиотекарь")}<span>Тише, пожалуйста. Записи о монстрах лабиринта — на полках; что найдёте, то ваше.</span></div>${noParty()}${state.party.length ? lrHtml() : ""}${lrMsg()}`); },
     };
   }
   function libRoll(n) {

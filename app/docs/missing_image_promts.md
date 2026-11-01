@@ -6,11 +6,19 @@
 
 ## События на шаге (заставки)
 
-Вылетают при шаге отряда после броска к20. Файлы `assets/events/<имя>.webp`, 1536 × 1024 (3:2); пока картинки нет, показывается SVG-заглушка `assets/events/<имя>.svg`. Положили файл — добавьте `events/<имя>` в `RASTER` и удалите промт отсюда.
+Все нарисованы (засада, монстры, ничего, путники, сокровище, вход в лабиринт, возвращение в город). Новая заставка — `assets/events/<имя>.webp`, 1536 × 1024.
 
 ## Монстры
 
-Все монстры нарисованы — промптов нет. Новый монстр без картинки: промпт сюда (полный рост 1024 × 1536, 2:3; лицо вырезается из него).
+Новый монстр без картинки: полный рост 1024 × 1536 (иконку лица вырезаю сам). Нужны два монстра 3 этажа.
+
+### Хранитель Тишины — `monsters/silence-keeper-full`
+
+> `full-body tall hooded spirit in a grey silver-trimmed robe, face hidden in shadow, one finger pressed to where the lips would be, a heavy silver mace in the other hand, ghostly mist at the feet, eerie silent dungeon hall behind, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Мимик — `monsters/mimic-full`
+
+> `full-body treasure chest mimic mid-lunge, a worn wooden chest with a wide toothy maw, a long sticky tongue, glowing amber eyes under the lid, tiny gold coins stuck to its teeth, dark dungeon floor, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
 
 ## Предметы, оружие и броня
 
@@ -24,7 +32,135 @@
 
 > `a sturdy well-kept dwarven toolbox with brass corners lying open: fine chisels, a small anvil block, tempered files, steel plates and neat coils of wire, used but cared for, on a small worn stone pedestal in a stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
 
+## Оружие и броня (обычное и стальное)
+
+Обычное — потёртое, на простом пьедестале; стальное — новое и блестящее, на резной подставке в арсенале (образец выше). Файлы `assets/items/<id>.webp`, стальные — `assets/items/steel-<id>.webp`. Остальное оружие и броня уже нарисованы.
+
+### Пика — `items/pike`
+
+> `a worn knight's pike with a long slender faceted steel head, nicks along the edge, dark wood shaft with a frayed leather grip, standing upright, on a small worn stone pedestal in a stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Стальная пика — `items/steel-pike`
+
+> `a new shiny steel knight's pike with a long slender faceted head and polished steel collar, dark lacquered wood shaft with a fresh leather grip, standing upright, resting against a decorated wooden display stand, on a small stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit arsenal alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Стальные перчатки — `items/steel-gloves`
+
+> `a pair of new shiny steel-plated fighting gauntlets with articulated knuckle plates and studded leather cuffs, lying crossed, resting against a decorated wooden display stand, on a small stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit arsenal alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Стальной посох — `items/steel-staff`
+
+> `a new shiny quarterstaff of dark hardwood with polished steel caps and steel bands along the shaft, standing upright, resting against a decorated wooden display stand, on a small stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit arsenal alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Стальной топор — `items/steel-axe`
+
+> `a new shiny one-handed steel battle axe with a bearded blade and a hardwood haft wrapped in fresh leather, standing upright, resting against a decorated wooden display stand, on a small stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit arsenal alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Стальная секира — `items/steel-greataxe`
+
+> `a new shiny two-handed steel greataxe with a broad double-bitted head on a long hardwood haft with steel langets, standing upright, resting against a decorated wooden display stand, on a small stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit arsenal alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+## Артефактное оружие и броня
+
+Файлы `assets/items/art-<id>.webp` (приложение берёт их само, как только путь `items/art-<id>` добавлен в `RASTER`; пока картинки нет — показывается картинка обычного оружия). Фон — резной пьедестал с фиолетовым камнем в сокровищнице.
+
+### Копьё-громоотвод — `items/art-thunder-spear`
+
+> `an ornate steel spear with crackling blue lightning coiled around the blade and copper rings on the haft, on an ornate carved stone pedestal with a glowing violet magic stone set into its front, inside a softly lit treasure vault alcove with faint arcane runes on the walls, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Магнитные перчатки — `items/art-magnet-gloves`
+
+> `a pair of heavy steel gauntlets with horseshoe magnets on the knuckles and faint blue magnetic field lines between them, on an ornate carved stone pedestal with a glowing violet magic stone set into its front, inside a softly lit treasure vault alcove with faint arcane runes on the walls, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Парные тени — `items/art-shadow-daggers`
+
+> `a pair of black elegant daggers whose blades dissolve into smoky shadow at the edges, violet glow in the engravings, on an ornate carved stone pedestal with a glowing violet magic stone set into its front, inside a softly lit treasure vault alcove with faint arcane runes on the walls, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Лук «Падающая звезда» — `items/art-falling-star`
+
+> `an elegant white-wood longbow with a glowing golden star set in the grip and a faint comet trail along the limbs, on an ornate carved stone pedestal with a glowing violet magic stone set into its front, inside a softly lit treasure vault alcove with faint arcane runes on the walls, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Эхо-клинок — `items/art-echo-blade`
+
+> `a straight steel sword with a faint translucent duplicate blade offset behind it and soft blue echo ripples, on an ornate carved stone pedestal with a glowing violet magic stone set into its front, inside a softly lit treasure vault alcove with faint arcane runes on the walls, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Посох разрядов — `items/art-discharge-staff`
+
+> `an ash staff with a cage of copper coils and a crackling blue-white orb at the head, on an ornate carved stone pedestal with a glowing violet magic stone set into its front, inside a softly lit treasure vault alcove with faint arcane runes on the walls, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Зеркальный щит — `items/art-mirror-shield`
+
+> `a round polished mirror-faced shield with a dark iron rim and a bright streak of reflected light, on an ornate carved stone pedestal with a glowing violet magic stone set into its front, inside a softly lit treasure vault alcove with faint arcane runes on the walls, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Меч полумесяца — `items/art-moon-sword`
+
+> `a huge two-handed sword with a crescent-moon shaped crossguard and a pale silver blade with faint moon-phase engravings, on an ornate carved stone pedestal with a glowing violet magic stone set into its front, inside a softly lit treasure vault alcove with faint arcane runes on the walls, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Топор бури — `items/art-storm-axe`
+
+> `a compact throwing axe with wind swirls etched in the blade and a crackling pale-blue edge, on an ornate carved stone pedestal with a glowing violet magic stone set into its front, inside a softly lit treasure vault alcove with faint arcane runes on the walls, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Булава «Метеор» — `items/art-meteor-mace`
+
+> `a heavy mace whose head is a glowing cracked meteorite with orange fissures and trailing sparks, on an ornate carved stone pedestal with a glowing violet magic stone set into its front, inside a softly lit treasure vault alcove with faint arcane runes on the walls, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Пика Заставы — `items/art-rampart-pike`
+
+> `a long steel pike with a banner-like notch below the head and glowing runic rings on the shaft, sturdy knightly look, on an ornate carved stone pedestal with a glowing violet magic stone set into its front, inside a softly lit treasure vault alcove with faint arcane runes on the walls, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Лук «Рикошет» — `items/art-ricochet-bow`
+
+> `a short recurve bow with bright metal rings on the limbs and an arrow caught bouncing off a spark, on an ornate carved stone pedestal with a glowing violet magic stone set into its front, inside a softly lit treasure vault alcove with faint arcane runes on the walls, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Теневой клык — `items/art-shadow-fang`
+
+> `a curved black dagger shaped like a fang, its edge fading into shadow wisps, on an ornate carved stone pedestal with a glowing violet magic stone set into its front, inside a softly lit treasure vault alcove with faint arcane runes on the walls, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Секира «Жатва» — `items/art-reaper-axe`
+
+> `a broad crescent-bladed greataxe with a long dark haft and faint red harvest marks etched on the blade, on an ornate carved stone pedestal with a glowing violet magic stone set into its front, inside a softly lit treasure vault alcove with faint arcane runes on the walls, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Рапира «Шквал» — `items/art-flurry-rapier`
+
+> `a slender rapier with a swept silver hilt and a blade blurred into several afterimages as if moving very fast, thin wind streaks, on an ornate carved stone pedestal with a glowing violet magic stone set into its front, inside a softly lit treasure vault alcove with faint arcane runes on the walls, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Молот «Разлом» — `items/art-rift-hammer`
+
+> `a massive warhammer with a cracked stone head split by a glowing orange fissure, small rock shards floating around it, on an ornate carved stone pedestal with a glowing violet magic stone set into its front, inside a softly lit treasure vault alcove with faint arcane runes on the walls, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Крепостной щит «Бастион» — `items/art-bastion-shield`
+
+> `a huge rectangular tower shield shaped like a castle wall with crenellations on top, iron-banded, a carved gate emblem in the centre, on an ornate carved stone pedestal with a glowing violet magic stone set into its front, inside a softly lit treasure vault alcove with faint arcane runes on the walls, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Доспех-мираж — `items/art-mirage-armor`
+
+> `a light leather armor on a stand whose outline shimmers and splits into faint heat-haze copies, pale golden desert glow, on an ornate carved stone pedestal with a glowing violet magic stone set into its front, inside a softly lit treasure vault alcove with faint arcane runes on the walls, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Магнитная кольчуга — `items/art-magnet-mail`
+
+> `a heavy chainmail shirt on a stand with dark iron horseshoe-magnet plates on the shoulders and faint blue field lines pulling at small metal shards, on an ornate carved stone pedestal with a glowing violet magic stone set into its front, inside a softly lit treasure vault alcove with faint arcane runes on the walls, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
 ## Сокровища и артефакты
+
+### Серебряный колокольчик — `items/tollbell`
+
+> `a small silver hand bell with a dark ribbon, faint cold glow along the rim, engraved wave pattern, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Кольцо братского духа — `items/brotherhood-ring`
+
+> `a simple worn gold ring with two clasped hands engraved around the band, soft warm glow, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Колчан режиссёра — `items/director-quiver`
+
+> `an ornate leather quiver embossed with theatre masks, ten white-fletched arrows sticking out, brass fittings, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Серебряная соль — `items/silver-salt`
+
+> `a heavy silver-clasped linen pouch of glittering coarse silver salt spilling out a little, faint cold glow, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
+
+### Слабая серебряная соль — `items/weak-salt`
+
+> `a small worn linen pouch of fine grey salt flecked with silver dust, tied with string, on a small worn stone pedestal in a stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
 
 ### Флейта успокоения — `calm-flute`
 
@@ -42,7 +178,7 @@
 
 > `a pair of worn bone dice with chipped corners and faded pips, one showing a tiny glint of amber inside, resting on a small leather pouch, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
 
-### Серебряный колокольчик — `bell`
+### Бубенец-предвестник — `bell`
 
 > `a small tarnished silver bell with a leather strap, dents and green patina in the grooves, a tiny crack, hanging from a short wooden stand, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
 
@@ -162,10 +298,6 @@
 
 ## NPC и интерфейсы
 
-### Библиотекарь — `npc-librarian`
-
-> `an elderly dwarf librarian with round spectacles, a long grey beard and ink-stained fingers, holding an open dusty tome, tall bookshelves and a ladder behind him, warm lantern light, hand-painted fantasy RPG character art, stylized, painterly, dark fantasy tone, bust portrait, wide 16:9 composition with empty space at the bottom for text, no text`
-
 ### Регистратор гильдии — `npc-guild`
 
 > `a scarred veteran adventurer in a guild tabard sitting at a desk with a ledger and a quill, a map of the labyrinth and mounted trophies on the wall behind him, warm lantern light, hand-painted fantasy RPG character art, stylized, painterly, dark fantasy tone, bust portrait, wide 16:9 composition with empty space at the bottom for text, no text`
@@ -200,46 +332,10 @@
 
 ## Здания города
 
-### Банк — `bld-bank`
+Все 14 зданий нарисованы.
 
-> `a solid stone bank with thick columns, iron-barred windows, a heavy vault door and a carved gold coin emblem above the entrance, dark fantasy city at dusk, warm window glow, hand-painted fantasy RPG building icon, stylized, painterly, clean readable silhouette, centered on a dark stone square, square 1:1, no text`
+## Поле боя
 
-### Склад — `bld-storage`
+### Походный сундучок (Ведьмин лес) — `terrain/stash`
 
-> `a large wooden warehouse with wide double doors, stacked crates and barrels outside, a hoist beam with a rope and a small guard lantern, dark fantasy city at dusk, warm window glow, hand-painted fantasy RPG building icon, stylized, painterly, clean readable silhouette, centered on a dark stone square, square 1:1, no text`
-
-### Арена — `bld-arena`
-
-> `a large round stone arena with arched gates, iron-barred entrances, banners with crossed swords and a sand-colored interior glimpsed over the walls, dark fantasy city at dusk, warm window glow, hand-painted fantasy RPG building icon, stylized, painterly, clean readable silhouette, centered on a dark stone square, square 1:1, no text`
-
-### Здание: Академия — `bld-academy`
-
-> `a stately stone academy building with a small copper dome, a tall arched door, carved columns, open book emblem above the entrance and lit windows, dark fantasy city at dusk, warm window glow, hand-painted fantasy RPG building icon, stylized, painterly, clean readable silhouette, centered on a dark stone square, square 1:1, no text`
-
-## Разное (3 этаж, оружие, артефакты)
-
-- `treasures/tollbell` — `small silver hand bell with a dark ribbon, faint cold glow along the rim, engraved wave pattern, resting on dark velvet, painted fantasy item icon, plain dark background`
-- `monsters/silence-keeper` — `full-body tall hooded spirit in a grey silver-trimmed robe, face hidden in shadow, one finger pressed to where the lips would be, heavy silver mace, ghostly mist at the feet, painted dark fantasy character, 1024x1536`
-- `items/silver-salt` — `small linen pouch of coarse glittering silver salt spilling a little onto dark wood, painted fantasy item icon, plain dark background`
-- `treasures/bell` — `small silver warning handbell with a short ribbon (renamed: Bubenets-predvestnik)`
-- `monsters/mimic` — `full-body treasure chest mimic mid-lunge, wooden chest with a wide toothy maw, long sticky tongue, glowing amber eyes under the lid, tiny gold coins stuck to its teeth, painted dark fantasy creature, 1024x1536`
-- `terrain/stash` — `small purple-grey travelling chest with a gold latch, top-down fantasy battle map tile`
-- `items/weak-salt` — `small linen pouch of fine grey salt flecked with silver dust, painted fantasy item icon, plain dark background`
-- `items/silver-salt` — `heavy silver-clasped pouch of glittering coarse silver salt spilling out, faint cold glow, painted fantasy artifact icon, plain dark background`
-- `items/director-quiver` — `ornate leather quiver embossed with theatre masks, ten white-fletched arrows sticking out, brass fittings, painted fantasy artifact icon, plain dark background`
-- `items/art-thunder-spear` — `ornate steel spear with crackling blue lightning coiled around the blade, copper rings on the haft, painted fantasy artifact weapon icon, plain dark background`
-- `items/art-magnet-gloves` — `pair of heavy steel gauntlets with horseshoe magnets on the knuckles and faint blue field lines, painted fantasy artifact icon, plain dark background`
-- `items/art-shadow-daggers` — `black elegant dagger with a blade that dissolves into smoky shadow at the edge, violet glow in the engraving, painted fantasy artifact icon, plain dark background`
-- `items/pike` — `short knight's pike, long slender faceted steel head, dark wood shaft with leather grip, painted fantasy weapon icon, plain dark background`
-- `items/art-falling-star` — `elegant white-wood longbow with a glowing golden star set in the grip, faint comet trail along the limbs, painted fantasy artifact icon, plain dark background`
-- `items/art-echo-blade` — `straight steel sword with a faint translucent duplicate blade offset behind it, soft blue echo ripples, painted fantasy artifact icon, plain dark background`
-- `items/art-discharge-staff` — `ash staff with a cage of copper coils and a crackling blue-white orb at the head, painted fantasy artifact icon, plain dark background`
-- `items/art-mirror-shield` — `round polished mirror-faced shield with a dark iron rim, a streak of reflected light, painted fantasy artifact icon, plain dark background`
-- `items/art-moon-sword` — `huge two-handed sword with a crescent-moon shaped crossguard and pale silver blade with faint moon-phase engravings, painted fantasy artifact icon, plain dark background`
-- `items/art-storm-axe` — `compact throwing axe with wind swirls etched in the blade and crackling pale-blue edge, painted fantasy artifact icon, plain dark background`
-- `items/art-meteor-mace` — `heavy mace whose head is a glowing cracked meteorite, orange fissures and trailing sparks, painted fantasy artifact icon, plain dark background`
-- `items/brotherhood-ring` — `simple gold ring with two clasped hands engraved around the band, soft warm glow, painted fantasy artifact icon, plain dark background`
-- `items/art-rampart-pike` — `long steel pike with a banner-like notch below the head and runic rings on the shaft, sturdy knightly look, painted fantasy artifact icon, plain dark background`
-- `items/art-ricochet-bow` — `short recurve bow with bright metal rings and an arrow caught bouncing off a spark, painted fantasy artifact icon, plain dark background`
-- `items/art-shadow-fang` — `curved black dagger shaped like a fang, edge fading into shadow wisps, painted fantasy artifact icon, plain dark background`
-- `items/art-reaper-axe` — `broad crescent-bladed greataxe with a long dark haft and faint red harvest marks etched on the blade, painted fantasy artifact icon, plain dark background`
+> `a small purple-grey travelling chest with a gold latch on dark forest ground, top-down view, fantasy battle map tile, hand-painted, square 1:1, no text`
