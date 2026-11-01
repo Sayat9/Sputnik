@@ -498,11 +498,11 @@ body.forge-open, body.bt-active, body:has(.mapov:not([hidden])), body:has(.bt-ro
 .roll-pool .fx-btn { min-width: 52px; padding: 8px 10px; font: 700 20px/1 var(--f-data); }
 .roll-pool .fx-btn small { display: block; font: 600 10px/1.1 var(--f-body, inherit); letter-spacing: .04em; opacity: .75; margin-top: 3px; }
 .fx-stat .put { font-size: 12px; padding: 4px 6px; }
-.fx-stats grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 10px; }
+.fx-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 10px; margin: 12px 0; }
 .fx-stat { padding: 10px 8px 8px; text-align: center; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .fx-stat .k { font: 700 13px/1 var(--f-fancy); letter-spacing: .14em; color: var(--fx-gold); }
 .fx-stat input { text-align: center; font: 600 24px/1 var(--f-data); padding: 8px 4px; }
-.fx-stat .note-s { font-size: 11.5px; line-height: 1.2; color: var(--fx-muted); margin-top: -2px; }
+.fx-stat .note-s { font-size: 11.5px; line-height: 1.2; color: var(--fx-muted); margin-top: -2px; min-height: 2.4em; display: flex; align-items: center; justify-content: center; }          /* подпись в 2 строки у всех — поля ввода на одной линии */
 .stat-help { padding: 10px 14px 12px; }
 .stat-help summary { cursor: pointer; font: 700 14px/1.2 var(--f-fancy); letter-spacing: .08em; color: var(--fx-gold); }
 .stat-help dl { margin: 10px 0 0; display: grid; gap: 8px; }
@@ -2730,7 +2730,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 77;
+const BATTLE_REV = 78;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }
@@ -3307,7 +3307,7 @@ function forgeIdentity() {
       <div class="fx-stat fx-frame">
         <label class="k" for="fx-${k}">${STAT_SHORT[k]}</label>
         <span class="note-s">${STAT_INFO[k].short}</span>
-        <input class="fx-input${bad.has(k) ? " bad" : ""}" id="fx-${k}" data-draft-stat="${k}" type="number" inputmode="numeric" min="1" max="30" value="${esc(d.base[k])}" placeholder="—">
+        <input class="fx-input${bad.has(k) ? " bad" : ""}" id="fx-${k}" data-draft-stat="${k}" type="number" inputmode="numeric" min="1" max="${STAT_IN_MAX}" value="${esc(d.base[k])}" placeholder="—">
         <small id="fx-tot-${k}">${statPreview(k)}</small>
         ${d.rolls && d.chip != null ? `<button class="fx-btn put" data-fx-put="${k}">Поставить ${d.rolls.pool[d.chip]}</button>` : ""}
       </div>`).join("")}
@@ -3328,6 +3328,7 @@ function forgeIdentity() {
 }
 
 // Бросок характеристик по правилам D&D: 4к6 восемь раз, у каждого броска отбрасывается меньшая кость, из восьми сумм остаются шесть лучших; игрок раскладывает их сам.
+const STAT_IN_MAX = 18;          // наибольшее значение характеристики при создании (до бонуса расы) — максимум 4к6 без меньшей кости
 function rollStatSet() {
   const rows = Array.from({ length: 8 }, () => { const dice = Array.from({ length: 4 }, () => 1 + rnd(6)), low = dice.indexOf(Math.min(...dice)); return { dice, low, sum: dice.reduce((a, b) => a + b, 0) - dice[low] }; });
   const order = rows.map((r, i) => i).sort((a, b) => rows[b].sum - rows[a].sum), keep = new Set(order.slice(0, 6));
@@ -3391,8 +3392,8 @@ function validateDraft() {
   const d = forge.draft, errs = [];
   if (!d.gender) errs.push({ f: "gender", m: "Выбери пол." });
   if (!d.name.trim()) errs.push({ f: "name", m: "Впиши имя героя." });
-  const badStats = STAT_KEYS.filter(k => { const v = parseInt(d.base[k], 10); return !(v >= 1 && v <= 30); });
-  badStats.forEach(k => errs.push({ f: k, m: `${STAT_NAME[k]}: число от 1 до 30.` }));
+  const badStats = STAT_KEYS.filter(k => { const v = parseInt(d.base[k], 10); return !(v >= 1 && v <= STAT_IN_MAX); });
+  badStats.forEach(k => errs.push({ f: k, m: `${STAT_NAME[k]}: число от 1 до ${STAT_IN_MAX}.` }));
   for (const [k, l] of [["age", "Возраст"], ["height", "Рост"], ["weight", "Вес"]]) {
     if (d[k] !== "" && !(parseInt(d[k], 10) > 0)) errs.push({ f: k, m: `${l}: положительное число или пусто.` });
   }
@@ -3486,6 +3487,7 @@ $forge.addEventListener("input", e => {
   if (t.dataset.draft) { forge.draft[t.dataset.draft] = t.value; t.classList.remove("bad"); }
   if (t.dataset.draftStat) {
     const k = t.dataset.draftStat;
+    if (parseInt(t.value, 10) > STAT_IN_MAX) t.value = String(STAT_IN_MAX);          // больше, чем дают кубики (3×6), ввести нельзя
     forge.draft.base[k] = t.value; t.classList.remove("bad");
     const out = document.getElementById("fx-tot-" + k);
     if (out) out.innerHTML = statPreview(k);
@@ -7576,7 +7578,7 @@ function askYesNo(o) {
    start/end — секунды отрезка внутри файла, поэтому исходники можно класть целиком, без нарезки. Включает настройка «Звук» (на каждом телефоне своя).
    • ambient — в пещере (экран лабиринта вне боя) раз в 10–20 с звучит случайный звук; его выбирает ведущий и слышат все игроки;
    • battle — музыка боя, зациклена, пока открыт бой; • fail — выпала 1, crit — выпала 20 (слышат все). Вызов из кода: Sfx.cue("fail"). */
-const SFX_MAN = {"ambient": [{"file": "cave-1.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-2.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-3.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-4.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-5.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-6.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-7.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-8.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-9.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-10.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-11.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-12.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-13.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-14.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-15.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-16.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-17.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-18.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-19.mp3", "start": 0, "end": 0, "vol": 0.8}], "battle": {"file": "battle-cave.mp3", "vol": 0.6}, "fail": {"file": "fail.mp3", "start": 0, "end": 0}, "crit": {"file": "crit.mp3", "start": 0, "end": 0}};          // то же, что assets/sfx/sfx.json
+const SFX_MAN = {"ambient": [{"file": "cave-1.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-2.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-3.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-4.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-5.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-6.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-7.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-8.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-9.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-10.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-11.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-12.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-13.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-14.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-15.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-16.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-17.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-18.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-19.mp3", "start": 0, "end": 0, "vol": 0.8}], "battle": {"file": "battle-cave.mp3", "vol": 0.6}, "fail": {"file": "fail.mp3", "start": 0, "end": 0}, "crit": {"file": "crit.mp3", "start": 0, "end": 0}, "flee": {"file": "flee.mp3", "start": 0, "end": 0}};          // то же, что assets/sfx/sfx.json
 const Sfx = {
   man: null, loaded: false, music: null, musicName: null, timer: null, cache: {},
   on() { return !!state && (!state.settings || state.settings.sound !== false); },          // звук включён по умолчанию

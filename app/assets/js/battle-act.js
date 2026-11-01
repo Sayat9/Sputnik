@@ -518,7 +518,7 @@
     if (u.y === B.H - 1) {
       const ck = await B.doCheck(u, "acrobatics", { title: "Побег", label: `уйти от преследования · Сл ${fleeDc()}`, dc: fleeDc() });          // решение автора: низкая Сл Ловкости
       if (!ck || !ck.ok) { log(`${u.name} не смог оторваться от врагов.`, "flee"); return true; }
-      u.escaped = true; B.dropOwnedStatuses(u); log(`${u.name} покидает поле боя.`, "flee"); const g = ui(); if (g) g.fxEscape(u);
+      u.escaped = true; B.dropOwnedStatuses(u); log(`${u.name} покидает поле боя.`, "flee"); if (window.Sfx && !B.cfg.fast) Sfx.cue("flee");          // звук побега — у всех const g = ui(); if (g) g.fxEscape(u);
     }
     return true;
   }

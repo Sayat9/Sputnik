@@ -501,11 +501,11 @@ body.forge-open, body.bt-active, body:has(.mapov:not([hidden])), body:has(.bt-ro
 .roll-pool .fx-btn { min-width: 52px; padding: 8px 10px; font: 700 20px/1 var(--f-data); }
 .roll-pool .fx-btn small { display: block; font: 600 10px/1.1 var(--f-body, inherit); letter-spacing: .04em; opacity: .75; margin-top: 3px; }
 .fx-stat .put { font-size: 12px; padding: 4px 6px; }
-.fx-stats grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 10px; }
+.fx-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 10px; margin: 12px 0; }
 .fx-stat { padding: 10px 8px 8px; text-align: center; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .fx-stat .k { font: 700 13px/1 var(--f-fancy); letter-spacing: .14em; color: var(--fx-gold); }
 .fx-stat input { text-align: center; font: 600 24px/1 var(--f-data); padding: 8px 4px; }
-.fx-stat .note-s { font-size: 11.5px; line-height: 1.2; color: var(--fx-muted); margin-top: -2px; }
+.fx-stat .note-s { font-size: 11.5px; line-height: 1.2; color: var(--fx-muted); margin-top: -2px; min-height: 2.4em; display: flex; align-items: center; justify-content: center; }          /* подпись в 2 строки у всех — поля ввода на одной линии */
 .stat-help { padding: 10px 14px 12px; }
 .stat-help summary { cursor: pointer; font: 700 14px/1.2 var(--f-fancy); letter-spacing: .08em; color: var(--fx-gold); }
 .stat-help dl { margin: 10px 0 0; display: grid; gap: 8px; }
@@ -1978,8 +1978,8 @@ const DISTRICTS = [
 
 // Готовые рисованные картинки (webp) заменяют векторные заглушки.
 // Дата сборки для телефона: build.sh вписывает её сюда, в веб-версии строка пустая.
-const APP_BUILD = "01.11.2026 23:34";
-const APP_VERSION = 1793558045;                 // номер сборки, тоже вписывает build.sh
+const APP_BUILD = "01.11.2026 23:58";
+const APP_VERSION = 1793559538;                 // номер сборки, тоже вписывает build.sh
 const UPDATE_URL = "https://raw.githubusercontent.com/Sayat9/Sputnik/main/www/";
 const RASTER = new Set(["items/steel-pike", "items/calm-flute", "items/dice", "items/art-falling-star", "items/art-echo-blade", "items/art-discharge-staff", "items/weak-salt", "items/silver-salt", "items/tollbell", "items/director-quiver", "items/flame", "items/herb-poison", "items/herb-food", "items/herb-rest", "items/repair-charm", "items/durable-charm", "items/regen-charm", "items/herb-heal", "items/herb-mana", "items/boots", "items/wind", "items/whetstone", "items/daedalus-hammer", "items/unbreakable-charm", "items/pike", "items/bell", "items/flask", "items/monocle", "buildings/arena", "buildings/academy", "buildings/bank", "buildings/storage", "races/dragon-f", "races/fairy-f", "races/gnome-f", "races/darkfairy-f", "events/to-labyrinth", "races/human-f", "races/barbarian-f", "races/dwarf-f", "races/beastkin-f", "events/to-town", "events/ambush", "events/monsters", "events/nothing", "events/travelers", "events/treasure", "items/mace", "items/warhammer", "items/armor-leather", "items/armor-hide", "items/armor-chainmail", "items/steel-dagger", "items/steel-sword", "items/steel-greatsword", "items/steel-shield", "items/steel-tower-shield", "items/shortbow", "items/longbow", "items/rapier", "items/shield", "items/tower-shield", "items/unknown-mushroom", "items/stone-9", "items/stone-8", "items/stone-7", "items/ration", "items/potion", "items/torch", "items/arrows", "items/clothes", "items/shovel", "items/shovel-good", "items/shovel-best", "items/dagger", "items/sword", "items/greatsword", "items/spear", "monsters/goblin-king-face", "monsters/goblin-king-full", "monsters/goblin-bomber-face", "monsters/goblin-bomber-full", "monsters/hobgoblin-shield-face", "monsters/hobgoblin-shield-full", "races/barbarian", "races/human", "races/dwarf", "races/beastkin", "races/fairy", "races/dragon", "monsters/goblin-face", "monsters/goblin-full", "monsters/goblin-archer-face", "monsters/goblin-archer-full", "monsters/goblin-sword-face", "monsters/goblin-sword-full", "monsters/goblin-spear-face", "monsters/goblin-spear-full", "monsters/wolf-face", "monsters/wolf-full", "monsters/fox-face", "monsters/fox-full", "monsters/mouse-face", "monsters/mouse-full", "monsters/bat-face", "monsters/bat-full", "monsters/hobgoblin-face", "monsters/hobgoblin-full", "monsters/zombie-face", "monsters/zombie-full", "monsters/skeleton-face", "monsters/skeleton-full", "monsters/skeleton-archer-face", "monsters/skeleton-archer-full", "monsters/ghoul-face", "monsters/ghoul-full", "monsters/dark-bear-face", "monsters/dark-bear-full", "monsters/skeleton-warrior-face", "monsters/skeleton-warrior-full", "monsters/living-stone-face", "monsters/living-stone-full", "monsters/wisp-face", "monsters/wisp-full", "monsters/pixie-face", "monsters/pixie-full", "monsters/green-boulder-face", "monsters/green-boulder-full", "monsters/stone-guardian-face", "monsters/stone-guardian-full", "monsters/spider-queen-face", "monsters/spider-queen-full", "monsters/ash-wraith-face", "monsters/ash-wraith-full", "monsters/ash-spirit-face", "monsters/ash-spirit-full", "monsters/plague-fat-face", "monsters/plague-fat-full", "monsters/bone-hound-face", "monsters/bone-hound-full", "monsters/dust-crawler-face", "monsters/dust-crawler-full", "monsters/faceless-ringer-face", "monsters/faceless-ringer-full", "monsters/mirror-dead-face", "monsters/mirror-dead-full", "monsters/whisperer-face", "monsters/whisperer-full", "monsters/morok-face", "monsters/morok-full", "monsters/grey-shade-face", "monsters/grey-shade-full", "monsters/blackwing-face", "monsters/blackwing-full", "monsters/swamp-fang-face", "monsters/swamp-fang-full", "monsters/web-spider-face", "monsters/web-spider-full", "monsters/goblin-shaman-face", "monsters/goblin-shaman-full", "monsters/goblin-assassin-face", "monsters/goblin-assassin-full", "monsters/goblin-trapper-face", "monsters/goblin-trapper-full", "monsters/goblin-elder-face", "monsters/goblin-elder-full", "monsters/hobgoblin-brute-face", "monsters/hobgoblin-brute-full", "monsters/hobgoblin-thrower-face", "monsters/hobgoblin-thrower-full", "monsters/hobgoblin-driver-face", "monsters/hobgoblin-driver-full", "monsters/goblin-thief-face", "monsters/goblin-thief-full", "monsters/horned-hare-face", "monsters/horned-hare-full", "monsters/swamp-toad-face", "monsters/swamp-toad-full", "monsters/burrower-face", "monsters/burrower-full", "monsters/crow-face", "monsters/crow-full", "monsters/dire-wolf-face", "monsters/dire-wolf-full", "monsters/werewolf-face", "monsters/werewolf-full", "monsters/giant-mole-face", "monsters/giant-mole-full", "monsters/bone-knight-face", "monsters/bone-knight-full", "monsters/gravedigger-face", "monsters/gravedigger-full", "monsters/corpse-eater-face", "monsters/corpse-eater-full", "monsters/drop-face", "monsters/drop-full", "monsters/dust-whirl-face", "monsters/dust-whirl-full", "monsters/magma-hound-face", "monsters/magma-hound-full", "monsters/crystalloid-face", "monsters/crystalloid-full", "monsters/lake-spirit-face", "monsters/lake-spirit-full", "monsters/magma-golem-face", "monsters/magma-golem-full", "monsters/deep-serpent-face", "monsters/deep-serpent-full", "monsters/crystal-colossus-face", "monsters/crystal-colossus-full", "monsters/storm-spirit-face", "monsters/storm-spirit-full", "monsters/rift-heart-face", "monsters/rift-heart-full", "items/compass", "items/steel-mace", "items/steel-rapier", "items/unknown-herb", "items/twin-daggers", "items/unknown-stone", "items/steel-twin-daggers", "items/potion-good", "items/coins", "items/steel-spear", "items/steel-warhammer", "items/steel-shortbow", "items/steel-longbow", "items/steel-armor-leather", "items/steel-armor-hide", "items/steel-armor-chainmail", "items/gloves", "items/staff", "items/axe", "items/greataxe", "items/firstaid", "items/flute", "items/chalice", "items/once-more", "items/guard", "items/beginners-luck", "buildings/tower", "buildings/guild", "buildings/church", "buildings/library", "buildings/gate", "buildings/tavern", "buildings/shop", "buildings/forge", "buildings/board", "buildings/hall", "races/gnome", "races/darkfairy", "monsters/rat-face", "monsters/rat-full", "monsters/rat-king-face", "monsters/rat-king-full", "monsters/rat-catcher-face", "monsters/rat-catcher-full"]);
 const artPath = p => `assets/${p}.${RASTER.has(p) ? "webp" : "svg"}`;
@@ -2735,7 +2735,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 77;
+const BATTLE_REV = 78;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }
@@ -3312,7 +3312,7 @@ function forgeIdentity() {
       <div class="fx-stat fx-frame">
         <label class="k" for="fx-${k}">${STAT_SHORT[k]}</label>
         <span class="note-s">${STAT_INFO[k].short}</span>
-        <input class="fx-input${bad.has(k) ? " bad" : ""}" id="fx-${k}" data-draft-stat="${k}" type="number" inputmode="numeric" min="1" max="30" value="${esc(d.base[k])}" placeholder="—">
+        <input class="fx-input${bad.has(k) ? " bad" : ""}" id="fx-${k}" data-draft-stat="${k}" type="number" inputmode="numeric" min="1" max="${STAT_IN_MAX}" value="${esc(d.base[k])}" placeholder="—">
         <small id="fx-tot-${k}">${statPreview(k)}</small>
         ${d.rolls && d.chip != null ? `<button class="fx-btn put" data-fx-put="${k}">Поставить ${d.rolls.pool[d.chip]}</button>` : ""}
       </div>`).join("")}
@@ -3333,6 +3333,7 @@ function forgeIdentity() {
 }
 
 // Бросок характеристик по правилам D&D: 4к6 восемь раз, у каждого броска отбрасывается меньшая кость, из восьми сумм остаются шесть лучших; игрок раскладывает их сам.
+const STAT_IN_MAX = 18;          // наибольшее значение характеристики при создании (до бонуса расы) — максимум 4к6 без меньшей кости
 function rollStatSet() {
   const rows = Array.from({ length: 8 }, () => { const dice = Array.from({ length: 4 }, () => 1 + rnd(6)), low = dice.indexOf(Math.min(...dice)); return { dice, low, sum: dice.reduce((a, b) => a + b, 0) - dice[low] }; });
   const order = rows.map((r, i) => i).sort((a, b) => rows[b].sum - rows[a].sum), keep = new Set(order.slice(0, 6));
@@ -3396,8 +3397,8 @@ function validateDraft() {
   const d = forge.draft, errs = [];
   if (!d.gender) errs.push({ f: "gender", m: "Выбери пол." });
   if (!d.name.trim()) errs.push({ f: "name", m: "Впиши имя героя." });
-  const badStats = STAT_KEYS.filter(k => { const v = parseInt(d.base[k], 10); return !(v >= 1 && v <= 30); });
-  badStats.forEach(k => errs.push({ f: k, m: `${STAT_NAME[k]}: число от 1 до 30.` }));
+  const badStats = STAT_KEYS.filter(k => { const v = parseInt(d.base[k], 10); return !(v >= 1 && v <= STAT_IN_MAX); });
+  badStats.forEach(k => errs.push({ f: k, m: `${STAT_NAME[k]}: число от 1 до ${STAT_IN_MAX}.` }));
   for (const [k, l] of [["age", "Возраст"], ["height", "Рост"], ["weight", "Вес"]]) {
     if (d[k] !== "" && !(parseInt(d[k], 10) > 0)) errs.push({ f: k, m: `${l}: положительное число или пусто.` });
   }
@@ -3491,6 +3492,7 @@ $forge.addEventListener("input", e => {
   if (t.dataset.draft) { forge.draft[t.dataset.draft] = t.value; t.classList.remove("bad"); }
   if (t.dataset.draftStat) {
     const k = t.dataset.draftStat;
+    if (parseInt(t.value, 10) > STAT_IN_MAX) t.value = String(STAT_IN_MAX);          // больше, чем дают кубики (3×6), ввести нельзя
     forge.draft.base[k] = t.value; t.classList.remove("bad");
     const out = document.getElementById("fx-tot-" + k);
     if (out) out.innerHTML = statPreview(k);
@@ -7581,7 +7583,7 @@ function askYesNo(o) {
    start/end — секунды отрезка внутри файла, поэтому исходники можно класть целиком, без нарезки. Включает настройка «Звук» (на каждом телефоне своя).
    • ambient — в пещере (экран лабиринта вне боя) раз в 10–20 с звучит случайный звук; его выбирает ведущий и слышат все игроки;
    • battle — музыка боя, зациклена, пока открыт бой; • fail — выпала 1, crit — выпала 20 (слышат все). Вызов из кода: Sfx.cue("fail"). */
-const SFX_MAN = {"ambient": [{"file": "cave-1.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-2.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-3.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-4.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-5.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-6.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-7.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-8.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-9.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-10.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-11.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-12.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-13.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-14.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-15.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-16.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-17.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-18.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-19.mp3", "start": 0, "end": 0, "vol": 0.8}], "battle": {"file": "battle-cave.mp3", "vol": 0.6}, "fail": {"file": "fail.mp3", "start": 0, "end": 0}, "crit": {"file": "crit.mp3", "start": 0, "end": 0}};          // то же, что assets/sfx/sfx.json
+const SFX_MAN = {"ambient": [{"file": "cave-1.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-2.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-3.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-4.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-5.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-6.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-7.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-8.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-9.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-10.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-11.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-12.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-13.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-14.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-15.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-16.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-17.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-18.mp3", "start": 0, "end": 0, "vol": 0.8}, {"file": "cave-19.mp3", "start": 0, "end": 0, "vol": 0.8}], "battle": {"file": "battle-cave.mp3", "vol": 0.6}, "fail": {"file": "fail.mp3", "start": 0, "end": 0}, "crit": {"file": "crit.mp3", "start": 0, "end": 0}, "flee": {"file": "flee.mp3", "start": 0, "end": 0}};          // то же, что assets/sfx/sfx.json
 const Sfx = {
   man: null, loaded: false, music: null, musicName: null, timer: null, cache: {},
   on() { return !!state && (!state.settings || state.settings.sound !== false); },          // звук включён по умолчанию
