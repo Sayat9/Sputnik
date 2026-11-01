@@ -7553,7 +7553,7 @@ const Sfx = {
   man: null, loaded: false, music: null, musicName: null, timer: null, cache: {},
   on() { return !!state && (!state.settings || state.settings.sound !== false); },          // звук включён по умолчанию
   async load() { this.loaded = true; this.man = SFX_MAN; },
-  audio(file) { let a = this.cache[file]; if (!a) { a = this.cache[file] = new Audio("assets/sfx/" + file + "?v=2");          // ?v — чтобы телефон не брал старый файл из кэша (fail.mp3 перерезан 01.11) a.preload = "auto"; } return a; },
+  audio(file) { let a = this.cache[file]; if (!a) { a = this.cache[file] = new Audio("assets/sfx/" + file + "?v=2");  a.preload = "auto"; } return a; },
   async playClip(c) {
     if (!c || !c.file || !this.on()) return; await this.load();
     try { const a = this.audio(c.file).cloneNode(); a.volume = c.vol == null ? 1 : c.vol; a.currentTime = c.start || 0; a.play().catch(() => {});
