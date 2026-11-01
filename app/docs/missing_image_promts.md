@@ -10,7 +10,7 @@
 
 ## Монстры
 
-Новый монстр без картинки: полный рост 1024 × 1536 (иконку лица вырезаю сам). Нужны два монстра 3 этажа.
+Новый монстр без картинки: полный рост 1024 × 1536 (иконку лица вырезаю сам). Нужны монстры 3 этажа: Хранитель Тишины, мимик и 9 обитателей Лагеря орков.
 
 ### Хранитель Тишины — `monsters/silence-keeper-full`
 
@@ -19,6 +19,42 @@
 ### Мимик — `monsters/mimic-full`
 
 > `full-body treasure chest mimic mid-lunge, a worn wooden chest with a wide toothy maw, a long sticky tongue, glowing amber eyes under the lid, tiny gold coins stuck to its teeth, dark dungeon floor, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Ездовой волк — `monsters/orc-wolf-full`
+
+> `full-body huge grey dire wolf with a worn leather saddle and bone-bead harness, scarred muzzle, red war-paint stripes on the flanks, mid-stride on trampled camp mud, orc tents and smoke behind, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Сокол-разведчик — `monsters/orc-falcon-full`
+
+> `full-body large brown war falcon with a leather hood pushed back and a small bone tag on its leg, wings half-spread, sharp golden eyes, perched on a wooden spike of an orc palisade, smoky sky, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Орк-разведчик — `monsters/orc-scout-full`
+
+> `full-body lean green-grey orc scout in patched leather armor and a fur hood, short sword and short bow, crouching beside thorny bushes, face smeared with ash for camouflage, misty hunting grounds, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Орк-копейщик — `monsters/orc-spear-full`
+
+> `full-body muscular orc spearman with a long iron-tipped spear and a round hide shield, bone pauldrons, braced stance at a palisade gate, war camp behind, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Орк-метатель топоров — `monsters/orc-thrower-full`
+
+> `full-body broad-shouldered orc axe thrower with a bandolier of small throwing axes across the chest, one axe raised to throw, fur kilt, camp fires behind, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Вожак стражи — `monsters/orc-guard-full`
+
+> `full-body big orc guard captain in rusty chainmail with a heavy tower-like shield and a bearded war axe, iron helmet with tusk guards, standing in front of a line of orc warriors, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Шаманка костров — `monsters/orc-shaman-full`
+
+> `full-body old orc shamaness with bone amulets and feathers in grey braids, a gnarled staff topped with a glowing ember skull, flames swirling around her hands, bonfire behind, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Цепной палач — `monsters/orc-executioner-full`
+
+> `full-body hulking orc executioner in a leather hood, bare scarred chest crossed with heavy iron chains, swinging a long hooked chain, blood-stained apron, grim camp gallows behind, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Вождь орков — `monsters/orc-chief-full`
+
+> `full-body massive orc warchief in mismatched trophy plate armor, a great cleaver in one hand, a wolf pelt cloak, tusks capped with gold, roaring war cry before his great tent with banners, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
 
 ## Предметы, оружие и броня
 

@@ -12,10 +12,12 @@ rules = open(RULES, encoding="utf-8").read()
 # Монстры из данных приложения (tools/dump_monsters.mjs выполняет блок данных index.html): этажи, места, условия появления.
 import json, subprocess
 DATA = json.loads(subprocess.check_output(["node", os.path.join(HERE, "dump_monsters.mjs")]))
-MON = [dict(id=x["id"], zone=x["zone"], rare=x["rare"], name=x["name"], ph=x.get("ph"), floor=x["floor"], floors=x["floors"], cls=x["cls"],
+_ZG = {"goblin", "beast", "undead", "stone"}
+MON = [dict(id=x["id"], zone=x["zone"] if x["zone"] in _ZG else ("beast" if "Зверь" in (x.get("type") or "") else "goblin"),          # орки и др. новые зоны — по группе существа
+ rare=x["rare"], name=x["name"], ph=x.get("ph"), floor=x["floor"], floors=x["floors"], cls=x["cls"],
             rank="rare" if x["rank"] == "normal" and x["rare"] else x["rank"], draft=bool(x.get("draft")), stub=bool(x.get("stub")),
             statDraft=bool(x.get("statDraft")), areas=x["areas"], spawn=x.get("spawn")) for x in DATA["MONSTERS"]]
-RANKS = [("normal", "Обычный"), ("rare", "Редкий"), ("special", "Особый"), ("guardian", "Страж"), ("lord", "Лорд")]
+RANKS = [("normal", "Обычный"), ("rare", "Редкий"), ("special", "Особый"), ("guardian", "Страж"), ("boss", "Босс"), ("lord", "Лорд")]
 RASTER = set(re.search(r'const RASTER = new Set\(\[([^\]]*)\]', SRC).group(1).replace('"', "").replace(" ", "").split(","))
 def face(m):
     if m["ph"]: return f"assets/monsters/ph-{m['ph']}-face.svg"

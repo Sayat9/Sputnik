@@ -192,6 +192,8 @@
     const ctx = { att, tgt, atk, o, melee, d0, mods: [], adv: [], dis: [], notes: [], consume: [], extra: [], cover: 0, ac: tgt.ac, acNotes: [], autoCrit: false, autoHit: false };
     if (atk.parts) ctx.mods.push(...atk.parts); else ctx.mods.push({ l: "Бонус атаки", v: atk.hit });
     if (atk.penalty) ctx.mods.push({ l: atk.penaltyLabel || "Штраф", v: atk.penalty });
+    if (has(att, "warcry")) { ctx.adv.push("Боевой клич"); ctx.consume.push([att, "warcry"]); }          // вождь орков: преимущество на первую атаку
+    { const hm = has(tgt, "hawkmark"); if (hm && hm.data.side === att.side) ctx.mods.push({ l: "Метка сокола", v: 2 }); }          // «Метка с высоты»: +2 союзникам метящего
     if (has(att, "fumbled")) { ctx.mods.push({ l: "Неловкость (крит. промах)", v: -3 }); ctx.consume.push([att, "fumbled"]); }          // решение автора 01.11
     if (atk.kind === "ranged" && atk.w && /bow$/.test(atk.w.id) && dist(att, tgt) >= 4) { ctx.mods.push({ l: "Лук: дальний выстрел", v: 1 }); ctx.dmgPlus = (ctx.dmgPlus || 0) + 2; ctx.notes.push("лук на 4+ кл.: +1 к попаданию, +2 урона"); }          // решение автора 01.11 (числа — черновик)
     if (att.fat >= 3) ctx.mods.push({ l: "Усталость", v: -2 }); else if (att.fat === 2) ctx.mods.push({ l: "Усталость", v: -1 });
@@ -255,6 +257,7 @@
     if (has(tgt, "lunged")) { ac -= 1; ctx.acNotes.push("после выпада −1"); }
     if (has(tgt, "guarded")) { ac += 2; ctx.acNotes.push("прикрыт щитом +2"); }
     if (has(tgt, "pikeward") && melee) { ac += 1; ctx.acNotes.push("заслон пики +1"); }
+    if (has(tgt, "shieldwall")) { ac += 2; ctx.acNotes.push("сомкнутый строй +2"); }          // «Сомкнуть строй» вожака стражи
     if (!melee) for (const a of alliesOf(tgt)) if (a !== tgt && has(a, "bastion") && alive(a) && B.lineCells(att, tgt).some(([x, y]) => footprint(a).some(([fx, fy]) => fx === x && fy === y))) { ac += 2; ctx.acNotes.push("укрытие за бастионом +2"); break; }
     for (const b of units()) if (b !== tgt && b.side === tgt.side && b.side !== att.side && has(b, "bastion") && alive(b) && dist(att, b) <= 4 && seesTarget(att, b)) { ctx.dis.push("провокация бастиона"); break; }
     const own = hookSum(tgt, "acBonus", ctx); if (own) { ac += own; ctx.acNotes.push(`пассивка ${sg(own)}`); }

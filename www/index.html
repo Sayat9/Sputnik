@@ -1937,6 +1937,62 @@ MONSTERS.push({ id: "mimic", zone: "undead", rare: true, weight: 1, name: "Ми�
   senses: "Тёмное зрение 18 м.",
   traits: [["Подражатель", "Выглядит как обычный сундучок, пока не нападёт.", "behavior"], ["Липкая шкура", "Того, кто его ударил, трудно отпустить: поражённый в ближнем бою не может уйти без проверки.", "behavior"],
     ["Две атаки", "За ход два удара.", "attacks"], ["Ложная пасть", "+7 к попаданию, 2к8+4 колющего.", "attacks"], ["Псевдоподия", "+7 к попаданию, 1к10+4 дробящего.", "attacks"]] });
+/*ORC-BEGIN*/
+// ===== 3 этаж: Лагерь орков (утверждено автором 01.11: статы и эссенции v2 из drafts.md; способности — v1/v3). Волки и соколы — только вместе с орками.
+// Статблоки (атаки, ОЗ) — моя заготовка по v2, черновик (statDraft).
+const ORC_MON = [
+  ["orc-wolf", 9, "Ездовой волк", "Средний зверь", "beast", "12", "11 (2к8+2)", "12 м", [13, 15, 12, 3, 12, 6], "Восприятие +3.",
+    [["Только с орками", "Бегает рядом с орками; без них не встречается.", "behavior"], ["Погоня", "Набегает издалека и рвёт с разгона.", "behavior"], ["Укус", "+4 к попаданию, 1к6+2 колющего.", "attacks"]]],
+  ["orc-falcon", 9, "Сокол-разведчик", "Малый зверь", "beast", "13", "7 (2к6)", "3 м, полёт 18 м", [6, 16, 10, 3, 14, 6], "Восприятие +4.",
+    [["Разведчик", "Кружит над орками и метит цель; если встречен один — первым делом зовёт орков.", "behavior"], ["Когти", "+5 к попаданию, 1к4+3 рубящего.", "attacks"]]],
+  ["orc-scout", 8, "Орк-разведчик", "Средний гуманоид", "humanoid", "14 (кожаный доспех)", "28 (5к8+6)", "9 м", [12, 16, 12, 9, 12, 8], "Скрытность +5. Тёмное зрение 18 м.",
+    [["Из укрытия", "Держится у зарослей и камней, прыгает на цель из скрытности.", "behavior"], ["Короткий меч", "+5 к попаданию, 1к6+3 колющего.", "attacks"], ["Короткий лук", "+5 к попаданию, 18/72 м, 1к6+3 колющего.", "attacks"]]],
+  ["orc-spear", 8, "Орк-копейщик", "Средний гуманоид", "humanoid", "15 (шкуры и щит)", "34 (5к8+12)", "9 м", [16, 11, 14, 8, 11, 8], "Тёмное зрение 18 м.",
+    [["Частокол", "Держит подступы: кто входит под копьё, получает укол.", "behavior"], ["Копьё", "+5 к попаданию, досягаемость 3 м, 1к8+3 колющего.", "attacks"]]],
+  ["orc-thrower", 8, "Орк-метатель топоров", "Средний гуманоид", "humanoid", "13 (шкуры)", "30 (5к8+8)", "9 м", [16, 13, 13, 8, 9, 8], "Тёмное зрение 18 м.",
+    [["Град топоров", "Издали мечет топоры, вблизи рубит.", "behavior"], ["Топор", "+5 к попаданию, 1к6+3 рубящего; метнуть 6/18 м.", "attacks"]]],
+  ["orc-guard", 7, "Вожак стражи", "Средний гуманоид", "humanoid", "17 (кольчуга и щит)", "55 (8к8+16)", "9 м", [18, 10, 16, 9, 11, 14], "Тёмное зрение 18 м.",
+    [["Строй", "Держит орков плечом к плечу; рядом с ним они крепче.", "behavior"], ["Две атаки", "За ход удар секирой и удар щитом.", "attacks"], ["Секира", "+6 к попаданию, 1к10+4 рубящего.", "attacks"], ["Удар щитом", "+6 к попаданию, 1к4+4 дробящего.", "attacks"]]],
+  ["orc-shaman", 7, "Шаманка костров", "Средний гуманоид", "humanoid", "14 (костяные амулеты)", "42 (7к8+10)", "9 м", [10, 10, 16, 15, 13, 12], "Тёмное зрение 18 м.",
+    [["Огонь костров", "Держится позади, разжигает костры под ногами врагов.", "behavior"], ["Посох", "+4 к попаданию, 1к6+1 дробящего.", "attacks"], ["Огненный плевок", "+6 к попаданию, 9/18 м, 2к6 огнём.", "attacks"]]],
+  ["orc-executioner", 7, "Цепной палач", "Средний гуманоид", "humanoid", "16 (кожа и цепи)", "62 (8к8+26)", "9 м", [18, 9, 17, 8, 11, 10], "Тёмное зрение 18 м.",
+    [["Тяжёлые цепи", "Рядом с ним трудно двигаться; цепью подтягивает к себе.", "behavior"], ["Цепь", "+6 к попаданию, досягаемость 3 м, 2к6+4 дробящего.", "attacks"]]],
+  ["orc-chief", 6, "Вождь орков", "Большой гуманоид", "humanoid", "17 (трофейные латы)", "120 (13к10+49)", "9 м", [20, 11, 18, 9, 12, 16], "Тёмное зрение 18 м.",
+    [["Железная воля", "Не боится и не теряется; ведёт лагерь боевым кличем.", "behavior"], ["Две атаки", "За ход удар тесаком и удар кулаком.", "attacks"], ["Тесак", "+7 к попаданию, 2к8+5 рубящего.", "attacks"], ["Кулак", "+7 к попаданию, 1к8+5 дробящего.", "attacks"]]],
+];
+for (const [id, cls, name, size, ph, ac, hp, speed, abil, senses, traits] of ORC_MON) MONSTERS.push({ id, zone: "orc", rare: false, weight: 1, name, floor: 3, cls, rank: cls <= 6 ? "special" : "normal",
+  size, group: id === "orc-chief" ? "Один, в шатре вождя со стражей" : id === "orc-wolf" || id === "orc-falcon" ? "Только с орками" : "Патрули по 2–4", type: /зверь/.test(size) ? "Зверь" : "Гуманоид",
+  sz: /Большой/.test(size) ? "большой" : /Малый/.test(size) ? "малый" : "средний", areas: ["3 этаж: Лагерь орков"], ac, hp, speed, cr: String(10 - cls), abil, senses, traits, loot: `Камень ${cls}-го класса.`, essence: id, ph, statDraft: true });
+Object.assign(ESSENCES, {
+  "orc-wolf": { id: "orc-wolf", name: "Эссенция ездового волка", cls: 9, source: "orc-wolf", stats: { dex: 2, con: 1, int: -1 }, other: [],
+    passive: { name: "Погоня", text: "Если перед атакой ближнего боя ты прошёл в этот ход 2 клетки и больше, атака наносит +1к4 урона." },
+    active: { name: "Рывок", mana: 2, time: "доп. действие", text: "Перемещение до 2 клеток, не вызывая атак по возможности. Перезарядка 2 раунда." } },
+  "orc-falcon": { id: "orc-falcon", name: "Эссенция сокола-разведчика", cls: 9, source: "orc-falcon", stats: { dex: 1, str: -1 }, other: ["Восприятие +2"],
+    passive: { name: "Взгляд с высоты", text: "+1 к пассивному Восприятию; патрули и преследователей на карте замечаешь на 1 квадрат раньше." },
+    active: { name: "Метка с высоты", mana: 2, time: "доп. действие", text: "Цель в 6 клетках до конца твоего следующего хода помечена: атаки твоих союзников и твои по ней получают +2 к попаданию. Перезарядка 3 раунда." } },
+  "orc-scout": { id: "orc-scout", name: "Эссенция орка-разведчика", cls: 8, source: "orc-scout", stats: { dex: 2, int: -1, cha: -1 }, other: ["Акробатика +1", "Восприятие +1"],
+    passive: { name: "Тропа орков", text: "Скрытность с преимуществом, если рядом с тобой (в 1 клетке) есть укрытие: заросли, деревья, камни, надгробия и т. п." },
+    active: { name: "Бросок из тени", mana: 2, time: "действие", text: "Прыжок до 2 клеток (без атак по возможности) и удар ближнего боя; если ты был скрыт — с преимуществом. Перезарядка 3 раунда." } },
+  "orc-spear": { id: "orc-spear", name: "Эссенция орка-копейщика", cls: 8, source: "orc-spear", stats: { str: 2, con: 1, dex: -1, int: -1 }, other: ["Восприятие +1"],
+    passive: { name: "Частокол", text: "Враг, входящий в досягаемость твоего оружия ближнего боя, получает 1к4 колющего (раз в раунд, реакцию не тратит)." },
+    active: { name: "Отгон", mana: 2, time: "действие", text: "Удар ближнего боя; при попадании цель отброшена на 1 клетку от тебя (удар о препятствие — 1к6). Перезарядка 2 раунда." } },
+  "orc-thrower": { id: "orc-thrower", name: "Эссенция орка-метателя", cls: 8, source: "orc-thrower", stats: { str: 2, dex: 1, con: 1, wis: -1, cha: -1 }, other: [],
+    passive: { name: "Широкий замах", text: "Дальность метательного оружия +3 м (2 клетки)." },
+    active: { name: "Град топоров", mana: 3, time: "действие", text: "Две дальние атаки метательным оружием по одной или двум целям; оружие возвращается в руку. Перезарядка 3 раунда." } },
+  "orc-guard": { id: "orc-guard", name: "Эссенция вожака стражи", cls: 7, source: "orc-guard", stats: { str: 2, cha: 2, dex: -1 }, other: ["Запугивание +1", "Инициатива −1"],
+    passive: { name: "Строй", text: "Союзники в 2 клетках от тебя получают +1 к КД." },
+    active: { name: "Сомкнуть строй", mana: 3, time: "доп. действие", text: "Ты и союзники рядом с тобой (1 клетка) получаете +2 к КД до начала твоего следующего хода. Перезарядка 4 раунда." } },
+  "orc-shaman": { id: "orc-shaman", name: "Эссенция шаманки костров", cls: 7, source: "orc-shaman", stats: { int: 2, con: 2, dex: -1, str: -1 }, other: ["Сопротивление урону огнём"],
+    passive: { name: "Угли в руках", text: "Твои атаки огнём наносят +1к4 огнём." },
+    active: { name: "Костёр", mana: 3, time: "действие", text: "Магический навык (от Интеллекта). Квадрат 2 × 2 клетки в 6 клетках загорается на 10 раундов: кто входит или начинает там ход — 1к4 огнём; горящая клетка снимает невидимость с того, кто в ней. Перезарядка 4 раунда." } },
+  "orc-executioner": { id: "orc-executioner", name: "Эссенция цепного палача", cls: 7, source: "orc-executioner", stats: { str: 2, con: 2, dex: -1 }, other: ["Атлетика +1", "Инициатива −1"],
+    passive: { name: "Тяжёлые цепи", text: "Враги в 2 клетках от тебя теряют 1 клетку скорости." },
+    active: { name: "Захват цепью", mana: 3, time: "действие", text: "Цель в 2 клетках: спасбросок Силы (Сл 8 + мод. Силы). Провал — цель притянута к тебе и схвачена. Перезарядка 3 раунда." } },
+  "orc-chief": { id: "orc-chief", name: "Эссенция вождя орков", cls: 6, source: "orc-chief", stats: { str: 3, con: 2, cha: 2, dex: -1, int: -1, wis: -1 }, other: [],
+    passive: { name: "Железная воля", text: "Преимущество на спасброски от страха и оглушения." },
+    active: { name: "Боевой клич", mana: 3, time: "доп. действие", text: "Союзники в 4 клетках получают преимущество на первую атаку до конца твоего следующего хода. Перезарядка 4 раунда." } },
+});
+/*ORC-END*/
 MONSTERS.forEach(m => {
   const x = MON_EXTRA[m.id] || {};
   Object.assign(m, MON_STATS[m.id] || MON_STATS2[m.id] || {});
@@ -1997,8 +2053,8 @@ const DISTRICTS = [
 
 // Готовые рисованные картинки (webp) заменяют векторные заглушки.
 // Дата сборки для телефона: build.sh вписывает её сюда, в веб-версии строка пустая.
-const APP_BUILD = "02.11.2026 00:59";
-const APP_VERSION = 1793563143;                 // номер сборки, тоже вписывает build.sh
+const APP_BUILD = "02.11.2026 02:04";
+const APP_VERSION = 1793567042;                 // номер сборки, тоже вписывает build.sh
 const UPDATE_URL = "https://raw.githubusercontent.com/Sayat9/Sputnik/main/www/";
 const RASTER = new Set(["items/steel-pike", "items/calm-flute", "items/dice", "items/art-falling-star", "items/art-echo-blade", "items/art-discharge-staff", "items/weak-salt", "items/silver-salt", "items/tollbell", "items/director-quiver", "items/flame", "items/herb-poison", "items/herb-food", "items/herb-rest", "items/repair-charm", "items/durable-charm", "items/regen-charm", "items/herb-heal", "items/herb-mana", "items/boots", "items/wind", "items/whetstone", "items/daedalus-hammer", "items/unbreakable-charm", "items/pike", "items/bell", "items/flask", "items/monocle", "buildings/arena", "buildings/academy", "buildings/bank", "buildings/storage", "races/dragon-f", "races/fairy-f", "races/gnome-f", "races/darkfairy-f", "events/to-labyrinth", "races/human-f", "races/barbarian-f", "races/dwarf-f", "races/beastkin-f", "events/to-town", "events/ambush", "events/monsters", "events/nothing", "events/travelers", "events/treasure", "items/mace", "items/warhammer", "items/armor-leather", "items/armor-hide", "items/armor-chainmail", "items/steel-dagger", "items/steel-sword", "items/steel-greatsword", "items/steel-shield", "items/steel-tower-shield", "items/shortbow", "items/longbow", "items/rapier", "items/shield", "items/tower-shield", "items/unknown-mushroom", "items/stone-9", "items/stone-8", "items/stone-7", "items/ration", "items/potion", "items/torch", "items/arrows", "items/clothes", "items/shovel", "items/shovel-good", "items/shovel-best", "items/dagger", "items/sword", "items/greatsword", "items/spear", "monsters/goblin-king-face", "monsters/goblin-king-full", "monsters/goblin-bomber-face", "monsters/goblin-bomber-full", "monsters/hobgoblin-shield-face", "monsters/hobgoblin-shield-full", "races/barbarian", "races/human", "races/dwarf", "races/beastkin", "races/fairy", "races/dragon", "monsters/goblin-face", "monsters/goblin-full", "monsters/goblin-archer-face", "monsters/goblin-archer-full", "monsters/goblin-sword-face", "monsters/goblin-sword-full", "monsters/goblin-spear-face", "monsters/goblin-spear-full", "monsters/wolf-face", "monsters/wolf-full", "monsters/fox-face", "monsters/fox-full", "monsters/mouse-face", "monsters/mouse-full", "monsters/bat-face", "monsters/bat-full", "monsters/hobgoblin-face", "monsters/hobgoblin-full", "monsters/zombie-face", "monsters/zombie-full", "monsters/skeleton-face", "monsters/skeleton-full", "monsters/skeleton-archer-face", "monsters/skeleton-archer-full", "monsters/ghoul-face", "monsters/ghoul-full", "monsters/dark-bear-face", "monsters/dark-bear-full", "monsters/skeleton-warrior-face", "monsters/skeleton-warrior-full", "monsters/living-stone-face", "monsters/living-stone-full", "monsters/wisp-face", "monsters/wisp-full", "monsters/pixie-face", "monsters/pixie-full", "monsters/green-boulder-face", "monsters/green-boulder-full", "monsters/stone-guardian-face", "monsters/stone-guardian-full", "monsters/spider-queen-face", "monsters/spider-queen-full", "monsters/ash-wraith-face", "monsters/ash-wraith-full", "monsters/ash-spirit-face", "monsters/ash-spirit-full", "monsters/plague-fat-face", "monsters/plague-fat-full", "monsters/bone-hound-face", "monsters/bone-hound-full", "monsters/dust-crawler-face", "monsters/dust-crawler-full", "monsters/faceless-ringer-face", "monsters/faceless-ringer-full", "monsters/mirror-dead-face", "monsters/mirror-dead-full", "monsters/whisperer-face", "monsters/whisperer-full", "monsters/morok-face", "monsters/morok-full", "monsters/grey-shade-face", "monsters/grey-shade-full", "monsters/blackwing-face", "monsters/blackwing-full", "monsters/swamp-fang-face", "monsters/swamp-fang-full", "monsters/web-spider-face", "monsters/web-spider-full", "monsters/goblin-shaman-face", "monsters/goblin-shaman-full", "monsters/goblin-assassin-face", "monsters/goblin-assassin-full", "monsters/goblin-trapper-face", "monsters/goblin-trapper-full", "monsters/goblin-elder-face", "monsters/goblin-elder-full", "monsters/hobgoblin-brute-face", "monsters/hobgoblin-brute-full", "monsters/hobgoblin-thrower-face", "monsters/hobgoblin-thrower-full", "monsters/hobgoblin-driver-face", "monsters/hobgoblin-driver-full", "monsters/goblin-thief-face", "monsters/goblin-thief-full", "monsters/horned-hare-face", "monsters/horned-hare-full", "monsters/swamp-toad-face", "monsters/swamp-toad-full", "monsters/burrower-face", "monsters/burrower-full", "monsters/crow-face", "monsters/crow-full", "monsters/dire-wolf-face", "monsters/dire-wolf-full", "monsters/werewolf-face", "monsters/werewolf-full", "monsters/giant-mole-face", "monsters/giant-mole-full", "monsters/bone-knight-face", "monsters/bone-knight-full", "monsters/gravedigger-face", "monsters/gravedigger-full", "monsters/corpse-eater-face", "monsters/corpse-eater-full", "monsters/drop-face", "monsters/drop-full", "monsters/dust-whirl-face", "monsters/dust-whirl-full", "monsters/magma-hound-face", "monsters/magma-hound-full", "monsters/crystalloid-face", "monsters/crystalloid-full", "monsters/lake-spirit-face", "monsters/lake-spirit-full", "monsters/magma-golem-face", "monsters/magma-golem-full", "monsters/deep-serpent-face", "monsters/deep-serpent-full", "monsters/crystal-colossus-face", "monsters/crystal-colossus-full", "monsters/storm-spirit-face", "monsters/storm-spirit-full", "monsters/rift-heart-face", "monsters/rift-heart-full", "items/compass", "items/steel-mace", "items/steel-rapier", "items/unknown-herb", "items/twin-daggers", "items/unknown-stone", "items/steel-twin-daggers", "items/potion-good", "items/coins", "items/steel-spear", "items/steel-warhammer", "items/steel-shortbow", "items/steel-longbow", "items/steel-armor-leather", "items/steel-armor-hide", "items/steel-armor-chainmail", "items/gloves", "items/staff", "items/axe", "items/greataxe", "items/firstaid", "items/flute", "items/chalice", "items/once-more", "items/guard", "items/beginners-luck", "buildings/tower", "buildings/guild", "buildings/church", "buildings/library", "buildings/gate", "buildings/tavern", "buildings/shop", "buildings/forge", "buildings/board", "buildings/hall", "races/gnome", "races/darkfairy", "monsters/rat-face", "monsters/rat-full", "monsters/rat-king-face", "monsters/rat-king-full", "monsters/rat-catcher-face", "monsters/rat-catcher-full"]);
 const artPath = p => `assets/${p}.${RASTER.has(p) ? "webp" : "svg"}`;
@@ -2754,7 +2810,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 82;
+const BATTLE_REV = 83;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }
@@ -3708,7 +3764,7 @@ const inVoid = (x, y) => curFloor() === 3 && x >= F3_VOID.x0 && x <= F3_VOID.x1 
 const voidHere = () => { const r = state.run; return !!(r && r.floor === 3 && inVoid(r.pos.x, r.pos.y)); };
 const FLOOR3 = { n: 3, name: "3 этаж", zone: "stone", portalKind: "stone", dark: [],
   zoneName: (x, y) => (F3_RECTS.find(([, x0, y0, x1, y1]) => x >= x0 && x <= x1 && y >= y0 && y <= y1) || [F3_FALLBACK])[0],
-  placeAt(x, y) { return { name: this.zoneName(x, y), std: [] }; } };
+  placeAt(x, y) { const name = this.zoneName(x, y); return name === "Лагерь орков" ? orcPlace(x, y) : { name, std: [] }; } };
 // Какой вход 3 этажа ждёт портал каждого варианта 2 этажа: перестановка четырёх входов, бросается в начале 2-го дня (или при первом обращении).
 function f3Map(r = state.run) {
   if (!r) return {};
@@ -3790,7 +3846,7 @@ function genEncounter(x, y, day, n = 1, forceRare = false, night = false) {
 function genEncounterRaw(x, y, day, n = 1, forceRare = false) {
   const z = zoneAt(x, y);
   if (z.kind === "safe") return null;
-  if (curFloor() >= 3) return null;                                  // 3 этаж: монстры ещё не описаны
+  if (curFloor() >= 3) { const pl = z.place || {}; if (!pl.gen && !pl.special && !(pl.std || []).length) return null; return genEncounter2(x, y, day, n, z); }          // 3 этаж: пока только места с описанными монстрами (Лагерь орков)
   if (curFloor() >= 2) return genEncounter2(x, y, day, n, z);
   const zone = z.zones[rnd(z.zones.length)];
   // 8 класс: с 7-го дня у портала зоны — первая встреча там всегда он, дальше на к20 = 1–2. В одиночку.
@@ -3818,8 +3874,9 @@ function genEncounter2(x, y, day, n, z) {
   const pl = z.place || {}, sev = eventOf(Math.min(n, 12))[1], r = state.run;
   const max = day >= 10 ? 5 : day >= 7 ? 4 : day >= 4 ? 3 : 2;
   const cnt = sev === "easy" ? 1 : sev === "mid" ? Math.max(1, max - 1) : max;
-  const out = { zone: z.zones[0], border: false, place: pl.name, lair: pl.lair || null };
-  if (pl.special) { out.list = pl.special.slice(); return out; }
+  const out = { zone: pl.zone || z.zones[0], border: false, place: pl.name, lair: pl.lair || null };
+  if (pl.special) { out.list = pl.special.slice(); if (pl.boss) out.boss = pl.boss; return out; }
+  if (pl.gen) { Object.assign(out, pl.gen(day, sev)); return out; }          // 3 этаж: смешанные группы (орки)
   for (const c of pl.combos || []) if ((!c.day || day >= c.day) && Math.random() < c.p) { out.list = typeof c.list === "function" ? c.list() : c.list.slice(); return out; }
   const tot = pl.std.reduce((a, [, w]) => a + w, 0); let t = Math.random() * tot, id = pl.std[0][0];
   for (const [i, w] of pl.std) { t -= w; if (t < 0) { id = i; break; } }
@@ -4181,6 +4238,7 @@ function startFight(ev, p, enc) {
   try { const sp = spOf(); if (sp && sp.web && sp.web[tkey(p.x, p.y)] && !state.run.tier) ev.webTile = tkey(p.x, p.y); } catch (e) {}          // бой на тайле паутины: на поле много паутины, подожгли её — сгорает и тайл
   enc.list.forEach(id => { const m = MONSTERS.find(x => x.id === id); if (m && m.dyn) return; seenKeys(id, ["area"]); if (m && monCourse(m.cls)) { seenKeys(id, ["type"]); const h = (journal().hints[id] ||= []); for (const k of ["type", "portrait"]) if (!h.includes(k)) h.push(k); } });     // встреча открывает портрет, имя и места обитания; курс «Опознание монстров» — ещё и тип
   spFightStart(ev);
+  if (curFloor() === 3 && inOrcCamp(p.x, p.y) && state.run.f3) orcState().alarm = { x: p.x, y: p.y, left: 6 };          // бой в лагере — патрули идут на шум
 }
 // Серебряный колокольчик: засада становится обычной встречей (откат 6 действий).
 function bellSave(ev) {
@@ -5008,6 +5066,7 @@ function f3Step(x, y) {
   if (isToll(x, y)) f3TollStep();
   const b = F.boulders.find(b => b.x === x && b.y === y); if (b && inZ) f3Boulder(b);
   if (F.hunt.mon && F.hunt.mon.x === x && F.hunt.mon.y === y) f3HuntContact();
+  orcStep(x, y);          // Лагерь орков: патрули
 }
 function f3Bfs(from) {
   const dist = { [tkey(from.x, from.y)]: 0 }, q = [[from.x, from.y]];
@@ -5031,6 +5090,84 @@ function f3HuntContact() {
   const H = f3().hunt; H.mon = null; H.acts = 0; H.need = 9; H.kills++;
   logRun("Хищник охотничьих угодий настиг отряд.");
   dgUi.res = { title: "Хищник настиг отряд", roll: "", lines: ["Босс охотничьих угодий ещё не создан. Счётчик охоты сброшен до 3 дней; в следующий раз хищник появится ближе и будет быстрее."] };
+}
+/* ----- 3 этаж: Лагерь орков (утверждено автором 01.11) — встречи, шатёр вождя, сокол-одиночка, патрули -----
+   Числа — моя заготовка (черновик в campaign/drafts.md → «Лагерь орков: внедрено»). */
+const ORC_CAMP = F3_RECTS.find(r => r[0] === "Лагерь орков"), ORC_CHIEF_AT = "15,4";
+const inOrcCamp = (x, y) => !!ORC_CAMP && x >= ORC_CAMP[1] && x <= ORC_CAMP[3] && y >= ORC_CAMP[2] && y <= ORC_CAMP[4];
+const ORC_IDS = ["orc-scout", "orc-spear", "orc-thrower", "orc-wolf", "orc-falcon", "orc-guard", "orc-shaman", "orc-executioner", "orc-chief"];
+// Группа орков: 8 класса 2–4 по тяжести встречи; волк и сокол — только вместе с орками; иногда ведёт орк 7 класса.
+function orcGroup(day, sev) {
+  const base = sev === "easy" ? 2 : sev === "mid" ? 3 : 4, pool = ["orc-scout", "orc-spear", "orc-spear", "orc-thrower"], list = [];
+  for (let i = 0; i < base; i++) list.push(pool[rnd(pool.length)]);
+  if (sev !== "easy" && Math.random() < .3) list[0] = ["orc-guard", "orc-shaman", "orc-executioner"][rnd(3)];          // вожак 7 класса
+  if (Math.random() < .5) list.push("orc-wolf");
+  if (Math.random() < .3) list.push("orc-falcon");
+  return list;
+}
+function orcPlace(x, y) {
+  const F = state.run && state.run.f3, chiefDead = !!(F && F.orcs && F.orcs.chiefDead);
+  if (tkey(x, y) === ORC_CHIEF_AT && !chiefDead) return { name: "Лагерь орков", spot: "Шатёр вождя", zone: "goblin", special: ["orc-chief", "orc-wolf"], boss: "orc-chief", std: [], combos: [] };
+  return { name: "Лагерь орков", zone: "goblin", std: [], combos: [{ ids: ORC_IDS.slice(0, 8) }],
+    gen: (day, sev) => Math.random() < .15 ? { list: ["orc-falcon"], falconAlone: true } : { list: orcGroup(day, sev) } };
+}
+// Патрули: 3 группы бродят по лагерю; подойдёшь вплотную — «патруль рядом» (засада или проскользнуть); завязался бой — остальные идут на шум.
+function orcState() {
+  const F = f3(); if (F.orcs) return F.orcs;
+  const cells = []; if (ORC_CAMP) for (let y = ORC_CAMP[2]; y <= ORC_CAMP[4]; y++) for (let x = ORC_CAMP[1]; x <= ORC_CAMP[3]; x++) if (tkey(x, y) !== ORC_CHIEF_AT) cells.push([x, y]);
+  const patrols = []; for (let i = 0; i < 3 && cells.length; i++) { const [x, y] = cells.splice(rnd(cells.length), 1)[0]; patrols.push({ id: "pt" + (i + 1), x, y, list: orcGroup(state.run.day || 1, "mid"), met: null }); }
+  return (F.orcs = { patrols, alarm: null, chiefDead: false });
+}
+const orcNotice = () => state.party.some(c => !c.dead && hasEssence(c, "orc-falcon")) ? 2 : 1;          // «Взгляд с высоты»: патрули видно на квадрат раньше
+function heroStealth(c) {
+  let b = mod(totals(c).dex); for (const e of c.essences || []) for (const o of (ESSENCES[e] || {}).other || []) { const m = /Скрытность ([+−-])(\d+)/.exec(o); if (m) b += (m[1] === "+" ? 1 : -1) * +m[2]; }
+  const ar = c.equip && c.equip.body && itemOf(c.equip.body); const dis = !!(ar && ar.stealth);
+  const r1 = 1 + rnd(20), r2 = 1 + rnd(20); return (dis ? Math.min(r1, r2) : r1) + b;
+}
+function orcFight(p, how) {
+  const O = orcState(), r = state.run;
+  r.pos = { x: r.pos.x, y: r.pos.y };
+  startSpecial(how === "ambush" ? "Засада на патруль" : "Орочий патруль", { list: p.list.slice(), zone: "goblin", place: "Лагерь орков" }, { ambush: how === "caught" });
+  const ev = dgUi.enc; ev.patrolId = p.id;
+  if (how === "ambush") { ev.heroAmbush = true; ev.init = rollInitiative(ev.list, "hero"); }
+  O.alarm = { x: r.pos.x, y: r.pos.y, left: 6 };          // остальные патрули идут на шум
+}
+async function orcPatrolNear(p) {
+  const r = state.run, k = tkey(r.pos.x, r.pos.y); if (p.met === k) return; p.met = k;
+  logRun("Рядом орочий патруль.");
+  const go = await askYesNo({ title: "Патруль рядом", text: "За шатрами лязг и голоса — орочий патруль в соседнем квадрате. Ударить первыми или попробовать проскользнуть (Скрытность всего отряда, Сл 13)?", yes: "Засада", no: "Проскользнуть" });
+  if (go) { orcFight(p, "ambush"); rerender(); return; }
+  const alive = state.party.filter(c => !c.dead), rolls = alive.map(c => ({ c, v: heroStealth(c) })), ok = rolls.filter(x => x.v >= 13).length;
+  const txt = rolls.map(x => `${x.c.name} ${x.v}`).join(", ");
+  if (ok * 2 >= alive.length) { logRun(`Отряд проскользнул мимо патруля (${txt}).`); toast("Патруль прошёл мимо"); }
+  else { logRun(`Патруль заметил отряд (${txt}).`); orcFight(p, "caught"); }
+  rerender();
+}
+function orcStep(x, y) {
+  if (!inOrcCamp(x, y) && !(state.run.f3 && state.run.f3.orcs)) return;
+  const O = orcState(), near = O.patrols.filter(p => Math.max(Math.abs(p.x - x), Math.abs(p.y - y)) <= orcNotice());
+  const here = O.patrols.find(p => p.x === x && p.y === y);
+  if (here) { logRun("Отряд наткнулся на орочий патруль."); orcFight(here, "caught"); return; }
+  if (near.length) setTimeout(() => orcPatrolNear(near[0]), 50);
+  for (const p of O.patrols) if (!near.includes(p)) p.met = null;
+}
+function orcAfterAction() {
+  const r = state.run, F = r.f3; if (!F || !F.orcs || dgUi.enc) return;
+  const O = F.orcs, A = O.alarm;
+  for (const p of O.patrols) {
+    let nx = p.x, ny = p.y;
+    if (A) { nx += Math.sign(A.x - p.x); if (nx === p.x) ny += Math.sign(A.y - p.y); }
+    else if (Math.random() < .5) { const [dx, dy] = [[1, 0], [-1, 0], [0, 1], [0, -1]][rnd(4)]; nx += dx; ny += dy; }
+    if (inOrcCamp(nx, ny) || A) { p.x = nx; p.y = ny; }
+  }
+  if (A && --A.left <= 0) O.alarm = null;
+  const here = O.patrols.find(p => p.x === r.pos.x && p.y === r.pos.y);
+  if (here) { logRun("Орочий патруль вышел прямо на отряд."); orcFight(here, "caught"); }
+}
+function orcFightDone(e, killedIds) {
+  const F = state.run && state.run.f3; if (!F || !F.orcs) return;
+  if (killedIds.includes("orc-chief")) { F.orcs.chiefDead = true; logRun("Вождь орков повержен."); }
+  if (e.patrolId && e.outcome !== "flee") F.orcs.patrols = F.orcs.patrols.filter(p => p.id !== e.patrolId);
 }
 function f3Dawn() {
   const r = state.run; if (!r || r.floor !== 3) return;
@@ -5061,6 +5198,7 @@ function f3AfterAction(kind) {
   if (isTrapZone(r.pos.x, r.pos.y) && F.boulders.some(b => Math.max(Math.abs(b.x - r.pos.x), Math.abs(b.y - r.pos.y)) > 3 && Math.max(Math.abs(b.x - r.pos.x), Math.abs(b.y - r.pos.y)) <= 6)) logRun("Слышен грохот катящегося валуна.");
   if (kind === "rest") H.rested = true;
   if (isHunt(r.pos.x, r.pos.y)) { H.acts++; if (!H.mon && H.acts >= H.need) f3Spawn(); }
+  orcAfterAction();
 }
 const f3Pen = () => { const r = state.run; if (r.floor !== 3) return false; const F = f3(); while (F.pen > 0) { F.pen--; tick(); if (advanceTime()) return true; } return false; };
 // Рисунки на сцене: подсвеченные ловушки (до 5 клеток), валуны и хищник в радиусе 3.
@@ -5068,6 +5206,7 @@ const F3_ICON = {
   bear: `<path d="M-12 5 L-8 -6 L-4 4 L0 -6 L4 4 L8 -6 L12 5Z" fill="#9aa0a8" stroke="#2a2e34" stroke-width="1.5"/><path d="M-13 7 H13" stroke="#2a2e34" stroke-width="2.5"/>`,
   wire: `<circle cx="-13" r="3" fill="#7a5a34"/><circle cx="13" r="3" fill="#7a5a34"/><path d="M-13 0 H13" stroke="#e8e0c8" stroke-width="1.6" stroke-dasharray="4 2"/>`,
   boulder: `<circle r="14" fill="#8a847a" stroke="#3a362e" stroke-width="2.5"/><path d="M-6 -5 L3 -9 M-9 3 L0 6 M4 -1 L9 4" stroke="#5a564e" stroke-width="1.5" fill="none"/>`,
+  patrol: `<circle r="14" fill="#2a1a12" stroke="#c8643a" stroke-width="2.5"/><path d="M-8 6 L0 -9 L8 6Z" fill="#c8643a"/><path d="M-3 3 H3" stroke="#2a1a12" stroke-width="2"/>`,
   hunter: `<circle r="15" fill="#1a1220" stroke="#8a4a5a" stroke-width="2.5"/><path d="M-9 -2 Q0 -9 9 -2 Q0 5 -9 -2Z" fill="#d8a0b0"/><circle r="2.6" cy="-2" fill="#1a1220"/><text y="13" text-anchor="middle" font-size="11" fill="#d8a0b0" font-family="Kelly Slab, Georgia, serif">???</text>`,
 };
 function f3Marks(px, py, up) {
@@ -5075,6 +5214,7 @@ function f3Marks(px, py, up) {
   for (const [k, tr] of Object.entries(F.traps)) { if (!tr.seen && !treasure("monocle").owned) continue; const [x, y] = k.split(",").map(Number); if (Math.abs(x - px) + Math.abs(y - py) > 5) continue; out.push(up((x - px) * T, (y - py) * T, `<g transform="scale(.9)" opacity=".95">${F3_ICON[tr.t]}</g>`)); }
   for (const b of F.boulders) if (Math.max(Math.abs(b.x - px), Math.abs(b.y - py)) <= 3) out.push(up((b.x - px) * T, (b.y - py) * T, `<g transform="scale(.95)">${F3_ICON.boulder}<path d="M0 0 L${b.dx * 12} ${b.dy * 12}" stroke="#f4d48e" stroke-width="2.5" marker-end="none"/></g>`));
   const m = F.hunt.mon; if (m && Math.max(Math.abs(m.x - px), Math.abs(m.y - py)) <= 3) out.push(up((m.x - px) * T, (m.y - py) * T, F3_ICON.hunter));
+  if (F.orcs) { const nr = orcNotice(); for (const pt of F.orcs.patrols) if (Math.max(Math.abs(pt.x - px), Math.abs(pt.y - py)) <= nr) out.push(up((pt.x - px) * T, (pt.y - py) * T, F3_ICON.patrol)); }          // патруль виден, только когда рядом
   return out;
 }
 function huntAnimOverlay() {
@@ -5200,6 +5340,7 @@ function finishFight() {
   awardXp(killed.map(i => e.list[i]));
   if (!e.arena && e.outcome !== "flee" && killed.some(i => e.list[i] === "rat-catcher")) ratChest();
   spFightDone(e, killed.map(i => e.list[i]));
+  orcFightDone(e, killed.map(i => e.list[i]));
   dgUi.enc = null;
 }
 // Ночная встреча в Отдыхе: к6 = 1 (без караула 1–2, во тьме +1), состав — по броску к20 мастера.
@@ -7681,7 +7822,7 @@ const Sfx = {
   man: null, loaded: false, music: null, musicName: null, timer: null, cache: {},
   on() { return !!state && (!state.settings || state.settings.sound !== false); },          // звук включён по умолчанию
   async load() { this.loaded = true; this.man = SFX_MAN; },
-  audio(file) { let a = this.cache[file]; if (!a) { a = this.cache[file] = new Audio("assets/sfx/" + file + "?v=2");  a.preload = "auto"; } return a; },
+  audio(file) { let a = this.cache[file]; if (!a) { a = this.cache[file] = new Audio("assets/sfx/" + file + "?v=3");  a.preload = "auto"; } return a; },
   async playClip(c) {
     if (!c || !c.file || !this.on()) return; await this.load();
     try { const a = this.audio(c.file).cloneNode(); a.volume = c.vol == null ? 1 : c.vol; a.currentTime = c.start || 0; a.play().catch(() => {});

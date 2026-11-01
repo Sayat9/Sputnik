@@ -279,7 +279,8 @@
 
   /* ===== скорость и движение ===== */
   function speedOf(u) {
-    let sp = Math.max(u.speedC, u.flyC) + hookSum(u, "speedBonus", {});                       // бонус к скорости («Лёгкие ноги») — до замедления, как строка статов
+    let sp = Math.max(u.speedC, u.flyC) + hookSum(u, "speedBonus", {});
+    if (B.S && B.S.units) for (const e of enemiesOf(u)) sp -= hookSum(e, "slowAura", { u });          // «Тяжёлые цепи» палача: враги рядом теряют скорость                       // бонус к скорости («Лёгкие ноги») — до замедления, как строка статов
     for (const c of u.conds) {
       if (["grappled", "restrained", "pinned", "trapped", "spearstop", "bastion", "unconscious", "stable", "buried", "paralyzed", "underground", "mired", "encased"].includes(c.id)) return 0;
     }

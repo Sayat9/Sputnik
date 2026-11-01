@@ -1349,5 +1349,204 @@
     }
   };
 
+  /* ===== 3 этаж: Лагерь орков (утверждено автором 01.11; тексты — ESSENCES в index.html) ===== */
+  Object.assign(D.essCd, { "orc-wolf": 2, "orc-falcon": 3, "orc-scout": 3, "orc-spear": 2, "orc-thrower": 3, "orc-guard": 4, "orc-shaman": 4, "orc-executioner": 3, "orc-chief": 4 });
+  Object.assign(D.status, {
+    shieldwall: { name: "Сомкнутый строй", good: true, ico: '<path d="M4 5h7v14H4zM13 5h7v14h-7z"/>', desc: "+2 к КД до начала хода вожака стражи." },
+    warcry:     { name: "Боевой клич", good: true, ico: '<path d="M4 9v6h4l6 4V5L8 9z"/><path d="M17 8a5 5 0 010 8"/>', desc: "Преимущество на первую атаку." },
+    hawkmark:   { name: "Метка сокола", good: false, ico: '<path d="M12 3l3 6 6 1-4 4 1 6-6-3-6 3 1-6-4-4 6-1z"/>', desc: "Атаки по этой цели (со стороны метившего) получают +2 к попаданию." },
+  });
+  Object.assign(D.monTune, {
+    "orc-wolf": { role: "swarm", circle: true, focus: ["weak", "nearest"], fleeHp: 0.3 },
+    "orc-falcon": { role: "skirmisher", hitRun: true, flitter: true, focus: ["weak", "nearest"], fleeHp: 0.4 },
+    "orc-scout": { role: "skirmisher", focus: ["weak", "hidden", "nearest"], fleeHp: 0.25 },
+    "orc-spear": { role: "secondLine", focus: ["nearest"], fleeHp: 0.2 },
+    "orc-thrower": { role: "ranged", keep: 2, ranged: "ifNoMelee", focus: ["weak", "nearest"], fleeHp: 0.2 },
+    "orc-guard": { role: "brute", focus: ["attacker", "nearest"], noFlee: true },
+    "orc-shaman": { role: "ranged", keep: 3, focus: ["cluster", "weak"], noFlee: true },
+    "orc-executioner": { role: "brute", focus: ["runner", "weak", "nearest"], noFlee: true },
+    "orc-chief": { role: "brute", focus: ["attacker", "nearest"], noFlee: true },
+  });
+  const allies = u => live().filter(o => o.side === u.side && o.id !== u.id && alive(o) && !o.down);
+  const thrownAtk = u => B.attacksOf(u).find(a => a.thrown || / \(метнуть\)$/.test(a.n || "")) || null;
+
+  /* Ездовой волк (9): «Погоня», «Рывок» */
+  P["orc-wolf"] = { attackMods(att, ctx) { if (ctx.melee && att.t && att.t.moved >= 2) ctx.extra.push({ n: 1, s: 4, b: 0, dt: ctx.atk.dt, label: "Погоня" }); } };
+  A["orc-wolf"] = {
+    time: "bonus",
+    tgt() { return { type: "self" }; },
+    can(u) { return speedOf(u) > 0 ? true : "не двигаться"; },
+    async run(u, pk, ctl) {
+      ctl.commit(); const es = enemiesOf(u);
+      await stepMove(u, 2, { prompt: "Рывок: 2 клетки без атак по возможности", auto: cells => es.length ? cells.sort((a, b) => Math.min(...es.map(e => distCell(e, a.x, a.y))) - Math.min(...es.map(e => distCell(e, b.x, b.y))))[0] : null });
+      return true;
+    },
+    ai(u) { const es = enemiesOf(u); if (!es.length) return null; const d = Math.min(...es.map(e => dist(u, e))); return d > 1 && d <= speedOf(u) + 2 ? { score: 2.5 } : null; },
+  };
+
+  /* Сокол-разведчик (9): «Взгляд с высоты» (+1 к пассивному Восприятию; на карте — в приложении), «Метка с высоты» */
+  P["orc-falcon"] = { passivePerception() { return 1; } };
+  A["orc-falcon"] = {
+    time: "bonus",
+    tgt(u) { return specUnit(u, "Метка с высоты: на кого?", within(u, 6), cellsAround(u, 6), "debuff"); },
+    can(u) { return within(u, 6).length ? true : "некого метить"; },
+    async run(u, pk, ctl) {
+      ctl.commit(); const t = pk.unit; addStatus(t, "hawkmark", { k: 2, when: "end", data: { side: u.side, by: u.id } });
+      log(`${u.name} метит ${t.name}: атаки по нему +2.`, "skill"); fx(t, "метка", "bad"); return true;
+    },
+    ai(u) { const ts = within(u, 6).filter(t => !has(t, "hawkmark")); return ts.length && allies(u).length ? { unit: ts.sort((a, b) => a.hp - b.hp)[0], score: 2.5 } : null; },
+  };
+
+  /* Орк-разведчик (8): «Тропа орков» (Скрытность с преимуществом у укрытия), «Бросок из тени» */
+  const coverNear = u => { for (let y = u.y - 1; y <= u.y + 1; y++) for (let x = u.x - 1; x <= u.x + 1; x++) { const t = B.tinfo(x, y); if (t && (t.obstacle || t.cover || t.thicket || t.blocksSight)) return true; } return false; };
+  P["orc-scout"] = { checkMods(u, ctx) { if (ctx.skill === "stealth" && coverNear(u)) ctx.adv.push("Тропа орков"); } };
+  A["orc-scout"] = {
+    time: "action",
+    tgt(u) { return specUnit(u, "Бросок из тени: на кого?", within(u, 3), cellsAround(u, 3), "attack"); },
+    can(u) { return atkFor(u, "melee") ? (within(u, 3).length ? true : "никого в 3 клетках") : "нужна атака ближнего боя"; },
+    async run(u, pk, ctl) {
+      const t = pk.unit, a = atkFor(u, "melee"); if (!a) return false;
+      const wasHidden = !!has(u, "hidden");
+      if (dist(u, t) > 1) await stepMove(u, 2, { prompt: "Бросок из тени: куда прыгнуть?", auto: cells => cells.filter(c => distCell(t, c.x, c.y) <= 1).sort((p, q) => distCell(t, p.x, p.y) - distCell(t, q.x, q.y))[0] || cells.sort((p, q) => distCell(t, p.x, p.y) - distCell(t, q.x, q.y))[0] });
+      if (dist(u, t) > 1 || !alive(t)) { ctl.commit(); log(`${u.name}: до цели не допрыгнуть.`); return true; }
+      const r = await B.doAttack(u, t, a, { adv: wasHidden ? ["из тени"] : [], onCommit: () => { B.commitAttack(u, a, t); ctl.commit(); } });
+      return !r.cancelled;
+    },
+    ai(u) { const a = atkFor(u, "melee"), ts = within(u, 3).filter(t => dist(u, t) > 1 || has(u, "hidden")); if (!ts.length || !a) return null; return { atk: a, targets: ts, bonus: has(u, "hidden") ? 4 : 2, attackAbility: true }; },          // прыжок к тем, до кого не дотянуться, или удар из скрытности
+  };
+
+  /* Орк-копейщик (8): «Частокол», «Отгон» */
+  P["orc-spear"] = {
+    async reactEnter(e, mover, from) {
+      const a = atkFor(e, "melee"); if (!a) return; const r = a.reach || 1, S = B.S;
+      if (dist(e, mover) > r || (from && B.distAt(e, mover, from[0], from[1]) <= r)) return;
+      if (e.palisade === S.round) return; e.palisade = S.round;
+      const v = roll(1, 4).total; log(`${e.name}: частокол — ${mover.name} напарывается (${v}).`, "skill");
+      await B.applyDamage(e, mover, [{ v, dt: "pierce", label: "Частокол" }], { src: e });
+    },
+  };
+  A["orc-spear"] = attackRider({ name: "Отгон", kind: "melee", aiBonus: 2.5,
+    onHit: async (t, u) => { if (alive(t) && !t.down && t.size <= u.size) { await B.push(t, u.x, u.y, 1); fx(t, "отброшен", "bad"); } } });
+
+  /* Орк-метатель топоров (8): «Широкий замах» (+2 клетки к метанию), «Град топоров» */
+  const prevAttacksOf = B.attacksOf;
+  B.attacksOf = u => { const list = prevAttacksOf(u); if (!u.pass || !u.pass.includes("orc-thrower")) return list;
+    return list.map(a => (a.thrown || / \(метнуть\)$/.test(a.n || "")) && a.range ? { ...a, range: [a.range[0] + 2, a.range[1] + 2] } : a); };
+  P["orc-thrower"] = {};
+  A["orc-thrower"] = {
+    time: "action",
+    tgt(u) { const a = thrownAtk(u); const ts = a ? B.attackTargets(u, a) : []; return specUnit(u, "Град топоров: первая цель", ts, a ? B.rangeCells(u, a) : [], "attack"); },
+    can(u) { const a = thrownAtk(u); if (!a) return "нужно метательное оружие"; return B.attackTargets(u, a).length ? true : "нет целей"; },
+    async run(u, pk, ctl) {
+      const a = thrownAtk(u); if (!a) return false; let committed = false;
+      const commitOnce = () => { if (!committed) { committed = true; ctl.commit(); } };
+      const r1 = await B.doAttack(u, pk.unit, { ...a, thrown: false }, { onCommit: commitOnce });
+      if (r1.cancelled && !committed) return false;
+      const ts = B.attackTargets(u, a); if (!ts.length) return true;
+      const t2 = ts.includes(pk.unit) && !manual(u) ? pk.unit : await chooseTarget(u, ts, "Град топоров: второй бросок", "attack");
+      if (t2) await B.doAttack(u, t2, { ...a, thrown: false }, { onCommit: commitOnce });
+      return true;
+    },
+    ai(u) { const a = thrownAtk(u); if (!a) return null; const ts = B.attackTargets(u, a); return ts.length ? { atk: a, targets: ts, bonus: 4, attackAbility: true } : null; },
+  };
+
+  /* Вожак стражи (7): «Строй» (союзники в 2 клетках +1 КД), «Сомкнуть строй» */
+  P["orc-guard"] = { acAura(a, { tgt }) { return tgt.id !== a.id && dist(a, tgt) <= 2 && alive(a) && !a.down ? 1 : 0; } };
+  A["orc-guard"] = {
+    time: "bonus",
+    tgt() { return { type: "self" }; },
+    can() { return true; },
+    async run(u, pk, ctl) {
+      ctl.commit(); const who = [u, ...allies(u).filter(o => dist(u, o) <= 1)];
+      for (const o of who) addStatus(o, "shieldwall", { k: 1, when: "start", src: u.id, data: { endAtStartOf: u.id } });
+      log(`${u.name}: сомкнуть строй! +2 КД (${who.length}).`, "skill"); if (ui()) ui().banner(`${u.name}: Сомкнуть строй!`); return true;
+    },
+    ai(u) { const n = allies(u).filter(o => dist(u, o) <= 1).length; return enemiesOf(u).some(e => dist(u, e) <= 3) && n >= 1 ? { score: 2 + n } : null; },
+  };
+
+  /* Шаманка костров (7): «Угли в руках» (+1к4 к огненным атакам), «Костёр» */
+  P["orc-shaman"] = { dmgOut(src, { o }) { const dt = o && o.ctx && o.ctx.atk && o.ctx.atk.dt; return dt === "fire" ? roll(1, 4).total : 0; } };
+  const bonfireCells = (x, y) => [[x, y], [x + 1, y], [x, y + 1], [x + 1, y + 1]].filter(([cx, cy]) => B.inB(cx, cy) && !(B.tinfo(cx, cy) || {}).obstacle);
+  A["orc-shaman"] = {
+    time: "action",
+    tgt(u) { const cells = cellsAround(u, 6); return { type: "cell", prompt: "Костёр: левый верхний угол квадрата 2 × 2", cells, kind: "area" }; },
+    can() { return true; },
+    async run(u, pk, ctl) {
+      if (!pk.cell) return false; ctl.commit(); const S = B.S, cells = bonfireCells(pk.cell[0], pk.cell[1]);
+      const rec = { until: S.round + 10, cells: cells.map(([x, y]) => ({ x, y, prev: S.cells[y][x] })) };
+      for (const c of rec.cells) S.cells[c.y][c.x] = "fire";
+      (S.bonfires ||= []).push(rec);
+      for (const o of live()) if (cells.some(([x, y]) => footprint(o).some(([fx0, fy0]) => fx0 === x && fy0 === y))) { const h = has(o, "hidden"); if (h && h.data && h.data.invis) { removeStatus(o, "hidden"); log(`${o.name}: огонь выдаёт невидимку.`); } }
+      log(`${u.name} разжигает костёр.`, "skill"); if (ui()) { ui().banner(`${u.name}: Костёр!`); ui().refresh(); } return true;
+    },
+    ai(u) {
+      const es = enemiesOf(u).filter(e => dist(u, e) <= 6); if (!es.length) return null;
+      let best = null; for (const e of es) for (const [ox, oy] of [[0, 0], [-1, 0], [0, -1], [-1, -1]]) { const x = e.x + ox, y = e.y + oy, cs = bonfireCells(x, y);
+        const hit = enemiesOf(u).filter(o => cs.some(([cx, cy]) => o.x === cx && o.y === cy)).length, own = allies(u).filter(o => cs.some(([cx, cy]) => o.x === cx && o.y === cy)).length;
+        if (hit && !own && (!best || hit > best.hit)) best = { cell: [x, y], hit }; }
+      return best ? { cell: best.cell, score: 4 + best.hit * 4 } : null;
+    },
+  };
+  const prevRoundOrc = B.onRound;
+  B.onRound = function (round) {
+    if (prevRoundOrc) prevRoundOrc.apply(this, arguments);
+    const S = B.S; if (!S || !S.bonfires) return;
+    S.bonfires = S.bonfires.filter(r => { if (S.round < r.until) return true; for (const c of r.cells) if (S.cells[c.y][c.x] === "fire") S.cells[c.y][c.x] = c.prev || null; log("Костёр шаманки догорел."); return false; });
+  };
+
+  /* Цепной палач (7): «Тяжёлые цепи» (враги в 2 клетках −1 клетка скорости), «Захват цепью» */
+  P["orc-executioner"] = { slowAura(e, { u }) { return alive(e) && !e.down && dist(e, u) <= 2 ? 1 : 0; } };
+  A["orc-executioner"] = {
+    time: "action",
+    tgt(u) { return specUnit(u, "Захват цепью: кого?", within(u, 2).filter(t => !has(t, "grappled")), cellsAround(u, 2), "debuff"); },
+    can(u) { return within(u, 2).some(t => !has(t, "grappled")) ? true : "некого достать"; },
+    async run(u, pk, ctl) {
+      ctl.commit(); const t = pk.unit; if (ui()) ui().banner(`${u.name}: Захват цепью!`);
+      const sv = await save(t, "str", dcOf(u, "str"), "Захват цепью", ["grapple"], u);
+      if (sv.ok) { log(`${t.name} сбрасывает цепь.`); return true; }
+      if (dist(u, t) > 1 && t.size <= u.size) {
+        const spots = B.freeCellsNear(u, 1, t).sort((p, q) => distCell(t, p[0], p[1]) - distCell(t, q[0], q[1]));
+        if (spots.length) { t.x = spots[0][0]; t.y = spots[0][1]; fx(t, "притянут", "bad"); }
+      }
+      addStatus(t, "grappled", { k: Infinity, data: { by: u.id, dc: dcOf(u, "str") } }); log(`${u.name} притягивает ${t.name} цепью и держит.`, "skill");
+      if (ui()) ui().refresh(); return true;
+    },
+    ai(u) { const ts = within(u, 2).filter(t => !has(t, "grappled")); if (!ts.length) return null; const far = ts.filter(t => dist(u, t) > 1); const t = (far.length ? far : ts).sort((a, b) => b.hp - a.hp)[0]; return { unit: t, score: far.length ? 12 : 7 }; },          // притянуть дальнего — важнее удара
+  };
+
+  // Сокол-одиночка: если его не убили до его первого хода, он зовёт орков (2–3 с верхнего края поля). Решение автора 26.10.
+  B.spawnFoes = function (ids, near) {
+    const S = B.S, got = [];
+    for (const id of ids) {
+      const m = B.monUnit(id, S.ev.list.length), tmp = { size: m.size, side: "mon", id: "tmp" };
+      const cells = []; for (let y = 0; y < Math.min(2, B.H); y++) for (let x = 0; x < B.W; x++) if (B.canStand(tmp, x, y) && !live().some(o => footprint(o).some(([fx0, fy0]) => fx0 === x && fy0 === y))) cells.push([x, y]);
+      const c = cells.length ? cells[Math.floor(Math.random() * cells.length)] : (B.freeCellsNear(near || { x: Math.floor(B.W / 2), y: 0, size: 1, side: "mon", id: "x" }, 3, tmp)[0]);
+      if (!c) continue; m.x = c[0]; m.y = c[1]; S.ev.list.push(id); B.addUnit(m, S.order[S.turn]); got.push(m);
+    }
+    if (ui()) ui().refresh(); return got;
+  };
+  P["body:orc-falcon"] = {
+    async turnStartAsync(u) {
+      const S = B.S; if (!S.ev || !S.ev.falconAlone || S.falconCalled || u.side !== "mon") return; S.falconCalled = true;
+      const n = 2 + (Math.random() < .5 ? 1 : 0), pool = ["orc-scout", "orc-spear", "orc-spear", "orc-thrower"], ids = []; for (let i = 0; i < n; i++) ids.push(pool[Math.floor(Math.random() * pool.length)]);
+      log(`${u.name} пронзительно кричит — на зов бегут орки!`, "bad"); if (ui()) ui().banner("Сокол зовёт орков!");
+      const got = B.spawnFoes(ids, u); log(`Прибежали: ${got.map(m => m.name).join(", ")}.`, "bad");
+      if (u.t) u.t.action = 0;          // зов — это его действие
+    },
+  };
+  /* Вождь орков (6): «Железная воля», «Боевой клич» */
+  P["orc-chief"] = { saveMods(u, ctx) { if ((ctx.tags || []).some(t => /fright|fear|stun/.test(t))) ctx.adv.push("Железная воля"); } };
+  A["orc-chief"] = {
+    time: "bonus",
+    tgt() { return { type: "self" }; },
+    can(u) { return allies(u).some(o => dist(u, o) <= 4) ? true : "нет союзников рядом"; },
+    async run(u, pk, ctl) {
+      ctl.commit(); const who = allies(u).filter(o => dist(u, o) <= 4);
+      for (const o of who) addStatus(o, "warcry", { k: 2, when: "end", src: u.id });
+      log(`${u.name}: боевой клич! (${who.length})`, "skill"); if (ui()) ui().banner(`${u.name}: Боевой клич!`); return true;
+    },
+    ai(u) { const n = allies(u).filter(o => dist(u, o) <= 4).length; return n >= 1 && enemiesOf(u).length ? { score: 2 + n } : null; },
+  };
+
   B.fillActiveTimes();
 })();
