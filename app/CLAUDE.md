@@ -199,3 +199,4 @@
 - 01.11: нарисованы `items/{repair-charm,durable-charm,regen-charm,herb-heal,herb-mana}`; опознанные находки (травы/грибы/камни) берут картинку `ART.gear(id)`, неопознанные — общую «неизвестную».
 - 01.11: нарисованы `items/{herb-poison,herb-food,herb-rest}`, `npc/mage.webp` (Башня), новый `npc/guild.webp`; баннеры с нарисованной рамкой под текст — класс `.tw-npc.framed` (реплика внутри рамки внизу картинки).
 - 01.11: баннеры NPC — `npc/priest` (Церковь), `npc/academy` (Академия), лавочник `npc/shopkeeper.webp` (рамка обрезана, облачко под картинкой: `.tw-keeper.under`; полная версия с рамкой — `npc/shopkeeper-framed.webp`), `npc/banker.webp` и `npc/mayor.webp` лежат до открытия Банка и Ратуши. Промт сундучка убран (только на поле, отдельная картинка не нужна).
+- 01.11: нарисованы `items/{weak-salt,silver-salt,tollbell,director-quiver,flame}`.

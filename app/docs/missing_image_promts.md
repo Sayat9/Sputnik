@@ -138,33 +138,13 @@
 
 ## Сокровища и артефакты
 
-### Серебряный колокольчик — `items/tollbell`
-
-> `a small silver hand bell with a dark ribbon, faint cold glow along the rim, engraved wave pattern, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
-
 ### Кольцо братского духа — `items/brotherhood-ring`
 
 > `a simple worn gold ring with two clasped hands engraved around the band, soft warm glow, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
 
-### Колчан режиссёра — `items/director-quiver`
-
-> `an ornate leather quiver embossed with theatre masks, ten white-fletched arrows sticking out, brass fittings, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
-
-### Серебряная соль — `items/silver-salt`
-
-> `a heavy silver-clasped linen pouch of glittering coarse silver salt spilling out a little, faint cold glow, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
-
-### Слабая серебряная соль — `items/weak-salt`
-
-> `a small worn linen pouch of fine grey salt flecked with silver dust, tied with string, on a small worn stone pedestal in a stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
-
 ### Флейта успокоения — `calm-flute`
 
 > `a refined bone-and-silver flute with delicate silver inlay, a pale blue silk ribbon and faint soothing glow around its finger holes, new and polished, standing upright, resting against a decorated wooden display stand, on a small stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
-
-### Огонь, указывающий путь — `flame`
-
-> `a small worn bronze oil lamp with a calm flame bending to one side as if pulled by a breeze, soot marks on the metal, resting on a small cloth, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
 
 ### Вечный очаг — `hearth`
 
