@@ -578,7 +578,7 @@
             ${full.length ? `<div class="tw-rows">${full.map(m => `<div class="tw-row"><div class="tw-who"><span class="tw-ph sq">${img(monArt(m), m.name)}</span><div><b>${esc(m.name)}</b><small>${m.cls} класс · изучен полностью</small></div></div><button class="fx-btn primary" data-t="gsell" data-id="${m.id}">+${monWorth(m)}</button></div>`).join("")}</div>`
               : `<p class="tw-msg">Полностью изученных монстров, которых ещё не продавали, нет.</p>`}`;
         }
-        return frame("Гильдия приключений", "Рафдония", body + msgLine());
+        return frame("Гильдия приключений", "Рафдония", `<div class="tw-npc">${img("assets/npc/guild.webp", "Регистратор гильдии")}<span>Сведения о монстрах покупаем и продаём. Только без вранья — проверяем.</span></div>` + body + msgLine());
       },
     };
   }

@@ -36,10 +36,6 @@
 
 Обычное — потёртое, на простом пьедестале; стальное — новое и блестящее, на резной подставке в арсенале (образец выше). Файлы `assets/items/<id>.webp`, стальные — `assets/items/steel-<id>.webp`. Остальное оружие и броня уже нарисованы.
 
-### Пика — `items/pike`
-
-> `a worn knight's pike with a long slender faceted steel head, nicks along the edge, dark wood shaft with a frayed leather grip, standing upright, on a small worn stone pedestal in a stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
-
 ### Стальная пика — `items/steel-pike`
 
 > `a new shiny steel knight's pike with a long slender faceted head and polished steel collar, dark lacquered wood shaft with a fresh leather grip, standing upright, resting against a decorated wooden display stand, on a small stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit arsenal alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
@@ -178,18 +174,6 @@
 
 > `a pair of worn bone dice with chipped corners and faded pips, one showing a tiny glint of amber inside, resting on a small leather pouch, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
 
-### Бубенец-предвестник — `bell`
-
-> `a small tarnished silver bell with a leather strap, dents and green patina in the grooves, a tiny crack, hanging from a short wooden stand, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
-
-### Фляга странника — `flask`
-
-> `a worn leather-wrapped traveler's flask with a brass stopper on a chain, scuffs and stains on the leather, a faint warm glow around the cork, resting on a small cloth, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
-
-### Монокль Амона — `monocle`
-
-> `an ornate brass monocle with a thick round lens that shows a faint glowing eye-like iris, thin engraved rune ring around the rim and a short chain with a clasp, resting on a small cloth, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
-
 ### Сапоги скороходы — `boots`
 
 > `a pair of sturdy travel boots of supple brown leather with small silver wing motifs along the ankles and a faint pale-blue gust swirling around the soles, scuffed toes and worn laces, resting on a small cloth, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
@@ -297,10 +281,6 @@
 > `голубой камень, покрытый инеем и ледяными иглами, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
 
 ## NPC и интерфейсы
-
-### Регистратор гильдии — `npc-guild`
-
-> `a scarred veteran adventurer in a guild tabard sitting at a desk with a ledger and a quill, a map of the labyrinth and mounted trophies on the wall behind him, warm lantern light, hand-painted fantasy RPG character art, stylized, painterly, dark fantasy tone, bust portrait, wide 16:9 composition with empty space at the bottom for text, no text`
 
 ### Маг башни — `npc-mage`
 

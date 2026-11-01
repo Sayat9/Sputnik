@@ -23,7 +23,7 @@ const L = require('./bui_lib.js');
   ok('артефакты попадают в библиотеку при получении (сокровище и предмет), название «??» и скрытое описание', A.noneSeen && A.seen && A.name && A.masked && A.maskedOnce, JSON.stringify(A));
   // ---------- библиотека артефактов
   await p.evaluate(() => { location.hash = 'labyrinth'; rerender(); openLibrary(); libUi.tab = 'artifacts'; renderLibrary(); });
-  const Lb = await p.evaluate(() => ({ cards: document.querySelectorAll('#libov .mbox[data-lx="art"]').length, names: [...document.querySelectorAll('#libov .mbox[data-lx="art"] b')].map(x => x.textContent), ico: document.querySelectorAll('#libov .art-ico svg').length, tabs: [...document.querySelectorAll('#libov .lib-tabs [role=tab]')].map(x => x.textContent).join('|') }));
+  const Lb = await p.evaluate(() => ({ cards: document.querySelectorAll('#libov .mbox[data-lx="art"]').length, names: [...document.querySelectorAll('#libov .mbox[data-lx="art"] b')].map(x => x.textContent), ico: document.querySelectorAll('#libov .art-ico svg, #libov .art-ico img').length, tabs: [...document.querySelectorAll('#libov .lib-tabs [role=tab]')].map(x => x.textContent).join('|') }));
   ok('вкладка «Артефакты» показывает картинки и «??» без свойств', Lb.cards === 3 && Lb.names.every(n => n === '??') && Lb.ico === 3 && /Монстры\|Артефакты/.test(Lb.tabs), JSON.stringify(Lb));
   await p.click('#libov .mbox[data-lx="art"]');
   ok('карточка неопределённого артефакта: «??» и цена определения, эффекта нет', await p.evaluate(() => { const h = document.getElementById('iteminfo').innerHTML; return /\?\?/.test(h) && /Башне магов за 20/.test(h) && !/перебросить/.test(h); }));
