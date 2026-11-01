@@ -1,5 +1,5 @@
 {
- "version": 1793547608,
+ "version": 1793547683,
  "files": [
   "assets/buildings/academy.webp",
   "assets/buildings/arena.webp",
@@ -761,7 +761,7 @@
   "assets/sfx/cave-8.mp3": "34f61580af945c5a5e2c97cfd57c5d31",
   "assets/sfx/cave-9.mp3": "42bda3b196b3e5129a64175fa70d3303",
   "assets/sfx/crit.mp3": "50ca8b9dd7e4318a30ae852595fdffd6",
-  "assets/sfx/fail.mp3": "c860f6cd87051169d48adece7378d4db",
+  "assets/sfx/fail.mp3": "b7e52748ee369690f4809faba228b290",
   "assets/travelers/ph.svg": "31950afdec4cedc454ed59dd6f15e4d1",
   "assets/ui/backpack.webp": "b3369f2ea587591a1f7d9794ad0b915c",
   "assets/ui/showcase.webp": "e85d639be6a601cbff150d58ac3e9f10",
@@ -790,6 +790,6 @@
   "fonts/f8.woff2": "6cc1ee17091d59eb93821c3594e8f38f",
   "fonts/f9.woff2": "070433480b7b645f69b543f284e386ce",
   "fonts/fonts.css": "1585a72a8d157b26cb424ab433fd4e19",
-  "index.html": "b4f5cc2d6efbb87cd7c9df8f992d9fdd"
+  "index.html": "ddbeb90483761b141340d352967bb282"
  }
 }
