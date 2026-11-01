@@ -808,10 +808,11 @@ img.art-pic { width: 100%; height: 100%; object-fit: cover; display: block; bord
 .hero-head .grow { flex: 1; min-width: 0; }
 .hero-head h3 { margin: 0; font: 400 22px/1.1 var(--f-display); color: var(--fx-gold-hi); overflow-wrap: anywhere; }
 .hero-head small { color: var(--fx-muted); font-size: 13.5px; }
-.hero-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+.hero-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; padding-bottom: 10px; border-bottom: 1px solid var(--fx-line); }
 .hero-tabs .fx-btn { padding-left: 4px; padding-right: 4px; }
 .hero-tabs .fx-btn[aria-selected="true"] { color: var(--fx-ink); background: linear-gradient(#ECC679, #B3812F); }
-.hero-body { overflow-y: auto; min-height: 0; flex: 1; padding: 12px 2px 14px; display: flex; flex-direction: column; gap: 14px; scrollbar-color: var(--fx-line) transparent; }
+.give-to { display: grid; gap: 6px; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--fx-line); } .give-to > b { font-size: 14px; color: var(--fx-gold); } .give-to small { opacity: .7; margin-left: 4px; }
+.hero-body { overflow-y: auto; min-height: 0; flex: 1; -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 14px); mask-image: linear-gradient(to bottom, transparent 0, #000 14px); padding: 12px 2px 14px;          /* содержимое уходит под линию с мягким краем, а не «под вкладки» */ display: flex; flex-direction: column; gap: 14px; scrollbar-color: var(--fx-line) transparent; }
 .hs-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 .hs { border: 1px solid var(--fx-line); background: rgb(0 0 0 / .25); border-radius: 6px; padding: 8px; text-align: center; min-width: 0; }
 .hs .k { font: 700 12px/1 var(--f-fancy); letter-spacing: .12em; color: var(--fx-gold); }
@@ -6638,10 +6639,10 @@ function selPanel(c) {
   btns.push(`<button class="fx-btn" data-hx="drop">${e.qty > 1 ? "Выбросить 1" : "Выбросить"}</button>`);
   if (e.qty > 1) btns.push(`<button class="fx-btn" data-hx="drop-all">Выбросить все (${e.qty})</button>`);
   return `<div class="sel-panel fx-frame"><h4>${esc(it.name)}${e.qty > 1 ? ` × ${e.qty}` : ""}</h4>
-    <p>${kgf((it.weight || 0) * (e.qty || 1))} кг${e.uses != null ? ` · осталось раскопок: ${e.uses}` : ""}${it.note ? " · " + it.note : ""}${it.kindOf === "weapon" && it.dmg ? ` · ${it.dmg} ${it.type}` : ""}${it.kindOf === "armor" ? ` · КД ${it.ac}` : ""}</p>
+    <p>${(it.kindOf === "weapon" || it.kindOf === "armor") && it.note ? esc(it.note) : `${kgf((it.weight || 0) * (e.qty || 1))} кг${e.uses != null ? ` · осталось раскопок: ${e.uses}` : ""}${it.note ? " · " + it.note : ""}${it.kindOf === "weapon" && it.dmg ? ` · ${it.dmg} ${it.type}` : ""}${it.kindOf === "armor" ? ` · КД ${it.ac}` : ""}`}</p>          <!-- у оружия и брони вес и урон/КД уже есть в описании -->
     <div class="btn-row">${btns.join("")}</div>
     ${it.use === "salt" && heroUi.salt ? `<div class="btn-row">${saltTargets(c).map(w => `<button class="fx-btn" data-hx="salt-do" data-wk="${w.k}">${esc(w.name)}</button>`).join("") || "<span>Нет подходящего оружия.</span>"}</div>` : ""}
-    ${heroUi.give ? `<div class="btn-row">${others.map(o => `<button class="fx-btn" data-hx="give" data-to="${o.id}">${esc(o.name)} (${(o.bag || []).length}/${bagSize(o)})</button>`).join("")}</div>
+    ${heroUi.give ? `<div class="give-to"><b>Кому передать${e.qty > 1 ? "" : ""}:</b><div class="btn-row">${others.map(o => `<button class="fx-btn" data-hx="give" data-to="${o.id}">→ ${esc(o.name)} <small>${(o.bag || []).length}/${bagSize(o)}</small></button>`).join("")}</div></div>
       ${e.qty > 1 ? (() => { const n = Math.max(1, Math.min(e.qty, heroUi.giveN || e.qty)); return `<div class="btn-row" style="align-items:center"><button class="fx-btn" data-hx="give-n" data-d="-1" aria-label="Меньше">−</button><b style="min-width:3.2em;text-align:center">${n} из ${e.qty}</b><button class="fx-btn" data-hx="give-n" data-d="1" aria-label="Больше">+</button><button class="fx-btn" data-hx="give-n" data-all="1">Все</button><button class="fx-btn" data-hx="give-n" data-half="1">Половина</button></div><p>Передастся: ${n}.</p>`; })() : ""}` : ""}
   </div>`;
 }
@@ -6680,8 +6681,8 @@ function heroInv(c) {
     }).join("")}</div>
     <button class="fx-btn" data-hx="sack" style="display:flex;align-items:center;gap:8px;justify-content:center;width:100%;margin:6px 0"><span style="width:22px;height:22px;display:inline-flex">${ICO_SACK}</span>Сумка для камней · ${sackTotal()}</button>
     <div class="fx-section">Рюкзак · ${(c.bag || []).length}/${bagSize(c)}</div>
-    <div class="gold-row">${COIN_SVG}<b>${goldOf(c)}</b><small>монет · вес 0</small>${state.party.length > 1 ? `<button class="fx-btn" data-hx="coin-toggle" aria-expanded="${!!heroUi.coin}">Передать</button>` : ""}</div>
-    ${heroUi.coin ? coinPanel(c) : ""}
+    <div class="gold-row">${COIN_SVG}<b>${goldOf(c)}</b><small>монет · вес 0</small>${state.party.length > 1 && goldOf(c) > 0 ? `<button class="fx-btn" data-hx="coin-toggle" aria-expanded="${!!heroUi.coin}">Передать</button>` : ""}</div>
+    ${heroUi.coin && goldOf(c) > 0 ? coinPanel(c) : ""}
     <div class="packwrap"><div class="bag">${Array.from({ length: bagSize(c) }, (_, i) => {
       const e = c.bag[i];
       if (!e) return `<div class="cell empty" aria-hidden="true"></div>`;

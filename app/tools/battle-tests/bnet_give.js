@@ -25,7 +25,7 @@ const URL = 'http://localhost:8765/index.html';
   await c.evaluate(() => { location.hash = 'town'; }); await c.waitForTimeout(600);
   const step = async (sel, label) => { const el = await c.$(sel); if (!el) { console.log('нет', label, sel); return false; } await el.scrollIntoViewIfNeeded(); await el.tap(); await c.waitForTimeout(350); return true; };
   await c.evaluate(() => { openHero('hC'); heroUi.tab = 'inv'; renderHero(); }); await c.waitForTimeout(500);
-  await step('[data-hx="coin-toggle"]', 'монеты');
+  const coinBtn0 = !!(await c.$('[data-hx="coin-toggle"]'));          // монет 0 — кнопки «Передать» у монет нет
   const before = await h.evaluate(() => ({ c: state.party[2].bag.reduce((s, e) => s + (e.qty || 1), 0), d: state.party[3].bag.reduce((s, e) => s + (e.qty || 1), 0), a: state.party[0].bag.reduce((s, e) => s + (e.qty || 1), 0) }));
   await step('[data-hbag="0"]', 'предмет');
   const st1 = await c.evaluate(() => ({ sel: heroUi && heroUi.sel, panel: !!document.querySelector('.sel-panel'), coin: !!document.querySelector('.coin-panel') }));
@@ -41,7 +41,8 @@ const URL = 'http://localhost:8765/index.html';
   const gold = await h.evaluate(() => ({ c: goldOf(state.party[2]), a: goldOf(state.party[0]) }));
   const R2 = [];
   const chk = (n, v, x) => { R2.push(!!v); console.log(v ? '  ✓' : '  ✗', n, v ? '' : JSON.stringify(x)); };
-  chk('игрок открыл предмет при открытой передаче монет', st1.sel === 0 && st1.panel && st1.coin, st1);
+  chk('без монет нет кнопки передачи монет', !coinBtn0, coinBtn0);
+  chk('игрок открыл предмет — панель действий', st1.sel === 0 && st1.panel, st1);
   chk('передал своему второму герою', after.d > before.d, { before, after });
   chk('передал герою ведущего', after.a > before.a && after.c + after.d + after.a === before.c + before.d + before.a, { before, after });
   chk('монеты герою ведущего', gold.a === 5 && gold.c === 2, gold);
