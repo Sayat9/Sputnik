@@ -572,7 +572,7 @@
     const commit = () => {
       if (committed) return; committed = true;
       if (u.side === "hero") { setMp(u, u.mp - mana); B.setCd(u, id, cd); spendTime(u, A.time); }
-      else { u.used[id] = true; spendTime(u, A.time); }
+      else { B.setCd(u, id, cd); spendTime(u, A.time); }          // монстр: та же перезарядка, что у героя (решение автора 01.11; «раз за бой» — у кого КД 99)
       const hv = has(u, "hidden"); if (hv && hv.data.invis && id !== "grey-shade") { removeStatus(u, "hidden"); log(`${u.name}: невидимость пропала.`); }          // «Растворение»: способность снимает невидимость
     };
     if (u.side === "hero" && u.mp < mana) return false;

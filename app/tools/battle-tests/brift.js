@@ -19,7 +19,7 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
       const cls = MONSTERS.find(m => m.id === id).cls;
       const list = id === 'drop' || id === 'dust-whirl' ? [id, id, id] : id === 'magma-hound' ? [id, id] : [id];
       try { const r = await B.sim({ list, zone: 'stone', floor: 2, kind: 'hard', title: 't' }); out.n++; if (!r.outcome) out.bad.push(id + ': нет исхода');
-        for (const u of r.S.units) { if (!(u.hp >= 0) || u.hp > u.maxHp) out.bad.push(id + ': ОЗ ' + u.hp); if (Object.keys(u.used || {}).length) out.used[id] = (out.used[id] || 0) + 1; }
+        for (const u of r.S.units) { if (!(u.hp >= 0) || u.hp > u.maxHp) out.bad.push(id + ': ОЗ ' + u.hp); if (Object.keys(u.used || {}).length || Object.keys(u.cd || {}).length) out.used[id] = (out.used[id] || 0) + 1; }
         B.S = null; } catch (e) { out.bad.push(id + ': ' + (e && e.message)); B.S = null; }
     }
     return out;

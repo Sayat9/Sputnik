@@ -369,7 +369,7 @@
         if (a.mp < eb.mana || a.cd["hobgoblin-shield"] > 0) return null;
         if (!(await B.promptReaction({ unit: a, title: "Принять удар", text: `${c.att.name} атакует ${c.tgt.name}. Принять удар на себя? (${eb.mana} маны)` }))) return null;
         B.setMp(a, a.mp - eb.mana); B.setCd(a, "hobgoblin-shield", D.essCd["hobgoblin-shield"]);
-      } else { if (a.used["hobgoblin-shield"]) return null; a.used["hobgoblin-shield"] = true; }
+      } else { if (a.cd["hobgoblin-shield"] > 0) return null; B.setCd(a, "hobgoblin-shield", D.essCd["hobgoblin-shield"] || 2); }
       a.t.react = 0;
       log(`${a.name} принимает удар вместо ${c.tgt.name}!`, "skill"); const g = ui(); if (g) g.banner(`${a.name} принимает удар!`);
       if (B.hasTowerShield(a)) c.o.reduce = { dice: "1к6", label: "ростовой щит" };

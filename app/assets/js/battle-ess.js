@@ -327,8 +327,8 @@
       const r = atk.reach || 1;
       if (dist(e, mover) > r || (from && distAt(e, mover, from[0], from[1]) <= r)) return;
       if (e.side === "hero") { if (e.mp < eb.mana || e.cd["goblin-spear"] > 0) return; if (!(await B.promptReaction({ unit: e, title: "Встречный удар", text: `${mover.name} входит в вашу досягаемость. Ударить копьём? (${eb.mana} маны)` }))) return; }
-      else { if (e.used["goblin-spear"]) return; }
-      if (e.side === "hero") { B.setMp(e, e.mp - eb.mana); B.setCd(e, "goblin-spear", D.essCd["goblin-spear"] || 2); } else e.used["goblin-spear"] = true;
+      else { if (e.cd["goblin-spear"] > 0) return; }
+      if (e.side === "hero") { B.setMp(e, e.mp - eb.mana); B.setCd(e, "goblin-spear", D.essCd["goblin-spear"] || 2); } else B.setCd(e, "goblin-spear", D.essCd["goblin-spear"] || 2);
       e.t.react = 0; log(`${e.name}: встречный удар по ${mover.name}.`, "skill"); ui() && ui().banner(`${e.name}: встречный удар!`);
       await B.doAttack(e, mover, atk, { reaction: true, cancelable: false, rider: async res => {
         const sv = await save(res.tgt, "str", dcOf(e, "str"), "Встречный удар");
@@ -352,7 +352,7 @@
       const eb = ESSENCES["skeleton-warrior"].active;
       if (ctx.total - ctx.ac > 3) return false;
       if (tgt.side === "hero") { if (tgt.mp < eb.mana || tgt.cd["skeleton-warrior"] > 0) return false; if (!(await B.promptReaction({ unit: tgt, title: "Парирование щитом", text: `${ctx.att.name} попадает по вам. Отразить щитом? (${eb.mana} маны)` }))) return false; B.setMp(tgt, tgt.mp - eb.mana); B.setCd(tgt, "skeleton-warrior", D.essCd["skeleton-warrior"] || 2); }
-      else { if (tgt.used["skeleton-warrior"]) return false; tgt.used["skeleton-warrior"] = true; }
+      else { if (tgt.cd["skeleton-warrior"] > 0) return false; B.setCd(tgt, "skeleton-warrior", D.essCd["skeleton-warrior"] || 2); }
       tgt.t.react = 0; log(`${tgt.name} парирует щитом!`, "skill"); return true;
     },
   };

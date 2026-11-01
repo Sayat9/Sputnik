@@ -18,7 +18,7 @@
     const A = B.A && B.A[id], eb = ESSENCES[id] && ESSENCES[id].active; if (!A || !eb || A.reaction) return false;
     if (!B.timeOK(u, A.time)) return false;
     if (A.ready) { const r = A.ready(u); if (r != null) return !!r; }                     // способности в два хода: вторая половина доступна без маны и «раз за бой»
-    if (u.side === "mon") return !u.used[id];
+    if (u.side === "mon") return !(u.cd[id] > 0);          // монстр — по перезарядке, без маны
     return u.mp >= eb.mana && !(u.cd[id] > 0);
   };
 
