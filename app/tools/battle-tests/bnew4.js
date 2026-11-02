@@ -35,18 +35,15 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
   ok('Треск костей у монстра бьёт одну цель', o.skAi <= 1, o.skAi);
   ok('Треск костей: выбор максимум 1 цель', o.skMax === 1, o.skMax);
   ok('Треск костей не достаёт через 2 клетки', o.skPool !== true, o.skPool);
-  // сводка массового спасброска
+  // массовый спасбросок (02.11): общей сводки нет — у каждого героя своё окно броска (с перебросом и «Далее»), по очереди
   const s = await p.evaluate(async () => {
-    const B = Battle, S = B.S; B.UI.open(); const [h0, h1] = B.heroes();
-    const pr = B.massSave([h0, h1], 'wis', 10, { label: 'тест', title: 'Тест' });
-    await new Promise(r => setTimeout(r, 200));
-    const m = document.querySelector('.bt-modal'); const shown = !!(m && !m.hidden && m.querySelector('.bt-sum li'));
-    const rows = m ? m.querySelectorAll('.bt-sum li').length : 0;
-    const dice = !!document.querySelector('.bd-ov');
-    m.querySelector('[data-m=sumok]').click(); const r = await pr;
-    return { shown, rows, dice, n: r.length };
+    const B = Battle; B.UI.open(); const [h0, h1] = B.heroes(); const l0 = B.S.log.length;
+    const pr = B.massSave([h0, h1, ...B.mons().slice(0, 1)], 'wis', 10, { label: 'тест', title: 'Тест' });
+    await new Promise(r => setTimeout(r, 200)); const sum = !!document.querySelector('.bt-sum');
+    const r = await pr; const lines = B.S.log.slice(l0).map(l => l.t || l.text || '');
+    return { sum, seen: [h0, h1].filter(h => lines.some(t => t.startsWith(h.name + ': спасбросок'))).map(h => h.name), n: r.length, names: [h0.name, h1.name] };
   }).catch(e => ({ err: String(e) }));
-  ok('сводка спасбросков: окно со строками, без кубиков, закрывается', s.shown && s.rows === 2 && !s.dice && s.n === 2, JSON.stringify(s));
+  ok('массовый спасбросок: без общей сводки, своё окно у каждого героя', !s.sum && s.n === 3 && s.seen && s.seen.join() === s.names.join(), JSON.stringify(s));
   ok('нет ошибок страницы', errs.length === 0, errs.join('|'));
   await b.close(); process.exit(R.every(r => r.ok) ? 0 : 1);
 })();

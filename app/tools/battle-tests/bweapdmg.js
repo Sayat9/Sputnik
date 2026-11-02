@@ -10,7 +10,7 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
     const kits = { 'кинжал': { main: 'dagger' }, 'два кинжала': { main: 'dagger', off: 'dagger' }, 'рапира': { main: 'rapier' }, 'меч': { main: 'sword' }, 'меч+щит': { main: 'sword', off: 'shield' }, 'два меча': { main: 'sword', off: 'sword' }, 'двуручный меч': { main: 'greatsword' } };
     for (const [nm, k] of Object.entries(kits)) {
       out[nm] = {};
-      for (const tgtId of ['goblin', 'hobgoblin', 'skeleton-warrior']) {
+      for (const tgtId of ['goblin', 'hobgoblin', 'crystalloid']) {
         const c = Object.assign(clone(state.example), { id: 'p1', example: false, name: 'Г', race: 'human', level: 2 });
         c.base = { str: 15, dex: 15, con: 12, int: 10, wis: 10, cha: 10 }; c.equip = { main: { t: 'w', id: k.main } }; if (k.off) c.equip.off = { t: 'w', id: k.off }; c.bag = []; c.essences = [];
         state.party = [c]; state.run = { floor: 1, pos: { x: 5, y: 5 }, status: {}, light: true };

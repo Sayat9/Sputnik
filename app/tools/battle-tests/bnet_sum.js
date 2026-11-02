@@ -40,26 +40,24 @@ const URL = 'http://localhost:8765/index.html';
 
 
   // Борису тоже назначим игрока-владельца-призрака нет; Аргон — игрока. Массовый спасбросок по обоим героям.
-  await c.evaluate(() => Battle.UI.endTurn && Battle.UI.endTurn()); await h.waitForTimeout(1500);
   const info = await h.evaluate(() => ({ owners: Battle.S.units.filter(u => u.side === 'hero').map(u => [u.name, u.hero && u.hero.owner]), auto: Battle.S.opts.autoHeroes, players: Object.keys(Net.players) }));
   console.log('герои/владельцы', JSON.stringify(info));
-  await h.evaluate(() => { window.__ms = Battle.massSave(Battle.S.units.filter(u => u.side === 'hero'), 'dex', 30, { title: 'Тест-ловушка' }); });
-  await c.waitForTimeout(2500);
-  const hv = await h.evaluate(() => ({ modal: !!document.querySelector('.bt-sum'), rr: [...document.querySelectorAll('.bt-sum .bt-rr')].map(b => [b.dataset.rr, b.disabled]) }));
-  const cv = await c.evaluate(() => ({ shown: !!document.getElementById('bnsum'), rr: [...document.querySelectorAll('#bnsum [data-bs=rr]')].map(b => b.dataset.i), txt: (document.getElementById('bnsum') || {}).innerText }));
-  console.log('ведущий видит:', JSON.stringify(hv)); console.log('игрок видит:', JSON.stringify(cv));
-  await h.screenshot({ path: '/tmp/battle-shots/sum_h.png' }); await c.screenshot({ path: '/tmp/battle-shots/sum_c.png' });
-  ok('игрок видит сводку', cv.shown);
-  ok('у игрока перебросить можно только своего героя', cv.rr.length <= 1, cv);
-  const aIdx = info.owners.findIndex(o => o[0] === 'Аргон');
-  ok('ведущий не может перебросить за героя игрока', !hv.rr.some(([i, d]) => +i === aIdx && !d), hv);
-  // владелец героя «пропал» из списка игроков (после повторного входа): ведущий всё равно не перебрасывает за него
-  await h.evaluate(() => { document.querySelector('[data-m=sumok]') && document.querySelector('[data-m=sumok]').click(); });
-  await h.waitForTimeout(500);
-  await h.evaluate(() => { for (const k of Object.keys(Net.players)) delete Net.players[k]; window.__ms = Battle.massSave(Battle.S.units.filter(u => u.side === 'hero'), 'dex', 30, { title: 'Тест 2' }); });
-  await h.waitForTimeout(800);
-  const hv2 = await h.evaluate(() => [...document.querySelectorAll('.bt-sum .bt-rr')].map(b => [b.dataset.rr, b.disabled]));
-  ok('владелец вне списка: ведущий не перебрасывает за героя игрока', !hv2.some(([i, d]) => +i === aIdx && !d), hv2);
+  await h.evaluate(() => { window.__msDone = false; Battle.massSave(Battle.S.units.filter(u => u.side === 'hero'), 'dex', 30, { title: 'Тест-ловушка' }).then(r => { window.__msDone = r.length; }); });
+  await c.waitForFunction(() => !!document.querySelector('.bd-ov:not([hidden]):not(.watch)'), null, { timeout: 20000 }).catch(() => {});
+  const cv = await c.evaluate(() => ({ own: !!document.querySelector('.bd-ov:not([hidden]):not(.watch)'), sum: !!document.getElementById('bnsum') && !document.getElementById('bnsum').hidden }));
+  const hv = await h.evaluate(() => ({ sum: !!document.querySelector('.bt-sum') }));
+  console.log('ведущий:', JSON.stringify(hv), 'игрок:', JSON.stringify(cv));
+  ok('у игрока своё окно спасброска его героя (не общая сводка)', cv.own && !cv.sum, cv);
+  ok('у ведущего нет общей сводки', !hv.sum, hv);
+  for (let k = 0; k < 20; k++) {          // игрок проходит своё окно: «Бросить»/«Пропустить», затем «Далее»
+    const done = await h.evaluate(() => window.__msDone); if (done) break;
+    const lbl = await c.evaluate(() => { const bs = [...document.querySelectorAll('.bd-ov:not(.watch) button')].filter(e => e.getClientRects().length && !e.disabled); for (const re of [/^Далее/, /^ОК/, /^Принять/, /^Пропустить/, /^Бросить/]) { const b = bs.find(e => re.test(e.textContent.trim())); if (b) return b.textContent.trim(); } return null; });
+    if (lbl) await c.locator('.bd-ov:not(.watch) button', { hasText: lbl }).first().click({ force: true }).catch(() => {});
+    await c.waitForTimeout(700);
+    if (k % 5 === 4) console.log('  кнопки игрока:', await c.evaluate(() => [...document.querySelectorAll('.bd-ov button')].filter(e => e.getClientRects().length).map(e => e.textContent.trim().slice(0, 20)).join('|')), 'ведущий ждёт:', await h.evaluate(() => [window.__msDone, (Battle.S.log || []).slice(-2).map(l => l.t || l.text).join(' / ')]));
+  }
+  { const md = await h.evaluate(() => [window.__msDone, Battle.S.units.filter(u => u.side === 'hero').length]); ok('после решения игрока ход продолжается (спасброски вернулись)', md[0] === md[1] && md[0] > 0, md); }
+  await c.evaluate(() => Battle.UI.endTurn && Battle.UI.endTurn()); await h.waitForTimeout(500);
   console.log('проверок:', R.length, 'не прошли:', R.filter(x => !x).length, errs.slice(0, 3));
   await b.close(); process.exit(0);
 })();

@@ -157,6 +157,8 @@
       const pr = Math.max(0, (tgt.prot || 0) + ((o.ctx && o.ctx.protPlus) || 0) - ((o.ctx && o.ctx.protIgnore) || 0));          // двуручное оружие пробивает 1 Защиты
       if (pr > 0 && phys > 0 && total > 0 && !o.pure) { let cut = Math.min(o.crit ? Math.floor(pr / 2) : pr, phys - 1, total - 1); if (D.protMaxShare) cut = Math.min(cut, Math.floor(phys * D.protMaxShare)); if (cut > 0) { total -= cut; notes.push(`защита −${cut}`); } }
     }
+    { const a = o.ctx && o.ctx.atk, pm = a && (a.twin || a.pairArmor) && a.dmgMult;          // парный удар (02.11): сначала Защита, потом ×0,6 — иначе броня съедала урон клинков целиком
+      if (pm && pm !== 1 && total > 0) total = Math.max(1, Math.floor(total * pm)); }
     const fb = has(tgt, "fistblock"); if (fb && o.melee && total > 0) { const fr = roll(1, 4).total + Math.max(0, amod(tgt.abil.dex)); total = Math.max(0, total - fr); notes.push(`блок кулаками −${fr}`); }          // две перчатки: «Блок кулаками»
     if (o.reduce && total > 0) { const rd = B.parseDice(o.reduce.dice), rr = roll(rd.n, rd.s).total; total = Math.max(0, total - rr); notes.push(`${o.reduce.label || "щит"} −${rr}`); }          // «Принять удар» с ростовым щитом
     const absorbed = Math.min(tgt.temp || 0, total); tgt.temp = (tgt.temp || 0) - absorbed;
@@ -299,7 +301,7 @@
       const rr = roll(e.n * (crit && e.critDouble ? 2 : 1), e.s);
       parts.push({ v: rr.total + (e.b || 0), dt: e.dt, label: e.label }); log(`${e.label}: ${rr.total + (e.b || 0)}.`);
     }
-    if (atk.dmgMult && atk.dmgMult !== 1) for (const p of parts) p.v = Math.max(0, Math.floor(p.v * atk.dmgMult));          // двойник бьёт вполсилы
+    if (atk.dmgMult && atk.dmgMult !== 1 && !(atk.twin || atk.pairArmor)) for (const p of parts) p.v = Math.max(0, Math.floor(p.v * atk.dmgMult));          // парный удар: множитель — после Защиты (applyDamage)          // двойник бьёт вполсилы
     return { parts, rolls, sum, total: parts.reduce((a, p) => a + p.v, 0) };
   }
   // Судьба стрелы героя по броску атаки. Ломается ли она — решает исход (D.arrow); целая стрела остаётся лежать на поле (S.drops)
@@ -444,39 +446,20 @@
     return { ok, nat: r.nat, total: r.total, dice: r.dice, mode: r.mode };
   }
   // Спасброски сразу нескольких целей: без анимации кубиков, одна сводка (решение автора). Одна цель — обычный doSave.
+  // Спасброски нескольких целей (решение автора 02.11): общей сводки нет — каждый герой получает своё окно броска с «Перебросить» и «Далее»
+  // (герой друга — у него на телефоне), по очереди; монстры и призванные бросают без окна (журнал и надпись над фигуркой). Ход продолжается, когда решили все.
   async function massSave(list, abil, dc, o = {}) {
     if (list.length < 2) return Promise.all(list.map(t => doSave(t, abil, dc, o)));
-    const out = [], ctxs = [];
-    for (const t of list) {
-      if ((abil === "str" || abil === "dex") && (has(t, "unconscious") || has(t, "stable") || has(t, "paralyzed"))) { out.push({ ok: false, nat: 0, total: 0, mode: null }); ctxs.push(null); continue; }
+    const out = new Array(list.length), g = ui();
+    list.forEach((t, i) => {
+      if (t.hero) return;
+      if ((abil === "str" || abil === "dex") && (has(t, "unconscious") || has(t, "stable") || has(t, "paralyzed"))) { out[i] = { ok: false, nat: 0, total: 0, mode: null }; return; }
       const ctx = saveCtx(t, abil, dc, o), r = d20Core({ mods: ctx.mods, adv: ctx.adv, dis: ctx.dis }), ok = r.total >= dc;
       log(`${t.name}: спасбросок ${ABIL_RU[abil]} ${r.nat === r.total ? r.nat : r.nat + " → " + r.total} против Сл ${dc} — ${ok ? "успех" : "провал"}.`, ok ? "save" : "fail");
-      out.push({ ok, nat: r.nat, total: r.total, dice: r.dice, mode: r.mode }); ctxs.push(ctx);
-    }
-    // колокольчик Звона: все пострадавшие герои (провалили ментальный спасбросок) перебрасывают с преимуществом, звон тратит один заряд на день
-    list.forEach((t, i) => {
-      if (!ctxs[i] || out[i].ok) return; const tb = tollBell(t, abil, o); if (!tb) return;
-      if (tb === "ready") { state.run.tollDay = state.run.day; B.S.tollKey = tollKey(o); tollRing(t); tollMsg(); }
-      const old = out[i].total, r2 = d20Core({ mods: ctxs[i].mods, adv: [...ctxs[i].adv, "Серебряный колокольчик"], dis: ctxs[i].dis }), ok2 = r2.total >= dc;
-      out[i] = { ok: ok2, nat: r2.nat, total: r2.total, dice: r2.dice, mode: r2.mode, again: old };
-      log(`Серебряный колокольчик звенит: ${t.name} — ${r2.total} (было ${old}) против Сл ${dc} — ${ok2 ? "успех" : "провал"}.`, ok2 ? "save" : "fail");
+      out[i] = { ok, nat: r.nat, total: r.total, dice: r.dice, mode: r.mode };
+      if (g) g.fxText(t, ok ? "успех" : "провал", ok ? "good" : "bad");
     });
-    const g = ui();
-    if (g && g.summary) {
-      // справа от героев — кнопка переброса: тот же счётчик, что и у остальных бросков; результат заменяется новым
-      const ownR = t => !!(B.Net && B.Net.remoteOwner && B.Net.remoteOwner(t));          // герой друга перебрасывает у себя на телефоне, а не у ведущего
-      const rows = () => list.map((t, i) => { const can = !!ctxs[i] && !out[i].ok && rerollOptions(t, "save").length > 0; return { name: t.name, side: t.side, total: out[i].total, nat: out[i].nat, ok: out[i].ok, canReroll: can && !ownR(t) && !(B.Net && B.Net.ownerPid && B.Net.ownerPid(t)), rr: can, owner: B.Net && B.Net.ownerPid ? B.Net.ownerPid(t) : null }; });
-      const reroll = i => {
-        const t = list[i], opt = rerollOptions(t, "save")[0]; if (!opt || !ctxs[i]) return rows();
-        opt.spend(); const old = out[i].total, r = d20Core({ mods: ctxs[i].mods, adv: ctxs[i].adv, dis: ctxs[i].dis }), ok = r.total >= dc;
-        out[i] = { ok, nat: r.nat, total: r.total, dice: r.dice, mode: r.mode, again: old };
-        log(`${t.name}: переброс — спасбросок ${ABIL_RU[abil]} ${r.total} (было ${old}) против Сл ${dc} — ${ok ? "успех" : "провал"}.`, ok ? "save" : "fail");
-        return rows();
-      };
-      const title = o.title || o.label || "Спасброски", sub = `${ABIL_RU[abil]}, Сл ${dc}`, sid = B.Net && B.Net.sumStart ? B.Net.sumStart(title, sub, rows, reroll) : null;
-      await g.summary(title, sub, rows(), i => { const r = reroll(i); if (sid) B.Net.sumUpdate(sid); return r; });
-      if (sid) B.Net.sumEnd(sid);
-    }
+    for (let i = 0; i < list.length; i++) if (list[i].hero) out[i] = await doSave(list[i], abil, dc, o);          // своё окно: результат, «Перебросить» (если есть переброс) и «Далее»
     return out;
   }
   function skillMod(u, skill) {
