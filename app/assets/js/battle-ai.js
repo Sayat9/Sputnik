@@ -183,7 +183,8 @@
     if (dest.cost > u.t.move) { B.spendTime(u, "action"); u.t.move += speedOf(u); }
     const path = B.pathTo(map, dest.x, dest.y);
     const r = await B.moveAlong(u, path, { noProvoke: false }); u.t.move = Math.max(0, u.t.move - r.spent);
-    if (alive(u) && !u.down && u.y === 0) { u.fled = true; B.dropOwnedStatuses(u); log(`${u.name} убегает с поля боя.`, "flee"); ui() && ui().fxEscape(u); }
+    if (alive(u) && !u.down && (u.y === 0 || u.flags.thief)) { u.fled = true;          // вор (после кражи или «Жадности») скрывается в конце своего хода бегства, не добегая до края (02.11)
+      B.dropOwnedStatuses(u); log(`${u.name} убегает с поля боя.`, "flee"); ui() && ui().fxEscape(u); }
     return true;
   }
 

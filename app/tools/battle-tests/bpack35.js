@@ -44,7 +44,7 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
       const ds = B.doSave; B.doSave = async () => ({ ok: false, total: 1, nat: 1 });
       await B.A['goblin-thief'].run(th, { unit: h }, { commit() {} }); B.doSave = ds;
       const w = S.drops.find(d => d.kind === 'weapon' && d.holder === th.id);
-      out.steal = { took: !!w, disarmed: h.disarmed, flee: !!th.flags.fleeing, dodge: th.ac, base: 10 + Math.floor((MONSTERS.find(m => m.id === 'goblin-thief').abil[1] - 10) / 2) };
+      out.steal = { took: !!w, disarmed: h.disarmed, flee: !!th.flags.fleeing, gone: !!th.fled, dodge: th.ac, base: 10 + Math.floor((MONSTERS.find(m => m.id === 'goblin-thief').abil[1] - 10) / 2) };
       th.fled = true; th.alive = false; await B.End.cleanupForTest?.(S); out.stealGone = typeof B.End.cleanupForTest !== 'function' ? 'skip' : !state.party[0].equip.main; B.S = null; }
     { const c = mk(31); c.essences = ['goblin-thief']; const d0 = derived(totals(mk(32)), mk(32)), d1 = derived(totals(c), c); out.essDodge = d1.ac - d0.ac; }
     { const f = mk(40); f.race = 'fairy'; const hm = mk(41); const df = derived(totals(f), f).ac - (10 + Math.floor((totals(f).dex.total - 10) / 2)), dh = derived(totals(hm), hm).ac - (10 + Math.floor((totals(hm).dex.total - 10) / 2)); out.fairy = df - dh; }
@@ -63,7 +63,7 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
   ok('сеть зверолова держит 2 хода', o.net.k === 2 && o.net.when === 'end', o.net);
   ok('полёт: +3 к Увороту летящей цели', o.fly.flying && o.fly.d === 3, o.fly);
   ok('тьма: +2 к Увороту цели во тьме; тёмное зрение атакующего снимает бонус', o.dark === 2 && o.darkNoDv === 2 && o.darkDv === 0, [o.dark, o.darkNoDv, o.darkDv]);
-  ok('вор: «Срезать кошель» выхватывает оружие из руки и удирает', o.steal.took && o.steal.disarmed && o.steal.flee, o.steal);
+  ok('вор: «Срезать кошель» выхватывает оружие из руки и сразу скрывается с поля', o.steal.took && o.steal.disarmed && o.steal.flee && o.steal.gone, o.steal);
   ok('вор: бонус +3 к Увороту', o.steal.dodge === o.steal.base + 3, o.steal);
   ok('эссенция вора: Уворот +3 и Ловкость +2 (мод. +1) → Уворот +4', o.essDodge === 4, o.essDodge);
   ok('феи: +1 к Увороту', o.fairy === 1, o.fairy);
