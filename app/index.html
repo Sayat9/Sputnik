@@ -2869,7 +2869,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 91;
+const BATTLE_REV = 92;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }
@@ -3116,14 +3116,14 @@ function renderCharacter() {
   const race = raceById(char.race);
   const t = totals();
   const d = derived(t);
-  const ess = char.essences.map(id => ESSENCES[id]).filter(Boolean);
-  const actives = ess.map(e => ({ ...e.active, src: e.name }));
+  const essIds = char.essences.filter(id => ESSENCES[id]), ess = essIds.map(id => ESSENCES[id]);
+  const actives = essIds.map(id => { const e = ESSENCES[id]; return essActiveLevel(id) > 0 ? { ...e.active, src: essTitle(id) } : { name: "??", mana: "?", time: "?", text: "Свойства ещё не изучены.", src: essTitle(id) }; });          // неизученное — без названия (02.11)
   const passives = [
-    ...ess.map(e => ({ name: e.passive.name, text: e.passive.text, src: e.name })),
+    ...essIds.map(id => { const e = ESSENCES[id]; return essSeen(id, "ess-passive") ? { name: e.passive.name, text: e.passive.text, src: essTitle(id) } : { name: "??", text: "Свойства ещё не изучены.", src: essTitle(id) }; }),
     ...race.plus.map(([n, x]) => ({ name: n, text: x, src: "Раса · " + race.name })),
     ...race.minus.map(([n, x]) => ({ name: n, text: x, src: "Раса · минус", neg: true })),
   ];
-  const otherBonuses = ess.flatMap(e => e.other.map(o => [o, e.name]));
+  const otherBonuses = essIds.flatMap(id => ESSENCES[id].other.map(o => [o, essTitle(id)]));
   return `
     ${char === state.example ? `<div class="note"><span class="draft">Пример</span>Это образец персонажа. Своих героев создают на вкладке «Главная» кнопкой «Начать приключение». Всё сохраняется на этом устройстве.</div>` : ""}
     ${state.party.length > 1 ? `<div class="chips" role="group" aria-label="Герои отряда" style="padding:0">${state.party.map(c => `<button class="chip" data-member="${c.id}" aria-pressed="${c.id === char.id}">${esc(c.name)}</button>`).join("")}</div>` : ""}
@@ -4951,7 +4951,7 @@ function doSearch(kind) {
   searchReward(row, sr, digger, lines);
   if (kind === "explore") {                              // тайники с компасом и картой (как раньше)
     const k = tkey(r.pos.x, r.pos.y), found = Object.entries(r.caches || {}).find(([, c]) => c === k);
-    if (found && !invItem(found[0]).owned) { invItem(found[0]).owned = true; lines.push(`В тайнике найден${found[0] === "map" ? "а карта этажа" : " компас"}! Удерживай его в инвентаре, чтобы зажечь.`); }
+    if (found && !invItem(found[0]).owned) { invItem(found[0]).owned = true; lines.push(found[0] === "map" ? "В тайнике найдена карта этажа! Удерживай её в инвентаре, чтобы развернуть." : "В тайнике найден компас! Кнопка включения появилась в углу карты."); }
   }
   const title = (kind === "dig" ? "Раскопки" : "Исследование") + (sp ? ` · ${sp.name}` : isRuins(r.pos.x, r.pos.y) ? " · Руины зданий" : "");
   logRun(`${title} (к20 = ${sr.pick}): ${lines.join(" ")}`);
@@ -6851,7 +6851,7 @@ function heroStats(c) {
     ${race.plus.map(([n, x]) => `<div class="trait"><b>${n}.</b> ${x}</div>`).join("")}
     ${race.minus.map(([n, x]) => `<div class="trait neg"><b>${n}.</b> ${x}</div>`).join("")}
     <div class="fx-section">Эссенции · ${essSlots(c)}</div>
-    ${(c.essences || []).length ? c.essences.map(id => ESSENCES[id]).filter(Boolean).map(e => `<div class="trait"><b>${e.name}.</b> ${e.passive.name} (П), ${e.active.name} (А, ${e.active.mana} маны)</div>`).join("") : `<div class="trait">Слотов эссенций: ${c.level} (1 за уровень), заняты: 0.</div>`}`;
+    ${(c.essences || []).length ? c.essences.filter(id => ESSENCES[id]).map(id => { const e = ESSENCES[id], pk = essSeen(id, "ess-passive"), ak = essActiveLevel(id) > 0; return `<div class="trait"><b>${esc(essTitle(id))}.</b> ${pk ? esc(e.passive.name) : "??"} (П), ${ak ? `${esc(e.active.name)} (А, ${e.active.mana} маны)` : "?? (А)"}</div>`; }).join("")          /* названия навыков — только изученные (02.11) */ : `<div class="trait">Слотов эссенций: ${c.level} (1 за уровень), заняты: 0.</div>`}`;
 }
 
 /* ----- вкладка «Навыки»: эссенции героя (слоты = уровень) и запас отряда ----- */
