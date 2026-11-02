@@ -114,6 +114,7 @@
     if (u.deathSaves.fail >= 3) kill(u, null);
   }
   /* Урон: parts — [{v, dt, label}]. Учитывает уязвимости, сопротивления, плоские поправки пассивок, мокроту и временные ОЗ. */
+  const PHYS_DT = ["pierce", "slash", "bludgeon"], NO_PROT = ["Кровотечение", "Хватка"];          // урон «изнутри» Защита не режет
   async function applyDamage(src, tgt, parts, o = {}) {
     if (parts && B.igniteAround && parts.some(p => p.dt === "fire" && p.v > 0)) B.igniteAround(tgt);          // огонь поджигает паутину и сухую траву рядом
     if (o.splash && src && tgt.hero && B.dodgeSplash && B.dodgeSplash(src, tgt)) return { total: 0, absorbed: 0, notes: ["уклонение"] };          // доспех-мираж: область, где носитель не главная цель
@@ -127,7 +128,7 @@
       if (enc.data.hp <= 0) { removeStatus(tgt, "encased"); log(`Кристалл вокруг ${tgt.name} разбит.`, "good"); }
       return { total: 0, absorbed: dmg, notes: ["кристалл"] };
     }
-    let total = 0; const notes = [];
+    let total = 0, phys = 0; const notes = [];
     const sw = o.ctx && o.ctx.atk && o.ctx.atk.w;          // оружие в серебряной соли: +1к4 светлого урона по нежити, духам и спектральным
     if (sw && sw.salt && tgt.mon && (B.isSpectral(tgt) || /Нежить|Дух|Призрак/i.test(tgt.mon.type || ""))) parts = [...parts, { v: roll(1, 4).total, dt: "radiant", l: "Серебряная соль" }];
     // Плоские прибавки атакующего считаются один раз на всю атаку (к первой части урона): «Стая вокруг» волколака — себе и союзникам рядом.
@@ -148,10 +149,14 @@
       if (tgt.coldSlow && p.dt === "cold" && v > 0) addStatus(tgt, "slowed", { k: 1, when: "end", data: { add: -2 } });          // «Холод сковывает»: −3 м скорости до конца хода
       if (!o.pure) v += hookSum(src || { pass: [] }, "dmgBonusVs", { dt: p.dt, tgt, o, melee: o.melee });
       if (v < 1 && p.v > 0 && hookAny(tgt, "dmgMin1", { dt: p.dt })) v = 1;
-      total += Math.max(0, v);
+      total += Math.max(0, v); if (PHYS_DT.includes(p.dt) && !NO_PROT.includes(p.label)) phys += Math.max(0, v);
     }
     for (const id of tgt.pass) { const P = B.P && B.P[id]; if (P && P.dmgTotal) total = P.dmgTotal(tgt, { total, o, src, notes }); }
     total = Math.max(0, total);
+    { // Защита (вариант Б, решение автора 02.11): вычитается из физического урона попадания; от попадания остаётся хотя бы 1; крит пробивает половину Защиты (черновик)
+      const pr = (tgt.prot || 0) + ((o.ctx && o.ctx.protPlus) || 0);
+      if (pr > 0 && phys > 0 && total > 0 && !o.pure) { const cut = Math.min(o.crit ? Math.floor(pr / 2) : pr, phys - 1, total - 1); if (cut > 0) { total -= cut; notes.push(`защита −${cut}`); } }
+    }
     const fb = has(tgt, "fistblock"); if (fb && o.melee && total > 0) { const fr = roll(1, 4).total + Math.max(0, amod(tgt.abil.dex)); total = Math.max(0, total - fr); notes.push(`блок кулаками −${fr}`); }          // две перчатки: «Блок кулаками»
     if (o.reduce && total > 0) { const rd = B.parseDice(o.reduce.dice), rr = roll(rd.n, rd.s).total; total = Math.max(0, total - rr); notes.push(`${o.reduce.label || "щит"} −${rr}`); }          // «Принять удар» с ростовым щитом
     const absorbed = Math.min(tgt.temp || 0, total); tgt.temp = (tgt.temp || 0) - absorbed;
@@ -262,7 +267,8 @@
     for (const b of units()) if (b !== tgt && b.side === tgt.side && b.side !== att.side && has(b, "bastion") && alive(b) && dist(att, b) <= 4 && seesTarget(att, b)) { ctx.dis.push("провокация бастиона"); break; }
     const own = hookSum(tgt, "acBonus", ctx); if (own) { ac += own; ctx.acNotes.push(`пассивка ${sg(own)}`); }
     let aura = 0; for (const a of alliesOf(tgt)) aura = Math.max(aura, hookSum(a, "acAura", { ally: a, tgt, ctx }));
-    if (aura) { ac += aura; ctx.acNotes.push(`стена щитов +${aura}`); }
+    if (aura && tgt.hero) { ctx.protPlus = (ctx.protPlus || 0) + aura; ctx.notes.push(`аура: Защита +${aura}`); }          // у героев аура «+КД» союзника даёт Защиту (решение автора 02.11)
+    else if (aura) { ac += aura; ctx.acNotes.push(`стена щитов +${aura}`); }
     ctx.ac = ac;
     hookAll(att, "attackMods", ctx); hookAll(tgt, "defendMods", ctx);
     for (const a of alliesOf(att)) hookAll(a, "attackAura", { ally: a, att, tgt, ctx });          // «Пока король жив»
@@ -324,7 +330,7 @@
     const ctx = attackCtx(att, tgt, atk, o);
     if (o.extra) ctx.extra.push(...o.extra);
     const ses = session(att, { kind: "attack", att, tgt, atk, title: atk.n, sub: `${att.name} → ${tgt.name}`, anim: animKind(atk) });
-    const r = await ses.d20({ label: "Бросок атаки", mods: ctx.mods, adv: ctx.adv, dis: ctx.dis, vs: { ac: ctx.ac, notes: ctx.acNotes, name: tgt.name }, reroll: rerollOptions(att, "attack"), cancel: att.side === "hero" && o.cancelable !== false });
+    const r = await ses.d20({ label: "Бросок атаки", mods: ctx.mods, adv: ctx.adv, dis: ctx.dis, vs: { ac: ctx.ac, notes: ctx.acNotes, name: tgt.name, dodge: !!tgt.hero }, reroll: rerollOptions(att, "attack"), cancel: att.side === "hero" && o.cancelable !== false });
     if (!r) { ses.close(); return { cancelled: true }; }
     if (o.onCommit) await o.onCommit();
     for (const [u, id] of ctx.consume) { if (id === "fooled:atk") { const f = has(u, "fooled"); if (f) f.data.atkUsed = true; } else removeStatus(u, id); }

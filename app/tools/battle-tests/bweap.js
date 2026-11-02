@@ -49,8 +49,8 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
       let ok = false; for (let i = 0; i < 30 && !ok; i++) { u.t.action = 1; u.t.bonus = 1; m.shield = true; m.ac = 14; await Battle.runSpecial(u, a); if (!m.shield) ok = true; }
       T('щит разбит, КД упал', ok && m.ac <= 12, [m.shield, m.ac]); T('потрачено и доп. действие', u.t.bonus === 0); u.t.bonus = 0; u.t.action = 1; const o2 = Battle.actionsFor(u).find(o => o.id === 'atk:crush:greataxe'); T('без доп. действия крушить нельзя', o2 && !o2.enabled, o2 && o2.why); Battle.S = null; }
     // перчатки
-    { const one = mkHero('gloves'), two = mkHero('gloves', 'gloves'), none = mkHero('mace'); const ac = c => derived(totals(c), c).ac;
-      T('перчатки: одна без КД, пара +2 КД', ac(one) - ac(none) === 0 && ac(two) - ac(none) === 2, [ac(none), ac(one), ac(two)]);
+    { const one = mkHero('gloves'), two = mkHero('gloves', 'gloves'), none = mkHero('mace'); const ac = c => derived(totals(c), c).prot;
+      T('перчатки: одна +1 Защиты, пара +3', ac(one) - ac(none) === 1 && ac(two) - ac(none) === 3, [ac(none), ac(one), ac(two)]);
       const { u } = await setup('gloves', 'gloves'); T('блок кулаками в списке', !!Battle.actionsFor(u).find(o => o.id === 'fistblock'));
       await Battle.actionsFor(u).find(o => o.id === 'fistblock').run(); T('блок: статус', Battle.has(u, 'fistblock')); Battle.S = null;
       const { u: u1 } = await setup('gloves'); T('одна перчатка: блок есть', !!Battle.actionsFor(u1).find(o => o.id === 'fistblock'));
@@ -79,11 +79,11 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
       const a = Battle.heroAttacks(u).find(x => x.w && x.w.id === 'longbow'); const c = Battle.attackCtx(u, m, a); T('прицел: +1к6 в атаке', c.extra.some(e => e.label === 'Прицел'), c.extra); Battle.S = null; }
     // расы
     const ids = RACES.map(r => r.id); T('расы: 8', ['human','barbarian','dwarf','beastkin','fairy','dragon','darkfairy','gnome'].every(x => ids.includes(x)), ids);
-    { const mk = (race, main, off) => mkHero(main, off, { race }); const ac = c => derived(totals(c), c).ac;
+    { const mk = (race, main, off) => mkHero(main, off, { race }); const ac = c => derived(totals(c), c).prot;          // с 02.11 щит даёт Защиту
       T('дварф: щит +1 КД', ac(mk('dwarf', 'mace', 'shield')) - ac(mk('human', 'mace', 'shield')) === 1 - 1 + 0 || true);
       const d1 = ac(mk('dwarf', 'mace', 'shield')), d0 = ac(mk('dwarf', 'mace')), h1 = ac(mk('human', 'mace', 'shield')), h0 = ac(mk('human', 'mace'));
-      T('дварф: со щитом КД на 1 больше человека', (d1 - d0) - (h1 - h0) === 1, [d1, d0, h1, h0]);
-      const gc = c => ac(c); const g1 = ac(mk('gnome', 'mace', 'shield')), g0 = ac(mk('gnome', 'mace')); T('гном: щит даёт на 1 меньше', (g1 - g0) - (h1 - h0) === -1, [g1, g0, h1, h0]);
+      T('дварф: со щитом Защита на 1 больше человека', (d1 - d0) - (h1 - h0) === 1, [d1, d0, h1, h0]);
+      const gc = c => ac(c); const g1 = ac(mk('gnome', 'mace', 'shield')), g0 = ac(mk('gnome', 'mace')); T('гном: щит даёт на 1 меньше Защиты', (g1 - g0) - (h1 - h0) === -1, [g1, g0, h1, h0]);
       const ga = mk('gnome', 'mace'); ga.equip.body = { t: 'a', id: 'leather' }; const ha = mk('human', 'mace'); ha.equip.body = { t: 'a', id: 'leather' }; const gx = totals(ga), hx = totals(ha);
       T('гном: броня на 1 меньше КД', derived(gx, ga).ac - amodOf(gx.dex.total) === derived(hx, ha).ac - amodOf(hx.dex.total) - 1 || true);
       T('гном: переброс до 2', inspMax(mk('gnome')) === 2 && inspMax(mk('human')) === 1);

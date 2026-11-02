@@ -59,7 +59,8 @@
   }
   function scoreAttack(u, atk, t, pr, o = {}) {
     const ctx = B.attackCtx(u, t, atk, o), p = hitChance(ctx);
-    const avg = B.avgDice(atk.dmg) + (ctx.extra || []).reduce((a, e) => a + e.n * (e.s + 1) / 2, 0);
+    let avg = B.avgDice(atk.dmg) + (ctx.extra || []).reduce((a, e) => a + e.n * (e.s + 1) / 2, 0);
+    const pr0 = (t.prot || 0) + (ctx.protPlus || 0); if (pr0 > 0 && ["pierce", "slash", "bludgeon"].includes(atk.dt)) avg = Math.max(1, avg - pr0);          // Защита цели режет физический урон (вариант Б)
     let dmg = p * (avg + 0.05 * avg), kill = 0;
     if (t.hp <= avg * p) kill = 3 * p; else if (t.hp <= avg) kill = 1;
     if (t.down && !t.dead) { dmg *= 0.3; kill = 0; }                                    // добить можно, но выгоднее бить тех, кто ещё стоит

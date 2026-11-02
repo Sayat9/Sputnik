@@ -71,8 +71,8 @@
     const cand = [];
     for (const k of ["body", "off", "main"]) { const e = c.equip[k]; if (!e || !isDurable(e) || e.broken) continue; const it = itemOf(e); if (k === "body" || (it && (it.group === "shield" || it.id === "tower-shield"))) cand.push(k); }
     if (!cand.length) return null;
-    const k = pick(cand), e = c.equip[k], before = derived(totals(c), c).ac, broke = durHit(c, e, k, n);
-    u.ac += derived(totals(c), c).ac - before;                            // доспех сломался — КД падает сразу
+    const k = pick(cand), e = c.equip[k], d0 = derived(totals(c), c), before = d0.ac, broke = durHit(c, e, k, n);
+    const d1 = derived(totals(c), c); u.ac += d1.ac - before; u.prot = Math.max(0, (u.prot || 0) + (d1.prot || 0) - (d0.prot || 0));                            // доспех сломался — КД падает сразу
     if (broke) { log(`${u.name}: ${itemOf(e).name.replace(" (сломано)", "")} разбит!`, "bad"); const g = ui(); if (g) g.fxText(u, "сломано", "miss"); }
     return k;
   };
@@ -104,7 +104,9 @@
     if (off && off.kindOf === "weapon" && off.group === "melee" && off.id !== "tower-shield" && main && main.group === "melee" && !wprops(main).two && !(main.id === "gloves" && off.id === "gloves")) {
       // Парные клинки (решение автора): отдельной атаки доп. действием нет — один парный удар: обе атаки по одной цели, каждая с уроном −40 %
       const hand = out.find(x => x.id === "hand:" + main.id);
-      if (hand && !hand.thrown) { hand.twin = true; hand.twinOff = atkFrom(u, off, "off"); hand.twinOff.dmgMult = 0.6; hand.dmgMult = 0.6; hand.sub = (hand.sub ? hand.sub + " · " : "") + "парный удар: две атаки по цели, урон −40 %"; }
+      if (hand && !hand.thrown && main.id === "sword" && off.id === "sword") {          // два меча (решение автора 02.11): один удар, −2 к попаданию, урон +30 %; парирование легче
+        hand.hit -= 2; hand.parts = [...(hand.parts || []), { l: "Два меча", v: -2 }]; hand.dmgMult = 1.3; hand.dualSwords = true; hand.sub = (hand.sub ? hand.sub + " · " : "") + "два меча: −2 к попаданию, урон +30 %";
+      } else if (hand && !hand.thrown) { hand.twin = true; hand.twinOff = atkFrom(u, off, "off"); hand.twinOff.dmgMult = 0.6; hand.dmgMult = 0.6; hand.sub = (hand.sub ? hand.sub + " · " : "") + "парный удар: две атаки по цели, урон −40 %"; }
     }
     if (main && main.group === "ranged" && off && off.kindOf === "weapon" && off.group === "melee" && off.id !== "tower-shield") out.push(atkFrom(u, off, "hand"));          // лучник с ножом в другой руке: ближний бой этим оружием
     const strM = amod(u.abil.str);

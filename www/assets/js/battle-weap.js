@@ -109,7 +109,7 @@
         if (oldMain) addToBag(c, { ...oldMain, qty: 1 });
         if (needOff) { addToBag(c, { ...c.equip.off, qty: 1 }); delete c.equip.off; }
         const t1 = totals(c), d1 = derived(t1, c);          // КД, Ловкость и скорость зависят от снаряжения
-        u.ac += d1.ac - d0.ac; u.abil.dex += t1.dex.total - t0.dex.total; u.speedC += B.cellsOfM(d1.speed) - B.cellsOfM(d0.speed);
+        u.ac += d1.ac - d0.ac; u.prot = Math.max(0, (u.prot || 0) + (d1.prot || 0) - (d0.prot || 0)); u.abil.dex += t1.dex.total - t0.dex.total; u.speedC += B.cellsOfM(d1.speed) - B.cellsOfM(d0.speed);
         B.spendTime(u, "action"); log(`${u.name} меняет оружие: теперь в руке ${newIt.name}.`, "good"); fx(u, "смена оружия", "good"); saveChar(); return true;
       } });
     const fl = (c.bag || []).some(e => e && e.id === "calm-flute"), used = !!(c.flags && c.flags.calmFlute);
@@ -177,7 +177,8 @@
       const { att, res } = ctx; if (!ctx.melee || res.parried || res.swapped || !u.hero) return;
       const main = B.mainOf(u); if (!main || !(main.id === "sword" || (main.artId === "moon-sword" && has(u, "moonguard")))) return;
       if (!(u.t && u.t.react > 0) || !canAct(u) || att.side === u.side || dist(u, att) > 1) return;
-      if (!(ctx.ac - res.total > 4)) return;
+      const dual = B.offOf && (B.offOf(u) || {}).id === "sword" && main.id === "sword";          // два меча: парирование при промахе больше чем на 2 (черновик)
+      if (!(ctx.ac - res.total > (dual ? 2 : 4))) return;
       res.post.push(async () => {
         if (!alive(att) || !canAct(u) || !(u.t.react > 0)) return;
         u.t.react = 0;

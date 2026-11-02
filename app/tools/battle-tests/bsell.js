@@ -47,7 +47,7 @@ const L = require('./bui_lib.js');
   ok('Башня: сапоги продаются из списка артефактов', res.towerRows.some(r => r[0] === 't:boots'), res);
   ok('артефактное оружие продаётся в кузнице за 5500 (6 класс +10 %)', res.wrows && res.wsold.gold === 5500 && res.wsold.bag === 0, res.wsold);
   ok('соль: цель выбирается, оружие помечено и описано', res.saltTargets.length === 1 && !res.saltBefore && res.saltAfter && /соль/.test(res.saltNote), res);
-  ok('описания: короткая фраза и известные статы, без правил способностей', /Прямой железный клинок/.test(res.notes.sword) && /Урон 1к8/.test(res.notes.sword) && !/Парирование:|реакци/.test(res.notes.sword) && !/крысолов/i.test(res.notes.flute) && /КД 14/.test(res.notes.chain), res.notes);
+  ok('описания: короткая фраза и известные статы, без правил способностей', /Прямой железный клинок/.test(res.notes.sword) && /Урон 1к8/.test(res.notes.sword) && !/Парирование:|реакци/.test(res.notes.sword) && !/крысолов/i.test(res.notes.flute) && /Защита 4/.test(res.notes.chain), res.notes);
   console.log('проверок:', R.length, 'не прошли:', R.filter(x => !x.ok).length);
   await b.close();
 })();

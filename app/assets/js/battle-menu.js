@@ -15,7 +15,7 @@
     const sts = u.conds.filter(c => D.status[c.id]).map(c => `<span class="bt-stchip ${D.status[c.id].good ? "good" : "bad"}" data-sid="${c.id}" data-uid="${u.id}" title="Удерживайте: что это">${stIco(c.id)}${esc(D.status[c.id].name)}</span>`).join("");
     const hero = !!u.hero, mine = u.side === "hero";
     return `<div class="bt-card${compact ? " compact" : ""}"><div class="bt-cface ${u.side}${u.spectral ? " ghost" : ""}"><img src="${u.face}" alt=""></div>
-      <div class="bt-cinfo"><b>${esc(u.name)}</b><small>${hero ? `${esc(raceById(u.race).name)} · ${u.level} ур. · КД ${u.ac}` : u.summon ? `${u.kind === "double" ? "Двойник" : "Призванный волк"} · КД ${u.ac}` : `${esc(u.mon.size)} · КД ${u.ac}`}</small>
+      <div class="bt-cinfo"><b>${esc(u.name)}</b><small>${hero ? `${esc(raceById(u.race).name)} · ${u.level} ур. · Уворот ${u.ac} · Защита ${u.prot || 0}` : u.summon ? `${u.kind === "double" ? "Двойник" : "Призванный волк"} · КД ${u.ac}` : `${esc(u.mon.size)} · КД ${u.ac}`}</small>
         ${mine || B.S.opts.showMonHp ? `<div class="bt-nums"><span class="hp">ОЗ <b>${u.hp}</b>/${u.maxHp}${u.temp ? ` <em>+${u.temp}</em>` : ""}</span>${hero ? `<span class="mp">Мана <b>${u.mp}</b>/${u.maxMp}</span>` : ""}</div>${barHtml("hp", u.hp, u.maxHp)}${hero ? barHtml("mp", u.mp, u.maxMp) : ""}` : `<div class="bt-nums"><span class="hp">ОЗ скрыты</span></div>`}
       </div></div>${sts ? `<div class="bt-stline">${sts}</div>` : ""}`;
   }
@@ -163,7 +163,7 @@
     const owner = u.summon ? B.byId(u.owner) : null;
     const sub = hero ? esc(raceById(u.race).name) + " · " + u.level + " ур." : u.summon ? (u.kind === "double" ? `Двойник · ${esc(owner ? owner.name : "")} · исчезает от любого урона` : `Призванный волк · ${esc(owner ? owner.name : "")}`) : (kType ? esc(u.mon.size) + " · " + u.cls + " класс" : "") + (kType && typeof monCourse === "function" && monCourse(u.cls) ? ` · <b class="bt-rankbadge">${esc(monBadge(u.mon))}</b>` : "");
     const body = `<div class="bt-dlg fx-frame insp"><div class="bt-ihead"><div class="bt-cface ${u.side}${u.spectral ? " ghost" : ""}"><img src="${u.face}" alt=""></div><div><h4>${esc(u.name)}</h4><small>${sub}</small></div><button class="bt-x" data-m="close" aria-label="Закрыть">${ico("close")}</button></div>
-      <div class="bt-istats">${hero || u.summon ? `<span>КД <b>${u.ac}</b></span>` : ""}${kStats ? `<span title="Клеток хода в бою">Скорость <b>${B.speedOf(u)} кл.</b></span>` : ""}${mine || S.opts.showMonHp ? `<span>ОЗ <b>${u.hp}/${u.maxHp}</b></span>` : `<span>ОЗ <b>скрыты</b></span>`}${hero ? `<span>Мана <b>${u.mp}/${u.maxMp}</b></span>` : ""}</div>
+      <div class="bt-istats">${hero || u.summon ? `<span>Уворот <b>${u.ac}</b></span><span>Защита <b>${u.prot || 0}</b></span>` : ""}${kStats ? `<span title="Клеток хода в бою">Скорость <b>${B.speedOf(u)} кл.</b></span>` : ""}${mine || S.opts.showMonHp ? `<span>ОЗ <b>${u.hp}/${u.maxHp}</b></span>` : `<span>ОЗ <b>скрыты</b></span>`}${hero ? `<span>Мана <b>${u.mp}/${u.maxMp}</b></span>` : ""}</div>
       ${kStats ? `<div class="bt-iabil">${["str", "dex", "con", "int", "wis", "cha"].map(k => `<span>${B.ABIL_RU[k].slice(0, 3)} <b>${u.abil[k]}</b></span>`).join("")}</div>` : ""}
       ${sts ? `<h5>Состояния</h5><ul>${sts}</ul>` : ""}${kAtk ? `<h5>Атаки</h5><ul>${atk}</ul>` : ""}${ess ? `<h5>Навыки эссенции</h5><ul>${ess}</ul>` : ""}</div>`;
     const m = showModal(note ? `<div class="bt-insp-wrap">${body}<aside class="bt-fieldnote fx-frame" aria-label="Эффект поля">${note}</aside></div>` : body);

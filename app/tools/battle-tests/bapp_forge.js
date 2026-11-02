@@ -34,7 +34,7 @@ const L = require('./bui_lib.js');
     const t1 = totals(c), d1 = derived(t1, c);
     c.equip.main = { t: 'w', id: 'sword' }; c.equip.body = { t: 'a', id: 'chainmail' }; c.equip.off = { t: 'w', id: 'shield' };
     const d0 = derived(totals(c), c);
-    out.acDiff = d1.ac - d0.ac;
+    out.acDiff = d1.prot - d0.prot; out.dodgeDiff = d1.ac - d0.ac;
     // атака
     state.run = { floor: 1, pos: { x: 5, y: 5 }, status: {}, light: false }; state.run.status[c.id] = { fat: 0, sat: 3, starve: 0, awake: 0 };
     const mk = steel => { c.equip.main = { t: 'w', id: 'sword', ...(steel ? { steel: true } : {}) }; const S = Battle.newBattle({ list: ['goblin'], zone: 'goblin', floor: 1 }); const u = Battle.heroes()[0]; const a = Battle.heroAttacks(u).find(x => x.id === 'hand:sword'); return { hit: a.hit, b: a.dmg.b, parts: a.parts.map(q => q.l) }; };
@@ -52,7 +52,7 @@ const L = require('./bui_lib.js');
   ok('название стального меча', res.name === 'Стальной меч', res.name);
   ok('кольчуга +1 КД и название', res.chainName === 'Стальная кольчуга' && res.chainAc === '15', res.chainName + res.chainAc);
   ok('стальной щит: название', res.shieldName === 'Стальной щит', res.shieldName);
-  ok('КД: кольчуга +1 и щит +1 = +2', res.acDiff === 2, res.acDiff);
+  ok('сталь: кольчуга и щит — Защита +2, Уворот −2', res.acDiff === 2 && res.dodgeDiff === -2, [res.acDiff, res.dodgeDiff]);
   ok('стальной меч: +1 к атаке и +1 к урону', res.hit === 1 && res.dmg === 1 && res.parts, JSON.stringify(res));
   ok('метка сохраняется при экипировке и снятии', res.equipKept && res.unequipKept, JSON.stringify(res));
   // шопинг: колчан, паёк, компас по новым ценам

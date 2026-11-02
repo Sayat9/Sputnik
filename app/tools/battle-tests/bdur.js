@@ -75,8 +75,8 @@ const L = require('./bui_lib.js');
     await withRoll(0.999, () => B.doAttack(m, h, B.attacksOf(m)[0], {})); o.shield = c.equip.off.dur;
     // КД падает, когда доспех ломается
     c = setHero({ t: 'w', id: 'sword' }, { t: 'a', id: 'chainmail', dur: 1 }); ({ h, m } = fight()); m.x = h.x; m.y = h.y - 1;
-    const ac0 = h.ac; await withRoll(0.999, () => B.doAttack(m, h, B.attacksOf(m)[0], {}));
-    o.brk = { broken: !!(c.bag.concat(Object.values(c.equip)).find(e => e.id === 'chainmail' && e.broken)), acDrop: ac0 - h.ac, inBag: c.bag.some(e => e.id === 'chainmail' && e.broken), onBody: !!c.equip.body };
+    const ac0 = h.ac, pr0 = h.prot; await withRoll(0.999, () => B.doAttack(m, h, B.attacksOf(m)[0], {}));
+    o.brk = { broken: !!(c.bag.concat(Object.values(c.equip)).find(e => e.id === 'chainmail' && e.broken)), acDrop: ac0 - h.ac, protDrop: pr0 - h.prot, inBag: c.bag.some(e => e.id === 'chainmail' && e.broken), onBody: !!c.equip.body };
     return o;
   });
   ok('критический промах (1): меч 10 → 9', W.crit1 === 9, W.crit1);
@@ -89,7 +89,7 @@ const L = require('./bui_lib.js');
   ok('натуральная 20 монстра: броня 10 → 9', W.armor20 === 9, W.armor20);
   ok('натуральная 19 и промах монстра броню не портят', W.armor19 === 9 && W.armor1 === 9, [W.armor19, W.armor1]);
   ok('без брони износ принимает щит', W.shield === 9, W.shield);
-  ok('доспех на 1 прочности ломается: «(сломано)», уходит в рюкзак, КД падает', W.brk.broken && W.brk.inBag && !W.brk.onBody && W.brk.acDrop > 0, W.brk);
+  ok('доспех на 1 прочности ломается: «(сломано)», уходит в рюкзак, Защита падает, Уворот растёт', W.brk.broken && W.brk.inBag && !W.brk.onBody && W.brk.protDrop > 0 && W.brk.acDrop < 0, W.brk);
 
   // ---------- 3. поломка оружия: нельзя использовать ----------
   const BR = await p.evaluate(async () => {

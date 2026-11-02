@@ -76,7 +76,7 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
 
     // 13. Стена щита: бонус получает только один союзник
     { setup([mk(14, { main: 'sword', off: 'shield', ess: ['skeleton-warrior'] }), mk(15), mk(16)], ['goblin']); const [w, a, c] = Battle.heroes(); place(w, 3, 5); place(a, 2, 5); place(c, 4, 5); const g = Battle.mons()[0]; place(g, 3, 2);
-      const bonus = x => { const ctx = Battle.attackCtx(g, x, { kind: 'melee', hit: 0, dmg: { n: 1, s: 4, b: 0 }, dt: 'slash' }); return ctx.ac - x.ac; };
+      const bonus = x => { const ctx = Battle.attackCtx(g, x, { kind: 'melee', hit: 0, dmg: { n: 1, s: 4, b: 0 }, dt: 'slash' }); return (ctx.ac - x.ac) + (ctx.protPlus || 0); };          // у героев аура «+КД» даёт Защиту (02.11)
       const ba = bonus(a), bc = bonus(c); ok('Стена щита: ровно один из двух союзников получает +1', ba + bc === 1, `${ba}+${bc}`); Battle.S = null; }
 
     // 14. Мышь: писк — все существа; привычка к грохоту — преимущество; грохот — помеха на проверки Ловкости

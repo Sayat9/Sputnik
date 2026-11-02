@@ -41,7 +41,7 @@ const ONLY = (process.argv[2] || '').split(',').filter(Boolean);
     const logs = (n = 6) => B.S.log.slice(-n).map(l => l.t).join(' | ');
     const logHas = re => B.S.log.some(l => re.test(l.t));
     const meleeOf = u => B.heroAttacks(u).find(a => a.kind === 'melee' && a.w);
-    const sc = (specs, mons, o = {}) => { const heroes = specs.map((s, i) => mk(i, s)); const S = setup(heroes, mons, o); return { S, hs: B.heroes(), ms: B.mons() }; };
+    const sc = (specs, mons, o = {}) => { const heroes = specs.map((s, i) => mk(i, s)); const S = setup(heroes, mons, o); B.heroes().forEach(u => { u.prot = 0; }); return { S, hs: B.heroes(), ms: B.mons() }; };          // механику эссенций проверяем без Защиты брони (02.11)
     const test = async (id, fn) => { if (ONLY.length && !ONLY.includes(id)) return; try { await fn(); } catch (e) { ok(`${id}: тест не упал с исключением`, false, String(e && e.stack || e).split('\n').slice(0, 3).join(' | ')); } finally { Q.length = 0; B.S = null; } };
     const act = (u, id, picks = {}) => { if (!Q.length) F(); return B.useActive(u, id, picks); };
 

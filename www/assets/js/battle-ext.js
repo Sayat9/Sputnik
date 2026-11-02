@@ -79,7 +79,7 @@
     const src = atks.sort((a, b) => B.avgDice(b.dmg) - B.avgDice(a.dmg))[0] || null;
     Object.assign(u, {
       summon: true, kind: "double", owner: owner.id, ghost: true, name: `Двойник · ${owner.name.split(" ")[0]}`, base: "Двойник", face: owner.face, size: 1,
-      hp: 1, maxHp: 1, ac: owner.ac, speedC: Math.max(1, B.speedOf(owner) || owner.speedC || 1), abil: { ...owner.abil }, pb: owner.pb, level: owner.level,
+      hp: 1, maxHp: 1, ac: owner.ac, prot: owner.prot || 0, speedC: Math.max(1, B.speedOf(owner) || owner.speedC || 1), abil: { ...owner.abil }, pb: owner.pb, level: owner.level,
       pass: ["body:double"], ess: [], bell: o.bell || 0, ttlRound: S.round + 10, ctl: "auto",
       atk: src ? [{ id: "double", n: "Двойник: " + src.n, hit: src.hit, dmg: { ...src.dmg }, dt: "psychic", kind: src.kind, reach: src.reach || 1, range: src.range, dmgMult: 0.5 }] : [],
       ai: { int: 1, role: src && src.kind === "ranged" ? "ranged" : "melee", keep: 2, focus: ["nearest"], noFlee: true },
