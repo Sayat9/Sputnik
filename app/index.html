@@ -1117,9 +1117,9 @@ const SHARE_PER_RUN = 30;
 // Стиль картинок: всё снаряжение потёртое, со следами боёв (см. docs/art-style.md).
 
 const WEAPONS = [
-  { id: "spear", name: "Копьё", group: "melee", kind: "Простое", dmg: "1к6", type: "колющий", weight: 1.5, price: 12,
-    props: ["Метательное (6/18 м)", "Универсальное (1к8)", "Досягаемость 3 м (на 2-й клетке с помехой)", "Слабое место"],
-    note: "Самое дешёвое железо в оружейной. Древко ясеневое из Гномьего Древа, наконечник кованый. «Слабое место»: проверка Внимательности перед ударом — чем выше, тем больше урона (10–14: +1, 15–19: +1к4, 20+: +1к6); ниже 8 — помеха на атаку. Остриё ищет щель в броне: удар игнорирует 1 Защиты цели." },
+  { id: "spear", name: "Копьё", group: "melee", kind: "Простое", dmg: "1к8", type: "колющий", weight: 1.5, price: 12, dmgPlus: 1,          // двуручное, 1к8 +1 урона (автор 02.11; было одноручное 1к6 / 1к8)
+    props: ["Метательное (6/18 м)", "Двуручное", "+1 к урону", "Досягаемость 3 м (на 2-й клетке с помехой)", "Слабое место"],
+    note: "Самое дешёвое железо в оружейной. Держится двумя руками, удар +1 к урону. Древко ясеневое из Гномьего Древа, наконечник кованый. «Слабое место»: проверка Внимательности перед ударом — чем выше, тем больше урона (10–14: +1, 15–19: +1к4, 20+: +1к6); ниже 8 — помеха на атаку. Остриё ищет щель в броне: удар игнорирует 1 Защиты цели." },
   // Пика — укороченное копьё всадника для рук: двуручная, длинная, но с малым щитом носится со штрафом (−2 к Ловкости от щита и −1 клетка скорости). Особенность — на утверждении автора (drafts.md).
   { id: "pike", name: "Пика", group: "melee", kind: "Воинское", dmg: "1к10", type: "колющий", weight: 4, price: 30,
     props: ["Двуручное", "Можно со щитом"],
@@ -2874,7 +2874,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 95;
+const BATTLE_REV = 96;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }
@@ -5707,6 +5707,7 @@ function ensureRun() {
   unlockJournal(9);                       // 1 этаж — монстры 9-го класса
   r.status ||= {};
   travRestore();                          // путники из сохранения снова становятся записями для боя
+  for (const c of state.party || []) { const e = c.equip || {}; if (e.main && e.main.id === "spear" && e.off && !isBigGrip(c)) { addToBag(c, { ...e.off, qty: 1 }); delete e.off; } }          // копьё стало двуручным (02.11): вещь из второй руки — в рюкзак
   for (const c of state.party) if (!r.status[c.id]) { r.status[c.id] = c.carry ? { sat: 3, starve: 0, awake: 0, fat: 0, ...c.carry } : { sat: 3, starve: 0, awake: 0, fat: 0 }; delete c.carry; }
   return r;
 }

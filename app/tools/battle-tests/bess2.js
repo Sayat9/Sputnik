@@ -176,12 +176,12 @@ const ONLY = (process.argv[2] || '').split(',').filter(Boolean);
       ok('«Полная перевязь»: метательное +1 урона', bagAtk.dmgBonus === 1, bagAtk.dmgBonus);
       F(15, 3); const r = await B.doAttack(H, G, bagAtk, { cancelable: false, onCommit: () => B.commitAttack(H, bagAtk, G) });
       ok('бросок из рюкзака не обезоруживает: меч остался в руке', r.hit && !H.disarmed && (H.bagThrown || []).length === 1 && B.S.drops.some(d => d.slot === 'bag'), JSON.stringify(B.S.drops.map(d => d.slot)));
-      ok('урон: кость 3 + Лов. 3 + 1 = 7', r.parts[0].v === 3 + 3 + 1, r.parts[0].v);
+      ok('урон: кость 3 + Лов. 3 + 1 + копьё 1 = 8', r.parts[0].v === 3 + 3 + 1 + 1, r.parts[0].v);
       ok('после броска в списке остаётся одно копьё без ×', B.heroAttacks(H).filter(a => a.bagEntry).length === 1 && !/×/.test(B.heroAttacks(H).find(a => a.bagEntry).n));
       // «Двойной бросок» — нужны два метательных
       T(H); H.bagThrown = []; B.S.drops.length = 0; const mp0 = H.mp; place(G, 3, 2); F(15, 3, 15, 3);
       const hp0 = G.hp; const dr = await act(H, 'hobgoblin-thrower', { units: [G] });
-      ok('Двойной бросок: две атаки по одной цели', dr && hp0 - G.hp === 14 && (H.bagThrown || []).length === 2, `${hp0 - G.hp} ${(H.bagThrown || []).length}`);
+      ok('Двойной бросок: две атаки по одной цели', dr && hp0 - G.hp === 16 && (H.bagThrown || []).length === 2, `${hp0 - G.hp} ${(H.bagThrown || []).length}`);
       ok('одно действие, мана 3, КД 2', mp0 - H.mp === 3 && H.cd['hobgoblin-thrower'] === 2 && H.t.action === 0);
       ok('после двух бросков метательного больше нет → способность недоступна', B.A['hobgoblin-thrower'].can(H) === 'нужно два метательных оружия');
       // по двум разным целям
