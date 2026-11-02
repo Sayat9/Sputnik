@@ -2874,7 +2874,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 94;
+const BATTLE_REV = 95;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }
@@ -3077,11 +3077,12 @@ function battleDone(ev, res) {
 }
 
 /* ----- здоровье ----- */
-// Классов пока нет: на 1-м уровне 10 + 1,5 × мод. ТЕЛ, дальше по 9 + 1,5 × мод. ТЕЛ (не меньше 1) — рост ×1,5 с 02.11.
+// Классов пока нет: на 1-м уровне 10 + 1,5 × мод. ТЕЛ, дальше по 5 + 1,5 × мод. ТЕЛ (не меньше 1); с 02.11 (v95) рост за уровень снижен с 9 до 5.
 const conMod = c => mod(totals(c).con.total);
 // ОЗ (решение автора 02.11: рост от Тел и от уровня ×1,5): 10 + 1,5 × мод. Тел на 1-м уровне, +9 + 1,5 × мод. Тел за каждый следующий (дробь — вниз к нулю).
 const hpCon = c => Math.trunc(1.5 * conMod(c));
-const maxHp = c => Math.max(1, 10 + hpCon(c)) + (c.level - 1) * Math.max(1, 9 + hpCon(c)) + essBonus(c).hp;
+const HP_PER_LVL = 5;          // за уровень: было 9 (слишком быстрый рост, автор 02.11)
+const maxHp = c => Math.max(1, 10 + hpCon(c)) + (c.level - 1) * Math.max(1, HP_PER_LVL + hpCon(c)) + essBonus(c).hp;
 const hpOf = c => (c.hp == null ? maxHp(c) : Math.max(0, Math.min(c.hp, maxHp(c))));
 // Отдых в лабиринте лечит не полностью: доля от макс. ОЗ зависит от Усталости перед сном, плюс мод. ТЕЛ.
 // Голодный (сутки и больше без еды) лечится вдвое хуже. Караульный не спит и не лечится.
@@ -6831,7 +6832,7 @@ function heroStats(c) {
       <div class="lrow"><span>Очки здоровья</span><b>${hpOf(c)} / ${maxHp(c)}</b></div>
       <div class="lbar"><i style="width:${Math.round(hpOf(c) / maxHp(c) * 100)}%"></i></div>
       <div class="btn-row" style="justify-content:center">${[-5, -1, 1, 5].map(dlt => `<button class="fx-btn" data-hx="hp" data-d="${dlt}" aria-label="${dlt < 0 ? "Урон" : "Лечение"} ${Math.abs(dlt)}">${dlt > 0 ? "+" : "−"}${Math.abs(dlt)}</button>`).join("")}</div>
-      <p class="trait" style="margin:0;text-align:center">ОЗ: 10 + 1,5 × мод. ТЕЛ на 1-м уровне, дальше 9 + 1,5 × мод. ТЕЛ за уровень.</p>
+      <p class="trait" style="margin:0;text-align:center">ОЗ: 10 + 1,5 × мод. ТЕЛ на 1-м уровне, дальше 5 + 1,5 × мод. ТЕЛ за уровень.</p>
     </div>
     ${c.dead ? `<div class="hp-box"><p class="trait neg" style="margin:0;text-align:center"><b>Погиб в бою.</b> Из лабиринта вернётся только по решению мастера.</p>
       <div class="btn-row" style="justify-content:center"><button class="fx-btn" data-hx="revive">Воскресить (мастер)</button></div></div>` : ""}

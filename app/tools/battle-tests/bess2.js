@@ -432,7 +432,7 @@ const ONLY = (process.argv[2] || '').split(',').filter(Boolean);
       G2.flyC = 6; G2.speedC = 2; ok('летящую цель дальше 3 м видит плохо — помеха', B.attackCtx(H, G2, meleeOf(H)).dis.includes('плохое зрение')); G2.flyC = 0; G2.speedC = 4;
       S.torch = true; ok('в ярком свете (факел) — помеха на атаки', B.attackCtx(H, G1, meleeOf(H)).dis.includes('боится яркого света')); S.torch = false;
       B.addStatus(G1, 'hidden', { k: Infinity }); ok('скрытый враг не получает преимущество: вибрация выдаёт', !B.attackCtx(G1, H, G1.atk[0]).adv.includes('атакует из укрытия')); B.removeStatus(G1, 'hidden');
-      A_.abil.dex = 1; const mp0 = H.mp; F(6, 6, 6); const hpA = A_.hp, hp1 = G1.hp, hp2 = G2.hp; const r = await act(H, 'giant-mole', {});
+      A_.abil.dex = 1; A_.hp = A_.maxHp = Math.max(A_.maxHp, 40); const mp0 = H.mp; F(6, 6, 6); const hpA = A_.hp, hp1 = G1.hp, hp2 = G2.hp; const r = await act(H, 'giant-mole', {});
       ok('Сотрясение: все на земле в 4,5 м — по 18 дробящего, сбиты, скорость вдвое меньше (союзник тоже)', r && hp1 - G1.hp === 18 && hpA - A_.hp === 18 && has(G1, 'prone') && has(A_, 'prone') && has(G1, 'slowed'), `${hp1 - G1.hp} ${hpA - A_.hp}`);
       ok('враг в 4 клетках (6 м) не задет', G2.hp === hp2 && !has(G2, 'prone'));
       ok('мана 5, КД 3, действие; Сл = 8 + БМ + мод. Силы', mp0 - H.mp === 5 && H.cd['giant-mole'] === 3 && H.t.action === 0);
