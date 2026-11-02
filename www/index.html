@@ -1148,8 +1148,8 @@ const WEAPONS = [
     props: [],
     note: "Железные наконечники. В бою часть стрел ломается; целые подбираются после боя, если отряд не бежал." },
   { id: "shield", name: "Щит", group: "shield", kind: "Щит", dmg: "Защита +2", type: "", weight: 3, price: 10,
-    props: ["Занимает руку", "Защита +2", "Уворот −1", "−2 к Ловкости"],
-    note: "Дубовые доски с железной оковкой и умбоном: оттягивает руку и сковывает движения (−2 к Ловкости). Надеть или снять — действие." },
+    props: ["Занимает руку", "Защита +2", "Уворот −1", "−1 к Ловкости"],
+    note: "Дубовые доски с железной оковкой и умбоном: оттягивает руку и сковывает движения (−1 к Ловкости). Надеть или снять — действие." },
   // Ростовой щит держат двумя руками: Защита +4, Уворот −2 вместо оружия, бить можно только им самим.
   { id: "tower-shield", name: "Ростовой щит", group: "melee", kind: "Щит", dmg: "1к6", type: "дробящий", weight: 7.5, price: 30, ac: 3, str: 13,
     props: ["Защита +4", "Уворот −2", "Двуручное", "Тяжёлое", "Сила 13", "Помеха Скрытности"],
@@ -1354,7 +1354,7 @@ const ESSENCES = {
   "goblin-trapper": { id: "goblin-trapper", name: "Эссенция гоблина-зверолова", cls: 8, source: "goblin-trapper",
     stats: { dex: 1, cha: -1 }, other: ["Выживание +2", "Восприятие +1", "Скрытность −1"],
     passive: { name: "Охотничий глаз", text: "Простые ловушки и капканы на тебя не срабатывают. Преимущество на выслеживание по следам." },
-    active: { name: "Ловчая сеть", mana: 3, time: "действие", text: "3/9 м, одно существо Большое или меньше. Спасбросок Силы Сл 8 + БМ + мод. Лов. Провал — опутано (скорость 0, атаки по нему с преимуществом, его — с помехой) до освобождения: действие и проверка Силы против Сл или 5 рубящего урона по сети. Успех — скорость вдвое меньше до конца его следующего хода. Перезарядка 3 раунда." } },
+    active: { name: "Ловчая сеть", mana: 3, time: "действие", text: "3/9 м, одно существо Большое или меньше. Спасбросок Силы Сл 8 + БМ + мод. Лов. Провал — опутано (скорость 0, атаки по нему с преимуществом, его — с помехой) до освобождения, но не дольше 2 ходов цели: освободиться — действие и проверка Силы против Сл или 5 рубящего урона по сети. Успех — скорость вдвое меньше до конца его следующего хода. Перезарядка 3 раунда." } },
   "goblin-elder": { id: "goblin-elder", name: "Эссенция главного шамана", cls: 8, source: "goblin-elder",
     stats: { wis: 2, cha: 1, dex: -1 }, other: ["Максимум маны +4", "Инициатива −1"],
     passive: { name: "Голос старейшины", text: "Союзники в 9 м, которые тебя слышат, получают преимущество на спасброски против испуга и на проверки трусости." },
@@ -1369,7 +1369,7 @@ const ESSENCES = {
     active: { name: "Двойной бросок", mana: 3, time: "действие", text: "Две дальнобойные атаки метательным оружием, по одной цели или по двум. Перезарядка 2 раунда." } },
   "hobgoblin-driver": { id: "hobgoblin-driver", name: "Эссенция хобгоблина-загонщика", cls: 8, source: "hobgoblin-driver",
     stats: { str: 1, cha: 1, wis: -1 }, other: ["Запугивание +2", "Скрытность −1"],
-    passive: { name: "Длинная рука", text: "Досягаемость кнута и цепа +1,5 м." },
+    passive: { name: "Длинные цепи", text: "Досягаемость кнута и цепа +2,5 м (в бою — 2 клетки)." },
     active: { name: "Подгонять", mana: 3, time: "бонусное действие", text: "Один союзник в 9 м, который тебя слышит, сразу перемещается на половину скорости и реакцией совершает одну атаку оружием. Перезарядка 3 раунда." } },
   "hobgoblin-shield": { id: "hobgoblin-shield", name: "Эссенция хобгоблина-щитоносца", cls: 8, source: "hobgoblin-shield",
     stats: { con: 2, str: 1, dex: -1 }, other: ["КД +1", "Инициатива −1"],
@@ -1407,7 +1407,7 @@ const ESSENCES = {
   "dire-wolf": { id: "dire-wolf", name: "Эссенция матёрого волка", cls: 8, source: "dire-wolf",
     stats: { str: 2, cha: 1, con: -1 }, other: ["Восприятие +1", "Скрытность −1"],
     passive: { name: "Хватка стаи", text: "Преимущество на атаки по существу, рядом с которым (1,5 м) стоит твой боеспособный союзник." },
-    active: { name: "Сбить с ног", mana: 2, time: "действие (рукопашная атака)", text: "1,5 м. При попадании спасбросок Силы Сл 8 + БМ + мод. Сил: провал — цель сбита с ног; успех — обычный урон. Перезарядка 2 раунда." } },
+    active: { name: "Укус в ноги", mana: 2, time: "действие (рукопашная атака)", text: "1,5 м. При попадании спасбросок Силы Сл 8 + БМ + мод. Сил: провал — 2 хода цели за каждые 2 пройденные клетки она проходит проверку Телосложения, иначе получает 1к4 урона; успех — обычный урон. Перезарядка 2 раунда." } },
   "web-spider": { id: "web-spider", name: "Эссенция паука-сетепряда", cls: 8, source: "web-spider",
     stats: { dex: 2, cha: -1 }, other: ["Скрытность +1", "Восприятие +1", "Уязвимость к урону огнём"],
     passive: { name: "Паучья хватка", text: "Лазаешь по стенам и потолку без проверок, паутина тебя не сковывает." },
@@ -1563,7 +1563,7 @@ const ESSENCES = {
   fox: {
     id: "fox", name: "Эссенция скрытной лисы", cls: 9, source: "fox",
     stats: { dex: 1, str: -1 }, other: ["Скрытность +1", "Восприятие +1"],
-    passive: { name: "Тень в тени", text: "Если атаковал, будучи спрятанным, и промахнулся, остаёшься спрятанным. Следующая атака из того же укрытия −2 к попаданию; при промахе маскировка спадает. Попадание выдаёт как обычно." },
+    passive: { name: "Пушистая тень", text: "Если атаковал, будучи спрятанным, и промахнулся, остаёшься спрятанным. Следующая атака из того же укрытия −2 к попаданию; при промахе маскировка спадает. Попадание выдаёт как обычно." },
     active: { name: "Обманный след", mana: 2, time: "бонусное действие",
       text: "Существо в 9 м, которое тебя видит или слышит, до конца твоего следующего хода. Спасбросок Мудрости Сл 8 + БМ + мод. Лов. Провал — для него ты спрятан, его атаки по тебе с помехой; успех — ничего." },
   },
@@ -2060,8 +2060,8 @@ const DISTRICTS = [
 
 // Готовые рисованные картинки (webp) заменяют векторные заглушки.
 // Дата сборки для телефона: build.sh вписывает её сюда, в веб-версии строка пустая.
-const APP_BUILD = "02.11.2026 10:52";
-const APP_VERSION = 1793598769;                 // номер сборки, тоже вписывает build.sh
+const APP_BUILD = "02.11.2026 11:46";
+const APP_VERSION = 1793601969;                 // номер сборки, тоже вписывает build.sh
 const UPDATE_URL = "https://raw.githubusercontent.com/Sayat9/Sputnik/main/www/";
 const RASTER = new Set(["items/steel-pike", "items/calm-flute", "items/dice", "items/art-falling-star", "items/art-echo-blade", "items/art-discharge-staff", "items/weak-salt", "items/silver-salt", "items/tollbell", "items/director-quiver", "items/flame", "items/herb-poison", "items/herb-food", "items/herb-rest", "items/repair-charm", "items/durable-charm", "items/regen-charm", "items/herb-heal", "items/herb-mana", "items/boots", "items/wind", "items/whetstone", "items/daedalus-hammer", "items/unbreakable-charm", "items/pike", "items/bell", "items/flask", "items/monocle", "buildings/arena", "buildings/academy", "buildings/bank", "buildings/storage", "races/dragon-f", "races/fairy-f", "races/gnome-f", "races/darkfairy-f", "events/to-labyrinth", "races/human-f", "races/barbarian-f", "races/dwarf-f", "races/beastkin-f", "events/to-town", "events/ambush", "events/monsters", "events/nothing", "events/travelers", "events/treasure", "items/mace", "items/warhammer", "items/armor-leather", "items/armor-hide", "items/armor-chainmail", "items/steel-dagger", "items/steel-sword", "items/steel-greatsword", "items/steel-shield", "items/steel-tower-shield", "items/shortbow", "items/longbow", "items/rapier", "items/shield", "items/tower-shield", "items/unknown-mushroom", "items/stone-9", "items/stone-8", "items/stone-7", "items/ration", "items/potion", "items/torch", "items/arrows", "items/clothes", "items/shovel", "items/shovel-good", "items/shovel-best", "items/dagger", "items/sword", "items/greatsword", "items/spear", "monsters/goblin-king-face", "monsters/goblin-king-full", "monsters/goblin-bomber-face", "monsters/goblin-bomber-full", "monsters/hobgoblin-shield-face", "monsters/hobgoblin-shield-full", "races/barbarian", "races/human", "races/dwarf", "races/beastkin", "races/fairy", "races/dragon", "monsters/goblin-face", "monsters/goblin-full", "monsters/goblin-archer-face", "monsters/goblin-archer-full", "monsters/goblin-sword-face", "monsters/goblin-sword-full", "monsters/goblin-spear-face", "monsters/goblin-spear-full", "monsters/wolf-face", "monsters/wolf-full", "monsters/fox-face", "monsters/fox-full", "monsters/mouse-face", "monsters/mouse-full", "monsters/bat-face", "monsters/bat-full", "monsters/hobgoblin-face", "monsters/hobgoblin-full", "monsters/zombie-face", "monsters/zombie-full", "monsters/skeleton-face", "monsters/skeleton-full", "monsters/skeleton-archer-face", "monsters/skeleton-archer-full", "monsters/ghoul-face", "monsters/ghoul-full", "monsters/dark-bear-face", "monsters/dark-bear-full", "monsters/skeleton-warrior-face", "monsters/skeleton-warrior-full", "monsters/living-stone-face", "monsters/living-stone-full", "monsters/wisp-face", "monsters/wisp-full", "monsters/pixie-face", "monsters/pixie-full", "monsters/green-boulder-face", "monsters/green-boulder-full", "monsters/stone-guardian-face", "monsters/stone-guardian-full", "monsters/spider-queen-face", "monsters/spider-queen-full", "monsters/ash-wraith-face", "monsters/ash-wraith-full", "monsters/ash-spirit-face", "monsters/ash-spirit-full", "monsters/plague-fat-face", "monsters/plague-fat-full", "monsters/bone-hound-face", "monsters/bone-hound-full", "monsters/dust-crawler-face", "monsters/dust-crawler-full", "monsters/faceless-ringer-face", "monsters/faceless-ringer-full", "monsters/mirror-dead-face", "monsters/mirror-dead-full", "monsters/whisperer-face", "monsters/whisperer-full", "monsters/morok-face", "monsters/morok-full", "monsters/grey-shade-face", "monsters/grey-shade-full", "monsters/blackwing-face", "monsters/blackwing-full", "monsters/swamp-fang-face", "monsters/swamp-fang-full", "monsters/web-spider-face", "monsters/web-spider-full", "monsters/goblin-shaman-face", "monsters/goblin-shaman-full", "monsters/goblin-assassin-face", "monsters/goblin-assassin-full", "monsters/goblin-trapper-face", "monsters/goblin-trapper-full", "monsters/goblin-elder-face", "monsters/goblin-elder-full", "monsters/hobgoblin-brute-face", "monsters/hobgoblin-brute-full", "monsters/hobgoblin-thrower-face", "monsters/hobgoblin-thrower-full", "monsters/hobgoblin-driver-face", "monsters/hobgoblin-driver-full", "monsters/goblin-thief-face", "monsters/goblin-thief-full", "monsters/horned-hare-face", "monsters/horned-hare-full", "monsters/swamp-toad-face", "monsters/swamp-toad-full", "monsters/burrower-face", "monsters/burrower-full", "monsters/crow-face", "monsters/crow-full", "monsters/dire-wolf-face", "monsters/dire-wolf-full", "monsters/werewolf-face", "monsters/werewolf-full", "monsters/giant-mole-face", "monsters/giant-mole-full", "monsters/bone-knight-face", "monsters/bone-knight-full", "monsters/gravedigger-face", "monsters/gravedigger-full", "monsters/corpse-eater-face", "monsters/corpse-eater-full", "monsters/drop-face", "monsters/drop-full", "monsters/dust-whirl-face", "monsters/dust-whirl-full", "monsters/magma-hound-face", "monsters/magma-hound-full", "monsters/crystalloid-face", "monsters/crystalloid-full", "monsters/lake-spirit-face", "monsters/lake-spirit-full", "monsters/magma-golem-face", "monsters/magma-golem-full", "monsters/deep-serpent-face", "monsters/deep-serpent-full", "monsters/crystal-colossus-face", "monsters/crystal-colossus-full", "monsters/storm-spirit-face", "monsters/storm-spirit-full", "monsters/rift-heart-face", "monsters/rift-heart-full", "items/compass", "items/steel-mace", "items/steel-rapier", "items/unknown-herb", "items/twin-daggers", "items/unknown-stone", "items/steel-twin-daggers", "items/potion-good", "items/coins", "items/steel-spear", "items/steel-warhammer", "items/steel-shortbow", "items/steel-longbow", "items/steel-armor-leather", "items/steel-armor-hide", "items/steel-armor-chainmail", "items/gloves", "items/staff", "items/axe", "items/greataxe", "items/firstaid", "items/flute", "items/chalice", "items/once-more", "items/guard", "items/beginners-luck", "buildings/tower", "buildings/guild", "buildings/church", "buildings/library", "buildings/gate", "buildings/tavern", "buildings/shop", "buildings/forge", "buildings/board", "buildings/hall", "races/gnome", "races/darkfairy", "monsters/rat-face", "monsters/rat-full", "monsters/rat-king-face", "monsters/rat-king-full", "monsters/rat-catcher-face", "monsters/rat-catcher-full"]);
 const artPath = p => `assets/${p}.${RASTER.has(p) ? "webp" : "svg"}`;
@@ -2663,7 +2663,7 @@ const lightMelee = w => !!w && w.group === "melee" && (w.props || []).includes("
 function gearDexPenalty(c) {
   const off = itemOf((c.equip || {}).off), main = itemOf((c.equip || {}).main);
   let g = 0;
-  if (off && off.id === "shield" && !twoHanded(c)) g -= 2;
+  if (off && off.id === "shield" && !twoHanded(c)) g -= 1;          // щит: −1 к Ловкости (было −2, правка автора 02.11)
   if (isBigGrip(c) && isTwoHandedWeapon(main) && main.group !== "ranged") g -= 2;
   if (isBigGrip(c) && isTwoHandedWeapon(off) && off.group !== "ranged" && off.id !== "tower-shield") g -= 4;          // два двуручных сразу: большой штраф (решение автора)
   return g;
@@ -2708,7 +2708,7 @@ function derived(t, c = char) {
   if (armor && armor.str && t.str.total < armor.str) warnings.push(`Сила ${t.str.total} ниже ${armor.str}, нужной для доспеха «${armor.name}»: скорость −3 м.`);
   if (armor && armor.stealth) warnings.push(`«${armor.name}»: помеха к Скрытности.`);
   if (tower) { warnings.push("Ростовой щит: помеха к Скрытности."); if (t.str.total < 13) warnings.push(`Сила ${t.str.total} ниже 13, нужной для ростового щита: скорость −3 м.`); }
-  if (off && off.id === "shield" && !twoHanded(c)) warnings.push("Щит: −2 к Ловкости.");
+  if (off && off.id === "shield" && !twoHanded(c)) warnings.push("Щит: −1 к Ловкости.");
   if (isBigGrip(c) && isTwoHandedWeapon(mainItem(c)) && mainItem(c).group !== "ranged") warnings.push(`«${mainItem(c).name}» в одной руке (Великан): −2 к Ловкости.`);
   if (isBigGrip(c) && isTwoHandedWeapon(off) && off.group !== "ranged") warnings.push(`Два двуручных оружия сразу («${off.name}» во второй руке): ещё −4 к Ловкости.`);
   if (ld.level !== "ok") warnings.push(LOAD_TEXT[ld.level] + ".");
@@ -2750,6 +2750,8 @@ function addToBag(c, e) {
 }
 // Удача: новый стат героя, по умолчанию 1 (см. drafts.md, «Исследование, копание, удача»).
 const luckOf = c => c.luck ?? 1;
+// Угроза (решение автора 02.11): по умолчанию 1; чем выше, тем охотнее монстры выбирают героя целью. Умные монстры (интеллект ИИ) поддаются меньше.
+const threatOf = c => Math.max(0, (c.threat ?? 1) + (essBonus(c).threat || 0));
 const countGear = (c, id) => (c.bag || []).filter(x => x.t === "g" && x.id === id).reduce((a, x) => a + x.qty, 0);
 function takeGear(c, id, n) {
   let need = n;
@@ -2770,13 +2772,14 @@ function ensureKit(c) {
   return c;
 }
 const itemWeight = e => { const it = itemOf(e); return it ? (it.weight || 0) * (e.qty || 1) : 0; };
-// Груз (решение автора 02.11): свободный груз = (Сил + ½ Тел) × 1,5 кг (варвар «Великан» ×2). Больше — лёгкий перегруз (до ×1,5), средний (до ×2), максимальный (больше ×2).
-// Перегруз режет Уворот (−1/−2/−3) и скорость (−1,5/−3/−6 м); со среднего бежать нельзя. Числа ступеней — черновик.
-const CARRY_K = 1.5;
+// Груз (решение автора 02.11): грузоподъёмность — сколько герой может нести = (Сил + ½ Тел) × 3 кг (варвар «Великан» ×2).
+// Перегруз считается от неё: больше половины — лёгкий, больше ¾ — средний, больше всей грузоподъёмности — максимальный.
+// Перегруз режет Уворот (−1/−2/−3) и скорость (−1,5/−3/−6 м); со среднего бежать нельзя.
+const CARRY_K = 3;
 function load(c, t = totals(c)) {
   const big = c.race === "barbarian" ? 2 : 1;
   const w = Object.values(c.equip || {}).reduce((a, v) => a + itemWeight(v), 0) + (c.bag || []).reduce((a, v) => a + itemWeight(v), 0);
-  const free = (t.str.total + 0.5 * t.con.total) * CARRY_K * big, mid = free * 1.5, cap = free * 2;
+  const cap = (t.str.total + 0.5 * t.con.total) * CARRY_K * big, free = cap / 2, mid = cap * 0.75;
   const level = w > cap ? "max" : w > mid ? "medium" : w > free ? "light" : "ok";
   return { w, free, mid, cap, enc: free, heavy: mid, runMax: mid, level, noRun: w > mid };
 }
@@ -2796,13 +2799,14 @@ const SKILL_KEYS = { "Скрытность": "stealth", "Атлетика": "ath
   "Медицина": "medicine", "Запугивание": "intimidation", "Обман": "deception", "Ловкость рук": "sleight", "Расследование": "investigation" };
 const SAVE_KEYS = { "Силы": "str", "Ловкости": "dex", "Телосложения": "con", "Интеллекта": "int", "Мудрости": "wis", "Харизмы": "cha" };
 function essBonus(c) {
-  const out = { ac: 0, speed: 0, init: 0, hp: 0, mp: 0, range: 0, skills: {}, saves: {} };
+  const out = { ac: 0, speed: 0, init: 0, hp: 0, mp: 0, range: 0, threat: 0, skills: {}, saves: {} };
   const sg = x => (x === "−" || x === "-") ? -1 : 1, num = x => parseFloat(String(x).replace(",", "."));
   for (const id of (c && c.essences) || []) for (const o of (ESSENCES[id] && ESSENCES[id].other) || []) {
     let m;
     if ((m = /^КД ([+−-])(\d+)/.exec(o))) out.ac += sg(m[1]) * num(m[2]);
     else if ((m = /^Скорость ([+−-])(\d+(?:[.,]\d+)?) м/.exec(o))) out.speed += sg(m[1]) * num(m[2]);
     else if ((m = /^Инициатива ([+−-])(\d+)/.exec(o))) out.init += sg(m[1]) * num(m[2]);
+    else if ((m = /^Угроза ([+−-])(\d+)/.exec(o))) out.threat += sg(m[1]) * num(m[2]);
     else if ((m = /^Максимум ОЗ ([+−-])(\d+)/.exec(o))) out.hp += sg(m[1]) * num(m[2]);
     else if ((m = /^Максимум маны ([+−-])(\d+)/.exec(o))) out.mp += sg(m[1]) * num(m[2]);
     else if ((m = /^Дальность стрелкового оружия ([+−-])(\d+(?:[.,]\d+)?) м/.exec(o))) out.range += sg(m[1]) * num(m[2]);
@@ -2826,7 +2830,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 85;
+const BATTLE_REV = 86;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }
@@ -3096,7 +3100,7 @@ function renderCharacter() {
         <dl class="vitals">
           <div><dt>Уворот</dt><dd>${d.ac}</dd></div><div><dt>Защита</dt><dd>${d.prot}</dd></div>
           <div><dt>МАНА</dt><dd>${d.mana}</dd></div>
-          <div class="wide"><dt>ВЕС</dt><dd>${kg(d.weight)} / ${kgf(d.ld.free)}</dd></div>
+          <div class="wide"><dt>ВЕС</dt><dd>${kg(d.weight)} / ${kgf(d.ld.cap)}</dd></div>
         </dl>
       </div>
     </div>
@@ -6722,11 +6726,11 @@ function closeHero() { heroUi = null; $hero.hidden = true; $hero.innerHTML = "";
 function loadBlock(c) {
   const ld = load(c), top = Math.max(ld.cap * 1.15, ld.w), pct = x => Math.min(100, x / top * 100);
   return `<div class="load">
-    <div class="lrow"><span>Груз</span><b>${kgf(ld.w)} / ${kgf(ld.free)} кг</b></div>
+    <div class="lrow"><span>Груз</span><b>${kgf(ld.w)} / ${kgf(ld.cap)} кг</b></div>
     <div class="lbar" title="Отметки: лёгкий, средний и максимальный перегруз"><i class="${ld.level}" style="width:${pct(ld.w)}%"></i>
       <s style="left:${pct(ld.free)}%"></s><s style="left:${pct(ld.mid)}%"></s><s style="left:${pct(ld.cap)}%"></s></div>
     <div class="ltext ${ld.level === "ok" ? "ok" : "bad"}">${LOAD_TEXT[ld.level]}.</div>
-    <div class="lrow" style="font-size:12px"><span>Свободно до ${kgf(ld.free)} кг ((Сил + ½ Тел) × ${fmt(CARRY_K)}) · средний с ${kgf(ld.mid)} · максимальный с ${kgf(ld.cap)} кг</span></div>
+    <div class="lrow" style="font-size:12px"><span>Грузоподъёмность ${kgf(ld.cap)} кг ((Сил + ½ Тел) × ${fmt(CARRY_K)}) · лёгкий перегруз с ${kgf(ld.free)} · средний с ${kgf(ld.mid)} · максимальный больше ${kgf(ld.cap)} кг</span></div>
   </div>`;
 }
 
@@ -6759,6 +6763,9 @@ function heroStats(c) {
     <div class="lrow luck-row"><span>Удача <b style="color:var(--fx-gold-hi)">${signed(luckOf(c))}</b></span>
       <span class="btn-row"><button class="fx-btn" data-hx="luck" data-d="-1" aria-label="Удача −1">−</button><button class="fx-btn" data-hx="luck" data-d="1" aria-label="Удача +1">+</button></span></div>
     <p class="trait" style="margin:0">Удача прибавляется к броску удачи при раскопках и снижает шанс нападения на долгой стоянке. На бой не влияет: крит решает обычный бросок.</p>
+    <div class="lrow luck-row"><span>Угроза <b style="color:var(--fx-gold-hi)">${threatOf(c)}</b></span>
+      <span class="btn-row"><button class="fx-btn" data-hx="threat" data-d="-1" aria-label="Угроза −1">−</button><button class="fx-btn" data-hx="threat" data-d="1" aria-label="Угроза +1">+</button></span></div>
+    <p class="trait" style="margin:0">Угроза (обычно 1): чем выше, тем чаще монстры выбирают целью этого героя. Умные монстры поддаются меньше, звери и безмозглые — сильнее.</p>
     <p class="trait" style="margin:0">Уворот (по нему попадают): ${d.acSrc}. Защита (вычитается из физического урона каждого попадания): ${d.protSrc}. ${[c.gender && GENDERS[c.gender], c.age && ageText(c.age), c.height && c.height + " см", c.weight && c.weight + " кг"].filter(Boolean).join(" · ")}</p>
     ${loadBlock(c)}
     ${st ? `<div class="fx-section">В лабиринте</div>
@@ -7005,6 +7012,7 @@ $hero.addEventListener("click", e => {
     case "add-toggle": heroUi.add = !heroUi.add; renderHero(); return;
     case "hp": c.hp = Math.max(0, Math.min(maxHp(c), hpOf(c) + Number(ds.d))); heroAfterChange(); return;
     case "luck": c.luck = luckOf(c) + Number(ds.d); heroAfterChange(); return;
+    case "threat": c.threat = Math.max(0, Math.min(5, (c.threat ?? 1) + Number(ds.d))); heroAfterChange(); return;
     case "mp": c.mp = Math.max(0, Math.min(maxMp(c), mpOf(c) + Number(ds.d))); heroAfterChange(); return;
     case "insp": c.insp = Math.max(0, Math.min(inspMax(c) + 2, (c.insp ?? inspMax(c)) + Number(ds.d))); heroAfterChange(); return;
     case "revive": c.dead = false; c.hp = Math.max(1, hpOf(c)); heroAfterChange(`${c.name} воскрешён (1 ОЗ)`); return;

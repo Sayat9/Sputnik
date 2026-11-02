@@ -43,6 +43,7 @@
   }
   function focusBonus(u, t, pr) {
     let s = 0; const int = pr.int ?? 1; if (has(t, "bastion")) s += 6;          // провокация бастиона
+    if (t.threat != null && t.threat !== 1) s += (t.threat - 1) * 2.5 * Math.max(0.25, 1 - int / 4);          // Угроза героя (02.11): интеллект 0 — ×2,5 за единицу, 1 — ×1,9, 2 — ×1,25, 3 — ×0,6
     for (const f of pr.focus || ["nearest"]) {
       if (f === "wounded") s += (1 - t.hp / t.maxHp) * 4;
       else if (f === "weak") s += (1 - t.hp / t.maxHp) * 2 + (t.ac <= 11 ? 1.5 : 0);

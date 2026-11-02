@@ -383,7 +383,7 @@ const ONLY = (process.argv[2] || '').split(',').filter(Boolean);
       place(A_, 4, 4); ok('Хватка стаи: союзник в 1,5 м от цели — преимущество', B.attackCtx(H, G, meleeOf(H)).adv.includes('Хватка стаи'));
       A_.down = true; ok('павший союзник не считается', !B.attackCtx(H, G, meleeOf(H)).adv.includes('Хватка стаи')); A_.down = false;
       const mp0 = H.mp; F(15, 3, 1); const r = await act(H, 'dire-wolf', { unit: G });
-      ok('Сбить с ног: провал — цель сбита, запоминаем кто сбил', r && has(G, 'prone') && has(G, 'prone').data.by === H.id, JSON.stringify(has(G, 'prone')));
+      ok('Укус в ноги: провал — статус «прокушены ноги» на 2 хода, от кого', r && has(G, 'hamstrung') && has(G, 'hamstrung').data.by === H.id && has(G, 'hamstrung').k === 2, JSON.stringify(has(G, 'hamstrung')));          // правка автора 02.11
       ok('мана 2, КД 2, действие; Сл = 8 + БМ + мод. Силы', mp0 - H.mp === 2 && H.cd['dire-wolf'] === 2 && H.t.action === 0 && B.dcOf(H, 'str') === 8 + H.pb + B.amod(H.abil.str));
       const s2 = setup([mk(90, { ess: ['dire-wolf'] })], ['goblin'], { strong: true }); const H2 = B.heroes()[0], G2 = B.mons()[0]; place(H2, 3, 5); place(G2, 3, 4); G2.ac = 1; T(H2); await act(H2, 'dire-wolf', { unit: G2 }); ok('успех спасброска — только урон', !has(G2, 'prone') && G2.hp < 300);
     });

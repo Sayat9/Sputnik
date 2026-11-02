@@ -114,7 +114,7 @@
     if (u.deathSaves.fail >= 3) kill(u, null);
   }
   /* Урон: parts — [{v, dt, label}]. Учитывает уязвимости, сопротивления, плоские поправки пассивок, мокроту и временные ОЗ. */
-  const PHYS_DT = ["pierce", "slash", "bludgeon"], NO_PROT = ["Кровотечение", "Хватка"];          // урон «изнутри» Защита не режет
+  const PHYS_DT = ["pierce", "slash", "bludgeon"], NO_PROT = ["Кровотечение", "Хватка", "Укус в ноги"];          // урон «изнутри» Защита не режет
   async function applyDamage(src, tgt, parts, o = {}) {
     if (parts && B.igniteAround && parts.some(p => p.dt === "fire" && p.v > 0)) B.igniteAround(tgt);          // огонь поджигает паутину и сухую траву рядом
     if (o.splash && src && tgt.hero && B.dodgeSplash && B.dodgeSplash(src, tgt)) return { total: 0, absorbed: 0, notes: ["уклонение"] };          // доспех-мираж: область, где носитель не главная цель
@@ -572,6 +572,9 @@
       await onEnter(u, from);
       if (B.illusionCheck && alive(u) && !u.down) await B.illusionCheck(u);                         // «Морок»: впервые увидел иллюзию — проверка Проницательности
       hookAll(u, "onMoveStep", { from, to: [x, y] });
+      { const hs = has(u, "hamstrung"); if (hs && !o.force) { hs.data.cells = (hs.data.cells || 0) + 1; if (hs.data.cells % 2 === 0) {          // «Укус в ноги» матёрого волка
+        const sv = await doSave(u, "con", hs.data.dc || 12, { label: "Укус в ноги" }); if (!sv.ok) { const r = roll(1, 4).total; log(`${u.name}: прокушенные ноги — ${r} урона.`, "bad"); await applyDamage(B.byId ? B.byId(hs.data.by) : null, u, [{ v: r, dt: "pierce", label: "Укус в ноги" }], {}); }
+        if (!alive(u) || u.down) { interrupted = true; break; } } } }
       for (const w of B.S.drops) if (w.holder === u.id) { w.x = u.x; w.y = u.y; }                    // «Жадность»: схваченное оружие у вора в руках
       breakGrapples(u);
       if (speedOf(u) === 0 && !o.force) { interrupted = true; break; }

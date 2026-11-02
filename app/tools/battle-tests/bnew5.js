@@ -35,7 +35,7 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
     out.mainDealt = hp0[0] - ms[0].hp;
     return out;
   });
-  ok('щит −2 Ловкости', o.dexShield === o.dexA - 2, JSON.stringify(o));
+  ok('щит −1 Ловкости (02.11)', o.dexShield === o.dexA - 1, JSON.stringify(o));
   ok('варвар с двуручным в одной руке −2 Ловкости', o.dexGiant === o.dexTwo - 2 || o.dexGiant === o.dexTwo - 2, JSON.stringify(o));
   ok('без штрафа к атаке у «Великана»', !o.giantPen, o.giantPen);
   ok('двуручный меч: вращающийся удар', o.spin);

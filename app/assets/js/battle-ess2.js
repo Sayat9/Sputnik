@@ -137,7 +137,7 @@
         ctl.commit(); const t = pk.unit, dc = dcOf(u, cfg.abil);
         const adv = cfg.near != null && dist(u, t) > cfg.near ? ["издали бросать трудно"] : [];          // «3/9 м»: дальше первого числа цель спасается с преимуществом
         const sv = await B.doSave(t, cfg.save, dc, { label: cfg.name, tags: ["net"], adv, from: u });
-        if (!sv.ok) { addStatus(t, "restrained", { k: Infinity, data: { dc, by: u.id, net: { hp: 5, web: !!cfg.web }, web: !!cfg.web } }); log(`${t.name} опутан: ${cfg.web ? "паутина" : "сеть"}.`, "skill"); fx(t, "опутан", "bad"); }
+        if (!sv.ok) { addStatus(t, "restrained", { k: cfg.turns || Infinity, when: "end", data: { dc, by: u.id, net: { hp: 5, web: !!cfg.web }, web: !!cfg.web } }); log(`${t.name} опутан: ${cfg.web ? "паутина" : "сеть"}.`, "skill"); fx(t, "опутан", "bad"); }
         else if (cfg.slowOnOk) { addStatus(t, "slowed", { k: 1, when: "end", data: { mult: 0.5 } }); fx(t, "замедлен", "bad"); }
         return true;
       },
@@ -225,7 +225,7 @@
 
   /* ----- Гоблин-зверолов (8): «Охотничий глаз», «Ловчая сеть» ----- */
   P["goblin-trapper"] = { trapImmune(u, c) { return c.trap.dc <= 12; } };                 // простые ловушки (Сл не выше 12) не срабатывают; выслеживание вне боя
-  A["goblin-trapper"] = netAbility({ name: "Ловчая сеть", abil: "dex", save: "str", near: 2, far: 6, slowOnOk: true });          // успех: скорость вдвое меньше до конца её следующего хода
+  A["goblin-trapper"] = netAbility({ name: "Ловчая сеть", abil: "dex", save: "str", near: 2, far: 6, slowOnOk: true, turns: 2 });          // сеть держит не дольше 2 ходов цели (правка автора 02.11)          // успех: скорость вдвое меньше до конца её следующего хода
 
   /* ----- Главный шаман (8): «Голос старейшины», «Проклятие предков» ----- */
   P["goblin-elder"] = {
@@ -602,8 +602,9 @@
 
   /* ----- Матёрый волк (8): «Хватка стаи», «Сбить с ног» ----- */
   P["dire-wolf"] = { attackMods(att, ctx) { if (alliesOf(att).some(a => canAct(a) && dist(a, ctx.tgt) <= 1)) ctx.adv.push("Хватка стаи"); } };
-  A["dire-wolf"] = attackRider({ name: "Сбить с ног", kind: "melee", abil: "str", save: "str", tags: ["prone"], aiBonus: 3,
-    onFail: async (t, u) => { B.knock(t, u); fx(t, "сбит с ног", "bad"); } });
+  // «Укус в ноги» (правка автора 02.11): провал — 2 хода цели каждые 2 пройденные клетки проверка Телосложения, провал — 1к4 (в moveAlong, статус hamstrung)
+  A["dire-wolf"] = attackRider({ name: "Укус в ноги", kind: "melee", abil: "str", save: "str", tags: [], aiBonus: 3,
+    onFail: async (t, u) => { addStatus(t, "hamstrung", { k: 2, when: "end", src: u.id, data: { by: u.id, dc: dcOf(u, "str"), cells: 0 } }); log(`${u.name} прокусывает ноги ${t.name}: каждые 2 клетки пути — проверка Телосложения.`, "skill"); fx(t, "укус в ноги", "bad"); } });
 
   /* ----- Паук-сетепряд (8): «Паучья хватка», «Паутина» ----- */
   P["web-spider"] = { immune(u, c) { return c.id === "restrained" && !!(c.data && c.data.web); } };          // паутина не сковывает; лазание по стенам — вне боя
@@ -1354,6 +1355,7 @@
   Object.assign(D.status, {
     shieldwall: { name: "Сомкнутый строй", good: true, ico: '<path d="M4 5h7v14H4zM13 5h7v14h-7z"/>', desc: "+2 к КД до начала хода вожака стражи." },
     warcry:     { name: "Боевой клич", good: true, ico: '<path d="M4 9v6h4l6 4V5L8 9z"/><path d="M17 8a5 5 0 010 8"/>', desc: "Преимущество на первую атаку." },
+    hamstrung:  { name: "Прокушены ноги", good: false, ico: '<path d="M8 4v8l-3 8M14 4v8l3 8M6 12h10"/>', desc: "2 хода: за каждые 2 пройденные клетки — проверка Телосложения, провал — 1к4 урона." },
     hounded:    { name: "Загнан", good: false, ico: '<path d="M4 18l4-6 3 3 4-7 5 10"/>', desc: "Пока рядом загнавший волк, скорость вдвое меньше." },
     hawkmark:   { name: "Метка сокола", good: false, ico: '<path d="M12 3l3 6 6 1-4 4 1 6-6-3-6 3 1-6-4-4 6-1z"/>', desc: "Атаки по этой цели (со стороны метившего) получают +2 к попаданию." },
   });

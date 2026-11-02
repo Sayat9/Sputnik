@@ -19,7 +19,7 @@
   }
   const DT = D.DT_FROM_RU;
   // «Длинная рука» хобгоблина-загонщика: досягаемость кнута и цепа +1,5 м (такого оружия в каталоге пока нет, правило готово).
-  const longArm = (u, w) => (u.pass.includes("hobgoblin-driver") && w && /whip|flail|кнут|цеп/i.test(`${w.id} ${w.name}`) ? 1 : 0);
+  const longArm = (u, w) => (u.pass.includes("hobgoblin-driver") && w && /whip|flail|кнут|цеп/i.test(`${w.id} ${w.name}`) ? 2 : 0);
   function atkFrom(u, w, mode, entry, slot) {
     const c = u.hero, f = wprops(w), eq = c.equip || {}, eb = essBonus(c);
     const ranged = w.group === "ranged", strM = amod(u.abil.str), dexM = amod(u.abil.dex);

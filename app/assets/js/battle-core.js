@@ -188,7 +188,7 @@
   function heroUnit(c) {
     if (typeof durAmulet === "function") durAmulet(c);                                      // «Амулет прочности»: временные +20 вещам носителя
     const u = baseUnit("hero"), t = totals(c), dv = derived(t, c), eb = essBonus(c), st = (state.run && state.run.status && state.run.status[c.id]) || { fat: 0 };
-    Object.assign(u, { ref: c.id, hero: c, name: c.name, race: c.race, level: c.level, pb: dv.pb, ac: dv.ac, prot: dv.prot || 0, maxHp: maxHp(c), hp: hpOf(c), maxMp: dv.mana, mp: mpOf(c),
+    Object.assign(u, { ref: c.id, hero: c, name: c.name, race: c.race, level: c.level, pb: dv.pb, ac: dv.ac, prot: dv.prot || 0, threat: typeof threatOf === "function" ? threatOf(c) : 1, maxHp: maxHp(c), hp: hpOf(c), maxMp: dv.mana, mp: mpOf(c),
       speedC: cellsOfM(dv.speed), initB: eb.init + (c.race === "beastkin" ? 2 : 0), skills: eb.skills, saveB: eb.saves, ctl: "ui", fat: st.fat || 0, face: (typeof raceFace === "function" ? raceFace(c.race, c.gender) : ART.race(c.race)), dv: D.race[c.race] && D.race[c.race].dv });
     for (const k of ABIL) u.abil[k] = t[k].total;
     u.ess = (c.essences || []).filter(id => ESSENCES[id]);
