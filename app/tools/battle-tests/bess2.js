@@ -24,7 +24,7 @@ const ONLY = (process.argv[2] || '').split(',').filter(Boolean);
     };
     const setup = (heroes, list, o = {}) => {
       state.party = heroes; state.run.status = {}; heroes.forEach(c => { state.run.status[c.id] = { fat: 0, sat: 3, starve: 0, awake: 0 }; });
-      B.cfg.fast = true;
+      B.cfg.fast = true; B.D.monDmgPerCls = 0; { const nb = B.newBattle; B.newBattle = function (...a) { const S = nb.apply(this, a); for (const u of (S && S.units) || []) if (u.side === 'mon') u.prot = 0; return S; }; }          // механику проверяем без Защиты монстров и надбавки урона (баланс 02.11)
       const S = B.newBattle({ list, zone: o.zone || 'goblin', ambush: !!o.ambush }); S.opts.autoHeroes = true; S.dark = !!o.dark; S.torch = !!o.torch;
       for (const row of S.cells) row.fill(''); S.objs.length = 0;
       B.heroes().forEach(h => { h.speedC += 1; });          // базовая скорость тестов 4 клетки (в игре сейчас 3) (баланс игры менялся: тесты не зависят от него)

@@ -1199,7 +1199,7 @@ const PROPS = [
   ["Пробивающее", "Атака игнорирует 1 КД цели."],
   ["Прицел", "Действие: следующий выстрел наносит +1к6 урона."],
   ["Против щитов", "+2 урона по носителю щита."],
-  ["Крушащий удар", "Действие и доп. действие: игнорирует 2 КД, ломает щит и портит броню цели."],
+  ["Крушащий удар", "Действие и доп. действие: игнорирует 2 Уворота, ломает щит (Защита −2, ростовой −4) и портит броню цели (Защита −1, до 2 раз)."],
   ["Тяжёлый замах", "Если на кубике атаки выпало 5 или меньше, вы повисаете на оружии: на следующем ходу у вас нет доп. действия."],
   ["Кастет", "Бьёт кулаком: урон от оружия, а не 1 + Сила."],
   ["Боеприпасы", "Нужны стрелы. Каждая атака тратит одну; после боя можно собрать половину."],
@@ -2014,6 +2014,20 @@ MONSTERS.forEach(m => {
 // Монстры-заготовки, у которых уже есть рисованная картинка: силуэт ph не нужен.
 const STUB_ART = ["goblin-king", "goblin-bomber", "hobgoblin-shield", "rat", "rat-king", "rat-catcher"];
 MONSTERS.forEach(m => { if (STUB_ART.includes(m.id)) delete m.ph; });
+// Защита монстров (решение автора 02.11, вариант Б для всех): Уворот = 10 + мод. Лов − штраф брони; Защита = ярус брони + 1 за каждый класс выше 9-го.
+// Ярусы: 0 — без брони (пикси, духи, звери без панциря), 1 — лёгкая (гоблины, шкуры), 2 — хорошая (гоблин-мечник, хобгоблины, чешуя, хитин),
+// 3 — бронированные стражи (кольчуга, латы, щитоносцы), 4 — каменные/стальные тела и большие живые статуи. Штраф Уворота по ярусу — черновик.
+const MON_ARMOR = {"goblin": 1, "goblin-archer": 1, "goblin-sword": 2, "goblin-spear": 1, "goblin-shaman": 1, "goblin-assassin": 1, "goblin-trapper": 1, "goblin-elder": 1, "hobgoblin": 2, "hobgoblin-brute": 2, "hobgoblin-thrower": 2, "hobgoblin-driver": 2, "hobgoblin-shield": 3, "goblin-king": 3, "goblin-bomber": 1, "goblin-thief": 1, "rat-catcher": 1, "dark-bear": 1, "horned-hare": 0, "swamp-toad": 0, "burrower": 0, "crow": 0, "dire-wolf": 1, "web-spider": 1, "werewolf": 1, "giant-mole": 2, "swamp-fang": 2, "spider-queen": 2, "blackwing": 0, "rat": 0, "rat-king": 0, "wolf": 0, "fox": 0, "mouse": 0, "bat": 0, "orc-wolf": 0, "orc-falcon": 0, "skeleton-warrior": 3, "grey-shade": 0, "morok": 0, "whisperer": 0, "mirror-dead": 1, "faceless-ringer": 1, "dust-crawler": 1, "bone-hound": 0, "gravedigger": 0, "plague-fat": 0, "ash-spirit": 0, "bone-knight": 3, "corpse-eater": 2, "ash-wraith": 1, "zombie": 0, "skeleton": 1, "skeleton-archer": 0, "ghoul": 0, "drop": 0, "dust-whirl": 0, "magma-hound": 1, "crystalloid": 3, "lake-spirit": 0, "magma-golem": 4, "deep-serpent": 2, "crystal-colossus": 4, "storm-spirit": 0, "rift-heart": 4, "stone-guardian": 4, "living-stone": 4, "green-boulder": 4, "pixie": 0, "wisp": 0, "silence-keeper": 1, "mimic": 2, "orc-scout": 1, "orc-spear": 2, "orc-thrower": 1, "orc-guard": 3, "orc-shaman": 1, "orc-executioner": 2, "orc-chief": 3};
+const MON_ARMOR_NAME = ["без брони", "лёгкая броня", "хорошая броня", "тяжёлая броня", "каменное или стальное тело"], MON_DODGE_PEN = [0, 0, 1, 2, 3];
+function monDefOf(m) {
+  const tier = m.armor != null ? m.armor : MON_ARMOR[m.id] != null ? MON_ARMOR[m.id] : (/Гуманоид/.test(m.type || "") ? 1 : 0);
+  const dex = Array.isArray(m.abil) ? m.abil[1] : 10, cls = m.cls || 9;
+  return { tier, dodge: 10 + Math.floor((dex - 10) / 2) - MON_DODGE_PEN[tier], prot: tier + Math.max(0, 9 - cls) };
+}
+MONSTERS.forEach(m => { if (m.dyn) return; const d = monDefOf(m); m.armor = d.tier; m.dodge = d.dodge; m.prot = d.prot; });
+// ОЗ монстров ×1,5 (как рост ОЗ героев, баланс 02.11): первое число в строке ОЗ; формула кубов в скобках остаётся справкой.
+const MON_HP_MULT = 1.5;
+MONSTERS.forEach(m => { if (m.dyn || m.hpBase != null || typeof m.hp !== "string") return; const n = parseInt(m.hp, 10); if (!(n > 0)) return; m.hpBase = n; m.hp = m.hp.replace(/^\d+/, String(Math.round(n * MON_HP_MULT))); });
 // ===== конец данных монстров
 
 const STONES = [
@@ -2373,7 +2387,7 @@ function renderBestiary() {
           <p style="margin:0;color:var(--muted)">${m.size} · ${m.areas.join("; ")}</p>
           ${m.spawn ? `<details class="spawn"><summary>Условия появления</summary><p>${m.spawn}</p></details>` : ""}
           ${ab ? `<dl class="stats">
-            <div><dt>КД</dt><dd>${m.ac}</dd></div>
+            <div><dt>Уворот</dt><dd>${m.dodge ?? m.ac}</dd></div><div><dt>Защита</dt><dd>${m.prot ?? 0}</dd></div>
             <div><dt>ОЗ</dt><dd>${m.hp}</dd></div>
             <div><dt>Скорость</dt><dd>${m.speed}</dd></div>
           </dl>
@@ -2709,6 +2723,7 @@ function derived(t, c = char) {
   if (ld.level !== "ok") warnings.push(LOAD_TEXT[ld.level] + ".");
   const pb = 0;                                                 // бонус мастерства убран: ни у кого нет (решение автора)
   const eb = essBonus(c);
+  add(Math.floor((c.level - 1) / 2), "опыт");                                         // +0,5 Защиты за уровень после 1-го (решение автора 02.11)
   add(eb.ac, "эссенции");                                                                  // эссенции «КД +N» дают Защиту (решение автора 02.11)
   pen(OVERLOAD[ld.level].dodge, LOAD_NAME[ld.level].toLowerCase());
   prot = Math.max(0, prot);
@@ -2825,7 +2840,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 86;
+const BATTLE_REV = 87;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }
@@ -4458,14 +4473,14 @@ function travMon(sp) {
   const prop = re => { for (const x of w.props || []) { const m = re.exec(x); if (m) return m; } return null; };
   const rg = prop(/\((\d+)\/(\d+) м\)/), th = prop(/Метательное \((\d+)\/(\d+) м\)/), reach = prop(/Досягаемость 3 м/);
   const atk = ranged && rg ? `${hit} к попаданию, ${rg[1]}/${rg[2]} м, ${dice} ${dt}.` : `${hit} к попаданию, ${reach ? "досягаемость 3 м, " : ""}${dice} ${dt}${th ? `; метнуть ${th[1]}/${th[2]} м` : ""}.`;
-  let ac = 10 + dm;
-  if (ar) { ac = ar.base + (ar.cat === "light" ? dm : ar.cat === "medium" ? Math.min(dm, 2) : 0); if (sp.race === "gnome") ac -= 1; }
-  const cap = ({ 9: 10, 8: 14 })[sp.cls]; if (cap != null) ac = Math.min(ac, cap);          // как у монстров: 9 класс — КД не выше 10, 8 класс — не выше 14
-  const hp = Math.max(1, 10 + cm) + (sp.lvl - 1) * Math.max(1, 6 + cm);
+  // путники — люди: Уворот и Защита как у героев (одежда/доспех, +0,5 за уровень), ОЗ по формуле героев (02.11)
+  const dA = ar ? DEF_ARMOR[ar.cat] || DEF_ARMOR.light : DEF_ARMOR.clothes;
+  const ac = 10 + dm - dA.dodge, tProt = Math.max(0, dA.prot - (ar && sp.race === "gnome" ? 1 : 0) + Math.floor((sp.lvl - 1) / 2));
+  const hc = Math.trunc(1.5 * cm), hp = Math.max(1, 10 + hc) + (sp.lvl - 1) * Math.max(1, 9 + hc);
   const portrait = travPicSrc(sp.race, sp.g);
   return { id: sp.id, name: sp.name, zone: "goblin", rare: false, weight: 1, floor: sp.floor, floors: [sp.floor], cls: sp.cls, rank: "normal",
     size: sp.race === "gnome" ? "Маленький гуманоид" : "Средний гуманоид", sz: sp.race === "gnome" ? "маленький" : "средний", group: "Путник", type: `Гуманоид, путник (${race.name.toLowerCase()})`, areas: [`${sp.floor} этаж: путники`],
-    ac: String(ac), hp: `${hp} (${sp.lvl} ур.)`, speed: "9 м", cr: "—", abil: STAT_KEYS.map(k => ab[k]),
+    ac: String(ac), dodge: ac, prot: tProt, armor: null, hp: `${hp} (${sp.lvl} ур.)`, speed: "9 м", cr: "—", abil: STAT_KEYS.map(k => ab[k]),
     senses: sp.race === "dwarf" || sp.race === "darkfairy" ? "Тёмное зрение 18 м." : "", traits: [[w.name, atk, "attacks"], ...(ranged ? [["Удар кулаком", `${(sm >= 0 ? "+" : "−") + Math.abs(sm)} к попаданию, 1к1${sm ? (sm > 0 ? "+" : "−") + Math.abs(sm) : ""} дробящего (когда кончились стрелы).`, "attacks"]] : [])], loot: "", essences: sp.ess.slice(), carry: sp.carry,
     draft: true, dyn: true, xpKey: "tcls-" + sp.cls, face: portrait, full: portrait };
 }
@@ -6243,7 +6258,7 @@ function floorMapOverlay() {
 }
 
 /* ----- время, усталость, голод ----- */
-function logRun(t) { const r = state.run; r.log.push({ d: r.day, a: r.act, t }); if (r.log.length > 40) r.log.shift(); }
+function logRun(t) { const r = state.run; if (!r) return; (r.log ||= []).push({ d: r.day, a: r.act, t }); if (r.log.length > 40) r.log.shift(); }
 function tileNote(x, y) {
   const t = tileType(x, y);
   if (t === "statue") return " Центр этажа: статуя у храма.";
@@ -6760,7 +6775,7 @@ function heroStats(c) {
     <p class="trait" style="margin:0">Удача прибавляется к броску удачи при раскопках и снижает шанс нападения на долгой стоянке. На бой не влияет: крит решает обычный бросок.</p>
     <div class="lrow luck-row"><span>Угроза <b style="color:var(--fx-gold-hi)">${threatOf(c)}</b></span>
       <span class="btn-row"><button class="fx-btn" data-hx="threat" data-d="-1" aria-label="Угроза −1">−</button><button class="fx-btn" data-hx="threat" data-d="1" aria-label="Угроза +1">+</button></span></div>
-    <p class="trait" style="margin:0">Угроза (обычно 1): чем выше, тем чаще монстры выбирают целью этого героя. Умные монстры поддаются меньше, звери и безмозглые — сильнее.</p>
+    <p class="trait" style="margin:0">Угроза (обычно 1). Если она выше, чем у остальных, монстры 9 класса всегда бьют этого героя; с 8 класса умный монстр может раскусить провокацию (шанс от Интеллекта и класса) и выбрать цель наугад.</p>
     <p class="trait" style="margin:0">Уворот (по нему попадают): ${d.acSrc}. Защита (вычитается из физического урона каждого попадания): ${d.protSrc}. ${[c.gender && GENDERS[c.gender], c.age && ageText(c.age), c.height && c.height + " см", c.weight && c.weight + " кг"].filter(Boolean).join(" · ")}</p>
     ${loadBlock(c)}
     ${st ? `<div class="fx-section">В лабиринте</div>
@@ -7183,7 +7198,7 @@ function monSections(m) {
     { k: "type", label: "Тип", html: `${m.type || "—"}, ${m.sz || m.size.toLowerCase()}` },
     ...(m.spawn ? [{ k: "spawn", label: "Условия появления", html: m.spawn }] : []),
     ...(byCat("body").length ? [{ k: "body", label: "Особенность тела", html: list(byCat("body")) }] : []),
-    { k: "stats", label: "Характеристики", html: `КД ${m.ac} · ОЗ ${m.hp} · скорость ${m.speed} · опасность ${m.cr}
+    { k: "stats", label: "Характеристики", html: `Уворот ${m.dodge ?? m.ac} · Защита ${m.prot ?? 0}${m.armor != null ? ` (${MON_ARMOR_NAME[m.armor]})` : ""} · ОЗ ${m.hp} · скорость ${m.speed} · опасность ${m.cr}
       ${m.abil ? `<dl class="abil">${STAT_KEYS.map((k, i) => `<div><dt>${STAT_SHORT[k]}</dt><dd>${m.abil[i]}<small>${signed(mod(m.abil[i]))}</small></dd></div>`).join("")}</dl>` : ""}
       <div style="margin-top:6px">${m.senses}</div>
       ${byCat("behavior").length ? `<div class="lib-sub">Поведение</div>${list(byCat("behavior"))}` : ""}${byCat("attacks").length ? `<div class="lib-sub">Атаки</div>${list(byCat("attacks"))}` : ""}` },

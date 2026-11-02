@@ -31,7 +31,9 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
           const da = B.doAttack; B.doAttack = async (u, t) => { if (u === m) res[t === a ? 'a' : 'b']++; return { hit: false, nat: 2, dealt: 0 }; };
           await B.AI.takeTurn(m); B.doAttack = da; res.log = B.S.log.slice(-4).map(l => l.t || l.text); res.pos = [m.x, m.y, a.x, a.y, bb.x, bb.y]; B.S = null; }
         return res; };
-      out.thr1 = await pick(1, 'goblin-sword'); out.thr3 = await pick(3, 'goblin-sword'); }
+      out.thr1 = await pick(1, 'goblin-sword'); out.thr2 = await pick(2, 'goblin-sword'); out.thr3 = await pick(3, 'goblin-sword'); }
+    { const ch = id => { const m = MONSTERS.find(x => x.id === id); return B.tauntChance({ cls: m.cls, abil: { int: m.abil[3] } }, 2); }; out.chance = { goblin: ch('goblin-sword'), hob: ch('hobgoblin'), elder: ch('goblin-elder'), shaman: ch('orc-shaman'), chief: ch('orc-chief') }; }
+    { const g = MONSTERS.find(x => x.id === 'goblin-sword'), st = MONSTERS.find(x => x.id === 'stone-guardian'); out.mdef = [g.dodge, g.prot, st.dodge, st.prot]; }
     out.heroThreat = threatOf(mk(5));
     { const c0 = mk(6, { main: { t: 'w', id: 'sword' } }), c1 = mk(7, { main: { t: 'w', id: 'sword' }, off: { t: 'w', id: 'shield' } }); out.shieldDex = totals(c1).dex.total - totals(c0).dex.total; }
     { const c = mk(8); out.cap = load(c).cap; out.capWant = (totals(c).str.total + totals(c).con.total / 2) * 3; }
@@ -41,7 +43,9 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
   ok('«Укус в ноги»: 4 клетки пути — 2 проверки Телосложения, при провале урон', o.bite.saves === 2 && o.bite.lost >= 2 && o.bite.lost <= 8 && o.bite.name === 'Укус в ноги', o.bite);
   ok('сеть зверолова держит 2 хода', o.net.k === 2 && o.net.when === 'end', o.net);
   ok('Угроза по умолчанию 1', o.heroThreat === 1, o.heroThreat);
-  ok('Угроза 3 — монстр бьёт этого героя чаще', o.thr3.b > o.thr3.a && o.thr3.b >= 10, o);
+  ok('Угроза 2 — гоблин (9 кл.) всегда бьёт провокатора', o.thr2.b === 12 && o.thr2.a === 0, o.thr2);
+  ok('шанс раскусить провокацию: 9 кл. 0, хобгоблин (Инт 9) 0, шаман-старейшина 15 %, шаманка орков 45 %', o.chance.goblin === 0 && o.chance.hob === 0 && Math.abs(o.chance.elder - 0.15) < 1e-9 && Math.abs(o.chance.shaman - 0.45) < 1e-9, o.chance);
+  ok('монстры: Уворот от Ловкости и Защита по ярусу (гоблин-мечник 10/2, каменный сторож 6/5)', o.mdef.join() === '10,2,6,5', o.mdef);
   ok('щит: −1 к Ловкости', o.shieldDex === -1, o.shieldDex);
   ok('грузоподъёмность = (Сил + ½ Тел) × 3', Math.abs(o.cap - o.capWant) < 1e-9, [o.cap, o.capWant]);
   ok('нет ошибок', !errs.length, errs);

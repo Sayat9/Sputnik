@@ -46,8 +46,8 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
       const l0 = Battle.S.log.length; await Battle.runSpecial(u, a); const t = Battle.S.log.slice(l0).map(x => x.text || x.t || JSON.stringify(x)).join('\n'); T('слабое место: проверка и атака', /слабое место/.test(t) && u.t.action === 0, t.slice(0, 200)); Battle.S = null; }
     // крушащий удар
     { const { u, m } = await setup('greataxe', null, 'hobgoblin-shield'); near(u, m); m.shield = true; m.ac = 14; u.t.bonus = 1; const a = Battle.heroAttacks(u).find(x => x.special === 'crush'); T('секира: крушащий удар в списке', !!a);
-      let ok = false; for (let i = 0; i < 30 && !ok; i++) { u.t.action = 1; u.t.bonus = 1; m.shield = true; m.ac = 14; await Battle.runSpecial(u, a); if (!m.shield) ok = true; }
-      T('щит разбит, КД упал', ok && m.ac <= 12, [m.shield, m.ac]); T('потрачено и доп. действие', u.t.bonus === 0); u.t.bonus = 0; u.t.action = 1; const o2 = Battle.actionsFor(u).find(o => o.id === 'atk:crush:greataxe'); T('без доп. действия крушить нельзя', o2 && !o2.enabled, o2 && o2.why); Battle.S = null; }
+      let ok = false; m.hp = m.maxHp = 999; m.prot = 6; for (let i = 0; i < 30 && !ok; i++) { u.t.action = 1; u.t.bonus = 1; m.shield = true; m.ac = 14; await Battle.runSpecial(u, a); if (!m.shield) ok = true; }
+      T('щит разбит, Защита упала (02.11)', ok && m.prot <= 4, [m.shield, m.prot]); T('потрачено и доп. действие', u.t.bonus === 0); u.t.bonus = 0; u.t.action = 1; const o2 = Battle.actionsFor(u).find(o => o.id === 'atk:crush:greataxe'); T('без доп. действия крушить нельзя', o2 && !o2.enabled, o2 && o2.why); Battle.S = null; }
     // перчатки
     { const one = mkHero('gloves'), two = mkHero('gloves', 'gloves'), none = mkHero('mace'); const ac = c => derived(totals(c), c).prot;
       T('перчатки: одна +1 Защиты, пара +3', ac(one) - ac(none) === 1 && ac(two) - ac(none) === 3, [ac(none), ac(one), ac(two)]);

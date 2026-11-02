@@ -50,7 +50,7 @@ const L = require('./bui_lib.js');
           if (t.ess.some(e => ESSENCES[e].cls === 7)) o.ess7++;
           const m = MONSTERS.find(x => x.id === t.id);
           if (!m || !m.dyn || !m.abil || m.abil.some(a => !(a >= 10)) && f < 99 && false) o.bad.push('нет записи ' + t.id);
-          if (m && (parseInt(m.hp) < 5 || parseInt(m.ac) < 8)) o.bad.push('странные ОЗ/КД ' + m.hp + '/' + m.ac);
+          if (m && (parseInt(m.hp) < 5 || parseInt(m.ac) < 3)) o.bad.push('странные ОЗ/КД ' + m.hp + '/' + m.ac);
           if (m && !m.traits.length) o.bad.push('нет атаки');
         }
         if (any) o.essGroups++; if (e8 >= 2) o.ess8two++;

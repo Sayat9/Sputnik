@@ -41,9 +41,23 @@
     if (adv && !dis) p = 1 - (1 - p) * (1 - p); else if (dis && !adv) p = p * p;
     return p;
   }
+  // Угроза (решение автора 02.11): у героя по умолчанию 1. Если у кого-то из видимых целей Угроза выше 1, монстр бьёт самого «угрожающего»:
+  // 9 класс — всегда; с 8-го класса монстр может «раскусить» провокацию: шанс = (мод. Инт + (8 − класс)) × 15 % − (Угроза − 2) × 25 %, не больше 75 %;
+  // раскусил — выбирает цель наугад среди всех (равные шансы). Шанс пересчитывается в начале каждого хода монстра.
+  function tauntChance(u, top) {
+    const cls = u.cls || (u.mon && u.mon.cls) || 9; if (cls >= 9) return 0;
+    return clamp((amod(u.abil.int) + (8 - cls)) * 0.15 - (top - 2) * 0.25, 0, 0.75);
+  }
+  function tauntPick(u) {
+    const ts = targetsOf(u).filter(t => !t.isObj && !t.down); if (!ts.length) return null;
+    const top = Math.max(...ts.map(t => t.threat ?? 1)); if (!(top > 1)) return null;
+    if (Math.random() < tauntChance(u, top)) { const f = ts[Math.floor(Math.random() * ts.length)]; return f.id; }          // раскусил: любая цель с равным шансом
+    const tops = ts.filter(t => (t.threat ?? 1) === top); return tops[Math.floor(Math.random() * tops.length)].id;
+  }
+  B.tauntChance = tauntChance;
   function focusBonus(u, t, pr) {
     let s = 0; const int = pr.int ?? 1; if (has(t, "bastion")) s += 6;          // провокация бастиона
-    if (t.threat != null && t.threat !== 1) s += (t.threat - 1) * 2.5 * Math.max(0.25, 1 - int / 4);          // Угроза героя (02.11): интеллект 0 — ×2,5 за единицу, 1 — ×1,9, 2 — ×1,25, 3 — ×0,6
+    if (u.taunt && t.id === u.taunt) s += 60;          // провокация (Угроза) или свободный выбор умного монстра — цель хода
     for (const f of pr.focus || ["nearest"]) {
       if (f === "wounded") s += (1 - t.hp / t.maxHp) * 4;
       else if (f === "weak") s += (1 - t.hp / t.maxHp) * 2 + (t.ac <= 11 ? 1.5 : 0);
@@ -236,7 +250,8 @@
   AI.takeTurn = async function (u) {
     const S = B.S, pr = profileOf(u);
     if (!alive(u) || u.down || !canAct(u) || has(u, "underground")) return;
-    u.spareDown = false; u.spareDown = u.side === "mon" && livingReachable(u);          // решение автора: сначала бьют живых, упавших — только если до живых не добраться никак
+    u.spareDown = false; u.spareDown = u.side === "mon" && livingReachable(u);
+    u.taunt = u.side === "mon" ? tauntPick(u) : null;          // решение автора: сначала бьют живых, упавших — только если до живых не добраться никак
     try { return await takeTurnInner(u, S, pr); } finally { u.spareDown = false; }
   };
   async function takeTurnInner(u, S, pr) {

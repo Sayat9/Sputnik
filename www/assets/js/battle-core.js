@@ -228,8 +228,9 @@
     if (!D.mon[id] && m && m.abil && m.traits && D.deriveMon) D.mon[id] = D.deriveMon(m);          // 2 этаж: боевая запись из статблока
     const cb = D.mon[id] || { atk: [], ai: { int: 1, role: "melee", focus: ["nearest"] } };
     const u = baseUnit("mon"), sp = parseSpeed(m.speed);
-    Object.assign(u, { ref: id, idx, name: m.name, base: m.name, mon: m, cb, ai: cb.ai || {}, size: cb.size || (/^Большой/.test(m.size) ? 2 : 1), hp: parseInt(m.hp, 10), maxHp: parseInt(m.hp, 10), ac: parseInt(m.ac, 10),
-      speedC: cellsOfM(sp.walk), flyC: cellsOfM(sp.fly), climbC: cellsOfM(sp.climb), atk: (cb.atk || []).map(a => { const dm = parseDice(a.dmg), cut = D.monDmgCut[m.cls] || 0; return { ...a, dmg: { ...dm, b: Math.max(0, dm.b - cut) } }; }), seq: cb.seq || null, vuln: cb.vuln || [],
+    Object.assign(u, { ref: id, idx, name: m.name, base: m.name, mon: m, cb, ai: cb.ai || {}, size: cb.size || (/^Большой/.test(m.size) ? 2 : 1), hp: Math.round(parseInt(m.hp, 10) * (D.monHpMult || 1)), maxHp: Math.round(parseInt(m.hp, 10) * (D.monHpMult || 1)), ac: m.dodge != null ? m.dodge : parseInt(m.ac, 10), prot: m.prot || 0,          // Уворот и Защита монстра (02.11)
+     
+      speedC: cellsOfM(sp.walk), flyC: cellsOfM(sp.fly), climbC: cellsOfM(sp.climb), atk: (cb.atk || []).map(a => { const dm = parseDice(a.dmg), cut = (D.monDmgCut[m.cls] || 0) - (D.monDmgPerCls || 0) * Math.max(0, 9 - (m.cls || 9)); return { ...a, dmg: { ...dm, b: Math.max(0, dm.b - cut) } }; }), seq: cb.seq || null, vuln: cb.vuln || [],
       skills: parseSkills(m.senses), initB: 0, face: ART.monsterFace(id), blind: cb.blind || 0, tremor: cb.tremor || 0, dv: /Тёмное зрение/.test(m.senses || ""), shield: !!cb.shield, rare: !!m.rare, cls: m.cls });
     ABIL.forEach((k, i) => { u.abil[k] = m.abil[i]; });
     if (m.carry && m.carry.arrows != null && u.atk.some(a => a.kind === "ranged")) { u.arrows = m.carry.arrows; u.atk.forEach(a => { if (a.kind === "ranged" && !/метнуть/.test(a.n)) a.ammo = true; }); }          // путник-лучник: стрелы считаются

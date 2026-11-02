@@ -168,8 +168,8 @@
         if (!r.ok) { addStatus(tgt, "stunned", { k: 1, when: "end", src: u.id }); log(`${tgt.name} оглушён: −2 КД, нет доп. действия и реакции до конца его следующего хода.`, "skill"); fx(tgt, "оглушён", "bad"); }
       }
       if (atk.special === "crush" && alive(tgt)) {
-        if (tgt.shield) { const d = tgt.towerShield ? 3 : 2; tgt.shield = false; tgt.ac = Math.max(5, tgt.ac - d); log(`${u.name} раскалывает щит ${tgt.name}: КД −${d}.`, "skill"); fx(tgt, "щит разбит", "bad"); }
-        else if ((tgt.crushed || 0) < 2) { tgt.crushed = (tgt.crushed || 0) + 1; tgt.ac = Math.max(5, tgt.ac - 1); log(`${u.name} портит броню ${tgt.name}: КД −1.`, "skill"); fx(tgt, "броня повреждена", "bad"); }
+        if (tgt.shield) { const d = tgt.towerShield ? 4 : 2; tgt.shield = false; tgt.prot = Math.max(0, (tgt.prot || 0) - d); log(`${u.name} раскалывает щит ${tgt.name}: Защита −${d}.`, "skill"); fx(tgt, "щит разбит", "bad"); }
+        else if ((tgt.crushed || 0) < 2) { tgt.crushed = (tgt.crushed || 0) + 1; tgt.prot = Math.max(0, (tgt.prot || 0) - 1); log(`${u.name} портит броню ${tgt.name}: Защита −1.`, "skill"); fx(tgt, "броня повреждена", "bad"); }
       }
     },
     // «Парирование» меча: враг промахнулся по герою в ближнем бою более чем на 4 — ослабленный ответ (реакция).

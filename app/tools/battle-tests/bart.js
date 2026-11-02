@@ -10,7 +10,7 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
   await p.addStyleTag({ path: '/home/user/app/assets/css/battle.css' });
   const R = [], ok = (n, c, x) => { R.push(!!c); console.log(c ? '  ✓' : '  ✗', n, c ? '' : '— ' + (x == null ? '' : JSON.stringify(x))); };
   const o = await p.evaluate(async () => {
-    const B = Battle; B.cfg.fast = true; const out = {};
+    const B = Battle; B.cfg.fast = true; const out = {}; B.D.monDmgPerCls = 0; { const nb = B.newBattle; B.newBattle = function (...a) { const S = nb.apply(this, a); for (const u of (S && S.units) || []) if (u.side === 'mon') u.prot = 0; return S; }; }          // механику проверяем без Защиты монстров и надбавки урона (баланс 02.11)
     const mk = (i) => { const c = Object.assign(clone(state.example), { id: 'q' + i, example: false, name: 'Г' + i, race: 'human', level: 3 }); delete c.bag; delete c.kit; delete c.hp; c.essences = []; c.bag = []; c.equip = {}; return c; };
     state.run = state.run || { floor: 1, pos: { x: 5, y: 5 }, status: {}, light: false };
     state.run.floor = 3; state.run.day = 5; state.run.f3 = null; state.run.log = state.run.log || []; state.run.pos = { x: 15, y: 15 };

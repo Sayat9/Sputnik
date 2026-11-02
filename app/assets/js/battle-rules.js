@@ -155,7 +155,7 @@
     total = Math.max(0, total);
     { // Защита (вариант Б, решение автора 02.11): вычитается из физического урона попадания; от попадания остаётся хотя бы 1; крит пробивает половину Защиты (черновик)
       const pr = (tgt.prot || 0) + ((o.ctx && o.ctx.protPlus) || 0);
-      if (pr > 0 && phys > 0 && total > 0 && !o.pure) { const cut = Math.min(o.crit ? Math.floor(pr / 2) : pr, phys - 1, total - 1); if (cut > 0) { total -= cut; notes.push(`защита −${cut}`); } }
+      if (pr > 0 && phys > 0 && total > 0 && !o.pure) { let cut = Math.min(o.crit ? Math.floor(pr / 2) : pr, phys - 1, total - 1); if (D.protMaxShare) cut = Math.min(cut, Math.floor(phys * D.protMaxShare)); if (cut > 0) { total -= cut; notes.push(`защита −${cut}`); } }
     }
     const fb = has(tgt, "fistblock"); if (fb && o.melee && total > 0) { const fr = roll(1, 4).total + Math.max(0, amod(tgt.abil.dex)); total = Math.max(0, total - fr); notes.push(`блок кулаками −${fr}`); }          // две перчатки: «Блок кулаками»
     if (o.reduce && total > 0) { const rd = B.parseDice(o.reduce.dice), rr = roll(rd.n, rd.s).total; total = Math.max(0, total - rr); notes.push(`${o.reduce.label || "щит"} −${rr}`); }          // «Принять удар» с ростовым щитом

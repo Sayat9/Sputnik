@@ -16,7 +16,8 @@ _ZG = {"goblin", "beast", "undead", "stone"}
 MON = [dict(id=x["id"], zone=x["zone"] if x["zone"] in _ZG else ("beast" if "Зверь" in (x.get("type") or "") else "goblin"),          # орки и др. новые зоны — по группе существа
  rare=x["rare"], name=x["name"], ph=x.get("ph"), floor=x["floor"], floors=x["floors"], cls=x["cls"],
             rank="rare" if x["rank"] == "normal" and x["rare"] else x["rank"], draft=bool(x.get("draft")), stub=bool(x.get("stub")),
-            statDraft=bool(x.get("statDraft")), areas=x["areas"], spawn=x.get("spawn")) for x in DATA["MONSTERS"]]
+            statDraft=bool(x.get("statDraft")), areas=x["areas"], spawn=x.get("spawn"),
+            dodge=x.get("dodge"), prot=x.get("prot"), armor=x.get("armor")) for x in DATA["MONSTERS"]]
 RANKS = [("normal", "Обычный"), ("rare", "Редкий"), ("special", "Особый"), ("guardian", "Страж"), ("boss", "Босс"), ("lord", "Лорд")]
 RASTER = set(re.search(r'const RASTER = new Set\(\[([^\]]*)\]', SRC).group(1).replace('"', "").replace(" ", "").split(","))
 def face(m):
@@ -96,6 +97,8 @@ for zid, zname, zdesc in ZONES:
             body = body + "\n\n**Эссенция**\n\n" + blocks.get("ESS:" + m["name"], "")
         body = re.sub(r"\*\*(Имя|Уровень|Обитает|Условия появления):\*\*.*\n", "", body)
         habit = "; ".join(m["areas"])
+        ARMN = ["без брони", "лёгкая броня", "хорошая броня", "тяжёлая броня", "каменное или стальное тело"]
+        if m.get("dodge") is not None: habit += f' · Уворот {m["dodge"]}, Защита {m["prot"]} ({ARMN[m["armor"]]})'
         spawn = f'<details class="spawn"><summary>Условия появления</summary><p>{inline(m["spawn"])}</p></details>' if m["spawn"] else ""
         stat_line = re.search(r"\n([^\n|*-][^\n]*Опасность[^\n]*)", body)
         tags = [f'<span class="tag">{", ".join(map(str, m["floors"]))} этаж</span>', f'<span class="tag cls">{m["cls"]} класс</span>',
