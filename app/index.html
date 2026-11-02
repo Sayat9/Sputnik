@@ -1961,7 +1961,7 @@ for (const [id, cls, name, size, ph, ac, hp, speed, abil, senses, traits] of ORC
 Object.assign(ESSENCES, {
   "orc-wolf": { id: "orc-wolf", name: "Эссенция ездового волка", cls: 9, source: "orc-wolf", stats: { dex: 2, con: 1, int: -1 }, other: [],
     passive: { name: "Погоня", text: "Если перед атакой ближнего боя ты прошёл в этот ход 2 клетки и больше, атака наносит +1к4 урона." },
-    active: { name: "Рывок", mana: 2, time: "доп. действие", text: "Перемещение до 2 клеток, не вызывая атак по возможности. Перезарядка 2 раунда." } },
+    active: { name: "Загнать", mana: 2, time: "доп. действие", text: "Цель в 1 клетке: спасбросок Мудрости (Сл 8 + мод. Лов). Провал — до конца твоего следующего хода, пока она стоит рядом с тобой, её скорость вдвое меньше. Перезарядка 2 раунда." } },
   "orc-falcon": { id: "orc-falcon", name: "Эссенция сокола-разведчика", cls: 9, source: "orc-falcon", stats: { dex: 1, str: -1 }, other: ["Восприятие +2"],
     passive: { name: "Взгляд с высоты", text: "+1 к пассивному Восприятию; патрули и преследователей на карте замечаешь на 1 квадрат раньше." },
     active: { name: "Метка с высоты", mana: 2, time: "доп. действие", text: "Цель в 6 клетках до конца твоего следующего хода помечена: атаки твоих союзников и твои по ней получают +2 к попаданию. Перезарядка 3 раунда." } },
@@ -1988,6 +1988,9 @@ Object.assign(ESSENCES, {
     active: { name: "Боевой клич", mana: 3, time: "доп. действие", text: "Союзники в 4 клетках получают преимущество на первую атаку до конца твоего следующего хода. Перезарядка 4 раунда." } },
 });
 /*ORC-END*/
+/*DB-BEGIN*/
+// Сгенерировано tools/mondb.mjs из campaign/db/monsters.json — не править руками (node tools/mondb.mjs gen).
+/*DB-END*/
 MONSTERS.forEach(m => {
   const x = MON_EXTRA[m.id] || {};
   Object.assign(m, MON_STATS[m.id] || MON_STATS2[m.id] || {});
@@ -2805,7 +2808,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 83;
+const BATTLE_REV = 84;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }

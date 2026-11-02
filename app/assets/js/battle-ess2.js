@@ -1354,6 +1354,7 @@
   Object.assign(D.status, {
     shieldwall: { name: "Сомкнутый строй", good: true, ico: '<path d="M4 5h7v14H4zM13 5h7v14h-7z"/>', desc: "+2 к КД до начала хода вожака стражи." },
     warcry:     { name: "Боевой клич", good: true, ico: '<path d="M4 9v6h4l6 4V5L8 9z"/><path d="M17 8a5 5 0 010 8"/>', desc: "Преимущество на первую атаку." },
+    hounded:    { name: "Загнан", good: false, ico: '<path d="M4 18l4-6 3 3 4-7 5 10"/>', desc: "Пока рядом загнавший волк, скорость вдвое меньше." },
     hawkmark:   { name: "Метка сокола", good: false, ico: '<path d="M12 3l3 6 6 1-4 4 1 6-6-3-6 3 1-6-4-4 6-1z"/>', desc: "Атаки по этой цели (со стороны метившего) получают +2 к попаданию." },
   });
   Object.assign(D.monTune, {
@@ -1372,16 +1373,18 @@
 
   /* Ездовой волк (9): «Погоня», «Рывок» */
   P["orc-wolf"] = { attackMods(att, ctx) { if (ctx.melee && att.t && att.t.moved >= 2) ctx.extra.push({ n: 1, s: 4, b: 0, dt: ctx.atk.dt, label: "Погоня" }); } };
+  // «Загнать»: пока загнанный стоит рядом с волком, его скорость вдвое меньше (считается в speedOf через slowAura волка)
+  P["orc-wolf"].slowAura = (e, { u }) => { const h = has(u, "hounded"); return h && h.data.by === e.id && alive(e) && !e.down && dist(e, u) <= 1 ? Math.ceil(Math.max(u.speedC, u.flyC) / 2) : 0; };
   A["orc-wolf"] = {
     time: "bonus",
-    tgt() { return { type: "self" }; },
-    can(u) { return speedOf(u) > 0 ? true : "не двигаться"; },
+    tgt(u) { return specUnit(u, "Загнать: кого?", within(u, 1).filter(t => !has(t, "hounded")), cellsAround(u, 1), "debuff"); },
+    can(u) { return within(u, 1).some(t => !has(t, "hounded")) ? true : "никого рядом"; },
     async run(u, pk, ctl) {
-      ctl.commit(); const es = enemiesOf(u);
-      await stepMove(u, 2, { prompt: "Рывок: 2 клетки без атак по возможности", auto: cells => es.length ? cells.sort((a, b) => Math.min(...es.map(e => distCell(e, a.x, a.y))) - Math.min(...es.map(e => distCell(e, b.x, b.y))))[0] : null });
+      ctl.commit(); const t = pk.unit, sv = await save(t, "wis", dcOf(u, "dex"), "Загнать", ["slow"], u);
+      if (!sv.ok) { addStatus(t, "hounded", { k: 2, when: "end", src: u.id, data: { by: u.id } }); log(`${u.name} загоняет ${t.name}: рядом с волком скорость вдвое меньше.`, "skill"); fx(t, "загнан", "bad"); }
       return true;
     },
-    ai(u) { const es = enemiesOf(u); if (!es.length) return null; const d = Math.min(...es.map(e => dist(u, e))); return d > 1 && d <= speedOf(u) + 2 ? { score: 2.5 } : null; },
+    ai(u) { const ts = within(u, 1).filter(t => !has(t, "hounded")); return ts.length ? { unit: ts.sort((a, b) => (b.ranged ? 1 : 0) - (a.ranged ? 1 : 0))[0], score: 2.5 } : null; },
   };
 
   /* Сокол-разведчик (9): «Взгляд с высоты» (+1 к пассивному Восприятию; на карте — в приложении), «Метка с высоты» */
