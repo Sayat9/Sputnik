@@ -17,6 +17,11 @@
       const c = u.hero; if (!c) continue;
       for (const w of S.drops.filter(d => d.kind === "weapon" && d.hero === c.id)) {          // оружие из руки и из рюкзака («Полная перевязь»), в том числе схваченное вором
         const nm = ((typeof itemOf === "function" && itemOf(w.item)) || {}).name || "оружие";
+        const thief = w.holder && S.units.find(x => x.id === w.holder);
+        if (thief && (thief.fled || thief.escaped || (B.alive(thief) && !thief.down))) {          // вор сбежал (или жив и не сбит) — оружие ушло с ним
+          if (w.slot === "bag") { const i = (c.bag || []).indexOf(w.item); if (i >= 0) c.bag.splice(i, 1); } else delete c.equip[w.slot];
+          S.gear.push({ ok: false, t: `${nm} (${c.name}) унёс ${thief.name}` }); continue;
+        }
         if (keeps) S.gear.push({ ok: true, t: `${c.name} подбирает ${nm.toLowerCase()}` });
         else {
           if (w.slot === "bag") { const i = (c.bag || []).indexOf(w.item); if (i >= 0) c.bag.splice(i, 1); } else delete c.equip[w.slot];
@@ -36,6 +41,10 @@
     const foeArrows = S.drops.filter(d => d.kind === "arrow" && d.mon).length;
     if (foeArrows && keeps && typeof giveParty === "function") S.gear.push({ ok: true, t: "Стрелы путников с поля: " + giveParty({ t: "g", id: "arrow", qty: foeArrows }) });
     for (const u of S.units) if (u.side === "mon" && u.arrows != null && typeof travOf === "function") { const sp = travOf(u.ref); if (sp && sp.carry) sp.carry.arrows = u.arrows; }
+    for (const u of S.units) if (u.side === "mon" && u.loot && u.loot.length && !u.fled && !u.escaped && !(B.alive(u) && !u.down) && keeps && typeof addToBag === "function") {          // с пойманного вора — украденное обратно
+      for (const l of u.loot) { const c = state.party.find(h => h.id === (l && l.from)) || state.party[0]; if (c) addToBag(c, { t: "g", id: l.id || l, qty: 1 }); }
+      S.gear.push({ ok: true, t: `С ${u.name} вернули украденное: ${u.loot.length} шт.` }); u.loot = [];
+    }
     S.drops.length = 0;
     for (const u of B.heroes()) {
       const c = u.hero; if (!c) continue;

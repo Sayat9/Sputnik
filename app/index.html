@@ -1394,9 +1394,9 @@ const ESSENCES = {
     passive: { name: "Свои не горят", text: "Урон огнём от твоих способностей и бомб +2. Иммунитета к своим взрывам нет — только сопротивление огню." },
     active: { name: "Самодельная бомба", mana: 5, time: "2 хода: поджечь фитиль, затем бросок", text: "Сфера 3 м в пределах 18 м. Спасбросок Ловкости Сл 8 + БМ + мод. Лов: провал — 3к6 огнём и сбит с ног, успех — половина. Пока фитиль горит, любое попадание по тебе взрывает бомбу в руках (сфера на тебе, полный урон тебе без спасброска). Перед броском к20: на 1–2 рвётся в руках. Перезарядка 1 раунд." } },
   "goblin-thief": { id: "goblin-thief", name: "Эссенция гоблина-вора", cls: 7, source: "goblin-thief",
-    stats: { dex: 2, str: -1 }, other: ["Ловкость рук +1", "Скрытность +1", "Восприятие +1", "Жадность"],
+    stats: { dex: 2, str: -1 }, other: ["Уворот +3", "Жадность"],          // правка автора 02.11: только Ловкость и Уворот
     passive: { name: "Лёгкие ноги", text: "Скорость +1,5 м. Жадность (минус): если в 3 м лежит что-то ценное, в начале хода спасбросок Мудрости Сл 12; провал — тратишь перемещение и действие, чтобы это схватить." },
-    active: { name: "Срезать кошель", mana: 3, time: "бонусное действие", text: "Существо в 1,5 м, спасбросок Ловкости Сл 8 + БМ + мод. Лов. Провал — забираешь один незакреплённый предмет (не надетое) и перемещаешься на половину скорости, не провоцируя атак. Перезарядка 3 раунда." } },
+    active: { name: "Срезать кошель", mana: 3, time: "бонусное действие", text: "Существо в 1,5 м, спасбросок Ловкости Сл 8 + БМ + мод. Лов. Провал — выхватываешь оружие из его руки (кроме щитов и перчаток; оно у тебя, пока ты не упадёшь) или забираешь один незакреплённый предмет из сумки, и перемещаешься на половину скорости, не провоцируя атак. Перезарядка 3 раунда." } },
   // 2 этаж, Волчья чаща — эссенции (rules.md, «2 этаж: эссенции Волчьей чащи»).
   "horned-hare": { id: "horned-hare", name: "Эссенция рогатого зайца", cls: 9, source: "horned-hare",
     stats: { dex: 1, str: -1 }, other: ["Скорость +1,5 м", "Атлетика +1"],
@@ -2044,9 +2044,9 @@ MONSTERS.forEach(m => { if (m.dyn) return; const d = monDefOf(m); m.armor = d.ti
 const MON_HP_MULT = 1.5;
 MONSTERS.forEach(m => { if (m.dyn || m.hpBase != null || typeof m.hp !== "string") return; const n = parseInt(m.hp, 10); if (!(n > 0)) return; m.hpBase = n; m.hp = m.hp.replace(/^\d+/, String(Math.round(n * MON_HP_MULT))); });
 // Точечное усиление слабых монстров 7 класса (баланс 02.11, черновик): ОЗ ×hp (после ×1,5), +dmg к урону и +hit к попаданию каждой атаки в бою.
-const MON_BOOST = { "swamp-fang": { hp: 1.6, dmg: 4, hit: 2 }, "goblin-thief": { hp: 1.8, dmg: 3, hit: 3 }, "storm-spirit": { hp: 1.2, dmg: 1 }, "goblin-king": { hp: 1.5, dmg: 3, hit: 1 },
+const MON_BOOST = { "swamp-fang": { hp: 1.6, dmg: 4, hit: 2 }, "goblin-thief": { hp: 1.4, dmg: 2, hit: 2, dodge: 3 }, "storm-spirit": { hp: 1.2, dmg: 1 }, "goblin-king": { hp: 1.5, dmg: 3, hit: 1 },
   "crystal-colossus": { hp: 1.3, dmg: 2, hit: 1 }, "giant-mole": { hp: 1.3, dmg: 2, hit: 1 }, "ash-wraith": { hp: 1.4, dmg: 2, hit: 2 }, "corpse-eater": { hp: 1.2, dmg: 1 } };
-MONSTERS.forEach(m => { const b = MON_BOOST[m.id]; if (!b || m.boost) return; m.boost = b; if (b.hp && typeof m.hp === "string") m.hp = m.hp.replace(/^\d+/, n => String(Math.round(+n * b.hp))); });
+MONSTERS.forEach(m => { const b = MON_BOOST[m.id]; if (!b || m.boost) return; m.boost = b; if (b.dodge && m.dodge != null) m.dodge += b.dodge; if (b.hp && typeof m.hp === "string") m.hp = m.hp.replace(/^\d+/, n => String(Math.round(+n * b.hp))); });
 // ===== конец данных монстров
 
 const STONES = [
@@ -2743,7 +2743,8 @@ function derived(t, c = char) {
   const pb = 0;                                                 // бонус мастерства убран: ни у кого нет (решение автора)
   const eb = essBonus(c);
   add(Math.floor((c.level - 1) / 2), "опыт");                                         // +0,5 Защиты за уровень после 1-го (решение автора 02.11)
-  add(eb.ac, "эссенции");                                                                  // эссенции «КД +N» дают Защиту (решение автора 02.11)
+  add(eb.ac, "эссенции");
+  if (eb.dodge) { ac += eb.dodge; dodgeSrc.push(`${eb.dodge > 0 ? "+" : "−"}${Math.abs(eb.dodge)} эссенции`); }                                                                  // эссенции «КД +N» дают Защиту (решение автора 02.11)
   pen(OVERLOAD[ld.level].dodge, LOAD_NAME[ld.level].toLowerCase());
   prot = Math.max(0, prot);
   const acSrc = `10 + Лов ${dex >= 0 ? "+" : "−"}${Math.abs(dex)}${dodgeSrc.length ? " " + dodgeSrc.join(", ") : ""}`, protTxt = protSrc.join(", ") || "без брони";
@@ -2828,7 +2829,7 @@ const SKILL_KEYS = { "Скрытность": "stealth", "Атлетика": "ath
   "Медицина": "medicine", "Запугивание": "intimidation", "Обман": "deception", "Ловкость рук": "sleight", "Расследование": "investigation" };
 const SAVE_KEYS = { "Силы": "str", "Ловкости": "dex", "Телосложения": "con", "Интеллекта": "int", "Мудрости": "wis", "Харизмы": "cha" };
 function essBonus(c) {
-  const out = { ac: 0, speed: 0, init: 0, hp: 0, mp: 0, range: 0, threat: 0, skills: {}, saves: {} };
+  const out = { ac: 0, dodge: 0, speed: 0, init: 0, hp: 0, mp: 0, range: 0, threat: 0, skills: {}, saves: {} };
   const sg = x => (x === "−" || x === "-") ? -1 : 1, num = x => parseFloat(String(x).replace(",", "."));
   for (const id of (c && c.essences) || []) for (const o of (ESSENCES[id] && ESSENCES[id].other) || []) {
     let m;
@@ -2836,6 +2837,7 @@ function essBonus(c) {
     else if ((m = /^Скорость ([+−-])(\d+(?:[.,]\d+)?) м/.exec(o))) out.speed += sg(m[1]) * num(m[2]);
     else if ((m = /^Инициатива ([+−-])(\d+)/.exec(o))) out.init += sg(m[1]) * num(m[2]);
     else if ((m = /^Угроза ([+−-])(\d+)/.exec(o))) out.threat += sg(m[1]) * num(m[2]);
+    else if ((m = /^Уворот ([+−-])(\d+)/.exec(o))) out.dodge += sg(m[1]) * num(m[2]);
     else if ((m = /^Максимум ОЗ ([+−-])(\d+)/.exec(o))) out.hp += sg(m[1]) * num(m[2]);
     else if ((m = /^Максимум маны ([+−-])(\d+)/.exec(o))) out.mp += sg(m[1]) * num(m[2]);
     else if ((m = /^Дальность стрелкового оружия ([+−-])(\d+(?:[.,]\d+)?) м/.exec(o))) out.range += sg(m[1]) * num(m[2]);
@@ -2859,7 +2861,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 88;
+const BATTLE_REV = 89;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }
@@ -3493,14 +3495,14 @@ function ensureStatRoll(d) {
 }
 const statSpent = d => STAT_KEYS.reduce((a, k) => a + (parseInt(d.base[k], 10) || STAT_MIN), 0);
 const statLeft = (d = forge.draft) => d.rolls ? d.rolls.total - statSpent(d) : 0;
-const statMaxBase = k => { const d = forge.draft, m = raceById(d.race).mods[k] || 0; return Math.max(STAT_MIN, STAT_CAP - m); };
+const statMaxBase = k => STAT_CAP;          // предел 20 — для вписываемого значения, без бонуса расы (решение автора 02.11)
 function statCan(k, dir) { const d = forge.draft, v = parseInt(d.base[k], 10) || STAT_MIN; return dir < 0 ? v > STAT_MIN : v < statMaxBase(k) && statLeft(d) > 0; }
 function statRollBox(d) {
   const left = statLeft(d), min = STAT_MIN * STAT_KEYS.length;
   return `<div class="roll-box fx-frame" id="fx-pool">
     <div class="pool-row"><span>Очки характеристик</span><b class="pool-total">${d.rolls.total}</b></div>
     <div class="pool-row sub"><span>Каждой характеристике сразу ${STAT_MIN} (${min} очков, ниже нельзя)</span><span>осталось <b id="fx-left" class="${left ? "" : "done"}">${left}</b></span></div>
-    <p class="fx-p" style="font-size:15px;margin:0">Раздай остаток стрелками ‹ › или впиши число. С бонусом расы — не больше ${STAT_CAP}.</p>
+    <p class="fx-p" style="font-size:15px;margin:0">Раздай остаток стрелками ‹ › или впиши число. Не больше ${STAT_CAP} (бонус расы прибавится сверху).</p>
     <details class="roll-det"><summary>Броски (${STAT_ROLLS} × 4к6, меньшая кость не считается, ниже 10 — переброс)</summary>
       <div class="roll-log">${d.rolls.rows.map(r => `<div>${(r.rerolled || []).map(x => `<s>${x.sum}</s> → `).join("")}${r.dice.map((v, i) => i === r.low ? `<s>${v}</s>` : v).join(" + ")} = <b>${r.sum}</b></div>`).join("")}</div>
     </details>
@@ -3557,7 +3559,7 @@ function validateDraft() {
   if (!d.gender) errs.push({ f: "gender", m: "Выбери пол." });
   if (!d.name.trim()) errs.push({ f: "name", m: "Впиши имя героя." });
   const badStats = STAT_KEYS.filter(k => { const v = parseInt(d.base[k], 10); return !(v >= STAT_MIN && v <= statMaxBase(k)); });
-  badStats.forEach(k => errs.push({ f: k, m: `${STAT_NAME[k]}: от ${STAT_MIN} до ${statMaxBase(k)} (с бонусом расы не больше ${STAT_CAP}).` }));
+  badStats.forEach(k => errs.push({ f: k, m: `${STAT_NAME[k]}: от ${STAT_MIN} до ${STAT_CAP}.` }));
   if (d.rolls && statLeft(d) > 0) errs.push({ f: "pool", m: `Раздай все очки характеристик: осталось ${statLeft(d)}.` });
   if (d.rolls && statLeft(d) < 0) errs.push({ f: "pool", m: `Потрачено больше, чем выпало: лишних ${-statLeft(d)}.` });
   for (const [k, l] of [["age", "Возраст"], ["height", "Рост"], ["weight", "Вес"]]) {

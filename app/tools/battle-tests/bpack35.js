@@ -39,6 +39,14 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
       const base = gb.ac; out.fly = { flying: B.isFlying(cr), d: B.attackCtx(h, cr, atk).ac - cr.ac };
       S.dark = true; S.torch = false; h.dv = false; out.dark = B.attackCtx(h, gb, atk).ac - base;
       gb.dv = true; const ga = B.attacksOf(gb)[0]; out.darkDv = B.attackCtx(gb, h, ga).ac - h.ac; gb.dv = false; out.darkNoDv = B.attackCtx(gb, h, ga).ac - h.ac; B.S = null; }
+    { state.party = [mk(30)]; const S = B.newBattle({ list: ['goblin-thief'], zone: 'goblin', floor: 2 }); B.placeMonsters(S); S.phase = 'fight'; S.dark = false; clear(S);
+      const [h] = B.heroes(), th = B.mons()[0]; h.x = 2; h.y = 4; th.x = 2; th.y = 3;
+      const ds = B.doSave; B.doSave = async () => ({ ok: false, total: 1, nat: 1 });
+      await B.A['goblin-thief'].run(th, { unit: h }, { commit() {} }); B.doSave = ds;
+      const w = S.drops.find(d => d.kind === 'weapon' && d.holder === th.id);
+      out.steal = { took: !!w, disarmed: h.disarmed, flee: !!th.flags.fleeing, dodge: th.ac, base: 10 + Math.floor((MONSTERS.find(m => m.id === 'goblin-thief').abil[1] - 10) / 2) };
+      th.fled = true; th.alive = false; await B.End.cleanupForTest?.(S); out.stealGone = typeof B.End.cleanupForTest !== 'function' ? 'skip' : !state.party[0].equip.main; B.S = null; }
+    { const c = mk(31); c.essences = ['goblin-thief']; const d0 = derived(totals(mk(32)), mk(32)), d1 = derived(totals(c), c); out.essDodge = d1.ac - d0.ac; }
     out.heroThreat = threatOf(mk(5));
     { const c0 = mk(6, { main: { t: 'w', id: 'sword' } }), c1 = mk(7, { main: { t: 'w', id: 'sword' }, off: { t: 'w', id: 'shield' } }); out.shieldDex = totals(c1).dex.total - totals(c0).dex.total; }
     { const c = mk(8); out.cap = load(c).cap; out.capWant = (totals(c).str.total + totals(c).con.total / 2) * 3; }
@@ -49,6 +57,9 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
   ok('сеть зверолова держит 2 хода', o.net.k === 2 && o.net.when === 'end', o.net);
   ok('полёт: +3 к Увороту летящей цели', o.fly.flying && o.fly.d === 3, o.fly);
   ok('тьма: +2 к Увороту цели во тьме; тёмное зрение атакующего снимает бонус', o.dark === 2 && o.darkNoDv === 2 && o.darkDv === 0, [o.dark, o.darkNoDv, o.darkDv]);
+  ok('вор: «Срезать кошель» выхватывает оружие из руки и удирает', o.steal.took && o.steal.disarmed && o.steal.flee, o.steal);
+  ok('вор: бонус +3 к Увороту', o.steal.dodge === o.steal.base + 3, o.steal);
+  ok('эссенция вора: Уворот +3 и Ловкость +2 (мод. +1) → Уворот +4', o.essDodge === 4, o.essDodge);
   ok('Угроза по умолчанию 1', o.heroThreat === 1, o.heroThreat);
   ok('Угроза 2 — гоблин (9 кл.) всегда бьёт провокатора', o.thr2.b === 12 && o.thr2.a === 0, o.thr2);
   ok('шанс раскусить провокацию: 9 кл. 0, хобгоблин (Инт 9) 0, шаман-старейшина 15 %, шаманка орков 45 %', o.chance.goblin === 0 && o.chance.hob === 0 && Math.abs(o.chance.elder - 0.15) < 1e-9 && Math.abs(o.chance.shaman - 0.45) < 1e-9, o.chance);

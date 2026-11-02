@@ -37,7 +37,7 @@ const L = require('./bui_lib.js');
     o.minusOffAt9 = minus.disabled;
     plus.click(); plus.click(); o.arrows = d.base.str === '11' && document.getElementById('fx-left').textContent === String(statLeft(d));
     const cap = statMaxBase('str'); for (let i = 0; i < 30; i++) document.querySelector('[data-fx-step="str"][data-d="1"]').click();
-    o.cap20 = +d.base.str <= cap && +d.base.str + (raceById(d.race).mods.str || 0) <= 20;
+    o.cap20 = +d.base.str === 20 && cap === 20;          // предел 20 — без бонуса расы (02.11)
     const tot = d.rolls.total; closeForge(); openForge('race', 'first'); forge.draft.race = 'human'; forge.draft.gender = 'm'; forge.draft.weapon = 'sword'; forge.step = 'identity'; renderForge();
     o.keptAfterReopen = forge.draft.rolls.total === tot;
     forge.draft.name = 'Тест'; finishDraft(); o.mustSpendAll = forge.errors.some(e => e.f === 'pool');

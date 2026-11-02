@@ -470,6 +470,7 @@
 
   /* ----- Гоблин-вор (7): «Лёгкие ноги» и «Жадность», «Срезать кошель» ----- */
   const lootNames = ["ration", "potion", "torch"];
+  const thiefRun = u => { if (u.flags.fleeing) return; u.flags.fleeing = true; log(`${u.name}: срезал — и бежит!`, "flee"); fx(u, "удирает с добычей", "bad"); };          // «Срезал и бежит»
   P["goblin-thief"] = {
     speedBonus() { return 1; },                                                          // «Лёгкие ноги»: скорость +1,5 м
     // «Жадность»: в начале хода рядом лежит выпавшее оружие — спасбросок Мудрости Сл 12, провал: всё перемещение и действие уходят на то, чтобы это схватить.
@@ -485,7 +486,7 @@
       for (const v of map.values()) { if (!B.canStand(u, v.x, v.y) && !(v.x === u.x && v.y === u.y)) continue; const dd = Math.max(Math.abs(v.x - w.x), Math.abs(v.y - w.y)); if (!best || dd < best.dd || (dd === best.dd && v.cost < best.v.cost)) best = { v, dd }; }
       if (best && (best.v.x !== u.x || best.v.y !== u.y)) await B.moveAlong(u, B.pathTo(map, best.v.x, best.v.y));
       u.t.move = 0; u.t.action = 0;
-      if (alive(u) && !u.down && distCell(u, w.x, w.y) <= 1) { w.holder = u.id; w.x = u.x; w.y = u.y; log(`${u.name} хватает ${((typeof itemOf === "function" && itemOf(w.item)) || { name: "оружие" }).name.toLowerCase()}.`, "skill"); }
+      if (alive(u) && !u.down && distCell(u, w.x, w.y) <= 1) { w.holder = u.id; w.x = u.x; w.y = u.y; log(`${u.name} хватает ${((typeof itemOf === "function" && itemOf(w.item)) || { name: "оружие" }).name.toLowerCase()}.`, "skill"); if (u.side === "mon" && !u.summon) thiefRun(u); }
     },
   };
   A["goblin-thief"] = {
@@ -496,12 +497,21 @@
       ctl.commit(); const t = pk.unit;
       const sv = await save(t, "dex", dcOf(u, "dex"), "Срезать кошель", ["steal"], u);
       if (sv.ok) { fx(t, "не вышло", ""); return true; }
-      // добыча: у героя — один незакреплённый предмет из рюкзака (зелье, паёк, факел); у монстра предметов нет
+      // добыча (правка автора 02.11): у героя — оружие из руки (кроме щитов и перчаток) или один незакреплённый предмет из рюкзака (зелье, паёк, факел);
+      // монстр-вор берёт оружие, если оно есть, и сразу удирает («Срезал и бежит»); у монстров предметов нет
       let got = null;
       if (t.hero) {
-        const opts = (t.hero.bag || []).filter(e => e.t === "g" && lootNames.includes(e.id));
-        if (opts.length) { const e = opts[B.rnd(opts.length)]; if (takeGear(t.hero, e.id, 1)) { got = GEAR[e.id].name.toLowerCase(); (u.loot ||= []).push(e.id); } }
+        const c = t.hero, hand = [["main", !t.disarmed], ["off", !t.disarmedOff]].filter(([sl, free]) => free && c.equip[sl] && !c.equip[sl].broken).map(([sl]) => [sl, itemOf(c.equip[sl])])
+          .filter(([, it]) => it && it.kindOf === "weapon" && it.group !== "shield" && !["tower-shield", "gloves"].includes(it.id));
+        const opts = (c.bag || []).filter(e => e.t === "g" && lootNames.includes(e.id));
+        if (hand.length && (u.side === "mon" || !opts.length || B.rnd(2) === 0)) {
+          const [sl, it] = hand.find(([s]) => s === "main") || hand[0];
+          B.S.drops.push({ kind: "weapon", hero: c.id, slot: sl, item: c.equip[sl], x: u.x, y: u.y, holder: u.id });
+          if (sl === "off") t.disarmedOff = true; else t.disarmed = true;
+          got = it.name.toLowerCase();
+        } else if (opts.length) { const e = opts[B.rnd(opts.length)]; if (takeGear(c, e.id, 1)) { got = GEAR[e.id].name.toLowerCase(); (u.loot ||= []).push({ id: e.id, from: c.id }); } }
       }
+      if (got && u.side === "mon" && !u.summon) thiefRun(u);
       log(got ? `${u.name} срезает у ${t.name}: ${got}!` : `${u.name} ловко шарит по ${t.name}, но брать нечего.`, "skill"); fx(u, got ? "украл" : "пусто", got ? "good" : "");
       await stepMove(u, Math.floor(speedOf(u) / 2), { prompt: "Срезать кошель: куда отскочить (половина скорости, без атак по возможности)", auto: cells => farthestSpot(u, cells) });
       return true;
