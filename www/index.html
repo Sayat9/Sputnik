@@ -656,6 +656,9 @@ body.forge-open, body.bt-active, body:has(.mapov:not([hidden])), body:has(.bt-ro
 .compass-btn { position: absolute; left: 10px; bottom: 10px; z-index: 3; width: 48px; height: 48px; padding: 6px; border-radius: 50%; border: 1px solid var(--fx-gold, #d6a64c); background: rgb(20 14 8 / .82); box-shadow: 0 2px 8px rgb(0 0 0 / .55); opacity: .75; }
 .compass-btn.on { opacity: 1; box-shadow: 0 0 0 2px var(--fx-gold-hi, #f4d48e), 0 2px 8px rgb(0 0 0 / .55); }
 .compass-btn.top { top: 8px; bottom: auto; left: 8px; z-index: 4; width: 42px; height: 42px; }          /* в меню действий низ занят «Копать» */
+.compass-btn.mapb { left: 66px; }
+.compass-btn.mapb.top { left: 58px; }
+.compass-btn.mapb .icon { color: var(--fx-gold-hi, #f4d48e); }
 .compass-btn .icon { width: 100%; height: 100%; display: block; object-fit: contain; }
 .compass { bottom: 66px; }          /* над кнопкой компаса */
 .dg-over { position: absolute; inset: 0; z-index: 3; background: rgb(12 9 6 / .72); backdrop-filter: blur(2px);
@@ -1121,7 +1124,7 @@ const SHARE_PER_RUN = 30;
 const WEAPONS = [
   { id: "spear", name: "Копьё", group: "melee", kind: "Простое", dmg: "1к6", type: "колющий", weight: 1.5, price: 12,
     props: ["Метательное (6/18 м)", "Универсальное (1к8)", "Досягаемость 3 м (на 2-й клетке с помехой)", "Слабое место"],
-    note: "Самое дешёвое железо в оружейной. Древко ясеневое из Гномьего Древа, наконечник кованый. «Слабое место»: проверка Внимательности перед ударом — чем выше, тем больше урона (10–14: +1, 15–19: +1к4, 20+: +1к6); ниже 8 — помеха на атаку." },
+    note: "Самое дешёвое железо в оружейной. Древко ясеневое из Гномьего Древа, наконечник кованый. «Слабое место»: проверка Внимательности перед ударом — чем выше, тем больше урона (10–14: +1, 15–19: +1к4, 20+: +1к6); ниже 8 — помеха на атаку. Остриё ищет щель в броне: удар игнорирует 1 Защиты цели." },
   // Пика — укороченное копьё всадника для рук: двуручная, длинная, но с малым щитом носится со штрафом (−2 к Ловкости от щита и −1 клетка скорости). Особенность — на утверждении автора (drafts.md).
   { id: "pike", name: "Пика", group: "melee", kind: "Воинское", dmg: "1к10", type: "колющий", weight: 4, price: 30,
     props: ["Двуручное", "Можно со щитом"],
@@ -1138,13 +1141,13 @@ const WEAPONS = [
   // Кинжал — лёгкое оружие ассасина («Нож в спину»): два ножа, по одному в каждой руке. Числа — черновик (drafts.md → «Тактический бой»).
   { id: "dagger", name: "Кинжал", group: "melee", kind: "Простое", dmg: "1к4", type: "колющий", weight: 0.5, price: 8,
     props: ["Лёгкое", "Фехтовальное", "Кровоточащее"],
-    note: "Короткий клинок с широкой крестовиной: легко прятать, быстро бить. Два кинжала — по одному в каждой руке — любимое оружие засадников." },
+    note: "Короткий клинок с широкой крестовиной: легко прятать, быстро бить. Два кинжала — по одному в каждой руке — любимое оружие засадников. Остриё ищет щель в броне: удар игнорирует 1 Защиты цели." },
   { id: "rapier", name: "Рапира", group: "melee", kind: "Воинское", dmg: "1к8", type: "колющий", weight: 1, price: 30,
     props: ["Фехтовальное", "Выпад"],
     note: "Тонкий клинок требует хорошей стали и долгой ковки, поэтому дороже меча. «Выпад» — отдельная атака: рывок на 1–2 клетки по прямой и укол с бонусным уроном; после него до начала вашего хода −1 КД." },
   { id: "greatsword", name: "Двуручный меч", group: "melee", kind: "Воинское", dmg: "1к10", type: "рубящий", weight: 3, price: 50,
     props: ["Тяжёлое", "Двуручное", "Тяжёлый замах"],
-    note: "Много железа и работы. Варвар («Великан») может держать его одной рукой со штрафом −2 к Ловкости; двумя руками штрафа нет. Удар с разворота: основная цель получает чуть меньше урона, соседние с ней — ещё меньше." },
+    note: "Много железа и работы. Варвар («Великан») может держать его одной рукой со штрафом −2 к Ловкости; двумя руками штрафа нет. Удар с разворота: если рядом с целью стоят другие враги, замах задевает и их (половина урона), а основная цель получает на четверть меньше; одиночная цель получает полный урон." },
   { id: "shortbow", name: "Короткий лук", group: "ranged", kind: "Простое", dmg: "1к6", type: "колющий", weight: 1, price: 20,
     props: ["Боеприпасы (8/8 м)"],
     note: "Дерево и жила, железа почти нет. Бьёт недалеко (около 8 м), зато одноручный: в другую руку можно взять нож. Хорошего лучника-мастера в городе найти трудно." },
@@ -2101,8 +2104,8 @@ const DISTRICTS = [
 
 // Готовые рисованные картинки (webp) заменяют векторные заглушки.
 // Дата сборки для телефона: build.sh вписывает её сюда, в веб-версии строка пустая.
-const APP_BUILD = "02.11.2026 22:35";
-const APP_VERSION = 1793640901;                 // номер сборки, тоже вписывает build.sh
+const APP_BUILD = "02.11.2026 23:00";
+const APP_VERSION = 1793642431;                 // номер сборки, тоже вписывает build.sh
 const UPDATE_URL = "https://raw.githubusercontent.com/Sayat9/Sputnik/main/www/";
 const RASTER = new Set(["items/steel-pike", "items/calm-flute", "items/dice", "items/art-falling-star", "items/art-echo-blade", "items/art-discharge-staff", "items/weak-salt", "items/silver-salt", "items/tollbell", "items/director-quiver", "items/flame", "items/herb-poison", "items/herb-food", "items/herb-rest", "items/repair-charm", "items/durable-charm", "items/regen-charm", "items/herb-heal", "items/herb-mana", "items/boots", "items/wind", "items/whetstone", "items/daedalus-hammer", "items/unbreakable-charm", "items/pike", "items/bell", "items/flask", "items/monocle", "buildings/arena", "buildings/academy", "buildings/bank", "buildings/storage", "races/dragon-f", "races/fairy-f", "races/gnome-f", "races/darkfairy-f", "events/to-labyrinth", "races/human-f", "races/barbarian-f", "races/dwarf-f", "races/beastkin-f", "events/to-town", "events/ambush", "events/monsters", "events/nothing", "events/travelers", "events/treasure", "items/mace", "items/warhammer", "items/armor-leather", "items/armor-hide", "items/armor-chainmail", "items/steel-dagger", "items/steel-sword", "items/steel-greatsword", "items/steel-shield", "items/steel-tower-shield", "items/shortbow", "items/longbow", "items/rapier", "items/shield", "items/tower-shield", "items/unknown-mushroom", "items/stone-9", "items/stone-8", "items/stone-7", "items/ration", "items/potion", "items/torch", "items/arrows", "items/clothes", "items/shovel", "items/shovel-good", "items/shovel-best", "items/dagger", "items/sword", "items/greatsword", "items/spear", "monsters/goblin-king-face", "monsters/goblin-king-full", "monsters/goblin-bomber-face", "monsters/goblin-bomber-full", "monsters/hobgoblin-shield-face", "monsters/hobgoblin-shield-full", "races/barbarian", "races/human", "races/dwarf", "races/beastkin", "races/fairy", "races/dragon", "monsters/goblin-face", "monsters/goblin-full", "monsters/goblin-archer-face", "monsters/goblin-archer-full", "monsters/goblin-sword-face", "monsters/goblin-sword-full", "monsters/goblin-spear-face", "monsters/goblin-spear-full", "monsters/wolf-face", "monsters/wolf-full", "monsters/fox-face", "monsters/fox-full", "monsters/mouse-face", "monsters/mouse-full", "monsters/bat-face", "monsters/bat-full", "monsters/hobgoblin-face", "monsters/hobgoblin-full", "monsters/zombie-face", "monsters/zombie-full", "monsters/skeleton-face", "monsters/skeleton-full", "monsters/skeleton-archer-face", "monsters/skeleton-archer-full", "monsters/ghoul-face", "monsters/ghoul-full", "monsters/dark-bear-face", "monsters/dark-bear-full", "monsters/skeleton-warrior-face", "monsters/skeleton-warrior-full", "monsters/living-stone-face", "monsters/living-stone-full", "monsters/wisp-face", "monsters/wisp-full", "monsters/pixie-face", "monsters/pixie-full", "monsters/green-boulder-face", "monsters/green-boulder-full", "monsters/stone-guardian-face", "monsters/stone-guardian-full", "monsters/spider-queen-face", "monsters/spider-queen-full", "monsters/ash-wraith-face", "monsters/ash-wraith-full", "monsters/ash-spirit-face", "monsters/ash-spirit-full", "monsters/plague-fat-face", "monsters/plague-fat-full", "monsters/bone-hound-face", "monsters/bone-hound-full", "monsters/dust-crawler-face", "monsters/dust-crawler-full", "monsters/faceless-ringer-face", "monsters/faceless-ringer-full", "monsters/mirror-dead-face", "monsters/mirror-dead-full", "monsters/whisperer-face", "monsters/whisperer-full", "monsters/morok-face", "monsters/morok-full", "monsters/grey-shade-face", "monsters/grey-shade-full", "monsters/blackwing-face", "monsters/blackwing-full", "monsters/swamp-fang-face", "monsters/swamp-fang-full", "monsters/web-spider-face", "monsters/web-spider-full", "monsters/goblin-shaman-face", "monsters/goblin-shaman-full", "monsters/goblin-assassin-face", "monsters/goblin-assassin-full", "monsters/goblin-trapper-face", "monsters/goblin-trapper-full", "monsters/goblin-elder-face", "monsters/goblin-elder-full", "monsters/hobgoblin-brute-face", "monsters/hobgoblin-brute-full", "monsters/hobgoblin-thrower-face", "monsters/hobgoblin-thrower-full", "monsters/hobgoblin-driver-face", "monsters/hobgoblin-driver-full", "monsters/goblin-thief-face", "monsters/goblin-thief-full", "monsters/horned-hare-face", "monsters/horned-hare-full", "monsters/swamp-toad-face", "monsters/swamp-toad-full", "monsters/burrower-face", "monsters/burrower-full", "monsters/crow-face", "monsters/crow-full", "monsters/dire-wolf-face", "monsters/dire-wolf-full", "monsters/werewolf-face", "monsters/werewolf-full", "monsters/giant-mole-face", "monsters/giant-mole-full", "monsters/bone-knight-face", "monsters/bone-knight-full", "monsters/gravedigger-face", "monsters/gravedigger-full", "monsters/corpse-eater-face", "monsters/corpse-eater-full", "monsters/drop-face", "monsters/drop-full", "monsters/dust-whirl-face", "monsters/dust-whirl-full", "monsters/magma-hound-face", "monsters/magma-hound-full", "monsters/crystalloid-face", "monsters/crystalloid-full", "monsters/lake-spirit-face", "monsters/lake-spirit-full", "monsters/magma-golem-face", "monsters/magma-golem-full", "monsters/deep-serpent-face", "monsters/deep-serpent-full", "monsters/crystal-colossus-face", "monsters/crystal-colossus-full", "monsters/storm-spirit-face", "monsters/storm-spirit-full", "monsters/rift-heart-face", "monsters/rift-heart-full", "items/compass", "items/steel-mace", "items/steel-rapier", "items/unknown-herb", "items/twin-daggers", "items/unknown-stone", "items/steel-twin-daggers", "items/potion-good", "items/coins", "items/steel-spear", "items/steel-warhammer", "items/steel-shortbow", "items/steel-longbow", "items/steel-armor-leather", "items/steel-armor-hide", "items/steel-armor-chainmail", "items/gloves", "items/staff", "items/axe", "items/greataxe", "items/firstaid", "items/flute", "items/chalice", "items/once-more", "items/guard", "items/beginners-luck", "buildings/tower", "buildings/guild", "buildings/church", "buildings/library", "buildings/gate", "buildings/tavern", "buildings/shop", "buildings/forge", "buildings/board", "buildings/hall", "races/gnome", "races/darkfairy", "monsters/rat-face", "monsters/rat-full", "monsters/rat-king-face", "monsters/rat-king-full", "monsters/rat-catcher-face", "monsters/rat-catcher-full"]);
 const artPath = p => `assets/${p}.${RASTER.has(p) ? "webp" : "svg"}`;
@@ -2876,7 +2879,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 93;
+const BATTLE_REV = 94;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }
@@ -3913,7 +3916,7 @@ const pickWeighted = arr => { const tot = arr.reduce((a, m) => a + (m.weight || 
 // Событие квадрата (rules.md, «События квадрата»): мастер бросает к20 и вводит число,
 // приложение называет событие и само собирает группу монстров. Во тьме без света −2 к броску.
 const EVENT_TABLE = [
-  [2, "ambush", "Засада"], [6, "hard", "Тяжёлая встреча"], [10, "mid", "Средняя встреча"], [14, "easy", "Лёгкая встреча"],
+  [2, "ambush", "Засада"], [6, "hard", "Тяжёлая встреча"], [10, "mid", "Средняя встреча"], [15, "easy", "Лёгкая встреча"],
   [17, "group", "Группа путников"], [99, "find", "Находка"]];
 const MON_EVENTS = new Set(["ambush", "hard", "mid", "easy"]);
 // Решение автора: новая таблица одна для всех квадратов (прежний бонус находки в руинах снят).
@@ -4408,7 +4411,7 @@ function resolveRoll() {
   dgUi.enc = ev;
 }
 /*ENC-BEGIN*/
-/* ===== Встречи на шаге (решения автора): бросок к20 делает приложение, находка — камни, 15–17 — группа путников ===== */
+/* ===== Встречи на шаге (решения автора): бросок к20 делает приложение, находка — камни, 16–17 — группа путников (было 15–17, реже по просьбе автора 02.11) ===== */
 // Репутация: пока везде 1 и ни на что не влияет; падения (неудачное ограбление) только записываются.
 const rep = () => (state.rep ||= { value: 1, drops: [] });
 const repDrop = why => { const r = state.run; rep().drops.push({ day: r ? r.day : 0, floor: curFloor(), why }); };
@@ -4511,7 +4514,7 @@ function genTravelers(f) {
 }
 /* ----- награда за путников (решение автора 28.10): эссенции не выпадают — вместо них кристаллы, часть оружия и припасы -----
    Кристаллы с одного путника = ⌈ур / 2⌉ кристаллов класса группы (9 / 8 / 7) + за каждую его эссенцию (10 − класс эссенции) кристаллов класса этой эссенции.
-   С группы — сумма по убитым (число врагов, их уровни и классы эссенций). Оружие: 50 % на путника (остальное «сломалось в бою»).
+   С группы — сумма по убитым (число врагов, их уровни и классы эссенций). Оружие и броня: по 50 % на путника (не гарантированы, 02.11).
    Припасы определяются при создании группы (в начале боя): еда 3–5 на путника, зелья по этажу (1 эт.: 0–1, 2 эт.: 0–2, 3 эт.: 1–3 у каждого), факелы, компас 4 %, карта этажа 5 %. */
 function travCrystals(sp) { const out = {}, add = (cls, n) => { out[cls] = (out[cls] || 0) + n; }; add(sp.cls, Math.ceil(sp.lvl / 2)); for (const e of sp.ess || []) { const k = (ESSENCES[e] || {}).cls || 9; add(k, 10 - k); } return out; }
 const wpick = rows => { let t = Math.random(), v = rows[rows.length - 1][0]; for (const [x, w] of rows) { t -= w; if (t < 0) { v = x; break; } } return v; };
@@ -4521,11 +4524,12 @@ function travCarry(f) {
 }
 // Добыча с убитых путников: строки для экрана итога (оружие, еда, зелья, факелы, компас, карта этажа).
 function travLoot(ids) {
-  const sum = { arrow: 0, ration: 0, potion: 0, torch: 0 }, weapons = [], lines = []; let compass = false, map = false;
+  const sum = { arrow: 0, ration: 0, potion: 0, torch: 0 }, weapons = [], armors = [], lines = []; let compass = false, map = false;
   for (const id of ids) { const sp = travOf(id); if (!sp || !sp.carry || sp.carry.looted) continue; const c = sp.carry; c.looted = true;
-    sum.arrow += c.arrows || 0; sum.ration += c.ration; sum.potion += c.potion; sum.torch += c.torch; if (c.weapon) weapons.push(sp.weapon); compass ||= c.compass; map ||= c.map; }
+    sum.arrow += c.arrows || 0; sum.ration += c.ration; sum.potion += c.potion; sum.torch += c.torch; if (c.weapon) weapons.push(sp.weapon); if (sp.armor && Math.random() < .5) armors.push(sp.armor); compass ||= c.compass; map ||= c.map; }
   for (const [id, n] of Object.entries({ arrow: sum.arrow, ration: sum.ration, potion: sum.potion, torch: sum.torch })) if (n > 0) lines.push(giveParty({ t: "g", id, qty: n }));          // стрелы — сколько осталось в колчане
   for (const w of weapons) lines.push(giveParty({ t: "w", id: w, qty: 1 }));
+  for (const a of armors) lines.push(giveParty({ t: "a", id: a, qty: 1 }));          // броня путника: 50 % (как оружие), остальное порвано в бою (02.11)
   const inv = inventory();
   if (compass && !inv.compass.owned) { inv.compass.owned = true; lines.push("Компас — отряд забирает его"); }
   if (map && !invItem("map").owned) { invItem("map").owned = true; lines.push(`Карта ${curFloor()} этажа — отряд забирает её`); }
@@ -4898,11 +4902,11 @@ function luckReward(kind, lines) {
   if (kind === "two") { const [a, b] = ["floorMap", "gear", "magicMap"].sort(() => Math.random() - .5); luckReward(a, lines); luckReward(b, lines); return; }
   if (kind === "floorMap") {
     if (invItem("map").owned) { lines.push("Карта этажа уже есть — вместо неё:"); lines.push(...giveSupplies(3)); return; }
-    invItem("map").owned = true; lines.push(`Карта ${curFloor()} этажа — удерживай её в инвентаре, чтобы развернуть`); return;
+    invItem("map").owned = true; lines.push(`Карта ${curFloor()} этажа — кнопка появилась в углу карты`); return;
   }
   if (kind === "magicMap") {
     if (invItem("mmap").owned) { luckReward("floorMap", lines); return; }
-    invItem("mmap").owned = true; lines.push(`Магическая карта ${curFloor()} этажа: показывает, где отряд. Удерживай её в инвентаре, чтобы оживить`); return;
+    invItem("mmap").owned = true; lines.push(`Магическая карта ${curFloor()} этажа: показывает, где отряд. Кнопка появилась в углу карты`); return;
   }
   if (kind === "gear") {
     const pool = [...WEAPONS.filter(w => w.kind !== "Боеприпасы").map(w => ({ t: "w", id: w.id })), ...(curFloor() >= 2 ? ARMOR_FLAT.map(a => ({ t: "a", id: a.id })) : [])];
@@ -4958,7 +4962,7 @@ function doSearch(kind) {
   searchReward(row, sr, digger, lines);
   if (kind === "explore") {                              // тайники с компасом и картой (как раньше)
     const k = tkey(r.pos.x, r.pos.y), found = Object.entries(r.caches || {}).find(([, c]) => c === k);
-    if (found && !invItem(found[0]).owned) { invItem(found[0]).owned = true; lines.push(found[0] === "map" ? "В тайнике найдена карта этажа! Удерживай её в инвентаре, чтобы развернуть." : "В тайнике найден компас! Кнопка включения появилась в углу карты."); }
+    if (found && !invItem(found[0]).owned) { invItem(found[0]).owned = true; lines.push(found[0] === "map" ? "В тайнике найдена карта этажа! Кнопка появилась в углу карты." : "В тайнике найден компас! Кнопка включения появилась в углу карты."); }
   }
   const title = (kind === "dig" ? "Раскопки" : "Исследование") + (sp ? ` · ${sp.name}` : isRuins(r.pos.x, r.pos.y) ? " · Руины зданий" : "");
   logRun(`${title} (к20 = ${sr.pick}): ${lines.join(" ")}`);
@@ -5656,8 +5660,9 @@ function trDropdown() {
 function invItem(id) {
   const inv = inventory();
   if (id === "compass") return inv.compass;
-  const book = id === "mmap" ? inv.mmaps : inv.maps;
-  return book[curFloor()] ||= { owned: false, active: false };
+  const book = id === "mmap" ? inv.mmaps : inv.maps, r = state.run;
+  const key = r && r.floor === 2 ? "2:" + (r.variant || "goblin") : curFloor();          // карта 2 этажа — своя у каждой части (гоблины, волки, нежить…): с другой частью не всплывает (02.11)
+  return book[key] ||= { owned: false, active: false };
 }
 
 // Снимок отряда перед заходом: «Откатить заход» в меню мастера возвращает всё как было до спуска.
@@ -6273,6 +6278,7 @@ function renderDungeon() {
       </div>` : ""}
       ${inv.compass.active && inv.compassOn && !voidHere() ? `<div class="compass" id="compass">${COMPASS_SVG}</div>` : ""}
       ${inv.compass.owned && !voidHere() ? `<button class="compass-btn${menu ? " top" : ""}${inv.compass.active && inv.compassOn ? " on" : ""}" data-dg="compass" aria-pressed="${!!(inv.compass.active && inv.compassOn)}" aria-label="${inv.compass.active && inv.compassOn ? "Убрать компас" : "Включить компас"}">${ICO_COMPASS}</button>` : ""}
+      ${(invItem("map").owned || invItem("mmap").owned) && !voidHere() ? `<button class="compass-btn mapb${menu ? " top" : ""}${dgUi.map ? " on" : ""}"${inv.compass.owned ? "" : ` style="left:${menu ? 8 : 10}px"`} data-dg="floormap" aria-label="Открыть карту ${curFloor()} этажа">${ICO_MAP}</button>` : ""}
     </div>
     <div class="party-bars" aria-label="Состояние отряда">${state.party.map(charBars).join("")}</div>
     ${state.party.length ? `<p class="hold-hint">Удерживай карточку героя: данные и инвентарь.</p>` : ""}
@@ -6734,6 +6740,7 @@ document.addEventListener("click", e => {
       let u = Math.max(0, (rs.fixFat[by.id] || 0) + Number(ds.d)); if (u > 0 && f0 + u - 1 > 4) u--; rs.fixFat[by.id] = u;
       const over = rs.fix.filter(o => o.by === by.id).length - repairOps(by, rs); for (let k = 0; k < over; k++) { const j = rs.fix.map(o => o.by).lastIndexOf(by.id); if (j >= 0) rs.fix.splice(j, 1); } break; }
     case "ng-toggle": { const rs = dgUi.rest; if (rs.together) break; if (rs.ng) rs.ng = false; else if (ngCharges() > 0) { rs.ng = true; rs.guard = {}; } break; }
+    case "floormap": { const mm = invItem("mmap"), pm = invItem("map"); if (!mm.owned && !pm.owned) break; (mm.owned ? mm : pm).active = true; dgUi.map = mm.owned ? "magic" : "plain"; break; }          // кнопка карты в углу (как компас, 02.11): карта текущего этажа (на 2 этаже — текущей части)
     case "compass": if (!inv.compass.owned) break; inv.compass.active = true; inv.compassOn = !inv.compassOn; dgUi.kickCompass = inv.compassOn; saveChar(); break;          // кнопка в углу карты: найденный компас включается сразу (решение автора 02.11)
     case "give-compass": inv.compass.owned = true; saveChar(); toast("Мастер выдал компас"); break;
     case "give-map": invItem("map").owned = true; saveChar(); toast("Мастер выдал карту этажа"); break;

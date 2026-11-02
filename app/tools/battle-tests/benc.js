@@ -10,8 +10,8 @@ const L = require('./bui_lib.js');
   ok('таблица: 1–2 засада', T.slice(0, 2).every(k => k === 'ambush'), T);
   ok('таблица: 3–6 тяжёлая', T.slice(2, 6).every(k => k === 'hard'), T);
   ok('таблица: 7–10 средняя', T.slice(6, 10).every(k => k === 'mid'), T);
-  ok('таблица: 11–14 лёгкая', T.slice(10, 14).every(k => k === 'easy'), T);
-  ok('таблица: 15–17 группа путников', T.slice(14, 17).every(k => k === 'group'), T);
+  ok('таблица: 11–15 лёгкая', T.slice(10, 15).every(k => k === 'easy'), T);
+  ok('таблица: 16–17 группа путников', T.slice(15, 17).every(k => k === 'group'), T);
   ok('таблица: 18–20 находка', T.slice(17).every(k => k === 'find'), T);
 
   // --- находка = камни ---
@@ -289,6 +289,14 @@ const L = require('./bui_lib.js');
     const lines = travLoot([t.id]).filter(l => /Компас|Карта/.test(l)); return lines.length;
   });
   ok('добыча: уже имеющиеся компас и карта не дублируются', LT2 === 0, LT2);
+  const LA = await p.evaluate(() => {
+    let got = 0, N = 200; const keep = state.party.map(c => c.bag);
+    for (let i = 0; i < N; i++) { state.party.forEach(c => { c.bag = []; }); const t = genTravelers(3)[0]; t.armor = 'chainmail'; Object.assign(t.carry, { weapon: false, compass: false, map: false });
+      const n0 = state.party.reduce((a, c) => a + (c.bag || []).filter(e => e.t === 'a' && e.id === 'chainmail').length, 0); travLoot([t.id]);
+      if (state.party.reduce((a, c) => a + (c.bag || []).filter(e => e.t === 'a' && e.id === 'chainmail').length, 0) > n0) got++; }
+    state.party.forEach((c, i) => { c.bag = keep[i]; }); return got / N;
+  });
+  ok('добыча: броня путника выпадает примерно в половине случаев', LA > .35 && LA < .65, LA);
 
   // путники пьют зелья доп. действием
   const DR = await p.evaluate(async () => {
@@ -310,7 +318,7 @@ const L = require('./bui_lib.js');
     const B = Battle; B.cfg.fast = false; const out = { ok: 0, kills: 0, stones: 0, loot: 0, ess: 0, stuck: 0 };
     for (let k = 0; k < 3; k++) {
       state.run.floor = 3; state.run.pos = { x: 3, y: 3 }; state.run.cleared = {}; state.run.pending = null; dgUi.phase = 'menu'; state.sack = null;
-      state.party.forEach(c => { c.hp = maxHp(c); c.dead = false; });
+      state.party = [0, 1, 2, 3].map(i => { const c = Object.assign(clone(state.example), { id: 'pu' + i, example: false, name: 'Г' + i, race: 'human', level: 5 }); c.base = { str: 18, dex: 16, con: 16, int: 10, wis: 10, cha: 10 }; c.equip = { main: { t: 'w', id: 'greatsword' } }; c.bag = []; c.essences = []; c.hp = maxHp(c); state.run.status[c.id] = { fat: 0, sat: 3 }; return c; });
       const g = genTravelers(3); dgUi.enc = { kind: 'group', title: 'g', raw: 16, n: 16, cause: 'move', trav: { ids: g.map(t => t.id) } };
       location.hash = 'labyrinth'; travFight('plain'); rerender(); for (let w = 0; w < 150 && !Battle.running; w++) await new Promise(r => setTimeout(r, 20));
       B.cfg.fast = true; let txt = '', t0 = Date.now(), kl = 0;

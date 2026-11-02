@@ -106,8 +106,8 @@
       const hand = out.find(x => x.id === "hand:" + main.id);
       if (hand && !hand.thrown && main.id === "sword" && off.id === "sword") {          // два меча (решение автора 02.11): один удар, −2 к попаданию, урон +30 %; парирование легче
         hand.hit -= 2; hand.parts = [...(hand.parts || []), { l: "Два меча", v: -2 }]; hand.dmgMult = 1.3; hand.dualSwords = true; hand.sub = (hand.sub ? hand.sub + " · " : "") + "два меча: −2 к попаданию, урон +30 %";
-      } else if (hand && !hand.thrown) { hand.twin = true; hand.twinOff = atkFrom(u, off, "off"); hand.twinOff.dmgMult = 0.6; hand.twinOff.pairArmor = true; if (hand.twinOff.dmg && hand.dmg && hand.twinOff.dmg.b < hand.dmg.b) hand.twinOff.dmg = { ...hand.twinOff.dmg, b: hand.dmg.b };          // парный удар: вторая рука с тем же модификатором (иначе пара слабее одного клинка, 02.11)          // Защита цели режет парный удар один раз (второй клинок её не учитывает, 02.11)
-        hand.dmgMult = 0.6; hand.sub = (hand.sub ? hand.sub + " · " : "") + "парный удар: две атаки по цели, урон −40 %"; }
+      } else if (hand && !hand.thrown) { hand.twin = true; hand.twinOff = atkFrom(u, off, "off"); hand.twinOff.dmgMult = 0.8; hand.twinOff.pairArmor = true; if (hand.twinOff.dmg && hand.dmg && hand.twinOff.dmg.b < hand.dmg.b) hand.twinOff.dmg = { ...hand.twinOff.dmg, b: hand.dmg.b };          // парный удар: вторая рука с тем же модификатором (иначе пара слабее одного клинка, 02.11)          // Защита цели режет парный удар один раз (второй клинок её не учитывает, 02.11)
+        hand.dmgMult = 0.8; hand.sub = (hand.sub ? hand.sub + " · " : "") + "парный удар: две атаки по цели, урон −20 %"; }
     }
     if (main && main.group === "ranged" && off && off.kindOf === "weapon" && off.group === "melee" && off.id !== "tower-shield") out.push(atkFrom(u, off, "hand"));          // лучник с ножом в другой руке: ближний бой этим оружием
     const strM = amod(u.abil.str);
@@ -195,14 +195,16 @@
     const tgt = await UI().pickUnit({ prompt: `${atk.n}: выберите цель${objs.length ? " (можно и объект)" : ""}`, units: targets.map(t => t.id), objs: objs.map(o => o.x + "," + o.y), cells: rangeCells(u, atk), kind: "attack", from: atk.kind === "melee" ? null : u });
     if (!tgt) return false;
     if (tgt.isObj) { const r0 = await B.attackObject(u, atk, tgt, { onCommit: () => commitAttack(u, atk, tgt) }); return !r0.cancelled; }
-    const r = await B.doAttack(u, tgt, atk, { onCommit: () => commitAttack(u, atk, tgt), scale: atk.spin ? SPIN_MAIN : undefined, extra: atk.extra });
+    const spinSides = () => enemiesOf(u).filter(e => e !== tgt && alive(e) && !has(e, "underground") && dist(u, e) <= 1 && dist(e, tgt) <= 1);
+    const spinCut = atk.spin && spinSides().length > 0;          // ×0,75 основной цели — только когда замах задевает соседей; одна цель получает полный урон (02.11)
+    const r = await B.doAttack(u, tgt, atk, { onCommit: () => commitAttack(u, atk, tgt), scale: spinCut ? SPIN_MAIN : undefined, extra: atk.extra });
     if (atk.twin && atk.twinOff && !r.cancelled && alive(tgt) && !tgt.isObj) {          // вторая атака парного удара: та же цель, без траты времени и выбора
       const r2 = await B.doAttack(u, tgt, atk.twinOff, { noRedirect: true });
       if (!r2.cancelled && r2.hit === false && r.hit === false) log(`${u.name}: парный удар мимо.`);
     }
     if (!r.cancelled && atk.w && atk.w.artId && B.artAfterAttack) await B.artAfterAttack(u, atk, tgt, r);          // копьё-громоотвод застревает в цели
-    if (atk.spin && !r.cancelled && r.hit && r.raw) {          // враги по бокам от цели (рядом и с героем, и с целью) получают ещё меньше
-      const sides = enemiesOf(u).filter(e => e !== tgt && alive(e) && !has(e, "underground") && dist(u, e) <= 1 && dist(e, tgt) <= 1);
+    if (spinCut && !r.cancelled && r.hit && r.raw) {          // враги по бокам от цели (рядом и с героем, и с целью) получают ещё меньше
+      const sides = spinSides();
       for (const e of sides) {
         if (r.nat !== 20 && r.total < e.ac) { log(`${u.name}: вращающийся удар мимо ${e.name} (${r.total} против КД ${e.ac}).`, "miss"); continue; }
         const v = Math.max(1, Math.floor(r.raw * SPIN_SIDE)), ap = await B.applyDamage(u, e, [{ v, dt: atk.dt, label: atk.n }], { melee: true, src: u, weapon: true });

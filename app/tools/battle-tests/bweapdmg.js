@@ -7,7 +7,7 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
   await p.goto('file:///home/user/app/index.html'); await p.waitForTimeout(500); for (const f of FILES) await p.addScriptTag({ path: `/home/user/app/assets/js/${f}.js` });
   const r = await p.evaluate(async () => {
     const B = Battle; B.cfg.fast = true; const out = {};
-    const kits = { 'кинжал': { main: 'dagger' }, 'два кинжала': { main: 'dagger', off: 'dagger' }, 'рапира': { main: 'rapier' }, 'меч': { main: 'sword' }, 'меч+щит': { main: 'sword', off: 'shield' }, 'два меча': { main: 'sword', off: 'sword' }, 'двуручный меч': { main: 'greatsword' } };
+    const kits = { 'кинжал': { main: 'dagger' }, 'два кинжала': { main: 'dagger', off: 'dagger' }, 'рапира': { main: 'rapier' }, 'копьё': { main: 'spear' }, 'копьё+щит': { main: 'spear', off: 'shield' }, 'меч': { main: 'sword' }, 'меч+щит': { main: 'sword', off: 'shield' }, 'два меча': { main: 'sword', off: 'sword' }, 'двуручный меч': { main: 'greatsword' } };
     for (const [nm, k] of Object.entries(kits)) {
       out[nm] = {};
       for (const tgtId of ['goblin', 'hobgoblin', 'crystalloid']) {
