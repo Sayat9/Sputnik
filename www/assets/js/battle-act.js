@@ -106,7 +106,8 @@
       const hand = out.find(x => x.id === "hand:" + main.id);
       if (hand && !hand.thrown && main.id === "sword" && off.id === "sword") {          // два меча (решение автора 02.11): один удар, −2 к попаданию, урон +30 %; парирование легче
         hand.hit -= 2; hand.parts = [...(hand.parts || []), { l: "Два меча", v: -2 }]; hand.dmgMult = 1.3; hand.dualSwords = true; hand.sub = (hand.sub ? hand.sub + " · " : "") + "два меча: −2 к попаданию, урон +30 %";
-      } else if (hand && !hand.thrown) { hand.twin = true; hand.twinOff = atkFrom(u, off, "off"); hand.twinOff.dmgMult = 0.6; hand.dmgMult = 0.6; hand.sub = (hand.sub ? hand.sub + " · " : "") + "парный удар: две атаки по цели, урон −40 %"; }
+      } else if (hand && !hand.thrown) { hand.twin = true; hand.twinOff = atkFrom(u, off, "off"); hand.twinOff.dmgMult = 0.6; hand.twinOff.pairArmor = true; if (hand.twinOff.dmg && hand.dmg && hand.twinOff.dmg.b < hand.dmg.b) hand.twinOff.dmg = { ...hand.twinOff.dmg, b: hand.dmg.b };          // парный удар: вторая рука с тем же модификатором (иначе пара слабее одного клинка, 02.11)          // Защита цели режет парный удар один раз (второй клинок её не учитывает, 02.11)
+        hand.dmgMult = 0.6; hand.sub = (hand.sub ? hand.sub + " · " : "") + "парный удар: две атаки по цели, урон −40 %"; }
     }
     if (main && main.group === "ranged" && off && off.kindOf === "weapon" && off.group === "melee" && off.id !== "tower-shield") out.push(atkFrom(u, off, "hand"));          // лучник с ножом в другой руке: ближний бой этим оружием
     const strM = amod(u.abil.str);
