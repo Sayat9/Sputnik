@@ -1,5 +1,5 @@
 {
- "version": 1793639076,
+ "version": 1793639087,
  "files": [
   "assets/buildings/academy.webp",
   "assets/buildings/arena.webp",
@@ -792,6 +792,6 @@
   "fonts/f8.woff2": "6cc1ee17091d59eb93821c3594e8f38f",
   "fonts/f9.woff2": "070433480b7b645f69b543f284e386ce",
   "fonts/fonts.css": "1585a72a8d157b26cb424ab433fd4e19",
-  "index.html": "828692aceb84d459ceb77da0814bb255"
+  "index.html": "f4a7332889721e70ea5e37cb30d1c345"
  }
 }

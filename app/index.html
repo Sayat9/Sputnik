@@ -2996,7 +2996,7 @@ function openKills(c) {
 }
 function openSack() { const $i = document.getElementById("iteminfo"); $i.innerHTML = sackViewHtml(); $i.hidden = false; }
 /* ----- онлайн (assets/js/net.js — связь, netglue.js — ведущий и игрок) ----- */
-const NET_REV = 2, NET_FILES = ["assets/js/net.js", "assets/js/netglue.js"];
+const NET_REV = 3, NET_FILES = ["assets/js/net.js", "assets/js/netglue.js"];
 let netLoad = null;
 function loadNet() {
   if (window.NetGlue && window.NetGlue.ready) return Promise.resolve(true);
