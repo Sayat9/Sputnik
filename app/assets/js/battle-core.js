@@ -230,7 +230,8 @@
     const u = baseUnit("mon"), sp = parseSpeed(m.speed);
     Object.assign(u, { ref: id, idx, name: m.name, base: m.name, mon: m, cb, ai: cb.ai || {}, size: cb.size || (/^Большой/.test(m.size) ? 2 : 1), hp: Math.round(parseInt(m.hp, 10) * (D.monHpMult || 1)), maxHp: Math.round(parseInt(m.hp, 10) * (D.monHpMult || 1)), ac: m.dodge != null ? m.dodge : parseInt(m.ac, 10), prot: m.prot || 0,          // Уворот и Защита монстра (02.11)
      
-      speedC: cellsOfM(sp.walk), flyC: cellsOfM(sp.fly), climbC: cellsOfM(sp.climb), atk: (cb.atk || []).map(a => { const dm = parseDice(a.dmg), cut = (D.monDmgCut[m.cls] || 0) - (D.monDmgPerCls || 0) * Math.max(0, 9 - (m.cls || 9)); return { ...a, dmg: { ...dm, b: Math.max(0, dm.b - cut) } }; }), seq: cb.seq || null, vuln: cb.vuln || [],
+      speedC: cellsOfM(sp.walk), flyC: cellsOfM(sp.fly), climbC: cellsOfM(sp.climb), atk: (cb.atk || []).map(a => { const dm = parseDice(a.dmg), cut = (D.monDmgCut[m.cls] || 0) - (D.monDmgPerCls || 0) * Math.max(0, 9 - (m.cls || 9)); const bo = m.boost || {}; return { ...a, hit: (a.hit || 0) + (bo.hit || 0), dmg: { ...dm, b: Math.max(0, dm.b - cut) + (bo.dmg || 0) } }; }),          // m.boost — точечное усиление (MON_BOOST)
+      seq: cb.seq || null, vuln: cb.vuln || [],
       skills: parseSkills(m.senses), initB: 0, face: ART.monsterFace(id), blind: cb.blind || 0, tremor: cb.tremor || 0, dv: /Тёмное зрение/.test(m.senses || ""), shield: !!cb.shield, rare: !!m.rare, cls: m.cls });
     ABIL.forEach((k, i) => { u.abil[k] = m.abil[i]; });
     if (m.carry && m.carry.arrows != null && u.atk.some(a => a.kind === "ranged")) { u.arrows = m.carry.arrows; u.atk.forEach(a => { if (a.kind === "ranged" && !/метнуть/.test(a.n)) a.ammo = true; }); }          // путник-лучник: стрелы считаются
@@ -435,7 +436,16 @@
     return false;
   }
   const inDark = u => B.S.dark && !lightAt(u.x, u.y);
-  Object.assign(B, { lightAt, inDark });
+  // Радиус тёмного зрения в клетках: у монстра — из чувств («Тёмное зрение 18 м»), у героя — 18 м расы/эссенции + прибавки эссенций «Тёмное зрение +N м».
+  function dvCells(u) {
+    if (!u.dv) return 0;
+    let m = 0; const mt = u.mon && /Тёмное зрение (\d+)/.exec(u.mon.senses || ""); if (mt) m = +mt[1];
+    if (!m) m = 18;
+    if (u.hero) for (const id of u.ess || []) for (const o of (ESSENCES[id] && ESSENCES[id].other) || []) { const x = /^Тёмное зрение \+(\d+(?:[.,]\d+)?) м/.exec(o); if (x) m += parseFloat(x[1].replace(",", ".")); }
+    return Math.floor(m / 1.5);
+  }
+  const seesInDark = (a, t) => !!a && ((a.dv && dist(a, t) <= dvCells(a)) || (a.blind && dist(a, t) <= a.blind) || (a.tremor && dist(a, t) <= a.tremor && !B.isFlying(t)));
+  Object.assign(B, { lightAt, inDark, dvCells, seesInDark });
 
   /* ===== состояние боя ===== */
   function newBattle(ev) {

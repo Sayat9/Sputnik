@@ -28,14 +28,22 @@ const L = require('./bui_lib.js');
     document.querySelector('#fxinfo [data-fxi-close]').click();
     document.querySelector('[data-fx-weapon="axe"]').click(); document.querySelector('[data-fx-weapon="axe"]').click(); o.knife = forge.draft.weapon === 'axe' && forge.draft.knife === true;
     forge.step = 'identity'; renderForge();
-    o.rollBtn = !!document.querySelector('[data-fx="roll-stats"]');
-    document.querySelector('[data-fx="roll-stats"]').click();
-    const d = forge.draft; o.pool6 = d.rolls && d.rolls.pool.length === 6 && d.rolls.rows.length === 8;
-    o.sorted = d.rolls.pool.every((v, i, a) => !i || a[i - 1] >= v) && d.rolls.pool.every(v => v >= 3 && v <= 18);
-    document.querySelector('[data-fx-chip="0"]').click(); document.querySelector('[data-fx-put="str"]').click();
-    o.put = d.base.str === String(d.rolls.pool[0]);
-    document.querySelector('[data-fx-chip="1"]').click(); document.querySelector('[data-fx-put="str"]').click();   // переназначение: значение вытесняет предыдущее
-    o.re = d.base.str === String(d.rolls.pool[1]) && d.put.str === 1;
+    // характеристики (02.11): бросок уже сделан при входе, минимум 9, остаток раздаётся стрелками/вводом, итог с расой ≤ 20, бросок не меняется при выходе
+    const d = forge.draft;
+    o.rolledOnEnter = !!(d.rolls && d.rolls.rows.length === STAT_ROLLS && d.rolls.rows.every(r => r.sum >= 10 && r.sum <= 18) && d.rolls.total === d.rolls.rows.reduce((a, r) => a + r.sum, 0));
+    o.min9 = STAT_KEYS.every(k => d.base[k] === '9') && statLeft(d) === d.rolls.total - 54;
+    o.totalShown = document.querySelector('.pool-total').textContent === String(d.rolls.total) && !document.querySelector('.roll-det').open;
+    const plus = document.querySelector('[data-fx-step="str"][data-d="1"]'), minus = document.querySelector('[data-fx-step="str"][data-d="-1"]');
+    o.minusOffAt9 = minus.disabled;
+    plus.click(); plus.click(); o.arrows = d.base.str === '11' && document.getElementById('fx-left').textContent === String(statLeft(d));
+    const cap = statMaxBase('str'); for (let i = 0; i < 30; i++) document.querySelector('[data-fx-step="str"][data-d="1"]').click();
+    o.cap20 = +d.base.str <= cap && +d.base.str + (raceById(d.race).mods.str || 0) <= 20;
+    const tot = d.rolls.total; closeForge(); openForge('race', 'first'); forge.draft.race = 'human'; forge.draft.gender = 'm'; forge.draft.weapon = 'sword'; forge.step = 'identity'; renderForge();
+    o.keptAfterReopen = forge.draft.rolls.total === tot;
+    forge.draft.name = 'Тест'; finishDraft(); o.mustSpendAll = forge.errors.some(e => e.f === 'pool');
+    const dd = forge.draft; let left = statLeft(dd); for (const k of STAT_KEYS) { const add = Math.min(left, statMaxBase(k) - 9); dd.base[k] = String(9 + add); left -= add; }
+    finishDraft(); o.created = !forge.errors.length && state.party.some(c => c.name === 'Тест');
+    o.newRollNext = (() => { openForge('race', 'more'); forge.draft.race = 'human'; forge.draft.gender = 'm'; forge.draft.weapon = 'sword'; forge.step = 'identity'; renderForge(); return !!forge.draft.rolls && forge.draft.rolls.at !== undefined; })();
     return o;
   });
   for (const [k, v] of Object.entries(out)) ok(k, v === true, v);

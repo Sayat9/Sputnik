@@ -34,6 +34,11 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
       out.thr1 = await pick(1, 'goblin-sword'); out.thr2 = await pick(2, 'goblin-sword'); out.thr3 = await pick(3, 'goblin-sword'); }
     { const ch = id => { const m = MONSTERS.find(x => x.id === id); return B.tauntChance({ cls: m.cls, abil: { int: m.abil[3] } }, 2); }; out.chance = { goblin: ch('goblin-sword'), hob: ch('hobgoblin'), elder: ch('goblin-elder'), shaman: ch('orc-shaman'), chief: ch('orc-chief') }; }
     { const g = MONSTERS.find(x => x.id === 'goblin-sword'), st = MONSTERS.find(x => x.id === 'stone-guardian'); out.mdef = [g.dodge, g.prot, st.dodge, st.prot]; }
+    { state.party = [mk(20)]; const S = B.newBattle({ list: ['crow', 'goblin'], zone: 'beast', floor: 2 }); B.placeMonsters(S); S.phase = 'fight'; S.dark = false; clear(S);
+      const [h] = B.heroes(), [cr, gb] = B.mons(); h.x = 2; h.y = 4; cr.x = 2; cr.y = 3; gb.x = 3; gb.y = 3; const atk = B.attacksOf(h)[0];
+      const base = gb.ac; out.fly = { flying: B.isFlying(cr), d: B.attackCtx(h, cr, atk).ac - cr.ac };
+      S.dark = true; S.torch = false; h.dv = false; out.dark = B.attackCtx(h, gb, atk).ac - base;
+      gb.dv = true; const ga = B.attacksOf(gb)[0]; out.darkDv = B.attackCtx(gb, h, ga).ac - h.ac; gb.dv = false; out.darkNoDv = B.attackCtx(gb, h, ga).ac - h.ac; B.S = null; }
     out.heroThreat = threatOf(mk(5));
     { const c0 = mk(6, { main: { t: 'w', id: 'sword' } }), c1 = mk(7, { main: { t: 'w', id: 'sword' }, off: { t: 'w', id: 'shield' } }); out.shieldDex = totals(c1).dex.total - totals(c0).dex.total; }
     { const c = mk(8); out.cap = load(c).cap; out.capWant = (totals(c).str.total + totals(c).con.total / 2) * 3; }
@@ -42,6 +47,8 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
   console.log(JSON.stringify(o));
   ok('«Укус в ноги»: 4 клетки пути — 2 проверки Телосложения, при провале урон', o.bite.saves === 2 && o.bite.lost >= 2 && o.bite.lost <= 8 && o.bite.name === 'Укус в ноги', o.bite);
   ok('сеть зверолова держит 2 хода', o.net.k === 2 && o.net.when === 'end', o.net);
+  ok('полёт: +3 к Увороту летящей цели', o.fly.flying && o.fly.d === 3, o.fly);
+  ok('тьма: +2 к Увороту цели во тьме; тёмное зрение атакующего снимает бонус', o.dark === 2 && o.darkNoDv === 2 && o.darkDv === 0, [o.dark, o.darkNoDv, o.darkDv]);
   ok('Угроза по умолчанию 1', o.heroThreat === 1, o.heroThreat);
   ok('Угроза 2 — гоблин (9 кл.) всегда бьёт провокатора', o.thr2.b === 12 && o.thr2.a === 0, o.thr2);
   ok('шанс раскусить провокацию: 9 кл. 0, хобгоблин (Инт 9) 0, шаман-старейшина 15 %, шаманка орков 45 %', o.chance.goblin === 0 && o.chance.hob === 0 && Math.abs(o.chance.elder - 0.15) < 1e-9 && Math.abs(o.chance.shaman - 0.45) < 1e-9, o.chance);

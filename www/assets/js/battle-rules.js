@@ -269,6 +269,9 @@
     let aura = 0; for (const a of alliesOf(tgt)) aura = Math.max(aura, hookSum(a, "acAura", { ally: a, tgt, ctx }));
     if (aura && tgt.hero) { ctx.protPlus = (ctx.protPlus || 0) + aura; ctx.notes.push(`аура: Защита +${aura}`); }          // у героев аура «+КД» союзника даёт Защиту (решение автора 02.11)
     else if (aura) { ac += aura; ctx.acNotes.push(`стена щитов +${aura}`); }
+    // Полёт и тьма (решение автора 02.11): летящая цель +3 к Увороту, цель во тьме +2; тёмное зрение, слепое зрение и чувство вибраций атакующего в своём радиусе снимают бонус тьмы
+    if (B.isFlying(tgt) && !has(tgt, "prone")) { ac += 3; ctx.acNotes.push("в полёте +3"); }
+    if (B.inDark(tgt) && !B.seesInDark(att, tgt)) { ac += 2; ctx.acNotes.push("во тьме +2"); }
     ctx.ac = ac;
     hookAll(att, "attackMods", ctx); hookAll(tgt, "defendMods", ctx);
     for (const a of alliesOf(att)) hookAll(a, "attackAura", { ally: a, att, tgt, ctx });          // «Пока король жив»

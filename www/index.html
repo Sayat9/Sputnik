@@ -506,6 +506,21 @@ body.forge-open, body.bt-active, body:has(.mapov:not([hidden])), body:has(.bt-ro
 #fxinfo h3 { margin: 0; font-family: var(--f-display); color: var(--fx-gold-hi); }
 #fxinfo p { margin: 0; text-align: left; line-height: 1.4; }
 .roll-box { display: flex; flex-direction: column; gap: 8px; margin: 6px 0 12px; padding: 10px; }
+.pool-row { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.pool-row > span:first-child { font: 700 15px/1.2 var(--f-fancy); letter-spacing: .08em; color: var(--fx-gold); text-transform: uppercase; }
+.pool-row .pool-total { font: 700 34px/1 var(--f-data); color: var(--fx-gold-hi); }
+.pool-row.sub { font-size: 16px; color: var(--fx-muted); align-items: center; }
+.pool-row.sub > span:first-child { font-family: inherit; font-weight: 400; font-size: 16px; line-height: 1.3; letter-spacing: 0; text-transform: none; color: var(--fx-muted); flex: 1 1 60%; min-width: 0; }
+.pool-row.sub b { font: 700 24px/1 var(--f-data); color: #e0a040; }
+.pool-row.sub b.done { color: #9fd27a; } .pool-row.sub b.over { color: var(--fx-danger); }
+.roll-det summary { cursor: pointer; font-size: 15px; color: var(--fx-muted); }
+.roll-det .roll-log { font-size: 16px; }
+.roll-det .roll-log { margin-top: 6px; }
+.stat-step { display: flex; align-items: stretch; gap: 3px; min-width: 0; }
+.stat-step .st-arr { flex: 0 0 26px; padding: 0; min-width: 0; font: 700 20px/1 var(--f-data); display: flex; align-items: center; justify-content: center; }
+.stat-step .st-arr:disabled { opacity: .3; }
+.stat-step input { flex: 1 1 auto; min-width: 0; width: 100%; padding: 8px 0; -moz-appearance: textfield; }
+.stat-step input::-webkit-outer-spin-button, .stat-step input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 .roll-log { font-size: 13.5px; color: var(--fx-muted); display: grid; gap: 2px; text-align: left; }
 .roll-log s { opacity: .55; }
 .roll-log b { color: var(--fx-gold-hi); }
@@ -2033,6 +2048,10 @@ MONSTERS.forEach(m => { if (m.dyn) return; const d = monDefOf(m); m.armor = d.ti
 // ОЗ монстров ×1,5 (как рост ОЗ героев, баланс 02.11): первое число в строке ОЗ; формула кубов в скобках остаётся справкой.
 const MON_HP_MULT = 1.5;
 MONSTERS.forEach(m => { if (m.dyn || m.hpBase != null || typeof m.hp !== "string") return; const n = parseInt(m.hp, 10); if (!(n > 0)) return; m.hpBase = n; m.hp = m.hp.replace(/^\d+/, String(Math.round(n * MON_HP_MULT))); });
+// Точечное усиление слабых монстров 7 класса (баланс 02.11, черновик): ОЗ ×hp (после ×1,5), +dmg к урону и +hit к попаданию каждой атаки в бою.
+const MON_BOOST = { "swamp-fang": { hp: 1.6, dmg: 4, hit: 2 }, "goblin-thief": { hp: 1.8, dmg: 3, hit: 3 }, "storm-spirit": { hp: 1.2, dmg: 1 }, "goblin-king": { hp: 1.5, dmg: 3, hit: 1 },
+  "crystal-colossus": { hp: 1.3, dmg: 2, hit: 1 }, "giant-mole": { hp: 1.3, dmg: 2, hit: 1 }, "ash-wraith": { hp: 1.4, dmg: 2, hit: 2 }, "corpse-eater": { hp: 1.2, dmg: 1 } };
+MONSTERS.forEach(m => { const b = MON_BOOST[m.id]; if (!b || m.boost) return; m.boost = b; if (b.hp && typeof m.hp === "string") m.hp = m.hp.replace(/^\d+/, n => String(Math.round(+n * b.hp))); });
 // ===== конец данных монстров
 
 const STONES = [
@@ -2074,8 +2093,8 @@ const DISTRICTS = [
 
 // Готовые рисованные картинки (webp) заменяют векторные заглушки.
 // Дата сборки для телефона: build.sh вписывает её сюда, в веб-версии строка пустая.
-const APP_BUILD = "02.11.2026 18:26";
-const APP_VERSION = 1793626018;                 // номер сборки, тоже вписывает build.sh
+const APP_BUILD = "02.11.2026 19:06";
+const APP_VERSION = 1793628388;                 // номер сборки, тоже вписывает build.sh
 const UPDATE_URL = "https://raw.githubusercontent.com/Sayat9/Sputnik/main/www/";
 const RASTER = new Set(["items/steel-pike", "items/calm-flute", "items/dice", "items/art-falling-star", "items/art-echo-blade", "items/art-discharge-staff", "items/weak-salt", "items/silver-salt", "items/tollbell", "items/director-quiver", "items/flame", "items/herb-poison", "items/herb-food", "items/herb-rest", "items/repair-charm", "items/durable-charm", "items/regen-charm", "items/herb-heal", "items/herb-mana", "items/boots", "items/wind", "items/whetstone", "items/daedalus-hammer", "items/unbreakable-charm", "items/pike", "items/bell", "items/flask", "items/monocle", "buildings/arena", "buildings/academy", "buildings/bank", "buildings/storage", "races/dragon-f", "races/fairy-f", "races/gnome-f", "races/darkfairy-f", "events/to-labyrinth", "races/human-f", "races/barbarian-f", "races/dwarf-f", "races/beastkin-f", "events/to-town", "events/ambush", "events/monsters", "events/nothing", "events/travelers", "events/treasure", "items/mace", "items/warhammer", "items/armor-leather", "items/armor-hide", "items/armor-chainmail", "items/steel-dagger", "items/steel-sword", "items/steel-greatsword", "items/steel-shield", "items/steel-tower-shield", "items/shortbow", "items/longbow", "items/rapier", "items/shield", "items/tower-shield", "items/unknown-mushroom", "items/stone-9", "items/stone-8", "items/stone-7", "items/ration", "items/potion", "items/torch", "items/arrows", "items/clothes", "items/shovel", "items/shovel-good", "items/shovel-best", "items/dagger", "items/sword", "items/greatsword", "items/spear", "monsters/goblin-king-face", "monsters/goblin-king-full", "monsters/goblin-bomber-face", "monsters/goblin-bomber-full", "monsters/hobgoblin-shield-face", "monsters/hobgoblin-shield-full", "races/barbarian", "races/human", "races/dwarf", "races/beastkin", "races/fairy", "races/dragon", "monsters/goblin-face", "monsters/goblin-full", "monsters/goblin-archer-face", "monsters/goblin-archer-full", "monsters/goblin-sword-face", "monsters/goblin-sword-full", "monsters/goblin-spear-face", "monsters/goblin-spear-full", "monsters/wolf-face", "monsters/wolf-full", "monsters/fox-face", "monsters/fox-full", "monsters/mouse-face", "monsters/mouse-full", "monsters/bat-face", "monsters/bat-full", "monsters/hobgoblin-face", "monsters/hobgoblin-full", "monsters/zombie-face", "monsters/zombie-full", "monsters/skeleton-face", "monsters/skeleton-full", "monsters/skeleton-archer-face", "monsters/skeleton-archer-full", "monsters/ghoul-face", "monsters/ghoul-full", "monsters/dark-bear-face", "monsters/dark-bear-full", "monsters/skeleton-warrior-face", "monsters/skeleton-warrior-full", "monsters/living-stone-face", "monsters/living-stone-full", "monsters/wisp-face", "monsters/wisp-full", "monsters/pixie-face", "monsters/pixie-full", "monsters/green-boulder-face", "monsters/green-boulder-full", "monsters/stone-guardian-face", "monsters/stone-guardian-full", "monsters/spider-queen-face", "monsters/spider-queen-full", "monsters/ash-wraith-face", "monsters/ash-wraith-full", "monsters/ash-spirit-face", "monsters/ash-spirit-full", "monsters/plague-fat-face", "monsters/plague-fat-full", "monsters/bone-hound-face", "monsters/bone-hound-full", "monsters/dust-crawler-face", "monsters/dust-crawler-full", "monsters/faceless-ringer-face", "monsters/faceless-ringer-full", "monsters/mirror-dead-face", "monsters/mirror-dead-full", "monsters/whisperer-face", "monsters/whisperer-full", "monsters/morok-face", "monsters/morok-full", "monsters/grey-shade-face", "monsters/grey-shade-full", "monsters/blackwing-face", "monsters/blackwing-full", "monsters/swamp-fang-face", "monsters/swamp-fang-full", "monsters/web-spider-face", "monsters/web-spider-full", "monsters/goblin-shaman-face", "monsters/goblin-shaman-full", "monsters/goblin-assassin-face", "monsters/goblin-assassin-full", "monsters/goblin-trapper-face", "monsters/goblin-trapper-full", "monsters/goblin-elder-face", "monsters/goblin-elder-full", "monsters/hobgoblin-brute-face", "monsters/hobgoblin-brute-full", "monsters/hobgoblin-thrower-face", "monsters/hobgoblin-thrower-full", "monsters/hobgoblin-driver-face", "monsters/hobgoblin-driver-full", "monsters/goblin-thief-face", "monsters/goblin-thief-full", "monsters/horned-hare-face", "monsters/horned-hare-full", "monsters/swamp-toad-face", "monsters/swamp-toad-full", "monsters/burrower-face", "monsters/burrower-full", "monsters/crow-face", "monsters/crow-full", "monsters/dire-wolf-face", "monsters/dire-wolf-full", "monsters/werewolf-face", "monsters/werewolf-full", "monsters/giant-mole-face", "monsters/giant-mole-full", "monsters/bone-knight-face", "monsters/bone-knight-full", "monsters/gravedigger-face", "monsters/gravedigger-full", "monsters/corpse-eater-face", "monsters/corpse-eater-full", "monsters/drop-face", "monsters/drop-full", "monsters/dust-whirl-face", "monsters/dust-whirl-full", "monsters/magma-hound-face", "monsters/magma-hound-full", "monsters/crystalloid-face", "monsters/crystalloid-full", "monsters/lake-spirit-face", "monsters/lake-spirit-full", "monsters/magma-golem-face", "monsters/magma-golem-full", "monsters/deep-serpent-face", "monsters/deep-serpent-full", "monsters/crystal-colossus-face", "monsters/crystal-colossus-full", "monsters/storm-spirit-face", "monsters/storm-spirit-full", "monsters/rift-heart-face", "monsters/rift-heart-full", "items/compass", "items/steel-mace", "items/steel-rapier", "items/unknown-herb", "items/twin-daggers", "items/unknown-stone", "items/steel-twin-daggers", "items/potion-good", "items/coins", "items/steel-spear", "items/steel-warhammer", "items/steel-shortbow", "items/steel-longbow", "items/steel-armor-leather", "items/steel-armor-hide", "items/steel-armor-chainmail", "items/gloves", "items/staff", "items/axe", "items/greataxe", "items/firstaid", "items/flute", "items/chalice", "items/once-more", "items/guard", "items/beginners-luck", "buildings/tower", "buildings/guild", "buildings/church", "buildings/library", "buildings/gate", "buildings/tavern", "buildings/shop", "buildings/forge", "buildings/board", "buildings/hall", "races/gnome", "races/darkfairy", "monsters/rat-face", "monsters/rat-full", "monsters/rat-king-face", "monsters/rat-king-full", "monsters/rat-catcher-face", "monsters/rat-catcher-full"]);
 const artPath = p => `assets/${p}.${RASTER.has(p) ? "webp" : "svg"}`;
@@ -2845,7 +2864,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 87;
+const BATTLE_REV = 88;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }
@@ -3419,6 +3438,7 @@ function forgeWeapon() {
 
 function forgeIdentity() {
   const d = forge.draft, r = raceById(d.race), bad = new Set(forge.errors.map(e => e.f));
+  ensureStatRoll(d);
   return forgeBar(
     `<button class="fx-btn" data-fx="back">Назад</button>`,
     "Шаг 3 из 3", "Герой",
@@ -3432,15 +3452,13 @@ function forgeIdentity() {
       <input class="fx-input${bad.has("name") ? " bad" : ""}" id="fx-name" data-draft="name" value="${esc(d.name)}" placeholder="Например: Бьорн" autocomplete="off" maxlength="${NAME_MAX}"></div>
 
     <div class="fx-section">Характеристики</div>
-    <p class="fx-p" style="font-size:15px">Впиши значения, которые получил по правилам D&D: бросок кубов, стандартный набор или покупка очков. Бонус расы прибавится сам.</p>
     ${statRollBox(d)}
     <div class="fx-stats">${STAT_KEYS.map(k => `
       <div class="fx-stat fx-frame">
         <label class="k" for="fx-${k}">${STAT_SHORT[k]}</label>
         <span class="note-s">${STAT_INFO[k].short}</span>
-        <input class="fx-input${bad.has(k) ? " bad" : ""}" id="fx-${k}" data-draft-stat="${k}" type="number" inputmode="numeric" min="1" max="${STAT_IN_MAX}" value="${esc(d.base[k])}" placeholder="—">
+        <div class="stat-step"><button class="fx-btn st-arr" data-fx-step="${k}" data-d="-1" aria-label="${STAT_NAME[k]} −1"${statCan(k, -1) ? "" : " disabled"}>‹</button><input class="fx-input${bad.has(k) ? " bad" : ""}" id="fx-${k}" data-draft-stat="${k}" type="number" inputmode="numeric" min="${STAT_MIN}" max="${statMaxBase(k)}" value="${esc(d.base[k])}" aria-label="${STAT_NAME[k]}"><button class="fx-btn st-arr" data-fx-step="${k}" data-d="1" aria-label="${STAT_NAME[k]} +1"${statCan(k, 1) ? "" : " disabled"}>›</button></div>
         <small id="fx-tot-${k}">${statPreview(k)}</small>
-        ${d.rolls && d.chip != null ? `<button class="fx-btn put" data-fx-put="${k}">Поставить ${d.rolls.pool[d.chip]}</button>` : ""}
       </div>`).join("")}
     </div>
     <details class="stat-help fx-frame" open>
@@ -3458,21 +3476,40 @@ function forgeIdentity() {
   </div></div>`;
 }
 
-// Бросок характеристик по правилам D&D: 4к6 восемь раз, у каждого броска отбрасывается меньшая кость, из восьми сумм остаются шесть лучших; игрок раскладывает их сам.
-const STAT_IN_MAX = 18, NAME_MAX = 12, DRAFT_MAX = { age: 99, height: 220, weight: 150 };          // пределы при создании героя (решение автора 01.11): имя 12 знаков, возраст 99, рост 220 см, вес 150 кг
-          // наибольшее значение характеристики при создании (до бонуса расы) — максимум 4к6 без меньшей кости
+// Характеристики (решение автора 02.11): при входе на шаг уже брошено STAT_ROLLS раз 4к6 без меньшей кости, бросок ниже 10 перебрасывается;
+// сумма — очки характеристик. Каждой характеристике сразу даётся минимум STAT_MIN (ниже нельзя), остаток игрок раскладывает сам (ввод или стрелки).
+// При создании итог (с бонусом расы) не выше STAT_CAP; потом характеристики растут без предела. Бросок хранится в localStorage до создания героя,
+// поэтому выход из создания и перезагрузка его не меняют.
+const STAT_IN_MAX = 20, STAT_MIN = 9, STAT_CAP = 20, STAT_ROLLS = 6, NAME_MAX = 12, DRAFT_MAX = { age: 99, height: 220, weight: 150 };          // пределы при создании героя (решение автора 01.11): имя 12 знаков, возраст 99, рост 220 см, вес 150 кг
+const STAT_ROLL_KEY = "sputnik.statroll.v1";
 function rollStatSet() {
-  const rows = Array.from({ length: 8 }, () => { const dice = Array.from({ length: 4 }, () => 1 + rnd(6)), low = dice.indexOf(Math.min(...dice)); return { dice, low, sum: dice.reduce((a, b) => a + b, 0) - dice[low] }; });
-  const order = rows.map((r, i) => i).sort((a, b) => rows[b].sum - rows[a].sum), keep = new Set(order.slice(0, 6));
-  rows.forEach((r, i) => { r.keep = keep.has(i); });
-  return { rows, pool: rows.filter(r => r.keep).map(r => r.sum).sort((a, b) => b - a) };
+  const one = () => { const dice = Array.from({ length: 4 }, () => 1 + rnd(6)), low = dice.indexOf(Math.min(...dice)); return { dice, low, sum: dice.reduce((a, b) => a + b, 0) - dice[low] }; };
+  const rows = Array.from({ length: STAT_ROLLS }, () => { const tries = []; let r; do { r = one(); tries.push(r); } while (r.sum < 10 && tries.length < 50); return { ...r, rerolled: tries.slice(0, -1) }; });
+  return { rows, total: rows.reduce((a, r) => a + r.sum, 0), at: Date.now() };
 }
+function storedStatRoll() {          // бросок, ещё не потраченный на героя (переживает закрытие создания и перезапуск)
+  try { const v = JSON.parse(localStorage.getItem(STAT_ROLL_KEY) || "null"); if (v && v.total && Array.isArray(v.rows)) return v; } catch (e) {}
+  const v = rollStatSet(); try { localStorage.setItem(STAT_ROLL_KEY, JSON.stringify(v)); } catch (e) {} return v;
+}
+function spendStatRoll() { try { localStorage.removeItem(STAT_ROLL_KEY); } catch (e) {} }
+function ensureStatRoll(d) {
+  if (!d.rolls || !d.rolls.total) { d.rolls = storedStatRoll(); STAT_KEYS.forEach(k => { d.base[k] = String(STAT_MIN); }); }
+  STAT_KEYS.forEach(k => { const v = parseInt(d.base[k], 10); if (!(v >= STAT_MIN)) d.base[k] = String(STAT_MIN); else if (v > statMaxBase(k)) d.base[k] = String(statMaxBase(k)); });          // раса сменилась — предел мог стать ниже
+}
+const statSpent = d => STAT_KEYS.reduce((a, k) => a + (parseInt(d.base[k], 10) || STAT_MIN), 0);
+const statLeft = (d = forge.draft) => d.rolls ? d.rolls.total - statSpent(d) : 0;
+const statMaxBase = k => { const d = forge.draft, m = raceById(d.race).mods[k] || 0; return Math.max(STAT_MIN, STAT_CAP - m); };
+function statCan(k, dir) { const d = forge.draft, v = parseInt(d.base[k], 10) || STAT_MIN; return dir < 0 ? v > STAT_MIN : v < statMaxBase(k) && statLeft(d) > 0; }
 function statRollBox(d) {
-  if (!d.rolls) return `<div class="roll-box fx-frame"><p class="fx-p" style="font-size:15px;margin:0">Или брось кости по стандартным правилам: 4к6 восемь раз (меньшая кость каждого броска не считается), остаются шесть лучших значений, и ты сам раскладываешь их по характеристикам. Бросок один на героя.</p><button class="fx-btn primary" data-fx="roll-stats">Бросить 4к6 × 8</button></div>`;
-  const used = new Set(Object.values(d.put || {}));
-  return `<div class="roll-box fx-frame"><div class="roll-log">${d.rolls.rows.map(r => `<div>${r.dice.map((v, i) => i === r.low ? `<s>${v}</s>` : v).join(" + ")} = <b>${r.sum}</b>${r.keep ? "" : " <s>(не вошло)</s>"}</div>`).join("")}</div>
-    <p class="fx-p" style="font-size:14px;margin:0">Выбери значение, затем нажми «Поставить» у нужной характеристики.</p>
-    <div class="roll-pool">${d.rolls.pool.map((v, i) => `<button class="fx-btn${d.chip === i ? " primary" : ""}" data-fx-chip="${i}" aria-pressed="${d.chip === i}"${used.has(i) && d.chip !== i ? ' style="opacity:.45"' : ""}>${v}${used.has(i) ? `<small>${STAT_SHORT[Object.keys(d.put).find(k => d.put[k] === i)]}</small>` : ""}</button>`).join("")}</div></div>`;
+  const left = statLeft(d), min = STAT_MIN * STAT_KEYS.length;
+  return `<div class="roll-box fx-frame" id="fx-pool">
+    <div class="pool-row"><span>Очки характеристик</span><b class="pool-total">${d.rolls.total}</b></div>
+    <div class="pool-row sub"><span>Каждой характеристике сразу ${STAT_MIN} (${min} очков, ниже нельзя)</span><span>осталось <b id="fx-left" class="${left ? "" : "done"}">${left}</b></span></div>
+    <p class="fx-p" style="font-size:15px;margin:0">Раздай остаток стрелками ‹ › или впиши число. С бонусом расы — не больше ${STAT_CAP}.</p>
+    <details class="roll-det"><summary>Броски (${STAT_ROLLS} × 4к6, меньшая кость не считается, ниже 10 — переброс)</summary>
+      <div class="roll-log">${d.rolls.rows.map(r => `<div>${(r.rerolled || []).map(x => `<s>${x.sum}</s> → `).join("")}${r.dice.map((v, i) => i === r.low ? `<s>${v}</s>` : v).join(" + ")} = <b>${r.sum}</b></div>`).join("")}</div>
+    </details>
+  </div>`;
 }
 function statPreview(k) {
   const d = forge.draft, r = raceById(d.race), v = parseInt(d.base[k], 10), m = r.mods[k] || 0;
@@ -3524,8 +3561,10 @@ function validateDraft() {
   const d = forge.draft, errs = [];
   if (!d.gender) errs.push({ f: "gender", m: "Выбери пол." });
   if (!d.name.trim()) errs.push({ f: "name", m: "Впиши имя героя." });
-  const badStats = STAT_KEYS.filter(k => { const v = parseInt(d.base[k], 10); return !(v >= 1 && v <= STAT_IN_MAX); });
-  badStats.forEach(k => errs.push({ f: k, m: `${STAT_NAME[k]}: число от 1 до ${STAT_IN_MAX}.` }));
+  const badStats = STAT_KEYS.filter(k => { const v = parseInt(d.base[k], 10); return !(v >= STAT_MIN && v <= statMaxBase(k)); });
+  badStats.forEach(k => errs.push({ f: k, m: `${STAT_NAME[k]}: от ${STAT_MIN} до ${statMaxBase(k)} (с бонусом расы не больше ${STAT_CAP}).` }));
+  if (d.rolls && statLeft(d) > 0) errs.push({ f: "pool", m: `Раздай все очки характеристик: осталось ${statLeft(d)}.` });
+  if (d.rolls && statLeft(d) < 0) errs.push({ f: "pool", m: `Потрачено больше, чем выпало: лишних ${-statLeft(d)}.` });
   for (const [k, l] of [["age", "Возраст"], ["height", "Рост"], ["weight", "Вес"]]) {
     if (d[k] !== "" && !(parseInt(d[k], 10) > 0 && parseInt(d[k], 10) <= DRAFT_MAX[k])) errs.push({ f: k, m: `${l}: от 1 до ${DRAFT_MAX[k]} или пусто.` });
   }
@@ -3554,6 +3593,7 @@ function finishDraft() {
   addToBag(c, { t: "g", id: "potion", qty: 2 });
   if (WEAPONS.find(x => x.id === d.weapon).group === "ranged") addToBag(c, { t: "g", id: "arrow", qty: QUIVER });          // колчан: 40 обычных стрел
   c.hp = maxHp(c);
+  spendStatRoll();          // бросок характеристик потрачен — следующий герой получит новый
   if (!isMaster()) { closeForge(); NetGlue.submitHero(c); return; }          // игрок онлайн: героя утверждает и добавляет ведущий
   state.party.push(c);
   if (!state.current) state.current = c.id;
@@ -3585,7 +3625,7 @@ $forge.addEventListener("click", e => {
     else { const w = WEAPONS.find(x => x.id === id), name = inf.dataset.fxInfo.slice(kind.length + id.length + 2), pr = PROPS.find(([n]) => name.startsWith(n)); fxInfo(`${w ? w.name + ": " : ""}${name}`, pr ? pr[1] : (w && w.note) || "Особое свойство оружия."); }
     return;
   }
-  const el = e.target.closest("[data-fx],[data-fx-race],[data-fx-gender],[data-fx-weapon],[data-fx-shield],[data-fx-knife],[data-fx-twin],[data-fx-chip],[data-fx-put]");
+  const el = e.target.closest("[data-fx],[data-fx-race],[data-fx-gender],[data-fx-weapon],[data-fx-shield],[data-fx-knife],[data-fx-twin],[data-fx-step]");
   if (!el) return;
   const ds = el.dataset;
   if (ds.fxRace) { forge.draft.race = ds.fxRace; renderForge(true); return; }
@@ -3603,11 +3643,9 @@ $forge.addEventListener("click", e => {
   if (ds.fxTwin !== undefined) { forge.draft.weapon = "dagger"; forge.draft.knife = true; forge.draft.shield = false; renderForge(true); return; }
   if (ds.fxKnife !== undefined && forge.draft.weapon === "gloves" && !forge.draft.knife) { forge.draft.dag = !forge.draft.dag; if (forge.draft.dag) forge.draft.shield = false; renderForge(true); return; }          // одна перчатка + кинжал
   if (ds.fxKnife !== undefined) { forge.draft.knife = !forge.draft.knife; if (forge.draft.knife) forge.draft.shield = false; renderForge(true); return; }
-  if (ds.fxChip !== undefined) { const d = forge.draft, i = +ds.fxChip; d.chip = d.chip === i ? null : i; renderForge(true); return; }
-  if (ds.fxPut) { const d = forge.draft, i = d.chip, k = ds.fxPut; if (i == null || !d.rolls) return; for (const o of Object.keys(d.put)) if (d.put[o] === i || o === k) { delete d.put[o]; if (o !== k) d.base[o] = ""; } d.put[k] = i; d.base[k] = String(d.rolls.pool[i]); d.chip = null; forge.errors = forge.errors.filter(x => x.f !== k); renderForge(true); return; }
+  if (ds.fxStep) { const d = forge.draft, k = ds.fxStep, dir = +ds.d; if (!d || !statCan(k, dir)) return; d.base[k] = String((parseInt(d.base[k], 10) || STAT_MIN) + dir); const inp = document.getElementById("fx-" + k); if (inp) { inp.value = d.base[k]; inp.classList.remove("bad"); } statRefresh(); return; }          // стрелки ‹ › у характеристики
   if (ds.fxGender) { forge.draft.gender = ds.fxGender; forge.errors = forge.errors.filter(x => x.f !== "gender"); renderForge(true); return; }
   switch (ds.fx) {
-    case "roll-stats": if (!forge.draft.rolls) { forge.draft.rolls = rollStatSet(); forge.draft.put = {}; forge.draft.chip = null; renderForge(true); } break;
     case "next": if (forge.draft.race && forge.draft.gender) { forge.step = "weapon"; renderForge(); } break;
     case "back-race": forge.step = "race"; renderForge(); break;
     case "next-w": if (forge.draft.weapon) { forge.step = "identity"; renderForge(); } break;
@@ -3618,6 +3656,16 @@ $forge.addEventListener("click", e => {
     case "complete": completeTeam(); break;
     case "close": closeForge(); break;
   }
+});
+function statRefresh() {          // обновить остаток, итоги и стрелки без перерисовки (ввод не теряет фокус)
+  const d = forge.draft; if (!d || !d.rolls) return;
+  const l = document.getElementById("fx-left"); if (l) { l.textContent = statLeft(d); l.classList.toggle("done", statLeft(d) === 0); l.classList.toggle("over", statLeft(d) < 0); }
+  for (const k of STAT_KEYS) { const out = document.getElementById("fx-tot-" + k); if (out) out.innerHTML = statPreview(k);
+    $forge.querySelectorAll(`[data-fx-step="${k}"]`).forEach(b => { b.disabled = !statCan(k, +b.dataset.d); }); }
+}
+$forge.addEventListener("focusout", e => {          // пустое или меньше минимума поле после ввода возвращается к минимуму
+  const t = e.target; if (!forge.draft || !t.dataset || !t.dataset.draftStat) return;
+  const k = t.dataset.draftStat, v = parseInt(t.value, 10); if (!(v >= STAT_MIN)) { forge.draft.base[k] = String(STAT_MIN); t.value = String(STAT_MIN); statRefresh(); }
 });
 $forge.addEventListener("input", e => {
   const t = e.target;
@@ -3630,10 +3678,11 @@ $forge.addEventListener("input", e => {
   }
   if (t.dataset.draftStat) {
     const k = t.dataset.draftStat;
-    if (parseInt(t.value, 10) > STAT_IN_MAX) t.value = String(STAT_IN_MAX);          // больше, чем дают кубики (3×6), ввести нельзя
-    forge.draft.base[k] = t.value; t.classList.remove("bad");
-    const out = document.getElementById("fx-tot-" + k);
-    if (out) out.innerHTML = statPreview(k);
+    const d = forge.draft, cur = parseInt(d.base[k], 10) || STAT_MIN, room = cur + Math.max(0, statLeft(d));          // больше остатка и предела ввести нельзя
+    let v = parseInt(t.value, 10);
+    if (v > Math.min(statMaxBase(k), room)) { v = Math.min(statMaxBase(k), room); t.value = String(v); }
+    d.base[k] = t.value; t.classList.remove("bad");
+    statRefresh();
   }
 });
 
