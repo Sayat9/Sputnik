@@ -22,8 +22,8 @@ const URL = 'http://localhost:8765/index.html';
   ok('та же версия: вошёл', (await c.evaluate(() => Net.status)) === 'online', await c.evaluate(() => Net.status));
   // исключение
   const pid = await h.evaluate(() => Object.keys(Net.players)[0]);
-  await h.evaluate(() => { window.confirm = () => true; });
-  await h.evaluate(pid => NetGlue.kick(pid), pid); await c.waitForTimeout(1200);
+  await h.evaluate(() => { window.confirm = () => false; });          // как в WebView APK: системный confirm всегда «нет»
+  await h.evaluate(pid => { NetGlue.kick(pid); }, pid); await h.waitForTimeout(200); await h.click('[data-yn="1"]'); await c.waitForTimeout(1200);
   ok('исключённый вышел из комнаты', (await c.evaluate(() => Net.status)) === 'off', await c.evaluate(() => Net.status));
   ok('у ведущего его больше нет', (await h.evaluate(() => Object.keys(Net.players).length)) === 0);
   // вернуться исключённый не может (тот же pid)

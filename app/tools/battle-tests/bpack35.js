@@ -47,6 +47,12 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
       out.steal = { took: !!w, disarmed: h.disarmed, flee: !!th.flags.fleeing, dodge: th.ac, base: 10 + Math.floor((MONSTERS.find(m => m.id === 'goblin-thief').abil[1] - 10) / 2) };
       th.fled = true; th.alive = false; await B.End.cleanupForTest?.(S); out.stealGone = typeof B.End.cleanupForTest !== 'function' ? 'skip' : !state.party[0].equip.main; B.S = null; }
     { const c = mk(31); c.essences = ['goblin-thief']; const d0 = derived(totals(mk(32)), mk(32)), d1 = derived(totals(c), c); out.essDodge = d1.ac - d0.ac; }
+    { const f = mk(40); f.race = 'fairy'; const hm = mk(41); const df = derived(totals(f), f).ac - (10 + Math.floor((totals(f).dex.total - 10) / 2)), dh = derived(totals(hm), hm).ac - (10 + Math.floor((totals(hm).dex.total - 10) / 2)); out.fairy = df - dh; }
+    { const g2 = mk(42, { main: { t: 'w', id: 'gloves' }, off: { t: 'w', id: 'gloves' } }), g0 = mk(43, { main: { t: 'w', id: 'mace' } }); out.gloves = [derived(totals(g2), g2).ac - derived(totals(g0), g0).ac, derived(totals(g2), g2).prot - derived(totals(g0), g0).prot]; }
+    { state.party = [mk(44, { main: { t: 'w', id: 'greatsword' } })]; const S = B.newBattle({ list: ['skeleton-warrior'], zone: 'undead', floor: 1 }); B.placeMonsters(S); S.phase = 'fight'; S.dark = false; clear(S);
+      const [h] = B.heroes(), m = B.mons()[0]; h.x = 2; h.y = 4; m.x = 2; m.y = 3; const atk = B.attacksOf(h).find(a => a.w && a.w.id === 'greatsword'); const ctx = B.attackCtx(h, m, atk);
+      m.hp = 999; const r = await B.applyDamage(h, m, [{ v: 10, dt: 'slash' }], { ctx, src: h, melee: true }); out.twoH = { ign: ctx.protIgnore, prot: m.prot, dealt: r.total }; B.S = null; }
+    { state.party = [mk(45)]; const S = B.newBattle({ list: ['living-stone'], zone: 'stone', floor: 1 }); out.stone = B.mons()[0].atk.map(a => a.dmg.b); B.S = null; }
     out.heroThreat = threatOf(mk(5));
     { const c0 = mk(6, { main: { t: 'w', id: 'sword' } }), c1 = mk(7, { main: { t: 'w', id: 'sword' }, off: { t: 'w', id: 'shield' } }); out.shieldDex = totals(c1).dex.total - totals(c0).dex.total; }
     { const c = mk(8); out.cap = load(c).cap; out.capWant = (totals(c).str.total + totals(c).con.total / 2) * 3; }
@@ -60,6 +66,10 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
   ok('вор: «Срезать кошель» выхватывает оружие из руки и удирает', o.steal.took && o.steal.disarmed && o.steal.flee, o.steal);
   ok('вор: бонус +3 к Увороту', o.steal.dodge === o.steal.base + 3, o.steal);
   ok('эссенция вора: Уворот +3 и Ловкость +2 (мод. +1) → Уворот +4', o.essDodge === 4, o.essDodge);
+  ok('феи: +1 к Увороту', o.fairy === 1, o.fairy);
+  ok('пара перчаток: Уворот −1, Защита +3', o.gloves[0] === -1 && o.gloves[1] === 3, o.gloves);
+  ok('двуручное оружие пробивает 1 Защиты (10 урона по Защите 3+2 → 6)', o.twoH.ign === 1 && o.twoH.dealt === 10 - (o.twoH.prot - 1), o.twoH);
+  ok('живой камень: кулак 1к6 без прибавки', o.stone[0] === 0, o.stone);
   ok('Угроза по умолчанию 1', o.heroThreat === 1, o.heroThreat);
   ok('Угроза 2 — гоблин (9 кл.) всегда бьёт провокатора', o.thr2.b === 12 && o.thr2.a === 0, o.thr2);
   ok('шанс раскусить провокацию: 9 кл. 0, хобгоблин (Инт 9) 0, шаман-старейшина 15 %, шаманка орков 45 %', o.chance.goblin === 0 && o.chance.hob === 0 && Math.abs(o.chance.elder - 0.15) < 1e-9 && Math.abs(o.chance.shaman - 0.45) < 1e-9, o.chance);

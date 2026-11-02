@@ -1143,7 +1143,7 @@ const WEAPONS = [
     note: "Тисовая заготовка сохнет годами. В коридорах лабиринта дальность редко пригождается целиком. «Прицел»: потратив действие, следующий выстрел наносит +1к6 урона." },
   // Оружие второй итерации (черновик, drafts.md → «Оружие — вторая итерация»).
   { id: "gloves", name: "Перчатки", group: "melee", kind: "Простое", dmg: "1к4", type: "дробящий", weight: 1, price: 10,
-    props: ["Кастет", "Одна: +1 Защиты и «Блок кулаками»", "Две: +3 Защиты и урон 2к4"],
+    props: ["Кастет", "Одна: +1 Защиты и «Блок кулаками»", "Две: +3 Защиты, −1 Уворота и урон 2к4"],
     note: "Кожа с железными накладками на костяшках. Одна перчатка — оружие и действие «Блок кулаками»; вторая рука свободна под щит или кинжал: до начала следующего хода урон ближних атак по вам снижается на 1к4 + Ловкость. В обеих руках — +2 КД, а удар кулаками наносит 2к4." },
   { id: "staff", name: "Посох", group: "melee", kind: "Простое", dmg: "1к4", type: "дробящий", weight: 2, price: 6,
     props: ["Двуручное", "Досягаемость 3 м (на 2-й клетке −2 к атаке)", "+1 к мане"],
@@ -1261,7 +1261,7 @@ const RACES = [
       ["Звериная натура", "Не носит шлемы. В темноте без света — помеха на Восприятие."]] },
   { id: "fairy", name: "Фея", tax: "high", life: "Земледелие в Гномьем Древе",
     mods: { dex: 2, wis: 1, con: -1 },
-    plus: [["Чутьё энергии", "Преимущество на поиск ловушек и засад, чувствует магию рядом."],
+    plus: [["Лёгкая и юркая", "+1 к Увороту."], ["Чутьё энергии", "Преимущество на поиск ловушек и засад, чувствует магию рядом."],
       ["Шаг в листве", "Преимущество к Скрытности в зарослях."],
       ["Меткий глаз", "+1 к атаке и +3 м дальности дальнего оружия."],
       ["Сборщица", "Преимущество на сбор трав и грибов; находка вдвое чаще (2–3 штуки за раз)."]],
@@ -1276,7 +1276,7 @@ const RACES = [
     minus: [["Родовая вражда", "−1 к попаданию по элементальным врагам."]] },
   { id: "darkfairy", name: "Тёмная фея", tax: "high", life: "Ночные рынки, подземные сады",
     mods: { dex: 2, cha: 1, con: -1 },
-    plus: [["Тёмное зрение", "Видит в темноте без света."],
+    plus: [["Лёгкая и юркая", "+1 к Увороту."], ["Тёмное зрение", "Видит в темноте без света."],
       ["Шёпот теней", "Преимущество к Скрытности в тени. Раз за бой доп. действием можно уйти из зоны угрозы без провоцированных атак."]],
     minus: [["Боится света", "При ярком свете (факел рядом) −1 к атаке."]] },
   { id: "gnome", name: "Гном", tax: "high", life: "Мастерские, лавки, алхимия",
@@ -2045,7 +2045,8 @@ const MON_HP_MULT = 1.5;
 MONSTERS.forEach(m => { if (m.dyn || m.hpBase != null || typeof m.hp !== "string") return; const n = parseInt(m.hp, 10); if (!(n > 0)) return; m.hpBase = n; m.hp = m.hp.replace(/^\d+/, String(Math.round(n * MON_HP_MULT))); });
 // Точечное усиление слабых монстров 7 класса (баланс 02.11, черновик): ОЗ ×hp (после ×1,5), +dmg к урону и +hit к попаданию каждой атаки в бою.
 const MON_BOOST = { "swamp-fang": { hp: 1.6, dmg: 4, hit: 2 }, "goblin-thief": { hp: 1.4, dmg: 2, hit: 2, dodge: 3 }, "storm-spirit": { hp: 1.2, dmg: 1 }, "goblin-king": { hp: 1.5, dmg: 3, hit: 1 },
-  "crystal-colossus": { hp: 1.3, dmg: 2, hit: 1 }, "giant-mole": { hp: 1.3, dmg: 2, hit: 1 }, "ash-wraith": { hp: 1.4, dmg: 2, hit: 2 }, "corpse-eater": { hp: 1.2, dmg: 1 } };
+  "crystal-colossus": { hp: 1.3, dmg: 2, hit: 1 }, "giant-mole": { hp: 1.3, dmg: 2, hit: 1 }, "ash-wraith": { hp: 1.4, dmg: 2, hit: 2 }, "corpse-eater": { hp: 1.2, dmg: 1 },
+  "living-stone": { dmg: -2 } };          // живой камень и так живучий (Защита 5, ОЗ ×1,5): урон кулака 1к6+2 → 1к6 (решение автора 02.11)
 MONSTERS.forEach(m => { const b = MON_BOOST[m.id]; if (!b || m.boost) return; m.boost = b; if (b.dodge && m.dodge != null) m.dodge += b.dodge; if (b.hp && typeof m.hp === "string") m.hp = m.hp.replace(/^\d+/, n => String(Math.round(+n * b.hp))); });
 // ===== конец данных монстров
 
@@ -2730,6 +2731,7 @@ function derived(t, c = char) {
   }
   const gl = (main && main.id === "gloves" ? 1 : 0) + (off && off.id === "gloves" ? 1 : 0);          // перчатки: одна +1 Защиты, пара +3 (решение автора 02.11)
   if (gl) add(gl === 2 ? 3 : 1, gl === 2 ? "пара перчаток" : "перчатка");
+  if (gl === 2) pen(1, "пара перчаток");          // пара перчаток: Уворот −1 (решение автора 02.11)
   if (off && off.kindOf === "weapon" && off.group === "melee" && !["dagger", "gloves", "tower-shield"].includes(off.id) && main && main.kindOf === "weapon" && main.group !== "shield") pen(1, "второе оружие");          // второе оружие, кроме кинжала
   const ld = load(c, t);
   const warnings = [];
@@ -2744,6 +2746,7 @@ function derived(t, c = char) {
   const eb = essBonus(c);
   add(Math.floor((c.level - 1) / 2), "опыт");                                         // +0,5 Защиты за уровень после 1-го (решение автора 02.11)
   add(eb.ac, "эссенции");
+  if (c.race === "fairy" || c.race === "darkfairy") { ac += 1; dodgeSrc.push("+1 фея"); }          // феи юркие: +1 к Увороту (решение автора 02.11)
   if (eb.dodge) { ac += eb.dodge; dodgeSrc.push(`${eb.dodge > 0 ? "+" : "−"}${Math.abs(eb.dodge)} эссенции`); }                                                                  // эссенции «КД +N» дают Защиту (решение автора 02.11)
   pen(OVERLOAD[ld.level].dodge, LOAD_NAME[ld.level].toLowerCase());
   prot = Math.max(0, prot);
@@ -2861,7 +2864,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 89;
+const BATTLE_REV = 90;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }
@@ -3045,7 +3048,7 @@ function buryFallen() {
     if (goldOf(c) > 0) { const g = goldOf(c), k = alive.length; alive.forEach((a, i) => addGold(a, Math.floor(g / k) + (i < g % k ? 1 : 0))); got.push(`${g} монет поровну`); }
     for (const e of items) { const r = giveParty({ ...e, qty: e.qty || 1 }); (/осталось на земле|не поместилось/.test(r) ? lost : got).push(r); }
     (state.fallen ||= []).push({ name: c.name, race: c.race, level: c.level, day: state.run ? state.run.day : null });
-    state.party = state.party.filter(x => x.id !== c.id);
+    state.party = state.party.filter(x => x.id !== c.id); (state.netGone ||= []).push(c.id);          // онлайн: погибшего героя ведущий не вернёт из копии у игрока
     if (state.run && state.run.status) delete state.run.status[c.id];
     if (state.current === c.id) state.current = state.party[0] ? state.party[0].id : null;
     if (heroUi && heroUi.id === c.id) closeHero();
@@ -3409,7 +3412,7 @@ function forgeWeapon() {
     <p class="fx-p">Выбери стартовое оружие. Оно сразу окажется в руке героя.</p>
     <p class="fx-p wpn-tip">${d.weapon ? "Подсвечено то, что можно взять во вторую руку, — нажми, чтобы взять (ещё раз — убрать). " : ""}Нажми ещё раз на выбранное лёгкое оружие или перчатки — возьмёшь пару (×2).</p>
     <div class="wpn-grid${d.weapon && d.knife ? " twin-on" : ""}">${START_WEAPONS().map(x => { const on = d.weapon === x.id, twin = on && d.knife && canTwinWeapon(x, d.race), cand = !!w && !d.knife && offCandidate(w, x, d.race), left = cand && d.offW === x.id, off = d.weapon && !on && !cand;          // подсвечено: можно во вторую руку; остальное затемнено
-      const st = left ? `левая рука · ${x.dmg} ${x.type}` : twin ? (x.id === "gloves" ? "пара: 2к4 · Защита +3" : x.id === "sword" ? "два меча: одна атака −2, урон +30 % · Уворот −1" : isTwoHandedWeapon(x) ? `пара: ${x.dmg} ×2 · −6 к Ловкости` : `пара: ${x.dmg} ×2 одной атакой (каждый удар ×0,6)`) : `${x.dmg} ${x.type} · ${kgf(x.weight)} кг`;
+      const st = left ? `левая рука · ${x.dmg} ${x.type}` : twin ? (x.id === "gloves" ? "пара: 2к4 · Защита +3 · Уворот −1" : x.id === "sword" ? "два меча: одна атака −2, урон +30 % · Уворот −1" : isTwoHandedWeapon(x) ? `пара: ${x.dmg} ×2 · −6 к Ловкости` : `пара: ${x.dmg} ×2 одной атакой (каждый удар ×0,6)`) : `${x.dmg} ${x.type} · ${kgf(x.weight)} кг`;
       return `
       <button class="race-card fx-frame${on ? " picked" : ""}${twin ? " twin" : ""}${off ? " off" : ""}${cand ? " cand" : ""}${left ? " left" : ""}" data-fx-weapon="${x.id}" aria-pressed="${on || left}">
         <div class="wpn-art">${img(ART.weapon(x.id), x.name)}${on ? `<span class="tick">${TICK}</span>` : ""}${twin ? `<span class="x2">×2</span>` : ""}${left ? `<span class="x2 lh">Л</span>` : ""}</div>
@@ -4348,6 +4351,7 @@ function resolvePass(p) {
     logRun(`Ловушка гоблинов на бегу (${rollTxt}).`);
     dgUi.enc = { kind: "trap", title: "Ловушка!", raw: n, n, cause: "pass" };
   } else { logRun(`Пробежали квадрат без происшествий (${rollTxt}).`); toast("Пробежали без происшествий"); }
+  if (r.achAfterPass) { delete r.achAfterPass; if (!(n <= p.amb && curFloor() < 3)) achCheck(); }          // засада оставила отряд на пути — достижения нет
 }
 function resolveRoll() {
   const r = state.run, p = r.pending; if (!p || !p.pick) return;
@@ -4471,10 +4475,13 @@ function genTravelers(f) {
     const g = Math.random() < .5 ? "m" : "f", base = {};
     STAT_KEYS.forEach(k => { base[k] = 10; });                                               // каждая характеристика ≥ 10, сумма 75–78 (+ раса и эссенции сверху)
     for (let pts = 15 + rnd(4); pts > 0;) { const k = STAT_KEYS[rnd(6)]; if (base[k] < 16) { base[k]++; pts--; } }
-    list.push({ id: `trav-${state.travSeq = (state.travSeq || 0) + 1}`, name: used[g].pop(), race: pick1(RACES).id, g, weapon: pick1(TRAV_W), armor: f >= 3 && Math.random() < .5 ? pick1(TRAV_A) : null,
+    list.push({ id: `trav-${state.travSeq = (state.travSeq || 0) + 1}`, name: used[g].pop(), race: pick1(RACES).id, g, weapon: pick1(TRAV_W), armor: null,
       base, ess: [], lvl: Math.max(1, f), floor: Math.max(1, f), cls: TRAV_CLS[Math.min(3, Math.max(1, f))], carry: travCarry(Math.max(1, f)) });
     const last = list[list.length - 1]; if (travBow(last.weapon)) last.carry.arrows = 20 + rnd(21);          // лучник несёт 20–40 стрел (тратятся и ломаются по правилам)
   }
+  // Броня путников (решение автора 02.11): 2 этаж — с шансом 10 % у двоих, иначе 40 % у одного; 3 этаж и дальше — минимум у двоих, с шансом 40 % у третьего (черновик шанса).
+  { let k = 0; if (f === 2) { const x = Math.random(); k = x < .1 ? 2 : x < .5 ? 1 : 0; } else if (f >= 3) k = 2 + (Math.random() < .4 ? 1 : 0);
+    for (const t of shuf(list).slice(0, Math.min(k, list.length))) t.armor = pick1(TRAV_A); }
   const give = (t, id) => { if (t && id && !t.ess.includes(id) && t.ess.length < t.lvl) { t.ess.push(id); return true; } return false; };
   if (f <= 1) { for (const t of list) if (Math.random() < .12) give(t, pick1(essPool(9, [1]))); }                 // низкий шанс случайной 9 кл.
   else if (f === 2) {
@@ -6455,9 +6462,10 @@ function act(kind) {
     const z = zoneAt(r.pos.x, r.pos.y);
     if (z.kind === "safe") logRun("Возле статуи монстры не появляются.");
     if (inDarkness()) logRun("Тьма: без света помеха на Восприятие и поиск, дальние атаки с помехой, −2 к броску события.");
-    achCheck();
     const pn = dgUi.path.length, p0 = kind === "run" && pn > 1 && !windUsed ? dgUi.path[pn - 2] : null;          // последняя пробегаемая клетка; при Беге в 3 клетки первая — без проверки (сапоги)
-    if (p0 && zoneAt(p0.x, p0.y).kind !== "safe" && !isQuiet(r, tkey(p0.x, p0.y))) askPass(p0.x, p0.y, { key: tkey(r.pos.x, r.pos.y), fresh: dgUi.finFresh });
+    const passAsk = !!(p0 && zoneAt(p0.x, p0.y).kind !== "safe" && !isQuiet(r, tkey(p0.x, p0.y)));
+    if (passAsk) { r.achAfterPass = true; askPass(p0.x, p0.y, { key: tkey(r.pos.x, r.pos.y), fresh: dgUi.finFresh }); }          // достижение за портал — только если Бег не остановили по пути (решение автора 02.11)
+    else achCheck();
     if (z.kind !== "safe" && spEnter()) { /* особое место: бой начат */ }
     else if (z.kind !== "safe" && voidHere()) { if (!isQuiet(r, tkey(r.pos.x, r.pos.y)) && rnd(6) === 0) witchHouse(); }          // Ведьмин лес: людей не встретить, зато иногда виден вход в Ведьмин дом
     else if (z.kind !== "safe") {

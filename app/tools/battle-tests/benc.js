@@ -70,7 +70,7 @@ const L = require('./bui_lib.js');
     ok(f + ' эт.: расы, пол и оружие разнообразны', G[f].raceSet >= 6 && G[f].gSet === 2 && G[f].wSet >= 8, JSON.stringify([G[f].raceSet, G[f].gSet, G[f].wSet]));
     ok(f + ' эт.: боевые записи собраны без странностей', G[f].bad.length === 0, G[f].bad.slice(0, 4).join('|'));
   }
-  ok('1–2 этажи: брони нет', G[1].armor === 0 && G[2].armor === 0, [G[1].armor, G[2].armor]);
+  ok('броня путников: на 1 этаже нет, на 2-м встречается (02.11)', G[1].armor === 0 && G[2].armor > 0, [G[1].armor, G[2].armor]);
   ok('3 этаж: часть отряда в броне', G[3].armor > 100 && G[3].armor < 800, G[3].armor);
   ok('1 этаж: эссенция у части групп, низкий шанс', G[1].f1ess > 5 && G[1].f1ess < 150, G[1].f1ess);
   ok('3 этаж: 7 кл. редко (низкий шанс)', G[3].ess7 > 5 && G[3].ess7 < 150, G[3].ess7);

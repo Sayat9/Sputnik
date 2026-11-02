@@ -154,7 +154,7 @@
     for (const id of tgt.pass) { const P = B.P && B.P[id]; if (P && P.dmgTotal) total = P.dmgTotal(tgt, { total, o, src, notes }); }
     total = Math.max(0, total);
     { // Защита (вариант Б, решение автора 02.11): вычитается из физического урона попадания; от попадания остаётся хотя бы 1; крит пробивает половину Защиты (черновик)
-      const pr = (tgt.prot || 0) + ((o.ctx && o.ctx.protPlus) || 0);
+      const pr = Math.max(0, (tgt.prot || 0) + ((o.ctx && o.ctx.protPlus) || 0) - ((o.ctx && o.ctx.protIgnore) || 0));          // двуручное оружие пробивает 1 Защиты
       if (pr > 0 && phys > 0 && total > 0 && !o.pure) { let cut = Math.min(o.crit ? Math.floor(pr / 2) : pr, phys - 1, total - 1); if (D.protMaxShare) cut = Math.min(cut, Math.floor(phys * D.protMaxShare)); if (cut > 0) { total -= cut; notes.push(`защита −${cut}`); } }
     }
     const fb = has(tgt, "fistblock"); if (fb && o.melee && total > 0) { const fr = roll(1, 4).total + Math.max(0, amod(tgt.abil.dex)); total = Math.max(0, total - fr); notes.push(`блок кулаками −${fr}`); }          // две перчатки: «Блок кулаками»
@@ -269,6 +269,7 @@
     let aura = 0; for (const a of alliesOf(tgt)) aura = Math.max(aura, hookSum(a, "acAura", { ally: a, tgt, ctx }));
     if (aura && tgt.hero) { ctx.protPlus = (ctx.protPlus || 0) + aura; ctx.notes.push(`аура: Защита +${aura}`); }          // у героев аура «+КД» союзника даёт Защиту (решение автора 02.11)
     else if (aura) { ac += aura; ctx.acNotes.push(`стена щитов +${aura}`); }
+    if (melee && atk.w && atk.w.group !== "ranged" && typeof isTwoHandedWeapon === "function" && isTwoHandedWeapon(atk.w)) { ctx.protIgnore = (ctx.protIgnore || 0) + 1; ctx.notes.push("двуручное: −1 Защиты цели"); }          // решение автора 02.11
     // Полёт и тьма (решение автора 02.11): летящая цель +3 к Увороту, цель во тьме +2; тёмное зрение, слепое зрение и чувство вибраций атакующего в своём радиусе снимают бонус тьмы
     if (B.isFlying(tgt) && !has(tgt, "prone")) { ac += 3; ctx.acNotes.push("в полёте +3"); }
     if (B.inDark(tgt) && !B.seesInDark(att, tgt)) { ac += 2; ctx.acNotes.push("во тьме +2"); }

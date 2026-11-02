@@ -68,7 +68,8 @@ const URL = 'http://localhost:8765/index.html';
   console.log('позиция у ведущего позже', JSON.stringify(await HS()), 'игрока', JSON.stringify((await S()).slice(0, 2)));
   await c.evaluate(() => { const e = document.querySelector('.bt-panel [data-ba="opt"]'); if (e) e.click(); }); await c.waitForTimeout(400);
   console.log('после выбора оружия:', await panel());
-  // цель: тапаем по ближайшему гоблину
+  // цель: тапаем по ближайшему гоблину (у гоблинов с 02.11 Защита и ОЗ ×1,5 — для проверки синхронизации делаем их хрупкими, чтобы один удар наверняка убивал)
+  for (const pg of [c, h]) await pg.evaluate(() => Battle.S && Battle.S.units.filter(m => m.side === 'mon').forEach(m => { m.hp = 1; m.ac = 1; m.prot = 0; }));
   const tgt = await c.evaluate(() => { const u = Battle.S.units.find(u => u.name === 'Аргон'); const m = Battle.S.units.filter(m => m.side === 'mon' && m.hp > 0).sort((a, b) => Math.hypot(a.x - u.x, a.y - u.y) - Math.hypot(b.x - u.x, b.y - u.y))[0]; const e = document.querySelector(`[data-x="${m.x}"][data-y="${m.y}"]`); const r = e.getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2, m.name, Math.hypot(a => 0)]; });
   await c.mouse.click(tgt[0], tgt[1]); await c.waitForTimeout(600);
   console.log('после тапа по цели', tgt[2], ':', await panel());

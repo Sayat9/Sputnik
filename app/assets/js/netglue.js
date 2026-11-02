@@ -37,8 +37,8 @@
   body.net-player{padding-bottom:64px}
   body.net-player.bt-active #netbar,body.net-player.net-forge #netbar{display:none}
   #net-rc{position:fixed;left:50%;top:6px;transform:translateX(-50%);z-index:8800;padding:8px 14px;border-radius:18px;font:600 13px/1.2 inherit;background:#5a2a1a;color:#ffe8c0;border:1px solid #d6a64c;box-shadow:0 2px 10px #000a}
-  body.net-follow #view,body.net-follow #townov{pointer-events:none}
-  body.net-follow #view [data-hero]{pointer-events:auto}                                                 /* карточки героев на экране ведущего: удержание открывает меню героя */
+  body.net-follow #townov{pointer-events:none}                                                          /* экран ведущего (#view) листается: нажатия гасит followGuard ниже */
+  body.net-player:not(.bt-active):not(.net-forge) .scrim,body.net-player:not(.bt-active):not(.net-forge) #diceov,body.net-player:not(.bt-active):not(.net-forge) #saveov,body.net-player:not(.bt-active):not(.net-forge) .mapov,body.net-player:not(.bt-active):not(.net-forge) #heroov,body.net-player:not(.bt-active):not(.net-forge) #iteminfo,body.net-player:not(.bt-active):not(.net-forge) #townov,body.net-player:not(.bt-active):not(.net-forge) #libov,body.net-player:not(.bt-active):not(.net-forge) .bd-ov,body.net-player:not(.bt-active):not(.net-forge) .tw-dlg{bottom:var(--nbh,64px)}          /* окна не уходят под нижнюю панель игрока — их можно долистать до конца */                                                 /* карточки героев на экране ведущего: удержание открывает меню героя */
   body.net-follow #townov .tw-x{display:none}
   .net-team{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;width:100%;margin:10px 0}
   .net-team .pc{min-width:0;width:auto}
@@ -56,10 +56,19 @@
   .net-row>small,.net-row>select{flex:0 0 auto;max-width:55%}
   `;
   document.head.appendChild(css);
+  // Режим «смотрю экран ведущего»: экран листается пальцем, но нажатия по нему не срабатывают (кроме удержания карточек героев — меню героя).
+  const followBlock = e => {
+    if (!document.body.classList.contains("net-follow")) return;
+    const v = e.target && e.target.closest && e.target.closest("#view"); if (!v || e.target.closest("[data-hero]")) return;
+    e.stopPropagation(); if (e.type === "click" || e.type === "contextmenu" || e.type === "dblclick") e.preventDefault();
+  };
+  for (const t of ["click", "dblclick", "contextmenu", "pointerdown", "pointerup", "mousedown", "mouseup", "change", "input", "keydown"]) window.addEventListener(t, followBlock, true);
+  const nbh = () => { const b = document.getElementById("netbar"); if (b && b.offsetHeight) document.documentElement.style.setProperty("--nbh", b.offsetHeight + "px"); };
+  window.addEventListener("resize", nbh); setInterval(nbh, 2000);
   const mkOv = (id, hidden = true) => { let el = document.getElementById(id); if (!el) { el = document.createElement("div"); el.id = id; el.hidden = hidden; document.body.appendChild(el); } return el; };
 
   /* ===================================================================== ведущий ===== */
-  const H = G.host = { cache: {}, lastJ: {}, timer: null, last: 0, banned: {} };
+  const H = G.host = { cache: {}, lastJ: {}, timer: null, last: 0, banned: {}, offers: {} };
   H.on = () => N.role === "host";
   function trackHeroes(lastJ) {
     for (const c of state.party || []) {
@@ -102,7 +111,10 @@
     if (!h || !h.id || h.owner !== p.pid) return false;
     if (battleOn()) return false;
     const cur = heroById(h.id);
-    if (!cur) { state.party.push(h); H.lastJ[h.id] = noSeq(h); toast(`Герой «${h.name}» вернулся от игрока ${p.name}`); saveChar(); return true; }
+    if (!cur) {          // героя у ведущего нет (новая партия, погиб и убран, другое сохранение): сам не добавляется — ведущий решает в панели «Онлайн»
+      if (!(state.netGone || []).includes(h.id)) { H.offers[h.id] = { h, pid: p.pid, name: p.name }; renderHostPanel(); updateChip && updateChip(); }
+      return false;
+    }
     if ((h.nseq || 0) > (cur.nseq || 0)) { for (const k of Object.keys(cur)) delete cur[k]; Object.assign(cur, h); H.lastJ[h.id] = noSeq(cur); saveChar(); return true; }
     return false;
   }
@@ -193,6 +205,7 @@
         <button class="fx-btn" data-nx="copy">Скопировать код</button>
         <div class="fx-section">Игроки</div>
         ${players.length ? players.map(p => `<div class="net-row"><span><i class="net-dot${p.online ? " on" : ""}"></i>${esc(p.name)}</span><small>${p.online ? "в сети" : "не в сети"} <button class="fx-btn danger" data-nx="kick" data-pid="${p.pid}" style="padding:2px 8px;font-size:12px">Исключить</button></small></div>`).join("") : `<p class="net-msg">Пока никого нет. Отправь код друзьям: они вводят его в клиенте «Спутник — Игрок».</p>`}
+        ${Object.values(H.offers).length ? `<div class="fx-section">Сохранённые герои игроков</div>${Object.values(H.offers).map(o => `<div class="net-row"><span>«${esc(o.h.name)}» (${o.h.level || 1} ур.) — у ${esc(o.name)}</span><small><button class="fx-btn" data-nx="adopt" data-id="${esc(o.h.id)}" style="padding:2px 8px;font-size:12px">Вернуть</button> <button class="fx-btn" data-nx="forget" data-id="${esc(o.h.id)}" style="padding:2px 8px;font-size:12px">Забыть</button></small></div>`).join("")}<p class="net-ro-note">Этого героя нет в отряде ведущего. «Вернуть» — добавить в отряд как у игрока; «Забыть» — больше не предлагать.</p>` : ""}
         <div class="fx-section">Герои и игроки</div>
         ${(state.party || []).length ? state.party.map(c => `<div class="net-row"><span>${esc(c.name)}</span><select data-nx="own" data-id="${c.id}" aria-label="Чей герой ${esc(c.name)}"><option value="">Ведущий</option>${players.map(p => `<option value="${p.pid}"${c.owner === p.pid ? " selected" : ""}>${esc(p.name)}</option>`).join("")}</select></div>`).join("") : `<p class="net-msg">В отряде нет героев.</p>`}
         <p class="net-ro-note">Герой игрока хранится и у него: при подключении ведущий забирает его сохранение.</p>
@@ -204,9 +217,10 @@
   }
   G.openHostPanel = function () { G.hostPanel = true; renderHostPanel(); };
   // Исключить игрока из партии (только ведущий): связь закрывается, вернуться в эту комнату он не сможет; его герои остаются у ведущего.
-  G.kick = function (pid) {
+  G.kick = async function (pid, sure) {
     const p = N.players[pid]; if (!H.on() || !p) return;
-    if (!confirm(`Исключить игрока ${p.name} из партии?`)) return;
+    // window.confirm в WebView APK без WebChromeClient всегда отвечает «нет» — поэтому кнопка «Исключить» молча не работала; спрашиваем своим окном
+    if (!sure && !(await askYesNo({ title: "Исключить игрока?", text: `${p.name} больше не сможет войти в эту комнату. Его герои останутся у ведущего.`, yes: "Исключить" }))) return;
     H.banned[pid] = true;
     try { if (p.link) { p.link.send("kicked", {}); const l = p.link; setTimeout(() => { try { l.close(); } catch (e) {} }, 300); } } catch (e) {}
     for (const c of state.party || []) if (c.owner === pid) delete c.owner;
@@ -219,6 +233,12 @@
     else if (a === "start") { el.disabled = true; toast("Создаю комнату…"); try { await G.startHost(); } catch (err) { toast("Не удалось создать комнату: " + (err && err.message || err)); renderHostPanel(); } }
     else if (a === "stop") { G.stopHost(); }
     else if (a === "kick") { G.kick(el.dataset.pid); }
+    else if (a === "adopt" || a === "forget") {
+      const o = H.offers[el.dataset.id]; delete H.offers[el.dataset.id];
+      if (o && a === "adopt" && !heroById(o.h.id) && !battleOn()) { state.party.push(o.h); H.lastJ[o.h.id] = noSeq(o.h); toast(`Герой «${o.h.name}» вернулся от игрока ${o.name}`); saveChar(); schedule(); }
+      else if (o && a === "forget") { (state.netGone ||= []).push(o.h.id); saveChar(); }
+      renderHostPanel();
+    }
     else if (a === "copy") { try { await navigator.clipboard.writeText(N.code); toast("Код скопирован"); } catch (err) { toast("Код: " + N.code); } }
   });
   document.addEventListener("change", e => {

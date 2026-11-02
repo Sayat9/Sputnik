@@ -49,7 +49,10 @@ const URL = 'http://localhost:8765/index.html';
   const own = await hold('hC'), foreign = await hold('hA');
   ok('удержание своего героя открывает меню', own.open && own.sel === '', own);
   ok('удержание чужого героя тоже открывает меню (только просмотр)', foreign.open && foreign.sel === '', foreign);
-  ok('на экране игрока врата не нажимаются (вход выбирает ведущий)', await c.evaluate(() => { const g = document.querySelector('[data-bld="gate"]'); g.scrollIntoView({ block: 'center' }); const r = g.getBoundingClientRect(); const el = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return !(el && el.closest('[data-bld="gate"]')); }));
+  { const before = await c.evaluate(() => { const g = document.querySelector('[data-bld="gate"]'); g.scrollIntoView({ block: 'center' }); const r = g.getBoundingClientRect(); window.__gx = [r.left + r.width / 2, r.top + r.height / 2]; return [location.hash, document.querySelectorAll('.mapov:not([hidden]), #townov:not([hidden])').length]; });
+    const xy = await c.evaluate(() => window.__gx); await c.mouse.click(xy[0], xy[1]); await c.waitForTimeout(400);
+    const after = await c.evaluate(() => [location.hash, document.querySelectorAll('.mapov:not([hidden]), #townov:not([hidden])').length]);
+    ok('на экране игрока врата не нажимаются (вход выбирает ведущий)', JSON.stringify(before) === JSON.stringify(after), [before, after]); }
   ok('ошибок страницы нет', errs.length === 0, errs);
   // окно героя у игрока: обновления от ведущего не перерисовывают его, если герой не менялся, и не мешают пальцу
   await c.evaluate(() => { openHero('hC'); heroUi.tab = 'inv'; renderHero(); document.querySelector('#heroov .hero-panel').dataset.mark = '1'; });

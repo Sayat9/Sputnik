@@ -59,7 +59,7 @@ const URL = 'http://localhost:8765/index.html';
   await c.evaluate(() => openHero(state.party[1].id)); await c.waitForTimeout(200);
   ok('в меню героя нет кнопок ведущего', await c.evaluate(() => !document.querySelector('#heroov [data-hx="hp"],#heroov [data-hx="ess-add-toggle"],#heroov [data-hx="add-toggle"],#heroov [data-hadd]')));
   await c.evaluate(() => closeHero());
-  ok('главный экран только просмотр', await c.evaluate(() => getComputedStyle(document.getElementById('view')).pointerEvents) === 'none');
+  ok('главный экран только просмотр: листается, но нажатия не доходят', await c.evaluate(() => { const v = document.getElementById('view'); const b = [...v.querySelectorAll('button, [data-action], [data-bld]')].find(x => !x.closest('[data-hero]')); if (!b) return getComputedStyle(v).pointerEvents !== 'none'; let hit = false; const f = () => { hit = true; }; document.addEventListener('click', f); b.click(); document.removeEventListener('click', f); return !hit && getComputedStyle(v).pointerEvents !== 'none'; }));
   // игрок создаёт своего героя
   await c.evaluate(() => { openForge('race', 'more'); forge.draft = { race: 'human', weapon: 'sword', gender: 'm', name: 'Новичок', base: { str: '14', dex: '12', con: '13', int: '10', wis: '10', cha: '10' }, age: '20', height: '170', weight: '70', shield: false, knife: false }; });
   await c.evaluate(() => { NetGlue.client.x = 1; });
