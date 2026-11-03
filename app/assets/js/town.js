@@ -64,7 +64,8 @@
   T.close = function () {
     if (!ui) return;
     if (ui.mirror) return;
-    const n = ui.cost; host.hidden = true; host.innerHTML = ""; ui = null;
+    const free = tmLevel() >= 3 && ["shop", "board", "storage"].includes(ui.b);          // тайм-менеджмент III: доска, магазин, склад — без действия
+    const n = free ? 0 : ui.cost; host.hidden = true; host.innerHTML = ""; ui = null;
     document.body.classList.remove("forge-open");
     if (n > 0) { const c = townClock(); c.t += n; chaliceTick(n); saveChar(); const gi = gateInfo(); toast(`Прошло городских действий: ${n}. Врата ${gi.open ? "открыты сейчас" : "закрыты ещё " + gi.left + " д."}.`); }
     rerender();
@@ -644,6 +645,8 @@
     const c = hero(), k = ACADEMY.find(x => x.id === id); if (!c || !k) return;
     if (eduKnows(c, id)) { ui.msg = `${c.name} уже прошёл этот курс.`; return; }
     if (k.need && !eduKnows(c, k.need)) { ui.msg = `Сначала нужен курс «${ACADEMY.find(x => x.id === k.need).name}».`; return; }
+    if (k.rank && partyRank() > k.rank) { ui.msg = `Курс открывается с ${k.rank} ранга отряда.`; return; }
+    if (k.cond && !k.cond()) { ui.msg = `Нужно ${k.condText || "особое условие"}.`; return; }
     if (!payGold(c, k.price)) { ui.msg = "Не хватает монет."; return; }
     eduLearn(c, id); visit(); ui.msg = `${c.name} прошёл курс «${k.name}».`; saveChar();
   }
@@ -675,9 +678,9 @@
       const tab = ui.tab && ACADEMY_GROUPS.some(g => g[0] === ui.tab) ? ui.tab : "gather";
       const tabs = `<div class="tw-tabs" role="tablist">${ACADEMY_GROUPS.map(([id, label]) => `<button class="fx-btn" role="tab" aria-selected="${tab === id}" data-t="atab" data-k="${id}">${label}${ACADEMY.filter(k => k.grp === id && eduKnows(c, k.id)).length ? " ✓" : ""}</button>`).join("")}</div>`;
       const rows = tab === "rank" ? rankRows(c) : tab === "maps" ? mapRows() : ACADEMY.filter(k => k.grp === tab).map(k => {
-        const known = eduKnows(c, k.id), locked = k.need && !eduKnows(c, k.need), can = !known && !locked && partyGold() >= k.price;
-        return `<div class="tw-row"><div class="tw-who"><div><b>${esc(k.name)}</b><small>${esc(k.text)}${locked ? " · сначала «" + esc(ACADEMY.find(x => x.id === k.need).name) + "»" : ""}</small></div></div>
-          ${known ? `<span class="tw-done">${ICO_CHECK}</span>` : `<button class="fx-btn primary" data-t="learn" data-id="${k.id}"${can ? "" : " disabled"}>${k.price}</button>`}</div>`; }).join("");
+        const known = eduKnows(c, k.id), locked = k.need && !eduKnows(c, k.need), rankLock = k.rank && partyRank() > k.rank, condLock = k.cond && !k.cond(), can = !known && !locked && !rankLock && !condLock && partyGold() >= k.price;
+        return `<div class="tw-row"><div class="tw-who"><div><b>${esc(k.name)}</b><small>${esc(k.text)}${locked ? " · сначала «" + esc(ACADEMY.find(x => x.id === k.need).name) + "»" : ""}${k.rank ? ` · с ${k.rank} ранга` : ""}${condLock ? " · " + esc(k.condText || "особое условие") : ""}</small></div></div>
+          ${known ? `<span class="tw-done">${ICO_CHECK}</span>` : `<button class="fx-btn primary" data-t="learn" data-id="${k.id}"${can ? "" : " disabled"}>${rankLock ? k.rank + " ранг" : k.price}</button>`}</div>`; }).join("");
       return frame("Академия", "Рафдония", `<div class="tw-npc framed">${img("assets/npc/academy.webp", "Наставник Академии")}<span>Знание — лучшее оружие в лабиринте. Чему желаете научиться?</span></div><button class="fx-btn primary" data-t="recruit" style="width:100%">Завербовать героя</button><p class="tw-hint" style="margin:0">Новый наёмник создаётся как обычный герой и вступает в отряд.</p>${heroStrip()}${tabs}${tab === "rank" || tab === "maps" ? "" : `<p class="tw-lead">Выбери героя и оплати курс. Знания остаются за ним одним — у остальных курсов нет.</p>`}<div class="tw-rows">${rows}</div>${msgLine()}`);
     },
   };
@@ -741,7 +744,7 @@
       if (ui.sleep[c.id]) { st.fat = 0; st.awake = 0; c.hp = maxHp(c); c.mp = maxMp(c); c.insp = 1; c.flags = {}; slept++; if (hasCharm(c, "repair-charm")) for (const e of Object.values(c.equip || {})) if (isDurable(e)) durFix(e, 1); }
       if (ui.food[c.id]) { st.sat = 9; st.starve = 0; ate++; }
     }
-    ui.cost = Math.max(ui.cost, 1);          // сон в таверне — 1 городское действие (решение автора 31.10) ui.sleep = {}; ui.food = {};          // ночь в таверне — ровно 3 городских действия (раньше прибавлялось к посещению: выходило 4)
+    if (tmLevel() < 4) ui.cost = Math.max(ui.cost, 1);          // тайм-менеджмент IV: отдых в таверне без действия; сон в таверне — 1 городское действие (решение автора 31.10) ui.sleep = {}; ui.food = {};          // ночь в таверне — ровно 3 городских действия (раньше прибавлялось к посещению: выходило 4)
     ui.msg = `Оплачено ${total}: спали ${slept}, поели ${ate}.`; saveChar();
   }
   function analyze(id) {

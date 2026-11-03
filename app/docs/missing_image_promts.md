@@ -162,18 +162,6 @@
 
 > `full-body a huge faceless marble figure with a smooth blank face, holding a giant chisel and mallet, half-carved statues around it, dust in the air, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
 
-### Вожак стражи — `monsters/orc-guard-full`
-
-> `full-body big orc guard captain in rusty chainmail with a heavy tower-like shield and a bearded war axe, iron helmet with tusk guards, standing in front of a line of orc warriors, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
-
-### Шаманка костров — `monsters/orc-shaman-full`
-
-> `full-body old orc shamaness with bone amulets and feathers in grey braids, a gnarled staff topped with a glowing ember skull, flames swirling around her hands, bonfire behind, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
-
-### Цепной палач — `monsters/orc-executioner-full`
-
-> `full-body hulking orc executioner in a leather hood, bare scarred chest crossed with heavy iron chains, swinging a long hooked chain, blood-stained apron, grim camp gallows behind, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
-
 ## Предметы, оружие и броня
 
 Стальное и более сильное снаряжение рисуется на лучшем фоне, чем обычное: «новое, блестящее» предмет (`new shiny steel …`), резная подставка (`decorated wooden display stand`), ниша-арсенал (`softly lit arsenal alcove`), знамёна и доспехи вдоль стен. Образец: `a new shiny steel warhammer with a squared head and a pointed back spike on a hardwood haft, standing upright, resting against a decorated wooden display stand, on a small stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit arsenal alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`.
@@ -267,14 +255,6 @@
 > `a heavy chainmail shirt on a stand with dark iron horseshoe-magnet plates on the shoulders and faint blue field lines pulling at small metal shards, on an ornate carved stone pedestal with a glowing violet magic stone set into its front, inside a softly lit treasure vault alcove with faint arcane runes on the walls, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
 
 ## Сокровища и артефакты
-
-### Кольцо братского духа — `items/brotherhood-ring`
-
-> `a simple worn gold ring with two clasped hands engraved around the band, soft warm glow, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
-
-### Вечный очаг — `hearth`
-
-> `a small worn cast-iron hearth brazier with a never-dying gentle orange flame and warm embers, soot-blackened edges, little legs scratched and dented, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
 
 ### Амулет маны — `mana-charm`
 
