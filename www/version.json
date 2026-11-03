@@ -1,5 +1,5 @@
 {
- "version": 1793711525,
+ "version": 1793729582,
  "files": [
   "assets/buildings/academy.webp",
   "assets/buildings/arena.webp",
@@ -40,11 +40,16 @@
   "assets/items/armor-leather.webp",
   "assets/items/arrows.svg",
   "assets/items/arrows.webp",
+  "assets/items/art-bastion-shield.webp",
   "assets/items/art-discharge-staff.webp",
   "assets/items/art-echo-blade.webp",
   "assets/items/art-falling-star.webp",
   "assets/items/art-flurry-rapier.webp",
+  "assets/items/art-magnet-mail.webp",
+  "assets/items/art-mirage-armor.webp",
   "assets/items/art-reaper-axe.webp",
+  "assets/items/art-ricochet-bow.webp",
+  "assets/items/art-rift-hammer.webp",
   "assets/items/art-shadow-fang.webp",
   "assets/items/axe.svg",
   "assets/items/axe.webp",
@@ -474,11 +479,16 @@
   "assets/items/armor-leather.webp": "c95e861ca6ee0d1d60408fa5b21d7d0e",
   "assets/items/arrows.svg": "5f9ec40607bf57358d54e6bb4be1bf5c",
   "assets/items/arrows.webp": "8002700050ff26dd4c991edc2c9d4b8a",
+  "assets/items/art-bastion-shield.webp": "1ee57e623b17cb4f5bfbf3994119e780",
   "assets/items/art-discharge-staff.webp": "c87b8dd4a674896a47fc604f95fe8f9b",
   "assets/items/art-echo-blade.webp": "90ef2bd5d1ea94b8a3a8bbfdd46049e2",
   "assets/items/art-falling-star.webp": "03c01b8208ca5a5e0c2b7bb67c14069e",
   "assets/items/art-flurry-rapier.webp": "1236879ad2bf06ef8b223e3aedc77f69",
+  "assets/items/art-magnet-mail.webp": "e60312910269236dde602ab319529d59",
+  "assets/items/art-mirage-armor.webp": "b3df1d42b0a68d797c88904a0678e553",
   "assets/items/art-reaper-axe.webp": "216b28b22a577705351f75bf0e415a5d",
+  "assets/items/art-ricochet-bow.webp": "0f46bc8e8810df5c5b278d13a491adb4",
+  "assets/items/art-rift-hammer.webp": "172fbe6c5abd77430f2b54094572c9d5",
   "assets/items/art-shadow-fang.webp": "26ff95222682fc446106f5ebad11cee2",
   "assets/items/axe.svg": "58e5b3bb5eba56ad71e0c5457cf9bb4b",
   "assets/items/axe.webp": "f57f51b4aa2bff97ce674ffc6e7579f3",
@@ -866,6 +876,6 @@
   "fonts/f8.woff2": "6cc1ee17091d59eb93821c3594e8f38f",
   "fonts/f9.woff2": "070433480b7b645f69b543f284e386ce",
   "fonts/fonts.css": "1585a72a8d157b26cb424ab433fd4e19",
-  "index.html": "8d7521685da41cd8eceddd1c6161ee25"
+  "index.html": "51ce035c74810448438214d754d42239"
  }
 }

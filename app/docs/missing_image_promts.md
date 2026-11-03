@@ -232,26 +232,6 @@
 
 > `a long steel pike with a banner-like notch below the head and glowing runic rings on the shaft, sturdy knightly look, on an ornate carved stone pedestal with a glowing violet magic stone set into its front, inside a softly lit treasure vault alcove with faint arcane runes on the walls, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
 
-### Лук «Рикошет» — `items/art-ricochet-bow`
-
-> `a short recurve bow with bright metal rings on the limbs and an arrow caught bouncing off a spark, on an ornate carved stone pedestal with a glowing violet magic stone set into its front, inside a softly lit treasure vault alcove with faint arcane runes on the walls, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
-
-### Молот «Разлом» — `items/art-rift-hammer`
-
-> `a massive warhammer with a cracked stone head split by a glowing orange fissure, small rock shards floating around it, on an ornate carved stone pedestal with a glowing violet magic stone set into its front, inside a softly lit treasure vault alcove with faint arcane runes on the walls, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
-
-### Крепостной щит «Бастион» — `items/art-bastion-shield`
-
-> `a huge rectangular tower shield shaped like a castle wall with crenellations on top, iron-banded, a carved gate emblem in the centre, on an ornate carved stone pedestal with a glowing violet magic stone set into its front, inside a softly lit treasure vault alcove with faint arcane runes on the walls, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
-
-### Доспех-мираж — `items/art-mirage-armor`
-
-> `a light leather armor on a stand whose outline shimmers and splits into faint heat-haze copies, pale golden desert glow, on an ornate carved stone pedestal with a glowing violet magic stone set into its front, inside a softly lit treasure vault alcove with faint arcane runes on the walls, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
-
-### Магнитная кольчуга — `items/art-magnet-mail`
-
-> `a heavy chainmail shirt on a stand with dark iron horseshoe-magnet plates on the shoulders and faint blue field lines pulling at small metal shards, on an ornate carved stone pedestal with a glowing violet magic stone set into its front, inside a softly lit treasure vault alcove with faint arcane runes on the walls, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
-
 ## Сокровища и артефакты
 
 ## Находки (после определения)
