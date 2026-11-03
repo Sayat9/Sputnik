@@ -212,7 +212,7 @@
       <div style="margin-top:10px"><button class="fx-btn" data-bs="close">Скрыть</button></div></div>`;
   };
   // Итог боя: ведущий присылает экран победы всем, у остальных он показывается, пока ведущий не закроет свой.
-  BN.announceEnd = html => { if (hostOn()) relay({ k: "endscr", html }); };
+  BN.announceEnd = (html, roll) => { if (hostOn()) relay({ k: "endscr", html, roll: roll || null }); };
   BN.endClose = () => { if (hostOn()) relay({ k: "endclose" }); };
   BN.showEnd = function (m) {
     let el = document.getElementById("bnend");
@@ -220,6 +220,13 @@
     if (!clientOn()) return;
     if (!el) { el = document.createElement("div"); el.id = "bnend"; el.style.cssText = "position:fixed;inset:0;z-index:9450;display:flex;align-items:center;justify-content:center;background:rgba(8,6,4,.86);padding:14px;overflow:auto"; document.body.appendChild(el); el.addEventListener("click", e => { if (e.target.closest("[data-be=close]")) el.remove(); }); }
     el.innerHTML = m.html + `<div style="position:absolute;left:0;right:0;bottom:16px;text-align:center"><button class="fx-btn" data-be="close">Закрыть</button></div>`;
+    if (m.roll && B.Dice && B.Dice.spinReveal) {          // бросок на эссенцию — той же анимацией, что у ведущего (03.11)
+      const box = document.createElement("div"); box.className = "bt-roll"; box.innerHTML = `<p>Бросок на эссенцию <small>— нужно ${m.roll.need}+ из 100</small></p><canvas></canvas><div class="bt-roll-res"></div>`;
+      const host = el.querySelector(".bt-endscr") || el; host.appendChild(box);
+      const cv = box.querySelector("canvas"), res = box.querySelector(".bt-roll-res"), r = m.roll;
+      const show = () => { res.className = "bt-roll-res " + (r.ok ? "ok" : "no"); res.innerHTML = r.ok && r.trav ? `<b class="ok">✦</b> — путник нёс с собой эссенцию!` : r.ok ? `<b class="ok">${r.r % 100 === 0 ? 100 : r.r}</b> — выпала эссенция!` : `<b>${r.r}</b> — эссенция не выпала`; };
+      setTimeout(() => { Promise.resolve(B.Dice.spinReveal(cv, r.d, { stops: [1500, 2700], glow: r.ok, glowColor: "#ffe27a" })).then(show, show); }, 400);
+    }
   };
   // Состояние боя для рассылки (подключается в netglue).
   BN.view = () => (B.S && B.running && (B.S.phase === "fight" || B.S.phase === "place") ? { bat: { ev: B.S.ev, S: B.ser(B.S) } } : { bat: null });

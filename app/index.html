@@ -2880,7 +2880,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 99;
+const BATTLE_REV = 100;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }
@@ -4525,18 +4525,20 @@ function travCarry(f) {
     torch: Math.random() < (f >= 2 ? .5 : .3) ? 1 + (f >= 3 ? rnd(2) : 0) : 0, compass: Math.random() < .04, map: Math.random() < .05, weapon: Math.random() < .5 };
 }
 // Добыча с убитых путников: строки для экрана итога (оружие, еда, зелья, факелы, компас, карта этажа).
-function travLoot(ids) {
-  const sum = { arrow: 0, ration: 0, potion: 0, torch: 0 }, weapons = [], armors = [], lines = []; let compass = false, map = false;
+// Добыча с путников (03.11): вещи не раздаются сами — экран итога показывает их по одной с «Взять» (кому) / «Оставить»; компас и карта этажа — общие, забираются сразу.
+function travLootItems(ids) {
+  const sum = { arrow: 0, ration: 0, potion: 0, torch: 0 }, items = [], lines = []; let compass = false, map = false;
   for (const id of ids) { const sp = travOf(id); if (!sp || !sp.carry || sp.carry.looted) continue; const c = sp.carry; c.looted = true;
-    sum.arrow += c.arrows || 0; sum.ration += c.ration; sum.potion += c.potion; sum.torch += c.torch; if (c.weapon) weapons.push(sp.weapon); if (sp.armor && Math.random() < .5) armors.push(sp.armor); compass ||= c.compass; map ||= c.map; }
-  for (const [id, n] of Object.entries({ arrow: sum.arrow, ration: sum.ration, potion: sum.potion, torch: sum.torch })) if (n > 0) lines.push(giveParty({ t: "g", id, qty: n }));          // стрелы — сколько осталось в колчане
-  for (const w of weapons) lines.push(giveParty({ t: "w", id: w, qty: 1 }));
-  for (const a of armors) lines.push(giveParty({ t: "a", id: a, qty: 1 }));          // броня путника: 50 % (как оружие), остальное порвано в бою (02.11)
+    sum.arrow += c.arrows || 0; sum.ration += c.ration; sum.potion += c.potion; sum.torch += c.torch;
+    if (c.weapon) items.push({ t: "w", id: sp.weapon, qty: 1 }); if (sp.armor && Math.random() < .5) items.push({ t: "a", id: sp.armor, qty: 1 }); compass ||= c.compass; map ||= c.map; }
+  const sup = Object.entries(sum).filter(([, n]) => n > 0).map(([id, n]) => ({ t: "g", id, qty: n }));
   const inv = inventory();
   if (compass && !inv.compass.owned) { inv.compass.owned = true; lines.push("Компас — отряд забирает его"); }
   if (map && !invItem("map").owned) { invItem("map").owned = true; lines.push(`Карта ${curFloor()} этажа — отряд забирает её`); }
-  return lines;
+  return { items: sup.concat(items), lines };
 }
+// Без экрана выбора (быстрый бой, тесты): всё раздаётся по рюкзакам, как раньше.
+function travLoot(ids) { const r = travLootItems(ids); return r.items.map(e => giveParty(e)).concat(r.lines); }
 // Боевая запись путника: как у героя (ОЗ, КД, оружие), оформлена обычным статблоком монстра, чтобы бой, ИИ и награды работали без особых случаев.
 const travBow = id => { const w = WEAPONS.find(x => x.id === id); return !!w && w.group === "ranged" && (w.props || []).some(p => /Боеприпасы/.test(p)); };
 function travMon(sp) {

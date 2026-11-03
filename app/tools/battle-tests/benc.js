@@ -330,7 +330,7 @@ const L = require('./bui_lib.js');
         const sheetBtn = document.querySelector('.bd-ov:not(.out) .bd-ok:not([hidden])'); if (sheetBtn) { sheetBtn.click(); await new Promise(r => setTimeout(r, 5)); continue; }
         const roll = document.querySelector('.bd-ov:not(.out) .bd-roll:not([disabled])'); if (roll && !document.querySelector('.bd-ov:not(.out) .bd-row').hidden) { roll.click(); await new Promise(r => setTimeout(r, 30)); continue; }
         if (UI.mode === 'place' || UI.mode === 'ambush') UI.placeDone(); else if (UI.mode === 'hero' && UI.endTurn) UI.endTurn();
-        else if (UI.mode === 'result') { const m = document.querySelector('.bt-rwd'); if (!m) { await new Promise(r => setTimeout(r, 20)); continue; } if (m.innerText.length > txt.length) txt = m.innerText; if (B.S) kl = Math.max(kl, B.S.killed.length); const d = document.querySelector('.bt-done:not([hidden])'); if (d) d.click(); }
+        else if (UI.mode === 'result') { const m = document.querySelector('.bt-endscr'); if (!m) { await new Promise(r => setTimeout(r, 20)); continue; } if (m.innerText.length > txt.length) txt = m.innerText; if (B.S) kl = Math.max(kl, B.S.killed.length); const tk = document.querySelector('.bt-lrow:not(.got) [data-lt="take"]'); if (tk) { const bag0 = state.party.reduce((a, c) => a + (c.bag || []).length, 0); tk.click(); const hb = document.querySelector('.bt-lrow [data-lt="hero"]'); if (hb) { hb.click(); out.took = (out.took || 0) + (document.querySelector('.bt-lrow.got') ? 1 : 0); } } const d = document.querySelector('.bt-done:not([hidden])'); if (d) d.click(); }
         await new Promise(r => setTimeout(r, 10));
       }
       if (dgUi.enc && B.running) { out.stuck++; try { B.abort(); } catch (e) {} dgUi.enc = null; continue; }
@@ -339,6 +339,7 @@ const L = require('./bui_lib.js');
     return out;
   });
   ok('экран итога: бои закрываются, кристаллы и добыча в списке наград, эссенции не предлагаются', UIF.stuck === 0 && UIF.ok === 3 && UIF.kills >= 1 && UIF.stones === UIF.kills && UIF.loot === UIF.kills && UIF.ess === 0, JSON.stringify(UIF));
+  ok('экран итога: добыча путников — «Взять» и выбор героя кладут вещь в рюкзак', UIF.took >= 1, JSON.stringify(UIF));
 
   // --- сохранение и бестиарий ---
   const SV = await p.evaluate(() => {

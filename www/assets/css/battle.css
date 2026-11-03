@@ -361,3 +361,13 @@ body.bt-active .dice-fab { display: none; }
 .bt-dlg.insp .bt-ihead { min-width: 0; } .bt-dlg.insp .bt-ihead h4 { overflow-wrap: anywhere; min-width: 0; }
 .bt-istats, .bt-iabil { gap: 4px 10px; } .bt-istats span, .bt-iabil span { min-width: 0; white-space: normal; }
 .bt-rskip { padding: 6px 14px; font-size: 13px; }
+/* Добыча с путников (03.11): по одной вещи — Взять (кому) / Оставить */
+.bt-loot { margin: 8px 0 4px; text-align: left; }
+.bt-loot h5 { margin: 0 0 6px; }
+.bt-lrow { display: grid; grid-template-columns: 34px 1fr; gap: 4px 8px; align-items: center; padding: 6px 8px; border: 1px solid rgb(214 166 76 / .25); border-radius: 8px; margin-bottom: 6px; background: rgb(0 0 0 / .18); }
+.bt-lrow .ic { width: 34px; height: 34px; display: flex; } .bt-lrow .ic img, .bt-lrow .ic svg { width: 100%; height: 100%; object-fit: contain; }
+.bt-lrow .nm { font-size: 14px; min-width: 0; }
+.bt-lrow .bt-lbtn { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 6px; }
+.bt-lrow .bt-lbtn .fx-btn { padding: 5px 8px; font-size: 13px; min-height: 34px; }
+.bt-lrow.got, .bt-lrow.gone { opacity: .7; }
+.bt-lrow .ok { color: #9be37a; }

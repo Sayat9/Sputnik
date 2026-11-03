@@ -114,7 +114,11 @@
     for (const k of plan.kills) { const c = state.party.find(x => x.id === k.hid); if (c) { c.kills ||= {}; c.kills[k.id] = (c.kills[k.id] || 0) + 1; } }          // список убийств героя
     const gotLines = [];
     for (const [id, it] of Object.entries(plan.stones)) { const own = id[0] !== "~"; sackAdd(own ? id : null, it.cls, it.n); gotLines.push(`Сумка для камней: ${own ? MONSTERS.find(m => m.id === id).name : "Путники"} × ${it.n} (${it.cls} класс)`); }          // «~класс» — камни путников, в сумке просто «Находки»
-    if (!ev.arena) { const lt = travLoot(plan.species.filter(id => travOf(id))); gotLines.push(...lt.map(t => "Добыча с путников: " + t)); }
+    if (!ev.arena) {
+      const tids = plan.species.filter(id => travOf(id));
+      if (UI && UI.active && typeof travLootItems === "function") { const lt = travLootItems(tids); plan.loot = lt.items; gotLines.push(...lt.lines.map(t => "Добыча с путников: " + t)); }          // вещи — выбором на экране итога (03.11)
+      else { const lt = travLoot(tids); gotLines.push(...lt.map(t => "Добыча с путников: " + t)); }
+    }
     if (ev.arena) { plan.arena = arenaRewards(S, plan); gotLines.push(...plan.arena.lines); plan.wins = plan.wins.map(w => ({ ...w, arena: true })); }          // арена: лута нет, платят монетами
     if (B.deliverFound && !ev.arena) gotLines.push(...B.deliverFound(S, outcome === "win" || outcome === "retreat" || outcome === "abort"));
     if (!(UI && UI.active)) { for (const w of plan.wins) if (!w.arena) essStash().push(w.id); if (plan.wins.length) saveChar(); }          // без экрана итога — в запас; с экраном игрок выбирает: впитать, сохранить, оставить
@@ -144,10 +148,30 @@
         ${S.gear && S.gear.length ? `<h5>Снаряжение</h5><ul class="bt-gearl">${S.gear.map(g => `<li class="${g.ok ? "ok" : "lost"}">${esc(g.t)}</li>`).join("")}</ul>` : ""}
         <div class="bt-hlist">${B.heroes().map(h => `<span class="bt-hchip${h.dead ? " dead" : ""}"><img src="${h.face}" alt="">${esc(h.name)} <b>${h.dead ? "погиб" : Math.max(h.down ? 1 : 0, h.hp) + "/" + h.maxHp}</b></span>`).join("")}</div></div>
       ${nothing || plan.people ? "" : `<div class="bt-roll" hidden><p>Бросок на эссенцию <small>— нужно ${ESS_CHANCE}+ из 100</small></p><canvas></canvas><div class="bt-roll-res"></div><button class="bt-rolls-btn" type="button" aria-expanded="false" aria-label="Показать все броски на эссенцию" hidden><span>все броски</span><i aria-hidden="true">▾</i></button><div class="bt-rolls" hidden></div></div>`}
+      ${plan.loot && plan.loot.length ? `<div class="bt-loot"><h5>Добыча с путников</h5>${plan.loot.map((e, i) => `<div class="bt-lrow" data-li="${i}"><span class="ic">${typeof itemThumb === "function" ? itemThumb(e) : ""}</span><span class="nm">${esc((itemOf(e) || { name: e.id }).name)}${e.qty > 1 ? ` <b>×${e.qty}</b>` : ""}</span><div class="bt-lbtn"><button class="fx-btn primary" data-lt="take">Взять</button><button class="fx-btn" data-lt="leave">Оставить</button></div></div>`).join("")}</div>` : ""}
       <div class="bt-essgot" hidden></div>
       <button class="fx-btn primary big bt-done" hidden>Готово</button></div>`;
-    if (B.Net && B.Net.announceEnd) { const essLine = plan.wins.length ? "Выпала эссенция!" : (plan.species.length ? "Эссенция не выпала" : ""); B.Net.announceEnd(`<div class="bt-endscr fx-frame ${cls}"><small class="bt-eyebrow">Бой окончен · раундов: ${S.round}</small><h2 class="bt-title ${cls}">${title}</h2>${fallen.length ? `<p class="bt-bad">Погибли: ${esc(fallen.join(", "))}</p>` : ""}<div class="bt-rwd"><h5>Награды</h5>${nothing ? `<p class="muted">Никто не убит — награды нет.</p>` : `<ul>${xpLine}${stoneLines}</ul>`}${essLine ? `<p><b>${essLine}</b></p>` : ""}<div class="bt-hlist">${B.heroes().map(h => `<span class="bt-hchip${h.dead ? " dead" : ""}"><img src="${h.face}" alt="">${esc(h.name)} <b>${h.dead ? "погиб" : Math.max(h.down ? 1 : 0, h.hp) + "/" + h.maxHp}</b></span>`).join("")}</div></div></div>`); }
+    if (B.Net && B.Net.announceEnd) { const hasRoll = !nothing && plan.best && !plan.people, rw = plan.wins.length ? plan.wins.reduce((a, b) => (a.r >= b.r ? a : b)) : plan.best;          // игрокам — та же анимация броска на эссенцию (03.11)
+      const roll = hasRoll ? { d: digits(rw.r), ok: plan.wins.length > 0, trav: !!rw.trav, r: rw.r, need: ESS_CHANCE } : null;
+      const essLine = roll ? "" : plan.wins.length ? "Выпала эссенция!" : (plan.species.length ? "Эссенция не выпала" : ""); B.Net.announceEnd(`<div class="bt-endscr fx-frame ${cls}"><small class="bt-eyebrow">Бой окончен · раундов: ${S.round}</small><h2 class="bt-title ${cls}">${title}</h2>${fallen.length ? `<p class="bt-bad">Погибли: ${esc(fallen.join(", "))}</p>` : ""}<div class="bt-rwd"><h5>Награды</h5>${nothing ? `<p class="muted">Никто не убит — награды нет.</p>` : `<ul>${xpLine}${stoneLines}</ul>`}${essLine ? `<p><b>${essLine}</b></p>` : ""}<div class="bt-hlist">${B.heroes().map(h => `<span class="bt-hchip${h.dead ? " dead" : ""}"><img src="${h.face}" alt="">${esc(h.name)} <b>${h.dead ? "погиб" : Math.max(h.down ? 1 : 0, h.hp) + "/" + h.maxHp}</b></span>`).join("")}</div></div></div>`, roll); }
     const done = modal.querySelector(".bt-done"), finish = new Promise(res => { done.onclick = res; });
+    const lootEl = modal.querySelector(".bt-loot");
+    if (lootEl) lootEl.onclick = ev => {          // добыча с путников: Взять → кому (или Отмена) / Оставить; что не выбрано до «Готово» — остаётся на месте
+      const b = ev.target.closest("[data-lt]"); if (!b || b.disabled) return;
+      const row = b.closest(".bt-lrow"), e = plan.loot[+row.dataset.li], box = row.querySelector(".bt-lbtn"), nm = row.querySelector(".nm");
+      const base = `<button class="fx-btn primary" data-lt="take">Взять</button><button class="fx-btn" data-lt="leave">Оставить</button>`;
+      const k = b.dataset.lt;
+      if (k === "leave") { row.classList.add("gone"); box.innerHTML = `<small class="muted">оставлено</small>`; return; }
+      if (k === "cancel") { box.innerHTML = base; return; }
+      if (k === "take") { box.innerHTML = state.party.filter(c => !c.dead).map(c => `<button class="fx-btn" data-lt="hero" data-h="${c.id}">${esc(c.name)} <small>${(c.bag || []).length}/${bagSize(c)}</small></button>`).join("") + `<button class="fx-btn" data-lt="cancel">Отмена</button>`; return; }
+      if (k === "hero") {
+        const c = state.party.find(x => x.id === b.dataset.h); if (!c) return;
+        const left = addToBag(c, { ...e, qty: e.qty || 1 }), got = (e.qty || 1) - left; saveChar();
+        if (!got) { if (UI.toast) UI.toast(`${c.name}: в рюкзаке нет места`); return; }
+        if (left > 0) { e.qty = left; nm.innerHTML = `${esc((itemOf(e) || { name: e.id }).name)} <b>×${left}</b>`; box.innerHTML = base; if (UI.toast) UI.toast(`${c.name} взял ${got}, не поместилось ${left}`); return; }
+        row.classList.add("got"); box.innerHTML = `<small class="ok">забирает ${esc(c.name)}</small>`;
+      }
+    };
     if (!nothing && plan.best && !plan.people) {
       await sleep(900);
       const roll = modal.querySelector(".bt-roll"), cv = roll.querySelector("canvas"), resEl = roll.querySelector(".bt-roll-res"); roll.hidden = false;
