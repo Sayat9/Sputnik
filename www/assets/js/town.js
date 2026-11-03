@@ -69,10 +69,11 @@
 
   function render() {
     if (!ui) return;
-    const y = host.querySelector(".tw-scroll")?.scrollTop || 0, y2 = host.querySelector(".tw-bagcol")?.scrollTop || 0;
+    // прокрутка любых списков окна (товары, рюкзак, вкладки…) переживает перерисовку: выбор предмета больше не отбрасывает к началу списка (03.11)
+    const sig = el => { const cls = el.className && typeof el.className === "string" ? "." + el.className.trim().split(/\s+/).join(".") : ""; const same = [...host.querySelectorAll(el.tagName + cls)]; return [el.tagName + cls, same.indexOf(el)]; };
+    const keep = [...host.querySelectorAll("*")].filter(el => el.scrollTop > 0 || el.scrollLeft > 0).map(el => [sig(el), el.scrollTop, el.scrollLeft]);
     html(B[ui.b].render());
-    const sc = host.querySelector(".tw-scroll"); if (sc) sc.scrollTop = y;
-    const bc = host.querySelector(".tw-bagcol"); if (bc) bc.scrollTop = y2;
+    for (const [[q, i], t, l] of keep) { try { const el = host.querySelectorAll(q)[i]; if (el) { el.scrollTop = t; el.scrollLeft = l; } } catch (e) {} }
   }
 
   /* ---------- общие части ---------- */
@@ -630,16 +631,24 @@
     if (!payGold(c, k.price)) { ui.msg = "Не хватает монет."; return; }
     eduLearn(c, id); visit(); ui.msg = `${c.name} прошёл курс «${k.name}».`; saveChar();
   }
+  // Ранг (03.11): повышение в Академии, бесплатно, если условие выполнено (условия — RANK_REQ в index.html).
+  function rankRows(c) {
+    const to = rankNext(c), q = to && RANK_REQ[to], pr = to && rankProgress(c, to), ok = to && rankReady(c, to);
+    const mark = v => v ? `<b style="color:#8fd18f">✓</b>` : `<b style="color:#d98b6b">✗</b>`;
+    return `<div class="tw-row"><div class="tw-who">${rankBadge(heroRank(c), 40)}<div><b>${esc(c.name)}: ${heroRank(c)} ранг · ${esc(RANK_NAME[heroRank(c)] || "")}</b><small>Ранг отряда — ${partyRank()} (лучший среди героев).</small></div></div></div>
+      ${to ? `<div class="tw-row"><div class="tw-who">${rankBadge(to, 40)}<div><b>${to} ранг · ${esc(RANK_NAME[to] || "")}</b><small>${esc(q.text)}.<br>${mark(pr.floor)} спуск на ${q.floor} этаж · ${mark(pr.kill)} монстр ${q.cls} класса</small></div></div>
+        <button class="fx-btn primary" data-t="rankup"${ok ? "" : " disabled"}>Повысить</button></div>` : `<p class="tw-msg">Следующий ранг пока не открыт.</p>`}`;
+  }
   B.academy = {
     render() {
       const c = hero(); if (!c) return frame("Академия", "Рафдония", noParty());
       const tab = ui.tab && ACADEMY_GROUPS.some(g => g[0] === ui.tab) ? ui.tab : "gather";
       const tabs = `<div class="tw-tabs" role="tablist">${ACADEMY_GROUPS.map(([id, label]) => `<button class="fx-btn" role="tab" aria-selected="${tab === id}" data-t="atab" data-k="${id}">${label}${ACADEMY.filter(k => k.grp === id && eduKnows(c, k.id)).length ? " ✓" : ""}</button>`).join("")}</div>`;
-      const rows = ACADEMY.filter(k => k.grp === tab).map(k => {
+      const rows = tab === "rank" ? rankRows(c) : ACADEMY.filter(k => k.grp === tab).map(k => {
         const known = eduKnows(c, k.id), locked = k.need && !eduKnows(c, k.need), can = !known && !locked && partyGold() >= k.price;
         return `<div class="tw-row"><div class="tw-who"><div><b>${esc(k.name)}</b><small>${esc(k.text)}${locked ? " · сначала «" + esc(ACADEMY.find(x => x.id === k.need).name) + "»" : ""}</small></div></div>
           ${known ? `<span class="tw-done">${ICO_CHECK}</span>` : `<button class="fx-btn primary" data-t="learn" data-id="${k.id}"${can ? "" : " disabled"}>${k.price}</button>`}</div>`; }).join("");
-      return frame("Академия", "Рафдония", `<div class="tw-npc framed">${img("assets/npc/academy.webp", "Наставник Академии")}<span>Знание — лучшее оружие в лабиринте. Чему желаете научиться?</span></div><button class="fx-btn primary" data-t="recruit" style="width:100%">Завербовать героя</button><p class="tw-hint" style="margin:0">Новый наёмник создаётся как обычный герой и вступает в отряд.</p>${heroStrip()}${tabs}<p class="tw-lead">Выбери героя и оплати курс. Знания остаются за ним одним — у остальных курсов нет.</p><div class="tw-rows">${rows}</div>${msgLine()}`);
+      return frame("Академия", "Рафдония", `<div class="tw-npc framed">${img("assets/npc/academy.webp", "Наставник Академии")}<span>Знание — лучшее оружие в лабиринте. Чему желаете научиться?</span></div><button class="fx-btn primary" data-t="recruit" style="width:100%">Завербовать героя</button><p class="tw-hint" style="margin:0">Новый наёмник создаётся как обычный герой и вступает в отряд.</p>${heroStrip()}${tabs}${tab === "rank" ? "" : `<p class="tw-lead">Выбери героя и оплати курс. Знания остаются за ним одним — у остальных курсов нет.</p>`}<div class="tw-rows">${rows}</div>${msgLine()}`);
     },
   };
 
@@ -830,6 +839,7 @@
       case "gsell": guildSell(ds.id); break;
       case "analyze": analyze(ds.id); break;
       case "learn": learn(ds.id); break;
+      case "rankup": { const c = hero(); if (c && rankUp(c)) { ui.msg = `${c.name} теперь ${c.rank} ранга!`; visit(); saveChar(); } break; }
       case "atab": ui.tab = ds.k; break;
       case "ttab": ui.tab = ds.k; break;
       case "aid": identify(ds.id); break;

@@ -6,6 +6,10 @@
 
 ## События на шаге (заставки)
 
+### Раскопки — `events/dig` (экран действия «Копать», 03.11)
+
+> `wide shot inside a dark dungeon corridor, a worn iron shovel stuck in a freshly dug pit of earth and stones, a few old coins and a cracked gem glinting in the dirt, torchlight from the side, hand-painted dark fantasy illustration, painterly, landscape 3:2, no characters, no text`
+
 Все нарисованы (засада, монстры, ничего, путники, сокровище, вход в лабиринт, возвращение в город). Новая заставка — `assets/events/<имя>.webp`, 1536 × 1024.
 
 ## Монстры
@@ -18,9 +22,13 @@
 
 > `full-body a dog-sized beetle with a cracked coal-black carapace glowing orange in the seams, mandibles dripping embers, scorched ash plain with lava cracks and drifting embers, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
 
-### Тлеющая гончая — `monsters/ember-hound-full`
+### Огненная саламандра — `monsters/ember-salamander-full`
 
-> `full-body a lean hound with smouldering charcoal fur, smoke trailing from its back, glowing ember eyes, scorched ash plain with lava cracks and drifting embers, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+> `full-body a large lithe fire salamander lizard with glowing orange stripes along black scales, flames licking from its back, a burning trail behind its tail, scorched ash plain with lava cracks and drifting embers, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Пепельный палач — `monsters/ash-executioner-full`
+
+> `full-body a tall executioner in a soot-blackened iron mask and burnt cuirass, holding a huge chipped two-handed sword with glowing ember edge, ash falling around him, scorched ash plain with lava cracks and drifting embers, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
 
 ### Жаровня-голем — `monsters/brazier-golem-full`
 
@@ -154,14 +162,6 @@
 
 > `full-body a huge faceless marble figure with a smooth blank face, holding a giant chisel and mallet, half-carved statues around it, dust in the air, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
 
-### Мимик — `monsters/mimic-full`
-
-> `full-body treasure chest mimic mid-lunge, a worn wooden chest with a wide toothy maw, a long sticky tongue, glowing amber eyes under the lid, tiny gold coins stuck to its teeth, dark dungeon floor, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
-
-### Сокол-разведчик — `monsters/orc-falcon-full`
-
-> `full-body large brown war falcon with a leather hood pushed back and a small bone tag on its leg, wings half-spread, sharp golden eyes, perched on a wooden spike of an orc palisade, smoky sky, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
-
 ### Вожак стражи — `monsters/orc-guard-full`
 
 > `full-body big orc guard captain in rusty chainmail with a heavy tower-like shield and a bearded war axe, iron helmet with tusk guards, standing in front of a line of orc warriors, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
@@ -174,21 +174,9 @@
 
 > `full-body hulking orc executioner in a leather hood, bare scarred chest crossed with heavy iron chains, swinging a long hooked chain, blood-stained apron, grim camp gallows behind, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
 
-### Вождь орков — `monsters/orc-chief-full`
-
-> `full-body massive orc warchief in mismatched trophy plate armor, a great cleaver in one hand, a wolf pelt cloak, tusks capped with gold, roaring war cry before his great tent with banners, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
-
 ## Предметы, оружие и броня
 
 Стальное и более сильное снаряжение рисуется на лучшем фоне, чем обычное: «новое, блестящее» предмет (`new shiny steel …`), резная подставка (`decorated wooden display stand`), ниша-арсенал (`softly lit arsenal alcove`), знамёна и доспехи вдоль стен. Образец: `a new shiny steel warhammer with a squared head and a pointed back spike on a hardwood haft, standing upright, resting against a decorated wooden display stand, on a small stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit arsenal alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`.
-
-### Ремонтный набор — `repair-kit`
-
-> `a small worn leather roll-up repair kit lying open: a tiny hammer, a few steel rivets, a strip of leather patches, a pot of glue and a whetting file, scuffs and oil stains, on a small worn stone pedestal in a stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
-
-### Продвинутый ремонтный набор — `repair-kit-pro`
-
-> `a sturdy well-kept dwarven toolbox with brass corners lying open: fine chisels, a small anvil block, tempered files, steel plates and neat coils of wire, used but cared for, on a small worn stone pedestal in a stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
 
 ## Оружие и броня (обычное и стальное)
 

@@ -116,15 +116,15 @@ const L = require('./bui_lib.js');
     out.cleared = dgUi.sr.pick === null && cdLeft('dice', 6) === 6;
     out.btnOff = /data-dg="dice-reroll" disabled/.test(searchOverlay());
     // бросок удачи: сначала стирается он
-    r.cd = {}; r.pos = { x: 5, y: 5 }; r.floor = 1; dgUi.phase = 'dig'; dgUi.sr = { pick: 20, luck: 7 };
+    r.cd = {}; r.pos = { x: 5, y: 5 }; r.floor = 1; dgUi.phase = 'dig'; dgUi.sr = { pick: 20, luck: 7, rolled: true };          // раскопки (v106): бросок делает приложение
     out.luckPrev = /Выпало: <b[^>]*>Бросок удачи: /.test(searchOverlay());
     document.body.insertAdjacentHTML('beforeend', '<div id="tmp" data-dg="dice-reroll"></div>'); document.getElementById('tmp').click(); document.getElementById('tmp').remove();
-    out.luckOnly = dgUi.sr.luck === null && dgUi.sr.pick === 20;
+    out.luckOnly = dgUi.sr.pick === 20 && dgUi.sr.luck >= 1 && dgUi.sr.luck <= 20;          // переброс удачи — приложение сразу бросает заново, 20 остаётся
     dgUi.phase = 'menu'; dgUi.sr = null;
     return out;
   });
   ok('кубики: пробежка и стоянка показывают результат и дают переброс', Z.pass === 'Засада на бегу|Ловушка гоблинов|Пробежали без происшествий' && Z.passHtml && /Нападение на стоянку\|Тихо/.test(Z.camp) && Z.campHtml, JSON.stringify(Z));
-  ok('кубики: Исследование и Раскопки показывают результат, перебрасывают число, потом откат; на 20 сперва стирается бросок удачи', Z.sr && Z.cleared && Z.btnOff && Z.luckPrev && Z.luckOnly, JSON.stringify(Z));
+  ok('кубики: Исследование и Раскопки показывают результат, перебрасывают число, потом откат; на 20 перебрасывается только бросок удачи', Z.sr && Z.cleared && Z.btnOff && Z.luckPrev && Z.luckOnly, JSON.stringify(Z));
   // настоящая засада в событии и в отдыхе без караула
   const Y = await p.evaluate(() => {
     const out = {}, r = state.run; r.cd = {}; r.day = 5; r.act = 1; r.pos = { x: 3, y: 3 };

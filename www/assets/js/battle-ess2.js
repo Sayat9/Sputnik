@@ -1968,9 +1968,9 @@
   A["silent-predator"] = { time: "action", tgt() { return { type: "none" }; }, can() { return "работает вне боя"; }, async run() { return false; }, ai() { return null; } };
 
   /* ===== 3 этаж: Пылающие земли (03.11; черновик) ===== */
-  Object.assign(D.essCd, { "coal-beetle": 3, "ember-hound": 2, "brazier-golem": 4, "ember-reaper": 3, "magma-wyrm": 4, "forge-smith": 4 });
+  Object.assign(D.essCd, { "coal-beetle": 3, "ember-salamander": 2, "ash-executioner": 3, "brazier-golem": 4, "ember-reaper": 3, "magma-wyrm": 4, "forge-smith": 4 });
   Object.assign(D.monTune, {
-    "coal-beetle": { role: "ranged", keep: 2, focus: ["nearest"], fleeHp: 0.3 }, "ember-hound": { role: "swarm", circle: true, focus: ["weak", "nearest"], fleeHp: 0.3 },
+    "coal-beetle": { role: "ranged", keep: 2, focus: ["nearest"], fleeHp: 0.3 }, "ember-salamander": { role: "skirmish", focus: ["weak", "nearest"], fleeHp: 0.3 }, "ash-executioner": { role: "brute", focus: ["weak", "nearest"], noFlee: true },
     "brazier-golem": { role: "brute", focus: ["cluster", "nearest"], noFlee: true }, "ember-reaper": { role: "brute", focus: ["weak", "nearest"], noFlee: true },
     "magma-wyrm": { role: "brute", focus: ["nearest"], noFlee: true }, "forge-smith": { role: "brute", focus: ["attacker", "nearest"], noFlee: true },
   });
@@ -1991,14 +1991,17 @@
     },
     ai(u) { const ts = within(u, 4).filter(t => dist(u, t) >= 2); return ts.length ? { unit: ts[0], score: 3 } : null; },
   };
-  /* Тлеющая гончая (9): «Дымная шкура», «Раздуть угли» */
-  P["ember-hound"] = { defendMods(t, ctx) { if (ctx.atk && ctx.atk.kind !== "melee" && fireNear(t, 1)) ctx.dis.push("дымная шкура"); } };
-  A["ember-hound"] = {
-    time: "bonus", tgt() { return { type: "none" }; }, can(u) { return fireNear(u, 3) ? true : "рядом нет огня"; },
-    async run(u, pk, ctl) { ctl.commit(); const fc = fireNear(u, 3); if (!fc) return true; const [fx0, fy0] = fc;
-      for (const t of enemiesOf(u).filter(e => Math.max(Math.abs(e.x - fx0), Math.abs(e.y - fy0)) <= 1)) await saveDmg(u, t, "dex", dcOf(u, "dex"), [1, 6], "fire", "Раздуть угли");
-      log(`${u.name} раздувает угли.`, "skill"); return true; },
-    ai(u) { const fc = fireNear(u, 3); return fc && enemiesOf(u).some(e => Math.max(Math.abs(e.x - fc[0]), Math.abs(e.y - fc[1])) <= 1) ? { score: 3 } : null; },
+  /* Огненная саламандра (9): «Огненный след», «Хлёст хвостом» */
+  P["ember-salamander"] = { turnStart(u) { u.trailFrom = [u.x, u.y]; }, turnEnd(u) { const f = u.trailFrom; u.trailFrom = null; if (f && (f[0] !== u.x || f[1] !== u.y)) { fireAt(f[0], f[1], 1); const g = ui(); if (g) g.refresh(); } } };
+  A["ember-salamander"] = {
+    time: "bonus",
+    tgt(u) { return specUnit(u, "Хлёст хвостом: кого?", within(u, 1), cellsAround(u, 1), "attack"); },
+    can(u) { return within(u, 1).length ? true : "никого рядом"; },
+    async run(u, pk, ctl) { ctl.commit(); const t = pk.unit || within(u, 1)[0]; if (!t) return true;
+      const sv = await save(t, "dex", dcOf(u, "dex"), "Хлёст хвостом", ["push"], u);
+      if (!sv.ok && alive(t)) { await B.applyDamage(u, t, [{ v: roll(1, 6).total, dt: "fire", label: "Хлёст хвостом" }], { src: u }); if (alive(t) && B.push) await B.push(t, u.x, u.y, 1); }
+      log(`${u.name} хлещет хвостом.`, "skill"); const g = ui(); if (g) g.refresh(); return true; },
+    ai(u) { const ts = within(u, 1); return ts.length ? { unit: ts[0], score: 4 } : null; },
   };
   /* Жаровня-голем (8): «Угли в чреве», «Опрокинуть жаровню» */
   P["brazier-golem"] = { turnStart(u) { if (fireNear(u, 1) && u.hp < u.maxHp) { B.heal(u, 2, u); fx(u, "+2", "good"); } } };
@@ -2007,7 +2010,7 @@
     async run(u, pk, ctl) {
       ctl.commit(); const t = within(u, 2).sort((a, b) => dist(u, a) - dist(u, b))[0]; const dx = Math.sign(t.x - u.x), dy = Math.sign(t.y - u.y);
       const cells = [[u.x + dx, u.y + dy], dx && dy ? [u.x + dx, u.y] : [u.x + dx + (dy ? 1 : 0), u.y + dy + (dx ? 1 : 0)], dx && dy ? [u.x, u.y + dy] : [u.x + dx - (dy ? 1 : 0), u.y + dy - (dx ? 1 : 0)]];
-      for (const [x, y] of cells) { fireAt(x, y, 3); for (const e of enemiesOf(u).filter(e => footprint(e).some(([a, b]) => a === x && b === y))) await saveDmg(u, e, "dex", dcOf(u, "con"), [2, 6], "fire", "Опрокинуть жаровню"); }
+      for (const [x, y] of cells) { fireAt(x, y, 3); for (const e of enemiesOf(u).filter(e => footprint(e).some(([a, b]) => a === x && b === y))) await saveDmg(u, e, "dex", dcOf(u, u.hero ? "int" : "con"), [2, 6], "fire", "Опрокинуть жаровню"); }          // у героя — от Интеллекта (эссенция под мага)
       log(`${u.name} опрокидывает жаровню.`, "skill"); const g = ui(); if (g) g.refresh(); return true;
     },
     ai(u) { return within(u, 1).length ? { score: 10 + within(u, 1).length * 3 } : null; },
@@ -2035,6 +2038,18 @@
       log(`${u.name} плюётся лавой.`, "skill"); const g = ui(); if (g) g.refresh(); return true;
     },
     ai(u) { const ts = within(u, 4); return ts.length ? { unit: ts.sort((a, b) => b.hp - a.hp)[0], score: 14 } : null; },
+  };
+  /* Пепельный палач (7): «Палаческий замах», «Приговор» */
+  const twoHandAtk = (u, a) => !!a && a.kind === "melee" && (u.hero ? !!(a.w && a.w.group !== "ranged" && typeof isTwoHandedWeapon === "function" && isTwoHandedWeapon(a.w)) : true);
+  P["ash-executioner"] = { attackMods(u, ctx) { if (twoHandAtk(u, ctx.atk)) { ctx.dmgPlus = (ctx.dmgPlus || 0) + 2; ctx.notes && ctx.notes.push("палаческий замах: +2 урона"); } } };
+  A["ash-executioner"] = {
+    time: "action",
+    tgt(u) { return specUnit(u, "Приговор: кого?", within(u, 1), cellsAround(u, 1), "attack"); },
+    can(u) { return within(u, 1).length ? true : "никого рядом"; },
+    async run(u, pk, ctl) { const a = atkFor(u, "melee"), t = pk.unit; if (!a || !t) return false;
+      const low = t.hp <= t.maxHp / 2; const r = await B.doAttack(u, t, a, { extra: low ? [{ n: 2, s: 6, b: 0, dt: a.dt || "slash", label: "Приговор" }] : [], onCommit: () => ctl.commit() });
+      return !(r && r.cancelled); },
+    ai(u) { const ts = within(u, 1).filter(t => t.hp <= t.maxHp / 2); return ts.length ? { unit: ts[0], score: 18 } : null; },
   };
   /* Кузнец горнила (6): «Закалённый удар», «Удар о наковальню» */
   P["forge-smith"] = {
