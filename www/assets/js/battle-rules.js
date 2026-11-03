@@ -45,7 +45,7 @@
   function setMp(u, v) { const old = u.mp; u.mp = clamp(Math.round(v), 0, u.maxMp); if (u.hero) u.hero.mp = u.mp; if (u.hero && u.mp < old && B.staffCharge) B.staffCharge(u, old - u.mp); }          // посох разрядов копит потраченную ману
   const canAct = u => alive(u) && !u.down && !has(u, "unconscious") && !has(u, "stable") && !has(u, "paralyzed") && !has(u, "encased") && !has(u, "underground");          // закопавшийся землекоп не действует и не реагирует
   function revive(u) {
-    removeStatus(u, "unconscious"); removeStatus(u, "stable"); u.down = false; u.deathSaves = { ok: 0, fail: 0 };
+    removeStatus(u, "unconscious"); removeStatus(u, "stable"); removeStatus(u, "prone"); u.down = false; u.deathSaves = { ok: 0, fail: 0 };          // вылечили — сразу на ногах (автор 03.11)
     log(`${u.name} приходит в себя.`, "good"); const g = ui(); if (g) g.fxText(u, "в сознании", "good");
   }
   function heal(u, n, src) {
@@ -584,6 +584,7 @@
   // Принудительное перемещение на n клеток от точки (без провоцированных атак).
   async function push(u, fromX, fromY, n) {
     let moved = 0; if (has(u, "bastion")) return 0;          // бастион: не сдвинуть
+    if (u.pass && u.pass.includes("toll-guard")) { const d = Math.max(roll(1, 20).total, roll(1, 20).total) + amod(u.abil.str); if (d >= 12) { log(`${u.name}: тяжёлая стойка — не сдвинуть (${d}).`, "skill"); return 0; } }          // «Тяжёлая стойка»: против сдвига — спасбросок Силы Сл 12 с преимуществом
     for (let i = 0; i < n; i++) {
       const dx = Math.sign(u.x - fromX) || 0, dy = Math.sign(u.y - fromY) || 0; if (!dx && !dy) break;
       const nx = u.x + dx, ny = u.y + dy;

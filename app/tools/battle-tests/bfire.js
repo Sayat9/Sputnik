@@ -1,0 +1,32 @@
+// 3 этаж: Пылающие земли (встречи, кузнец), способности вне боя (ворон, охотник, хищник) — 03.11.
+const { chromium } = require('playwright');
+(async () => {
+  const b = await chromium.launch(); const p = await b.newPage(); const errs = []; p.on('pageerror', e => errs.push(e.message));
+  await p.addInitScript(() => { localStorage.setItem('sputnik.state.v2', JSON.stringify({ party: [], sessions: [], settings: { tactical: false } })); });
+  await p.goto('file:///home/user/app/index.html'); await p.waitForTimeout(500);
+  const r = await p.evaluate(() => {
+    state.party = [Object.assign(clone(state.example), { id: 'p0', example: false })]; newRun(); const run = state.run; run.floor = 3; run.day = 5;
+    const ids = (x, y, n) => { const out = new Set(); for (let i = 0; i < 80; i++) { const e = genEncounterRaw(x, y, run.day, n); if (e) e.list.forEach(id => out.add(id)); } return [...out]; };
+    const fire = ids(3, 3, 3), easy = ids(3, 3, 13), boss = genEncounterRaw(5, 6, 5, 3);
+    const c = state.party[0]; c.level = 3; c.essences = ['keen-raven', 'silent-predator', 'toll-hunter']; c.mp = 30;
+    run.pos = { x: 3, y: 3 }; run.visited = [tkey(3, 3)];
+    const before = oobState(c, 'keen-raven');
+    heroUi = { id: 'p0', tab: 'skills' };
+    const html = heroSkills(c), btns = (html.match(/data-hx="oob"/g) || []).length;
+    const res = OOB['keen-raven'].run(c, run), opened = run.visited.length;
+    OOB['silent-predator'].run(c, run); const quiet = quietOn();
+    f3().noise = 7; OOB['toll-hunter'].run(c, run); const noise = f3().noise;
+    return { fire, easy, boss: boss && boss.list, ess: ['coal-beetle', 'ember-hound', 'brazier-golem', 'ember-reaper', 'magma-wyrm', 'forge-smith'].every(id => ESSENCES[id] && MONSTERS.find(m => m.id === id)), btns, before, opened, quiet, noise, res };
+  });
+  let n = 0, bad = 0; const ok = (t, c, x) => { n++; if (!c) bad++; console.log(`  ${c ? '✓' : '✗'} ${t}${c ? '' : ' — ' + JSON.stringify(x)}`); };
+  ok('Пылающие земли: тяжёлые встречи — свои монстры', r.fire.length && r.fire.every(id => /coal|ember|brazier|magma/.test(id)), r);
+  ok('Пылающие земли: лёгкие — только 9 класс', r.easy.every(id => ['coal-beetle', 'ember-hound'].includes(id)), r);
+  ok('горнило — кузнец + голем', r.boss && r.boss[0] === 'forge-smith', r);
+  ok('6 монстров и эссенций', r.ess, r);
+  ok('кнопки способностей вне боя у трёх эссенций', r.btns === 3, r);
+  ok('ворон открывает соседние квадраты', r.opened > 1, r);
+  ok('хищник: отряд тих', r.quiet, r);
+  ok('охотник: шум −3', r.noise === 4, r);
+  ok('нет ошибок страницы', !errs.length, errs.slice(0, 3));
+  console.log(`проверок: ${n}, не прошли: ${bad}`); await b.close();
+})();

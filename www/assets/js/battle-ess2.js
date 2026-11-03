@@ -1621,7 +1621,7 @@
     ai(u) { const ts = within(u, 4).filter(t => !has(t, "bellnoise")); return ts.length ? { unit: ts.sort((a, b) => dist(u, a) - dist(u, b))[0], score: 2 } : null; },
   };
   /* Гулкий страж (8): «Тяжёлая стойка» (не сдвинуть, не сбить), «Гул щита» +2 КД на 2 раунда */
-  P["toll-guard"] = { immovable: true, saveMods(u, ctx) { if ((ctx.tags || []).some(t => ["prone", "shove", "push", "grapple"].includes(t))) ctx.adv.push("тяжёлая стойка"); }, acBonus(u) { return has(u, "shieldhum") ? 2 : 0; } };
+  P["toll-guard"] = { immune(u, { id }) { return id === "prone"; }, saveMods(u, ctx) { if ((ctx.tags || []).some(t => ["shove", "push", "grapple"].includes(t))) ctx.adv.push("тяжёлая стойка"); }, acBonus(u) { return has(u, "shieldhum") ? 2 : 0; } };          // автор 03.11: сбить с ног нельзя, против сдвига — преимущество
   A["toll-guard"] = { time: "action", tgt() { return { type: "none" }; }, can(u) { return has(u, "shieldhum") ? "щит уже гудит" : true; },
     async run(u, pk, ctl) { ctl.commit(); addStatus(u, "shieldhum", { k: 2, when: "end" }); log(`${u.name}: гул щита — +2 КД на 2 раунда.`, "skill"); fx(u, "гул щита", "good"); return true; },
     ai(u) { return !has(u, "shieldhum") && within(u, 1).length && u.hp < u.maxHp * 0.85 ? { score: 14 } : null; } };
@@ -1760,7 +1760,7 @@
       const a = atkFor(e, "melee"); if (!a || e.side === mover.side) return; const r = a.reach || 1;
       if (dist(e, mover) > r || (from && B.distAt(e, mover, from[0], from[1]) <= r) || e.stanceRound === B.S.round) return; e.stanceRound = B.S.round;
       const sv = await save(mover, "str", dcOf(e, "str"), "Стойка алебардиста", ["stop"], e);
-      if (!sv.ok) { mover.halted = true; log(`${e.name}: стойка — ${mover.name} останавливается.`, "skill"); fx(mover, "остановлен", "bad"); }
+      if (!sv.ok && mover.t) { mover.t.move = Math.max(0, (mover.t.move || 0) - 2); if (!mover.t.move) mover.halted = true; log(`${e.name}: стойка — ${mover.name} теряет 2 клетки движения.`, "skill"); fx(mover, "−2 клетки", "bad"); }          // автор 03.11: провал — −2 клетки движения
     },
   };
   const prevRedirect = B.redirectAttack;
@@ -1966,6 +1966,86 @@
     attackMods(u, ctx) { if (has(u, "hidden") && ctx.tgt && ctx.tgt.flags && ctx.tgt.flags.stillLast) { ctx.autoCrit = true; ctx.notes.push("удар из тишины"); } },
   };
   A["silent-predator"] = { time: "action", tgt() { return { type: "none" }; }, can() { return "работает вне боя"; }, async run() { return false; }, ai() { return null; } };
+
+  /* ===== 3 этаж: Пылающие земли (03.11; черновик) ===== */
+  Object.assign(D.essCd, { "coal-beetle": 3, "ember-hound": 2, "brazier-golem": 4, "ember-reaper": 3, "magma-wyrm": 4, "forge-smith": 4 });
+  Object.assign(D.monTune, {
+    "coal-beetle": { role: "ranged", keep: 2, focus: ["nearest"], fleeHp: 0.3 }, "ember-hound": { role: "swarm", circle: true, focus: ["weak", "nearest"], fleeHp: 0.3 },
+    "brazier-golem": { role: "brute", focus: ["cluster", "nearest"], noFlee: true }, "ember-reaper": { role: "brute", focus: ["weak", "nearest"], noFlee: true },
+    "magma-wyrm": { role: "brute", focus: ["nearest"], noFlee: true }, "forge-smith": { role: "brute", focus: ["attacker", "nearest"], noFlee: true },
+  });
+  const fireAt = (x, y, rounds) => { const S = B.S; if (!S.cells[y] || x < 0 || x >= B.W) return; const c = S.cells[y][x]; if (c && c !== "fire" && !(D.terrain[c] || {}).flammable && c !== "rubble") return; S.cells[y][x] = "fire"; (S.tmpFire ||= []).push({ x, y, until: S.round + rounds }); };
+  const fireNear = (u, r) => { for (let y = u.y - r; y <= u.y + r; y++) for (let x = u.x - r; x <= u.x + r; x++) if (B.S.cells[y] && B.S.cells[y][x] === "fire") return [x, y]; return null; };
+  const prevRoundFire = B.onRound;
+  B.onRound = function (round) { if (prevRoundFire) prevRoundFire(round); const S = B.S; if (!S || !S.tmpFire) return; S.tmpFire = S.tmpFire.filter(f => { if (f.until >= round) return true; if (S.cells[f.y] && S.cells[f.y][f.x] === "fire") S.cells[f.y][f.x] = null; return false; }); };
+  const saveDmg = async (u, t, abil, dc, dice, dt, label, tags) => { const sv = await save(t, abil, dc, label, tags || [], u), d = roll(dice[0], dice[1]).total + (dice[2] || 0), v = sv.ok ? Math.floor(d / 2) : d; await B.applyDamage(u, t, [{ v, dt, label }], { src: u }); return sv; };
+  /* Угольный жук (9): «Жаропрочный», «Плевок углём» */
+  P["coal-beetle"] = { resist(u, { dt }) { return dt === "fire"; }, immune(u, { id }) { return id === "burning"; } };
+  A["coal-beetle"] = {
+    time: "action",
+    tgt(u) { return specUnit(u, "Плевок углём: в кого?", within(u, 4), cellsAround(u, 4), "attack"); },
+    can(u) { return within(u, 4).length ? true : "нет цели в 4 клетках"; },
+    async run(u, pk, ctl) {
+      const base = atkFor(u, "melee"), a = { id: "coal", n: "Плевок углём", hit: base ? base.hit : 3, dmg: { n: 1, s: 6, b: amod(u.abil.con) }, dt: "fire", kind: "ranged", range: [4, 4] };
+      const r = await B.doAttack(u, pk.unit, a, { onCommit: () => ctl.commit() }); if (r && r.hit && pk.unit) fireAt(pk.unit.x, pk.unit.y, 2); const g = ui(); if (g) g.refresh(); return !(r && r.cancelled);
+    },
+    ai(u) { const ts = within(u, 4).filter(t => dist(u, t) >= 2); return ts.length ? { unit: ts[0], score: 3 } : null; },
+  };
+  /* Тлеющая гончая (9): «Дымная шкура», «Раздуть угли» */
+  P["ember-hound"] = { defendMods(t, ctx) { if (ctx.atk && ctx.atk.kind !== "melee" && fireNear(t, 1)) ctx.dis.push("дымная шкура"); } };
+  A["ember-hound"] = {
+    time: "bonus", tgt() { return { type: "none" }; }, can(u) { return fireNear(u, 3) ? true : "рядом нет огня"; },
+    async run(u, pk, ctl) { ctl.commit(); const fc = fireNear(u, 3); if (!fc) return true; const [fx0, fy0] = fc;
+      for (const t of enemiesOf(u).filter(e => Math.max(Math.abs(e.x - fx0), Math.abs(e.y - fy0)) <= 1)) await saveDmg(u, t, "dex", dcOf(u, "dex"), [1, 6], "fire", "Раздуть угли");
+      log(`${u.name} раздувает угли.`, "skill"); return true; },
+    ai(u) { const fc = fireNear(u, 3); return fc && enemiesOf(u).some(e => Math.max(Math.abs(e.x - fc[0]), Math.abs(e.y - fc[1])) <= 1) ? { score: 3 } : null; },
+  };
+  /* Жаровня-голем (8): «Угли в чреве», «Опрокинуть жаровню» */
+  P["brazier-golem"] = { turnStart(u) { if (fireNear(u, 1) && u.hp < u.maxHp) { B.heal(u, 2, u); fx(u, "+2", "good"); } } };
+  A["brazier-golem"] = {
+    time: "action", tgt() { return { type: "none" }; }, can(u) { return within(u, 2).length ? true : "никого рядом"; },
+    async run(u, pk, ctl) {
+      ctl.commit(); const t = within(u, 2).sort((a, b) => dist(u, a) - dist(u, b))[0]; const dx = Math.sign(t.x - u.x), dy = Math.sign(t.y - u.y);
+      const cells = [[u.x + dx, u.y + dy], dx && dy ? [u.x + dx, u.y] : [u.x + dx + (dy ? 1 : 0), u.y + dy + (dx ? 1 : 0)], dx && dy ? [u.x, u.y + dy] : [u.x + dx - (dy ? 1 : 0), u.y + dy - (dx ? 1 : 0)]];
+      for (const [x, y] of cells) { fireAt(x, y, 3); for (const e of enemiesOf(u).filter(e => footprint(e).some(([a, b]) => a === x && b === y))) await saveDmg(u, e, "dex", dcOf(u, "con"), [2, 6], "fire", "Опрокинуть жаровню"); }
+      log(`${u.name} опрокидывает жаровню.`, "skill"); const g = ui(); if (g) g.refresh(); return true;
+    },
+    ai(u) { return within(u, 1).length ? { score: 10 + within(u, 1).length * 3 } : null; },
+  };
+  /* Жнец углей (7): «Жатва жара», «Пепельная коса» */
+  P["ember-reaper"] = { onHitDealt(u, { tgt }) { if (tgt && (tgt.down || !alive(tgt))) { u.temp = Math.max(u.temp || 0, 5); fx(u, "жатва", "good"); } } };
+  A["ember-reaper"] = {
+    time: "action", tgt() { return { type: "none" }; }, can(u) { return within(u, 1).length ? true : "никого рядом"; },
+    async run(u, pk, ctl) {
+      const a = atkFor(u, "melee"); if (!a) return false; ctl.commit();
+      for (const t of within(u, 1).slice(0, 2)) { const r = await B.doAttack(u, t, a, { extra: [{ n: 1, s: 6, b: 0, dt: "fire", label: "Пепельная коса" }], noRedirect: true }); if (r && r.hit && alive(t)) addStatus(t, "burning", { k: 2, when: "end" }); }
+      return true;
+    },
+    ai(u) { return within(u, 1).length >= 2 ? { score: 20 } : null; },
+  };
+  /* Магмовый змей (7): «Раскалённая чешуя», «Лавовый плевок» */
+  P["magma-wyrm"] = { onDamaged(u, { src, o }) { if (!src || !src.hero || !o || !o.melee || !o.ctx || !o.ctx.atk || src.scaleRound === B.S.round) return; src.scaleRound = B.S.round; if (B.wearWeapon) { B.wearWeapon(src, o.ctx.atk, 1); log(`${src.name}: оружие тупится о раскалённую чешую.`); } } };
+  A["magma-wyrm"] = {
+    time: "action",
+    tgt(u) { return specUnit(u, "Лавовый плевок: в сторону кого?", within(u, 4), cellsAround(u, 4), "attack"); },
+    can(u) { return within(u, 4).length ? true : "нет цели в 4 клетках"; },
+    async run(u, pk, ctl) {
+      ctl.commit(); const cells = B.lineCells(u, pk.unit).slice(0, 4).concat([[pk.unit.x, pk.unit.y]]);
+      const hit = new Set(); for (const [x, y] of cells) { fireAt(x, y, 2); for (const e of enemiesOf(u)) if (!hit.has(e.id) && footprint(e).some(([a, b]) => a === x && b === y)) { hit.add(e.id); await saveDmg(u, e, "dex", dcOf(u, "con"), [2, 8], "fire", "Лавовый плевок"); } }
+      log(`${u.name} плюётся лавой.`, "skill"); const g = ui(); if (g) g.refresh(); return true;
+    },
+    ai(u) { const ts = within(u, 4); return ts.length ? { unit: ts.sort((a, b) => b.hp - a.hp)[0], score: 14 } : null; },
+  };
+  /* Кузнец горнила (6): «Закалённый удар», «Удар о наковальню» */
+  P["forge-smith"] = {
+    attackMods(u, ctx) { if (ctx.atk && ctx.atk.kind === "melee" && ctx.atk.dt === "bludgeon") ctx.extra.push({ n: 1, s: 4, b: 0, dt: "fire", label: "Закалённый удар" }); },
+    onHitDealt(u, { tgt, res }) { if (res && res.crit && tgt && alive(tgt) && !tgt.down) addStatus(tgt, "prone", { k: Infinity }); },
+  };
+  A["forge-smith"] = {
+    time: "action", tgt() { return { type: "none" }; }, can(u) { return within(u, 2).length ? true : "никого в 2 клетках"; },
+    async run(u, pk, ctl) { ctl.commit(); for (const t of within(u, 2)) { const sv = await saveDmg(u, t, "con", dcOf(u, "str"), [2, 6], "bludgeon", "Удар о наковальню", ["stun"]); if (!sv.ok && alive(t)) addStatus(t, "stunned", { k: 1, when: "end" }); } log(`${u.name} бьёт о наковальню.`, "skill"); return true; },
+    ai(u) { const n = within(u, 2).length; return n >= 2 ? { score: 12 + n * 4 } : null; },
+  };
 
   B.fillActiveTimes();
 })();

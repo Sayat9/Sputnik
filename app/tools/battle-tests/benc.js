@@ -79,7 +79,7 @@ const L = require('./bui_lib.js');
   const roll = async (pick, o = {}) => {
     await p.evaluate(({ pick, o }) => {
       dgUi.enc = null; dgUi.res = null; dgUi.phase = 'menu'; state.run.pending = null; state.run.queue = []; state.run.floor = o.floor || 1;
-      location.hash = 'labyrinth'; const r = state.run; r.cleared = {}; r.pos = { x: 3, y: 3 };
+      location.hash = 'labyrinth'; const r = state.run; r.cleared = {}; r.pos = o.floor === 3 ? { x: 24, y: 6 } : { x: 3, y: 3 };          // 3 этаж: Зона ловушек (монстров нет)
       r.pending = { cause: 'move', monsters: false, dark: false, blood: false, x: r.pos.x, y: r.pos.y, pick: pick || null };
       rerender();
     }, { pick, o });

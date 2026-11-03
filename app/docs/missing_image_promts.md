@@ -12,6 +12,32 @@
 
 Новый монстр без картинки: полный рост 1024 × 1536 (иконку лица вырезаю сам). Нужны монстры 3 этажа: Хранитель Тишины, мимик и 9 обитателей Лагеря орков.
 
+### Пылающие земли (3 этаж, 03.11)
+
+### Угольный жук — `monsters/coal-beetle-full`
+
+> `full-body a dog-sized beetle with a cracked coal-black carapace glowing orange in the seams, mandibles dripping embers, scorched ash plain with lava cracks and drifting embers, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Тлеющая гончая — `monsters/ember-hound-full`
+
+> `full-body a lean hound with smouldering charcoal fur, smoke trailing from its back, glowing ember eyes, scorched ash plain with lava cracks and drifting embers, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Жаровня-голем — `monsters/brazier-golem-full`
+
+> `full-body a squat cast-iron golem whose chest is an open brazier full of burning coals, red-hot fists, scorched ash plain with lava cracks and drifting embers, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Жнец углей — `monsters/ember-reaper-full`
+
+> `full-body a gaunt undead reaper in a burnt hooded robe, wielding a scythe with a glowing ember blade, ash falling from it, scorched ash plain with lava cracks and drifting embers, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Магмовый змей — `monsters/magma-wyrm-full`
+
+> `full-body a huge serpent with a crust of cooling black magma scales split by glowing lava, jaws open, spitting molten rock, scorched ash plain with lava cracks and drifting embers, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Кузнец горнила — `monsters/forge-smith-full`
+
+> `full-body a giant hulking blacksmith in a scorched leather apron and soot-black plate, a huge hammer and glowing tongs, a great forge and anvil behind him, scorched ash plain with lava cracks and drifting embers, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
 ### Охотничьи угодья и гоблины под Угрозу (03.11)
 
 ### Костяной егерь — `monsters/bone-ranger-full`
