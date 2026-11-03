@@ -60,7 +60,9 @@
   };
   T.state = () => ui;
   // Клиент игрока: показывает здание, открытое у ведущего (только просмотр, время не тратится).
-  T.mirror = snap => { ui = { ...snap, mirror: true }; host.classList.add("tw-mirror"); host.hidden = false; document.body.classList.add("forge-open"); render(); };
+  // Игрок может сам листать вкладки, выбирать героя и смотреть подробности (03.11): пока он что-то открыл, обновления ведущего не сбивают его вид.
+  const MIRROR_OK = new Set(["hero", "bag", "stock", "ftab", "gtab", "gmon", "gback", "atab", "ttab"]);
+  T.mirror = snap => { const own = ui && ui.mirror && ui.local && ui.b === snap.b ? { hero: ui.hero, sel: ui.sel, tab: ui.tab, mon: ui.mon, local: true } : {}; ui = { ...snap, ...own, mirror: true }; host.classList.add("tw-mirror"); host.hidden = false; document.body.classList.add("forge-open"); render(); };
   T.unmirror = () => { host.classList.remove("tw-mirror"); if (ui && ui.mirror) { ui = null; host.hidden = true; host.innerHTML = ""; document.body.classList.remove("forge-open"); } };
   const spend = n => { ui.cost += n; };
   const visit = () => { ui.cost = Math.max(ui.cost, 1); };
@@ -742,6 +744,7 @@
   for (const ev of ["pointerup", "pointercancel", "pointerleave"]) host.addEventListener(ev, () => clearTimeout(hold.t), true);
   host.addEventListener("pointermove", e => { if (Math.hypot(e.clientX - hold.x, e.clientY - hold.y) > 10) clearTimeout(hold.t); });
   host.addEventListener("input", e => {
+    if (ui && ui.mirror) return;
     const el = e.target; if (ui && ui.bm && el.classList.contains("tw-bm-range")) { ui.bm.n = +el.value; const g = goodByKey(ui.bm.key), q = g && g.e ? g.e.qty : 1; host.querySelector(".tw-bm-n").textContent = ui.bm.n; host.querySelector(".tw-bm-cost").textContent = "−" + (g.price * ui.bm.n); return; }
     if (!ui || !ui.sk) return;
     if (el.classList.contains("tw-sk-range")) {
@@ -755,7 +758,7 @@
   host.addEventListener("dragstart", e => e.preventDefault());          // браузерное перетаскивание картинки отменяло бы наш жест (pointercancel)
   const dropZone = (x, y) => { const el = document.elementFromPoint(x, y); return el && el.closest(".tw-shopcol"); };
   host.addEventListener("pointerdown", e => {
-    const el = e.target.closest("[data-t='bag'],[data-t='sacktile']"); if (!el || !ui || !(ui.b === "shop" || ui.b === "forge") || ui.sk) return;
+    const el = e.target.closest("[data-t='bag'],[data-t='sacktile']"); if (!el || !ui || ui.mirror || !(ui.b === "shop" || ui.b === "forge") || ui.sk) return;
     drag = { i: +el.dataset.i, sack: el.dataset.t === "sacktile", x: e.clientX, y: e.clientY, on: false, ghost: null };
   });
   window.addEventListener("pointermove", e => {
@@ -782,7 +785,9 @@
   host.addEventListener("click", e => {
     if (hold.fired) { hold.fired = false; return; }
     const el = e.target.closest("[data-t]"); if (!el || !ui) return;
-    const ds = el.dataset; ui.msg = "";
+    const ds = el.dataset;
+    if (ui.mirror) { if (!MIRROR_OK.has(ds.t)) { if (ds.t !== "close" && typeof toast === "function") toast("Это делает ведущий — у игрока здание только для просмотра"); return; } ui.local = true; }
+    ui.msg = "";
     switch (ds.t) {
       case "close": T.close(); return;
       case "hero": ui.hero = ds.id; ui.sel = null; ui.confirm = null; break;

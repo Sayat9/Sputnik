@@ -367,7 +367,13 @@ body.bt-active .dice-fab { display: none; }
 .bt-lrow { display: grid; grid-template-columns: 34px 1fr; gap: 4px 8px; align-items: center; padding: 6px 8px; border: 1px solid rgb(214 166 76 / .25); border-radius: 8px; margin-bottom: 6px; background: rgb(0 0 0 / .18); }
 .bt-lrow .ic { width: 34px; height: 34px; display: flex; } .bt-lrow .ic img, .bt-lrow .ic svg { width: 100%; height: 100%; object-fit: contain; }
 .bt-lrow .nm { font-size: 14px; min-width: 0; }
-.bt-lrow .bt-lbtn { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 6px; }
+.bt-lrow .bt-lbtn { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
 .bt-lrow .bt-lbtn .fx-btn { padding: 5px 8px; font-size: 13px; min-height: 34px; }
 .bt-lrow.got, .bt-lrow.gone { opacity: .7; }
 .bt-lrow .ok { color: #9be37a; }
+
+/* Карточка выпавшей эссенции (03.11): кнопки ровной сеткой одной ширины, без переноса третьей на новую строку */
+.bt-ess { align-items: flex-start; } .bt-ess > div { flex: 1; min-width: 0; }
+.bt-ess .bt-esschoice { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.bt-ess .bt-esschoice .fx-btn { padding: 6px 4px; font-size: 13px; white-space: normal; min-width: 0; }
+.bt-ess .bt-esspick .bt-esschoice { grid-template-columns: repeat(2, minmax(0, 1fr)); }

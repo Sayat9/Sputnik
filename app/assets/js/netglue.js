@@ -37,7 +37,6 @@
   body.net-player{padding-bottom:64px}
   body.net-player.bt-active #netbar,body.net-player.net-forge #netbar{display:none}
   #net-rc{position:fixed;left:50%;top:6px;transform:translateX(-50%);z-index:8800;padding:8px 14px;border-radius:18px;font:600 13px/1.2 inherit;background:#5a2a1a;color:#ffe8c0;border:1px solid #d6a64c;box-shadow:0 2px 10px #000a}
-  body.net-follow #townov{pointer-events:none}                                                          /* экран ведущего (#view) листается: нажатия гасит followGuard ниже */
   body.net-player:not(.bt-active):not(.net-forge) .scrim,body.net-player:not(.bt-active):not(.net-forge) #diceov,body.net-player:not(.bt-active):not(.net-forge) #saveov,body.net-player:not(.bt-active):not(.net-forge) .mapov,body.net-player:not(.bt-active):not(.net-forge) #heroov,body.net-player:not(.bt-active):not(.net-forge) #iteminfo,body.net-player:not(.bt-active):not(.net-forge) #townov,body.net-player:not(.bt-active):not(.net-forge) #libov,body.net-player:not(.bt-active):not(.net-forge) .bd-ov,body.net-player:not(.bt-active):not(.net-forge) .tw-dlg{bottom:var(--nbh,64px)}          /* окна не уходят под нижнюю панель игрока — их можно долистать до конца */                                                 /* карточки героев на экране ведущего: удержание открывает меню героя */
   body.net-follow #townov .tw-x{display:none}
   .net-team{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;width:100%;margin:10px 0}
