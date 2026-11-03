@@ -24,6 +24,17 @@ const CASES = [          // [метка, этаж, уровень героев, 
   ['вождь+волк (6)', 3, LV6, ['orc-chief', 'orc-wolf'], 'orc'],
   ['мимик (6)', 3, LV6, ['mimic'], ''],
   ['хранитель тишины (6)', 3, LV6, ['silence-keeper'], ''],
+  ['З: жучок+шакал+крыса', 3, LV7, ['toll-beetle', 'echo-jackal', 'toll-rat'], ''],
+  ['З: шакалы ×3', 3, LV7, ['echo-jackal', 'echo-jackal', 'echo-jackal'], ''],
+  ['З: страж+визгун+шакал', 3, LV7, ['toll-guard', 'shrieker', 'echo-jackal'], ''],
+  ['З: бык+бык+жучок', 3, LV7, ['toll-bull', 'toll-bull', 'toll-beetle'], ''],
+  ['З: звонарь+страж+крыса', 3, LV7, ['bell-ringer', 'toll-guard', 'toll-rat'], ''],
+  ['З: хор ×4', 3, LV7, ['choir-dead', 'choir-dead', 'choir-dead', 'choir-dead'], ''],
+  ['З: охотник+2', 3, LV7, ['toll-hunter', 'echo-jackal', 'toll-rat'], ''],
+  ['Х: служки+херувим', 3, LV7, ['stone-acolyte', 'dust-cherub', 'stone-acolyte'], ''],
+  ['Х: кариатида+алебардист+служка', 3, LV7, ['caryatid', 'marble-halberdier', 'stone-acolyte'], ''],
+  ['Х: страж+святая', 3, LV7, ['marble-guardian', 'marble-saint'], ''],
+  ['Х: скульптор+служка (6)', 3, LV6, ['faceless-sculptor', 'stone-acolyte'], ''],
 ].filter(c => !ONLY || c[0].includes(ONLY));
 const BUILDS = {
   // сборка: раса, статы, руки, тело
@@ -72,7 +83,7 @@ const PARTIES = [
           state.party = names.map((n, j) => mk(n, j, lvl)); state.run.floor = floor; state.run.status = {};
           state.party.forEach(c => { state.run.status[c.id] = { fat: 0, sat: 3 }; });
           if (!info) info = state.party.map(c => { const d = derived(totals(c), c); return `${d.ac}${d.prot != null ? '/' + d.prot : ''} ОЗ ${maxHp(c)}`; });
-          const L2 = list === 'KING' ? kingEscort() : list; const z = zone || (MONSTERS.find(x => x.id === L2[0]) || {}).zone || 'stone'; const r = await Battle.sim({ list: L2, zone: z, floor, ambush: false, kind: 'hard', title: 't' }); const S = r.S;
+          const L2 = list === 'KING' ? kingEscort() : list; const z = zone || (MONSTERS.find(x => x.id === L2[0]) || {}).zone || 'stone'; const r = await Battle.sim({ list: L2.slice(), zone: z, floor, ambush: false, kind: 'hard', title: 't' }); const S = r.S;
           if (r.outcome === 'win' || r.outcome === 'retreat') win++;
           const hs = S.units.filter(u => u.side === 'hero' && !u.summon && u.hero);
           if (hs.every(u => u.down || u.dead || !u.alive)) wipe++;

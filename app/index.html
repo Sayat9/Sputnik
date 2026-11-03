@@ -2015,6 +2015,101 @@ Object.assign(ESSENCES, {
     active: { name: "Боевой клич", mana: 3, time: "доп. действие", text: "Союзники в 4 клетках получают преимущество на первую атаку до конца твоего следующего хода. Перезарядка 4 раунда." } },
 });
 /*ORC-END*/
+/*F3MON-BEGIN*/
+// ===== 3 этаж: Звон (утверждено автором 30.10; Хор мёртвых — переделка автора 01.11) и Храм изваяний (v2 из базы, 03.11). Статблоки (атаки, ОЗ) — моя заготовка, черновик (statDraft).
+const F3_MON = [
+  // Звон
+  ["toll-beetle", 9, "Звонкий жучок", "Малая тварь", "beast", "undead", "Звон", "12 (хитин)", "9 (2к6+2)", "6 м", [8, 12, 14, 2, 10, 4], "Чувство вибраций 6 м.",
+    [["Гудит", "Звенит хитином при каждом ударе; первый удар по нему вязнет в панцире.", "behavior"], ["Жвалы", "+3 к попаданию, 1к6+1 колющего.", "attacks"]]],
+  ["echo-jackal", 9, "Эхо-шакал", "Средний зверь", "beast", "undead", "Звон", "12", "11 (2к8+2)", "12 м", [11, 15, 12, 3, 13, 6], "Восприятие +3.",
+    [["Эхо", "Кусает следом за сородичем, едва тот попал.", "behavior"], ["Укус", "+3 к попаданию, 1к6+1 колющего.", "attacks"]]],
+  ["toll-rat", 9, "Колокольная крыса", "Малый зверь", "beast", "undead", "Звон", "13", "7 (2к6)", "9 м", [6, 16, 10, 2, 12, 4], "Скрытность +5, Восприятие +3.",
+    [["Юркая", "Кусает и тут же отскакивает.", "behavior"], ["Укус", "+3 к попаданию, 1к4+2 колющего.", "attacks"]]],
+  ["toll-guard", 8, "Гулкий страж", "Средняя нежить", "undead", "undead", "Звон", "15 (ржавая кольчуга и щит)", "30 (4к8+12)", "7,5 м", [16, 9, 16, 6, 10, 6], "Тёмное зрение 18 м.",
+    [["Тяжёлая стойка", "Стоит как вкопанный: не сдвинуть и не сбить с ног; щит гудит от ударов.", "behavior"], ["Булава", "+5 к попаданию, 1к8+3 дробящего.", "attacks"]]],
+  ["shrieker", 8, "Визгун-голос", "Средняя тварь", "beast", "undead", "Звон", "13", "22 (4к8+4)", "9 м", [8, 14, 12, 10, 12, 15], "Тёмное зрение 18 м.",
+    [["Визг", "Держится поодаль и визжит так, что дрожит оружие в руках.", "behavior"], ["Когти", "+4 к попаданию, 1к6+2 рубящего.", "attacks"]]],
+  ["toll-bull", 8, "Бронзовый бык", "Большой зверь", "beast", "undead", "Звон", "15 (бронзовая шкура)", "38 (4к10+16)", "12 м", [18, 9, 18, 2, 10, 5], "",
+    [["Разгон", "Отходит и бросается с разбега, сбивая с ног.", "behavior"], ["Рога", "+5 к попаданию, 1к8+3 колющего.", "attacks"]]],
+  ["bell-ringer", 7, "Звонарь", "Средняя нежить", "undead", "undead", "Звон", "15", "58 (9к8+18)", "9 м", [12, 12, 14, 14, 13, 16], "Тёмное зрение 18 м. Обман +5.",
+    [["Колокол теней", "Ударив в колокол, раздваивается: рядом встают его отзвуки.", "behavior"], ["Колокольный молот", "+6 к попаданию, 1к8+3 дробящего.", "attacks"], ["Удар звоном", "+6 к попаданию, 9/18 м, 1к8+1 звуком.", "attacks"]]],
+  ["toll-hunter", 7, "Охотник за звоном", "Средний гуманоид", "humanoid", "undead", "Звон", "14", "55 (10к8+10)", "9 м", [14, 14, 16, 10, 14, 8], "Восприятие +6. Тёмное зрение 18 м.",
+    [["Идёт на шум", "Приходит, только когда в Звоне очень шумно; бесшумен сам.", "behavior"], ["Глефа", "+6 к попаданию, досягаемость 3 м, 1к8+3 рубящего.", "attacks"]]],
+  ["choir-dead", 7, "Хор мёртвых", "Средняя нежить", "undead", "undead", "Звон", "13", "20 (4к8+2)", "7,5 м", [8, 10, 12, 10, 15, 16], "Тёмное зрение 18 м.",
+    [["Хор", "Ходят по четверо и держатся плечом к плечу: чем плотнее строй, тем крепче каждый (+1 КД за каждого поющего рядом, до +3).", "behavior"], ["Погребальный стон", "+4 к попаданию, 9/9 м, 1к6 психическим.", "attacks"], ["Удар", "+4 к попаданию, 1к6+1 дробящего.", "attacks"]]],
+  // Храм изваяний
+  ["stone-acolyte", 9, "Каменный служка", "Малый конструкт", "elemental", "stone", "Храм изваяний", "13 (каменное тело)", "10 (3к6)", "7,5 м", [13, 9, 14, 3, 8, 3], "",
+    [["Каменная крошка", "Осыпается щебнем; кидает в чужаков обломки себя.", "behavior"], ["Каменный кулак", "+3 к попаданию, 1к6+1 дробящего.", "attacks"]]],
+  ["dust-cherub", 9, "Пыльный херувим", "Малый конструкт", "elemental", "stone", "Храм изваяний", "13", "8 (2к6+1)", "3 м, полёт 12 м", [6, 16, 12, 4, 12, 8], "Восприятие +3.",
+    [["Пыль", "Порхает над своими и поднимает пыльную завесу.", "behavior"], ["Когти", "+4 к попаданию, 1к4+2 рубящего.", "attacks"]]],
+  ["caryatid", 8, "Кариатида", "Средний конструкт", "elemental", "stone", "Храм изваяний", "16 (мрамор)", "34 (4к8+16)", "6 м", [17, 8, 18, 4, 10, 6], "",
+    [["Держит свод", "Почти не сходит с места; если окружить — обрушивает свод вокруг себя.", "behavior"], ["Каменная длань", "+5 к попаданию, 1к10+3 дробящего.", "attacks"]]],
+  ["marble-halberdier", 8, "Мраморный алебардист", "Средний конструкт", "elemental", "stone", "Храм изваяний", "15 (мрамор)", "32 (5к8+10)", "9 м", [16, 11, 15, 6, 12, 6], "",
+    [["Стойка", "Держит подступы алебардой: вошедший под удар может застыть на месте; бьёт первым, если трогают соседа.", "behavior"], ["Алебарда", "+5 к попаданию, досягаемость 3 м, 1к10+3 рубящего.", "attacks"]]],
+  ["marble-guardian", 7, "Мраморный страж", "Средний конструкт", "elemental", "stone", "Храм изваяний", "17 (мрамор)", "60 (8к8+24)", "7,5 м", [18, 8, 17, 6, 11, 8], "",
+    [["Обет", "Ходит в паре со святой и принимает удары за неё.", "behavior"], ["Каменный меч", "+6 к попаданию, 2к6+4 рубящего.", "attacks"]]],
+  ["marble-saint", 7, "Мраморная святая", "Средний конструкт", "elemental", "stone", "Храм изваяний", "14 (мрамор)", "45 (7к8+14)", "9 м", [10, 12, 14, 12, 16, 16], "",
+    [["Свет", "Держится за стражем, лечит своих и жжёт чужих светом.", "behavior"], ["Луч света", "+6 к попаданию, 9/18 м, 2к6 излучением.", "attacks"], ["Посох", "+4 к попаданию, 1к6+1 дробящего.", "attacks"]]],
+  ["faceless-sculptor", 6, "Безликий скульптор", "Большой конструкт", "elemental", "stone", "Храм изваяний", "16 (мрамор)", "110 (13к10+39)", "9 м", [19, 12, 17, 18, 14, 6], "Слепое зрение 9 м.",
+    [["Резец мастера", "Хозяин храма: высекает слуг из камня и оживляет изваяния вокруг.", "behavior"], ["Две атаки", "За ход удар резцом и удар молотом.", "attacks"], ["Резец", "+8 к попаданию, 2к8+5 рубящего.", "attacks"], ["Молот", "+8 к попаданию, 1к10+5 дробящего.", "attacks"]]],
+];
+for (const [id, cls, name, size, ph, zone, area, ac, hp, speed, abil, senses, traits] of F3_MON) MONSTERS.push({ id, zone, rare: false, weight: 1, name, floor: 3, cls,
+  rank: id === "faceless-sculptor" ? "boss" : cls <= 6 ? "special" : "normal", size, type: /нежить/.test(size) ? "Нежить" : /конструкт/.test(size) ? "Конструкт" : /тварь/.test(size) ? "Тварь" : /зверь/.test(size) ? "Зверь" : "Гуманоид",
+  group: id === "choir-dead" ? "По четверо" : id === "faceless-sculptor" ? "Один, в сердце храма" : id === "toll-hunter" ? "Один, когда в Звоне шумно" : "Группы по 2–5",
+  sz: /Большой/.test(size) ? "большой" : /Малый|Малая/.test(size) ? "малый" : "средний", areas: [`3 этаж: ${area}`], ac, hp, speed, cr: String(10 - cls), abil, senses, traits, loot: `Камень ${cls}-го класса.`, essence: id, ph, statDraft: true });
+const F3_ESS = {
+  "toll-beetle": ["Эссенция звонкого жучка", { con: 2, cha: -1 }, ["Сопротивление звуковому урону"], ["Гудящий хитин", "Первый полученный за бой урон уменьшается на 2."], ["Гул", 2, "реакция", "Реакция: +1 КД до твоего следующего хода. Перезарядка 3 раунда."]],
+  "echo-jackal": ["Эссенция эхо-шакала", { dex: 2, con: -1 }, ["Слух +1"], ["Чуткий слух", "Тебя нельзя застать врасплох в бою."], ["Эхо", 2, "реакция", "Союзник попал по цели — ты бьёшь её тем же оружием с половинным уроном (дальность — обычная атака твоего оружия). Перезарядка 2 раунда."]],
+  "toll-rat": ["Эссенция колокольной крысы", { dex: 1, str: -1 }, ["Скрытность +1", "Восприятие +1"], ["Чуткие усы", "Ловушки и засады в радиусе 2 клеток видны сами."], ["Юркнуть", 2, "доп. действие", "Перемещение на 3 м (2 клетки) без атак по возможности. Перезарядка 2 раунда."]],
+  "toll-guard": ["Эссенция гулкого стража", { con: 2, str: 1, dex: -1, cha: -1 }, ["Сопротивление звуковому урону"], ["Тяжёлая стойка", "Тебя нельзя сдвинуть или сбить с ног (у монстра: преимущество на такие спасброски)."], ["Гул щита", 3, "действие", "+2 КД на 2 раунда. Перезарядка 4 раунда."]],
+  "shrieker": ["Эссенция визгуна", { cha: 2, int: 1, con: -1, str: -1 }, ["Дальность голоса +1"], ["Звонкий голос", "Твои звуковые атаки и способности бьют на 3 м (2 клетки) дальше."], ["Визг", 3, "действие", "9 м: 2к6 звуком; спасбросок Мудрости Сл 12 — провал: до конца своего хода цель атакует с помехой, успех: половина урона. Перезарядка 3 раунда."]],
+  "toll-bull": ["Эссенция бронзового быка", { str: 2, con: 2, dex: -1, int: -1 }, [], ["Крепкий лоб", "Твой рывок не прерывается реакциями."], ["Бронзовый разгон", 3, "действие", "Прямой рывок до 6 м к цели: 2к6 + мод. Силы дробящего; спасбросок Силы Сл 12 — провал: сбит с ног. Перезарядка 3 раунда."]],
+  "bell-ringer": ["Эссенция звонаря", { cha: 2, int: 2, con: -1, str: -1 }, ["Обман +1"], ["Эхо двойника", "Пока жив твой двойник, ты получаешь +1 к КД."], ["Резонанс колоколов", 4, "действие", "Два двойника на ближайших свободных клетках с 1/3 твоих ОЗ; держатся, пока их не разобьют. Раз за бой."]],
+  "toll-hunter": ["Эссенция охотника за звоном", { con: 2, dex: -1, cha: -1 }, ["Восприятие +2", "Сопротивление звуковому урону"], ["Приглушённая поступь", "Каждый провал шума от твоих шагов на 1 меньше."], ["Тишина в себе", 2, "действие", "Раз в день отменяет последствия одного твоего провала Скрытности или шума; на 3 этаже ещё −3 шума."]],
+  "choir-dead": ["Эссенция хора мёртвых", { wis: 2, cha: 2, con: -1, str: -1 }, ["Сопротивление психическому урону"], ["Резонанс", "Цель, по которой ты попал, звенит: каждое следующее попадание по ней подряд (твоё или союзников) наносит +1, +2, +3 урона (до +4). Цепочка рвётся, если ты или участник цепочки бьёт другую цель."], ["Единение хора", 3, "доп. действие", "Ты и союзники вплотную к тебе образуете хор на 3 раунда: +1 КД каждому, пока стоит вплотную хотя бы к одному участнику. У монстров хора эффект складывается (до +3). Перезарядка 4 раунда."]],
+  "stone-acolyte": ["Эссенция каменного служки", { con: 2, dex: -1 }, ["Атлетика +1"], ["Каменная крошка", "Критическое попадание по тебе наносит на 2 урона меньше (не ниже 1)."], ["Осколочный бросок", 2, "действие", "Дальняя атака камнем до 4 клеток: 1к6 + мод. Силы дробящего; при попадании клетки вокруг цели засыпаны щебнем (труднопроходимы) на 2 раунда. Перезарядка 2 раунда."]],
+  "dust-cherub": ["Эссенция пыльного херувима", { dex: 2, con: -1 }, ["Восприятие +1"], ["Песок в глаза", "Первый, кто попал по тебе в ближнем бою в этом бою, атакует с помехой до конца своего хода."], ["Пыльная завеса", 2, "доп. действие", "Облако 2 × 2 клетки в 3 клетках на 2 раунда: атаки по тем, кто стоит в облаке, — с помехой. Перезарядка 3 раунда."]],
+  "caryatid": ["Эссенция кариатиды", { str: 2, con: 2, dex: -1 }, ["Скрытность −1"], ["Опора", "Если в свой ход ты не двигался, до начала следующего хода +1 КД."], ["Обрушить свод", 3, "действие", "Все в 1 клетке вокруг тебя: спасбросок Ловкости (Сл 8 + мод. Сил). Провал — 2к6 дробящего и сбит с ног, успех — половина урона. Клетки вокруг засыпаны щебнем на 3 раунда. Перезарядка 4 раунда."]],
+  "marble-halberdier": ["Эссенция мраморного алебардиста", { str: 2, dex: -1, cha: -1 }, ["Восприятие +1", "КД +1"], ["Стойка", "Враг, входящий в досягаемость твоего оружия: спасбросок Силы (Сл 8 + мод. Сил). Провал — останавливается (движение до конца хода — 0)."], ["Перехват древком", 2, "реакция", "Враг в твоей досягаемости атакует твоего союзника: ты бьёшь его первым; при попадании его атака — с помехой. Перезарядка 2 раунда."]],
+  "marble-guardian": ["Эссенция мраморного стража", { str: 2, con: 2, dex: -1, cha: -1 }, ["Атлетика +1"], ["Обет защиты", "Раз в раунд, когда союзник в 1 клетке получает урон, ты принимаешь на себя половину."], ["Стена веры", 4, "действие", "Ты и союзник в 1 клетке получаете сопротивление дробящему, колющему и рубящему урону до начала твоего следующего хода. Перезарядка 4 раунда."]],
+  "marble-saint": ["Эссенция мраморной святой", { wis: 2, cha: 2, str: -1, con: -1 }, ["Медицина +1"], ["Ореол", "Союзники в 1 клетке от тебя получают +1 к спасброскам."], ["Исцеляющий свет", 3, "действие", "Магический навык (от Интеллекта). Союзник в 4 клетках восстанавливает 2к6 + мод. Инт ОЗ. Перезарядка 3 раунда."]],
+  "faceless-sculptor": ["Эссенция безликого скульптора", { int: 3, con: 2, wis: 2, dex: -1, cha: -1 }, ["Скрытность −1"], ["Резец мастера", "Призванные тобой существа получают +3 ОЗ и +1 КД."], ["Изваять", 4, "действие", "Каменный служка в свободной клетке рядом с тобой на 3 раунда; если ты вплотную к изваянию или валуну — вместо этого оно оживает кариатидой на 3 раунда. Перезарядка 3 раунда."]],
+};
+for (const [id, [name, stats, other, [pn, pt], [an, mana, time, at]]] of Object.entries(F3_ESS)) ESSENCES[id] = { id, name, cls: MONSTERS.find(m => m.id === id).cls, source: id, stats, other, passive: { name: pn, text: pt }, active: { name: an, mana, time, text: at } };
+// Встречи в Звоне и Храме (числа — моё допущение, campaign/drafts.md): по тяжести события; охотник — при шуме 10+; скульптор — в сердце храма.
+const TOLL9 = ["toll-beetle", "echo-jackal", "toll-rat"], TOLL8 = ["toll-guard", "shrieker", "toll-bull"], TEMPLE9 = ["stone-acolyte", "dust-cherub"], TEMPLE8 = ["caryatid", "marble-halberdier"];
+const SCULPTOR_AT = "15,28";
+function f3ZonePlace(name, x, y) {
+  const F = state.run && state.run.f3 || {}, pk = a => a[rnd(a.length)];
+  if (name === "Звон") return { name, zone: "undead", std: [], combos: [], gen: (day, sev) => {
+    const noise = F.noise || 0;
+    if (noise >= 10 && Math.random() < .3) return { list: ["toll-hunter", pk(TOLL9), pk(TOLL9)], hunter: true };
+    if (sev === "easy") return { list: [pk(TOLL9), pk(TOLL9), ...(Math.random() < .5 ? [pk(TOLL9)] : [])] };
+    if (sev === "mid") return { list: [pk(TOLL8), pk(TOLL9), pk(TOLL9)] };
+    const t = Math.random();
+    if (day >= 4 && t < .25) return { list: ["choir-dead", "choir-dead", "choir-dead", "choir-dead"] };
+    if (day >= 3 && t < .55) return { list: ["bell-ringer", "toll-guard", pk(TOLL9)] };
+    return { list: [pk(TOLL8), pk(TOLL8), pk(TOLL9)] };
+  } };
+  if (name === "Храм изваяний") {
+    if (tkey(x, y) === SCULPTOR_AT && !F.sculptorDead) return { name, spot: "Сердце храма", zone: "stone", special: ["faceless-sculptor", "stone-acolyte"], boss: "faceless-sculptor", std: [], combos: [] };
+    return { name, zone: "stone", std: [], combos: [], gen: (day, sev) => {
+      if (sev === "easy") return { list: [pk(TEMPLE9), pk(TEMPLE9), pk(TEMPLE9)] };
+      if (sev === "mid") return { list: [pk(TEMPLE8), pk(TEMPLE9), pk(TEMPLE9)] };
+      if (day >= 3 && Math.random() < .5) return { list: ["marble-guardian", "marble-saint"] };
+      return { list: [pk(TEMPLE8), pk(TEMPLE8), pk(TEMPLE9)] };
+    } };
+  }
+  return null;
+}
+// Итог боя на 3 этаже: убитый охотник за звоном снимает 3 шума; убитый скульптор — сердце храма пустеет.
+function f3MonFightDone(ev) {
+  const r = state.run; if (!r || r.floor !== 3 || !ev || !Array.isArray(ev.list)) return;
+  const killed = (ev.killed || []).map(i => ev.list[i]), F = f3();
+  if (killed.includes("toll-hunter")) { F.noise = Math.max(0, (F.noise || 0) - 3); logRun("Охотник за звоном повержен: в Звоне стихает (шум −3)."); }
+  if (killed.includes("faceless-sculptor")) { F.sculptorDead = true; logRun("Безликий скульптор разбит: изваяния храма замерли."); }
+}
+/*F3MON-END*/
 /*DB-BEGIN*/
 // Сгенерировано tools/mondb.mjs из campaign/db/monsters.json — не править руками (node tools/mondb.mjs gen).
 /*DB-END*/
@@ -2040,7 +2135,7 @@ MONSTERS.forEach(m => { if (STUB_ART.includes(m.id)) delete m.ph; });
 // Защита монстров (решение автора 02.11, вариант Б для всех): Уворот = 10 + мод. Лов − штраф брони; Защита = ярус брони + 1 за каждый класс выше 9-го.
 // Ярусы: 0 — без брони (пикси, духи, звери без панциря), 1 — лёгкая (гоблины, шкуры), 2 — хорошая (гоблин-мечник, хобгоблины, чешуя, хитин),
 // 3 — бронированные стражи (кольчуга, латы, щитоносцы), 4 — каменные/стальные тела и большие живые статуи. Штраф Уворота по ярусу — черновик.
-const MON_ARMOR = {"goblin": 1, "goblin-archer": 1, "goblin-sword": 2, "goblin-spear": 1, "goblin-shaman": 1, "goblin-assassin": 1, "goblin-trapper": 1, "goblin-elder": 1, "hobgoblin": 2, "hobgoblin-brute": 2, "hobgoblin-thrower": 2, "hobgoblin-driver": 2, "hobgoblin-shield": 3, "goblin-king": 3, "goblin-bomber": 1, "goblin-thief": 1, "rat-catcher": 1, "dark-bear": 1, "horned-hare": 0, "swamp-toad": 0, "burrower": 0, "crow": 0, "dire-wolf": 1, "web-spider": 1, "werewolf": 1, "giant-mole": 2, "swamp-fang": 2, "spider-queen": 2, "blackwing": 0, "rat": 0, "rat-king": 0, "wolf": 0, "fox": 0, "mouse": 0, "bat": 0, "orc-wolf": 0, "orc-falcon": 0, "skeleton-warrior": 3, "grey-shade": 0, "morok": 0, "whisperer": 0, "mirror-dead": 1, "faceless-ringer": 1, "dust-crawler": 1, "bone-hound": 0, "gravedigger": 0, "plague-fat": 0, "ash-spirit": 0, "bone-knight": 3, "corpse-eater": 2, "ash-wraith": 1, "zombie": 0, "skeleton": 1, "skeleton-archer": 0, "ghoul": 0, "drop": 0, "dust-whirl": 0, "magma-hound": 1, "crystalloid": 3, "lake-spirit": 0, "magma-golem": 4, "deep-serpent": 2, "crystal-colossus": 4, "storm-spirit": 0, "rift-heart": 4, "stone-guardian": 4, "living-stone": 4, "green-boulder": 4, "pixie": 0, "wisp": 0, "silence-keeper": 1, "mimic": 2, "orc-scout": 1, "orc-spear": 2, "orc-thrower": 1, "orc-guard": 3, "orc-shaman": 1, "orc-executioner": 2, "orc-chief": 3};
+const MON_ARMOR = {"goblin": 1, "goblin-archer": 1, "goblin-sword": 2, "goblin-spear": 1, "goblin-shaman": 1, "goblin-assassin": 1, "goblin-trapper": 1, "goblin-elder": 1, "hobgoblin": 2, "hobgoblin-brute": 2, "hobgoblin-thrower": 2, "hobgoblin-driver": 2, "hobgoblin-shield": 3, "goblin-king": 3, "goblin-bomber": 1, "goblin-thief": 1, "rat-catcher": 1, "dark-bear": 1, "horned-hare": 0, "swamp-toad": 0, "burrower": 0, "crow": 0, "dire-wolf": 1, "web-spider": 1, "werewolf": 1, "giant-mole": 2, "swamp-fang": 2, "spider-queen": 2, "blackwing": 0, "rat": 0, "rat-king": 0, "wolf": 0, "fox": 0, "mouse": 0, "bat": 0, "orc-wolf": 0, "orc-falcon": 0, "skeleton-warrior": 3, "grey-shade": 0, "morok": 0, "whisperer": 0, "mirror-dead": 1, "faceless-ringer": 1, "dust-crawler": 1, "bone-hound": 0, "gravedigger": 0, "plague-fat": 0, "ash-spirit": 0, "bone-knight": 3, "corpse-eater": 2, "ash-wraith": 1, "zombie": 0, "skeleton": 1, "skeleton-archer": 0, "ghoul": 0, "drop": 0, "dust-whirl": 0, "magma-hound": 1, "crystalloid": 3, "lake-spirit": 0, "magma-golem": 4, "deep-serpent": 2, "crystal-colossus": 4, "storm-spirit": 0, "rift-heart": 4, "stone-guardian": 4, "living-stone": 4, "toll-beetle": 2, "echo-jackal": 0, "toll-rat": 0, "toll-guard": 3, "shrieker": 0, "toll-bull": 3, "bell-ringer": 2, "toll-hunter": 2, "choir-dead": 0, "stone-acolyte": 2, "dust-cherub": 0, "caryatid": 3, "marble-halberdier": 3, "marble-guardian": 3, "marble-saint": 2, "faceless-sculptor": 3, "green-boulder": 4, "pixie": 0, "wisp": 0, "silence-keeper": 1, "mimic": 2, "orc-scout": 1, "orc-spear": 2, "orc-thrower": 1, "orc-guard": 3, "orc-shaman": 1, "orc-executioner": 2, "orc-chief": 3};
 const MON_ARMOR_NAME = ["без брони", "лёгкая броня", "хорошая броня", "тяжёлая броня", "каменное или стальное тело"], MON_DODGE_PEN = [0, 0, 1, 2, 3];
 function monDefOf(m) {
   const tier = m.armor != null ? m.armor : MON_ARMOR[m.id] != null ? MON_ARMOR[m.id] : (/Гуманоид/.test(m.type || "") ? 1 : 0);
@@ -2057,7 +2152,7 @@ const MON_BOOST = { "swamp-fang": { hp: 1.6, dmg: 4, hit: 2 }, "goblin-thief": {
   "living-stone": { dmg: -2 },
   // элементали с высокой бронёй бьют слабее (решение автора 02.11): их и так трудно пробить
   crystalloid: { dmg: -2 }, "stone-guardian": { dmg: -2 }, "green-boulder": { dmg: -2 }, "magma-golem": { dmg: -2 }, "rift-heart": { dmg: -2 },
-  /*F3-TUNE*/ "orc-chief": { hp: 0.85, prot: -1, dmg: -1 }, "orc-guard": { hp: 0.8, prot: -1, dmg: -1 } };          // живой камень и так живучий (Защита 5, ОЗ ×1,5): урон кулака 1к6+2 → 1к6 (решение автора 02.11)
+  /*F3-TUNE*/ "orc-chief": { hp: 0.85, prot: -1, dmg: -1 }, "silence-keeper": { hp: 0.9 }, "marble-guardian": { hp: 0.8, prot: -1 }, "faceless-sculptor": { hp: 0.85, prot: -1, dmg: -1 }, "orc-guard": { hp: 0.8, prot: -1, dmg: -1 } };          // живой камень и так живучий (Защита 5, ОЗ ×1,5): урон кулака 1к6+2 → 1к6 (решение автора 02.11)
 MONSTERS.forEach(m => { const b = MON_BOOST[m.id]; if (!b || m.boost) return; m.boost = b; if (b.dodge && m.dodge != null) m.dodge += b.dodge; if (b.prot && m.prot != null) m.prot = Math.max(0, m.prot + b.prot); if (b.hp && typeof m.hp === "string") m.hp = m.hp.replace(/^\d+/, n => String(Math.round(+n * b.hp))); });
 // ===== конец данных монстров
 
@@ -2881,7 +2976,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 102;
+const BATTLE_REV = 103;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }
@@ -3868,7 +3963,8 @@ const inVoid = (x, y) => curFloor() === 3 && x >= F3_VOID.x0 && x <= F3_VOID.x1 
 const voidHere = () => { const r = state.run; return !!(r && r.floor === 3 && inVoid(r.pos.x, r.pos.y)); };
 const FLOOR3 = { n: 3, name: "3 этаж", zone: "stone", portalKind: "stone", dark: [],
   zoneName: (x, y) => (F3_RECTS.find(([, x0, y0, x1, y1]) => x >= x0 && x <= x1 && y >= y0 && y <= y1) || [F3_FALLBACK])[0],
-  placeAt(x, y) { const name = this.zoneName(x, y); return name === "Лагерь орков" ? orcPlace(x, y) : { name, std: [] }; } };
+  placeAt(x, y) { const name = this.zoneName(x, y); return name === "Лагерь орков" ? orcPlace(x, y) : (f3ZonePlace(name, x, y) || { name, std: [] }); } };
+const f3HasMon = (x, y) => { const pl = (zoneAt(x, y) || {}).place || {}; return !!(pl.gen || pl.special || (pl.std || []).length); };          // 3 этаж: монстры есть только в описанных зонах (орки, Звон, Храм)
 // Какой вход 3 этажа ждёт портал каждого варианта 2 этажа: перестановка четырёх входов, бросается в начале 2-го дня (или при первом обращении).
 function f3Map(r = state.run) {
   if (!r) return {};
@@ -4388,7 +4484,7 @@ function resolveRoll() {
   const n = p.pick - (p.dark ? 2 : 0) - (p.blood ? 2 : 0);
   let [, kind, title] = eventOf(Math.max(1, n), isRuins(p.x, p.y));
   if (p.monsters && !MON_EVENTS.has(kind)) [, kind, title] = eventOf(12);
-  if (curFloor() >= 3 && MON_EVENTS.has(kind)) [kind, title] = ["empty", "Пусто"];          // 3 этаж: монстров пока нет — пустой фрагмент
+  if (curFloor() >= 3 && MON_EVENTS.has(kind) && !f3HasMon(p.x, p.y)) [kind, title] = ["empty", "Пусто"];          // 3 этаж: в зонах без описанных монстров — пустой фрагмент
   const ev = { kind, title, raw: p.pick, n, dark: p.dark, blood: p.blood, cause: p.cause };
   const rollTxt = `к20 = ${p.pick}${p.dark ? " − 2 (тьма)" : ""}${p.blood ? " − 2 (чует кровь)" : ""}${p.dark || p.blood ? ` = ${n}` : ""}`;
   if (MON_EVENTS.has(kind)) {
@@ -4433,7 +4529,7 @@ function rollKindOf(p) {
   if (p.cause === "camp") return p.pick <= p.thr ? ["ambush", "Нападение на стоянку"] : ["empty", "Тихо, никто не напал"];
   const n = p.pick - (p.dark ? 2 : 0) - (p.blood ? 2 : 0); let ev = eventOf(Math.max(1, n), isRuins(p.x, p.y));
   if (p.monsters && !MON_EVENTS.has(ev[1])) ev = eventOf(12);
-  if (curFloor() >= 3 && MON_EVENTS.has(ev[1])) return ["empty", "Пусто"];          // 3 этаж: монстров пока нет — пустой фрагмент
+  if (curFloor() >= 3 && MON_EVENTS.has(ev[1]) && !f3HasMon(p.x, p.y)) return ["empty", "Пусто"];          // 3 этаж: в зонах без описанных монстров — пустой фрагмент
   return [ev[1], ev[2]];
 }
 function rollArm(p) {
@@ -5452,6 +5548,7 @@ function finishFight() {
   if (!e.arena && e.outcome !== "flee" && killed.some(i => e.list[i] === "rat-catcher")) ratChest();
   spFightDone(e, killed.map(i => e.list[i]));
   orcFightDone(e, killed.map(i => e.list[i]));
+  f3MonFightDone({ list: e.list, killed });
   dgUi.enc = null;
 }
 // Ночная встреча в Отдыхе: к6 = 1 (без караула 1–2, во тьме +1), состав — по броску к20 мастера.

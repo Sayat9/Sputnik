@@ -1563,5 +1563,263 @@
     ai(u) { const n = allies(u).filter(o => dist(u, o) <= 4).length; return n >= 1 && enemiesOf(u).length ? { score: 2 + n } : null; },
   };
 
+
+  /* ===================== 3 этаж: Звон и Хор мёртвых, Храм изваяний (03.11; тексты — ESSENCES в index.html, допущения — campaign/drafts.md) ===================== */
+  Object.assign(D.essCd, { "toll-beetle": 3, "echo-jackal": 2, "toll-rat": 2, "toll-guard": 4, shrieker: 3, "toll-bull": 3, "bell-ringer": 99, "toll-hunter": 99, "choir-dead": 4,
+    "stone-acolyte": 2, "dust-cherub": 3, caryatid: 4, "marble-halberdier": 2, "marble-guardian": 4, "marble-saint": 3, "faceless-sculptor": 3 });
+  Object.assign(D.status, {
+    shieldhum: { name: "Гул щита", good: true, ico: '<path d="M12 3l8 3v6c0 5-4 8-8 9-4-1-8-4-8-9V6z"/>', desc: "+2 к КД." },
+    tollhum:   { name: "Гул", good: true, ico: '<path d="M5 12a7 7 0 0114 0M8 12a4 4 0 018 0"/>', desc: "+1 к КД до своего хода." },
+    screeched: { name: "Оглушён визгом", good: false, atkDis: true, ico: '<path d="M4 9v6h4l6 4V5L8 9z"/><path d="M18 6l3 3M18 12h3M18 18l3-3"/>', desc: "Атакует с помехой." },
+    sanded:    { name: "Песок в глазах", good: false, atkDis: true, ico: '<circle cx="9" cy="12" r="2"/><circle cx="15" cy="12" r="2"/><path d="M4 18h16"/>', desc: "Следующая атака с помехой." },
+    choirjoin: { name: "Единение хора", good: true, ico: '<circle cx="7" cy="12" r="3"/><circle cx="17" cy="12" r="3"/><path d="M10 12h4"/>', desc: "+1 к КД, пока стоишь вплотную к участнику хора." },
+    faithwall: { name: "Стена веры", good: true, ico: '<path d="M4 20V8l8-5 8 5v12z"/>', desc: "Сопротивление колющему, рубящему и дробящему урону." },
+  });
+  Object.assign(D.monTune, {
+    "toll-beetle": { role: "swarm", focus: ["nearest"], fleeHp: 0.3 }, "echo-jackal": { role: "swarm", circle: true, focus: ["weak", "nearest"], fleeHp: 0.35 },
+    "toll-rat": { role: "skirmisher", hitRun: true, focus: ["weak", "nearest"], fleeHp: 0.4 }, "toll-guard": { role: "brute", focus: ["nearest"], noFlee: true },
+    shrieker: { role: "ranged", keep: 3, focus: ["cluster", "weak"], fleeHp: 0.3 }, "toll-bull": { role: "brute", focus: ["ranged", "weak", "nearest"], noFlee: true },
+    "bell-ringer": { role: "secondLine", focus: ["weak", "nearest"], noFlee: true }, "toll-hunter": { role: "brute", focus: ["weak", "nearest"], noFlee: true },
+    "choir-dead": { role: "secondLine", keep: 3, focus: ["cluster", "nearest"], noFlee: true },
+    "stone-acolyte": { role: "swarm", focus: ["nearest"], noFlee: true }, "dust-cherub": { role: "skirmisher", hitRun: true, flitter: true, focus: ["weak", "nearest"], fleeHp: 0.3 },
+    caryatid: { role: "guardian", leash: 2, focus: ["nearest"], noFlee: true }, "marble-halberdier": { role: "secondLine", focus: ["nearest"], noFlee: true },
+    "marble-guardian": { role: "brute", focus: ["attacker", "nearest"], noFlee: true }, "marble-saint": { role: "secondLine", focus: ["weak", "nearest"], noFlee: true },
+    "faceless-sculptor": { role: "brute", focus: ["attacker", "nearest"], noFlee: true },
+  });
+  const friends = u => live().filter(o => o.side === u.side && o.id !== u.id && alive(o) && !o.down);
+  const PHYS = ["pierce", "slash", "bludgeon"];
+
+  /* Звонкий жучок (9): «Гудящий хитин» — первый полученный за бой урон −2; «Гул» — реакцией +1 КД до своего хода */
+  P["toll-beetle"] = {
+    dmgFlat(u, { v }) { if (u.flags.hitin || !(v > 0)) return 0; u.flags.hitin = true; return -Math.min(2, v); },
+    defendMods(t, ctx) { if (t.side !== "mon" || has(t, "tollhum") || (t.cd && t.cd["toll-beetle"] > 0) || !t.t || !t.t.react) return; addStatus(t, "tollhum", { k: 1, when: "start" }); t.t.react = 0; B.setCd && B.setCd(t, "toll-beetle", D.essCd["toll-beetle"]); },
+    acBonus(u) { return has(u, "tollhum") ? 1 : 0; },
+  };
+  A["toll-beetle"] = { time: "bonus", tgt() { return { type: "none" }; }, can(u) { return has(u, "tollhum") ? "уже гудит" : true; },
+    async run(u, pk, ctl) { ctl.commit(); addStatus(u, "tollhum", { k: 1, when: "start" }); log(`${u.name} гудит: +1 КД.`, "skill"); fx(u, "гул", "good"); return true; }, ai() { return null; } };
+
+  /* Эхо-шакал (9): «Чуткий слух» (не застать врасплох), «Эхо» — союзник попал, шакал бьёт ту же цель вполсилы (реакция) */
+  P["echo-jackal"] = {
+    async allyHitAsync(a, att, tgt) {
+      if (a.side !== "mon" || !a.t || !a.t.react || (a.cd && a.cd["echo-jackal"] > 0) || !alive(tgt) || tgt.down) return;
+      const k = atkFor(a, "melee"); if (!k || dist(a, tgt) > (k.reach || 1)) return;
+      a.t.react = 0; if (B.setCd) B.setCd(a, "echo-jackal", D.essCd["echo-jackal"]); log(`${a.name}: эхо — бьёт следом.`, "skill");
+      await B.doAttack(a, tgt, k, { scale: 0.5, echo: true, noRedirect: true });
+    },
+  };
+  A["echo-jackal"] = { time: "react", tgt() { return { type: "none" }; }, can() { return "срабатывает само, когда союзник попадает"; }, async run() { return false; }, ai() { return null; } };
+
+  /* Колокольная крыса (9): «Чуткие усы» (ловушки рядом видны), «Юркнуть» — 2 клетки без атак по возможности */
+  P["toll-rat"] = {};
+  A["toll-rat"] = { time: "bonus", tgt() { return { type: "none" }; }, can(u) { return speedOf(u) > 0 ? true : "не может двигаться"; },
+    async run(u, pk, ctl) { ctl.commit(); await stepMove(u, 2, { prompt: "Юркнуть: куда (2 клетки, без атак по возможности)?", auto: cells => farthestSpot(u, cells) }); fx(u, "юркнула", ""); return true; },
+    ai(u) { return within(u, 1).length >= 2 || (within(u, 1).length && u.hp < u.maxHp * 0.5) ? { score: 3 } : null; } };
+
+  /* Гулкий страж (8): «Тяжёлая стойка» (не сдвинуть, не сбить), «Гул щита» +2 КД на 2 раунда */
+  P["toll-guard"] = { immovable: true, saveMods(u, ctx) { if ((ctx.tags || []).some(t => ["prone", "shove", "push", "grapple"].includes(t))) ctx.adv.push("тяжёлая стойка"); }, acBonus(u) { return has(u, "shieldhum") ? 2 : 0; } };
+  A["toll-guard"] = { time: "action", tgt() { return { type: "none" }; }, can(u) { return has(u, "shieldhum") ? "щит уже гудит" : true; },
+    async run(u, pk, ctl) { ctl.commit(); addStatus(u, "shieldhum", { k: 2, when: "end" }); log(`${u.name}: гул щита — +2 КД на 2 раунда.`, "skill"); fx(u, "гул щита", "good"); return true; },
+    ai(u) { return !has(u, "shieldhum") && within(u, 1).length && u.hp < u.maxHp * 0.85 ? { score: 14 } : null; } };
+
+  /* Визгун-голос (8): «Звонкий голос» (+2 клетки звуковым атакам), «Визг» — 2к6 звуком, спасбросок Мудрости Сл 12: провал — помеха на атаки */
+  P["shrieker"] = {};
+  A["shrieker"] = {
+    time: "action",
+    tgt(u) { const r = u.pass.includes("shrieker") ? 8 : 6; return specUnit(u, "Визг: в кого?", within(u, r), cellsAround(u, r), "attack"); },
+    can(u) { const r = u.pass.includes("shrieker") ? 8 : 6; return within(u, r).length ? true : "нет целей"; },
+    async run(u, pk, ctl) {
+      ctl.commit(); const t = pk.unit, sv = await save(t, "wis", 12, "Визг", ["sound"], u), d = roll(2, 6).total, v = sv.ok ? Math.floor(d / 2) : d;
+      log(`${u.name} визжит на ${t.name}: ${v} звуком${sv.ok ? "" : ", атаки с помехой"}.`, "skill");
+      await B.applyDamage(u, t, [{ v, dt: "thunder", label: "Визг" }], { src: u });
+      if (!sv.ok && alive(t)) { addStatus(t, "screeched", { k: 1, when: "end" }); fx(t, "оглушён визгом", "bad"); }
+      return true;
+    },
+    ai(u) { const ts = within(u, 8); return ts.length ? { unit: ts.sort((a, b) => b.hp - a.hp)[0], score: 3 } : null; },
+  };
+
+  /* Бронзовый бык (8): «Крепкий лоб» (разгон не прерывается), «Бронзовый разгон» — до 4 клеток по прямой, 2к6 + Сил, спасбросок Силы Сл 12 или сбит */
+  P["toll-bull"] = {};
+  A["toll-bull"] = {
+    time: "action",
+    tgt(u) { return specUnit(u, "Бронзовый разгон: на кого?", within(u, 5).filter(t => dist(u, t) >= 2), cellsAround(u, 5), "attack"); },
+    can(u) { return within(u, 5).some(t => dist(u, t) >= 2) ? true : "нужен разбег (цель в 2–5 клетках)"; },
+    async run(u, pk, ctl) {
+      const t = pk.unit; ctl.commit();
+      await stepMove(u, 4, { prompt: "Разгон: куда?", auto: cells => cells.filter(c => distCell(t, c.x, c.y) <= 1).sort((p, q) => q.cost - p.cost)[0] || nearestToFoe(u, cells) });
+      if (dist(u, t) > 1 || !alive(t)) { log(`${u.name}: разгон мимо.`); return true; }
+      const v = roll(2, 6).total + amod(u.abil.str), sv = await save(t, "str", 12, "Бронзовый разгон", ["prone"], u);
+      log(`${u.name} врезается в ${t.name}: ${v} дробящего${sv.ok ? "" : ", сбит с ног"}.`, "skill");
+      await B.applyDamage(u, t, [{ v, dt: "bludgeon", label: "Разгон" }], { src: u, melee: true });
+      if (!sv.ok && alive(t)) addStatus(t, "prone", { k: Infinity });
+      return true;
+    },
+    ai(u) { const ts = within(u, 5).filter(t => dist(u, t) >= 2); return ts.length ? { unit: ts.sort((a, b) => a.hp - b.hp)[0], score: 4 } : null; },
+  };
+
+  /* Звонарь (7): «Эхо двойника» (+1 КД, пока жив двойник), «Резонанс колоколов» — два двойника с 1/3 ОЗ, раз за бой */
+  P["bell-ringer"] = { acBonus(u) { return B.summonsOf(u).some(s => s.kind === "bellecho") ? 1 : 0; } };
+  A["bell-ringer"] = {
+    time: "action", tgt() { return { type: "none" }; }, can(u) { return u.kind === "bellecho" ? "двойник не зовёт двойников" : true; },
+    async run(u, pk, ctl) {
+      ctl.commit(); const cells = B.freeCellsNear(u, 2, { size: 1, side: u.side, id: "tmpb" }).slice(0, 2);
+      for (const c of cells) {
+        const d = B.monUnit(u.ref || "bell-ringer", -1), hp = Math.max(1, Math.ceil(u.maxHp / 3));
+        Object.assign(d, { summon: true, kind: "bellecho", owner: u.id, side: u.side, idx: null, x: c[0], y: c[1] }); B.addUnit(d, u.id);
+        Object.assign(d, { noReward: true, ess: [], pass: [], name: "Отзвук звонаря", base: "Отзвук звонаря", hp, maxHp: hp, seq: null, prot: 0, ac: Math.max(8, (d.ac || 10) - 2) });          // после addUnit (initUnit пересобирает бойца)
+        d.atk = (d.atk || []).filter(k => k.kind === "melee").map(k => ({ ...k, dmg: { ...k.dmg, b: Math.max(0, (k.dmg.b || 0) - 3) } }));          // отзвук слабее: только ближний удар, урон −3 (мой подбор, 03.11)
+        d.ai = Object.assign({}, d.ai, { noFlee: true, fleeHp: null, morale: null });
+      }
+      log(`${u.name}: резонанс колоколов — рядом встают ${cells.length} двойника.`, "skill"); fx(u, "двойники", "good"); return true;
+    },
+    ai(u) { return u.kind !== "bellecho" ? { score: 30 } : null; },
+  };
+
+  /* Охотник за звоном (7): эссенция работает вне боя (шум); в бою — обычный боец */
+  P["toll-hunter"] = {};
+  A["toll-hunter"] = { time: "action", tgt() { return { type: "none" }; }, can() { return "работает вне боя (шум Звона)"; }, async run() { return false; }, ai() { return null; } };
+
+  /* Хор мёртвых (7): строй (+1 КД за каждого поющего вплотную, до +3), «Резонанс» (цепочка попаданий +1…+4), «Единение хора» */
+  const choirN = u => friends(u).filter(o => dist(o, u) <= 1 && (o.ref === "choir-dead" || has(o, "choirjoin"))).length;
+  P["body:choir-dead"] = { acBonus(u) { return Math.min(3, choirN(u)); } };
+  const chainBonus = (src, tgt, o) => {
+    if (o && o.__chain != null) return o.__chain;
+    const S = B.S; let c = S.chain && S.chain[src.side], v = 0;
+    if (c && c.tgt === tgt.id) { c.n = Math.min(4, c.n + 1); v = c.n; c.mem[src.id] = 1; }
+    else if (c && c.mem[src.id]) { S.chain[src.side] = null; }
+    if (o) o.__chain = v; return v;
+  };
+  P["choir-dead"] = {
+    dmgOut(u, { tgt, o }) { const S = B.S; S.chain = S.chain || {}; const c = S.chain[u.side]; if (c && c.tgt === tgt.id) return chainBonus(u, tgt, o); S.chain[u.side] = { tgt: tgt.id, n: 0, mem: { [u.id]: 1 } }; if (o) o.__chain = 0; return 0; },
+    dmgAura(a, { src, tgt, o }) { return chainBonus(src, tgt, o); },
+    acBonus(u) { return has(u, "choirjoin") && u.ref !== "choir-dead" && friends(u).some(o => dist(o, u) <= 1 && has(o, "choirjoin")) ? 1 : 0; },
+  };
+  A["choir-dead"] = {
+    time: "bonus", tgt() { return { type: "none" }; }, can() { return true; },
+    async run(u, pk, ctl) { ctl.commit(); const g = [u, ...friends(u).filter(o => dist(o, u) <= 1)]; for (const o of g) addStatus(o, "choirjoin", { k: 3, when: "end" }); log(`${u.name}: единение хора (${g.length}).`, "skill"); fx(u, "хор", "good"); return true; },
+    ai(u) { const n = friends(u).filter(o => dist(o, u) <= 1 && !has(o, "choirjoin")).length; return n ? { score: 1.5 + n } : null; },
+  };
+
+  /* ===== Храм изваяний ===== */
+  const rubbleAt = (x, y, rounds) => { const S = B.S; if (!S.cells[y] || S.cells[y][x]) return; S.cells[y][x] = "rubble"; (S.rubble ||= []).push({ x, y, until: S.round + rounds }); };
+  const prevRoundF3 = B.onRound;
+  B.onRound = function (round) { if (prevRoundF3) prevRoundF3(round); const S = B.S; if (!S) return;
+    if (S.rubble) S.rubble = S.rubble.filter(r => { if (r.until >= round) return true; if (S.cells[r.y] && S.cells[r.y][r.x] === "rubble") S.cells[r.y][r.x] = null; return false; });
+    if (S.dust) S.dust = S.dust.filter(d => d.until >= round);
+    for (const s of live()) if (s.expires && s.expires < round && alive(s)) { s.alive = false; s.gone = true; log(`${s.name} рассыпается.`); }
+  };
+
+  /* Каменный служка (9): «Каменная крошка» (крит по тебе −2), «Осколочный бросок» — 4 клетки, 1к6 + Сил, клетка цели — щебень на 2 раунда */
+  P["stone-acolyte"] = { dmgFlat(u, { o, v }) { return o && o.crit && v > 1 ? -Math.min(2, v - 1) : 0; } };
+  A["stone-acolyte"] = {
+    time: "action",
+    tgt(u) { return specUnit(u, "Осколочный бросок: в кого?", within(u, 4).filter(t => dist(u, t) >= 2), cellsAround(u, 4), "attack"); },
+    can(u) { return within(u, 4).some(t => dist(u, t) >= 2) ? true : "нет цели в 2–4 клетках"; },
+    async run(u, pk, ctl) {
+      const base = atkFor(u, "melee"), a = { id: "shard", n: "Осколочный бросок", hit: base ? base.hit : 3, dmg: { n: 1, s: 6, b: amod(u.abil.str) }, dt: "bludgeon", kind: "ranged", range: [4, 4] };
+      const r = await B.doAttack(u, pk.unit, a, { onCommit: () => ctl.commit() });
+      if (r && r.hit && alive(pk.unit)) { const t = pk.unit; for (const [x, y] of [[t.x + 1, t.y], [t.x - 1, t.y], [t.x, t.y + 1], [t.x, t.y - 1]]) rubbleAt(x, y, 2); }
+      return !(r && r.cancelled);
+    },
+    ai(u) { const ts = within(u, 4).filter(t => dist(u, t) >= 2); return ts.length && !within(u, 1).length ? { unit: ts[0], score: 2 } : null; },
+  };
+
+  /* Пыльный херувим (9): «Песок в глаза» (первый попавший вблизи — помеха на следующую атаку), «Пыльная завеса» 2 × 2 на 2 раунда */
+  P["dust-cherub"] = { onDamaged(u, { src, o }) { if (u.flags.sand || !src || !o || !o.melee) return; u.flags.sand = true; addStatus(src, "sanded", { k: 1, when: "end" }); fx(src, "песок в глаза", "bad"); } };
+  A["dust-cherub"] = {
+    time: "bonus", tgt() { return { type: "none" }; }, can() { return true; },
+    async run(u, pk, ctl) {
+      ctl.commit(); const fr = friends(u).concat([u]).sort((a, b) => within(b, 1).length - within(a, 1).length)[0] || u, x0 = Math.min(B.W - 2, fr.x), y0 = Math.min(B.H - 2, fr.y);
+      (B.S.dust ||= []).push({ cells: [[x0, y0], [x0 + 1, y0], [x0, y0 + 1], [x0 + 1, y0 + 1]], until: B.S.round + 2 });
+      log(`${u.name} поднимает пыльную завесу.`, "skill"); fx(fr, "пыль", ""); const g = ui(); if (g) g.refresh(); return true;
+    },
+    ai(u) { return friends(u).some(o => within(o, 1).length) ? { score: 2.5 } : null; },
+  };
+
+  /* Кариатида (8): «Опора» (не двигалась в ход — +1 КД), «Обрушить свод» — радиус 1, Лов, 2к6 и сбит, щебень на 3 раунда */
+  P["caryatid"] = { turnEnd(u) { u.flags.still = !(u.t && u.t.moved > 0); }, acBonus(u) { return u.flags.still ? 1 : 0; } };
+  A["caryatid"] = {
+    time: "action", tgt() { return { type: "none" }; }, can(u) { return within(u, 1).length ? true : "никого рядом"; },
+    async run(u, pk, ctl) {
+      ctl.commit(); const dc = dcOf(u, "str");
+      for (const t of within(u, 1)) { const sv = await save(t, "dex", dc, "Обрушить свод", ["prone"], u), d = roll(2, 6).total, v = sv.ok ? Math.floor(d / 2) : d;
+        await B.applyDamage(u, t, [{ v, dt: "bludgeon", label: "Обрушить свод" }], { src: u }); if (!sv.ok && alive(t)) addStatus(t, "prone", { k: Infinity }); }
+      for (let y = u.y - 1; y <= u.y + 1; y++) for (let x = u.x - 1; x <= u.x + 1; x++) if (!live().some(o => o.x === x && o.y === y)) rubbleAt(x, y, 3);
+      log(`${u.name} обрушивает свод.`, "skill"); return true;
+    },
+    ai(u) { const n = within(u, 1).length; return n >= 2 ? { score: 4 + n } : null; },
+  };
+
+  /* Мраморный алебардист (8): «Стойка» (вошедший в досягаемость: спасбросок Силы или остановлен), «Перехват древком» (реакция) */
+  P["marble-halberdier"] = {
+    async reactEnter(e, mover, from) {
+      const a = atkFor(e, "melee"); if (!a || e.side === mover.side) return; const r = a.reach || 1;
+      if (dist(e, mover) > r || (from && B.distAt(e, mover, from[0], from[1]) <= r) || e.stanceRound === B.S.round) return; e.stanceRound = B.S.round;
+      const sv = await save(mover, "str", dcOf(e, "str"), "Стойка алебардиста", ["stop"], e);
+      if (!sv.ok) { mover.halted = true; log(`${e.name}: стойка — ${mover.name} останавливается.`, "skill"); fx(mover, "остановлен", "bad"); }
+    },
+  };
+  const prevRedirect = B.redirectAttack;
+  B.redirectAttack = async function (att, tgt, atk, o) {
+    if (atk && atk.kind === "melee" && !o.echo) for (const h of friends(tgt)) {
+      if (!h.pass.includes("marble-halberdier") || !h.t || !h.t.react || (h.cd && h.cd["marble-halberdier"] > 0)) continue;
+      const k = atkFor(h, "melee"); if (!k || dist(h, att) > (k.reach || 1)) continue;
+      h.t.react = 0; if (B.setCd) B.setCd(h, "marble-halberdier", D.essCd["marble-halberdier"]); log(`${h.name}: перехват древком!`, "skill");
+      const r = await B.doAttack(h, att, k, { echo: true, noRedirect: true });
+      if (r && r.hit) { o.dis = (o.dis || []).concat(["перехват древком"]); }
+      if (!alive(att) || att.down) return null;
+      break;
+    }
+    return prevRedirect ? prevRedirect(att, tgt, atk, o) : null;
+  };
+  A["marble-halberdier"] = { time: "react", tgt() { return { type: "none" }; }, can() { return "срабатывает само, когда враг в досягаемости бьёт союзника"; }, async run() { return false; }, ai() { return null; } };
+
+  /* Мраморный страж (7): «Обет защиты» (раз в раунд половина урона союзника рядом — на себя), «Стена веры» */
+  B.shareDamage = async function (src, tgt, total, o) {
+    for (const g of friends(tgt)) {
+      if (!g.pass.includes("marble-guardian") || dist(g, tgt) > 1 || g.vowRound === B.S.round || g.id === tgt.id) continue;
+      g.vowRound = B.S.round; const k = Math.floor(total / 2); if (k <= 0) break;
+      log(`${g.name}: обет защиты — принимает ${k} урона за ${tgt.name}.`, "skill");
+      await B.applyDamage(src, g, [{ v: k, dt: "bludgeon", label: "Обет защиты" }], { src, shared: true, pure: true });
+      return total - k;
+    }
+    return total;
+  };
+  P["marble-guardian"] = {};
+  A["marble-guardian"] = {
+    time: "action", tgt() { return { type: "none" }; }, can() { return true; },
+    async run(u, pk, ctl) { ctl.commit(); const ally = friends(u).filter(o => dist(o, u) <= 1).sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp)[0];
+      addStatus(u, "faithwall", { k: 1, when: "start" }); if (ally) addStatus(ally, "faithwall", { k: 1, when: "start", data: { by: u.id } });
+      log(`${u.name}: стена веры${ally ? " — и " + ally.name : ""}.`, "skill"); fx(u, "стена веры", "good"); return true; },
+    ai(u) { return !has(u, "faithwall") && within(u, 1).length >= (friends(u).some(o => dist(o, u) <= 1) ? 1 : 2) ? { score: 18 } : null; },
+  };
+
+  /* Мраморная святая (7): «Ореол» (+1 к спасброскам союзников рядом), «Исцеляющий свет» 2к6 + Инт в 4 клетках */
+  P["marble-saint"] = { saveAura(a, { u, ctx }) { if (u !== a && u.side === a.side && dist(a, u) <= 1) ctx.mods.push({ l: "Ореол", v: 1 }); } };
+  A["marble-saint"] = {
+    time: "action",
+    tgt(u) { const fs = friends(u).concat([u]).filter(o => dist(o, u) <= 4 && o.hp < o.maxHp); return specUnit(u, "Исцеляющий свет: кого?", fs, cellsAround(u, 4), "buff"); },
+    can(u) { return friends(u).concat([u]).some(o => dist(o, u) <= 4 && o.hp < o.maxHp) ? true : "все целы"; },
+    async run(u, pk, ctl) { ctl.commit(); const t = pk.unit, v = roll(2, 6).total + amod(u.abil.int), got = B.heal(t, v, u); log(`${u.name}: исцеляющий свет — ${t.name} +${got} ОЗ.`, "good"); fx(t, "+" + got, "good"); return true; },
+    ai(u) { const t = friends(u).concat([u]).filter(o => dist(o, u) <= 4 && o.hp <= o.maxHp * 0.6).sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp)[0]; return t ? { unit: t, score: 16 } : null; },
+  };
+
+  /* Безликий скульптор (6): «Резец мастера» (призванные +3 ОЗ, +1 КД), «Изваять» — служка на 3 раунда; у камня/изваяния — кариатида */
+  P["faceless-sculptor"] = {};
+  const nearStone = u => { for (let y = u.y - 1; y <= u.y + 1; y++) for (let x = u.x - 1; x <= u.x + 1; x++) { const t = B.tinfo(x, y); if (t && (t.obstacle && /Изваяние|Валун|Сталагмит/.test(t.name || ""))) return [x, y]; } return null; };
+  A["faceless-sculptor"] = {
+    time: "action", tgt() { return { type: "none" }; }, can() { return true; },
+    async run(u, pk, ctl) {
+      ctl.commit(); const st = nearStone(u), id = st ? "caryatid" : "stone-acolyte";
+      const c = st && B.S.cells[st[1]] && B.S.cells[st[1]][st[0]] === "statue" ? (B.S.cells[st[1]][st[0]] = null, st) : B.freeCellsNear(u, 1, { size: 1, side: u.side, id: "tmps" })[0]; if (!c) return true;
+      const m = B.monUnit(id, -1), mk = u.pass.includes("faceless-sculptor");
+      Object.assign(m, { summon: true, kind: "carved", owner: u.id, side: u.side, idx: null, x: c[0], y: c[1], expires: B.S.round + 3 }); B.addUnit(m, u.id);
+      const nm = id === "caryatid" ? "Ожившая кариатида" : "Изваянный служка"; Object.assign(m, { name: nm, base: nm, ess: [], noReward: true });
+      if (mk) { m.maxHp += 3; m.hp += 3; m.ac += 1; }
+      m.ai = Object.assign({}, m.ai, { noFlee: true, fleeHp: null, morale: null });
+      log(`${u.name} изваивает: ${m.name} (3 раунда).`, "skill"); fx(m, "ожил", "bad"); return true;
+    },
+    ai(u) { const n = B.summonsOf(u).length; return n < 2 ? { score: n ? 18 : 40 } : null; },
+  };
+
   B.fillActiveTimes();
 })();

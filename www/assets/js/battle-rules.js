@@ -77,7 +77,7 @@
   B.breakGrapples = breakGrapples;
   // Записать убитого врага в награды. Не из списка встречи (призван крысоловом/чернокрылом, мимик) — дописывается в ev.list.
   B.regKill = (u, by) => {
-    const S = B.S, ev = S && S.ev; if (!ev || !Array.isArray(ev.list) || u.side !== "mon") return false;
+    const S = B.S, ev = S && S.ev; if (!ev || !Array.isArray(ev.list) || u.side !== "mon" || u.noReward) return false;          // отзвуки звонаря и изваянные слуги скульптора наград не дают (03.11)
     if (!(u.idx >= 0 && ev.list[u.idx])) { const id = u.ref || (u.mon && u.mon.id); if (!id || !MONSTERS.some(m => m.id === id)) return false; u.idx = ev.list.length; ev.list.push(id); }
     if (S.killed.includes(u.idx)) return true;
     S.killed.push(u.idx); (S.killedBy ||= {})[u.idx] = (() => { const k = by && by.summon && by.owner ? B.byId(by.owner) : by; return k && k.hero ? (typeof k.hero === "object" ? k.hero.id : k.hero) : null; })();          // кто добил: герой или его призванное существо (засчитывается хозяину)
@@ -143,7 +143,8 @@
       if (wetBonus) { v += wetBonus; notes.push(`промок +${wetBonus}`); }
       if (p.dt === "fire" && B.fireOn) B.fireOn(tgt);                                    // любой огонь по рою паучат уничтожает его
       if (tgt.vuln.includes(p.dt) || hookAny(tgt, "vulnerable", { dt: p.dt }) || (tgt.hero && D.race[tgt.race] && (D.race[tgt.race].vuln || []).includes(p.dt))) { v *= 2; notes.push("уязвим"); }
-      if (tgt.resist.includes(p.dt) || hookAny(tgt, "resist", { dt: p.dt })) { v = Math.floor(v / 2); notes.push("сопротивление"); }
+      if (tgt.resist.includes(p.dt) || hookAny(tgt, "resist", { dt: p.dt }) || (has(tgt, "faithwall") && PHYS_DT.includes(p.dt))) {          // «Стена веры» мраморного стража (03.11)
+      v = Math.floor(v / 2); notes.push("сопротивление"); }
       const exd = tgt.extraTaken && tgt.extraTaken[p.dt]; if (exd) { const xd = B.parseDice(exd), xr = roll(xd.n, xd.s).total; v += xr; notes.push(`чувствительность +${xr}`); }       // «Боится огня», «Холод жжёт»
       v += hookSum(tgt, "dmgFlat", { dt: p.dt, melee: o.melee, o, src, v, memo });
       if (tgt.coldSlow && p.dt === "cold" && v > 0) addStatus(tgt, "slowed", { k: 1, when: "end", data: { add: -2 } });          // «Холод сковывает»: −3 м скорости до конца хода
@@ -161,6 +162,7 @@
       if (pm && pm !== 1 && total > 0) total = Math.max(1, Math.floor(total * pm)); }
     const fb = has(tgt, "fistblock"); if (fb && o.melee && total > 0) { const fr = roll(1, 4).total + Math.max(0, amod(tgt.abil.dex)); total = Math.max(0, total - fr); notes.push(`блок кулаками −${fr}`); }          // две перчатки: «Блок кулаками»
     if (o.reduce && total > 0) { const rd = B.parseDice(o.reduce.dice), rr = roll(rd.n, rd.s).total; total = Math.max(0, total - rr); notes.push(`${o.reduce.label || "щит"} −${rr}`); }          // «Принять удар» с ростовым щитом
+    if (total > 0 && !o.shared && B.shareDamage) total = await B.shareDamage(src, tgt, total, o);          // «Обет защиты»: союзник рядом принимает часть урона (03.11)
     const absorbed = Math.min(tgt.temp || 0, total); tgt.temp = (tgt.temp || 0) - absorbed;
     const left = total - absorbed;
     if (src && left > 0 && src.id !== tgt.id) tgt.lastHitBy = src.id;
@@ -279,6 +281,8 @@
     if (B.inDark(tgt) && !B.seesInDark(att, tgt)) { ac += 2; ctx.acNotes.push("во тьме +2"); }
     ctx.ac = ac;
     hookAll(att, "attackMods", ctx); hookAll(tgt, "defendMods", ctx);
+    for (const c of att.conds || []) { const st = D.status[c.id]; if (st && st.atkDis) ctx.dis.push(st.name); }          // «Визг», «Песок в глаза» — помеха на атаки (03.11)
+    if (B.S && B.S.dust && B.S.dust.some(d => d.until >= B.S.round && footprint(tgt).some(([x, y]) => d.cells.some(([cx, cy]) => cx === x && cy === y)))) ctx.dis.push("пыльная завеса");
     for (const a of alliesOf(att)) hookAll(a, "attackAura", { ally: a, att, tgt, ctx });          // «Пока король жив»
     const ha = tinfo(att.x, att.y), ht = tinfo(tgt.x, tgt.y);                                              // высота: с возвышенности бьют точнее, и по стоящему на ней тоже (решение автора, черновик)
     if (ha && ha.elevated) ctx.mods.push({ l: "Высота (атакует сверху)", v: B.D.height.att });
@@ -383,6 +387,7 @@
     if (g && ses.auto) { g.banner(`${att.name} → ${tgt.name}: ${crit ? "КРИТ! " : ""}${ap.total} урона${res.killed ? ", цель убита" : ""}`); await sleep(750); }
     await ses.finish({ text: `${crit ? "Критическое попадание! " : "Попадание! "}${ap.total} урона${ar && ar.note ? " · " + ar.note : ""}`, anim: animKind(atk), tgt, dmg: ap.total, crit });
     if (tgt.alive || tgt.down) { hookAll(att, "onHitDealt", { ...ctx, res }); if (o.rider) await o.rider(res); }
+    if (!o.echo && alive(tgt) && !tgt.down) for (const a of alliesOf(att)) for (const id of a.pass || []) { const hp = B.P && B.P[id]; if (hp && hp.allyHitAsync && alive(a) && !a.down) await hp.allyHitAsync(a, att, tgt, atk); }          // «Эхо» шакала (03.11)
     if (att.alive) for (const id of att.pass) { const P = B.P && B.P[id]; if (P && P.afterAttack) await P.afterAttack(att, { ...ctx, res }); }
     touchDouble();
     hookAll(att, "attackDone", { ...ctx, res });                                       // после любой атаки, попала она или нет: отскок «Петляет»
@@ -559,6 +564,7 @@
       await terrainEnter(u);
       if (!alive(u) || u.down) { interrupted = true; break; }
       await onEnter(u, from);
+      if (u.halted) { u.halted = false; interrupted = true; break; }          // «Стойка» алебардиста: остановлен на подходе (03.11)
       if (B.illusionCheck && alive(u) && !u.down) await B.illusionCheck(u);                         // «Морок»: впервые увидел иллюзию — проверка Проницательности
       hookAll(u, "onMoveStep", { from, to: [x, y] });
       { const hs = has(u, "hamstrung"); if (hs && !o.force) { hs.data.cells = (hs.data.cells || 0) + 1; if (hs.data.cells % 2 === 0) {          // «Укус в ноги» матёрого волка

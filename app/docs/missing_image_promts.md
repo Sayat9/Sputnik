@@ -12,6 +12,72 @@
 
 Новый монстр без картинки: полный рост 1024 × 1536 (иконку лица вырезаю сам). Нужны монстры 3 этажа: Хранитель Тишины, мимик и 9 обитателей Лагеря орков.
 
+### Монстры Звона и Храма изваяний (3 этаж, 03.11)
+
+### Звонкий жучок — `monsters/toll-beetle-full`
+
+> `full-body a small bronze-shelled beetle with bell-shaped ridged carapace, faint ripples of sound around it, cracked bell tower floor, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Эхо-шакал — `monsters/echo-jackal-full`
+
+> `full-body a lean grey jackal with oversized ears, translucent afterimages trailing behind it like echoes, ruined bell hall, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Колокольная крыса — `monsters/toll-rat-full`
+
+> `full-body a scrawny rat with a tiny cracked bell tied to its tail, long whiskers, crouching on a broken bell rope, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Гулкий страж — `monsters/toll-guard-full`
+
+> `full-body an undead guard in rusted chainmail with a dented round shield that vibrates, heavy mace, hollow glowing eyes, bell tower stairs, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Визгун-голос — `monsters/shrieker-full`
+
+> `full-body a gaunt pale creature with an enormous open mouth and stretched throat, screaming, sound waves distorting the air, dark belfry, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Бронзовый бык — `monsters/toll-bull-full`
+
+> `full-body a massive bull with bronze metal hide like a cast bell, steaming nostrils, lowered horns, charging pose, stone courtyard, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Звонарь — `monsters/bell-ringer-full`
+
+> `full-body an undead bell ringer in tattered robes holding a bell hammer, two ghostly translucent copies of himself beside him, huge bronze bell above, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Охотник за звоном — `monsters/toll-hunter-full`
+
+> `full-body a silent hunter in muffled dark leathers with wrapped boots, glaive in hand, finger to lips, mist around the feet, dim bell hall, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Хор мёртвых — `monsters/choir-dead-full`
+
+> `full-body four gaunt undead choristers in ragged choir robes standing shoulder to shoulder, mouths open in a mournful chant, pale light, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Каменный служка — `monsters/stone-acolyte-full`
+
+> `full-body a small living statue of a hooded acolyte made of cracked grey stone, crumbling pebbles falling, temple of statues, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Пыльный херувим — `monsters/dust-cherub-full`
+
+> `full-body a small flying stone cherub with chipped wings, trailing dust clouds, empty eyes, ruined marble temple, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Кариатида — `monsters/caryatid-full`
+
+> `full-body a marble caryatid statue come alive, a woman holding a broken stone lintel on her head, cracks glowing faintly, temple columns, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Мраморный алебардист — `monsters/marble-halberdier-full`
+
+> `full-body a living marble soldier statue with a long stone halberd lowered in a guard stance, temple steps, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Мраморный страж — `monsters/marble-guardian-full`
+
+> `full-body a towering marble knight statue with a great stone sword and shield, standing protectively, cracked white marble, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Мраморная святая — `monsters/marble-saint-full`
+
+> `full-body a serene marble saint statue with a halo of soft light, hands raised in blessing, holding a stone staff, temple altar, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Безликий скульптор — `monsters/faceless-sculptor-full`
+
+> `full-body a huge faceless marble figure with a smooth blank face, holding a giant chisel and mallet, half-carved statues around it, dust in the air, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
 ### Хранитель Тишины — `monsters/silence-keeper-full`
 
 > `full-body tall hooded spirit in a grey silver-trimmed robe, face hidden in shadow, one finger pressed to where the lips would be, a heavy silver mace in the other hand, ghostly mist at the feet, eerie silent dungeon hall behind, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
