@@ -4,6 +4,7 @@ const L = require('./bui_lib.js');
   const { b, p } = await L.launch(400, 860, { touch: true });
   const R = [], ok = (name, cond, extra) => { R.push({ name, ok: !!cond }); if (!cond) console.log('  ✗', name, '—', extra == null ? '' : extra); };
   await L.setup(p, { heroes: ['barb2', 'archer'], tactical: true });
+  await p.evaluate(() => { state.party.forEach(c => { c.rank = 8; }); });          // 8 ранг: обычные цены, сталь открыта (v107)
   await p.evaluate(() => { state.run = null; state.townUnlocked = true; state.party.forEach(c => { c.gold = 500; }); location.hash = 'town'; rerender(); });
   await p.waitForTimeout(300);
   await p.click('[data-bld="forge"]'); await p.waitForSelector('.tw-shop');

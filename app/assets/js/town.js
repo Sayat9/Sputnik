@@ -16,18 +16,29 @@
     { key: "shovel", e: { t: "g", id: "shovel", qty: 1 }, price: 8 }, { key: "shovel-good", e: { t: "g", id: "shovel-good", qty: 1 }, price: 15 },
     { key: "flute", e: { t: "g", id: "flute", qty: 1 }, price: 8 }, { key: "firstaid", e: { t: "g", id: "firstaid", qty: 3 }, price: 20, many: true, label: "Набор первой помощи (3 заряда)" }, { key: "compass", special: "compass", price: 30 },
   ];
+  // Ранг отряда (решения автора 03.11): на 9 ранге цены магазина +10 %, с 8-го — обычные; хорошее зелье, хорошая лопата и компас продаются с 8-го ранга, на 7-м — −10 %.
+  // Цена продажи вещей лавочнику не меняется (считается от базовой цены g.base).
+  const RANK_GOODS = { "potion-good": 8, "shovel-good": 8, compass: 8 };
+  const rankMul = (r, open) => r >= 9 ? 1.1 : open != null && r <= open - 1 ? 0.9 : 1;
+  GOODS.forEach(g => { const b = g.price; g.base = b; Object.defineProperty(g, "price", { configurable: true, get() { const r = partyRank(), need = RANK_GOODS[g.key]; return Math.max(1, Math.round(b * (r >= 9 ? 1.1 : need && r <= need - 1 ? 0.9 : 1))); } }); });
+  const goodOpen = g => !RANK_GOODS[g.key] || partyRank() <= RANK_GOODS[g.key];
+  // Кузница: на 9 ранге обычное оружие и броня +10 %, улучшенное (стальное) открывается с 8-го ранга, на 7-м на него −10 %.
+  const forgeRank = (p, steel) => Math.max(1, Math.round(p * (steel ? (partyRank() <= 7 ? 0.9 : 1) : (partyRank() >= 9 ? 1.1 : 1))));
+  const steelOpen = () => partyRank() <= 8;
   const FORGE_W = ["dagger", "spear", "pike", "mace", "warhammer", "sword", "rapier", "greatsword", "gloves", "staff", "axe", "greataxe", "shortbow", "longbow", "shield", "tower-shield"];
   const FORGE_A = ["leather", "hide", "chainmail"];
   const forgeDisc = p => ((state.party || []).some(c => c.race === "dwarf" && !c.dead) ? Math.max(1, Math.round(p * 0.9)) : p);          // дварф в отряде: скидка 10% в кузнице
   const FORGE_PRICE = { weapon: 10, armor: 15, steelWeapon: 25, steelArmor: 40 };               // решение автора
   const FORGE = {
-    base: [...FORGE_W.map(id => ({ key: "w:" + id, e: { t: "w", id, qty: 1 }, get price() { return forgeDisc(FORGE_PRICE.weapon); } })), ...FORGE_A.map(id => ({ key: "a:" + id, e: { t: "a", id, qty: 1 }, get price() { return forgeDisc(FORGE_PRICE.armor); } })),
+    base: [...FORGE_W.map(id => ({ key: "w:" + id, e: { t: "w", id, qty: 1 }, get price() { return forgeDisc(forgeRank(FORGE_PRICE.weapon)); } })), ...FORGE_A.map(id => ({ key: "a:" + id, e: { t: "a", id, qty: 1 }, get price() { return forgeDisc(forgeRank(FORGE_PRICE.armor)); } })),
       { key: "repair5", e: { t: "g", id: "repair-kit", qty: 5 }, price: 10, label: "Ремонтный набор ×5" }, { key: "repairpro5", e: { t: "g", id: "repair-kit-pro", qty: 5 }, price: 50, label: "Продвинутый ремонтный набор ×5" }],
-    steel: [...FORGE_W.map(id => ({ key: "sw:" + id, e: { t: "w", id, qty: 1, steel: true }, get price() { return forgeDisc(FORGE_PRICE.steelWeapon); } })), ...FORGE_A.map(id => ({ key: "sa:" + id, e: { t: "a", id, qty: 1, steel: true }, get price() { return forgeDisc(FORGE_PRICE.steelArmor); } }))],
+    steel: [...FORGE_W.map(id => ({ key: "sw:" + id, e: { t: "w", id, qty: 1, steel: true }, get price() { return forgeDisc(forgeRank(FORGE_PRICE.steelWeapon, true)); } })), ...FORGE_A.map(id => ({ key: "sa:" + id, e: { t: "a", id, qty: 1, steel: true }, get price() { return forgeDisc(forgeRank(FORGE_PRICE.steelArmor, true)); } }))],
   };
   const COMPASS_INFO = () => ({ name: "Компас", icon: ICO_COMPASS, note: "Стрелка показывает север при любом повороте карты. Включается удержанием в инвентаре лабиринта.", weight: 0 });
   const TAVERN = { sleep: 3, food: 1 };                                                           // за героя
-  const towerPrice = id => Math.max(1, Math.round(essPrice(id) / 3));                            // детали эссенции в башне — треть её цены, только для впитанной (решение автора)
+  // Ранг (03.11): анализ эссенции N класса — с N-го ранга; цена текущего ранга +10 %, прошлых рангов — на 10 % меньше неё.
+  const towerOpen = id => (ESSENCES[id] || {}).cls >= partyRank();
+  const towerPrice = id => { const cls = (ESSENCES[id] || {}).cls || 9, m = 1.1 * (cls > partyRank() ? 0.9 : 1); return Math.max(1, Math.round(essPrice(id) / 3 * m)); };                            // детали эссенции в башне — треть её цены, только для впитанной (решение автора)
   const churchPrice = id => essBasePrice(id);                                                    // удаление — полная цена обычной эссенции того же ранга (решение автора)
   const INFO_PRICE = { type: 5, portrait: 8, spawn: 10, body: 10, stats: 15, area: 30, "ess-stats": 45, "ess-passive": 60, "ess-active": 80 };          // сведения дорогие: места обитания — особенно, детали эссенций — ещё дороже
   const CLS_MULT = { 9: 1, 8: 5, 7: 20 };                                                         // как цена камня
@@ -122,7 +133,7 @@
      МАГАЗИН
      ===================================================================== */
   // Магазин и кузница — один интерфейс с разной витриной.
-  const goodsOf = () => ui.b === "forge" ? (FORGE[ui.tab || "base"] || FORGE.base) : GOODS;
+  const goodsOf = () => ui.b === "forge" ? (ui.tab === "steel" && !steelOpen() ? FORGE.base : FORGE[ui.tab || "base"] || FORGE.base) : GOODS.filter(goodOpen);
   const goodByKey = k => [...GOODS, ...FORGE.base, ...FORGE.steel].find(g => g.key === k);
   const owned = g => g.special === "compass" && inventory().compass.owned;
   const goodInfo = g => g.special === "compass" ? COMPASS_INFO() : (g.label ? { ...itemOf(g.e), name: g.label } : itemOf(g.e));
@@ -189,7 +200,7 @@
     const c = hero(), forge = ui.b === "forge", title = forge ? "Кузница" : "Магазин";
     if (!c) return frame(title, "Рафдония", noParty());
     const left = `<aside class="tw-bagcol">${heroStrip()}<div class="gold-row">${COIN_SVG}<b>${goldOf(c)}</b><small>монет у героя</small></div>${bagGrid(c, ui.sel && ui.sel.side === "bag" ? ui.sel.i : null)}${forge ? "" : sackTile()}</aside>`;
-    const tabs = forge ? `<div class="tw-tabs"><button class="fx-btn" role="tab" aria-selected="${(ui.tab || "base") === "base"}" data-t="ftab" data-k="base">Обычное</button><button class="fx-btn" role="tab" aria-selected="${ui.tab === "steel"}" data-t="ftab" data-k="steel">Улучшенное</button><button class="fx-btn" role="tab" aria-selected="${ui.tab === "fix"}" data-t="ftab" data-k="fix">Починка</button></div>` : "";
+    const tabs = forge ? `<div class="tw-tabs"><button class="fx-btn" role="tab" aria-selected="${(ui.tab || "base") === "base"}" data-t="ftab" data-k="base">Обычное</button><button class="fx-btn" role="tab" aria-selected="${ui.tab === "steel"}" data-t="ftab" data-k="steel"${steelOpen() ? "" : " disabled"}>${steelOpen() ? "Улучшенное" : "Улучшенное · 8 ранг"}</button><button class="fx-btn" role="tab" aria-selected="${ui.tab === "fix"}" data-t="ftab" data-k="fix">Починка</button></div>` : "";
     if (forge && ui.tab === "fix") {
       const right0 = `<section class="tw-shopcol"><div class="tw-keeper">${img("assets/npc/smith.webp", "Кузнец")}<div class="tw-bubble">${ui.tab === "fix" ? "Что сломалось — несите, всё починю." : "Редкие вещи беру за хорошие деньги."}</div></div><div class="tw-sheet"><div class="tw-rod"></div><div class="tw-sheet-in">${tabs}${ui.tab === "fix" ? fixHtml(c) : artSellHtml("forge")}</div></div></section>`;
       return `<div class="tw-panel fx-frame">${head(title, "Рафдония")}<div class="tw-shop">${left}${right0}</div><footer class="tw-foot">${msgLine()}</footer></div>`;
@@ -323,7 +334,11 @@
      тип (гоблины / звери / нежить / элементали), ранг (обычный / редкий / особый), известный или новый, вид сведений.
      Бонус проверки героя — мод. Интеллекта + мод. Проницательности (Мудрости). Успех — выбираешь сам, провал — случайно.
      Сведения об эссенции предлагаются только при выпавших 19–20 на последней проверке. Всё исследование — одно городское действие. */
-  const LIB_DC = { 9: 10, 8: 14 };
+  const LIB_DC = { 9: 10, 8: 14, 7: 18 };
+  // Ранг (03.11): класс открыт, только если ранг отряда не ниже его (9 — всегда, 8 — с 8-го ранга, 7 — с 7-го). На 9 ранге Сл 9 класса +2;
+  // следующий ранг снимает надбавку с 9 класса, а для класса прошлого ранга (8-й на 7-м ранге и т. д.) даёт −2.
+  const libOpen = cl => cl >= partyRank();
+  const libDc = cl => { const r = partyRank(); return LIB_DC[cl] + (cl === 9 && r >= 9 ? 2 : 0) + (cl !== 9 && cl > r ? -2 : 0); };
   const RANK_RU = { normal: "Обычные", rare: "Редкие", special: "Особые" };
   const NOVEL_RU = { known: "Уже известный", new: "Новый (ещё не открыт)" };
   const STAGES = [["kind", "Тип монстра"], ["rank", "Ранг: обычный, редкий или особый"], ["novel", "Известный или новый монстр"], ["info", "Вид сведений"]];
@@ -376,7 +391,7 @@
   }
   function lrRoll(n) {
     const lr = ui.lr; if (!lr || lr.step !== "stage" || lr.choosing) return;
-    const c = state.party.find(x => x.id === lr.hero) || hero(), bonus = libBonus(c), dc = LIB_DC[lr.cls], die = n || window.__libDie || 1 + rnd(20), total = die + bonus, pass = total >= dc;
+    const c = state.party.find(x => x.id === lr.hero) || hero(), bonus = libBonus(c), dc = libDc(lr.cls), die = n || window.__libDie || 1 + rnd(20), total = die + bonus, pass = total >= dc;
     visit();
     const name = STAGES[lr.stage][1];
     if (STAGES[lr.stage][0] === "info" && die >= 19) lr.essOK = true;
@@ -400,10 +415,10 @@
       <div class="tw-rows">${state.party.filter(c => !c.dead).map(c => `<div class="tw-row"><div class="tw-who"><span class="tw-ph">${phPortrait(raceById(c.race), c.gender)}</span><div><b>${esc(c.name)}</b><small>бонус ${libBonus(c) >= 0 ? "+" : ""}${libBonus(c)}</small></div></div><button class="fx-btn primary" data-t="lr-hero" data-id="${c.id}">Выбрать</button></div>`).join("")}</div>
       <button class="fx-btn" data-t="lr-back">← Назад</button>`;
     if (lr.step === "cls") return `<p class="tw-lead">О каких монстрах искать? Чем выше класс, тем сложнее проверки (растёт с 9 класса).</p>
-      <div class="tw-rows">${Object.keys(LIB_DC).map(Number).map(cl => { const open = journal().tiers.includes(cl) && libCands(cl).length; return `<div class="tw-row"><div class="tw-who"><div><b>${cl} класс</b><small>Сл ${LIB_DC[cl]}${open ? "" : " · пока не открыт"}</small></div></div><button class="fx-btn primary" data-t="lr-cls" data-n="${cl}"${open ? "" : " disabled"}>Выбрать</button></div>`; }).join("")}</div>
+      <div class="tw-rows">${Object.keys(LIB_DC).map(Number).map(cl => { const open = libOpen(cl) && journal().tiers.includes(cl) && libCands(cl).length; return `<div class="tw-row"><div class="tw-who"><div><b>${cl} класс</b><small>Сл ${libDc(cl)}${!libOpen(cl) ? ` · нужен ${cl} ранг` : open ? "" : " · пока не открыт"}</small></div></div><button class="fx-btn primary" data-t="lr-cls" data-n="${cl}"${open ? "" : " disabled"}>Выбрать</button></div>`; }).join("")}</div>
       <button class="fx-btn" data-t="lr-back">← Назад</button>`;
     if (lr.step === "stage") {
-      const c = state.party.find(x => x.id === lr.hero) || hero(), bonus = libBonus(c), dc = LIB_DC[lr.cls], opts = lrOptions(lr);
+      const c = state.party.find(x => x.id === lr.hero) || hero(), bonus = libBonus(c), dc = libDc(lr.cls), opts = lrOptions(lr);
       const head = `<p class="tw-lead"><b>Этап ${lr.stage + 1} из ${STAGES.length}: ${STAGES[lr.stage][1]}.</b> Проверяет ${esc(c.name)}: бонус ${bonus >= 0 ? "+" : ""}${bonus}, Сл ${dc}. Успех — выбираешь сам, провал — случайно.</p>`;
       if (lr.choosing) return `${head}${log}<div class="tw-rows">${opts.map(o => `<div class="tw-row"><div class="tw-who"><div><b>${esc(o.label)}</b></div></div><button class="fx-btn primary" data-t="lr-pick" data-v="${esc(o.v)}">Выбрать</button></div>`).join("")}</div>`;
       return `${head}${log}<p class="tw-lead">Проверку бросает сама библиотека, в итоге видно только результат.</p>
@@ -495,6 +510,7 @@
     init: () => ({ tab: "bets", fightN: Math.min(ARENA_FIGHT_MAX, Math.max(2, state.party.length || 2)), stake: 5, pick: null, ok: null }),
     render() {
       const c = hero(); if (!c) return frame("Арена", "Рафдония", noParty());
+      if (partyRank() > 8) return frame("Арена", "Рафдония", `<div class="tw-npc">${img("assets/npc/arena.webp", "Администратор арены")}<span>Новичков на песок не пускаем. Приходите, когда отряд дорастёт до 8 ранга.</span></div><p class="tw-msg">Арена открывается с 8 ранга отряда.</p>`);          // решение автора 03.11
       const a = arenaState();
       const tabs = `<div class="tw-tabs" role="tablist"><button class="fx-btn" role="tab" aria-selected="${ui.tab === "bets"}" data-t="atab" data-k="bets">Ставки</button><button class="fx-btn" role="tab" aria-selected="${ui.tab === "fight"}" data-t="atab" data-k="fight">Бой отряда</button></div>`;
       let body = `<div class="tw-npc">${img("assets/npc/arena.webp", "Администратор арены")}<span>Арена Рафдонии: делайте ставки на бои монстров или выходите на песок всем отрядом.</span></div>` + heroStrip() + tabs;
@@ -614,7 +630,7 @@
         const ess = c.essences || [];
         const rows = ess.map(id => { const e = ESSENCES[id], n = essLvl(id), price = towerPrice(id);
           return `<div class="tw-row"><div class="tw-who"><div><b>${esc(essTitle(id))}</b><small>${e.cls} класс · изучено ${n} из 3</small></div></div>
-            ${n === 3 ? `<span class="tw-done">${ICO_CHECK}</span>` : `<button class="fx-btn primary" data-t="analyze" data-id="${id}"${partyGold() >= price ? "" : " disabled"}>${price}</button>`}</div>`; }).join("");
+            ${n === 3 ? `<span class="tw-done">${ICO_CHECK}</span>` : !towerOpen(id) ? `<button class="fx-btn" disabled>${e.cls} ранг</button>` : `<button class="fx-btn primary" data-t="analyze" data-id="${id}"${partyGold() >= price ? "" : " disabled"}>${price}</button>`}</div>`; }).join("");
         return frame("Башня магов", "Рафдония", `<div class="tw-npc framed">${img("assets/npc/mage.webp", "Маг башни")}<span>Артефакты, эссенции, тайны крови — всё имеет цену. Что принесли?</span></div>${heroStrip()}${tabs}<p class="tw-lead">Маг заглянет в героя и расскажет всё о впитанных им эссенциях: статы, пассивную и активную способности. Цена — треть цены эссенции.</p>
           ${ess.length ? `<div class="tw-rows">${rows}</div>` : `<p class="tw-msg">У ${esc(c.name)} нет эссенций.</p>`}${msgLine()}`);
       },
@@ -639,16 +655,30 @@
       ${to ? `<div class="tw-row"><div class="tw-who">${rankBadge(to, 40)}<div><b>${to} ранг · ${esc(RANK_NAME[to] || "")}</b><small>${esc(q.text)}.<br>${mark(pr.floor)} спуск на ${q.floor} этаж · ${mark(pr.kill)} монстр ${q.cls} класса</small></div></div>
         <button class="fx-btn primary" data-t="rankup"${ok ? "" : " disabled"}>Повысить</button></div>` : `<p class="tw-msg">Следующий ранг пока не открыт.</p>`}`;
   }
+  // Карты этажей в Академии (решение автора 03.11): 1 этаж — 50 (9 ранг), каждая из 4 частей 2 этажа — 200 (8 ранг), 3 этаж — 700 (7 ранг); карта прошлого ранга −10 %.
+  const MAP_SHOP = () => [{ key: "1", cls: 9, price: 50, name: "Карта 1 этажа" }, ...["goblin", "beast", "undead", "stone"].map(v => ({ key: "2:" + v, cls: 8, price: 200, name: `Карта 2 этажа: ${FLOOR_NAME[v]}` })), { key: "3", cls: 7, price: 700, name: "Карта 3 этажа" }];
+  const mapPrice = m => Math.max(1, Math.round(m.price * (m.cls > partyRank() ? 0.9 : 1)));
+  const mapOwned = m => !!(inventory().maps || {})[m.key]?.owned;
+  function mapRows() {
+    return MAP_SHOP().map(m => { const open = m.cls >= partyRank(), own = mapOwned(m), pr = mapPrice(m);
+      return `<div class="tw-row"><div class="tw-who"><div><b>${esc(m.name)}</b><small>${own ? "уже есть у отряда" : open ? "весь этаж севером вверх, без позиции отряда" : `нужен ${m.cls} ранг`}</small></div></div>
+        ${own ? `<span class="tw-done">${ICO_CHECK}</span>` : `<button class="fx-btn primary" data-t="buymap" data-k="${m.key}"${open && partyGold() >= pr ? "" : " disabled"}>${open ? pr : m.cls + " ранг"}</button>`}</div>`; }).join("");
+  }
+  function buyMap(key) {
+    const m = MAP_SHOP().find(x => x.key === key); if (!m || mapOwned(m) || m.cls < partyRank()) return;
+    const pr = mapPrice(m); if (!payGold(hero(), pr)) { ui.msg = "Не хватает монет."; return; }
+    const inv = inventory(); inv.maps ||= {}; inv.maps[key] = { owned: true, active: false }; visit(); ui.msg = `Куплена: ${m.name}. Кнопка карты появится в углу карты этажа.`; saveChar();
+  }
   B.academy = {
     render() {
       const c = hero(); if (!c) return frame("Академия", "Рафдония", noParty());
       const tab = ui.tab && ACADEMY_GROUPS.some(g => g[0] === ui.tab) ? ui.tab : "gather";
       const tabs = `<div class="tw-tabs" role="tablist">${ACADEMY_GROUPS.map(([id, label]) => `<button class="fx-btn" role="tab" aria-selected="${tab === id}" data-t="atab" data-k="${id}">${label}${ACADEMY.filter(k => k.grp === id && eduKnows(c, k.id)).length ? " ✓" : ""}</button>`).join("")}</div>`;
-      const rows = tab === "rank" ? rankRows(c) : ACADEMY.filter(k => k.grp === tab).map(k => {
+      const rows = tab === "rank" ? rankRows(c) : tab === "maps" ? mapRows() : ACADEMY.filter(k => k.grp === tab).map(k => {
         const known = eduKnows(c, k.id), locked = k.need && !eduKnows(c, k.need), can = !known && !locked && partyGold() >= k.price;
         return `<div class="tw-row"><div class="tw-who"><div><b>${esc(k.name)}</b><small>${esc(k.text)}${locked ? " · сначала «" + esc(ACADEMY.find(x => x.id === k.need).name) + "»" : ""}</small></div></div>
           ${known ? `<span class="tw-done">${ICO_CHECK}</span>` : `<button class="fx-btn primary" data-t="learn" data-id="${k.id}"${can ? "" : " disabled"}>${k.price}</button>`}</div>`; }).join("");
-      return frame("Академия", "Рафдония", `<div class="tw-npc framed">${img("assets/npc/academy.webp", "Наставник Академии")}<span>Знание — лучшее оружие в лабиринте. Чему желаете научиться?</span></div><button class="fx-btn primary" data-t="recruit" style="width:100%">Завербовать героя</button><p class="tw-hint" style="margin:0">Новый наёмник создаётся как обычный герой и вступает в отряд.</p>${heroStrip()}${tabs}${tab === "rank" ? "" : `<p class="tw-lead">Выбери героя и оплати курс. Знания остаются за ним одним — у остальных курсов нет.</p>`}<div class="tw-rows">${rows}</div>${msgLine()}`);
+      return frame("Академия", "Рафдония", `<div class="tw-npc framed">${img("assets/npc/academy.webp", "Наставник Академии")}<span>Знание — лучшее оружие в лабиринте. Чему желаете научиться?</span></div><button class="fx-btn primary" data-t="recruit" style="width:100%">Завербовать героя</button><p class="tw-hint" style="margin:0">Новый наёмник создаётся как обычный герой и вступает в отряд.</p>${heroStrip()}${tabs}${tab === "rank" || tab === "maps" ? "" : `<p class="tw-lead">Выбери героя и оплати курс. Знания остаются за ним одним — у остальных курсов нет.</p>`}<div class="tw-rows">${rows}</div>${msgLine()}`);
     },
   };
 
@@ -676,7 +706,7 @@
   // Оружие и броня: рыночная цена — как в кузнице (обычное 10/15, стальное 25/40); кузнец берёт −10 %, магазин −20 %; сломанное — пятая часть. Продаётся только из рюкзака.
   const gearMarket = e => { if (!e || (e.t !== "w" && e.t !== "a") || e.art) return 0; const base = e.t === "w" ? (e.steel ? FORGE_PRICE.steelWeapon : FORGE_PRICE.weapon) : (e.steel ? FORGE_PRICE.steelArmor : FORGE_PRICE.armor); return e.broken ? Math.max(1, Math.round(base * 0.2)) : base; };
   const gearPay = e => Math.max(1, Math.round(gearMarket(e) * (ui && ui.b === "forge" ? 0.9 : 0.8)));
-  const unitPrice = e => { const g = GOODS.find(x => x.e && x.e.t === "g" && e && e.t === "g" && x.e.id === e.id); return g ? g.price / g.e.qty : 0; };
+  const unitPrice = e => { const g = GOODS.find(x => x.e && x.e.t === "g" && e && e.t === "g" && x.e.id === e.id); return g ? g.base / g.e.qty : 0; };          // продажа — от базовой цены (ранг на неё не влияет)
   const sellValue = (e, n) => Math.floor(unitPrice(e) * n + 1e-9);
   function sellItem(i, all) {
     const c = hero(), e = (c.bag || [])[i]; if (!e || (ui.b !== "shop" && !(ui.b === "forge" && gearMarket(e)))) return;
@@ -716,6 +746,7 @@
   }
   function analyze(id) {
     const e = ESSENCES[id], price = towerPrice(id);
+    if (!towerOpen(id)) { ui.msg = `Эссенции ${e.cls} класса маг разбирает только для отряда ${e.cls} ранга.`; return; }
     if (!payGold(hero(), price)) { ui.msg = "Не хватает монет."; return; }
     seenKeys(essSource(id), ["ess-stats", "ess-passive", "ess-active"]); markEssNamed(id);          // сведения попадают в библиотеку, и наоборот: прочитанное там открыто при получении
     visit(); ui.msg = `Анализ завершён: ${esc(ESSENCES[id].name)} раскрыта, сведения записаны в библиотеку.`; saveChar();
@@ -802,7 +833,7 @@
       case "hero": ui.hero = ds.id; ui.sel = null; ui.confirm = null; break;
       case "bag": ui.sel = ui.sel && ui.sel.side === "bag" && ui.sel.i === +ds.i ? null : { side: "bag", i: +ds.i }; break;
       case "stock": ui.sel = ui.sel && ui.sel.side === "shop" && ui.sel.key === ds.id ? null : { side: "shop", key: ds.id }; break;
-      case "ftab": ui.tab = ds.k; ui.sel = null; break;
+      case "ftab": if (ds.k === "steel" && !steelOpen()) break; ui.tab = ds.k; ui.sel = null; break;
       case "fixone": fixOne(ds.k); break;
       case "fixset": fixSet(); break;
       case "sellopen": if (ui.sel && ui.sel.side === "bag") offer(ui.sel.i); break;
@@ -827,7 +858,7 @@
       case "tv-pay": tavernPay(); break;
       case "lr-cat": ui.lr = { step: "hero", cat: ds.k, log: [], picks: {}, stage: 0 }; break;
       case "lr-hero": if (ui.lr) { ui.lr.hero = ds.id; ui.lr.step = "cls"; } break;
-      case "lr-cls": if (ui.lr) { const n = +ds.n; Object.assign(ui.lr, { cls: n, cand: libCands(n), stage: 0, picks: {}, log: [], mon: null, essOK: false, choosing: false }); lrAdvance(ui.lr); } break;
+      case "lr-cls": if (ui.lr && libOpen(+ds.n)) { const n = +ds.n; Object.assign(ui.lr, { cls: n, cand: libCands(n), stage: 0, picks: {}, log: [], mon: null, essOK: false, choosing: false }); lrAdvance(ui.lr); } break;
       case "lr-roll": lrRoll(+ds.n); break;
       case "lr-pick": if (ui.lr && ui.lr.choosing) lrApply(ui.lr, ds.v); break;
       case "lr-restart": ui.lr = { step: "hero", cat: "monsters", log: [], picks: {}, stage: 0 }; break;
@@ -839,6 +870,7 @@
       case "gsell": guildSell(ds.id); break;
       case "analyze": analyze(ds.id); break;
       case "learn": learn(ds.id); break;
+      case "buymap": buyMap(ds.k); break;
       case "rankup": { const c = hero(); if (c && rankUp(c)) { ui.msg = `${c.name} теперь ${c.rank} ранга!`; visit(); saveChar(); } break; }
       case "atab": ui.tab = ds.k; break;
       case "ttab": ui.tab = ds.k; break;

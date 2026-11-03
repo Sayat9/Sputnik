@@ -4,7 +4,7 @@ const L = require('./bui_lib.js');
   const { b, p } = await L.launch(400, 860, { touch: true });
   const R = [], ok = (name, cond, extra) => { R.push({ name, ok: !!cond }); if (!cond) console.log('  ✗', name, '—', extra == null ? '' : extra); };
   await L.setup(p, { heroes: ['barb2', 'archer'], tactical: false });
-  await p.evaluate(() => { state.run = null; state.townUnlocked = true; state.journal = null; unlockJournal(9); state.party.forEach(c => { c.gold = 0; }); const c = state.party[0]; addToBag(c, { t: 'g', id: 'stone-9', qty: 6 }); addToBag(c, { t: 'g', id: 'stone-8', qty: 2 }); addToBag(c, { t: 'g', id: 'stone-7', qty: 1 }); location.hash = 'town'; rerender(); });
+  await p.evaluate(() => { state.run = null; state.townUnlocked = true; state.journal = null; unlockJournal(9); state.party.forEach(c => { c.gold = 0; c.rank = 8; /* 8 ранг: обычные цены (v107) */ }); const c = state.party[0]; addToBag(c, { t: 'g', id: 'stone-9', qty: 6 }); addToBag(c, { t: 'g', id: 'stone-8', qty: 2 }); addToBag(c, { t: 'g', id: 'stone-7', qty: 1 }); location.hash = 'town'; rerender(); });
   await p.waitForTimeout(300);
   ok('в городе 14 зданий', await p.evaluate(() => document.querySelectorAll('.bld').length) === 14);
   await L.shot(p, 'town-map');

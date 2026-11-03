@@ -4,6 +4,7 @@ const L = require('./bui_lib.js');
   const { b, p } = await L.launch(400, 860);
   const R = [], ok = (name, cond, extra) => { R.push({ name, ok: !!cond }); if (!cond) console.log('  ✗', name, '—', extra == null ? '' : extra); };
   await L.setup(p, { heroes: ['barb2', 'archer', 'fairy'], tactical: true, level: 3 });
+  await p.evaluate(() => { state.party.forEach(c => { c.rank = 8; }); });          // арена открыта с 8 ранга (v107)
   await p.evaluate(async () => { await loadBattle(); state.run = null; state.townUnlocked = true; state.journal = null; unlockJournal(9); state.arena = null; state.quests = null; state.party.forEach(c => { c.gold = 100; c.bag = []; c.carry = { sat: 3, starve: 0, awake: 0, fat: 0 }; c.hp = maxHp(c); }); location.hash = 'town'; rerender(); });
   // --- ставки
   await p.click('[data-bld="arena"]'); await p.waitForSelector('.tw-bout');
