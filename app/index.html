@@ -5391,6 +5391,7 @@ function f3TollStep() {          // шаг по Звону: лёгкая про�
 function f3Buttons() {
   const r = state.run, F = f3(), out = [];
   if (tkey(r.pos.x, r.pos.y) === TOLL_CHEST && !F.chestOpen) out.push({ id: "f3chest", label: "Открыть сундук Звона", sub: "сокровищница в центре" });
+  if (typeof QUEEN_AT !== "undefined" && tkey(r.pos.x, r.pos.y) === QUEEN_AT && !F.trapOpen) out.push(F.queenDead ? { id: "f3trapchest", label: "Открыть сундук мастерской", sub: "сокровищница Зоны ловушек" } : { id: "f3queen", label: "Подойти к сундуку мастерской", sub: "его стережёт королева ловушек" });          // решение автора 03.11: босс всегда у сундука
   if (tkey(r.pos.x, r.pos.y) === FIRE_CHEST && !F.fireOpen) out.push({ id: "f3fire", label: "Открыть сундук горнила", sub: "сокровищница Пылающих земель" });
   return out;
 }
@@ -5433,6 +5434,11 @@ async function witchHouse() {
 }
 function f3Do(id) {
   const r = state.run, F = f3();
+  if (id === "f3queen" && !F.queenDead) { startSpecial("Королева ловушек у сундука", { zone: "stone", place: "Зона ловушек", list: ["trap-queen", "bolt-golem"] }); return; }
+  if (id === "f3trapchest" && F.queenDead && !F.trapOpen) {          // сундук мастерской: как сундук горнила (артефакт, оружие и броня +10 %)
+    F.trapOpen = true; const x = fireChestRoll(), lines = [x.line, giveParty({ t: "g", id: "stone-7", qty: 2 })];
+    logRun(`Сундук мастерской открыт (к20 = ${x.d}): ${lines.join(" ")}`); dgUi.res = { title: "Сундук мастерской", roll: `к20 = ${x.d}`, lines }; saveChar(); rerender(); return;
+  }
   if (id === "f3fire" && !F.fireOpen) {
     F.fireOpen = true; const x = fireChestRoll(), lines = [x.line, giveParty({ t: "g", id: "weak-salt", qty: 1 })];
     logRun(`Сундук горнила открыт (к20 = ${x.d}): ${lines.join(" ")}`); dgUi.res = { title: "Сундук горнила", roll: `к20 = ${x.d}`, lines }; saveChar(); rerender(); return;
