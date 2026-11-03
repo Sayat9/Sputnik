@@ -113,7 +113,7 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
     hero0.equip.main = { t: 'w', id: 'pike', qty: 1 }; hero0.equip.off = { t: 'w', id: 'shield', qty: 1 };
     out.pike = { two: twoHanded(hero0) };
     hero0.equip.off = null; out.pikeAlone = twoHanded(hero0);
-    hero0.equip.off = { t: 'w', id: 'sword', qty: 1 }; out.pikeSword = twoHanded(hero0);
+    hero0.equip.off = { t: 'w', id: 'sword', qty: 1 }; out.pikeSword = !twoHanded(hero0) && awkward2h(hero0);
     hero0.equip.off = { t: 'w', id: 'shield', qty: 1 };
     const S2 = B.newBattle({ list: ['goblin'], zone: 'goblin', floor: 3, kind: 'hard', title: 'x' }); S2.opts.autoHeroes = true; B.placeHeroesDefault(S2); B.placeMonsters(S2);
     const hs = B.heroes()[0]; const spWith = B.speedOf(hs); hero0.equip.off = null; const spWithout = B.speedOf(B.heroes()[0]);
@@ -128,7 +128,7 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
   ok('огромного притянуть нельзя, препятствие на пути — нельзя', o2.huge === null && o2.blocked === null, [o2.huge, o2.blocked]);
   ok('притяжение выполняется: цель встаёт вплотную', o2.pulled.ok1 && o2.pulled.y === 8, o2.pulled);
   ok('Порез теней: атака на 3 клетки, на 4 клетки не достаёт', o2.cut && o2.cut[0] === 'melee' && o2.cut[1] === 3 && o2.cutRange[0] === true && o2.cutFar === 0, [o2.cut, o2.cutRange, o2.cutFar]);
-  ok('пика: со щитом не двуручная блокировка, с пустой рукой/мечом — двуручная', o2.pike.two === false && o2.pikeAlone === true && o2.pikeSword === true, o2);
+  ok('пика: со щитом не двуручная блокировка, с пустой рукой — двуручная, с мечом — неудобный хват', o2.pike.two === false && o2.pikeAlone === true && o2.pikeSword === true, o2);
   ok('пика со щитом: скорость на клетку меньше, досягаемость 1 (решение автора 28.10)', o2.pikeSpeed[0] === o2.pikeSpeed[1] - 1 && o2.pikeReach === 1, [o2.pikeSpeed, o2.pikeReach]);
   ok('цены артефактного оружия: класс 6, кузница платит больше башни', o2.price[0] === 5000 && o2.price[1] === 1.1 && o2.price[2] === 1, o2.price);
   const o3 = await p.evaluate(async () => {

@@ -470,8 +470,7 @@
 
   /* ----- Гоблин-вор (7): «Лёгкие ноги» и «Жадность», «Срезать кошель» ----- */
   const lootNames = ["ration", "potion", "torch"];
-  const thiefGone = u => { if (!alive(u) || u.down || u.fled) return; u.fled = true; B.dropOwnedStatuses(u); log(`${u.name} скрывается с добычей.`, "flee"); const g = B.UI; if (g && g.fxEscape) g.fxEscape(u); };          // вор с добычей уходит с поля сразу (автор 02.11)
-  const thiefRun = u => { u.flags.thief = true; if (u.flags.fleeing) return; u.flags.fleeing = true; log(`${u.name}: срезал — и бежит!`, "flee"); fx(u, "удирает с добычей", "bad"); };          // «Срезал и бежит»
+  const thiefRun = u => { u.flags.thief = true; };          // украл: дальше решает ИИ (battle-ai.js `shouldFlee`): ОЗ > 50 % — остаётся красть ещё, ≤ 50 % — бежит к краю и уходит на следующем ходу (автор 03.11)
   P["goblin-thief"] = {
     speedBonus() { return 1; },                                                          // «Лёгкие ноги»: скорость +1,5 м
     // «Жадность»: в начале хода рядом лежит выпавшее оружие — спасбросок Мудрости Сл 12, провал: всё перемещение и действие уходят на то, чтобы это схватить.
@@ -487,7 +486,7 @@
       for (const v of map.values()) { if (!B.canStand(u, v.x, v.y) && !(v.x === u.x && v.y === u.y)) continue; const dd = Math.max(Math.abs(v.x - w.x), Math.abs(v.y - w.y)); if (!best || dd < best.dd || (dd === best.dd && v.cost < best.v.cost)) best = { v, dd }; }
       if (best && (best.v.x !== u.x || best.v.y !== u.y)) await B.moveAlong(u, B.pathTo(map, best.v.x, best.v.y));
       u.t.move = 0; u.t.action = 0;
-      if (alive(u) && !u.down && distCell(u, w.x, w.y) <= 1) { w.holder = u.id; w.x = u.x; w.y = u.y; log(`${u.name} хватает ${((typeof itemOf === "function" && itemOf(w.item)) || { name: "оружие" }).name.toLowerCase()}.`, "skill"); if (u.side === "mon" && !u.summon) { thiefRun(u); thiefGone(u); } }
+      if (alive(u) && !u.down && distCell(u, w.x, w.y) <= 1) { w.holder = u.id; w.x = u.x; w.y = u.y; log(`${u.name} хватает ${((typeof itemOf === "function" && itemOf(w.item)) || { name: "оружие" }).name.toLowerCase()}.`, "skill"); if (u.side === "mon" && !u.summon) thiefRun(u); }
     },
   };
   A["goblin-thief"] = {
@@ -515,7 +514,6 @@
       if (got && u.side === "mon" && !u.summon) thiefRun(u);
       log(got ? `${u.name} срезает у ${t.name}: ${got}!` : `${u.name} ловко шарит по ${t.name}, но брать нечего.`, "skill"); fx(u, got ? "украл" : "пусто", got ? "good" : "");
       await stepMove(u, Math.floor(speedOf(u) / 2), { prompt: "Срезать кошель: куда отскочить (половина скорости, без атак по возможности)", auto: cells => farthestSpot(u, cells) });
-      if (got && u.side === "mon" && !u.summon) thiefGone(u);          // вор с добычей исчезает сразу, не добегая до края поля (автор 02.11)
       return true;
     },
     ai(u) { const ts = within(u, 1); if (!ts.length) return null; return { unit: ts[0], score: 3 }; },

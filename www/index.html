@@ -1158,8 +1158,8 @@ const WEAPONS = [
   { id: "gloves", name: "Перчатки", group: "melee", kind: "Простое", dmg: "1к4", type: "дробящий", weight: 1, price: 10,
     props: ["Кастет", "Одна: +1 Защиты и «Блок кулаками»", "Две: +3 Защиты, −1 Уворота и урон 2к4"],
     note: "Кожа с железными накладками на костяшках. Одна перчатка — оружие и действие «Блок кулаками»; вторая рука свободна под щит или кинжал: до начала следующего хода урон ближних атак по вам снижается на 1к4 + Ловкость. В обеих руках — +2 КД, а удар кулаками наносит 2к4." },
-  { id: "staff", name: "Посох", group: "melee", kind: "Простое", dmg: "1к4", type: "дробящий", weight: 2, price: 6,
-    props: ["Двуручное", "Досягаемость 3 м (на 2-й клетке −2 к атаке)", "+1 к мане"],
+  { id: "staff", name: "Посох", group: "melee", kind: "Простое", dmg: "1к4", type: "дробящий", weight: 2, price: 6, dmgPlus: 1,          // +1 к урону (автор 03.11)
+    props: ["Двуручное", "+1 к урону", "Досягаемость 3 м (на 2-й клетке −2 к атаке)", "+1 к мане"],
     note: "Ясеневая жердь с железным оголовьем. Слабее копья, но на второй клетке бьёт с меньшим штрафом (−2 вместо помехи). Владельцу даёт +1 к максимуму маны." },
   { id: "axe", name: "Топор", group: "melee", kind: "Воинское", dmg: "1к6", type: "рубящий", weight: 1, price: 18,
     props: ["Метательное (4/12 м)", "Против щитов (+2 урона)"],
@@ -2104,8 +2104,8 @@ const DISTRICTS = [
 
 // Готовые рисованные картинки (webp) заменяют векторные заглушки.
 // Дата сборки для телефона: build.sh вписывает её сюда, в веб-версии строка пустая.
-const APP_BUILD = "03.11.2026 00:52";
-const APP_VERSION = 1793649158;                 // номер сборки, тоже вписывает build.sh
+const APP_BUILD = "03.11.2026 08:34";
+const APP_VERSION = 1793676891;                 // номер сборки, тоже вписывает build.sh
 const UPDATE_URL = "https://raw.githubusercontent.com/Sayat9/Sputnik/main/www/";
 const RASTER = new Set(["items/steel-pike", "items/calm-flute", "items/dice", "items/art-falling-star", "items/art-echo-blade", "items/art-discharge-staff", "items/weak-salt", "items/silver-salt", "items/tollbell", "items/director-quiver", "items/flame", "items/herb-poison", "items/herb-food", "items/herb-rest", "items/repair-charm", "items/durable-charm", "items/regen-charm", "items/herb-heal", "items/herb-mana", "items/boots", "items/wind", "items/whetstone", "items/daedalus-hammer", "items/unbreakable-charm", "items/pike", "items/bell", "items/flask", "items/monocle", "buildings/arena", "buildings/academy", "buildings/bank", "buildings/storage", "races/dragon-f", "races/fairy-f", "races/gnome-f", "races/darkfairy-f", "events/to-labyrinth", "races/human-f", "races/barbarian-f", "races/dwarf-f", "races/beastkin-f", "events/to-town", "events/ambush", "events/monsters", "events/nothing", "events/travelers", "events/treasure", "items/mace", "items/warhammer", "items/armor-leather", "items/armor-hide", "items/armor-chainmail", "items/steel-dagger", "items/steel-sword", "items/steel-greatsword", "items/steel-shield", "items/steel-tower-shield", "items/shortbow", "items/longbow", "items/rapier", "items/shield", "items/tower-shield", "items/unknown-mushroom", "items/stone-9", "items/stone-8", "items/stone-7", "items/ration", "items/potion", "items/torch", "items/arrows", "items/clothes", "items/shovel", "items/shovel-good", "items/shovel-best", "items/dagger", "items/sword", "items/greatsword", "items/spear", "monsters/goblin-king-face", "monsters/goblin-king-full", "monsters/goblin-bomber-face", "monsters/goblin-bomber-full", "monsters/hobgoblin-shield-face", "monsters/hobgoblin-shield-full", "races/barbarian", "races/human", "races/dwarf", "races/beastkin", "races/fairy", "races/dragon", "monsters/goblin-face", "monsters/goblin-full", "monsters/goblin-archer-face", "monsters/goblin-archer-full", "monsters/goblin-sword-face", "monsters/goblin-sword-full", "monsters/goblin-spear-face", "monsters/goblin-spear-full", "monsters/wolf-face", "monsters/wolf-full", "monsters/fox-face", "monsters/fox-full", "monsters/mouse-face", "monsters/mouse-full", "monsters/bat-face", "monsters/bat-full", "monsters/hobgoblin-face", "monsters/hobgoblin-full", "monsters/zombie-face", "monsters/zombie-full", "monsters/skeleton-face", "monsters/skeleton-full", "monsters/skeleton-archer-face", "monsters/skeleton-archer-full", "monsters/ghoul-face", "monsters/ghoul-full", "monsters/dark-bear-face", "monsters/dark-bear-full", "monsters/skeleton-warrior-face", "monsters/skeleton-warrior-full", "monsters/living-stone-face", "monsters/living-stone-full", "monsters/wisp-face", "monsters/wisp-full", "monsters/pixie-face", "monsters/pixie-full", "monsters/green-boulder-face", "monsters/green-boulder-full", "monsters/stone-guardian-face", "monsters/stone-guardian-full", "monsters/spider-queen-face", "monsters/spider-queen-full", "monsters/ash-wraith-face", "monsters/ash-wraith-full", "monsters/ash-spirit-face", "monsters/ash-spirit-full", "monsters/plague-fat-face", "monsters/plague-fat-full", "monsters/bone-hound-face", "monsters/bone-hound-full", "monsters/dust-crawler-face", "monsters/dust-crawler-full", "monsters/faceless-ringer-face", "monsters/faceless-ringer-full", "monsters/mirror-dead-face", "monsters/mirror-dead-full", "monsters/whisperer-face", "monsters/whisperer-full", "monsters/morok-face", "monsters/morok-full", "monsters/grey-shade-face", "monsters/grey-shade-full", "monsters/blackwing-face", "monsters/blackwing-full", "monsters/swamp-fang-face", "monsters/swamp-fang-full", "monsters/web-spider-face", "monsters/web-spider-full", "monsters/goblin-shaman-face", "monsters/goblin-shaman-full", "monsters/goblin-assassin-face", "monsters/goblin-assassin-full", "monsters/goblin-trapper-face", "monsters/goblin-trapper-full", "monsters/goblin-elder-face", "monsters/goblin-elder-full", "monsters/hobgoblin-brute-face", "monsters/hobgoblin-brute-full", "monsters/hobgoblin-thrower-face", "monsters/hobgoblin-thrower-full", "monsters/hobgoblin-driver-face", "monsters/hobgoblin-driver-full", "monsters/goblin-thief-face", "monsters/goblin-thief-full", "monsters/horned-hare-face", "monsters/horned-hare-full", "monsters/swamp-toad-face", "monsters/swamp-toad-full", "monsters/burrower-face", "monsters/burrower-full", "monsters/crow-face", "monsters/crow-full", "monsters/dire-wolf-face", "monsters/dire-wolf-full", "monsters/werewolf-face", "monsters/werewolf-full", "monsters/giant-mole-face", "monsters/giant-mole-full", "monsters/bone-knight-face", "monsters/bone-knight-full", "monsters/gravedigger-face", "monsters/gravedigger-full", "monsters/corpse-eater-face", "monsters/corpse-eater-full", "monsters/drop-face", "monsters/drop-full", "monsters/dust-whirl-face", "monsters/dust-whirl-full", "monsters/magma-hound-face", "monsters/magma-hound-full", "monsters/crystalloid-face", "monsters/crystalloid-full", "monsters/lake-spirit-face", "monsters/lake-spirit-full", "monsters/magma-golem-face", "monsters/magma-golem-full", "monsters/deep-serpent-face", "monsters/deep-serpent-full", "monsters/crystal-colossus-face", "monsters/crystal-colossus-full", "monsters/storm-spirit-face", "monsters/storm-spirit-full", "monsters/rift-heart-face", "monsters/rift-heart-full", "items/compass", "items/steel-mace", "items/steel-rapier", "items/unknown-herb", "items/twin-daggers", "items/unknown-stone", "items/steel-twin-daggers", "items/potion-good", "items/coins", "items/steel-spear", "items/steel-warhammer", "items/steel-shortbow", "items/steel-longbow", "items/steel-armor-leather", "items/steel-armor-hide", "items/steel-armor-chainmail", "items/gloves", "items/staff", "items/axe", "items/greataxe", "items/firstaid", "items/flute", "items/chalice", "items/once-more", "items/guard", "items/beginners-luck", "buildings/tower", "buildings/guild", "buildings/church", "buildings/library", "buildings/gate", "buildings/tavern", "buildings/shop", "buildings/forge", "buildings/board", "buildings/hall", "races/gnome", "races/darkfairy", "monsters/rat-face", "monsters/rat-full", "monsters/rat-king-face", "monsters/rat-king-full", "monsters/rat-catcher-face", "monsters/rat-catcher-full"]);
 const artPath = p => `assets/${p}.${RASTER.has(p) ? "webp" : "svg"}`;
@@ -2700,7 +2700,11 @@ const mainItem = (c = char) => itemOf((c.equip || {}).main);
 const isBigGrip = c => !!(c.giantGrip && c.race === "barbarian");                     // «Великан»: двуручное в одной руке
 // Лук держат одной рукой, а вторая свободна для кинжала; для остального двуручного обе руки заняты (кроме «Великана»).
 const pikeShield = (m, off) => !!(m && (m.props || []).includes("Можно со щитом") && off && off.id === "shield");          // пика с малым щитом
-const twoHanded = (c = char) => { const m = mainItem(c); return isTwoHandedWeapon(m) && m.group !== "ranged" && !isBigGrip(c) && !pikeShield(m, itemOf((c.equip || {}).off)); };
+const twoHanded = (c = char) => { const m = mainItem(c); return isTwoHandedWeapon(m) && m.group !== "ranged" && !isBigGrip(c) && !pikeShield(m, itemOf((c.equip || {}).off)) && !(c.equip || {}).off; };          // обе руки заняты двуручным (вторая рука пуста)
+// Неудобный хват (автор 03.11): двуручное оружие ближнего боя и ещё вещь во второй руке, когда нет своего правила («Великан» варвара, пика со щитом, лук с кинжалом) — −1 Уворот, −1,5 м скорости, −2 к попаданию обоими оружиями.
+const AWK = { dodge: 1, speed: 1.5, hit: 2 };
+const awkward2h = c => { if (!c || isBigGrip(c)) return false; const e = c.equip || {}, m = itemOf(e.main), o = itemOf(e.off); if (!m || !o) return false;
+  const two = w => isTwoHandedWeapon(w) && w.group !== "ranged" && w.id !== "tower-shield"; if (two(m) && pikeShield(m, o)) return false; return two(m) || two(o); };
 const lightMelee = w => !!w && w.group === "melee" && (w.props || []).includes("Лёгкое");
 
 // Решение автора: одноручный щит и двуручное оружие в одной руке у варвара («Великан») дают −2 к Ловкости (каждое).
@@ -2764,6 +2768,7 @@ function derived(t, c = char) {
   if (c.race === "fairy" || c.race === "darkfairy") { ac += 1; dodgeSrc.push("+1 фея"); }          // феи юркие: +1 к Увороту (решение автора 02.11)
   if (eb.dodge) { ac += eb.dodge; dodgeSrc.push(`${eb.dodge > 0 ? "+" : "−"}${Math.abs(eb.dodge)} эссенции`); }                                                                  // эссенции «КД +N» дают Защиту (решение автора 02.11)
   pen(OVERLOAD[ld.level].dodge, LOAD_NAME[ld.level].toLowerCase());
+  if (awkward2h(c)) { pen(AWK.dodge, "неудобный хват двуручного"); warnings.push(`Двуручное и вещь во второй руке: −${AWK.dodge} Уворот, −1,5 м скорости, −${AWK.hit} к попаданию обоими оружиями.`); }
   prot = Math.max(0, prot);
   const acSrc = `10 + Лов ${dex >= 0 ? "+" : "−"}${Math.abs(dex)}${dodgeSrc.length ? " " + dodgeSrc.join(", ") : ""}`, protTxt = protSrc.join(", ") || "без брони";
   const mana = 10 + 2 * c.level + eb.mp + (main && main.id === "staff" ? 1 : 0);          // посох: +1 к мане
@@ -2871,6 +2876,7 @@ function heroSpeedM(c, t = totals(c), ld = load(c, t)) {
   const armor = itemOf((c.equip || {}).body), main = itemOf((c.equip || {}).main);
   if (armor && armor.kindOf === "armor" && armor.str && t.str.total < armor.str) sp -= 3;
   if (main && main.id === "tower-shield" && t.str.total < 13) sp -= 3;
+  if (awkward2h(c)) sp -= AWK.speed;          // неудобный хват двуручного (03.11)
   return Math.max(1.5, sp);
 }
 const maxMp = c => derived(totals(c), c).mana;
@@ -2879,7 +2885,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 98;
+const BATTLE_REV = 99;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }
@@ -5712,7 +5718,6 @@ function ensureRun() {
   unlockJournal(9);                       // 1 этаж — монстры 9-го класса
   r.status ||= {};
   travRestore();                          // путники из сохранения снова становятся записями для боя
-  for (const c of state.party || []) { const e = c.equip || {}; if (e.main && e.main.id === "spear" && e.off && !isBigGrip(c)) { addToBag(c, { ...e.off, qty: 1 }); delete e.off; } }          // копьё стало двуручным (02.11): вещь из второй руки — в рюкзак
   for (const c of state.party) if (!r.status[c.id]) { r.status[c.id] = c.carry ? { sat: 3, starve: 0, awake: 0, fat: 0, ...c.carry } : { sat: 3, starve: 0, awake: 0, fat: 0 }; delete c.carry; }
   return r;
 }
@@ -6933,7 +6938,7 @@ function selPanel(c) {
   if (it.slot === "ring") btns.push(`<button class="fx-btn" data-hx="equip" data-slot-to="ring">Надеть кольцо</button>`);
   if (it.use === "find") btns.push(`<button class="fx-btn primary" data-hx="usefind">${it.find === "mush" ? "Съесть" : "Применить"}</button>`);
   if (it.kindOf === "weapon" && it.group !== "shield" && it.kind !== "Боеприпасы") btns.push(`<button class="fx-btn" data-hx="equip" data-slot-to="main">В правую руку</button>`);
-  if (it.kindOf === "weapon" && (it.group === "shield" || (it.group === "melee" && (!isTwoHandedWeapon(it) || isBigGrip(c) || c.race === "barbarian")))) { const mi = mainItem(c), bowBlock = mi && mi.group === "ranged" && !lightMelee(it); btns.push(`<button class="fx-btn" data-hx="equip" data-slot-to="off"${(twoHanded(c) && c.race !== "barbarian" && !(it.id === "shield" && mi && (mi.props || []).includes("Можно со щитом"))) || bowBlock ? " disabled" : ""}>В левую руку</button>`); }
+  if (it.kindOf === "weapon" && (it.group === "shield" || (it.group === "melee" && (!isTwoHandedWeapon(it) || isBigGrip(c) || c.race === "barbarian")))) { const mi = mainItem(c), bowBlock = mi && mi.group === "ranged" && !lightMelee(it); btns.push(`<button class="fx-btn" data-hx="equip" data-slot-to="off"${bowBlock ? " disabled" : ""}>В левую руку</button>`); }          // к двуручному можно взять вещь во вторую руку — со штрафом неудобного хвата (03.11)
   if (it.kindOf === "armor" || it.slot === "body") btns.push(`<button class="fx-btn" data-hx="equip" data-slot-to="body">Надеть</button>`);
   const others = state.party.filter(o => o.id !== c.id);
   if (others.length) btns.push(`<button class="fx-btn" data-hx="give-toggle" aria-expanded="${heroUi.give}">Передать</button>`);
@@ -7192,11 +7197,7 @@ $hero.addEventListener("click", e => {
         if (addToBag(c, { ...c.equip.off, qty: 1 })) { toast("Нет места для предмета из левой руки"); c.equip.main = prev; c.bag.push(entry); if (prev) takeLast(c, prev); saveChar(); renderHero(); return; }
         delete c.equip.off;
       }
-      else if (slot === "main" && isTwoHandedWeapon(it) && it.group !== "ranged" && !isBigGrip(c) && c.race !== "barbarian" && c.equip.off && !pikeShield(it, itemOf(c.equip.off))) {
-        if (addToBag(c, { ...c.equip.off, qty: 1 })) { toast("Нет места для предмета из левой руки"); c.equip.main = prev; c.bag.push(entry); if (prev) takeLast(c, prev); saveChar(); renderHero(); return; }
-        delete c.equip.off;
-      }
-      heroAfterChange(`${it.name}: надето`); return;
+      heroAfterChange(`${it.name}: надето${awkward2h(c) ? ` · неудобный хват: −${AWK.dodge} Уворот, −1,5 м, −${AWK.hit} к попаданию` : ""}`); return;
     }
     case "unequip": {
       const e2 = c.equip[heroUi.slot];

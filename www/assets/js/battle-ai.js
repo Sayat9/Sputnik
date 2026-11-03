@@ -167,12 +167,14 @@
   }
   function shouldFlee(u, pr) {
     if (u.flags.fleeing) return true;
+    if (u.flags.thief && u.side === "mon" && u.hp <= u.maxHp * 0.5 && ((u.loot && u.loot.length) || (B.S.drops || []).some(w => w.holder === u.id))) { u.flags.fleeing = true; log(`${u.name}: хватит — удирает с добычей!`, "flee"); ui() && ui().fxText(u, "удирает с добычей", "bad"); return true; }          // вор с добычей бежит, когда ОЗ ≤ 50 % (03.11)
     if (pr.noFlee) return false;
     if (u.ref === "rat" && !u.summon && live().some(o => o.ref === "rat-catcher" && alive(o) && !o.down)) return false;          // пока рядом играет крысолов, крысы не бегут
     if (pr.fleeHp != null && u.hp <= u.maxHp * pr.fleeHp && u.hp < u.maxHp) { u.flags.fleeing = true; log(`${u.name} в панике!`, "flee"); ui() && ui().fxText(u, "бежит!", "bad"); return true; }
     return false;
   }
   async function fleeTurn(u) {
+    if (u.flags.thief && alive(u) && !u.down && u.y === 0) { u.fled = true; B.dropOwnedStatuses(u); log(`${u.name} скрывается с добычей.`, "flee"); ui() && ui().fxEscape(u); return true; }          // вор: добежал до края в прошлый ход — уходит сейчас
     const sp = u.t.move, dash = u.t.action > 0 ? speedOf(u) : 0;
     const map = B.pathMap(u, sp + dash, {});
     const cands = [...map.values()].filter(v => B.canStand(u, v.x, v.y) || (v.x === u.x && v.y === u.y));
@@ -183,8 +185,8 @@
     if (dest.cost > u.t.move) { B.spendTime(u, "action"); u.t.move += speedOf(u); }
     const path = B.pathTo(map, dest.x, dest.y);
     const r = await B.moveAlong(u, path, { noProvoke: false }); u.t.move = Math.max(0, u.t.move - r.spent);
-    if (alive(u) && !u.down && (u.y === 0 || u.flags.thief)) { u.fled = true;          // вор (после кражи или «Жадности») скрывается в конце своего хода бегства, не добегая до края (02.11)
-      B.dropOwnedStatuses(u); log(`${u.name} убегает с поля боя.`, "flee"); ui() && ui().fxEscape(u); }
+    if (alive(u) && !u.down && u.y === 0 && !u.flags.thief) { u.fled = true;          // вор уходит только на следующем ходу после того, как добежал до края (03.11)
+ B.dropOwnedStatuses(u); log(`${u.name} убегает с поля боя.`, "flee"); ui() && ui().fxEscape(u); }
     return true;
   }
 

@@ -683,7 +683,23 @@
   };
   const rb2 = B.weapActions;
   B.weapActions = u => {
-    const out = rb2(u);
+    const out = rb2(u), c = u.hero;
+    // «Бросить оружие» (03.11): доп. действие — оружие ложится на клетку героя (приманка для жадного вора); подобрать — свободно, стоя на клетке; после боя возвращается, если поле за отрядом.
+    if (c) {
+      const hands = [["main", !u.disarmed], ["off", !u.disarmedOff]].filter(([sl, free]) => free && c.equip[sl] && !c.equip[sl].broken).map(([sl]) => [sl, itemOf(c.equip[sl])]).filter(([, it]) => it && it.kindOf === "weapon" && it.group !== "shield");
+      if (hands.length) { const bon = B.timeOK(u, "bonus");
+        out.push({ id: "dropweapon", cat: "other", label: "Бросить оружие", ico: "attack", sub: "доп. действие: оружие ложится на вашу клетку; подобрать можно, стоя на ней", time: "bonus", enabled: bon, why: "доп. действие потрачено",
+          run: async () => {
+            let sl = hands[0][0];
+            if (hands.length > 1) { const g = UI(); if (!g || !g.choose) return false; const pick = await g.choose({ title: "Что бросить?", options: hands.map(([k, it]) => ({ id: k, label: `${it.name} (${k === "main" ? "правая рука" : "левая рука"})` })).concat([{ id: "__no", label: "Отмена" }]) }); if (pick == null || pick === "__no") return false; sl = pick; }
+            B.spendTime(u, "bonus");
+            B.S.drops.push({ kind: "weapon", hero: c.id, slot: sl, item: c.equip[sl], x: u.x, y: u.y, dropped: true });
+            if (sl === "off") u.disarmedOff = true; else u.disarmed = true;
+            log(`${u.name} бросает ${itemOf(c.equip[sl]).name.toLowerCase()} на землю.`); fx(u, "бросил оружие", "");
+            const g = UI(); if (g) g.refresh(); return true;
+          } });
+      }
+    }
     return out;
   };
   const rb3 = B.weapActions;

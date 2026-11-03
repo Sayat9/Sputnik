@@ -44,7 +44,13 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
       const ds = B.doSave; B.doSave = async () => ({ ok: false, total: 1, nat: 1 });
       await B.A['goblin-thief'].run(th, { unit: h }, { commit() {} }); B.doSave = ds;
       const w = S.drops.find(d => d.kind === 'weapon' && d.holder === th.id);
-      out.steal = { took: !!w, disarmed: h.disarmed, flee: !!th.flags.fleeing, gone: !!th.fled, dodge: th.ac, base: 10 + Math.floor((MONSTERS.find(m => m.id === 'goblin-thief').abil[1] - 10) / 2) };
+      const st0 = { flee: !!th.flags.fleeing, gone: !!th.fled };
+      const tt = async () => { th.t = { action: 1, bonus: 1, move: B.speedOf ? B.speedOf(th) : 5, reaction: 1 }; await B.AI.takeTurn(th); };
+      await tt(); const stay = { flee: !!th.flags.fleeing, gone: !!th.fled };
+      th.hp = Math.floor(th.maxHp * 0.4); th.x = 2; th.y = 2; await tt(); const run1 = { flee: !!th.flags.fleeing, gone: !!th.fled, y: th.y };
+      if (!th.fled) await tt(); const run2 = { gone: !!th.fled };
+      out.thief = { st0, stay, run1, run2 };
+      out.steal = { took: !!w, disarmed: h.disarmed, flee: true, gone: true, dodge: th.ac, base: 10 + Math.floor((MONSTERS.find(m => m.id === 'goblin-thief').abil[1] - 10) / 2) };
       th.fled = true; th.alive = false; await B.End.cleanupForTest?.(S); out.stealGone = typeof B.End.cleanupForTest !== 'function' ? 'skip' : !state.party[0].equip.main; B.S = null; }
     { const c = mk(31); c.essences = ['goblin-thief']; const d0 = derived(totals(mk(32)), mk(32)), d1 = derived(totals(c), c); out.essDodge = d1.ac - d0.ac; }
     { const f = mk(40); f.race = 'fairy'; const hm = mk(41); const df = derived(totals(f), f).ac - (10 + Math.floor((totals(f).dex.total - 10) / 2)), dh = derived(totals(hm), hm).ac - (10 + Math.floor((totals(hm).dex.total - 10) / 2)); out.fairy = df - dh; }
@@ -56,6 +62,14 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
     out.heroThreat = threatOf(mk(5));
     { const c0 = mk(6, { main: { t: 'w', id: 'sword' } }), c1 = mk(7, { main: { t: 'w', id: 'sword' }, off: { t: 'w', id: 'shield' } }); out.shieldDex = totals(c1).dex.total - totals(c0).dex.total; }
     { const c = mk(8); out.cap = load(c).cap; out.capWant = (totals(c).str.total + totals(c).con.total / 2) * 3; }
+    { const a = mk(40, { main: { t: 'w', id: 'greatsword' } }), b = mk(41, { main: { t: 'w', id: 'greatsword' }, off: { t: 'w', id: 'shield' } });
+      const da = derived(totals(a), a), db = derived(totals(b), b), sh = mk(42, { main: { t: 'w', id: 'sword' }, off: { t: 'w', id: 'shield' } }), ds2 = derived(totals(sh), sh);
+      state.party = [a, b]; const S = B.newBattle({ list: ['goblin'], zone: 'goblin', floor: 1 }); const [ua, ub] = B.heroes();
+      const ha = B.attacksOf(ua)[0].hit, hb = B.attacksOf(ub)[0].hit;
+      out.awk = { aw: awkward2h(b), plain: awkward2h(a), dodge: (ds2.ac - 0) - db.ac, speed: da.speed - db.speed, hit: ha - hb, staff: WEAPONS.find(w => w.id === 'staff').dmgPlus };
+      ub.x = 2; ub.y = 4; ub.t.bonus = 1; const act = B.weapActions(ub).find(x => x.id === 'dropweapon'); out.drop = { has: !!act };
+      if (act) { await act.run(); out.drop.on = S.drops.some(d => d.hero === b.id && d.dropped && d.x === 2 && d.y === 4); out.drop.dis = ub.disarmed; }
+      B.S = null; }
     return out;
   });
   console.log(JSON.stringify(o));
@@ -63,9 +77,13 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
   ok('сеть зверолова держит 2 хода', o.net.k === 2 && o.net.when === 'end', o.net);
   ok('полёт: +3 к Увороту летящей цели', o.fly.flying && o.fly.d === 3, o.fly);
   ok('тьма: +2 к Увороту цели во тьме; тёмное зрение атакующего снимает бонус', o.dark === 2 && o.darkNoDv === 2 && o.darkDv === 0, [o.dark, o.darkNoDv, o.darkDv]);
-  ok('вор: «Срезать кошель» выхватывает оружие из руки и сразу скрывается с поля', o.steal.took && o.steal.disarmed && o.steal.flee && o.steal.gone, o.steal);
+  ok('вор: «Срезать кошель» выхватывает оружие из руки', o.steal.took && o.steal.disarmed, o.steal);
+  ok('вор: после кражи при ОЗ > 50 % остаётся в бою', !o.thief.st0.gone && !o.thief.stay.flee && !o.thief.stay.gone, o.thief);
+  ok('вор: при ОЗ ≤ 50 % бежит к краю, в этот ход не исчезает, уходит на следующем', o.thief.run1.flee && !o.thief.run1.gone && o.thief.run1.y === 0 && o.thief.run2.gone, o.thief);
   ok('вор: бонус +3 к Увороту', o.steal.dodge === o.steal.base + 3, o.steal);
   ok('эссенция вора: Уворот +3 и Ловкость +2 (мод. +1) → Уворот +4', o.essDodge === 4, o.essDodge);
+  ok('неудобный хват: двуручное + щит — −1 Уворот (сверх щита), −1,5 м, −2 к попаданию; посох +1 урона', o.awk.aw && !o.awk.plain && o.awk.dodge === 1 && o.awk.speed === 1.5 && o.awk.hit === 2 && o.awk.staff === 1, o.awk);
+  ok('«Бросить оружие»: доп. действием оружие ложится на клетку героя', o.drop.has && o.drop.on && o.drop.dis, o.drop);
   ok('феи: +1 к Увороту', o.fairy === 1, o.fairy);
   ok('пара перчаток: Уворот −1, Защита +3', o.gloves[0] === -1 && o.gloves[1] === 3, o.gloves);
   ok('двуручное оружие пробивает 1 Защиты (10 урона по Защите 3+2 → 6)', o.twoH.ign === 1 && o.twoH.dealt === 10 - (o.twoH.prot - 1), o.twoH);

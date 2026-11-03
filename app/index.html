@@ -1153,8 +1153,8 @@ const WEAPONS = [
   { id: "gloves", name: "Перчатки", group: "melee", kind: "Простое", dmg: "1к4", type: "дробящий", weight: 1, price: 10,
     props: ["Кастет", "Одна: +1 Защиты и «Блок кулаками»", "Две: +3 Защиты, −1 Уворота и урон 2к4"],
     note: "Кожа с железными накладками на костяшках. Одна перчатка — оружие и действие «Блок кулаками»; вторая рука свободна под щит или кинжал: до начала следующего хода урон ближних атак по вам снижается на 1к4 + Ловкость. В обеих руках — +2 КД, а удар кулаками наносит 2к4." },
-  { id: "staff", name: "Посох", group: "melee", kind: "Простое", dmg: "1к4", type: "дробящий", weight: 2, price: 6,
-    props: ["Двуручное", "Досягаемость 3 м (на 2-й клетке −2 к атаке)", "+1 к мане"],
+  { id: "staff", name: "Посох", group: "melee", kind: "Простое", dmg: "1к4", type: "дробящий", weight: 2, price: 6, dmgPlus: 1,          // +1 к урону (автор 03.11)
+    props: ["Двуручное", "+1 к урону", "Досягаемость 3 м (на 2-й клетке −2 к атаке)", "+1 к мане"],
     note: "Ясеневая жердь с железным оголовьем. Слабее копья, но на второй клетке бьёт с меньшим штрафом (−2 вместо помехи). Владельцу даёт +1 к максимуму маны." },
   { id: "axe", name: "Топор", group: "melee", kind: "Воинское", dmg: "1к6", type: "рубящий", weight: 1, price: 18,
     props: ["Метательное (4/12 м)", "Против щитов (+2 урона)"],
@@ -2695,7 +2695,11 @@ const mainItem = (c = char) => itemOf((c.equip || {}).main);
 const isBigGrip = c => !!(c.giantGrip && c.race === "barbarian");                     // «Великан»: двуручное в одной руке
 // Лук держат одной рукой, а вторая свободна для кинжала; для остального двуручного обе руки заняты (кроме «Великана»).
 const pikeShield = (m, off) => !!(m && (m.props || []).includes("Можно со щитом") && off && off.id === "shield");          // пика с малым щитом
-const twoHanded = (c = char) => { const m = mainItem(c); return isTwoHandedWeapon(m) && m.group !== "ranged" && !isBigGrip(c) && !pikeShield(m, itemOf((c.equip || {}).off)); };
+const twoHanded = (c = char) => { const m = mainItem(c); return isTwoHandedWeapon(m) && m.group !== "ranged" && !isBigGrip(c) && !pikeShield(m, itemOf((c.equip || {}).off)) && !(c.equip || {}).off; };          // обе руки заняты двуручным (вторая рука пуста)
+// Неудобный хват (автор 03.11): двуручное оружие ближнего боя и ещё вещь во второй руке, когда нет своего правила («Великан» варвара, пика со щитом, лук с кинжалом) — −1 Уворот, −1,5 м скорости, −2 к попаданию обоими оружиями.
+const AWK = { dodge: 1, speed: 1.5, hit: 2 };
+const awkward2h = c => { if (!c || isBigGrip(c)) return false; const e = c.equip || {}, m = itemOf(e.main), o = itemOf(e.off); if (!m || !o) return false;
+  const two = w => isTwoHandedWeapon(w) && w.group !== "ranged" && w.id !== "tower-shield"; if (two(m) && pikeShield(m, o)) return false; return two(m) || two(o); };
 const lightMelee = w => !!w && w.group === "melee" && (w.props || []).includes("Лёгкое");
 
 // Решение автора: одноручный щит и двуручное оружие в одной руке у варвара («Великан») дают −2 к Ловкости (каждое).
@@ -2759,6 +2763,7 @@ function derived(t, c = char) {
   if (c.race === "fairy" || c.race === "darkfairy") { ac += 1; dodgeSrc.push("+1 фея"); }          // феи юркие: +1 к Увороту (решение автора 02.11)
   if (eb.dodge) { ac += eb.dodge; dodgeSrc.push(`${eb.dodge > 0 ? "+" : "−"}${Math.abs(eb.dodge)} эссенции`); }                                                                  // эссенции «КД +N» дают Защиту (решение автора 02.11)
   pen(OVERLOAD[ld.level].dodge, LOAD_NAME[ld.level].toLowerCase());
+  if (awkward2h(c)) { pen(AWK.dodge, "неудобный хват двуручного"); warnings.push(`Двуручное и вещь во второй руке: −${AWK.dodge} Уворот, −1,5 м скорости, −${AWK.hit} к попаданию обоими оружиями.`); }
   prot = Math.max(0, prot);
   const acSrc = `10 + Лов ${dex >= 0 ? "+" : "−"}${Math.abs(dex)}${dodgeSrc.length ? " " + dodgeSrc.join(", ") : ""}`, protTxt = protSrc.join(", ") || "без брони";
   const mana = 10 + 2 * c.level + eb.mp + (main && main.id === "staff" ? 1 : 0);          // посох: +1 к мане
@@ -2866,6 +2871,7 @@ function heroSpeedM(c, t = totals(c), ld = load(c, t)) {
   const armor = itemOf((c.equip || {}).body), main = itemOf((c.equip || {}).main);
   if (armor && armor.kindOf === "armor" && armor.str && t.str.total < armor.str) sp -= 3;
   if (main && main.id === "tower-shield" && t.str.total < 13) sp -= 3;
+  if (awkward2h(c)) sp -= AWK.speed;          // неудобный хват двуручного (03.11)
   return Math.max(1.5, sp);
 }
 const maxMp = c => derived(totals(c), c).mana;
@@ -2874,7 +2880,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 98;
+const BATTLE_REV = 99;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }
@@ -5707,7 +5713,6 @@ function ensureRun() {
   unlockJournal(9);                       // 1 этаж — монстры 9-го класса
   r.status ||= {};
   travRestore();                          // путники из сохранения снова становятся записями для боя
-  for (const c of state.party || []) { const e = c.equip || {}; if (e.main && e.main.id === "spear" && e.off && !isBigGrip(c)) { addToBag(c, { ...e.off, qty: 1 }); delete e.off; } }          // копьё стало двуручным (02.11): вещь из второй руки — в рюкзак
   for (const c of state.party) if (!r.status[c.id]) { r.status[c.id] = c.carry ? { sat: 3, starve: 0, awake: 0, fat: 0, ...c.carry } : { sat: 3, starve: 0, awake: 0, fat: 0 }; delete c.carry; }
   return r;
 }
@@ -6928,7 +6933,7 @@ function selPanel(c) {
   if (it.slot === "ring") btns.push(`<button class="fx-btn" data-hx="equip" data-slot-to="ring">Надеть кольцо</button>`);
   if (it.use === "find") btns.push(`<button class="fx-btn primary" data-hx="usefind">${it.find === "mush" ? "Съесть" : "Применить"}</button>`);
   if (it.kindOf === "weapon" && it.group !== "shield" && it.kind !== "Боеприпасы") btns.push(`<button class="fx-btn" data-hx="equip" data-slot-to="main">В правую руку</button>`);
-  if (it.kindOf === "weapon" && (it.group === "shield" || (it.group === "melee" && (!isTwoHandedWeapon(it) || isBigGrip(c) || c.race === "barbarian")))) { const mi = mainItem(c), bowBlock = mi && mi.group === "ranged" && !lightMelee(it); btns.push(`<button class="fx-btn" data-hx="equip" data-slot-to="off"${(twoHanded(c) && c.race !== "barbarian" && !(it.id === "shield" && mi && (mi.props || []).includes("Можно со щитом"))) || bowBlock ? " disabled" : ""}>В левую руку</button>`); }
+  if (it.kindOf === "weapon" && (it.group === "shield" || (it.group === "melee" && (!isTwoHandedWeapon(it) || isBigGrip(c) || c.race === "barbarian")))) { const mi = mainItem(c), bowBlock = mi && mi.group === "ranged" && !lightMelee(it); btns.push(`<button class="fx-btn" data-hx="equip" data-slot-to="off"${bowBlock ? " disabled" : ""}>В левую руку</button>`); }          // к двуручному можно взять вещь во вторую руку — со штрафом неудобного хвата (03.11)
   if (it.kindOf === "armor" || it.slot === "body") btns.push(`<button class="fx-btn" data-hx="equip" data-slot-to="body">Надеть</button>`);
   const others = state.party.filter(o => o.id !== c.id);
   if (others.length) btns.push(`<button class="fx-btn" data-hx="give-toggle" aria-expanded="${heroUi.give}">Передать</button>`);
@@ -7187,11 +7192,7 @@ $hero.addEventListener("click", e => {
         if (addToBag(c, { ...c.equip.off, qty: 1 })) { toast("Нет места для предмета из левой руки"); c.equip.main = prev; c.bag.push(entry); if (prev) takeLast(c, prev); saveChar(); renderHero(); return; }
         delete c.equip.off;
       }
-      else if (slot === "main" && isTwoHandedWeapon(it) && it.group !== "ranged" && !isBigGrip(c) && c.race !== "barbarian" && c.equip.off && !pikeShield(it, itemOf(c.equip.off))) {
-        if (addToBag(c, { ...c.equip.off, qty: 1 })) { toast("Нет места для предмета из левой руки"); c.equip.main = prev; c.bag.push(entry); if (prev) takeLast(c, prev); saveChar(); renderHero(); return; }
-        delete c.equip.off;
-      }
-      heroAfterChange(`${it.name}: надето`); return;
+      heroAfterChange(`${it.name}: надето${awkward2h(c) ? ` · неудобный хват: −${AWK.dodge} Уворот, −1,5 м, −${AWK.hit} к попаданию` : ""}`); return;
     }
     case "unequip": {
       const e2 = c.equip[heroUi.slot];
