@@ -35,6 +35,15 @@ const CASES = [          // [метка, этаж, уровень героев, 
   ['Х: кариатида+алебардист+служка', 3, LV7, ['caryatid', 'marble-halberdier', 'stone-acolyte'], ''],
   ['Х: страж+святая', 3, LV7, ['marble-guardian', 'marble-saint'], ''],
   ['Х: скульптор+служка (6)', 3, LV6, ['faceless-sculptor', 'stone-acolyte'], ''],
+  ['У: егерь+гончая+гриф', 3, LV7, ['bone-ranger', 'thorn-hound', 'grey-vulture'], ''],
+  ['У: лиса+лось+гончая', 3, LV7, ['iron-fox', 'stone-elk', 'thorn-hound'], ''],
+  ['У: вожак+3 гончие', 3, LV7, ['pack-leader', 'thorn-hound', 'thorn-hound', 'thorn-hound'], ''],
+  ['У: страж лощин+2 гончие', 3, LV7, ['glen-warden', 'thorn-hound', 'thorn-hound'], ''],
+  ['У: следопыт+егерь+гончая', 3, LV7, ['tracker-hunter', 'bone-ranger', 'thorn-hound'], ''],
+  ['У: ворон', 3, LV7, ['keen-raven'], ''],
+  ['У: тихий хищник (6)', 3, LV6, ['silent-predator'], ''],
+  ['Г: противный+3 гоблина', 2, 3, ['nasty-goblin', 'goblin', 'goblin-sword', 'goblin-spear'], 'goblin'],
+  ['Г: провокатор+3 гоблина', 2, 3, ['goblin-provoker', 'goblin', 'goblin-archer', 'goblin-spear'], 'goblin'],
 ].filter(c => !ONLY || c[0].includes(ONLY));
 const BUILDS = {
   // сборка: раса, статы, руки, тело

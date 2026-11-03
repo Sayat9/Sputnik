@@ -1609,12 +1609,17 @@
   };
   A["echo-jackal"] = { time: "react", tgt() { return { type: "none" }; }, can() { return "срабатывает само, когда союзник попадает"; }, async run() { return false; }, ai() { return null; } };
 
-  /* Колокольная крыса (9): «Чуткие усы» (ловушки рядом видны), «Юркнуть» — 2 клетки без атак по возможности */
+  /* Колокольная крыса (9): «Чуткие усы» (ловушки рядом видны), «Колокольчик на хвосте» — спасбросок Мудрости, провал: без реакций до конца своего хода */
   P["toll-rat"] = {};
-  A["toll-rat"] = { time: "bonus", tgt() { return { type: "none" }; }, can(u) { return speedOf(u) > 0 ? true : "не может двигаться"; },
-    async run(u, pk, ctl) { ctl.commit(); await stepMove(u, 2, { prompt: "Юркнуть: куда (2 клетки, без атак по возможности)?", auto: cells => farthestSpot(u, cells) }); fx(u, "юркнула", ""); return true; },
-    ai(u) { return within(u, 1).length >= 2 || (within(u, 1).length && u.hp < u.maxHp * 0.5) ? { score: 3 } : null; } };
-
+  Object.assign(D.status, { bellnoise: { name: "Отвлечён звоном", good: false, ico: '<path d="M12 4a5 5 0 015 5v4l2 3H5l2-3V9a5 5 0 015-5zM10 19a2 2 0 004 0"/>', desc: "Не может совершать реакции до конца своего хода." } });
+  A["toll-rat"] = {
+    time: "bonus",
+    tgt(u) { return specUnit(u, "Колокольчик на хвосте: кого отвлечь?", within(u, 4).filter(t => !has(t, "bellnoise")), cellsAround(u, 4), "debuff"); },
+    can(u) { return within(u, 4).some(t => !has(t, "bellnoise")) ? true : "некого отвлечь"; },
+    async run(u, pk, ctl) { ctl.commit(); const t = pk.unit, sv = await save(t, "wis", dcOf(u, "dex"), "Колокольчик на хвосте", ["sound"], u);
+      if (!sv.ok) { addStatus(t, "bellnoise", { k: 1, when: "end" }); if (t.t) t.t.react = 0; log(`${t.name} оборачивается на звон: без реакций до конца своего хода.`, "skill"); fx(t, "отвлечён", "bad"); } return true; },
+    ai(u) { const ts = within(u, 4).filter(t => !has(t, "bellnoise")); return ts.length ? { unit: ts.sort((a, b) => dist(u, a) - dist(u, b))[0], score: 2 } : null; },
+  };
   /* Гулкий страж (8): «Тяжёлая стойка» (не сдвинуть, не сбить), «Гул щита» +2 КД на 2 раунда */
   P["toll-guard"] = { immovable: true, saveMods(u, ctx) { if ((ctx.tags || []).some(t => ["prone", "shove", "push", "grapple"].includes(t))) ctx.adv.push("тяжёлая стойка"); }, acBonus(u) { return has(u, "shieldhum") ? 2 : 0; } };
   A["toll-guard"] = { time: "action", tgt() { return { type: "none" }; }, can(u) { return has(u, "shieldhum") ? "щит уже гудит" : true; },
@@ -1820,6 +1825,147 @@
     },
     ai(u) { const n = B.summonsOf(u).length; return n < 2 ? { score: n ? 18 : 40 } : null; },
   };
+
+  /* ===== 2 этаж: гоблины под Угрозу (03.11) ===== */
+  Object.assign(D.essCd, { "nasty-goblin": 2, "goblin-provoker": 4 });
+  Object.assign(D.status, {
+    taunted:  { name: "Раздразнён", good: false, ico: '<path d="M4 6h16v9H9l-5 4z"/><path d="M9 10h.01M15 10h.01"/>', desc: "Насмешник для него угрожающе важен: монстр скорее бьёт его, герой атакует других с помехой." },
+    threatup: { name: "Задира", good: true, ico: '<path d="M4 9v6h4l6 4V5L8 9z"/>', desc: "Угроза +1: враги скорее бьют его." },
+  });
+  Object.assign(D.monTune, { "nasty-goblin": { role: "skirmisher", focus: ["weak", "nearest"], fleeHp: 0.4 }, "goblin-provoker": { role: "melee", focus: ["nearest"], fleeHp: 0.25 } });
+  /* Противный гоблин (9): «Ловко на ногах», «Шутовская насмешка» */
+  P["nasty-goblin"] = { saveMods(u, ctx) { if ((ctx.tags || []).includes("prone")) ctx.adv.push("ловко на ногах"); }, checkMods(u, ctx) { if ((ctx.tags || []).includes("prone")) ctx.adv.push("ловко на ногах"); } };
+  A["nasty-goblin"] = {
+    time: "bonus",
+    tgt(u) { return specUnit(u, "Шутовская насмешка: кого дразнить?", within(u, 6).filter(t => !has(t, "taunted")), cellsAround(u, 6), "debuff"); },
+    can(u) { return within(u, 6).some(t => !has(t, "taunted")) ? true : "некого дразнить"; },
+    async run(u, pk, ctl) {
+      ctl.commit(); const t = pk.unit, r = await save(t, "int", dcOf(u, "dex"), "Шутовская насмешка", ["taunt"], u);          // проверка Интеллекта — бросок Интеллекта против Сл
+      if (r && r.ok) { log(`${t.name} не ведётся на насмешку ${u.name}.`); return true; }
+      addStatus(t, "taunted", { k: 2, when: "end", data: { by: u.id, add: 1 } }); log(`${u.name} дразнит ${t.name}: Угроза насмешника для него +1 на 2 хода.`, "skill"); fx(t, "раздразнён", "bad"); return true;
+    },
+    ai(u) { const ts = within(u, 6).filter(t => !has(t, "taunted")); return ts.length ? { unit: ts.sort((a, b) => b.hp - a.hp)[0], score: 3 } : null; },
+  };
+  /* Гоблин-провокатор (8): «Вертлявый» (раз в раунд 16+ на к20 — попадание становится промахом), «Задиристый ор» */
+  P["goblin-provoker"] = { async reactHit(u, ctx) { if (u.dodgeRound === B.S.round || (ctx.res && ctx.res.crit)) return false; u.dodgeRound = B.S.round; const d = roll(1, 20).total; if (d >= 16) { log(`${u.name} вертится и уходит от удара (${d}).`, "skill"); fx(u, "увернулся", "good"); return true; } return false; } };
+  A["goblin-provoker"] = {
+    time: "bonus", tgt() { return { type: "none" }; }, can(u) { return within(u, 2).length ? true : "никого в 2 клетках"; },
+    async run(u, pk, ctl) {
+      ctl.commit(); const es = within(u, 2);
+      for (const t of es) { const v = roll(1, 4).total; await B.applyDamage(u, t, [{ v, dt: "thunder", label: "Задиристый ор" }], { src: u }); if (alive(t) && u.side === "mon") addStatus(t, "taunted", { k: 2, when: "end", data: { by: u.id, add: 1 } }); }
+      addStatus(u, "threatup", { k: 2, when: "end", data: { add: 1 } });
+      log(`${u.name} задиристо орёт: ${es.length} ${es.length === 1 ? "враг" : "врага"} получают звуком, Угроза +1 на 2 хода.`, "skill"); fx(u, "задира", "good"); return true;
+    },
+    ai(u) { return within(u, 2).length ? { score: 3 } : null; },
+  };
+
+  /* ===== 3 этаж: Охотничьи угодья (03.11) ===== */
+  Object.assign(D.essCd, { "bone-ranger": 3, "thorn-hound": 3, "grey-vulture": 2, "pack-leader": 4, "stone-elk": 3, "iron-fox": 2, "glen-warden": 4, "tracker-hunter": 3, "keen-raven": 3, "silent-predator": 99 });
+  Object.assign(D.status, {
+    thornguard: { name: "Шипы наружу", good: true, ico: '<path d="M12 2l2 6 6-2-4 5 5 4-6 1 1 6-4-4-4 4 1-6-6-1 5-4-4-5 6 2z"/>', desc: "Защита +2 до начала своего хода." },
+    packmark:   { name: "Цель стаи", good: false, ico: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/>', desc: "Стая бьёт с преимуществом." },
+    packhowl:   { name: "Загонный вой", good: true, ico: '<path d="M4 9v6h4l6 4V5L8 9z"/>', desc: "+1 клетка скорости и +1 к попаданию." },
+    elkwall:    { name: "Стеной", good: true, ico: '<path d="M4 20V6h16v14z"/>', desc: "Защита +2, не сдвинуть; соседям +2 Уворот от дальних атак." },
+    irondust:   { name: "Железная пыль", good: false, ico: '<circle cx="8" cy="9" r="1"/><circle cx="14" cy="7" r="1"/><circle cx="12" cy="13" r="1"/><circle cx="17" cy="12" r="1"/>', desc: "−2 к попаданию." },
+    trailmark:  { name: "На следу", good: false, ico: '<path d="M7 18c0-3 2-4 2-7M15 18c0-3 2-4 2-7"/><circle cx="9" cy="8" r="2"/><circle cx="17" cy="8" r="2"/>', desc: "Следующая дальняя атака союзника следопыта по нему +2." },
+    weakscent:  { name: "Чует слабого", good: true, ico: '<path d="M12 4c4 4 4 12 0 16-4-4-4-12 0-16z"/>', desc: "+2 к попаданию по целям с половиной ОЗ и меньше." },
+  });
+  Object.assign(D.monTune, {
+    "bone-ranger": { role: "ranged", keep: 3, focus: ["weak", "nearest"], fleeHp: 0.3 }, "thorn-hound": { role: "swarm", circle: true, focus: ["weak", "nearest"], fleeHp: 0.3 },
+    "grey-vulture": { role: "skirmisher", hitRun: true, focus: ["wounded", "weak"], fleeHp: 0.35 }, "pack-leader": { role: "swarm", focus: ["weak", "nearest"], fleeHp: 0.2 },
+    "stone-elk": { role: "brute", focus: ["nearest"], noFlee: true }, "iron-fox": { role: "skirmisher", focus: ["weak", "nearest"], fleeHp: 0.3 },
+    "glen-warden": { role: "brute", focus: ["attacker", "nearest"], noFlee: true }, "tracker-hunter": { role: "ranged", keep: 4, focus: ["weak", "nearest"], noFlee: true },
+    "keen-raven": { role: "ranged", keep: 4, focus: ["weak", "nearest"], fleeHp: 0.25 }, "silent-predator": { role: "skirmisher", focus: ["weak", "nearest"], noFlee: true, hide: true },
+  });
+  const rangedAtk = u => B.attacksOf(u).find(a => a.kind === "ranged") || null;
+  /* Костяной егерь (9) */
+  P["bone-ranger"] = {
+    turnEnd(u) { u.flags.shotLast = !!(u.t && u.t.shot); },
+    attackMods(u, ctx) { if (ctx.atk && ctx.atk.kind === "ranged") { if (!u.flags.shotLast) ctx.mods.push({ l: "Терпеливый прицел", v: 2 }); if (u.t) u.t.shot = true; } },
+  };
+  A["bone-ranger"] = attackRider({ name: "Стрела в сустав", kind: "ranged", aiBonus: 2.5, onHit: async (t, u) => { if (!alive(t) || t.down) return; const sv = await save(t, "con", dcOf(u, "dex"), "Стрела в сустав", ["slow"], u); if (!sv.ok) { addStatus(t, "slowed", { k: 2, when: "end", data: { add: -2 } }); fx(t, "хромает", "bad"); } } });
+  /* Шипастая гончая (9) */
+  P["thorn-hound"] = {
+    async onDamaged(u, { src, o }) {
+      if (!src || !o || !o.melee || o.thorns || !alive(src)) return;
+      await B.applyDamage(u, src, [{ v: 1, dt: "pierce", label: "Шипастая шкура" }], { src: u, thorns: true });
+      const es = within(u, 1); if (es.length >= 2 && alive(u) && !u.down && !(u.cd && u.cd["thorn-hound"] > 0) && u.t && u.t.react) {
+        u.t.react = 0; B.setCd(u, "thorn-hound", D.essCd["thorn-hound"]); addStatus(u, "thornguard", { k: 1, when: "start", data: { prot: 2 } }); log(`${u.name}: шипы наружу!`, "skill");
+        for (const e of es) await B.applyDamage(u, e, [{ v: roll(1, 4).total, dt: "pierce", label: "Шипы наружу" }], { src: u, thorns: true });
+      }
+    },
+  };
+  A["thorn-hound"] = { time: "react", tgt() { return { type: "none" }; }, can() { return "срабатывает само, когда тебя окружили"; }, async run() { return false; }, ai() { return null; } };
+  /* Сизый гриф (9) */
+  P["grey-vulture"] = {
+    dmgOut(u) { const t = B.tinfo(u.x, u.y); return (t && t.elevated) || B.isFlying(u) ? 2 : 0; },
+    attackMods(u, ctx) { if (has(u, "weakscent") && ctx.tgt && ctx.tgt.hp <= ctx.tgt.maxHp / 2) ctx.mods.push({ l: "Чует слабого", v: 2 }); },
+  };
+  A["grey-vulture"] = { time: "bonus", tgt() { return { type: "none" }; }, can() { return true; },
+    async run(u, pk, ctl) { ctl.commit(); addStatus(u, "weakscent", { k: 1, when: "end" }); fx(u, "чует слабого", "good"); return true; },
+    ai(u) { return enemiesOf(u).some(e => e.hp <= e.maxHp / 2 && dist(u, e) <= 6) ? { score: 3 } : null; } };
+  /* Вожак гончих (8) */
+  P["pack-leader"] = {
+    onHitDealt(u, { tgt }) { if (!tgt || (u.flags.packRound != null && B.S.round - u.flags.packRound < 3)) return; u.flags.packRound = B.S.round; addStatus(tgt, "packmark", { k: 1, when: "end", data: { by: u.id } }); fx(tgt, "цель стаи", "bad"); },
+    attackAura(a, { att, tgt, ctx }) { const m = has(tgt, "packmark"); if (m && m.data && m.data.by === a.id && att.id !== a.id) ctx.adv.push("цель стаи"); if (has(att, "packhowl")) ctx.mods.push({ l: "Загонный вой", v: 1 }); },
+  };
+  A["pack-leader"] = { time: "bonus", tgt() { return { type: "none" }; }, can() { return true; },
+    async run(u, pk, ctl) { ctl.commit(); const g = friends(u).filter(o => dist(o, u) <= 4); for (const o of g) addStatus(o, "packhowl", { k: 1, when: "end" }); log(`${u.name} воет: стая быстрее и точнее (${g.length}).`, "skill"); fx(u, "вой", "good"); return true; },
+    ai(u) { return friends(u).filter(o => dist(o, u) <= 4).length >= 2 ? { score: 3 } : null; } };
+  /* Каменный лось (8) */
+  P["stone-elk"] = {
+    async attackDone(u, { tgt, res, atk }) { if (res && res.hit && atk && atk.kind === "melee" && u.t && u.t.straight >= 2 && alive(tgt) && !tgt.down && tgt.size <= u.size) { await B.push(tgt, u.x, u.y, 1); fx(tgt, "отброшен", "bad"); } },
+    saveMods(u, ctx) { if (has(u, "elkwall") && (ctx.tags || []).some(t => ["prone", "shove", "push"].includes(t))) ctx.adv.push("стеной"); },
+    acAura(a, { tgt, ctx }) { return has(a, "elkwall") && tgt !== a && dist(a, tgt) <= 1 && ctx && ctx.atk && ctx.atk.kind !== "melee" ? 2 : 0; },
+  };
+  A["stone-elk"] = { time: "action", tgt() { return { type: "none" }; }, can(u) { return has(u, "elkwall") ? "уже стоит стеной" : true; },
+    async run(u, pk, ctl) { ctl.commit(); addStatus(u, "elkwall", { k: 1, when: "start", data: { prot: 2 } }); log(`${u.name} встаёт стеной.`, "skill"); fx(u, "стеной", "good"); return true; },
+    ai(u) { return within(u, 1).length >= 2 && u.hp < u.maxHp * 0.7 ? { score: 12 } : null; } };
+  /* Железная лиса (8) */
+  P["iron-fox"] = {
+    onMissedBy(u, { att, atk }) { if (atk && atk.kind === "melee" && att) u.flags.feint = att.id; },
+    attackMods(u, ctx) { if (ctx.tgt && u.flags.feint === ctx.tgt.id) { ctx.adv.push("обманный финт"); u.flags.feint = null; } },
+  };
+  A["iron-fox"] = { time: "bonus",
+    tgt(u) { return specUnit(u, "Железная пыль: в кого?", within(u, 3).filter(t => !has(t, "irondust")), cellsAround(u, 3), "debuff"); },
+    can(u) { return within(u, 3).some(t => !has(t, "irondust")) ? true : "нет цели"; },
+    async run(u, pk, ctl) { ctl.commit(); const t = pk.unit, sv = await save(t, "con", dcOf(u, "dex"), "Железная пыль", ["blind"], u); if (!sv.ok) { addStatus(t, "irondust", { k: 1, when: "end", data: { atkMod: -2 } }); fx(t, "пыль в глазах", "bad"); } return true; },
+    ai(u) { const ts = within(u, 3).filter(t => !has(t, "irondust")); return ts.length ? { unit: ts[0], score: 2.5 } : null; } };
+  /* Рогатый страж лощин (7) */
+  P["glen-warden"] = {
+    attackMods(u, ctx) { if (u.t && !(u.t.moved > 0)) ctx.mods.push({ l: "Корни лощины", v: 1 }); },
+    dmgOut(u) { return u.t && !(u.t.moved > 0) ? 1 : 0; },
+  };
+  A["glen-warden"] = { time: "action", tgt() { return { type: "none" }; }, can(u) { return within(u, 1).length ? true : "никого рядом"; },
+    async run(u, pk, ctl) { ctl.commit(); const dc = dcOf(u, "str");
+      for (const t of within(u, 1)) { const v = roll(2, 8).total + amod(u.abil.str), sv = await save(t, "str", dc, "Ветвистый удар", ["prone"], u); await B.applyDamage(u, t, [{ v, dt: "pierce", label: "Ветвистый удар" }], { src: u, melee: true }); if (!sv.ok && alive(t)) addStatus(t, "prone", { k: Infinity }); }
+      log(`${u.name}: ветвистый удар.`, "skill"); return true; },
+    ai(u) { const n = within(u, 1).length; return n >= 2 ? { score: 10 + n * 4 } : null; } };
+  /* Следопыт-охотник (7) */
+  P["tracker-hunter"] = { attackAura(a, { att, tgt, ctx }) { const m = has(tgt, "trailmark"); if (m && m.data && m.data.by === a.id && att.id !== a.id && ctx.atk && ctx.atk.kind === "ranged") { ctx.mods.push({ l: "На следу", v: 2 }); removeStatus(tgt, "trailmark"); } } };
+  A["tracker-hunter"] = attackRider({ name: "Выстрел в след", kind: "ranged", aiBonus: 3, onHit: async (t, u) => { if (alive(t) && !t.down) { addStatus(t, "trailmark", { k: 2, when: "end", data: { by: u.id } }); fx(t, "на следу", "bad"); } } });
+  /* Зоркий ворон (7): «Сторожевой» (у монстра — всегда; у героя — в Обороне), «Взгляд сверху» */
+  P["keen-raven"] = {
+    async reactEnter(e, mover, from) {
+      if (e.side === mover.side || (e.side === "hero" && !has(e, "dodging")) || e.watchRound === B.S.round) return;
+      const a = rangedAtk(e); if (!a || !mover.t || mover.t.startX == null) return;
+      const d0 = B.distAt(e, mover, mover.t.startX, mover.t.startY); if (d0 <= 2 || d0 > (a.range ? a.range[0] : 6) || dist(e, mover) > (a.range ? a.range[0] : 6)) return;
+      e.watchRound = B.S.round; e.t.react = 0; log(`${e.name}: сторожевой — перо в спину.`, "skill");
+      await B.doAttack(e, mover, a, { bonusHit: -3, bonusLabel: "Сторожевой", echo: true, noRedirect: true });
+    },
+  };
+  A["keen-raven"] = { time: "action", tgt() { return { type: "none" }; }, can() { return true; },
+    async run(u, pk, ctl) { ctl.commit(); let n = 0;
+      for (const e of enemiesOf(u)) if (dist(u, e) <= 4 && has(e, "hidden")) { removeStatus(e, "hidden"); n++; }
+      for (const o of B.S.objs || []) if (o.kind === "trap" && o.owner !== u.side && Math.max(Math.abs(o.x - u.x), Math.abs(o.y - u.y)) <= 4) { o.noticed = o.noticed || []; for (const f of live().filter(x => x.side === u.side)) if (!o.noticed.includes(f.id)) o.noticed.push(f.id); o.hidden = false; n++; }
+      log(`${u.name}: взгляд сверху — открыто ${n}.`, "skill"); const g = ui(); if (g) g.refresh(); return true; },
+    ai(u) { return enemiesOf(u).some(e => dist(u, e) <= 4 && has(e, "hidden")) ? { score: 8 } : null; } };
+  /* Тихий хищник (6): «Удар из тишины» */
+  P["silent-predator"] = {
+    turnEnd(u) { u.flags.stillLast = !(u.t && u.t.moved > 0); },
+    attackMods(u, ctx) { if (has(u, "hidden") && ctx.tgt && ctx.tgt.flags && ctx.tgt.flags.stillLast) { ctx.autoCrit = true; ctx.notes.push("удар из тишины"); } },
+  };
+  A["silent-predator"] = { time: "action", tgt() { return { type: "none" }; }, can() { return "работает вне боя"; }, async run() { return false; }, ai() { return null; } };
 
   B.fillActiveTimes();
 })();

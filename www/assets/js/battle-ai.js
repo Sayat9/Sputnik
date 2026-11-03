@@ -48,11 +48,14 @@
     const cls = u.cls || (u.mon && u.mon.cls) || 9; if (cls >= 9) return 0;
     return clamp((amod(u.abil.int) + (8 - cls)) * 0.15 - (top - 2) * 0.25, 0, 0.75);
   }
+  // Угроза цели глазами монстра u (03.11): своя + временная «threatup» (+N на 2 хода) + насмешка именно этому монстру («taunted» от t).
+  const thr = (u, t) => { const up = has(t, "threatup"), tn = has(u, "taunted"); return (t.threat ?? 1) + (up ? (up.data && up.data.add) || 1 : 0) + (tn && tn.data && tn.data.by === t.id ? tn.data.add || 1 : 0); };
+  B.threatFor = thr;
   function tauntPick(u) {
     const ts = targetsOf(u).filter(t => !t.isObj && !t.down); if (!ts.length) return null;
-    const top = Math.max(...ts.map(t => t.threat ?? 1)); if (!(top > 1)) return null;
+    const top = Math.max(...ts.map(t => thr(u, t))); if (!(top > 1)) return null;
     if (Math.random() < tauntChance(u, top)) { const f = ts[Math.floor(Math.random() * ts.length)]; return f.id; }          // раскусил: любая цель с равным шансом
-    const tops = ts.filter(t => (t.threat ?? 1) === top); return tops[Math.floor(Math.random() * tops.length)].id;
+    const tops = ts.filter(t => thr(u, t) === top); return tops[Math.floor(Math.random() * tops.length)].id;
   }
   B.tauntChance = tauntChance;
   function focusBonus(u, t, pr) {

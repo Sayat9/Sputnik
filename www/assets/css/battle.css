@@ -377,3 +377,7 @@ body.bt-active .dice-fab { display: none; }
 .bt-ess .bt-esschoice { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
 .bt-ess .bt-esschoice .fx-btn { padding: 6px 4px; font-size: 13px; white-space: normal; min-width: 0; }
 .bt-ess .bt-esspick .bt-esschoice { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+/* Портрет монстра во весь экран (03.11): зажать картинку в окне бойца */
+.bt-portrait { position: fixed; inset: 0; z-index: 9600; background: rgb(8 6 4 / .92); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 16px; }
+.bt-portrait img { max-width: 100%; max-height: calc(100% - 40px); object-fit: contain; border-radius: 10px; border: 1px solid var(--fx-gold, #d6a64c); box-shadow: 0 8px 30px #000; }
+.bt-portrait small { color: var(--fx-gold-hi, #f4d48e); font-size: 15px; }

@@ -12,7 +12,7 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
     const seen = new Set(); let falcon = 0, n = 0; for (let i = 0; i < 300; i++) { const e = genEncounterRaw(12, 3, 9, 1 + (i % 12)); if (!e) continue; n++; e.list.forEach(id => seen.add(id)); if (e.falconAlone) falcon++;
       if (!e.falconAlone && (e.list.includes('orc-wolf') || e.list.includes('orc-falcon')) && !e.list.some(id => /orc-(scout|spear|thrower|guard|shaman|executioner)/.test(id))) out.beastAlone = e.list; }
     out.enc = { n, kinds: [...seen].sort(), falcon, zone: (genEncounterRaw(12, 3, 9, 5) || {}).zone };
-    out.outside = genEncounterRaw(3, 20, 9, 5);          // вне лагеря монстров пока нет
+    out.outside = genEncounterRaw(4, 5, 9, 5);          // Пылающие земли: монстров пока нет
     const ch = genEncounterRaw(15, 4, 9, 5); out.chief = ch && ch.list;
     // патрули
     const O = orcState(); out.patrols = O.patrols.length; const pt = O.patrols[0];
@@ -35,7 +35,7 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
   ok('9 орков: монстр, эссенция, способности', o.data, o);
   ok('встречи в лагере: орки, сокол-одиночка иногда, зона боя — лагерь', o.enc.n > 200 && o.enc.kinds.length >= 7 && o.enc.falcon > 10 && o.enc.zone === 'goblin', o.enc);
   ok('волки и соколы без орков не встречаются (кроме сокола-разведчика)', !o.beastAlone, o.beastAlone);
-  ok('вне лагеря встреч пока нет', !o.outside, o.outside);
+  ok('в Пылающих землях встреч пока нет', !o.outside, o.outside);
   ok('шатёр вождя: вождь с охраной', o.chief && o.chief.includes('orc-chief'), o.chief);
   ok('3 патруля; наткнулся — бой (патруль первым)', o.patrols === 3 && o.caught, o);
   ok('патруль рядом → «Засада»: отряд первым, тревога для остальных', o.ambush && o.alarm, o);

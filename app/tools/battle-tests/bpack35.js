@@ -70,6 +70,11 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
       ub.x = 2; ub.y = 4; ub.t.bonus = 1; const act = B.weapActions(ub).find(x => x.id === 'dropweapon'); out.drop = { has: !!act };
       if (act) { await act.run(); out.drop.on = S.drops.some(d => d.hero === b.id && d.dropped && d.x === 2 && d.y === 4); out.drop.dis = ub.disarmed; }
       B.S = null; }
+    { state.party = [mk(50), mk(51)]; const S = B.newBattle({ list: ['nasty-goblin', 'goblin'], zone: 'goblin', floor: 2 }); B.placeMonsters(S); S.phase = 'fight';
+      const [h1, h2] = B.heroes(), [ng, gb] = B.mons(); B.addStatus(gb, 'taunted', { k: 2, when: 'end', data: { by: h1.id, add: 1 } });
+      B.addStatus(h2, 'taunted', { k: 2, when: 'end', data: { by: ng.id, add: 1 } }); const a2 = B.attacksOf(h2)[0];
+      out.thr = { base: threatOf(state.party[0]), btn: !!document.querySelector('[data-hx="threat"]'), vsTaunter: B.threatFor(gb, h1), other: B.threatFor(gb, h2), heroDis: B.attackCtx(h2, gb, a2).dis.includes('насмешка'), heroOk: !B.attackCtx(h2, ng, a2).dis.includes('насмешка'), ess: !!(ESSENCES['goblin-provoker'] && ESSENCES['nasty-goblin']) };
+      B.S = null; }
     return out;
   });
   console.log(JSON.stringify(o));
@@ -84,6 +89,7 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
   ok('эссенция вора: Уворот +3 и Ловкость +2 (мод. +1) → Уворот +4', o.essDodge === 4, o.essDodge);
   ok('неудобный хват: двуручное + щит — −1 Уворот (сверх щита), −1,5 м, −2 к попаданию; посох +1 урона', o.awk.aw && !o.awk.plain && o.awk.dodge === 1 && o.awk.speed === 1.5 && o.awk.hit === 2 && o.awk.staff === 1, o.awk);
   ok('«Бросить оружие»: доп. действием оружие ложится на клетку героя', o.drop.has && o.drop.on && o.drop.dis, o.drop);
+  ok('угроза: база 1 без кнопок; насмешка — +1 угрозы насмешника для цели; раздразнённый герой бьёт других с помехой', o.thr.base === 1 && !o.thr.btn && o.thr.vsTaunter === 2 && o.thr.other === 1 && o.thr.heroDis && o.thr.heroOk && o.thr.ess, o.thr);
   ok('феи: +1 к Увороту', o.fairy === 1, o.fairy);
   ok('пара перчаток: Уворот −1, Защита +3', o.gloves[0] === -1 && o.gloves[1] === 3, o.gloves);
   ok('двуручное оружие пробивает 1 Защиты (10 урона по Защите 3+2 → 6)', o.twoH.ign === 1 && o.twoH.dealt === 10 - (o.twoH.prot - 1), o.twoH);

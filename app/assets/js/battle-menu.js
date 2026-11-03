@@ -169,6 +169,15 @@
       ${sts ? `<h5>Состояния</h5><ul>${sts}</ul>` : ""}${kAtk ? `<h5>Атаки</h5><ul>${atk}</ul>` : ""}${ess ? `<h5>Навыки эссенции</h5><ul>${ess}</ul>` : ""}</div>`;
     const m = showModal(note ? `<div class="bt-insp-wrap">${body}<aside class="bt-fieldnote fx-frame" aria-label="Эффект поля">${note}</aside></div>` : body);
     m.onclick = e => { if (e.target.closest("[data-m]") || !e.target.closest(".bt-dlg, .bt-fieldnote")) hideModal(); };          // клик по свободной части экрана закрывает окно
+    // Портрет монстра (03.11): зажать (или нажать) картинку в окне бойца — во весь экран полный рост; нажатие закрывает.
+    const fimg = m.querySelector(".bt-ihead .bt-cface"), id = u.ref || (u.mon && u.mon.id);
+    if (fimg && !hero && id && typeof ART === "object" && ART.monsterFull) {
+      fimg.style.cursor = "zoom-in"; let t = 0;
+      const open = () => { const ov = document.createElement("div"); ov.className = "bt-portrait"; ov.innerHTML = `<img src="${ART.monsterFull(id)}" alt="${esc(u.name)}"><small>${esc(u.name)}</small>`; ov.onclick = ev => { ev.stopPropagation(); ov.remove(); }; document.body.appendChild(ov); };
+      fimg.addEventListener("pointerdown", () => { clearTimeout(t); t = setTimeout(() => { t = -1; open(); }, 380); });
+      for (const ev of ["pointerup", "pointerleave", "pointercancel"]) fimg.addEventListener(ev, () => { if (t !== -1) clearTimeout(t); });
+      fimg.addEventListener("click", ev => { ev.stopPropagation(); if (t === -1) { t = 0; return; } clearTimeout(t); open(); });
+    }
   };
   /* ===== эффекты клетки: долгое нажатие по полю ===== */
   // Список строк «что здесь»: местность, свет, ловушка, зона, иллюзия, тело, лежащее оружие.

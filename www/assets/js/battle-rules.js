@@ -155,7 +155,7 @@
     for (const id of tgt.pass) { const P = B.P && B.P[id]; if (P && P.dmgTotal) total = P.dmgTotal(tgt, { total, o, src, notes }); }
     total = Math.max(0, total);
     { // Защита (вариант Б, решение автора 02.11): вычитается из физического урона попадания; от попадания остаётся хотя бы 1; крит пробивает половину Защиты (черновик)
-      const pr = Math.max(0, (tgt.prot || 0) + ((o.ctx && o.ctx.protPlus) || 0) - ((o.ctx && o.ctx.protIgnore) || 0));          // двуручное оружие пробивает 1 Защиты
+      const pr = Math.max(0, (tgt.prot || 0) + (tgt.conds || []).reduce((q, c) => q + ((c.data && c.data.prot) || 0), 0) + ((o.ctx && o.ctx.protPlus) || 0) - ((o.ctx && o.ctx.protIgnore) || 0));          // двуручное оружие пробивает 1 Защиты
       if (pr > 0 && phys > 0 && total > 0 && !o.pure) { let cut = Math.min(o.crit ? Math.floor(pr / 2) : pr, phys - 1, total - 1); if (D.protMaxShare) cut = Math.min(cut, Math.floor(phys * D.protMaxShare)); if (cut > 0) { total -= cut; notes.push(`защита −${cut}`); } }
     }
     { const a = o.ctx && o.ctx.atk, pm = a && (a.twin || a.pairArmor) && a.dmgMult;          // парный удар (02.11): сначала Защита, потом ×0,6 — иначе броня съедала урон клинков целиком
@@ -281,7 +281,8 @@
     if (B.inDark(tgt) && !B.seesInDark(att, tgt)) { ac += 2; ctx.acNotes.push("во тьме +2"); }
     ctx.ac = ac;
     hookAll(att, "attackMods", ctx); hookAll(tgt, "defendMods", ctx);
-    for (const c of att.conds || []) { const st = D.status[c.id]; if (st && st.atkDis) ctx.dis.push(st.name); }          // «Визг», «Песок в глаза» — помеха на атаки (03.11)
+    for (const c of att.conds || []) { const st = D.status[c.id]; if (st && st.atkDis) ctx.dis.push(st.name); if (st && c.data && c.data.atkMod) ctx.mods.push({ l: st.name, v: c.data.atkMod }); }          // «Визг», «Песок в глаза» — помеха на атаки (03.11)
+    { const tn = has(att, "taunted"); if (tn && tn.data && tn.data.by && tgt.id !== tn.data.by && att.side === "hero") ctx.dis.push("насмешка"); }          // героя раздразнили: по другим целям — с помехой (угроза, 03.11)
     if (B.S && B.S.dust && B.S.dust.some(d => d.until >= B.S.round && footprint(tgt).some(([x, y]) => d.cells.some(([cx, cy]) => cx === x && cy === y)))) ctx.dis.push("пыльная завеса");
     for (const a of alliesOf(att)) hookAll(a, "attackAura", { ally: a, att, tgt, ctx });          // «Пока король жив»
     const ha = tinfo(att.x, att.y), ht = tinfo(tgt.x, tgt.y);                                              // высота: с возвышенности бьют точнее, и по стоящему на ней тоже (решение автора, черновик)
@@ -507,7 +508,7 @@
   }
   async function provoke(u, nx, ny) {
     for (const e of enemiesOf(u)) {
-      if (!canAct(e) || !e.t.react || e.t.noReact || e.kind === "double" || !canSeeUnit(e, u)) continue;
+      if (!canAct(e) || !e.t.react || e.t.noReact || has(e, "bellnoise") || e.kind === "double" || !canSeeUnit(e, u)) continue;
       if (B.S.pitDark && e.side === "hero" && !e.dv && !B.lightAt(e.x, e.y)) continue;          // решение автора: без света герои не делают атак по возможности          // атаку по возможности делает только тот, кто видит уходящего; двойник — только своей атакой в свой ход
       const r = B.meleeReach(e);
       if (dist(e, u) <= r && B.distAt(e, u, nx, ny) > r && B.meleeReach(e) >= 1 && !hookAny(u, "noProvoke", { e })) {          // distAt: расстояние до u, как если бы он стоял в (nx, ny)

@@ -12,6 +12,56 @@
 
 Новый монстр без картинки: полный рост 1024 × 1536 (иконку лица вырезаю сам). Нужны монстры 3 этажа: Хранитель Тишины, мимик и 9 обитателей Лагеря орков.
 
+### Охотничьи угодья и гоблины под Угрозу (03.11)
+
+### Костяной егерь — `monsters/bone-ranger-full`
+
+> `full-body a skeletal hunter in rotting leather with a bone longbow, arrow nocked, misty hunting grounds, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Шипастая гончая — `monsters/thorn-hound-full`
+
+> `full-body a lean hound covered in thorny bone spikes along its back, snarling, dry grass of hunting grounds, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Сизый гриф — `monsters/grey-vulture-full`
+
+> `full-body a large grey vulture with ragged wings perched on a dead tree, eyeing prey below, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Вожак гончих — `monsters/pack-leader-full`
+
+> `full-body a big scarred hound leader with a torn ear, howling, other hounds in the mist behind, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Каменный лось — `monsters/stone-elk-full`
+
+> `full-body a massive elk with hide like grey stone and granite antlers, standing firm in a misty glade, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Железная лиса — `monsters/iron-fox-full`
+
+> `full-body a sly fox with fur like iron filings glinting, crouched to pounce, metallic dust in the air, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Рогатый страж лощин — `monsters/glen-warden-full`
+
+> `full-body a huge horned forest guardian beast with antlers like gnarled branches, bark and stone hide, ancient glen, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Следопыт-охотник — `monsters/tracker-hunter-full`
+
+> `full-body a weathered human tracker in hooded leathers with a longbow, kneeling by tracks, hunting grounds, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Зоркий ворон — `monsters/keen-raven-full`
+
+> `full-body a huge black raven with piercing eyes on a high branch, sharp feather blades on its wings, overcast sky, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Тихий хищник — `monsters/silent-predator-full`
+
+> `full-body a large sleek panther-like predator with dark mottled fur blending into shadows, glowing eyes, silent stalk in tall grass, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Противный гоблин — `monsters/nasty-goblin-full`
+
+> `full-body a scrawny mocking goblin pulling a face and sticking out its tongue, crooked knife, goblin forest, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Гоблин-провокатор — `monsters/goblin-provoker-full`
+
+> `full-body a cocky goblin in leather armour shouting with mouth wide open, short sword raised, goblin forest camp, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
 ### Монстры Звона и Храма изваяний (3 этаж, 03.11)
 
 ### Звонкий жучок — `monsters/toll-beetle-full`
@@ -78,33 +128,13 @@
 
 > `full-body a huge faceless marble figure with a smooth blank face, holding a giant chisel and mallet, half-carved statues around it, dust in the air, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
 
-### Хранитель Тишины — `monsters/silence-keeper-full`
-
-> `full-body tall hooded spirit in a grey silver-trimmed robe, face hidden in shadow, one finger pressed to where the lips would be, a heavy silver mace in the other hand, ghostly mist at the feet, eerie silent dungeon hall behind, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
-
 ### Мимик — `monsters/mimic-full`
 
 > `full-body treasure chest mimic mid-lunge, a worn wooden chest with a wide toothy maw, a long sticky tongue, glowing amber eyes under the lid, tiny gold coins stuck to its teeth, dark dungeon floor, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
 
-### Ездовой волк — `monsters/orc-wolf-full`
-
-> `full-body huge grey dire wolf with a worn leather saddle and bone-bead harness, scarred muzzle, red war-paint stripes on the flanks, mid-stride on trampled camp mud, orc tents and smoke behind, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
-
 ### Сокол-разведчик — `monsters/orc-falcon-full`
 
 > `full-body large brown war falcon with a leather hood pushed back and a small bone tag on its leg, wings half-spread, sharp golden eyes, perched on a wooden spike of an orc palisade, smoky sky, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
-
-### Орк-разведчик — `monsters/orc-scout-full`
-
-> `full-body lean green-grey orc scout in patched leather armor and a fur hood, short sword and short bow, crouching beside thorny bushes, face smeared with ash for camouflage, misty hunting grounds, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
-
-### Орк-копейщик — `monsters/orc-spear-full`
-
-> `full-body muscular orc spearman with a long iron-tipped spear and a round hide shield, bone pauldrons, braced stance at a palisade gate, war camp behind, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
-
-### Орк-метатель топоров — `monsters/orc-thrower-full`
-
-> `full-body broad-shouldered orc axe thrower with a bandolier of small throwing axes across the chest, one axe raised to throw, fur kilt, camp fires behind, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
 
 ### Вожак стражи — `monsters/orc-guard-full`
 
