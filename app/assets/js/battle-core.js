@@ -460,6 +460,7 @@
     S.bog = (ev.list || []).includes("swamp-fang"); S.lake = (ev.list || []).includes("deep-serpent");
     const g = genTerrain(zone, S.floor, ev.water, S.lake ? "lake" : S.bog, !!ev.webTile); S.cells = g.cells; S.objs = g.objs; S.found = []; S.objHp = {};
     if (ev.place === "Храм изваяний") { let n = 2 + Math.floor(Math.random() * 2); for (let k = 0; k < 40 && n > 0; k++) { const x = Math.floor(Math.random() * B.W), y = 2 + Math.floor(Math.random() * (B.H - 4)); if (S.cells[y] && !S.cells[y][x]) { S.cells[y][x] = "statue"; n--; } } }          // храм: 2–3 изваяния на поле (их оживляет скульптор)
+    if (ev.place === "Зона ловушек") { let n = 2 + Math.floor(Math.random() * 2); for (let k = 0; k < 40 && n > 0; k++) { const x = Math.floor(Math.random() * B.W), y = 2 + Math.floor(Math.random() * (B.H - 4)); if (S.cells[y] && !S.cells[y][x] && !S.objs.some(o => o.x === x && o.y === y)) { S.objs.push({ id: "zt" + k, kind: "trap", x, y, dc: 13, hidden: true, owner: "mon", by: null, dmg: "2к6", dt: "pierce", noticed: [] }); n--; } } }          // Зона ловушек: на поле уже взведено 2–3 ловушки
     if (ev.place === "Пылающие земли") { let n = 3 + Math.floor(Math.random() * 2); for (let k = 0; k < 40 && n > 0; k++) { const x = Math.floor(Math.random() * B.W), y = 2 + Math.floor(Math.random() * (B.H - 4)); if (S.cells[y] && !S.cells[y][x]) { S.cells[y][x] = "fire"; n--; } } }          // пылающие земли: 3–4 очага огня на поле
     if (B.placeEnv && !ev.arena) B.placeEnv(S, ev);
     uidSeq = 1;

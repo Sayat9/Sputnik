@@ -4,7 +4,7 @@ const L = require('./bui_lib.js');
   const { b, p } = await L.launch(400, 860, { touch: true });
   const R = [], ok = (name, cond, extra) => { R.push({ name, ok: !!cond }); if (!cond) console.log('  ✗', name, '—', extra == null ? '' : extra); };
   await L.setup(p, { heroes: ['barb2', 'archer'], tactical: false });
-  await p.evaluate(() => { state.run = null; state.townUnlocked = true; state.party.forEach(c => { c.gold = 2000; }); location.hash = 'town'; rerender(); });
+  await p.evaluate(() => { state.run = null; state.townUnlocked = true; state.party.forEach(c => { c.gold = 2000; c.rank = 8; /* навигатор 2 — с 8 ранга (v109) */ }); location.hash = 'town'; rerender(); });
   await p.waitForTimeout(300);
   await p.click('[data-bld="academy"]'); await p.waitForSelector('.tw-rows');
   let total = 0; for (const k of ['gather', 'monsters', 'medicine', 'nav', 'repair']) { await p.click(`[data-t="atab"][data-k="${k}"]`); total += await p.evaluate(() => document.querySelectorAll('.tw-row').length); }

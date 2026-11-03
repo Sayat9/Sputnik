@@ -9,7 +9,7 @@ const { chromium } = require('playwright');
     const ids = (x, y, n) => { const out = new Set(); for (let i = 0; i < 60; i++) { const e = genEncounterRaw(x, y, run.day, n); if (e) e.list.forEach(id => out.add(id)); } return [...out]; };
     const toll = ids(15, 12, 3), tollEasy = ids(15, 12, 13), temple = ids(13, 26, 3), boss = genEncounterRaw(15, 28, 5, 3);
     f3().noise = 12; const hunt = ids(15, 12, 3).includes('toll-hunter'); f3().noise = 0;
-    const empty = f3HasMon(24, 6), hasToll = f3HasMon(15, 12);
+    const empty = f3HasMon(28, 1), hasToll = f3HasMon(15, 12);
     return { toll, tollEasy, temple, boss: boss && boss.list, hunt, empty, hasToll, ess: ['toll-beetle', 'choir-dead', 'faceless-sculptor'].every(id => ESSENCES[id] && ESSENCES[id].active.name) };
   });
   let n = 0, bad = 0; const ok = (t, c, x) => { n++; if (!c) bad++; console.log(`  ${c ? '✓' : '✗'} ${t}${c ? '' : ' — ' + JSON.stringify(x)}`); };

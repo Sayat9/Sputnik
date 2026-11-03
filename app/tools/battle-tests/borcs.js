@@ -12,7 +12,7 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
     const seen = new Set(); let falcon = 0, n = 0; for (let i = 0; i < 300; i++) { const e = genEncounterRaw(12, 3, 9, 1 + (i % 12)); if (!e) continue; n++; e.list.forEach(id => seen.add(id)); if (e.falconAlone) falcon++;
       if (!e.falconAlone && (e.list.includes('orc-wolf') || e.list.includes('orc-falcon')) && !e.list.some(id => /orc-(scout|spear|thrower|guard|shaman|executioner)/.test(id))) out.beastAlone = e.list; }
     out.enc = { n, kinds: [...seen].sort(), falcon, zone: (genEncounterRaw(12, 3, 9, 5) || {}).zone };
-    out.outside = genEncounterRaw(24, 6, 9, 5);          // Зона ловушек: монстров пока нет
+    out.outside = genEncounterRaw(28, 1, 9, 5);          // Ведьмин лес: монстров пока нет
     const ch = genEncounterRaw(15, 4, 9, 5); out.chief = ch && ch.list;
     // патрули
     const O = orcState(); out.patrols = O.patrols.length; const pt = O.patrols[0];

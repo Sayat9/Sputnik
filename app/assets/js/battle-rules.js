@@ -538,9 +538,9 @@
     S.objs.splice(oi, 1);
     log(`${u.name} попадает в ловушку!`, "bad"); const g = ui(); if (g) { g.banner(`${u.name} попал в ловушку!`); g.refresh(); }
     const sv = await doSave(u, "dex", t.dc, { label: "ловушка" });
-    const dmg = B.parseDice(t.dmg), r = roll(dmg.n, dmg.s), v = sv.ok ? Math.floor(r.total / 2) : r.total;
-    await applyDamage(null, u, [{ v, dt: t.dt || "pierce", label: "Ловушка" }], { src: null });
-    if (!sv.ok && alive(u) && !u.down) addStatus(u, "trapped", { k: 1, data: { dc: t.dc } });
+    const dmg = B.parseDice(t.dmg), by = t.by && S.units.find(x => x.id === t.by), plus = by && hookAny(by, "trapBonus", { trap: t }) ? roll(1, 6).total : 0, r = roll(dmg.n, dmg.s), v = (sv.ok ? Math.floor(r.total / 2) : r.total) + plus;          // «Скрытые механизмы»: +1к6
+    await applyDamage(null, u, [{ v, dt: t.dt || "pierce", label: t.wire ? "Растяжка" : "Ловушка" }], { src: null });
+    if (!sv.ok && alive(u) && !u.down) { if (t.wire) addStatus(u, "prone", { k: Infinity }); else addStatus(u, "trapped", { k: 1, data: { dc: t.dc } }); }          // растяжка сбивает с ног
     return true;
   }
   async function terrainEnter(u) {

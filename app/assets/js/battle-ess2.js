@@ -2062,5 +2062,91 @@
     ai(u) { const n = within(u, 2).length; return n >= 2 ? { score: 12 + n * 4 } : null; },
   };
 
+  /* ===== 3 этаж: Зона ловушек (03.11) ===== */
+  Object.assign(D.essCd, { "trap-crab": 3, "wire-spider": 2, "bolt-golem": 3, "trap-master": 2, "boulder-beetle": 3, "trap-queen": 3 });
+  Object.assign(D.monTune, {
+    "trap-crab": { role: "brute", focus: ["nearest"], fleeHp: 0.25 }, "wire-spider": { role: "skirmish", focus: ["weak", "nearest"], fleeHp: 0.3 },
+    "bolt-golem": { role: "ranged", keep: 3, focus: ["weak", "nearest"], noFlee: true }, "trap-master": { role: "ranged", keep: 3, focus: ["weak", "nearest"], fleeHp: 0.25 },
+    "boulder-beetle": { role: "brute", focus: ["cluster", "nearest"], noFlee: true }, "trap-queen": { role: "brute", focus: ["weak", "nearest"], noFlee: true },
+  });
+  const freeTrapCells = (u, r) => cellsAround(u, r).filter(([x, y]) => B.canStand({ ...u, size: 1, x, y, id: "tmp" }, x, y) && !B.S.objs.some(o => o.x === x && o.y === y) && !B.tinfo(x, y)?.obstacle);
+  const setTrap = (u, x, y, o = {}) => { const tr = { id: "t" + Math.random().toString(36).slice(2, 7), kind: "trap", x, y, dc: o.dc || dcOf(u, "dex"), hidden: true, owner: u.side, by: u.id, dmg: o.dmg || "2к6", dt: "pierce", noticed: [], ...(o.wire ? { wire: true } : {}) };
+    if (u.side === "hero") for (const e of enemiesOf(u)) if (B.passivePerceptionOf(e) >= tr.dc + 2) tr.noticed.push(e.id);
+    B.S.objs.push(tr); return tr; };
+  const myTraps = u => B.S.objs.filter(o => o.kind === "trap" && o.by === u.id);
+  const nearestFoeCell = (u, cells) => { const es = enemiesOf(u); if (!es.length || !cells.length) return null; const near = es.reduce((a, b) => (dist(u, a) < dist(u, b) ? a : b)); return cells.sort((a, b) => distCell(near, a[0], a[1]) - distCell(near, b[0], b[1]))[0]; };
+  /* Капкан-краб (9): «Вросший капкан», «Хват клешнёй» */
+  P["trap-crab"] = {
+    async reactEnter(e, mover, from) {
+      if (e.side === mover.side || e.crabUsed || dist(e, mover) > 1 || (from && B.distAt(e, mover, from[0], from[1]) <= 1)) return; e.crabUsed = true;
+      const sv = await save(mover, "dex", dcOf(e, "str"), "Вросший капкан", ["restrain"], e);
+      if (!sv.ok && alive(mover)) { addStatus(mover, "restrained", { k: 1, when: "end" }); if (mover.t) mover.t.move = 0; mover.halted = true; log(`${e.name}: капкан защёлкнулся на ${mover.name}.`, "skill"); fx(mover, "в капкане", "bad"); }
+    },
+  };
+  A["trap-crab"] = {
+    time: "action", tgt(u) { return specUnit(u, "Хват клешнёй: кого?", within(u, 1), cellsAround(u, 1), "attack"); }, can(u) { return within(u, 1).length ? true : "никого рядом"; },
+    async run(u, pk, ctl) { const a = atkFor(u, "melee"); if (!a || !pk.unit) return false; const r = await B.doAttack(u, pk.unit, a, { onCommit: () => ctl.commit() }); if (r && r.hit && alive(pk.unit)) { addStatus(pk.unit, "restrained", { k: 2, when: "end" }); fx(pk.unit, "схвачен", "bad"); } return !(r && r.cancelled); },
+    ai(u) { const ts = within(u, 1).filter(t => !has(t, "restrained")); return ts.length ? { unit: ts[0], score: 8 } : null; },
+  };
+  /* Проволочный паук (9): «Чуткие нити», «Растяжка» */
+  P["wire-spider"] = { attackMods(u, ctx) { const t = ctx.tgt; if (t && (has(t, "prone") || has(t, "restrained") || has(t, "trapped"))) ctx.dmgPlus = (ctx.dmgPlus || 0) + 2; } };
+  A["wire-spider"] = {
+    time: "bonus", secret: true,
+    tgt(u) { return { type: "cell", prompt: "Растяжка: в какую клетку?", cells: freeTrapCells(u, 2) }; },
+    can(u) { return myTraps(u).length >= 3 ? "уже 3 растяжки" : freeTrapCells(u, 2).length ? true : "нет места"; },
+    async run(u, pk, ctl) { ctl.commit(); const [x, y] = pk.cell; setTrap(u, x, y, { dmg: "1к4", wire: true }); log(u.side === "hero" ? `${u.name} натягивает растяжку.` : `${u.name} возится у камней.`); const g = ui(); if (g) g.refresh(); return true; },
+    ai(u) { if (myTraps(u).length >= 3) return null; const cell = nearestFoeCell(u, freeTrapCells(u, 2)); return cell ? { cell, score: 4 } : null; },
+  };
+  /* Самострел-голем (8): «Станковая стрельба», «Залп»; тело — «Неповоротливый» */
+  P["bolt-golem"] = { turnStart(u) { u.standFrom = [u.x, u.y]; }, attackMods(u, ctx) { if (ctx.atk && ctx.atk.kind === "ranged" && u.standFrom && u.standFrom[0] === u.x && u.standFrom[1] === u.y) ctx.dmgPlus = (ctx.dmgPlus || 0) + 2; } };
+  P["body:bolt-golem"] = { defendMods(t, ctx) { if (ctx.atk && ctx.atk.kind === "melee") ctx.adv.push("неповоротлив вблизи"); } };
+  A["bolt-golem"] = {
+    time: "action", tgt() { return { type: "none" }; }, can(u) { return within(u, 6).length ? true : "нет целей в 6 клетках"; },
+    async run(u, pk, ctl) { const a = atkFor(u, "ranged"); if (!a) return false; ctl.commit(); for (const t of within(u, 6).slice(0, 3)) await B.doAttack(u, t, a, { noRedirect: true }); log(`${u.name}: залп.`, "skill"); return true; },
+    ai(u) { const n = within(u, 6).length; return n >= 2 ? { score: 10 + n * 3 } : null; },
+  };
+  /* Мастер ловушек (7): «Скрытые механизмы», «Взвести ловушку»; монстр в начале боя прячет 3 ловушки */
+  P["trap-master"] = { trapBonus() { return true; } };
+  P["body:trap-master"] = { turnStart(u) { if (u.side !== "mon" || u.fieldSet) return; u.fieldSet = true; const es = enemiesOf(u); for (let k = 0; k < 3; k++) { const cells = []; for (const e of es) for (const c of cellsAround(e, 2)) if (B.canStand({ ...u, size: 1, x: c[0], y: c[1], id: "tmp" }, c[0], c[1]) && !B.S.objs.some(o => o.x === c[0] && o.y === c[1]) && dist({ x: c[0], y: c[1] }, e) >= 1) cells.push(c); if (!cells.length) break; const [x, y] = cells[Math.floor(Math.random() * cells.length)]; setTrap(u, x, y, { dmg: "2к6", dc: dcOf(u, "int") }); } log(`${u.name} что-то прячет в траве.`); } };
+  A["trap-master"] = {
+    time: "bonus", secret: true,
+    tgt(u) { return { type: "cell", prompt: "Взвести ловушку: в какую клетку?", cells: freeTrapCells(u, 2) }; },
+    can(u) { return myTraps(u).length >= 3 + (u.side === "mon" ? 3 : 0) ? "уже 3 ловушки" : freeTrapCells(u, 2).length ? true : "нет места"; },
+    async run(u, pk, ctl) { ctl.commit(); const [x, y] = pk.cell; setTrap(u, x, y, { dmg: "2к6", dc: dcOf(u, "int") }); log(u.side === "hero" ? `${u.name} взводит ловушку.` : `${u.name} возится у земли.`); const g = ui(); if (g) g.refresh(); return true; },
+    ai(u) { if (myTraps(u).length >= 6) return null; const cell = nearestFoeCell(u, freeTrapCells(u, 2)); return cell ? { cell, score: 3 } : null; },
+  };
+  /* Валун-жук (7): «Инерция», «Кувырок-таран» */
+  P["boulder-beetle"] = { turnStart(u) { u.rollFrom = [u.x, u.y]; }, attackMods(u, ctx) { if (!ctx.atk || ctx.atk.kind !== "melee" || !u.rollFrom) return; const n = Math.min(4, Math.max(Math.abs(u.x - u.rollFrom[0]), Math.abs(u.y - u.rollFrom[1]))); if (n) ctx.dmgPlus = (ctx.dmgPlus || 0) + n; } };
+  A["boulder-beetle"] = {
+    time: "action", tgt(u) { return specUnit(u, "Кувырок-таран: на кого?", within(u, 5), cellsAround(u, 5), "attack"); }, can(u) { return within(u, 5).length ? true : "нет цели в 5 клетках"; },
+    async run(u, pk, ctl) {
+      ctl.commit(); const t = pk.unit; if (!t) return true; const line = B.lineCells(u, t).slice(0, 4), hit = new Set(); let last = null;
+      for (const [x, y] of line) { const foes = enemiesOf(u).filter(e => !hit.has(e.id) && footprint(e).some(([a, b]) => a === x && b === y)); for (const e of foes) { hit.add(e.id); const sv = await saveDmg(u, e, "str", dcOf(u, "con"), [2, 6], "bludgeon", "Кувырок-таран"); if (!sv.ok && alive(e) && !e.down) addStatus(e, "prone", { k: Infinity }); } if (!foes.length && B.canStand(u, x, y)) last = [x, y]; else if (foes.length) break; }
+      if (last) { u.x = last[0]; u.y = last[1]; } log(`${u.name} катится тараном.`, "skill"); const g = ui(); if (g) g.refresh(); return true;
+    },
+    ai(u) { const ts = within(u, 5).filter(t => dist(u, t) >= 2); return ts.length ? { unit: ts[0], score: 14 } : null; },
+  };
+  /* Королева ловушек (6): «Знаток механизмов», «Ловчий механизм»; тело — «Сменные механизмы» и 4 ловушки на старте */
+  P["trap-queen"] = { trapImmune() { return true; } };
+  P["body:trap-queen"] = {
+    turnStart(u) {
+      if (u.side === "mon" && !u.fieldSet) { u.fieldSet = true; const es = enemiesOf(u); for (let k = 0; k < 4; k++) { const e = es[k % Math.max(1, es.length)]; if (!e) break; const cells = cellsAround(e, 2).filter(([x, y]) => B.canStand({ ...u, size: 1, x, y, id: "tmp" }, x, y) && !B.S.objs.some(o => o.x === x && o.y === y)); if (!cells.length) continue; const [x, y] = cells[Math.floor(Math.random() * cells.length)]; setTrap(u, x, y, { dmg: "2к6", dc: dcOf(u, "int") }); } }
+      removeStatus(u, "queenshell"); removeStatus(u, "queenlegs");
+      if (B.S.round % 2) { addStatus(u, "queenshell", { k: 1, when: "start", data: { prot: 2 } }); fx(u, "панцирь", ""); } else { addStatus(u, "queenlegs", { k: 1, when: "start", data: { atkMod: 2 } }); fx(u, "паучьи лапы", ""); }
+    },
+  };
+  A["trap-queen"] = {
+    time: "action", tgt() { return { type: "none" }; },
+    can(u) { return B.S.objs.some(o => o.kind === "trap") || u.side === "hero" ? true : "ловушек нет"; },
+    async run(u, pk, ctl) {
+      ctl.commit(); const traps = B.S.objs.filter(o => o.kind === "trap"), hit = new Set();
+      for (const tr of traps) for (const e of enemiesOf(u)) if (!hit.has(e.id) && footprint(e).some(([x, y]) => Math.max(Math.abs(x - tr.x), Math.abs(y - tr.y)) <= 1)) { hit.add(e.id); await saveDmg(u, e, "dex", dcOf(u, "int"), [2, 6], "pierce", "Ловчий механизм"); }
+      B.S.objs = B.S.objs.filter(o => !(o.kind === "trap" && traps.includes(o) && o.owner !== u.side));
+      for (let k = 0; k < 2; k++) { const cell = nearestFoeCell(u, freeTrapCells(u, 3)); if (cell) setTrap(u, cell[0], cell[1], { dmg: "2к6", dc: dcOf(u, "int") }); }
+      log(`${u.name}: щелчок — все механизмы срабатывают разом.`, "skill"); const g = ui(); if (g) g.refresh(); return true;
+    },
+    ai(u) { const traps = B.S.objs.filter(o => o.kind === "trap"); const n = enemiesOf(u).filter(e => traps.some(tr => Math.max(Math.abs(e.x - tr.x), Math.abs(e.y - tr.y)) <= 1)).length; return n ? { score: 10 + n * 6 } : null; },
+  };
+
   B.fillActiveTimes();
 })();

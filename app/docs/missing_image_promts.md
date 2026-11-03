@@ -16,6 +16,32 @@
 
 Новый монстр без картинки: полный рост 1024 × 1536 (иконку лица вырезаю сам). Нужны монстры 3 этажа: Хранитель Тишины, мимик и 9 обитателей Лагеря орков.
 
+### Зона ловушек (3 этаж, 03.11)
+
+### Капкан-краб — `monsters/trap-crab-full`
+
+> `full-body a squat crab with a rusty iron shell shaped like an open bear trap, serrated claws, half buried in gravel, a ruined maze of rusty traps, spikes and tripwires among grey rocks, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Проволочный паук — `monsters/wire-spider-full`
+
+> `full-body a thin long-legged spider made of tarnished wire and bone, stretching glinting steel threads between stones, a ruined maze of rusty traps, spikes and tripwires among grey rocks, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Самострел-голем — `monsters/bolt-golem-full`
+
+> `full-body a squat iron construct turret on short stubby legs with a huge loaded crossbow mounted on its chest, quivers of bolts on its back, a ruined maze of rusty traps, spikes and tripwires among grey rocks, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Мастер ловушек — `monsters/trap-master-full`
+
+> `full-body a lean hooded trapper with goggles, belts full of springs, gears and caltrops, a small crossbow in hand, crouching near a hidden trap, a ruined maze of rusty traps, spikes and tripwires among grey rocks, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Валун-жук — `monsters/boulder-beetle-full`
+
+> `full-body a huge beetle with a round stone carapace like a boulder, curled half into a rolling ball, a heavy horn in front, a ruined maze of rusty traps, spikes and tripwires among grey rocks, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Королева ловушек — `monsters/trap-queen-full`
+
+> `full-body a tall mechanical doll queen resembling a woman, porcelain face, brass body, mechanical spider legs and blade arms instead of limbs, gears visible, surrounded by traps, a ruined maze of rusty traps, spikes and tripwires among grey rocks, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
 ### Пылающие земли (3 этаж, 03.11)
 
 ### Угольный жук — `monsters/coal-beetle-full`
@@ -170,14 +196,6 @@
 
 Обычное — потёртое, на простом пьедестале; стальное — новое и блестящее, на резной подставке в арсенале (образец выше). Файлы `assets/items/<id>.webp`, стальные — `assets/items/steel-<id>.webp`. Остальное оружие и броня уже нарисованы.
 
-### Стальные перчатки — `items/steel-gloves`
-
-> `a pair of new shiny steel-plated fighting gauntlets with articulated knuckle plates and studded leather cuffs, lying crossed, resting against a decorated wooden display stand, on a small stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit arsenal alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
-
-### Стальной посох — `items/steel-staff`
-
-> `a new shiny quarterstaff of dark hardwood with polished steel caps and steel bands along the shaft, standing upright, resting against a decorated wooden display stand, on a small stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit arsenal alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
-
 ## Артефактное оружие и броня
 
 Файлы `assets/items/art-<id>.webp` (приложение берёт их само, как только путь `items/art-<id>` добавлен в `RASTER`; пока картинки нет — показывается картинка обычного оружия). Фон — резной пьедестал с фиолетовым камнем в сокровищнице.
@@ -217,18 +235,6 @@
 ### Лук «Рикошет» — `items/art-ricochet-bow`
 
 > `a short recurve bow with bright metal rings on the limbs and an arrow caught bouncing off a spark, on an ornate carved stone pedestal with a glowing violet magic stone set into its front, inside a softly lit treasure vault alcove with faint arcane runes on the walls, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
-
-### Теневой клык — `items/art-shadow-fang`
-
-> `a curved black dagger shaped like a fang, its edge fading into shadow wisps, on an ornate carved stone pedestal with a glowing violet magic stone set into its front, inside a softly lit treasure vault alcove with faint arcane runes on the walls, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
-
-### Секира «Жатва» — `items/art-reaper-axe`
-
-> `a broad crescent-bladed greataxe with a long dark haft and faint red harvest marks etched on the blade, on an ornate carved stone pedestal with a glowing violet magic stone set into its front, inside a softly lit treasure vault alcove with faint arcane runes on the walls, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
-
-### Рапира «Шквал» — `items/art-flurry-rapier`
-
-> `a slender rapier with a swept silver hilt and a blade blurred into several afterimages as if moving very fast, thin wind streaks, on an ornate carved stone pedestal with a glowing violet magic stone set into its front, inside a softly lit treasure vault alcove with faint arcane runes on the walls, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square 1:1, no text`
 
 ### Молот «Разлом» — `items/art-rift-hammer`
 
