@@ -18,8 +18,12 @@ const CASES = [          // [метка, этаж, уровень героев, 
   ['дух бури', 2, LV7, ['storm-spirit'], ''],
   ['палач+2 орка', 3, LV7, ['orc-executioner', 'orc-spear', 'orc-thrower'], 'orc'],
   ['шаманка+2 орка', 3, LV7, ['orc-shaman', 'orc-spear', 'orc-scout'], 'orc'],
+  ['вожак+2 орка', 3, LV7, ['orc-guard', 'orc-spear', 'orc-thrower'], 'orc'],
+  ['вожак+3 орка+волк', 3, LV7, ['orc-guard', 'orc-spear', 'orc-thrower', 'orc-scout', 'orc-wolf'], 'orc'],
+  ['4 орка+волк+сокол', 3, LV7, ['orc-spear', 'orc-thrower', 'orc-scout', 'orc-spear', 'orc-wolf', 'orc-falcon'], 'orc'],
   ['вождь+волк (6)', 3, LV6, ['orc-chief', 'orc-wolf'], 'orc'],
   ['мимик (6)', 3, LV6, ['mimic'], ''],
+  ['хранитель тишины (6)', 3, LV6, ['silence-keeper'], ''],
 ].filter(c => !ONLY || c[0].includes(ONLY));
 const BUILDS = {
   // сборка: раса, статы, руки, тело
