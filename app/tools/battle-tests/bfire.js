@@ -7,7 +7,7 @@ const { chromium } = require('playwright');
   const r = await p.evaluate(() => {
     state.party = [Object.assign(clone(state.example), { id: 'p0', example: false })]; newRun(); const run = state.run; run.floor = 3; run.day = 5;
     const ids = (x, y, n) => { const out = new Set(); for (let i = 0; i < 80; i++) { const e = genEncounterRaw(x, y, run.day, n); if (e) e.list.forEach(id => out.add(id)); } return [...out]; };
-    const trap = ids(24, 6, 3), trapEasy = ids(24, 6, 13), queen = genEncounterRaw(25, 7, 5, 3);
+    const trap = ids(22, 7, 3), trapEasy = ids(22, 7, 13), queen = genEncounterRaw(25, 7, 5, 3);
     run.pos = { x: 25, y: 7 }; const b1 = f3Buttons().map(b => b.id); f3().queenDead = true; const b2 = f3Buttons().map(b => b.id); f3Do('f3trapchest'); const chest = dgUi.res && dgUi.res.title; const b3 = f3Buttons().map(b => b.id); dgUi.res = null; f3().queenDead = false;
     const fire = ids(3, 3, 3), easy = ids(3, 3, 13), boss = genEncounterRaw(5, 6, 5, 3);
     const c = state.party[0]; c.level = 3; c.essences = ['keen-raven', 'silent-predator', 'toll-hunter']; c.mp = 30;

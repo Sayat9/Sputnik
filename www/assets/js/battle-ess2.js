@@ -2148,5 +2148,118 @@
     ai(u) { const traps = B.S.objs.filter(o => o.kind === "trap"); const n = enemiesOf(u).filter(e => traps.some(tr => Math.max(Math.abs(e.x - tr.x), Math.abs(e.y - tr.y)) <= 1)).length; return n ? { score: 10 + n * 6 } : null; },
   };
 
+  /* ===== 3 этаж: Ведьмин лес (04.11) ===== */
+  Object.assign(D.essCd, { mourner: 3, changeling: 2, "lost-trail": 3, "lost-wanderer": 3, scarecrow: 4, "witch-owl": 3, "failed-specimen": 3, "maid-shade": 3, "witch-cat": 3, "fog-lantern": 3 });
+  Object.assign(D.monTune, {
+    mourner: { role: "skirmish", focus: ["weak", "nearest"], noFlee: true }, changeling: { role: "swarm", circle: true, focus: ["nearest"], noFlee: true },
+    "lost-trail": { role: "skirmish", focus: ["weak", "nearest"], fleeHp: 0.3 }, "lost-wanderer": { role: "brute", focus: ["attacker", "nearest"], noFlee: true },
+    scarecrow: { role: "brute", focus: ["cluster", "nearest"], noFlee: true }, "witch-owl": { role: "skirmish", focus: ["weak"], fleeHp: 0.3 },
+    "failed-specimen": { role: "brute", focus: ["nearest"], noFlee: true }, "maid-shade": { role: "skirmish", focus: ["weak", "nearest"], noFlee: true },
+    "witch-cat": { role: "skirmish", focus: ["weak"], fleeHp: 0.25 }, "fog-lantern": { role: "brute", focus: ["weak", "nearest"], noFlee: true },
+  });
+  const freeCellsIn = (x0, y0, r, u) => { const out = []; for (let y = y0 - r; y <= y0 + r; y++) for (let x = x0 - r; x <= x0 + r; x++) if (x >= 0 && y >= 0 && x < B.W && y < B.H && B.canStand(u, x, y)) out.push([x, y]); return out; };
+  const jumpTo = (u, cells) => { if (!cells.length) return false; const [x, y] = cells[Math.floor(Math.random() * cells.length)]; u.x = x; u.y = y; return true; };
+  /* Плакальщица (9): «Привычка к скорби», «Плач по живым» */
+  P.mourner = { saveMods(u, ctx) { if ((ctx.tags || []).includes("fear")) ctx.adv.push("привычка к скорби"); } };
+  A.mourner = {
+    time: "action", tgt() { return { type: "none" }; }, can(u) { return within(u, 2).length ? true : "никого в 2 клетках"; },
+    async run(u, pk, ctl) { ctl.commit(); for (const t of within(u, 2)) { const sv = await save(t, "wis", dcOf(u, "wis"), "Плач по живым", ["fear"], u); if (!sv.ok && alive(t)) addStatus(t, "mourned", { k: 1, when: "end" }); } log(`${u.name} воет.`, "skill"); return true; },
+    ai(u) { const n = within(u, 2).length; return n ? { score: 6 + n * 3 } : null; },
+  };
+  /* Подкидыш (9): «Едкая кровь», «Лопнуть пузырь»; тело — лопается при гибели */
+  P.changeling = { async onDamaged(u, { src, o }) { if (!src || !o || !o.melee || u.acidRound === B.S.round || !alive(src)) return; u.acidRound = B.S.round; await B.applyDamage(u, src, [{ v: roll(1, 4).total, dt: "acid", label: "Едкая кровь" }], { src: u }); } };
+  P["body:changeling"] = { onDeath(u) { for (const e of enemiesOf(u).filter(e => alive(e) && dist(u, e) <= 1)) B.applyDamage(u, e, [{ v: roll(1, 4).total, dt: "acid", label: "Слизь подкидыша" }], { src: u }); log(`${u.name} лопается едкой слизью.`); } };
+  A.changeling = {
+    time: "bonus", tgt() { return { type: "none" }; }, can(u) { return within(u, 1).length ? true : "никого рядом"; },
+    async run(u, pk, ctl) { ctl.commit(); for (const t of within(u, 1)) await saveDmg(u, t, "dex", dcOf(u, "con"), [1, 6], "acid", "Лопнуть пузырь"); return true; },
+    ai(u) { const n = within(u, 1).length; return n ? { score: 4 + n * 2 } : null; },
+  };
+  /* Потерявшийся след (8): «Знаток троп» (вне боя), «Ложная тропа» */
+  A["lost-trail"] = {
+    time: "bonus", tgt(u) { return specUnit(u, "Ложная тропа: кого увести?", within(u, 4), cellsAround(u, 4), "attack"); }, can(u) { return within(u, 4).length ? true : "нет цели в 4 клетках"; },
+    async run(u, pk, ctl) { ctl.commit(); const t = pk.unit; if (!t) return true; const sv = await save(t, "wis", dcOf(u, "wis"), "Ложная тропа", ["charm"], u);
+      if (!sv.ok && alive(t) && B.push) { const [dx, dy] = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, -1], [1, -1], [-1, 1]][Math.floor(Math.random() * 8)]; await B.push(t, t.x - dx, t.y - dy, 2); log(`${t.name} уходит не туда.`); }
+      const g = ui(); if (g) g.refresh(); return true; },
+    ai(u) { const ts = within(u, 4); return ts.length ? { unit: ts[0], score: 5 } : null; },
+  };
+  /* Заблудший путник (8): «Чужая память», «Тень удара» */
+  P["lost-wanderer"] = {
+    onDamaged(u, { src, o }) { if (!src || src === u) return; u.grudge = src.id; if (o && o.ctx && o.ctx.atk) u.lastHit = { src: src.id, atk: o.ctx.atk }; },
+    attackMods(u, ctx) { if (ctx.tgt && ctx.tgt.id === u.grudge) { ctx.mods.push({ l: "Чужая память", v: 2 }); ctx.dmgPlus = (ctx.dmgPlus || 0) + 2; u.grudge = null; } },
+  };
+  A["lost-wanderer"] = {
+    time: "action", tgt() { return { type: "none" }; },
+    can(u) { const h = u.lastHit, s = h && B.S.units.find(x => x.id === h.src); return s && alive(s) ? true : "по тебе ещё не били"; },
+    async run(u, pk, ctl) { const h = u.lastHit, s = h && B.S.units.find(x => x.id === h.src); if (!s) return false; ctl.commit(); log(`${u.name} возвращает удар ${s.name}.`, "skill"); await B.doAttack(u, s, { ...h.atk, n: "Тень удара" }, { noRedirect: true }); return true; },
+    ai(u) { const h = u.lastHit, s = h && B.S.units.find(x => x.id === h.src); return s && alive(s) && (h.atk.kind !== "melee" || dist(u, s) <= 1) ? { score: 12 } : null; },
+  };
+  /* Соломенное пугало (8): «Набито соломой», «Ужас полей» */
+  P.scarecrow = { beforeZero(u, { o }) { if (u.strawUsed || (o && o.dt === "fire")) return false; u.strawUsed = true; log(`${u.name} поднимается: солома держит его.`, "skill"); fx(u, "встаёт", ""); return Math.max(1, Math.floor(u.maxHp / 2)); }, vulnerable(u, { dt }) { return dt === "fire"; } };
+  A.scarecrow = {
+    time: "action", tgt() { return { type: "none" }; }, can(u) { return within(u, 2).length ? true : "никого в 2 клетках"; },
+    async run(u, pk, ctl) { ctl.commit(); for (const t of within(u, 2)) { const sv = await save(t, "wis", dcOf(u, "wis"), "Ужас полей", ["fear"], u); if (!sv.ok && alive(t)) addStatus(t, "frightened", { k: 1, when: "end", data: { by: u.id } }); } log(`${u.name} нагоняет ужас.`, "skill"); return true; },
+    ai(u) { const n = within(u, 2).length; return n >= 2 ? { score: 8 + n * 3 } : null; },
+  };
+  /* Ведьмина сова (8): «Ночной дозор» (вне боя), «Метка совы» */
+  A["witch-owl"] = {
+    time: "bonus", tgt(u) { return specUnit(u, "Метка совы: кого?", within(u, 6), cellsAround(u, 6), "attack"); }, can(u) { return within(u, 6).length ? true : "нет цели в 6 клетках"; },
+    async run(u, pk, ctl) { ctl.commit(); if (pk.unit) { addStatus(pk.unit, "owlmark", { k: 1, when: "end" }); fx(pk.unit, "метка", "bad"); log(`${u.name} метит ${pk.unit.name}.`, "skill"); } return true; },
+    ai(u) { const ts = within(u, 6).filter(t => !has(t, "owlmark")); return ts.length ? { unit: ts.sort((a, b) => a.hp - b.hp)[0], score: 7 } : null; },
+  };
+  /* Неудачный образец (8): «Нестабильная плоть», «Выплеск» */
+  P["failed-specimen"] = {
+    turnStart(u) { removeStatus(u, "mutarmor"); removeStatus(u, "packhowl"); u.mutDmg = false; u.mutAcid = false; const k = Math.floor(Math.random() * 4);
+      if (k === 0) addStatus(u, "mutarmor", { k: 1, when: "start", data: { prot: 2 } }); else if (k === 1) addStatus(u, "packhowl", { k: 1, when: "start" }); else if (k === 2) u.mutDmg = true; else u.mutAcid = true;
+      fx(u, ["наросты", "длинные ноги", "когти", "кислотная кожа"][k], ""); },
+    attackMods(u, ctx) { if (u.mutDmg && ctx.atk && ctx.atk.kind === "melee") ctx.extra.push({ n: 1, s: 4, b: 0, dt: ctx.atk.dt || "slash", label: "Мутация" }); },
+    resist(u, { dt }) { return dt === "acid" && u.mutAcid; },
+  };
+  A["failed-specimen"] = {
+    time: "action", tgt(u) { return specUnit(u, "Выплеск: в сторону кого?", within(u, 3), cellsAround(u, 3), "attack"); }, can(u) { return within(u, 3).length ? true : "нет цели в 3 клетках"; },
+    async run(u, pk, ctl) { ctl.commit(); const t = pk.unit; if (!t) return true; const cells = B.lineCells(u, t).slice(0, 3).concat([[t.x, t.y]]), hit = new Set();
+      for (const [x, y] of cells) for (const e of enemiesOf(u)) if (!hit.has(e.id) && footprint(e).some(([a, b]) => a === x && b === y)) { hit.add(e.id); await saveDmg(u, e, "dex", dcOf(u, "con"), [2, 6], "acid", "Выплеск"); }
+      log(`${u.name} выплёскивает кислоту.`, "skill"); return true; },
+    ai(u) { const ts = within(u, 3); return ts.length ? { unit: ts[0], score: 11 } : null; },
+  };
+  /* Тень служанки (7): «Сквозь стены», «Касание без тепла» */
+  P["maid-shade"] = { passThrough: true };
+  A["maid-shade"] = {
+    time: "action", tgt(u) { return specUnit(u, "Касание без тепла: кого?", within(u, 1), cellsAround(u, 1), "attack"); }, can(u) { return within(u, 1).length ? true : "никого рядом"; },
+    async run(u, pk, ctl) { const a = atkFor(u, "melee"), t = pk.unit; if (!a || !t) return false; const r = await B.doAttack(u, t, a, { onCommit: () => ctl.commit() }); if (r && r.hit && alive(t) && !has(t, "chilled")) { addStatus(t, "chilled", { k: Infinity }); fx(t, "без тепла", "bad"); } return !(r && r.cancelled); },
+    ai(u) { const ts = within(u, 1).filter(t => !has(t, "chilled")); return ts.length ? { unit: ts[0], score: 12 } : null; },
+  };
+  /* Ведьмин кот (7): «Девять жизней», «Тень за спиной»; тело — фамильяр (+2 к попаданию союзникам), невидим до первого удара */
+  P["witch-cat"] = {
+    async reactHit(u, ctx) { if ((u.lives ?? 2) <= 0 || (ctx.res && ctx.res.crit)) return false; u.lives = (u.lives ?? 2) - 1; const src = ctx.att || ctx.src;
+      const cells = cellsAround(u, 1).filter(([x, y]) => B.canStand(u, x, y)).sort((a, b) => (src ? distCell(src, b[0], b[1]) - distCell(src, a[0], a[1]) : 0)); if (cells[0]) { u.x = cells[0][0]; u.y = cells[0][1]; }
+      log(`${u.name} отскакивает — удар мимо (осталось уходов: ${u.lives}).`, "skill"); fx(u, "увернулся", "good"); const g = ui(); if (g) g.refresh(); return true; },
+    attackMods(u, ctx) { if (ctx.tgt && u.pounceOn === ctx.tgt.id) { ctx.extra.push({ n: 1, s: 6, b: 0, dt: (ctx.atk && ctx.atk.dt) || "slash", label: "Тень за спиной" }); u.pounceOn = null; } },
+  };
+  P["body:witch-cat"] = {
+    turnStart(u) { if (u.side === "mon" && !u.catHid) { u.catHid = true; addStatus(u, "hidden", { k: Infinity, data: { invis: true } }); } },
+    attackMods(u) { removeStatus(u, "hidden"); },
+    attackAura(a, { att, ctx }) { if (att && att !== a && att.side === a.side && a.side === "mon" && ctx && ctx.mods) ctx.mods.push({ l: "Фамильяр ведьмы", v: 2 }); },
+  };
+  A["witch-cat"] = {
+    time: "bonus", tgt(u) { return specUnit(u, "Тень за спиной: к кому?", within(u, 4), cellsAround(u, 4), "attack"); }, can(u) { return within(u, 4).length ? true : "нет цели в 4 клетках"; },
+    async run(u, pk, ctl) { ctl.commit(); const t = pk.unit; if (!t) return true; const cells = cellsAround(t, 1).filter(([x, y]) => B.canStand(u, x, y)).sort((a, b) => distCell(u, b[0], b[1]) - distCell(u, a[0], a[1]));
+      if (cells[0]) { u.x = cells[0][0]; u.y = cells[0][1]; } u.pounceOn = t.id; log(`${u.name} оказывается за спиной ${t.name}.`, "skill"); const g = ui(); if (g) g.refresh(); return true; },
+    ai(u) { const ts = within(u, 4).filter(t => dist(u, t) > 1); return ts.length ? { unit: ts.sort((a, b) => a.hp - b.hp)[0], score: 6 } : null; },
+  };
+  /* Мимик (6): «Бездонная пасть» (рюкзак +5, вне боя), «Клад мимика» (вне боя, один раз); тело — «Липкая шкура»: ударивший в ближнем бою прилипает */
+  P.mimic = {};
+  P["body:mimic"] = { async onDamaged(u, { src, o }) { if (!src || src.side === u.side || !o || !o.melee || !alive(src) || has(src, "restrained")) return; const sv = await save(src, "str", dcOf(u, "str"), "Липкая шкура", ["restrain"], u); if (!sv.ok && alive(src)) { addStatus(src, "restrained", { k: 1, when: "end" }); fx(src, "прилип", "bad"); log(`${src.name} прилипает к мимику.`); } } };
+  /* Фонарщик тумана (6): «Фонарь проводника» (обзор, факел не нужен), «Шаг в туман»; тело — переносит себя и героев */
+  A["fog-lantern"] = {
+    time: "action", tgt(u) { return specUnit(u, "Шаг в туман: кого перенести?", within(u, 3), cellsAround(u, 3), "attack"); }, can(u) { return within(u, 3).length ? true : "нет цели в 3 клетках"; },
+    async run(u, pk, ctl) { ctl.commit(); const t = pk.unit; if (!t) return true; if (jumpTo(t, freeCellsIn(t.x, t.y, 3, t))) { if (t.t) t.t.react = 0; log(`${t.name} проваливается в туман.`, "skill"); fx(t, "в тумане", "bad"); } const g = ui(); if (g) g.refresh(); return true; },
+    ai(u) { const ts = within(u, 3); return ts.length ? { unit: ts[0], score: 5 } : null; },
+  };
+  P["body:fog-lantern"] = {
+    turnStart(u) { if (u.side !== "mon") return; jumpTo(u, freeCellsIn(u.x, u.y, 4, u)); const hs = enemiesOf(u).filter(e => alive(e) && !e.down).sort(() => Math.random() - 0.5).slice(0, 1 + Math.floor(Math.random() * 2));
+      for (const h of hs) if (jumpTo(h, freeCellsIn(h.x, h.y, 4, h))) fx(h, "туман переставил", "bad");
+      log(`${u.name} шагает в туман: поле сместилось.`, "skill"); const g = ui(); if (g) g.refresh(); },
+  };
+
   B.fillActiveTimes();
 })();

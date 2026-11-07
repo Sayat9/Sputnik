@@ -86,6 +86,7 @@
   function kill(u, by) {
     const S = B.S; if (!u.alive) return;
     u.alive = false; setHp(u, 0);
+    try { hookAll(u, "onDeath", { by }); } catch (e) {}          // подкидыш лопается слизью и т. п.
     if (u.side === "mon" && B.regKill(u, by)) log(`${u.name} убит.`, "kill");          // вражеские призванные (крысы, вороны) и выскочивший мимик тоже дают обычные награды
     else if (u.summon || u.side === "mon") log(`${u.name} ${u.kind === "double" ? "рассеивается" : "гибнет"}.`, "kill");
     else { u.dead = true; u.down = true; if (u.hero) u.hero.dead = true; log(`${u.name} погибает.`, "bad"); }
@@ -96,7 +97,7 @@
   }
   async function dropToZero(u, left, o) {
     // «Упрямая плоть» и подобные пассивки — шанс остаться на 1 ОЗ.
-    for (const id of u.pass) { const P = B.P && B.P[id]; if (P && P.beforeZero) { const r = await P.beforeZero(u, { left, o }); if (r) { setHp(u, 1); return; } } }
+    for (const id of u.pass) { const P = B.P && B.P[id]; if (P && P.beforeZero) { const r = await P.beforeZero(u, { left, o }); if (r) { setHp(u, typeof r === "number" ? r : 1); return; } } }          // число — сколько ОЗ оставить (пугало: половина)
     if (u.side === "mon" || u.summon) { kill(u, o.src); return; }
     if (left >= u.maxHp) { kill(u, o.src); return; }                      // мгновенная смерть
     u.down = true; setHp(u, 0); u.deathSaves = { ok: 0, fail: 0 };
@@ -281,6 +282,8 @@
     if (B.inDark(tgt) && !B.seesInDark(att, tgt)) { ac += 2; ctx.acNotes.push("во тьме +2"); }
     ctx.ac = ac;
     hookAll(att, "attackMods", ctx); hookAll(tgt, "defendMods", ctx);
+    if (has(tgt, "owlmark")) ctx.adv.push("метка совы");
+    if (has(att, "chilled")) ctx.dmgPlus = (ctx.dmgPlus || 0) - 2;          // «Касание без тепла»
     for (const c of att.conds || []) { const st = D.status[c.id]; if (st && st.atkDis) ctx.dis.push(st.name); if (st && c.data && c.data.atkMod) ctx.mods.push({ l: st.name, v: c.data.atkMod }); }          // «Визг», «Песок в глаза» — помеха на атаки (03.11)
     { const tn = has(att, "taunted"); if (tn && tn.data && tn.data.by && tgt.id !== tn.data.by && att.side === "hero") ctx.dis.push("насмешка"); }          // героя раздразнили: по другим целям — с помехой (угроза, 03.11)
     if (B.S && B.S.dust && B.S.dust.some(d => d.until >= B.S.round && footprint(tgt).some(([x, y]) => d.cells.some(([cx, cy]) => cx === x && cy === y)))) ctx.dis.push("пыльная завеса");
@@ -427,6 +430,7 @@
     if (ar && u.hero && isMental(abil)) { const k = tollKey(o); if (!ar.key) ar.key = k; if (ar.key === k) adv.push("Серебряный колокольчик (взведён)"); else state.run.tollArmed = null; }
     const ctx = { u, abil, dc, o, mods, adv, dis, tags: o.tags || [] };
     hookAll(u, "saveMods", ctx);
+    if (abil === "wis" && has(u, "mourned")) dis.push("плач по живым");
     for (const a of alliesOf(u)) hookAll(a, "saveAura", { ally: a, u, abil, ctx });                // «Под защитой духов», «Голос старейшины»
     if (abil === "dex" && o.from && B.wallCover) { const w = B.wallCover(o.from, u); if (w) mods.push({ l: "Живая стена", v: 2 }); }
     return ctx;

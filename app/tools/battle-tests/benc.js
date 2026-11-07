@@ -79,7 +79,7 @@ const L = require('./bui_lib.js');
   const roll = async (pick, o = {}) => {
     await p.evaluate(({ pick, o }) => {
       dgUi.enc = null; dgUi.res = null; dgUi.phase = 'menu'; state.run.pending = null; state.run.queue = []; state.run.floor = o.floor || 1;
-      location.hash = 'labyrinth'; const r = state.run; r.cleared = {}; r.pos = o.floor === 3 ? { x: 28, y: 1 } : { x: 3, y: 3 };          // 3 этаж: Ведьмин лес (монстров нет)
+      location.hash = 'labyrinth'; const r = state.run; r.cleared = {}; r.pos = o.floor === 3 ? { x: 14, y: 16 } : { x: 3, y: 3 };          // 3 этаж: Сердце этажа (монстров нет)
       r.pending = { cause: 'move', monsters: false, dark: false, blood: false, x: r.pos.x, y: r.pos.y, pick: pick || null };
       rerender();
     }, { pick, o });
@@ -270,7 +270,7 @@ const L = require('./bui_lib.js');
   });
   ok('еда: минимум 3 на путника', CR.ration >= 3, CR.ration);
   ok('зелья: 1 эт. — не факт, что есть (0 или 1)', CR.f1.zero > 100 && CR.f1.one > 100 && CR.f1.other === 0, JSON.stringify(CR.f1));
-  ok('зелья: 2 этаж 0–2, на 3 этаже у каждого минимум 1', JSON.stringify(CR.f2) === '[0,1,2]' && CR.f3min === 1, JSON.stringify([CR.f2, CR.f3min]));
+  ok('зелья: 2 этаж 0–2, на 3 этаже 0–3 (v112: зелий меньше)', JSON.stringify(CR.f2) === '[0,1,2]' && CR.f3min === 0, JSON.stringify([CR.f2, CR.f3min]));
   ok('компас — низкий шанс, карта этажа — около 5 %, оружие — около половины', CR.comp / CR.n > .02 && CR.comp / CR.n < .07 && CR.map / CR.n > .035 && CR.map / CR.n < .07 && CR.wpn / CR.n > .43 && CR.wpn / CR.n < .57, JSON.stringify([CR.comp, CR.map, CR.wpn, CR.n]));
 
   // выдача добычи с убитых

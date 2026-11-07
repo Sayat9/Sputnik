@@ -55,6 +55,17 @@ const CASES = [          // [метка, этаж, уровень героев, 
   ['Л: валун-жук+краб', 3, LV7, ['boulder-beetle', 'trap-crab'], ''],
   ['Л: королева+самострел (6)', 3, LV6, ['trap-queen', 'bolt-golem'], ''],
   ['П: кузнец+голем (6)', 3, LV6, ['forge-smith', 'brazier-golem'], ''],
+  ['В: 3 плакальщицы/подкидыша', 3, LV7, ['mourner', 'changeling', 'changeling'], ''],
+  ['В: пугало+2', 3, LV7, ['scarecrow', 'mourner', 'changeling'], ''],
+  ['В: сова+2', 3, LV7, ['witch-owl', 'changeling', 'changeling'], ''],
+  ['В: путник+плакальщица (призраки)', 3, LV7, ['lost-wanderer', 'mourner', 'changeling'], ''],
+  ['В: тень служанки+2 плакальщицы', 3, LV7, ['maid-shade', 'mourner', 'mourner'], ''],
+  ['В: кот+сова+подкидыш', 3, LV7, ['witch-cat', 'witch-owl', 'changeling'], ''],
+  ['В: пугало+путник+подкидыш', 3, LV7, ['scarecrow', 'lost-wanderer', 'changeling'], ''],
+  ['В: 2 образца+подкидыш', 3, LV7, ['failed-specimen', 'failed-specimen', 'changeling'], ''],
+  ['В: след+2 подкидыша', 3, LV7, ['lost-trail', 'changeling', 'changeling'], ''],
+  ['В: фонарщик (6)', 3, LV6, ['fog-lantern'], 'undead'],
+  ['В: мимик (6)', 3, LV6, ['mimic'], 'undead'],
   ['Г: противный+3 гоблина', 2, 3, ['nasty-goblin', 'goblin', 'goblin-sword', 'goblin-spear'], 'goblin'],
   ['Г: провокатор+3 гоблина', 2, 3, ['goblin-provoker', 'goblin', 'goblin-archer', 'goblin-spear'], 'goblin'],
 ].filter(c => !ONLY || c[0].includes(ONLY));
@@ -68,9 +79,13 @@ const BUILDS = {
   'два меча (шкура)': { race: 'human', base: { str: 15, dex: 14, con: 14, int: 8, wis: 10, cha: 10 }, main: 'sword', off: 'sword', body: 'hide' },
   'средний щит (шкура, меч+щит)': { race: 'human', base: { str: 15, dex: 14, con: 14, int: 8, wis: 12, cha: 10 }, main: 'sword', off: 'shield', body: 'hide' },
   'средний копьё (шкура, копьё+щит)': { race: 'dwarf', base: { str: 15, dex: 12, con: 15, int: 8, wis: 12, cha: 10 }, main: 'spear', off: 'shield', body: 'hide' },
+  'сталь: меч+щит (кольчуга)': { race: 'human', base: { str: 16, dex: 12, con: 15, int: 8, wis: 12, cha: 10 }, main: 'sword', off: 'shield', body: 'chainmail', steel: true },
+  'сталь: двуручный (шкура)': { race: 'barbarian', base: { str: 16, dex: 12, con: 15, int: 8, wis: 10, cha: 8 }, main: 'greatsword', body: 'hide', steel: true },
+  'сталь: рапира (кожа)': { race: 'human', base: { str: 10, dex: 18, con: 13, int: 10, wis: 12, cha: 10 }, main: 'rapier', off: 'dagger', body: 'leather', steel: true },
+  'сталь: лук (кожа)': { race: 'human', base: { str: 10, dex: 16, con: 12, int: 10, wis: 14, cha: 10 }, main: 'longbow', body: 'leather', steel: true },
   'варвар двуручный': { race: 'barbarian', base: { str: 16, dex: 12, con: 15, int: 8, wis: 10, cha: 8 }, main: 'greatsword', body: 'hide' },
 };
-const PARTIES = [
+const PARTIES = process.env.STEEL ? [['сталь: меч', 'сталь: двуруч', 'сталь: рапира', 'сталь: лук']] : [
   ['танк (', 'танк сталь', 'средний щит', 'стрелок'],
   ['средний щит', 'средний копьё', 'два меча', 'варвар'],
   ['танк (', 'средний щит', 'ловкач (', 'стрелок'],
@@ -88,7 +103,7 @@ const PARTIES = [
       const h = BUILDS[name];
       const c = Object.assign(clone(state.example), { id: 'p' + i, example: false, name: 'Г' + i, race: h.race, level: lvl });
       c.base = { ...h.base }; c.equip = { main: { t: 'w', id: h.main, ...(h.steel ? { steel: true } : {}) } };
-      if (h.off) c.equip.off = { t: 'w', id: h.off };
+      if (h.off) c.equip.off = { t: 'w', id: h.off, ...(h.steel ? { steel: true } : {}) };
       c.equip.body = h.body === 'clothes' ? { t: 'g', id: 'clothes' } : { t: 'a', id: h.body, ...(h.steel ? { steel: true } : {}) };
       if (h.race === 'barbarian' && h.off) c.giantGrip = true;
       delete c.bag; delete c.kit; delete c.hp; c.essences = []; ensureKit(c); c.equip.body = h.body === 'clothes' ? { t: 'g', id: 'clothes' } : { t: 'a', id: h.body, ...(h.steel ? { steel: true } : {}) };
@@ -102,7 +117,7 @@ const PARTIES = [
       let info = null;
       for (let i = 0; i < N; i++) {
         try {
-          state.party = names.map((n, j) => mk(n, j, lvl)); state.run.floor = floor; state.run.status = {};
+          state.party = names.map((n, j) => mk(n, j, lvl)); if (/^В:/.test(label)) state.party.forEach(c => { if (c.equip.main) c.equip.main.salt = true; });          // лес: у отряда оружие с солью (призраки) state.run.floor = floor; state.run.status = {};
           state.party.forEach(c => { state.run.status[c.id] = { fat: 0, sat: 3 }; });
           if (!info) info = state.party.map(c => { const d = derived(totals(c), c); return `${d.ac}${d.prot != null ? '/' + d.prot : ''} ОЗ ${maxHp(c)}`; });
           const L2 = list === 'KING' ? kingEscort() : list; const z = zone || (MONSTERS.find(x => x.id === L2[0]) || {}).zone || 'stone'; const r = await Battle.sim({ list: L2.slice(), zone: z, floor, ambush: false, kind: 'hard', title: 't' }); const S = r.S;

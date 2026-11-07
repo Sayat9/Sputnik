@@ -248,8 +248,10 @@
   }
   // Путники пьют зелья из своих запасов (число определено при создании группы) доп. действием, когда ОЗ низкие
   async function aiMonPotion(u) {
-    const c = u.mon && u.mon.carry; if (u.side !== "mon" || !c || !(c.potion > 0) || !B.timeOK(u, "bonus") || u.hp >= u.maxHp * 0.4 || u.dead) return;
-    c.potion--; B.spendTime(u, "bonus"); const n = roll(1, 4).total + 2; log(`${u.name} пьёт зелье лечения.`); B.heal(u, n, u);
+    // 04.11 (решение автора): пьют чаще — с половины ОЗ; при четверти ОЗ и меньше (критично) пьют и основным действием, если доп. уже потрачено
+    const c = u.mon && u.mon.carry; if (u.side !== "mon" || !c || !(c.potion > 0) || u.hp >= u.maxHp * 0.5 || u.dead) return;
+    const slot = B.timeOK(u, "bonus") ? "bonus" : u.hp <= u.maxHp * 0.25 && B.timeOK(u, "action") ? "action" : null; if (!slot) return;
+    c.potion--; B.spendTime(u, slot); const n = roll(1, 4).total + 2; log(`${u.name} пьёт зелье лечения.`); B.heal(u, n, u);
   }
   AI.wantsOpportunity = (e, mover) => { const pr = profileOf(e); if (pr.still && pr.role === "ranged") return true; return true; };
 

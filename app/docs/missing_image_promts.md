@@ -16,6 +16,48 @@
 
 Новый монстр без картинки: полный рост 1024 × 1536 (иконку лица вырезаю сам). Нужны монстры 3 этажа: Хранитель Тишины, мимик и 9 обитателей Лагеря орков.
 
+### Ведьмин лес (3 этаж, 04.11)
+
+### Плакальщица — `monsters/mourner-full`
+
+> `full-body a translucent ghostly woman in a tattered funeral veil, mouth open in a mournful wail, pale blue glow, misty dark witch forest with crooked trees and pale fog, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Подкидыш — `monsters/changeling-full`
+
+> `full-body a small grotesque stitched creature, a failed witch experiment, mismatched limbs, bubbling acidic blisters on its skin, misty dark witch forest with crooked trees and pale fog, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Потерявшийся след — `monsters/lost-trail-full`
+
+> `full-body a faceless misty spirit shaped like a lean hound made of fog and footprints, leaving glowing false tracks behind, misty dark witch forest with crooked trees and pale fog, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Заблудший путник — `monsters/lost-wanderer-full`
+
+> `full-body a ghostly traveler in a ragged cloak with a spectral sword, translucent, hollow glowing eyes, misty dark witch forest with crooked trees and pale fog, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Соломенное пугало — `monsters/scarecrow-full`
+
+> `full-body a tall animated scarecrow of straw and sackcloth with a rusty sickle, stitched grin, crows around, misty dark witch forest with crooked trees and pale fog, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Ведьмина сова — `monsters/witch-owl-full`
+
+> `full-body a large black owl with too many glowing purple eyes, ragged feathers, perched on a twisted branch, misty dark witch forest with crooked trees and pale fog, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Неудачный образец — `monsters/failed-specimen-full`
+
+> `full-body a big bloated mutated beast, failed witch experiment, mismatched armored plates and claws, dripping acid, misty dark witch forest with crooked trees and pale fog, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Тень служанки — `monsters/maid-shade-full`
+
+> `full-body a ghostly servant girl in a torn maid dress, half-transparent, cold mist trailing from her hands, misty dark witch forest with crooked trees and pale fog, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Ведьмин кот — `monsters/witch-cat-full`
+
+> `full-body a sleek black cat with glowing green eyes and a crooked tail, half melting into shadow, mischievous grin, misty dark witch forest with crooked trees and pale fog, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Фонарщик тумана — `monsters/fog-lantern-full`
+
+> `full-body a towering hooded spirit warden carrying many glowing lanterns on a long chain flail, fog swirling around, misty dark witch forest with crooked trees and pale fog, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
 ### Зона ловушек (3 этаж, 03.11)
 
 ### Капкан-краб — `monsters/trap-crab-full`
@@ -64,27 +106,7 @@
 
 > `full-body a gaunt undead reaper in a burnt hooded robe, wielding a scythe with a glowing ember blade, ash falling from it, scorched ash plain with lava cracks and drifting embers, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
 
-### Магмовый змей — `monsters/magma-wyrm-full`
-
-> `full-body a huge serpent with a crust of cooling black magma scales split by glowing lava, jaws open, spitting molten rock, scorched ash plain with lava cracks and drifting embers, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
-
-### Кузнец горнила — `monsters/forge-smith-full`
-
-> `full-body a giant hulking blacksmith in a scorched leather apron and soot-black plate, a huge hammer and glowing tongs, a great forge and anvil behind him, scorched ash plain with lava cracks and drifting embers, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
-
 ### Охотничьи угодья и гоблины под Угрозу (03.11)
-
-### Костяной егерь — `monsters/bone-ranger-full`
-
-> `full-body a skeletal hunter in rotting leather with a bone longbow, arrow nocked, misty hunting grounds, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
-
-### Шипастая гончая — `monsters/thorn-hound-full`
-
-> `full-body a lean hound covered in thorny bone spikes along its back, snarling, dry grass of hunting grounds, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
-
-### Сизый гриф — `monsters/grey-vulture-full`
-
-> `full-body a large grey vulture with ragged wings perched on a dead tree, eyeing prey below, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
 
 ### Вожак гончих — `monsters/pack-leader-full`
 

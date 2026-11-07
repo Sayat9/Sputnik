@@ -30,7 +30,7 @@ const L = require('./bui_lib.js');
     let totalSteps = 0, outs = 0, bosses = 0; const stageOk = [];
     for (let w = 0; w < 30; w++) {
       r.pos = { x: 28, y: 1 }; r.pending = null; dgUi.res = null; r.day = 3; r.act = 1; let steps = 0;
-      while (voidHere() && steps < 400) { dgUi.phase = 'move'; dgUi.target = { x: r.pos.x + 1, y: r.pos.y }; act('move'); steps++; if (dgUi.res) { bosses++; dgUi.res = null; } if (state.run.day > 20) { state.run.day = 3; } r.act = 1; r.pending = null; dgUi.enc = null; if (!inBounds(r.pos.x, r.pos.y)) { out.oob = true; break; } }
+      while (voidHere() && steps < 400) { dgUi.phase = 'move'; dgUi.target = { x: r.pos.x + 1, y: r.pos.y }; act('move'); steps++; if (dgUi.res) dgUi.res = null; if (dgUi.enc) { if (/Фонарщик/.test(dgUi.enc.title || '')) bosses++; dgUi.enc = null; } /* центр леса — бой с Фонарщиком тумана (v112) */ if (state.run.day > 20) { state.run.day = 3; } r.act = 1; r.pending = null; dgUi.enc = null; if (!inBounds(r.pos.x, r.pos.y)) { out.oob = true; break; } }
       totalSteps += steps; if (!voidHere()) outs++;
     }
     out.outs = outs; out.bosses = bosses; out.avg = Math.round(totalSteps / 30);

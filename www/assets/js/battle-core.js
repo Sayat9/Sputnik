@@ -381,7 +381,8 @@
     const S = B.S || {}; let r = 4 + (S.sight || 0); const t = tinfo(u.x, u.y);
     if (!S.noElev && t && t.elevated) r += 2;
     if (isFlying(u)) r += 2;
-    if (S.dark && !S.torch) r -= 2;          // тьма без факела: −2 к обзору (горящий факел — без штрафа)
+    if (S.dark && !S.torch) r -= 2;
+    if (u.pass && u.pass.includes("fog-lantern") && u.side === "hero") r += 1;          // «Фонарь проводника»          // тьма без факела: −2 к обзору (горящий факел — без штрафа)
     if (S.fog > 0) r = Math.min(r, S.fog);
     return Math.max(1, r);
   };
@@ -460,6 +461,7 @@
     S.bog = (ev.list || []).includes("swamp-fang"); S.lake = (ev.list || []).includes("deep-serpent");
     const g = genTerrain(zone, S.floor, ev.water, S.lake ? "lake" : S.bog, !!ev.webTile); S.cells = g.cells; S.objs = g.objs; S.found = []; S.objHp = {};
     if (ev.place === "Храм изваяний") { let n = 2 + Math.floor(Math.random() * 2); for (let k = 0; k < 40 && n > 0; k++) { const x = Math.floor(Math.random() * B.W), y = 2 + Math.floor(Math.random() * (B.H - 4)); if (S.cells[y] && !S.cells[y][x]) { S.cells[y][x] = "statue"; n--; } } }          // храм: 2–3 изваяния на поле (их оживляет скульптор)
+    if ((ev.list || []).includes("fog-lantern")) S.dark = true;          // бой с Фонарщиком: обзор 1 клетка, с факелом 2 (лес −2, тьма −2)
     if (ev.place === "Зона ловушек") { let n = 2 + Math.floor(Math.random() * 2); for (let k = 0; k < 40 && n > 0; k++) { const x = Math.floor(Math.random() * B.W), y = 2 + Math.floor(Math.random() * (B.H - 4)); if (S.cells[y] && !S.cells[y][x] && !S.objs.some(o => o.x === x && o.y === y)) { S.objs.push({ id: "zt" + k, kind: "trap", x, y, dc: 13, hidden: true, owner: "mon", by: null, dmg: "2к6", dt: "pierce", noticed: [] }); n--; } } }          // Зона ловушек: на поле уже взведено 2–3 ловушки
     if (ev.place === "Пылающие земли") { let n = 3 + Math.floor(Math.random() * 2); for (let k = 0; k < 40 && n > 0; k++) { const x = Math.floor(Math.random() * B.W), y = 2 + Math.floor(Math.random() * (B.H - 4)); if (S.cells[y] && !S.cells[y][x]) { S.cells[y][x] = "fire"; n--; } } }          // пылающие земли: 3–4 очага огня на поле
     if (B.placeEnv && !ev.arena) B.placeEnv(S, ev);
