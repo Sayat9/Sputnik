@@ -10,13 +10,13 @@
   const q = s => { const r = UI.root(); return r ? r.querySelector(s) : null; };          // поле уже закрыто — запоздалые таймеры ничего не трогают
 
   /* ===== панель ===== */
-  const barHtml = (cls, cur, max) => `<div class="bt-meter ${cls}"><i style="width:${max ? Math.round(Math.max(0, Math.min(1, cur / max)) * 100) : 0}%"></i></div>`;
+  const barHtml = (cls, cur, max, tmp) => `<div class="bt-meter ${cls}"><i style="width:${max ? Math.round(Math.max(0, Math.min(1, cur / max)) * 100) : 0}%"></i>${tmp > 0 && max ? `<i class="tmp" style="width:${Math.max(4, Math.round(Math.min(1, tmp / max) * 100))}%"></i>` : ""}</div>`;
   function unitCard(u, compact) {
     const sts = u.conds.filter(c => D.status[c.id]).map(c => `<span class="bt-stchip ${D.status[c.id].good ? "good" : "bad"}" data-sid="${c.id}" data-uid="${u.id}" title="Удерживайте: что это">${stIco(c.id)}${esc(D.status[c.id].name)}</span>`).join("");
     const hero = !!u.hero, mine = u.side === "hero";
     return `<div class="bt-card${compact ? " compact" : ""}"><div class="bt-cface ${u.side}${u.spectral ? " ghost" : ""}"><img src="${u.face}" alt=""></div>
       <div class="bt-cinfo"><b>${esc(u.name)}</b><small>${hero ? `${esc(raceById(u.race).name)} · ${u.level} ур. · Уворот ${u.ac} · Защита ${u.prot || 0}` : u.summon ? `${u.kind === "double" ? "Двойник" : "Призванный волк"} · КД ${u.ac}` : `${esc(u.mon.size)} · КД ${u.ac}`}</small>
-        ${mine || B.S.opts.showMonHp ? `<div class="bt-nums"><span class="hp">ОЗ <b>${u.hp}</b>/${u.maxHp}${u.temp ? ` <em>+${u.temp}</em>` : ""}</span>${hero ? `<span class="mp">Мана <b>${u.mp}</b>/${u.maxMp}</span>` : ""}</div>${barHtml("hp", u.hp, u.maxHp)}${hero ? barHtml("mp", u.mp, u.maxMp) : ""}` : `<div class="bt-nums"><span class="hp">ОЗ скрыты</span></div>`}
+        ${mine || B.S.opts.showMonHp ? `<div class="bt-nums"><span class="hp">ОЗ <b>${u.hp}</b>/${u.maxHp}${u.temp ? ` <em>+${u.temp}</em>` : ""}</span>${hero ? `<span class="mp">Мана <b>${u.mp}</b>/${u.maxMp}</span>` : ""}</div>${barHtml("hp", u.hp, u.maxHp, u.temp)}${hero ? barHtml("mp", u.mp, u.maxMp) : ""}` : `<div class="bt-nums"><span class="hp">ОЗ скрыты</span></div>`}
       </div></div>${sts ? `<div class="bt-stline">${sts}</div>` : ""}`;
   }
   function resChips(u) {

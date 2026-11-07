@@ -131,7 +131,7 @@
       let el = tokenEls.get(u.id);
       if (!el) {
         el = document.createElement("div"); el.className = "bt-token"; el.dataset.id = u.id;
-        el.innerHTML = `<div class="bt-bars"><i class="hp"><b></b></i><i class="mp"><b></b></i></div><div class="bt-face"><img alt="" draggable="false"></div><div class="bt-name"></div><div class="bt-sts"></div><div class="bt-wound" hidden>${ico("heart")}</div>`;
+        el.innerHTML = `<div class="bt-bars"><i class="hp"><b></b><b class="tmp"></b></i><i class="mp"><b></b></i></div><div class="bt-face"><img alt="" draggable="false"></div><div class="bt-name"></div><div class="bt-sts"></div><div class="bt-wound" hidden>${ico("heart")}</div>`;
         el.querySelector("img").src = u.face || ""; layer.appendChild(el); tokenEls.set(u.id, el);
         el.style.left = u.x * cell + "px"; el.style.top = u.y * cell + "px";
       }
@@ -144,7 +144,8 @@
       const showHp = u.side === "hero" || S.opts.showMonHp;
       const bars = el.querySelector(".bt-bars"); bars.hidden = !showHp;
       if (showHp) {
-        const f = u.maxHp ? u.hp / u.maxHp : 0, hp = bars.querySelector(".hp b"); hp.style.width = Math.round(f * 100) + "%"; hp.style.background = "linear-gradient(#e85d4d, #9c2c24)";
+        const f = u.maxHp ? u.hp / u.maxHp : 0, hp = bars.querySelector(".hp b"); hp.style.width = Math.round(f * 100) + "%";
+        const tb = bars.querySelector(".hp b.tmp"); if (tb) tb.style.width = (u.temp > 0 && u.maxHp ? Math.max(4, Math.round(Math.min(u.temp / u.maxHp, 1) * 100)) : 0) + "%";          // временные ОЗ — светлый штрихованный отрезок hp.style.background = "linear-gradient(#e85d4d, #9c2c24)";
         const mpEl = bars.querySelector(".mp"); mpEl.hidden = u.side !== "hero" || !u.maxMp; if (u.side === "hero") mpEl.querySelector("b").style.width = Math.round((u.maxMp ? u.mp / u.maxMp : 0) * 100) + "%";
         bars.title = `${u.name}: ОЗ ${u.hp}/${u.maxHp}${u.side === "hero" ? ` · мана ${u.mp}/${u.maxMp}` : ""}`;
         const tmp = u.temp > 0 ? ` +${u.temp}` : ""; bars.dataset.tmp = tmp;

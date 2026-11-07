@@ -178,6 +178,7 @@
         if (tgt.hp <= 0) await dropToZero(tgt, left - before, { ...o, src, dt: parts[0] ? parts[0].dt : null, taken: left });
       }
       if (tgt.alive) hookAll(tgt, "onDamaged", { src, total: left, o });
+      if (tgt.alive && left > 0 && tgt.hp < tgt.maxHp * 0.6 && tgt.hp + left >= tgt.maxHp * 0.6) for (const w of B.live()) if (w.side !== tgt.side && !w.down) hookAll(w, "foeBloodied", { tgt, src });          // ОЗ врага упали ниже 60 % (жрец крови, v116)
       if (tgt.alive && !tgt.down && tgt.conc && B.concCheck) await B.concCheck(tgt, left);
       if (tgt.alive && B.hookAllAsync) await B.hookAllAsync(tgt, "onDamagedAsync", { src, total: left, o });
     } else if (g && total > 0) g.fxText(tgt, "поглощено", "");

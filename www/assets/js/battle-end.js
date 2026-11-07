@@ -4,7 +4,9 @@
   const End = (B.End = {});
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const sleep = ms => (B.cfg.fast ? Promise.resolve() : new Promise(r => setTimeout(r, ms)));
-  const ESS_CHANCE = 93;                                              // бросок d100: 93+ (8 %); rules.md говорит 95+ — отклонение записано в drafts.md
+  const ESS_CHANCE = 93;
+  const GUARD_CHANCE = 71;                                            // страж (rank "guardian"): эссенция выпадает в 30 % (71+) — решение автора 07.11
+  const essNeed = id => ((MONSTERS.find(m => m.id === id) || {}).rank === "guardian" ? GUARD_CHANCE : ESS_CHANCE);                                              // бросок d100: 93+ (8 %); rules.md говорит 95+ — отклонение записано в drafts.md
 
   // Приводит героев и вещи в порядок после боя: оружие, стрелы, ОЗ, свет.
   // Брошенное оружие и целые стрелы подбираются, только если отряд остался хозяином поля (победа или монстры бежали).
@@ -83,8 +85,8 @@
       if (c && !((MONSTERS.find(m => m.id === id) || {}).dyn)) { if (c.equip && c.equip.charm && c.equip.charm.id === "beginners-luck" && !((c.kills || {})[id]) && !firstIn[key]) bonus = 5; firstIn[key] = true; kills.push({ hid, id }); }
       const base = 1 + B.rnd(100); return { id, r: Math.min(100, base + bonus), base, bonus };
     });
-    const wins = S.forceWins ? S.forceWins.map(id => ({ id, r: 99 })) : rolls.filter(x => x.r >= ESS_CHANCE && !((MONSTERS.find(m => m.id === x.id) || {}).dyn));          // forceWins — только для проверок
-    const best = S.forceWins ? wins[0] : rolls.length ? rolls.reduce((a, b) => (a.r >= b.r ? a : b)) : null;
+    const wins = S.forceWins ? S.forceWins.map(id => ({ id, r: 99 })) : rolls.filter(x => x.r >= essNeed(x.id) && !((MONSTERS.find(m => m.id === x.id) || {}).dyn));          // forceWins — только для проверок
+    const best = S.forceWins ? wins[0] : rolls.length ? rolls.reduce((a, b) => (a.r - essNeed(a.id) >= b.r - essNeed(b.id) ? a : b)) : null;
     const people = species.length > 0 && species.every(id => (MONSTERS.find(m => m.id === id) || {}).dyn);          // убиты одни путники: эссенций у них нет, броска нет
     return { killed, species, fresh, xp, stones, rolls: people ? [] : rolls, wins, best: people ? null : best, kills, people };
   }
@@ -147,12 +149,12 @@
       <div class="bt-rwd"><h5>Награды</h5>${nothing ? `<p class="muted">Никто не убит — награды нет.</p>` : `<ul>${xpLine}${stoneLines}</ul>`}
         ${S.gear && S.gear.length ? `<h5>Снаряжение</h5><ul class="bt-gearl">${S.gear.map(g => `<li class="${g.ok ? "ok" : "lost"}">${esc(g.t)}</li>`).join("")}</ul>` : ""}
         <div class="bt-hlist">${B.heroes().map(h => `<span class="bt-hchip${h.dead ? " dead" : ""}"><img src="${h.face}" alt="">${esc(h.name)} <b>${h.dead ? "погиб" : Math.max(h.down ? 1 : 0, h.hp) + "/" + h.maxHp}</b></span>`).join("")}</div></div>
-      ${nothing || plan.people ? "" : `<div class="bt-roll" hidden><p>Бросок на эссенцию <small>— нужно ${ESS_CHANCE}+ из 100</small></p><canvas></canvas><div class="bt-roll-res"></div><button class="bt-rolls-btn" type="button" aria-expanded="false" aria-label="Показать все броски на эссенцию" hidden><span>все броски</span><i aria-hidden="true">▾</i></button><div class="bt-rolls" hidden></div></div>`}
+      ${nothing || plan.people ? "" : `<div class="bt-roll" hidden><p>Бросок на эссенцию <small>— нужно ${plan.rolls && plan.rolls.some(r => essNeed(r.id) !== ESS_CHANCE) ? `${ESS_CHANCE}+ из 100, у стража ${GUARD_CHANCE}+` : `${ESS_CHANCE}+ из 100`}</small></p><canvas></canvas><div class="bt-roll-res"></div><button class="bt-rolls-btn" type="button" aria-expanded="false" aria-label="Показать все броски на эссенцию" hidden><span>все броски</span><i aria-hidden="true">▾</i></button><div class="bt-rolls" hidden></div></div>`}
       ${plan.loot && plan.loot.length ? `<div class="bt-loot"><h5>Добыча с путников</h5>${plan.loot.map((e, i) => `<div class="bt-lrow" data-li="${i}"><span class="ic">${typeof itemThumb === "function" ? itemThumb(e) : ""}</span><span class="nm">${esc((itemOf(e) || { name: e.id }).name)}${e.qty > 1 ? ` <b>×${e.qty}</b>` : ""}</span><div class="bt-lbtn"><button class="fx-btn primary" data-lt="take">Взять</button><button class="fx-btn" data-lt="leave">Оставить</button></div></div>`).join("")}</div>` : ""}
       <div class="bt-essgot" hidden></div>
       <button class="fx-btn primary big bt-done" hidden>Готово</button></div>`;
     if (B.Net && B.Net.announceEnd) { const hasRoll = !nothing && plan.best && !plan.people, rw = plan.wins.length ? plan.wins.reduce((a, b) => (a.r >= b.r ? a : b)) : plan.best;          // игрокам — та же анимация броска на эссенцию (03.11)
-      const roll = hasRoll ? { d: digits(rw.r), ok: plan.wins.length > 0, trav: !!rw.trav, r: rw.r, need: ESS_CHANCE } : null;
+      const roll = hasRoll ? { d: digits(rw.r), ok: plan.wins.length > 0, trav: !!rw.trav, r: rw.r, need: essNeed(rw.id) } : null;
       const essLine = roll ? "" : plan.wins.length ? "Выпала эссенция!" : (plan.species.length ? "Эссенция не выпала" : ""); B.Net.announceEnd(`<div class="bt-endscr fx-frame ${cls}"><small class="bt-eyebrow">Бой окончен · раундов: ${S.round}</small><h2 class="bt-title ${cls}">${title}</h2>${fallen.length ? `<p class="bt-bad">Погибли: ${esc(fallen.join(", "))}</p>` : ""}<div class="bt-rwd"><h5>Награды</h5>${nothing ? `<p class="muted">Никто не убит — награды нет.</p>` : `<ul>${xpLine}${stoneLines}</ul>`}${essLine ? `<p><b>${essLine}</b></p>` : ""}<div class="bt-hlist">${B.heroes().map(h => `<span class="bt-hchip${h.dead ? " dead" : ""}"><img src="${h.face}" alt="">${esc(h.name)} <b>${h.dead ? "погиб" : Math.max(h.down ? 1 : 0, h.hp) + "/" + h.maxHp}</b></span>`).join("")}</div></div></div>`, roll); }
     const done = modal.querySelector(".bt-done"), finish = new Promise(res => { done.onclick = res; });
     const lootEl = modal.querySelector(".bt-loot");
@@ -190,7 +192,7 @@
       const rbtn = roll.querySelector(".bt-rolls-btn"), rlist = roll.querySelector(".bt-rolls");
       const drawRolls = () => {
         const seen = {}, names = plan.species.map(id => { const m = MONSTERS.find(x => x.id === id); seen[id] = (seen[id] || 0) + 1; const tot = plan.species.filter(x => x === id).length; return `${m ? m.name : id}${tot > 1 ? " " + seen[id] : ""}`; });
-        rlist.innerHTML = plan.rolls.map((r, i) => `<div class="bt-rollrow${r.r >= ESS_CHANCE ? " win" : ""}${r === rollShown ? " shown" : ""}"><span class="n">${esc(names[i])}</span><span class="v"><b>${r.r}</b>${r.bonus ? ` <small>(${r.base} +${r.bonus})</small>` : ""}${r.again && r.again.length ? ` <small>«Ещё раз»: было ${r.again.join(", ")}</small>` : ""}</span><span class="m">${r.r >= ESS_CHANCE ? "эссенция" : "нет"}</span></div>`).join("") + `<p class="bt-rollnote">Нужно ${ESS_CHANCE}+ из 100. Анимация показывает лучший бросок.</p>`;
+        rlist.innerHTML = plan.rolls.map((r, i) => `<div class="bt-rollrow${r.r >= essNeed(r.id) ? " win" : ""}${r === rollShown ? " shown" : ""}"><span class="n">${esc(names[i])}</span><span class="v"><b>${r.r}</b>${r.bonus ? ` <small>(${r.base} +${r.bonus})</small>` : ""}${r.again && r.again.length ? ` <small>«Ещё раз»: было ${r.again.join(", ")}</small>` : ""}</span><span class="m">${r.r >= essNeed(r.id) ? "эссенция" : "нет"}</span></div>`).join("") + `<p class="bt-rollnote">Нужно ${ESS_CHANCE}+ из 100 (у стража ${GUARD_CHANCE}+). Анимация показывает лучший бросок.</p>`;
       };
       if (plan.rolls.length) {
         rbtn.hidden = false; drawRolls();
@@ -206,7 +208,7 @@
         const holder = state.party.find(c => countGear(c, "once-more") > 0); takeGear(holder, "once-more", 1); saveChar();
         const bonus = rollShown.bonus || 0, base = 1 + B.rnd(100), r = Math.min(100, base + bonus);
         (rollShown.again ||= []).push(rollShown.r); rollShown.r = r; rollShown.base = base; show = r;
-        if (r >= ESS_CHANCE) { plan.wins.push({ id: rollShown.id, r, base, bonus }); ok = true; }
+        if (r >= essNeed(rollShown.id)) { plan.wins.push({ id: rollShown.id, r, base, bonus }); ok = true; }
         await reveal(); if (!rbtn.hidden) drawRolls();
       }
       if (ok && S.ev.arena) {

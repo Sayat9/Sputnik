@@ -1,5 +1,5 @@
 {
- "version": 1794059699,
+ "version": 1794061749,
  "files": [
   "assets/buildings/academy.webp",
   "assets/buildings/arena.webp",
@@ -467,7 +467,7 @@
   "assets/buildings/storage.webp": "73feb5b8b9f83341de80a87645f171ba",
   "assets/buildings/tavern.webp": "812c88667997f640e80c34b331e547b2",
   "assets/buildings/tower.webp": "a8d571c86cb743cdbcdfe7d63aaed744",
-  "assets/css/battle.css": "d5db6e80d5e7d22dbc15b5a2a043003e",
+  "assets/css/battle.css": "7e4448252740e45df4193a9aa87c4470",
   "assets/css/town.css": "c94a4e19cae37356e5a96ae8b3197745",
   "assets/events/ambush.svg": "cc4762918cfd926e70eaa40ce53b322c",
   "assets/events/ambush.webp": "5fcd1fb31bf6c99e7ec0ac72e84aee85",
@@ -617,15 +617,15 @@
   "assets/js/battle-core.js": "6b3ef1dc419744cbfd4a9a9d911e81b2",
   "assets/js/battle-data.js": "9c425a0aac094971048c2d2f34bf71be",
   "assets/js/battle-dice.js": "17fdcb05e4189dd60b9ce24d0382f5cf",
-  "assets/js/battle-end.js": "edaf68e531beaa0fe4e9511a5b7eec01",
+  "assets/js/battle-end.js": "bfd9f19cf05ddb9834199217fbbfa5d7",
   "assets/js/battle-env.js": "8b084e2e9fda39082c235286816ba2c4",
   "assets/js/battle-ess.js": "75cf12f2af63344fec6fac141b967330",
-  "assets/js/battle-ess2.js": "7f2c3c4ee62f58b502341d52e64bee75",
+  "assets/js/battle-ess2.js": "49d2b01f56a49f3add5810a3c6e93af1",
   "assets/js/battle-ext.js": "9537dc61e0be9892da70beb794fddaee",
-  "assets/js/battle-menu.js": "b26a8fb775558f7cdc1a8cbfd7db76c1",
+  "assets/js/battle-menu.js": "9ef1a09aff801ecb86a42089683c4501",
   "assets/js/battle-net.js": "f8172bd74527ba982fd73ea9ac71dbf3",
-  "assets/js/battle-rules.js": "882684601f751bdcc0629ab4fb79b77e",
-  "assets/js/battle-ui.js": "30ca224f23adcb74fbc71eb91fb2ec0d",
+  "assets/js/battle-rules.js": "2b878354bde3c2af4be2469fffa6ad28",
+  "assets/js/battle-ui.js": "8b7b224098ca1014b9f93a4ad878db6a",
   "assets/js/battle-weap.js": "c9e4beee558a954ca716015287d2d619",
   "assets/js/battle.js": "8ca2e1ff84a499a0c706c422556394e8",
   "assets/js/net.js": "2e8be9ea96e5cf1bd44c120e636e4520",
@@ -902,6 +902,6 @@
   "fonts/f8.woff2": "6cc1ee17091d59eb93821c3594e8f38f",
   "fonts/f9.woff2": "070433480b7b645f69b543f284e386ce",
   "fonts/fonts.css": "1585a72a8d157b26cb424ab433fd4e19",
-  "index.html": "97a2f954c01652d9d80f60fceec16b4a"
+  "index.html": "5077b62ce0049b761e58866a3ba4e509"
  }
 }

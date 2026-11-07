@@ -2293,12 +2293,18 @@
     async run(u, pk, ctl) { const a = atkFor(u, "melee"), t = pk.unit; if (!a || !t) return false; const r = await B.doAttack(u, t, a, { extra: [{ n: 1, s: 8, b: 0, dt: "necrotic", label: "Вытягивание жизни" }], onCommit: () => ctl.commit() }); if (r && r.hit) B.heal(u, roll(1, 8).total, u); return !(r && r.cancelled); },
     ai(u) { const ts = within(u, 1); return ts.length ? { unit: ts[0], score: u.hp < u.maxHp * 0.7 ? 14 : 8 } : null; },
   };
-  /* Жрец крови (8) */
-  P["blood-priest"] = { turnStart(u) { if (u.hp <= 6) return; const a = alliesOf(u).filter(x => alive(x) && x !== u && dist(u, x) <= 3 && x.hp < x.maxHp * 0.6).sort((p, q) => p.hp / p.maxHp - q.hp / q.maxHp)[0]; if (!a) return; u.hp -= 3; B.heal(a, roll(2, 4).total, u); fx(a, "кровавое лечение", "good"); log(`${u.name} отдаёт кровь ${a.name}.`); } };
+  /* Жрец крови (8): пассивка «Кровавая печать» (сама, откат 3 раунда), активка «Жертвенное лечение» (v116, решение автора) */
+  P["blood-priest"] = { foeBloodied(u, { tgt }) {
+    if (!tgt || !alive(tgt) || tgt.down || dist(u, tgt) > 4 || has(tgt, "noheal")) return;
+    if (u.sealRound != null && B.S.round - u.sealRound < 3) return;
+    u.sealRound = B.S.round; addStatus(tgt, "noheal", { k: 1, when: "end" }); fx(tgt, "печать крови", "bad"); log(`Кровавая печать: ${tgt.name} не может лечиться до конца своего следующего хода (${u.name}).`, "skill");
+  } };
+  const priestTargets = u => alliesOf(u).filter(x => alive(x) && !x.dead && x !== u && dist(u, x) <= 3 && (x.hp < x.maxHp || x.down));
   A["blood-priest"] = {
-    time: "bonus", tgt(u) { return specUnit(u, "Кровавая печать: кого?", within(u, 4), cellsAround(u, 4), "attack"); }, can(u) { return within(u, 4).length ? true : "нет цели в 4 клетках"; },
-    async run(u, pk, ctl) { ctl.commit(); if (pk.unit) { addStatus(pk.unit, "noheal", { k: 1, when: "end" }); fx(pk.unit, "печать крови", "bad"); log(`${u.name} ставит кровавую печать на ${pk.unit.name}.`, "skill"); } return true; },
-    ai(u) { const ts = within(u, 4).filter(t => !has(t, "noheal")); return ts.length ? { unit: ts.sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp)[0], score: 5 } : null; },
+    time: "bonus", tgt(u) { return specUnit(u, "Жертвенное лечение: кого лечить?", priestTargets(u), B.cellsWithin(u, 3), "heal"); },
+    can(u) { return u.hp <= 3 ? "слишком мало ОЗ" : priestTargets(u).length ? true : "некого лечить в 3 клетках"; },
+    async run(u, pk, ctl) { const t = pk.unit; if (!t) return false; ctl.commit(); B.setHp(u, u.hp - 3); fx(u, "−3", "bad"); const h = roll(2, 4).total; B.heal(t, h, u); fx(t, `+${h}`, "good"); log(`${u.name} отдаёт 3 ОЗ своей крови: ${t.name} восстанавливает ${h}.`, "skill"); return true; },
+    ai(u) { if (u.hp <= 8) return null; const ts = priestTargets(u).filter(x => x.hp < x.maxHp * 0.6).sort((p, q) => p.hp / p.maxHp - q.hp / q.maxHp); return ts.length ? { unit: ts[0], score: 12 } : null; },
   };
   /* Кровавая лужа (8) */
   P["blood-puddle"] = { resist(u, { dt }) { return dt === "slash" || dt === "pierce"; } };
@@ -2307,24 +2313,33 @@
     async run(u, pk, ctl) { ctl.commit(); const t = pk.unit; if (!t) return true; const sv = await save(t, "str", dcOf(u, "con"), "Поглотить", ["restrain"], u); if (!sv.ok && alive(t)) { addStatus(t, "restrained", { k: 2, when: "end" }); await B.applyDamage(u, t, [{ v: roll(1, 6).total, dt: "acid", label: "Поглотить" }], { src: u }); fx(t, "поглощён", "bad"); } return true; },
     ai(u) { const ts = within(u, 1).filter(t => !has(t, "restrained")); return ts.length ? { unit: ts[0], score: 9 } : null; },
   };
-  /* Голем плоти (7) */
-  P["flesh-golem"] = { onDamaged(u, { o }) { const dt = o && o.parts && o.parts[0] && o.parts[0].dt; if (dt === "fire" || dt === "acid") u.burnRound = B.S.round; }, resist() { return false; },
-    turnStart(u) { if (u.burnRound != null && u.burnRound >= B.S.round - 1) return; if (u.hp < u.maxHp) { B.heal(u, 5, u); fx(u, "+5", "good"); } } };
+  /* Голем плоти (7): «Сшитая плоть» — 5 временных ОЗ, не складываются, а обновляются до 5 в начале хода, если с прошлого хода не было урона огнём или кислотой (v116) */
+  P["flesh-golem"] = { dmgFlat(u, { dt }) { if (dt === "fire" || dt === "acid") u.fleshBurned = true; return 0; },          // отмечаем огонь/кислоту даже если урон целиком съели временные ОЗ
+    turnStart(u) { if (u.fleshBurned) { u.fleshBurned = false; fx(u, "плоть не срастается", "bad"); return; } if ((u.temp || 0) < 5) { u.temp = 5; u.tempSrc = "flesh"; fx(u, "5 врем. ОЗ", "good"); } } };
   A["flesh-golem"] = {
     time: "action", tgt(u) { return specUnit(u, "Мясной таран: кого?", within(u, 1), cellsAround(u, 1), "attack"); }, can(u) { return within(u, 1).length ? true : "никого рядом"; },
     async run(u, pk, ctl) { ctl.commit(); const t = pk.unit; if (!t) return true; const sv = await saveDmg(u, t, "str", dcOf(u, "str"), [2, 6], "bludgeon", "Мясной таран"); if (!sv.ok && alive(t) && B.push) await B.push(t, u.x, u.y, 2); const g = ui(); if (g) g.refresh(); return true; },
     ai(u) { const ts = within(u, 1); return ts.length ? { unit: ts[0], score: 11 } : null; },
   };
-  /* Поганище (7) */
-  P.abomination = { async turnStart(u) {} , resist(u, { dt }) { return dt === "poison"; } };
-  P["body:abomination"] = { async turnStartAsync(u) { for (const t of within(u, 1)) { const sv = await save(t, "con", dcOf(u, "con"), "Смрад", ["poison"], u); if (!sv.ok && alive(t)) addStatus(t, "poisoned", { k: 1, when: "end" }); } } };
+  /* Поганище (7): «Смрад» (пассивка), «Мясницкий крюк» (v116): бросок крюка на 3 клетки — спасбросок Ловкости (провал — попал, 2к6 колющего), затем Силы (провал — притянут вплотную и ещё 1к8) */
+  P.abomination = { resist(u, { dt }) { return dt === "poison"; },
+    async turnStartAsync(u) { for (const t of within(u, 1)) { if (!alive(t) || t.down) continue; const sv = await save(t, "con", dcOf(u, "con"), "Смрад", ["poison"], u); if (!sv.ok && alive(t)) addStatus(t, "poisoned", { k: 1, when: "end" }); } } };
+  const hookTargets = u => enemiesOf(u).filter(t => alive(t) && !t.down && dist(u, t) <= 3 && !B.lineBlocked(u, t) && (!B.visibleTo || B.visibleTo(u, t)));
   A.abomination = {
-    time: "action", tgt() { return { type: "none" }; }, can(u) { return within(u, 2).length ? true : "никого в 2 клетках"; },
-    async run(u, pk, ctl) { ctl.commit(); for (const t of within(u, 2)) await saveDmg(u, t, "dex", dcOf(u, "con"), [2, 6], "poison", "Рвотная волна"); log(`${u.name} извергает рвотную волну.`, "skill"); return true; },
-    ai(u) { const n = within(u, 2).length; return n >= 2 ? { score: 10 + n * 4 } : null; },
+    time: "action", tgt(u) { return specUnit(u, "Мясницкий крюк: в кого?", hookTargets(u), B.cellsWithin(u, 3), "attack"); }, can(u) { return hookTargets(u).length ? true : "нет цели в 3 клетках"; },
+    async run(u, pk, ctl) { const t = pk.unit; if (!t) return false; ctl.commit(); const dc = dcOf(u, "str");
+      log(`${u.name} швыряет мясницкий крюк в ${t.name}.`, "skill");
+      const s1 = await save(t, "dex", dc, "Мясницкий крюк: увернуться", [], u);
+      if (s1.ok || !alive(t)) { fx(t, "увернулся", ""); return true; }
+      await B.applyDamage(u, t, [{ v: roll(2, 6).total + Math.max(0, amod(u.abil.str)), dt: "pierce", label: "Мясницкий крюк" }], { src: u });
+      if (!alive(t) || t.down) return true;
+      const s2 = await save(t, "str", dc, "Мясницкий крюк: удержаться", ["push"], u);
+      if (!s2.ok && alive(t)) { if (dist(u, t) > 1) await B.pullAdjacent(t, u); await B.applyDamage(u, t, [{ v: roll(1, 8).total, dt: "pierce", label: "Крюк рвёт плоть" }], { src: u }); fx(t, "притянут", "bad"); }
+      return true; },
+    ai(u) { const ts = hookTargets(u).sort((a, b) => dist(u, b) - dist(u, a)); return ts.length ? { unit: ts[0], score: 13 + (dist(u, ts[0]) > 1 ? 4 : 0) } : null; },
   };
   /* Мордрейн, низший рыцарь смерти (7, страж) */
-  P["death-knight"] = { attackAura(a, { att, ctx }) { if (att && att !== a && att.side === a.side && dist(a, att) <= 2 && ctx) ctx.dmgPlus = (ctx.dmgPlus || 0) + 1; } };
+  P["death-knight"] = { attackAura(a, { att, ctx }) { if (att && att !== a && att.side === a.side && dist(a, att) <= 2 && ctx) ctx.dmgPlus = (ctx.dmgPlus || 0) + 2; } };
   A["death-knight"] = {
     time: "action", tgt(u) { return specUnit(u, "Удар смерти: кого?", within(u, 1), cellsAround(u, 1), "attack"); }, can(u) { return within(u, 1).length ? true : "никого рядом"; },
     async run(u, pk, ctl) { const a = atkFor(u, "melee"), t = pk.unit; if (!a || !t) return false; const ex = roll(2, 8).total; const r = await B.doAttack(u, t, a, { extra: [{ n: 0, s: 0, b: ex, dt: "necrotic", label: "Удар смерти" }], onCommit: () => ctl.commit() }); if (r && r.hit) B.heal(u, Math.floor(ex / 2), u); return !(r && r.cancelled); },
