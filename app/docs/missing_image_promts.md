@@ -397,32 +397,3 @@
 ## Здания города
 
 Все 14 зданий нарисованы.
-
-## Поле боя и карта: факелы и жаровни (Ледяной грот)
-
-Сверху вниз, без фона (прозрачный PNG), 512 × 512, вид сверху под углом, как остальные объекты поля боя.
-
-### Факел горит — `field/torch-on`
-
-> `top-down three-quarter view of a wooden torch with oil-soaked rags burning with a bright orange flame and sparks, transparent background, hand-painted dark fantasy game asset, painterly, square 1:1, no text`
-
-### Факел погас — `field/torch-off`
-
-> `top-down three-quarter view of an extinguished wooden torch with charred blackened rags and a thin wisp of smoke, transparent background, hand-painted dark fantasy game asset, painterly, square 1:1, no text`
-
-### Имперская жаровня горит — `field/brazier-on`
-
-> `top-down three-quarter view of an old bronze imperial brazier on three legs with an eagle emblem, burning brightly with orange flames and warm glow, frost around its base melting, transparent background, hand-painted dark fantasy game asset, painterly, square 1:1, no text`
-
-### Имперская жаровня погасла — `field/brazier-off`
-
-> `top-down three-quarter view of an old bronze imperial brazier on three legs with an eagle emblem, cold and extinguished, grey ash and icicles hanging from the rim, transparent background, hand-painted dark fantasy game asset, painterly, square 1:1, no text`
-
-### Огромная жаровня горит — `field/big-brazier-on`
-
-> `top-down three-quarter view of a huge ancient bronze fire bowl on a stone pedestal, roaring tall flames and embers, strong warm light, transparent background, hand-painted dark fantasy game asset, painterly, square 1:1, no text`
-
-### Огромная жаровня погасла — `field/big-brazier-off`
-
-> `top-down three-quarter view of a huge ancient bronze fire bowl on a stone pedestal, extinguished, cold ash, frost creeping over the rim, transparent background, hand-painted dark fantasy game asset, painterly, square 1:1, no text`
-

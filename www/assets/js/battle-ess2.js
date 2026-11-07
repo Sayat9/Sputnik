@@ -2413,7 +2413,7 @@
     if (litNear(u, 1)) await B.addCold(u, -1);
   };
   // нарисованные картинки факелов и жаровен (assets/field/*.webp), когда они появятся в RASTER, заменяют SVG на поле боя
-  if (typeof RASTER !== "undefined") for (const [t, f] of [["brazier", "brazier-off"], ["brazierLit", "brazier-on"], ["bigBrazier", "big-brazier-on"], ["bigBrazierOut", "big-brazier-off"]]) if (RASTER.has("field/" + f)) D.SVG[t] = `<image href="assets/field/${f}.webp" x="0" y="0" width="100" height="100"/>`;
+  for (const [t, f] of [["brazier", "brazier-off"], ["brazierLit", "brazier-on"], ["bigBrazier", "big-brazier-on"], ["bigBrazierOut", "big-brazier-off"]]) D.SVG[t] = `<image href="${typeof artPath === "function" ? artPath("field/" + f) : "assets/field/" + f + ".svg"}" x="0" y="0" width="100" height="100"/>`;          // рисунки assets/field/*.svg (07.11)
   Object.assign(D.essCd, { "ice-imp": 3, "frost-beetle": 3, "snow-hunter": 3, "ice-spirit": 3, "mammoth-calf": 3, "ice-deer": 4, "half-troll": 4 });
   Object.assign(D.monTune, {
     "ice-imp": { role: "skirmish", focus: ["weak", "nearest"], fleeHp: 0.25 }, "frost-beetle": { role: "brute", focus: ["cluster", "nearest"], noFlee: true },

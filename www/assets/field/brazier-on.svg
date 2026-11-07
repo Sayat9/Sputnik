@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><linearGradient id="b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d8a84a"/><stop offset="1" stop-color="#7a5a26"/></linearGradient><radialGradient id="g"><stop offset="0" stop-color="#ffcf70" stop-opacity=".55"/><stop offset="1" stop-color="#ff8a20" stop-opacity="0"/></radialGradient><linearGradient id="f" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#ff6a1a"/><stop offset=".6" stop-color="#ffb43a"/><stop offset="1" stop-color="#fff0a0"/></linearGradient></defs>
+<circle cx="50" cy="40" r="46" fill="url(#g)"/>
+<ellipse cx="50" cy="90" rx="32" ry="6" fill="#000" opacity=".3"/>
+<path d="M36 62 L26 90 M64 62 L74 90 M50 64 V90" stroke="#2e2416" stroke-width="5" stroke-linecap="round"/>
+<path d="M14 38 H86 L72 64 H28 Z" fill="url(#b)" stroke="#221a10" stroke-width="3.5" stroke-linejoin="round"/>
+<path d="M20 44 H80" stroke="#ffe0a0" stroke-width="2.5" opacity=".8"/>
+<circle cx="50" cy="53" r="6" fill="#8a6a30" stroke="#221a10" stroke-width="2"/><path d="M46 53 L50 49 L54 53 L50 57Z" fill="#ffe0a0"/>
+<path d="M22 38 Q16 20 32 6 Q34 22 44 14 Q48 2 56 0 Q58 18 66 10 Q84 22 78 38 Z" fill="url(#f)" stroke="#c84a10" stroke-width="1.5"/>
+<path d="M36 38 Q34 26 44 18 Q48 30 56 22 Q64 30 62 38Z" fill="#fff4b0"/>
+<circle cx="30" cy="10" r="1.6" fill="#ffd060"/><circle cx="70" cy="6" r="1.4" fill="#ffd060"/><circle cx="52" cy="-2" r="1.2" fill="#ffe080"/>
+</svg>

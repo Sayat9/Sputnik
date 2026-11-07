@@ -1,5 +1,5 @@
 {
- "version": 1794081005,
+ "version": 1794082767,
  "files": [
   "assets/buildings/academy.webp",
   "assets/buildings/arena.webp",
@@ -35,6 +35,12 @@
   "assets/events/travelers.webp",
   "assets/events/treasure.svg",
   "assets/events/treasure.webp",
+  "assets/field/big-brazier-off.svg",
+  "assets/field/big-brazier-on.svg",
+  "assets/field/brazier-off.svg",
+  "assets/field/brazier-on.svg",
+  "assets/field/torch-off.svg",
+  "assets/field/torch-on.svg",
   "assets/items/armor-chainmail.svg",
   "assets/items/armor-chainmail.webp",
   "assets/items/armor-hide.svg",
@@ -487,6 +493,12 @@
   "assets/events/travelers.webp": "90dc18a68c50968349db1267d999e828",
   "assets/events/treasure.svg": "b9cb168bd1f3149dc9b87b63bf2bac37",
   "assets/events/treasure.webp": "e794485001fa0c0b2382d19bd0279769",
+  "assets/field/big-brazier-off.svg": "27b3ac74408ea7c15cbfa98c2789e42e",
+  "assets/field/big-brazier-on.svg": "6b2bbbce1b16553a0bba0d5596076191",
+  "assets/field/brazier-off.svg": "34fece185d0b52a16236049817ff5078",
+  "assets/field/brazier-on.svg": "d44ed7eda5cdad1e07ab7d2caa045919",
+  "assets/field/torch-off.svg": "95730957bb169d9848376848bbd5e944",
+  "assets/field/torch-on.svg": "6d0c760dd124f952a12f080db9999cac",
   "assets/items/armor-chainmail.svg": "e40e4fb1059d07ed20cf160cba2800fc",
   "assets/items/armor-chainmail.webp": "67eac83ed73a977c377f2c950b002ec3",
   "assets/items/armor-hide.svg": "80ce5c64bc16c2d2f1073cd7707b7b4f",
@@ -620,7 +632,7 @@
   "assets/js/battle-end.js": "bfd9f19cf05ddb9834199217fbbfa5d7",
   "assets/js/battle-env.js": "7e63eef65f598d626b6315440641421d",
   "assets/js/battle-ess.js": "75cf12f2af63344fec6fac141b967330",
-  "assets/js/battle-ess2.js": "5fd5fb55099dffca33528b4e28892f5a",
+  "assets/js/battle-ess2.js": "8aafb347760c3ac6b900e28693747728",
   "assets/js/battle-ext.js": "9537dc61e0be9892da70beb794fddaee",
   "assets/js/battle-menu.js": "9ef1a09aff801ecb86a42089683c4501",
   "assets/js/battle-net.js": "f8172bd74527ba982fd73ea9ac71dbf3",
@@ -902,6 +914,6 @@
   "fonts/f8.woff2": "6cc1ee17091d59eb93821c3594e8f38f",
   "fonts/f9.woff2": "070433480b7b645f69b543f284e386ce",
   "fonts/fonts.css": "1585a72a8d157b26cb424ab433fd4e19",
-  "index.html": "00afbada0eb535cdfad60ed6037d7331"
+  "index.html": "17150eaf644e3eeaecb3858b1b2d204b"
  }
 }
