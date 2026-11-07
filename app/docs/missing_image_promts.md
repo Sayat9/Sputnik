@@ -58,6 +58,42 @@
 
 > `full-body a huge savage half-troll with grey-blue warty skin, frost on his shoulders, a jaw rimed with ice and a massive club wrapped in ice, standing beside a giant blazing bronze brazier in a frozen cave, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
 
+### Стервятник-падальщик — `monsters/sand-vulture-full`
+
+> `full-body a scrawny bald desert vulture with ragged dusty feathers and a hooked beak, desert of quicksand and sinking ancient beacons, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Малый скорпион — `monsters/sand-scorpion-full`
+
+> `full-body a dog-sized sand-coloured scorpion with thick chitin plates and a dripping stinger, desert of quicksand and sinking ancient beacons, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Личинка песчаного червя — `monsters/worm-larva-full`
+
+> `full-body a pale segmented sand worm larva with a round toothy maw bursting out of the sand, desert of quicksand and sinking ancient beacons, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Взрослый песчаный червь — `monsters/sand-worm-full`
+
+> `full-body a huge segmented sandworm with armored ochre plates rearing out of a dune, ring of teeth, desert of quicksand and sinking ancient beacons, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Большое жало — `monsters/big-stinger-full`
+
+> `full-body a giant black-and-amber scorpion with a long barbed tail dripping green venom, desert of quicksand and sinking ancient beacons, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Псевдокактус — `monsters/pseudo-cactus-full`
+
+> `full-body a monstrous cactus creature with thorny arms and a hidden mouth among the spines, half disguised as a normal cactus, desert of quicksand and sinking ancient beacons, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Миражный скорпион — `monsters/mirage-scorpion-full`
+
+> `full-body a large translucent scorpion shimmering like a heat mirage, with ghostly duplicate silhouettes around it, desert of quicksand and sinking ancient beacons, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Стервятник мёртвых земель — `monsters/dead-vulture-full`
+
+> `full-body a gigantic storm vulture with dark tattered wings, bone-white skull head and hooked iron-like talons, sandstorm behind, desert of quicksand and sinking ancient beacons, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Кель адской пустыни — `monsters/kel-worm-full`
+
+> `full-body a colossal infernal desert worm with glowing magma cracks between armored segments, a vast maw erupting from cracking sand, sandstorm and beacons sinking in the dunes, desert of quicksand and sinking ancient beacons, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
 ### Раб крови — `monsters/blood-slave-full`
 
 > `full-body an emaciated pale undead slave in chains with drained grey skin and hollow red eyes, blood-soaked gothic fortress and dark sewers with red torchlight, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`

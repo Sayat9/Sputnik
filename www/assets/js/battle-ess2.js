@@ -2481,5 +2481,145 @@
       if (r && r.hit && alive(t) && !t.down) { const sv = await save(t, "con", dcOf(u, "str"), "Ледяная дубина", [], u); if (!sv.ok && alive(t)) { addStatus(t, "iced", { k: Infinity, data: { dc: dcOf(u, "str") } }); fx(t, "обледенение", "bad"); log(`${t.name} покрывается льдом: −2 клетки движения, помеха на Силу и Ловкость, пока не стряхнёт (Телосложение в начале хода).`, "bad"); } } return !(r && r.cancelled); },
     ai(u) { const ts = within(u, 1); return ts.length ? { unit: ts.sort((a, b) => a.hp - b.hp)[0], score: 15 } : null; },
   };
+  /* ===== Разлом «Зыбучие пески» (07.11): зыбучий песок, урон «земля», 9 монстров ===== */
+  // Зыбучий песок: вошёл — Ловкость Сл 12, провал — увяз до конца следующего хода; 3 хода подряд в песке — 1к6.
+  B.sandEnter = async u => { if (!alive(u) || u.down || has(u, "sunk")) return; const sv = await save(u, "dex", 12, "Зыбучий песок", [], null); if (!sv.ok && alive(u)) { addStatus(u, "sunk", { k: 2, when: "end" }); fx(u, "увяз", "bad"); log(`${u.name} увязает в зыбучем песке.`, "bad"); } };
+  const prevColdTE2 = B.coldTurnEnd;
+  B.coldTurnEnd = async u => {
+    const t = B.tinfo && B.tinfo(u.x, u.y);
+    if (t && t.sand && !B.isFlying(u) && alive(u) && !u.down) { u.sandTurns = (u.sandTurns || 0) + 1; if (u.sandTurns >= 3) { log(`${u.name} тонет в песке.`, "bad"); await B.applyDamage(null, u, [{ v: roll(1, 6).total, dt: "bludgeon", label: "Зыбучий песок" }], { pure: true }); } }
+    else u.sandTurns = 0;
+    return prevColdTE2(u);
+  };
+  const prevRoundSand = B.onRound;
+  B.onRound = function (round) { if (prevRoundSand) prevRoundSand.apply(this, arguments); const S = B.S; if (!S || !S.tmpSand) return;
+    for (const [k, v] of Object.entries(S.tmpSand)) { if (--v.left <= 0) { const [x, y] = k.split(",").map(Number); if (S.cells[y] && S.cells[y][x] === "quicksand") S.cells[y][x] = v.old || ""; delete S.tmpSand[k]; } } };
+  const freeNear = (u, t) => { for (const [dx, dy] of [[0, 1], [1, 0], [-1, 0], [0, -1], [1, 1], [-1, 1], [1, -1], [-1, -1], [0, 2], [2, 0], [-2, 0], [0, -2]]) { const x = t.x + dx, y = t.y + dy; if (B.inB(x, y) && B.canStand(u, x, y)) return [x, y]; } return null; };
+  Object.assign(D.essCd, { "sand-vulture": 3, "sand-scorpion": 3, "worm-larva": 3, "sand-worm": 3, "big-stinger": 3, "pseudo-cactus": 5, "mirage-scorpion": 4, "dead-vulture": 3, "kel-worm": 4 });
+  Object.assign(D.monTune, {
+    "sand-vulture": { role: "skirmish", focus: ["weak", "nearest"], fleeHp: 0.3 }, "sand-scorpion": { role: "brute", focus: ["nearest"], fleeHp: 0.25 },
+    "worm-larva": { role: "brute", focus: ["nearest"], hide: true, still: true, noFlee: true }, "sand-worm": { role: "brute", focus: ["weak", "nearest"], noFlee: true },
+    "big-stinger": { role: "brute", focus: ["weak", "nearest"], noFlee: true }, "pseudo-cactus": { role: "brute", focus: ["nearest"], hide: true, still: true, noFlee: true },
+    "mirage-scorpion": { role: "skirmish", focus: ["weak", "nearest"], noFlee: true }, "dead-vulture": { role: "brute", focus: ["weak", "nearest"], noFlee: true }, "kel-worm": { role: "brute", focus: ["cluster", "nearest"], noFlee: true },
+  });
+  /* Стервятник-падальщик (9) */
+  P["sand-vulture"] = { attackMods(u, ctx) { if (ctx.tgt && ctx.tgt.hp < ctx.tgt.maxHp / 2 && ctx.adv) ctx.adv.push("чуткий нюх"); } };
+  A["sand-vulture"] = {
+    time: "action", tgt(u) { return specUnit(u, "Клевок в глаза: кого?", within(u, 1), cellsAround(u, 1), "attack"); }, can(u) { return within(u, 1).length ? true : "никого рядом"; },
+    async run(u, pk, ctl) { const a = atkFor(u, "melee"), t = pk.unit; if (!a || !t) return false; const r = await B.doAttack(u, t, a, { onCommit: () => ctl.commit() }); if (r && r.hit && alive(t) && !t.down) { const sv = await save(t, "con", dcOf(u, "dex"), "Клевок в глаза", [], u); if (!sv.ok) { addStatus(t, "pecked", { k: 2, when: "end" }); fx(t, "клевок в глаза", "bad"); } } return !(r && r.cancelled); },
+    ai(u) { const ts = within(u, 1); return ts.length ? { unit: ts[0], score: 9 } : null; },
+  };
+  /* Малый скорпион (9) */
+  P["sand-scorpion"] = { dmgFlat(u, { o, v }) { return o && o.ctx && o.ctx.atk && o.ctx.atk.kind === "ranged" && v > 0 ? -1 : 0; } };
+  A["sand-scorpion"] = {
+    time: "action", tgt(u) { return specUnit(u, "Ядовитое жало: кого?", within(u, 1), cellsAround(u, 1), "attack"); }, can(u) { return within(u, 1).length ? true : "никого рядом"; },
+    async run(u, pk, ctl) { const a = atkFor(u, "melee"), t = pk.unit; if (!a || !t) return false; const r = await B.doAttack(u, t, a, { extra: [{ n: 1, s: 6, b: 0, dt: "poison", label: "Ядовитое жало" }], onCommit: () => ctl.commit() }); if (r && r.hit && alive(t) && !t.down) { const sv = await save(t, "con", dcOf(u, "con"), "Ядовитое жало", ["poison"], u); if (!sv.ok && alive(t)) addStatus(t, "poisoned", { k: 2, when: "end" }); } return !(r && r.cancelled); },
+    ai(u) { const ts = within(u, 1); return ts.length ? { unit: ts[0], score: 10 } : null; },
+  };
+  /* Личинка песчаного червя (9) — «Спячка в песке»: монстр прячется в начале боя (hide), герой с эссенцией — тоже (battle.js preStart) */
+  P["worm-larva"] = {};
+  A["worm-larva"] = {
+    time: "action", tgt(u) { return specUnit(u, "Плевок песком: в кого?", foesIn(u, 3), B.cellsWithin(u, 3), "attack"); }, can(u) { return foesIn(u, 3).length ? true : "нет цели в 3 клетках"; },
+    async run(u, pk, ctl) { const t = pk.unit; if (!t) return false; ctl.commit(); const sv = await save(t, "dex", dcOf(u, "con"), "Плевок песком", [], u); if (!sv.ok && alive(t)) { addStatus(t, "blinded", { k: 2, when: "end" }); fx(t, "ослеплён", "bad"); } return true; },
+    ai(u) { const ts = foesIn(u, 3).filter(t => !has(t, "blinded")); return ts.length ? { unit: ts[0], score: 8 } : null; },
+  };
+  /* Взрослый песчаный червь (8): пассивка эссенции «Сейсмическое чутьё»; у монстра — уход под песок (особенность) */
+  P["sand-worm"] = { noSurprise() { return true; }, defendMods(t, ctx) { if (ctx && ctx.adv && ctx.att && dist(t, ctx.att) <= 3) ctx.adv = ctx.adv.filter(a => !/затаил|скрыт|невидим|маскир|из укрытия|не замечен/i.test(String(a))); } };
+  const wormJump = async (u, t) => { const c = freeNear(u, t); if (!c) return false; removeStatus(u, "underground"); await B.teleport(u, c[0], c[1]); return true; };
+  P["body:sand-worm"] = { async turnStartAsync(u) {
+    const S = B.S; if (has(u, "underground")) { const ts = enemiesOf(u).filter(e => alive(e) && !e.down); const t = ts.sort((a, b) => a.hp - b.hp)[0]; if (t && await wormJump(u, t)) log(`${u.name} выныривает из песка рядом с ${t.name}!`, "bad"); else removeStatus(u, "underground"); u.wormOut = S.round; return; }
+    if (S.round >= 2 && S.round - (u.wormOut || 0) >= 2 && !within(u, 1).length) { addStatus(u, "underground", { k: Infinity }); log(`${u.name} уходит под песок.`, "skill"); fx(u, "под песком", ""); B.spendTime(u, "action"); B.spendTime(u, "bonus"); if (u.t) u.t.move = 0; } } };
+  A["sand-worm"] = {
+    time: "action", tgt(u) { return specUnit(u, "Песчаный рывок: к кому?", foesIn(u, 4), B.cellsWithin(u, 4), "attack"); }, can(u) { return foesIn(u, 4).length ? true : "нет цели в 4 клетках"; },
+    async run(u, pk, ctl) { const t = pk.unit; if (!t) return false; ctl.commit(); if (dist(u, t) > 1 && !(await wormJump(u, t))) { log(`${u.name}: рядом с ${t.name} негде вынырнуть.`); return true; }
+      log(`${u.name} выныривает из песка под ${t.name}.`, "skill"); await B.applyDamage(u, t, [{ v: roll(2, 6).total, dt: "bludgeon", label: "Песчаный рывок" }], { src: u }); if (alive(t) && !t.down) { const sv = await save(t, "str", dcOf(u, "str"), "Песчаный рывок", ["prone"], u); if (!sv.ok && alive(t)) addStatus(t, "prone", { k: Infinity }); } return true; },
+    ai(u) { const ts = foesIn(u, 4).filter(t => dist(u, t) > 1); return ts.length ? { unit: ts[0], score: 12 } : null; },
+  };
+  /* Большое жало (8) */
+  P["big-stinger"] = { onHitDealt(u, { tgt }) { if (tgt && has(tgt, "poisoned") && !has(tgt, "slowed")) addStatus(tgt, "slowed", { k: 2, when: "end", data: { add: -1 } }); } };
+  P["body:big-stinger"] = { onHitDealt(u, { tgt, atk }) { if (!tgt || !alive(tgt) || tgt.down || !atk || atk.kind !== "melee") return; B.queue(async () => { if (!alive(tgt) || tgt.down) return; await B.applyDamage(u, tgt, [{ v: roll(1, 6).total, dt: "poison", label: "Яд хвоста" }], { src: u, noAbilParts: true }); if (!alive(tgt) || tgt.down) return; const sv = await save(tgt, "con", dcOf(u, "con"), "Яд хвоста", ["poison"], u); if (!sv.ok && alive(tgt)) addStatus(tgt, "poisoned", { k: 2, when: "end" }); }); } };
+  A["big-stinger"] = {
+    time: "action", tgt(u) { return specUnit(u, "Пронзающий хвост: кого?", foesIn(u, 2), B.cellsWithin(u, 2), "attack"); }, can(u) { return foesIn(u, 2).length ? true : "нет цели в 2 клетках"; },
+    async run(u, pk, ctl) { const a0 = atkFor(u, "melee"), t = pk.unit; if (!a0 || !t) return false; const a = { ...a0, reach: Math.max(2, a0.reach || 1), n: "Пронзающий хвост" }; u.pierceTail = true; const r = await B.doAttack(u, t, a, { onCommit: () => ctl.commit() }); u.pierceTail = false; return !(r && r.cancelled); },
+    ai(u) { const ts = foesIn(u, 2); return ts.length ? { unit: ts.sort((a, b) => (b.prot || 0) - (a.prot || 0))[0], score: 11 } : null; },
+  };
+  const prevStingAtk = P["big-stinger"].attackMods;
+  P["big-stinger"].attackMods = function (u, ctx) { if (prevStingAtk) prevStingAtk(u, ctx); if (u.pierceTail) ctx.protIgnore = (ctx.protIgnore || 0) + 2; };
+  /* Псевдокактус (8) */
+  P["pseudo-cactus"] = {
+    async onDamagedAsync(u, { src, o, total }) {
+      if (has(u, "spinestance") && o && (o.splash || o.area || (o.parts && o.parts.some(p => p.dt === "fire")) || (o.ctx && o.ctx.total >= 20))) { removeStatus(u, "spinestance"); log(`Колючая стойка ${u.name} сбита.`, "good"); }
+      if (!src || !alive(src) || !(o && o.melee) || u.spikeRound2 === B.S.round) return; u.spikeRound2 = B.S.round; await B.applyDamage(u, src, [{ v: roll(1, 4).total, dt: "pierce", label: "Колючки" }], { src: u, noAbilParts: true }); },
+    async hitTaken(u, { att, res }) { if (has(u, "spinestance") && res && res.total >= 20) { removeStatus(u, "spinestance"); log(`Колючая стойка ${u.name} сбита сильным ударом.`, "good"); } },
+    attackDone: null,
+  };
+  // ответный удар в стойке: любой, кто атаковал кактус и стоит в его досягаемости, получает обычную атаку оружием
+  const prevMissed = P["pseudo-cactus"].onMissedBy;
+  const spineCounter = (u, att) => { if (!has(u, "spinestance") || !att || !alive(att) || att.side === u.side) return; B.queue(async () => { if (!alive(u) || u.down || !alive(att) || att.down || !has(u, "spinestance")) return; const a = atkFor(u, "melee"); if (!a || dist(u, att) > (a.reach || 1)) return; log(`${u.name} отвечает ударом из колючей стойки.`, "skill"); await B.doAttack(u, att, a, {}); }); };
+  P["pseudo-cactus"].onMissedBy = function (u, c) { if (prevMissed) prevMissed(u, c); spineCounter(u, c && c.att); };
+  const prevHT = P["pseudo-cactus"].hitTaken;
+  P["pseudo-cactus"].hitTaken = async function (u, c) { await prevHT(u, c); spineCounter(u, c && c.att); };
+  A["pseudo-cactus"] = {
+    time: "action", tgt() { return { type: "none" }; }, can(u) { return has(u, "spinestance") ? "уже в стойке" : true; },
+    async run(u, pk, ctl) { ctl.commit(); addStatus(u, "spinestance", { k: Infinity, data: { prot: 3, endAtEndOf: u.id, endTurnNo: u.turnsTaken + 1 } }); fx(u, "колючая стойка", "good"); log(`${u.name} ощетинивается иглами: +3 Защиты и ответный удар каждому, кто атакует.`, "skill"); return true; },
+    ai(u) { return within(u, 1).length >= 1 && !has(u, "spinestance") ? { score: 13 } : null; },
+  };
+  /* Миражный скорпион (7, минибосс): под скрытность + копьё/посох */
+  P["mirage-scorpion"] = {
+    reactHit(u, ctx) { if (u.mirageUsed) return false; u.mirageUsed = true; log(`${u.name}: удар уходит в песчаного двойника!`, "good"); fx(u, "мираж", "good"); return true; },
+    attackMods(u, ctx) { const w = ctx.atk && ctx.atk.w; if (has(u, "hidden") && (u.side !== "hero" || (w && /spear|staff|pike/.test(w.id || "")))) ctx.mods.push({ l: "Песчаный двойник", v: 2 }); },
+  };
+  A["mirage-scorpion"] = {
+    time: "bonus", tgt(u) { return { type: "cell", prompt: "Обманка: куда перенестись?", cells: B.cellsWithin(u, 3).filter(([x, y]) => B.canStand(u, x, y)), kind: "move" }; }, can() { return true; },
+    async run(u, pk, ctl) { let c = pk.cell; if (!c) { const cs = B.cellsWithin(u, 3).filter(([x, y]) => B.canStand(u, x, y)); c = cs[Math.floor(Math.random() * cs.length)]; } if (!c) return false; ctl.commit(); await B.teleport(u, c[0], c[1]); addStatus(u, "hidden", { k: Infinity, data: { unseen: true, dc: 10 + dcOf(u, "dex") - 8 } }); fx(u, "растворился в мареве", "good"); log(`${u.name} растворяется в мареве.`, "skill"); return true; },
+    ai(u) { return !has(u, "hidden") && u.hp < u.maxHp * 0.7 ? { score: 9 } : null; },
+  };
+  /* Стервятник мёртвых земель (7, минибосс): тяжёлое оружие с замахом */
+  P["dead-vulture"] = {
+    onHitDealt(u, { tgt, atk }) {
+      if (!tgt || !heavyMelee(u, atk)) return;
+      if (has(u, "hookreach") && alive(tgt) && !tgt.down && dist(u, tgt) > 1) B.queue(async () => { if (alive(tgt) && !tgt.down && dist(u, tgt) > 1) { await B.pullAdjacent(tgt, u); fx(tgt, "притянут", "bad"); } });
+      const side = enemiesOf(u).find(e => e !== tgt && alive(e) && !e.down && dist(e, tgt) <= 1); if (!side || u.stormRound === B.S.round) return; u.stormRound = B.S.round;
+      B.queue(async () => { if (alive(side) && !side.down) await B.applyDamage(u, side, [{ v: Math.max(1, Math.floor(roll(atk.dmg ? atk.dmg.n || 1 : 1, atk.dmg ? atk.dmg.s || 6 : 6).total / 2 + 1)), dt: atk.dt || "slash", label: "Крылья бури" }], { src: u, noAbilParts: true }); });
+    },
+  };
+  A["dead-vulture"] = {
+    time: "bonus", tgt() { return { type: "none" }; }, can(u) { return has(u, "hookreach") ? "уже действует" : true; },
+    async run(u, pk, ctl) { ctl.commit(); addStatus(u, "hookreach", { k: Infinity, data: { endAtEndOf: u.id, endTurnNo: u.turnsTaken } }); fx(u, "когти-крючья", "good"); log(`${u.name}: до конца хода досягаемость +1, задетого издалека притянет.`, "skill"); return true; },
+    ai(u) { return !has(u, "hookreach") && !within(u, 1).length && foesIn(u, 2).length ? { score: 10 } : null; },
+  };
+  const prevAttacksOfSand = B.attacksOf;
+  B.attacksOf = u => { const list = prevAttacksOfSand(u); return has(u, "hookreach") ? list.map(a => a.kind === "melee" ? { ...a, reach: (a.reach || 1) + 1 } : a) : list; };
+  /* Кель адской пустыни (7, страж): эссенция — маг земли; монстр — ныряет и выныривает по подсвеченной зоне */
+  P["kel-worm"] = { abilityParts(u, { tgt, parts, o }) { if (!tgt || tgt === u || tgt.side === u.side || o.kelDone || !parts.some(p => p.v > 0)) return; o.kelDone = true; parts.push({ v: roll(1, 6).total, dt: "earth", label: "Сердце пустыни" }); if (alive(tgt)) addStatus(tgt, "slowed", { k: 1, when: "end", data: { add: -1 } }); } };
+  const kelZone = (S, cx, cy) => { const cells = []; for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) if (B.inB(cx + dx, cy + dy)) cells.push([cx + dx, cy + dy]); return cells; };
+  P["body:kel-worm"] = { async turnStartAsync(u) {
+    const S = B.S;
+    if (has(u, "underground") && u.kelMark) {
+      const { x: cx, y: cy, cells } = u.kelMark; S.zones = (S.zones || []).filter(z => z.id !== "kel" + u.id); u.kelMark = null; removeStatus(u, "underground");
+      let spot = null; for (let r = 1; r <= 4 && !spot; r++) for (let oy = -r; oy <= r && !spot; oy++) for (let ox = -r; ox <= r && !spot; ox++) { const x = cx - 1 + ox, y = cy - 1 + oy; if (x >= 0 && y >= 0 && B.canStand(u, x, y)) spot = [x, y]; }
+      const victims = live().filter(o => o !== u && cells.some(([x, y]) => footprint(o).some(([fx2, fy]) => fx2 === x && fy === y)));
+      if (spot) await B.teleport(u, spot[0], spot[1]);
+      log(`${u.name} вырывается из песка!`, "bad"); const g = ui(); if (g) g.banner("Кель вынырнул!");
+      for (const t of victims) if (alive(t) && t !== u) await saveDmg(u, t, "dex", dcOf(u, "str"), [3, 8], "bludgeon", "Кель выныривает");
+      for (const t of live().filter(o => o !== u && o.side !== u.side && dist(u, o) <= 1)) if (alive(t)) await B.applyDamage(u, t, [{ v: roll(1, 8).total, dt: "bludgeon", label: "Удар телом" }], { src: u, splash: true, noAbilParts: true });
+      u.kelOut = S.round; return;
+    }
+    if (S.round >= 2 && S.round - (u.kelOut || 0) >= 2 && !has(u, "underground")) {
+      const ts = enemiesOf(u).filter(e => alive(e) && !e.down); if (!ts.length) return; const t = ts[Math.floor(Math.random() * ts.length)];
+      const cells = kelZone(S, t.x, t.y); u.kelMark = { x: t.x, y: t.y, cells }; (S.zones ||= []).push({ id: "kel" + u.id, kind: "kel", cells });
+      addStatus(u, "underground", { k: Infinity }); log(`${u.name} уходит под песок — земля дрожит у ${t.name} (подсвечено, где он вынырнет).`, "bad");
+      B.spendTime(u, "action"); B.spendTime(u, "bonus"); if (u.t) u.t.move = 0;
+    } } };
+  A["kel-worm"] = {
+    time: "action", tgt(u) { return specUnit(u, "Разлом земли: в сторону кого?", foesIn(u, 4), B.cellsWithin(u, 4), "attack"); }, can(u) { return foesIn(u, 4).length ? true : "нет цели в 4 клетках"; },
+    async run(u, pk, ctl) { const t = pk.unit; if (!t) return false; ctl.commit(); const S = B.S, c = B.center ? B.center(u) : { x: u.x, y: u.y }; const sx = Math.sign(t.x - u.x), sy = Math.sign(t.y - u.y); const cells = [];
+      let x = u.x, y = u.y; for (let i = 0; i < 4; i++) { x += sx; y += sy; if (!B.inB(x, y)) break; cells.push([x, y]); }
+      log(`${u.name} раскалывает землю!`, "skill");
+      for (const o of live().filter(o => o !== u && o.side !== u.side && cells.some(([cx, cy]) => footprint(o).some(([fx2, fy]) => fx2 === cx && fy === cy)))) await saveDmg(u, o, "dex", dcOf(u, "int"), [3, 6], "earth", "Разлом земли");
+      for (const [cx, cy] of cells) { const cur = S.cells[cy] && S.cells[cy][cx]; const ti = cur ? D.terrain[cur] : null; if (ti && ti.obstacle) continue; (S.tmpSand ||= {})[cx + "," + cy] = { old: cur || "", left: 2 }; S.cells[cy][cx] = "quicksand"; }
+      const g = ui(); if (g) g.refresh(); return true; },
+    ai(u) { const ts = foesIn(u, 4); return ts.length >= 1 ? { unit: ts[0], score: 11 } : null; },
+  };
   B.fillActiveTimes();
 })();

@@ -388,3 +388,6 @@ body.bt-active .dice-fab { display: none; }
 /* Ледяной грот: тёплые клетки у жаровен и тёплое поле от огромной жаровни (07.11) */
 .bt-zcell.k-warm { background: radial-gradient(circle, rgb(255 170 70 / .32), rgb(255 140 40 / .12)); box-shadow: inset 0 0 0 1px rgb(255 190 110 / .45); }
 .bt-warmall { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 100%, rgb(255 160 60 / .22), rgb(255 140 40 / .06) 70%, transparent); pointer-events: none; }
+
+.bt-zcell.k-kel { background: repeating-linear-gradient(45deg, rgb(200 120 40 / .35) 0 6px, rgb(120 70 20 / .2) 6px 12px); box-shadow: inset 0 0 0 2px rgb(255 160 60 / .7); animation: kelpulse 1s ease-in-out infinite alternate; }
+@keyframes kelpulse { from { opacity: .55; } to { opacity: 1; } }

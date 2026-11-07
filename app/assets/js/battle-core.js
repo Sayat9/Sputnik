@@ -228,7 +228,7 @@
     if (!D.mon[id] && m && m.abil && m.traits && D.deriveMon) D.mon[id] = D.deriveMon(m);          // 2 этаж: боевая запись из статблока
     const cb = D.mon[id] || { atk: [], ai: { int: 1, role: "melee", focus: ["nearest"] } };
     const u = baseUnit("mon"), sp = parseSpeed(m.speed);
-    Object.assign(u, { ref: id, idx, name: m.name, base: m.name, mon: m, cb, ai: cb.ai || {}, size: cb.size || (/^Большой/.test(m.size) ? 2 : 1), hp: Math.round(parseInt(m.hp, 10) * (D.monHpMult || 1)), maxHp: Math.round(parseInt(m.hp, 10) * (D.monHpMult || 1)), ac: m.dodge != null ? m.dodge : parseInt(m.ac, 10), prot: m.prot || 0,          // Уворот и Защита монстра (02.11)
+    Object.assign(u, { ref: id, idx, name: m.name, base: m.name, mon: m, cb, ai: cb.ai || {}, size: cb.size || (/^Огромн/.test(m.size) ? 3 : /^Большой/.test(m.size) ? 2 : 1), hp: Math.round(parseInt(m.hp, 10) * (D.monHpMult || 1)), maxHp: Math.round(parseInt(m.hp, 10) * (D.monHpMult || 1)), ac: m.dodge != null ? m.dodge : parseInt(m.ac, 10), prot: m.prot || 0,          // Уворот и Защита монстра (02.11)
      
       speedC: cellsOfM(sp.walk), flyC: cellsOfM(sp.fly), climbC: cellsOfM(sp.climb), atk: (cb.atk || []).map(a => { const dm = parseDice(a.dmg), cut = (D.monDmgCut[m.cls] || 0) - (D.monDmgPerCls || 0) * Math.max(0, 9 - (m.cls || 9)); const bo = m.boost || {}; return { ...a, hit: (a.hit || 0) + (bo.hit || 0), dmg: { ...dm, b: Math.max(0, dm.b - cut) + (bo.dmg || 0) } }; }),          // m.boost — точечное усиление (MON_BOOST)
       seq: cb.seq || null, vuln: cb.vuln || [],
@@ -284,7 +284,7 @@
     let sp = Math.max(u.speedC, u.flyC) + hookSum(u, "speedBonus", {});
     if (B.S && B.S.units) for (const e of enemiesOf(u)) sp -= hookSum(e, "slowAura", { u });          // «Тяжёлые цепи» палача: враги рядом теряют скорость                       // бонус к скорости («Лёгкие ноги») — до замедления, как строка статов
     for (const c of u.conds) {
-      if (["grappled", "restrained", "pinned", "trapped", "spearstop", "bastion", "unconscious", "stable", "buried", "paralyzed", "underground", "mired", "encased"].includes(c.id)) return 0;
+      if (["grappled", "restrained", "pinned", "trapped", "spearstop", "bastion", "unconscious", "stable", "buried", "paralyzed", "underground", "mired", "encased", "sunk"].includes(c.id)) return 0;
     }
     for (const c of u.conds) if (c.id === "packhowl") sp += 1;
     for (const c of u.conds) if (c.id === "iced") sp -= 2;          // обледенение (дубина Грольфа)          // «Загонный вой» вожака гончих (03.11)
@@ -465,6 +465,7 @@
     if (ev.place === "Храм изваяний") { let n = 2 + Math.floor(Math.random() * 2); for (let k = 0; k < 40 && n > 0; k++) { const x = Math.floor(Math.random() * B.W), y = 2 + Math.floor(Math.random() * (B.H - 4)); if (S.cells[y] && !S.cells[y][x]) { S.cells[y][x] = "statue"; n--; } } }          // храм: 2–3 изваяния на поле (их оживляет скульптор)
     if ((ev.list || []).includes("fog-lantern")) S.dark = true;          // бой с Фонарщиком: обзор 1 клетка, с факелом 2 (лес −2, тьма −2)
     if (ev.place === "Зона ловушек") { let n = 2 + Math.floor(Math.random() * 2); for (let k = 0; k < 40 && n > 0; k++) { const x = Math.floor(Math.random() * B.W), y = 2 + Math.floor(Math.random() * (B.H - 4)); if (S.cells[y] && !S.cells[y][x] && !S.objs.some(o => o.x === x && o.y === y)) { S.objs.push({ id: "zt" + k, kind: "trap", x, y, dc: 13, hidden: true, owner: "mon", by: null, dmg: "2к6", dt: "pierce", noticed: [] }); n--; } } }          // Зона ловушек: на поле уже взведено 2–3 ловушки
+    if (ev.place === "Зыбучие пески") { let n = 4 + Math.floor(Math.random() * 3); for (let k = 0; k < 80 && n > 0; k++) { const x = Math.floor(Math.random() * B.W), y = 2 + Math.floor(Math.random() * (B.H - 5)); if (S.cells[y] && !S.cells[y][x]) { S.cells[y][x] = "quicksand"; n--; } } }          // зыбучий песок на поле
     if (ev.cold) {          // Ледяной грот: холод героев (общий объект с картой разлома), 2–3 имперские жаровни, у стража — огромная горящая жаровня
       S.cold = ev.cold;
       let n = 2 + Math.floor(Math.random() * 2); for (let k = 0; k < 60 && n > 0; k++) { const x = 1 + Math.floor(Math.random() * (B.W - 2)), y = 2 + Math.floor(Math.random() * (B.H - 5)); if (S.cells[y] && !S.cells[y][x]) { S.cells[y][x] = "brazier"; n--; } }

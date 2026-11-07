@@ -121,6 +121,7 @@
     if (o.splash && src && tgt.hero && B.dodgeSplash && B.dodgeSplash(src, tgt)) return { total: 0, absorbed: 0, notes: ["уклонение"] };          // доспех-мираж: область, где носитель не главная цель
     if (src && src !== tgt && src.side === tgt.side && tgt.hero && B.wearsRing && B.wearsRing(tgt)) { log(`${tgt.name}: кольцо братского духа гасит урон от ${src.name}.`, "good"); return { total: 0, absorbed: 0, notes: ["братский дух"] }; }
     if (src && tgt.hero && o.ctx && o.ctx.atk && o.ctx.atk.kind === "ranged" && !o.noReflect && B.mirrorTry) { const rf = await B.mirrorTry(src, tgt, parts); if (rf) return rf; }          // зеркальный щит
+    if (src && !o.ctx && !o.pure && !o.noAbilParts && parts && parts.length) hookAll(src, "abilityParts", { tgt, parts, o });          // урон умением: «Сердце пустыни» добавляет урон землёй
     const enc = has(tgt, "encased");
     if (enc && parts.length) {          // «Кристальная тюрьма»: урон бьёт по кристаллу; дробящий — двойной; цель не ранена
       const dmg = parts.reduce((a, p) => a + (p.v > 0 ? p.v * (p.dt === "bludgeon" ? 2 : 1) : 0), 0);
@@ -556,6 +557,7 @@
     if (t && t.wet && !fl) { if (!has(u, "wet")) { log(`${u.name} промокает.`); const g = ui(); if (g) g.fxText(u, "промок", ""); } addStatus(u, "wet", { k: 3, when: "end" }); removeStatus(u, "burning"); }
     if (t && t.hazard === "fire" && !fl) { const r = roll(1, 4).total; log(`${u.name} обжигается о костёр: ${r}.`); await applyDamage(null, u, [{ v: r, dt: "fire", label: "Костёр" }], {}); }
     for (const fx of u.size > 1 ? footprint(u) : []) { /* большие существа: местность по якорю */ }
+    if (t && t.sand && !fl && B.sandEnter) await B.sandEnter(u);          // зыбучий песок (Зыбучие пески)
     await trapTrigger(u);
   }
   // Перемещение по пути. Возвращает потраченное и признак прерывания.
