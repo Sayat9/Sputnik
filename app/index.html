@@ -722,6 +722,13 @@ body.forge-open, body.bt-active, body:has(.mapov:not([hidden])), body:has(.bt-ro
 .rf-go { background: #24161a; border: 1px dashed #c45cff; cursor: pointer; }
 .rf-go.rf-seen { background: #3a1f24; }
 .rf-legend { font-size: 11px; text-align: center; opacity: .75; margin: 2px 0 8px; }
+.rf-bar { position: absolute; left: 8px; right: 8px; bottom: 8px; z-index: 4; display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+.rf-bar .fx-btn { font-size: 13px; padding: 8px 10px; display: flex; align-items: center; gap: 6px; }
+.rf-bar .fx-btn svg { width: 18px; height: 18px; }
+#rf-svg { display: block; width: 100%; height: 100%; }
+.rf-title { font: 400 18px/1.1 var(--f-display); text-align: center; }
+.rf-sub { font: 700 10px/1 var(--f-fancy); letter-spacing: .08em; color: var(--fx-muted); text-transform: uppercase; text-align: center; }
+.rf-pill { white-space: nowrap; font-size: 12px; }
 .rf-btns { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
 .rank-chip { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--fx-gold-hi, #f4d48e); margin: 2px 0 6px; }
 .rank-chip svg { flex: none; }
@@ -2371,7 +2378,7 @@ function mimicHoard(c) {
 /*RIFT-BEGIN*/
 // ===== Разломы (спецификация автора 07.11; первая часть: основа + Кровавая крепость). Открываются с 7 ранга отряда (partyRank() ≤ 7).
 // 1 этаж: с 3-го дня до 2-го действия 4-го дня — по порталу в каждой зоне. Внутри разлома время этажа стоит (свой счётчик шагов: голод, усталость, факел);
-// на выходе снаружи проходит 2 дня. Разлом — отдельная карта поверх этажа (riftOverlay), бои — обычные тактические (startSpecial).
+// на выходе снаружи проходит 2 дня. Разлом — свой экран на месте карты этажа (riftStage), бои — обычные тактические (startSpecial).
 const BLOOD_MON = [
   ["blood-slave", 9, "Раб крови", "Средняя нежить", "undead", "11", "13 (3к8)", "6 м", [13, 10, 13, 4, 8, 5], "Тёмное зрение 18 м.",
     [["Подношение", "Иссушённый невольник крепости; умирая, отдаёт остатки крови хозяевам.", "behavior"], ["Укус", "+3 к попаданию, 1к6+1 колющего.", "attacks"]]],
@@ -2508,31 +2515,78 @@ function riftFightDone(e, killed) {
   if (R.minis[e.riftKey] && ids.includes(R.minis[e.riftKey])) R.done[e.riftKey] = true;
   if (ids.includes("death-knight")) { R.bossDead = true; logRun("Мордрейн повержен: сундук стража открыт для отряда."); }
 }
-function riftOverlay() {
-  const r = state.run, R = r.rift, D = RIFTS[R.id], atStart = R.pos.x === R.start.x && R.pos.y === R.start.y, atBoss = R.boss && R.pos.x === R.boss.x && R.pos.y === R.boss.y;
+// Экран разлома (v115): заменяет карту этажа в рамке .stage — камера на отряде, как на обычной карте; полная схема — по кнопке «Карта».
+const riftCanStep = (R, x, y) => riftCell(R, x, y) && Math.abs(x - R.pos.x) + Math.abs(y - R.pos.y) === 1 && !(R.id === "blood" && ((y >= 5 && R.pos.y <= 4) || (y <= 4 && R.pos.y >= 5)));
+function riftMarkOf(R, x, y, seen, near) {
+  const k = tkey(x, y);
+  if (R.descent && x === R.descent.x && y === R.descent.y && (seen || near)) return "descent";
+  if (R.minis[k] && !R.done[k] && (seen || near)) return "mini";
+  if (R.boss && x === R.boss.x && y === R.boss.y) return R.bossDead ? (R.chestOpen ? "open" : "chest") : (seen || near || y === R.h - 1) ? "boss" : "";
+  if (R.start && x === R.start.x && y === R.start.y && seen) return "exit";
+  return "";
+}
+const RIFT_ICO = {
+  descent: `<path d="M-13 -9 H13 L0 12 Z" fill="#c45cff" stroke="#1a0a1e" stroke-width="2"/>`,
+  mini: `<circle r="15" fill="#3a0e12" stroke="#e5806f" stroke-width="2"/><text text-anchor="middle" dominant-baseline="central" font-size="20" fill="#f0d0c8">☠</text>`,
+  boss: `<circle r="17" fill="#2a0a0e" stroke="#f4d48e" stroke-width="2.5"/><text text-anchor="middle" dominant-baseline="central" font-size="20" fill="#f4d48e">♛</text>`,
+  chest: `<rect x="-14" y="-9" width="28" height="20" rx="3" fill="#6a4a1e" stroke="#f4d48e" stroke-width="2"/><path d="M-14 -1 H14" stroke="#f4d48e" stroke-width="2"/><rect x="-3" y="-3" width="6" height="6" fill="#f4d48e"/>`,
+  open: `<rect x="-14" y="-4" width="28" height="15" rx="3" fill="#3e2c14" stroke="#8a7648" stroke-width="2"/><path d="M-14 -4 L-10 -14 H14 L14 -4" fill="none" stroke="#8a7648" stroke-width="2"/>`,
+  exit: `<ellipse rx="12" ry="16" fill="#2a0a2e" stroke="#c45cff" stroke-width="2.5"/><ellipse rx="6" ry="10" fill="#c45cff" opacity=".55"/>`,
+};
+function riftStage() {
+  const r = state.run, R = r.rift, D = RIFTS[R.id], { x: px, y: py } = R.pos, parts = [];
+  const sq = (x, y, attrs) => `<rect x="${(x - px) * T - T / 2 + 2}" y="${(y - py) * T - T / 2 + 2}" width="${T - 4}" height="${T - 4}" rx="${PX.ok ? 2 : 6}" ${attrs}/>`;
+  const at = (x, y, inner) => `<g transform="translate(${(x - px) * T} ${(y - py) * T})">${inner}</g>`;
+  const zoneSty = y => R.id === "blood" ? (y <= 4 ? "undead" : "crypt") : "cave";
+  const fillOf = (x, y) => PX.ok ? PX.fill(zoneSty(y), tileHash(x, y + 50)) : (y <= 4 ? "#494557" : "#4a2a30");
+  for (let y = 0; y < R.h; y++) for (let x = 0; x < R.w; x++) {
+    if (!riftCell(R, x, y) || Math.abs(x - px) > 4 || Math.abs(y - py) > 4) continue;
+    const k = tkey(x, y), cur = x === px && y === py, seen = R.visited.includes(k), near = Math.abs(x - px) + Math.abs(y - py) === 1, go = riftCanStep(R, x, y);
+    if (cur) continue;
+    if (seen) parts.push(sq(x, y, `fill="${fillOf(x, y)}" stroke="#6e5634" stroke-width="1.2"`), R.id === "blood" && y >= 5 ? sq(x, y, `fill="#6a0e18" opacity=".28" pointer-events="none"`) : "");
+    else parts.push(sq(x, y, `fill="#120c10" stroke="#2c1a20" stroke-width="1.2"`));
+    const m = riftMarkOf(R, x, y, seen, near); if (m) parts.push(at(x, y, `<g transform="scale(.9)">${RIFT_ICO[m]}</g>`));
+    if (go) parts.push(`<g class="tile-hit" data-rift="move" data-x="${x}" data-y="${y}">${sq(x, y, `fill="${seen ? "rgb(214 166 76 / .14)" : "rgb(120 110 95 / .22)"}" stroke="#f4d48e" stroke-width="1.8" stroke-dasharray="6 5"`)}
+      ${seen || m ? "" : at(x, y, `<text text-anchor="middle" dominant-baseline="central" font-family="Kelly Slab, Georgia, serif" font-size="22" fill="#f4d48e" opacity=".75">?</text>`)}</g>`);
+  }
+  parts.push(sq(px, py, `fill="${fillOf(px, py)}" stroke="#f4d48e" stroke-width="2.5"`));
+  if (R.id === "blood" && py >= 5) parts.push(sq(px, py, `fill="#6a0e18" opacity=".28"`));
+  if (r.light) parts.push(`<circle r="${T * 1.6}" fill="url(#torchGlow)" pointer-events="none"/>`);
+  const here = riftMarkOf(R, px, py, true, true);
+  if (here && here !== "descent") parts.push(`<g transform="translate(-16 -16) scale(.6)">${RIFT_ICO[here]}</g>`);
+  parts.push(`<g transform="${here && here !== "descent" ? "translate(8 8) scale(.8)" : ""}">${ICON.party}</g>`);
+  const half = T * 3.6, atStart = R.pos.x === R.start.x && R.pos.y === R.start.y, atBoss = R.boss && px === R.boss.x && py === R.boss.y;
+  const part = R.id === "blood" ? (py <= 4 ? "Двор крепости" : `Канализация · ряд ${py - 4} из ${R.h - 5}`) : "";
+  return `<svg viewBox="${-half} ${-half} ${half * 2} ${half * 2}" id="rf-svg" role="img" aria-label="${esc(D.name)}"><defs>${ICON_DEFS}</defs>${parts.join("")}</svg>
+    <button class="fx-btn corner-btn l" data-rift="map" aria-label="Схема разлома">${ICO_MAP}Карта</button>
+    <div class="phase-pill rf-pill" style="top:58px">${esc(part)}</div>
+    <div class="rf-bar">
+      <button class="fx-btn" data-rift="rest">${ICO_ACT.rest}Привал</button>
+      ${r.light ? `<button class="fx-btn" data-dg="torch-off">Погасить факел</button>` : `<button class="fx-btn" data-dg="torch-on"${partyTorches() || r.torchLeft > 0 ? "" : " disabled"}>Факел (${partyTorches()})</button>`}
+      ${atBoss && R.bossDead && !R.chestOpen ? `<button class="fx-btn primary" data-rift="chest">Открыть сундук</button>` : ""}
+      ${atStart || R.bossDead ? `<button class="fx-btn${R.bossDead ? " primary" : ""}" data-rift="exit">Выйти из разлома</button>` : ""}
+    </div>`;
+}
+function riftMapOverlay() {
+  const r = state.run, R = r.rift, D = RIFTS[R.id];
   let cells = "";
   for (let y = 0; y < R.h; y++) for (let x = 0; x < R.w; x++) {
     if (!riftCell(R, x, y)) { cells += `<span class="rf-c rf-wall"></span>`; continue; }
     const k = tkey(x, y), cur = R.pos.x === x && R.pos.y === y, seen = R.visited.includes(k), near = Math.abs(x - R.pos.x) + Math.abs(y - R.pos.y) === 1;
-    const okMove = near && !(R.id === "blood" && ((y >= 5 && R.pos.y <= 4) || (y <= 4 && R.pos.y >= 5)));
-    const mark = cur ? "●" : R.descent && x === R.descent.x && y === R.descent.y && (seen || near) ? "▼" : R.minis[k] && !R.done[k] && (seen || near) ? "☠" : R.boss && x === R.boss.x && y === R.boss.y && (seen || near || y === R.h - 1) ? (R.bossDead ? (R.chestOpen ? "✓" : "◆") : "♛") : "";
-    cells += okMove ? `<button class="rf-c rf-go${seen ? " rf-seen" : ""}" data-rift="move" data-x="${x}" data-y="${y}">${mark}</button>` : `<span class="rf-c${cur ? " rf-cur" : seen ? " rf-seen" : ""}">${mark}</span>`;
+    const m = riftMarkOf(R, x, y, seen, near), mark = cur ? "●" : { descent: "▼", mini: "☠", boss: "♛", chest: "◆", open: "✓", exit: "◎" }[m] || "";
+    cells += `<span class="rf-c${cur ? " rf-cur" : seen ? " rf-seen" : ""}">${mark}</span>`;
   }
-  return `<div class="mapov rift-ov" role="dialog" aria-label="${esc(D.name)}">
+  return `<div class="mapov" role="dialog" aria-modal="true" aria-label="Схема: ${esc(D.name)}">
     <div class="panel fx-frame enc-panel">
-      <div class="ph-head"><h3>${esc(D.name)}</h3><span class="fx-eyebrow" style="font-size:11px">шагов: ${R.steps} · время этажа стоит</span></div>
+      <div class="ph-head"><h3>${esc(D.name)}</h3><button class="fx-btn" data-rift="map" aria-label="Закрыть схему" style="width:42px;height:42px;padding:0;display:grid;place-items:center">${ICO_X}</button></div>
       <div class="rf-grid" style="grid-template-columns:repeat(${R.w},1fr)">${cells}</div>
-      <p class="rf-legend">● отряд · ▼ спуск · ☠ минибосс · ♛ страж · ◆ сундук</p>
-      <div class="rf-btns">
-        <button class="fx-btn" data-rift="rest">Привал</button>
-        ${atBoss && R.bossDead && !R.chestOpen ? `<button class="fx-btn primary" data-rift="chest">Открыть сундук</button>` : ""}
-        ${atStart || R.bossDead ? `<button class="fx-btn${R.bossDead ? " primary" : ""}" data-rift="exit">Выйти из разлома</button>` : ""}
-      </div>
+      <p class="rf-legend">● отряд · ▼ спуск · ☠ минибосс · ♛ страж · ◆ сундук · ◎ выход</p>
     </div></div>`;
 }
 if (typeof document !== "undefined") document.addEventListener("click", e => {
   const b = e.target.closest && e.target.closest("[data-rift]"); if (!b || !state.run || !state.run.rift) return;
   const a = b.dataset.rift;
+  if (a === "map") { dgUi.riftMap = !dgUi.riftMap; rerender(); return; }
   if (a === "move") riftMove(+b.dataset.x, +b.dataset.y); else if (a === "rest") riftRest(); else if (a === "chest") riftChest(); else if (a === "exit") riftExit();
   saveChar(); rerender();
 });
@@ -2586,7 +2640,7 @@ const MON_BOOST = { "swamp-fang": { hp: 1.6, dmg: 4, hit: 2 }, "goblin-thief": {
 const F3_C7_BOOST = { hp: 1.35, dmg: 3, hit: 1 }, F3_C7_LIGHT = { hp: 1.15, dmg: 1, hit: 1 }, F3_C7_HEAVY = { hp: 1.5, dmg: 4, hit: 2 };
 const F3_C7_TIER = { "choir-dead": null, "bell-ringer": null, "glen-warden": null, "ember-reaper": F3_C7_LIGHT, "orc-executioner": F3_C7_LIGHT, "ash-executioner": F3_C7_LIGHT, "orc-shaman": F3_C7_LIGHT, "marble-saint": F3_C7_LIGHT,
   "tracker-hunter": F3_C7_HEAVY, "trap-master": F3_C7_HEAVY, "boulder-beetle": F3_C7_HEAVY, "maid-shade": F3_C7_HEAVY };          // по прогонам «отряд в стали» (07.11)
-Object.assign(MON_BOOST, { "flesh-golem": { hp: 1.15, dmg: 2, hit: 1 }, abomination: { hp: 1.5, dmg: 4, hit: 2 }, "death-knight": { hp: 0.7, dmg: -3, hit: -1 } });          // разлом «Кровавая крепость» (07.11, прогоны отрядом в стали)
+Object.assign(MON_BOOST, { "flesh-golem": { hp: 1.15, dmg: 2, hit: 1 }, abomination: { hp: 1.5, dmg: 4, hit: 2 }, "death-knight": { hp: 0.75, dmg: -2, hit: -1 } });          // разлом «Кровавая крепость» (07.11, прогоны отрядом в стали)
 MONSTERS.forEach(m => { if (m.floor === 3 && m.cls === 7 && !MON_BOOST[m.id] && !m.dyn) { const b = m.id in F3_C7_TIER ? F3_C7_TIER[m.id] : F3_C7_BOOST; if (b) MON_BOOST[m.id] = b; } });
 MONSTERS.forEach(m => { const b = MON_BOOST[m.id]; if (!b || m.boost) return; m.boost = b; if (b.dodge && m.dodge != null) m.dodge += b.dodge; if (b.prot && m.prot != null) m.prot = Math.max(0, m.prot + b.prot); if (b.hp && typeof m.hp === "string") m.hp = m.hp.replace(/^\d+/, n => String(Math.round(+n * b.hp))); });
 // ===== конец данных монстров
@@ -6884,11 +6938,11 @@ function renderDungeon() {
   <div class="dg">
     <div class="dg-top">
       <div class="dg-clock"><span>День</span><b>${r.day}<small>/${FL().days}</small></b></div>
-      <div class="dg-floor">${FL().n} этаж${isMaster() ? `<button class="fx-btn" data-dg="gm" aria-label="Меню мастера" aria-expanded="${dgUi.gm}">${ICO_DOTS}</button>` : ""}</div>
+      <div class="dg-floor">${r.rift ? `<span class="rf-title">${esc(RIFTS[r.rift.id].name)}</span><small class="rf-sub">время этажа стоит · шагов ${r.rift.steps}</small>` : `${FL().n} этаж`}${isMaster() ? `<button class="fx-btn" data-dg="gm" aria-label="Меню мастера" aria-expanded="${dgUi.gm}">${ICO_DOTS}</button>` : ""}</div>
       <div class="dg-clock r"><span>Действие</span><b>${r.act}<small>/${FL().acts}</small></b><div class="pips" aria-hidden="true">${actionPips}</div></div>
     </div>
     <div class="stage" id="stage">
-      ${stageSvg()}
+      ${r.rift ? riftStage() : `${stageSvg()}
       ${stageOverlay()}
       ${menu ? `<button class="fx-btn corner-btn r" data-dg="sup" aria-expanded="${dgUi.sup}">${ICO_PACK}Снаряжение</button>` : ""}
       ${moving ? `<button class="fx-btn corner-btn r" data-dg="cancel" aria-label="Отменить действие">${ICO_X}Отмена</button>
@@ -6922,7 +6976,7 @@ function renderDungeon() {
       </div>` : ""}
       ${inv.compass.active && inv.compassOn && !voidHere() ? `<div class="compass" id="compass">${COMPASS_SVG}</div>` : ""}
       ${inv.compass.owned && !voidHere() ? `<button class="compass-btn${menu ? " top" : ""}${inv.compass.active && inv.compassOn ? " on" : ""}" data-dg="compass" aria-pressed="${!!(inv.compass.active && inv.compassOn)}" aria-label="${inv.compass.active && inv.compassOn ? "Убрать компас" : "Включить компас"}">${ICO_COMPASS}</button>` : ""}
-      ${(invItem("map").owned || invItem("mmap").owned) && !voidHere() ? `<button class="compass-btn mapb${menu ? " top" : ""}${dgUi.map ? " on" : ""}"${inv.compass.owned ? "" : ` style="left:${menu ? 8 : 10}px"`} data-dg="floormap" aria-label="Открыть карту ${curFloor()} этажа">${ICO_MAP}</button>` : ""}
+      ${(invItem("map").owned || invItem("mmap").owned) && !voidHere() ? `<button class="compass-btn mapb${menu ? " top" : ""}${dgUi.map ? " on" : ""}"${inv.compass.owned ? "" : ` style="left:${menu ? 8 : 10}px"`} data-dg="floormap" aria-label="Открыть карту ${curFloor()} этажа">${ICO_MAP}</button>` : ""}`}
     </div>
     <div class="party-bars" aria-label="Состояние отряда">${state.party.map(charBars).join("")}</div>
     ${state.party.length ? `<p class="hold-hint">Удерживай карточку героя: данные и инвентарь.</p>` : ""}
@@ -6930,7 +6984,7 @@ function renderDungeon() {
   </div>
   ${dgUi.map ? floorMapOverlay() : ""}
   ${dgUi.phase === "rest" ? restOverlay() : ""}
-  ${r.rift ? riftOverlay() : ""}
+  ${r.rift && dgUi.riftMap ? riftMapOverlay() : ""}
   ${dgUi.phase === "explore" || dgUi.phase === "dig" ? searchOverlay() : ""}
   ${dgUi.phase === "portal" ? portalOverlay() : ""}
   ${huntAnimOverlay()}

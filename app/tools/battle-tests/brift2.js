@@ -31,6 +31,22 @@ const { chromium } = require('playwright');
   ok('выход: +2 дня, портал использован', r.after.day === 5 && !r.after.rift && r.after.done, r);
   ok('после 2-го действия 4-го дня разломы закрываются', r.closed, r);
   ok('9 монстров крепости с эссенциями', r.ess, r);
+  // экран разлома на месте карты (v115)
+  const u = await p.evaluate(() => {
+    state.party = [Object.assign(clone(state.example), { id: 'p0', example: false, level: 4, rank: 7 })]; newRun(); const run = state.run; run.floor = 1; run.day = 3; run.act = 1; run.arrive = false;
+    riftSync(); dgUi.res = null; const k = Object.keys(run.riftsF1.tiles)[0].split(',').map(Number); run.pos = { x: k[0], y: k[1] }; spDo('rift-enter'); dgUi.res = null;
+    location.hash = 'labyrinth'; dgUi.phase = 'menu'; route(); return { x: run.rift.pos.x, y: run.rift.pos.y };
+  });
+  await p.waitForTimeout(300);
+  const st = await p.evaluate(() => ({ svg: !!document.querySelector('#stage #rf-svg'), map: !!document.querySelector('#dg-svg'), pop: !!document.querySelector('.mapov'), go: document.querySelectorAll('#rf-svg [data-rift=move]').length, title: (document.querySelector('.rf-title') || {}).textContent }));
+  await p.screenshot({ path: '/tmp/claude-0/-home-user/f8955059-a9de-5963-8c33-4491a2e868df/scratchpad/rift.png' });
+  await p.locator('#rf-svg [data-rift=move]').first().dispatchEvent('click'); await p.waitForTimeout(200);
+  const moved = await p.evaluate(() => state.run.rift.visited.length > 1);
+  await p.evaluate(() => { dgUi.enc = null; dgUi.res = null; rerender(); });
+  await p.click('[data-rift=map]'); await p.waitForTimeout(150);
+  const sch = await p.evaluate(() => !!document.querySelector('.mapov .rf-grid'));
+  ok('экран разлома на месте карты, без всплывающего окна', st.svg && !st.map && !st.pop && st.go >= 1 && st.title === 'Кровавая крепость', st);
+  ok('шаг нажатием на соседний квадрат и схема по кнопке «Карта»', moved && sch, { moved, sch });
   ok('нет ошибок страницы', !errs.length, errs.slice(0, 3));
   console.log(`проверок: ${n}, не прошли: ${bad}`); await b.close();
 })();
