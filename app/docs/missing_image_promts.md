@@ -146,6 +146,22 @@
 
 > `full-body a huge regal blue-green king slime with a golden crown floating inside it, absorbing glowing crystals, green-lit mine cavern, green-lit abandoned mine with rails and crystals, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
 
+### Незавершённый клинок — `monsters/unfinished-blade-full`
+
+> `full-body an unfinished glowing red-hot sword blade without a proper hilt, floating by itself, sparks and soot, forge flames, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Пепельный сыч — `monsters/ash-owl-full`
+
+> `full-body a small grey owl made of ash and embers with glowing orange eyes, trailing a cloud of ash, volcanic wasteland, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Заводной апельсин — `monsters/clockwork-orange-full`
+
+> `full-body a small round orange clockwork mechanism like a wind-up toy with a key on top, tiny brass legs and a lit fuse, mechanical workshop full of traps, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Маятниковый страж — `monsters/pendulum-guard-full`
+
+> `full-body a mechanical wooden-and-iron mannequin with swinging pendulum blades for arms, standing in a narrow trapped corridor, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
 ### Раб крови — `monsters/blood-slave-full`
 
 > `full-body an emaciated pale undead slave in chains with drained grey skin and hollow red eyes, blood-soaked gothic fortress and dark sewers with red torchlight, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`

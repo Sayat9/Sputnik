@@ -2737,5 +2737,50 @@
       u.temp = Math.max(u.temp || 0, 5); log(`${u.name} поглощает ${b.name}${pid ? " и перенимает его силу" : ""}: +5 временных ОЗ.`, "skill"); fx(u, "поглощение", "good"); return true; },
     ai(u) { return rimBodies(u).length ? { score: 13 } : null; },
   };
+  /* ===== Пылающие земли и Зона ловушек: новые 8 класса (07.11) — незавершённый клинок, пепельный сыч, заводной апельсин, маятниковый страж ===== */
+  Object.assign(D.essCd, { "unfinished-blade": 3, "ash-owl": 4, "clockwork-orange": 4, "pendulum-guard": 3 });
+  Object.assign(D.monTune, { "unfinished-blade": { role: "skirmish", focus: ["weak", "nearest"], noFlee: true }, "ash-owl": { role: "skirmish", focus: ["weak", "nearest"], fleeHp: 0.25 },
+    "clockwork-orange": { role: "brute", focus: ["nearest"], noFlee: true }, "pendulum-guard": { role: "brute", focus: ["nearest"], noFlee: true } });
+  const isBlade = (u, atk) => atk && atk.kind === "melee" && (u.side !== "hero" || (atk.w && /sword|dagger|rapier|scimitar|saber|blade|меч|кинжал|рапир|сабл|клин/i.test(`${atk.w.id} ${atk.w.name || ""}`)));
+  P["unfinished-blade"] = {
+    attackMods(u, ctx) { if (!isBlade(u, ctx.atk) || !ctx.tgt) return; if (u.ubTgt === ctx.tgt.id && u.ubStack) ctx.dmgPlus = (ctx.dmgPlus || 0) + Math.min(3, u.ubStack); },
+    onHitDealt(u, { tgt, atk }) { if (!tgt || !isBlade(u, atk)) return; if (u.ubTgt === tgt.id) u.ubStack = Math.min(3, (u.ubStack || 0) + 1); else { u.ubTgt = tgt.id; u.ubStack = 1; } },
+  };
+  P["body:unfinished-blade"] = { attackMods(u, ctx) { if (B.S && B.S.round <= 3 && ctx.extra) ctx.extra.push({ n: 1, s: 4, b: 0, dt: "fire", label: "Раскалённый металл" }); }, vulnerable(u, { dt }) { return dt === "bludgeon" && B.S && B.S.round > 3; } };
+  A["unfinished-blade"] = {
+    time: "action", tgt(u) { const ts = enemiesOf(u).filter(t => alive(t) && !t.down && dist(u, t) <= 4 && (!B.visibleTo || B.visibleTo(u, t))); return specUnit(u, "Раскалённый выпад: на кого?", ts, B.cellsWithin(u, 4), "attack"); },
+    can(u) { return enemiesOf(u).some(t => alive(t) && !t.down && dist(u, t) <= 4) ? true : "нет цели в 4 клетках"; },
+    async run(u, pk, ctl) { const a = atkFor(u, "melee"), t = pk.unit; if (!a || !t) return false; ctl.commit(); if (dist(u, t) > 1) await B.pullAdjacent(u, t); if (dist(u, t) > 1) { log(`${u.name} не дотягивается до ${t.name}.`); return true; }
+      const r = await B.doAttack(u, t, a, { extra: [{ n: 1, s: 6, b: 0, dt: "fire", label: "Раскалённый выпад" }] }); return true; },
+    ai(u) { const ts = enemiesOf(u).filter(t => alive(t) && !t.down && dist(u, t) >= 2 && dist(u, t) <= 4); return ts.length ? { unit: ts.sort((a, b) => a.hp - b.hp)[0], score: 12 } : null; },
+  };
+  P["ash-owl"] = { defendMods(t, ctx) { if (ctx && ctx.atk && ctx.atk.kind === "ranged" && t.t && (t.t.moved || 0) > 0 && ctx.dis) ctx.dis.push("пепельные крылья"); } };
+  A["ash-owl"] = {
+    time: "bonus", tgt(u) { return { type: "cell", prompt: "Пепельный вихрь: центр облака", cells: B.cellsWithin(u, 4), kind: "attack" }; }, can() { return true; },
+    async run(u, pk, ctl) { let c = pk.cell; if (!c) { const t = enemiesOf(u).filter(e => alive(e) && !e.down && dist(u, e) <= 4).sort((a, b) => (b.atk && b.atk.some ? 0 : 0) - 0)[0]; if (!t) return false; c = [t.x, t.y]; } ctl.commit();
+      const cells = []; for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) if (B.inB(c[0] + dx, c[1] + dy)) cells.push([c[0] + dx, c[1] + dy]);
+      (B.S.dust ||= []).push({ cells, until: B.S.round + 2 }); log(`${u.name} поднимает вихрь пепла.`, "skill"); const g = ui(); if (g) g.refresh(); return true; },
+    ai(u) { return enemiesOf(u).some(e => alive(e) && !e.down && dist(u, e) <= 4) && !(B.S.dust || []).some(d => d.until >= B.S.round) ? { score: 7 } : null; },
+  };
+  const orangeBoom = async (u, dice, label) => { if (u.boomed) return; u.boomed = true; const g = ui(); if (g) g.banner(label); log(`${u.name} взрывается!`, "bad");
+    for (const o of live().filter(o => o !== u && dist(u, o) <= 1)) if (alive(o)) await saveDmg(u, o, "dex", dcOf(u, "dex"), dice, "fire", label); };
+  P["clockwork-orange"] = { initBonus() { return 2; }, speedBonus(u) { return B.S && B.S.round === 1 ? 2 : 0; } };
+  P["body:clockwork-orange"] = {
+    async turnStartAsync(u) { if (alive(u) && !u.down && enemiesOf(u).some(e => alive(e) && !e.down && dist(u, e) <= 1)) { await orangeBoom(u, [2, 6], "Заводной апельсин взрывается"); if (alive(u)) B.kill(u, null); } },
+    onDeath(u) { if (u.boomed) return; B.queue(async () => { await orangeBoom(u, [1, 6], "Хлопок механизма"); }); },
+  };
+  A["clockwork-orange"] = {
+    time: "action", tgt(u) { return specUnit(u, "Заводная бомба: в кого?", foesIn(u, 4), B.cellsWithin(u, 4), "attack"); }, can(u) { return foesIn(u, 4).length ? true : "нет цели в 4 клетках"; },
+    async run(u, pk, ctl) { const t = pk.unit; if (!t) return false; ctl.commit(); log(`${u.name} выпускает заводную бомбу — она семенит к ${t.name}.`, "skill");
+      for (const o of live().filter(o => o !== u && o.side !== u.side && footprint(o).some(([fx2, fy]) => Math.max(Math.abs(fx2 - t.x), Math.abs(fy - t.y)) <= 1))) if (alive(o)) await saveDmg(u, o, "dex", dcOf(u, "int"), [1, 6, 2], "fire", "Заводная бомба");
+      return true; },
+    ai(u) { return null; },
+  };
+  P["pendulum-guard"] = { async reactEnter(u, mover) { if (!mover || mover.side === u.side || !alive(mover) || mover.down || !alive(u) || u.down || u.pendRound === B.S.round) return; u.pendRound = B.S.round; const a = atkFor(u, "melee"); if (!a || dist(u, mover) > (a.reach || 1)) return; log(`${u.name} рубит маятником вошедшего ${mover.name}.`, "skill"); await B.doAttack(u, mover, a, {}); } };
+  A["pendulum-guard"] = {
+    time: "action", tgt() { return { type: "none" }; }, can(u) { return within(u, 1).length ? true : "никого рядом"; },
+    async run(u, pk, ctl) { ctl.commit(); log(`${u.name} раскручивает лезвия.`, "skill"); for (const t of within(u, 1)) { const sv = await saveDmg(u, t, "dex", dcOf(u, "str"), [2, 6], "slash", "Режущий оборот"); if (!sv.ok && alive(t) && !(B.noBlood && B.noBlood(t))) addStatus(t, "bleeding", { k: 10, when: "end", src: u.id, data: { dice: "1к4" } }); } return true; },
+    ai(u) { const n = within(u, 1).length; return n >= 1 ? { score: 7 + n * 4 } : null; },
+  };
   B.fillActiveTimes();
 })();
