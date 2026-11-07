@@ -735,6 +735,17 @@ body.forge-open, body.bt-active, body:has(.mapov:not([hidden])), body:has(.bt-ro
 .rf-cold { position: absolute; left: 8px; right: 8px; top: 92px; z-index: 3; display: flex; gap: 4px; justify-content: center; flex-wrap: wrap; pointer-events: none; }
 .rf-cold span { background: rgb(14 24 34 / .85); border: 1px solid #6aa8d0; border-radius: 999px; padding: 2px 8px; font: 600 11px/1.3 var(--f-data); color: #cfe8ff; }
 .rf-cold span.mid { border-color: #9ad0ff; color: #fff; } .rf-cold span.hi { border-color: #e5806f; color: #ffd8d0; }
+.altar-list { display: grid; gap: 6px; max-height: 46vh; overflow-y: auto; margin: 4px 0 10px; }
+.altar-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 8px; border: 1px solid var(--fx-line); border-radius: 6px; background: rgb(18 14 9 / .6); }
+.altar-row small { display: block; color: var(--fx-muted); font-size: 11.5px; }
+.altar-ctl { display: flex; align-items: center; gap: 6px; } .altar-ctl .fx-btn { width: 34px; height: 34px; padding: 0; } .altar-ctl output { min-width: 18px; text-align: center; font: 600 16px var(--f-data); color: var(--fx-gold-hi); }
+.altar-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.fx-btn.altar-btn.lit { border-color: #c45cff; box-shadow: 0 0 14px rgb(196 92 255 / .55); }
+.rift-anim { position: relative; overflow: hidden; }
+.rift-anim .ev-pic { animation: riftOpen 1.6s ease-out both; }
+.rift-swirl { position: absolute; inset: 0; margin: auto; width: 60%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, rgb(196 92 255 / .0) 30%, rgb(196 92 255 / .55) 55%, rgb(60 10 80 / 0) 72%); animation: riftSwirl 1.6s ease-out both; pointer-events: none; }
+@keyframes riftOpen { from { transform: scale(.4) rotate(-25deg); opacity: 0; filter: hue-rotate(60deg) blur(4px); } to { transform: none; opacity: 1; filter: none; } }
+@keyframes riftSwirl { from { transform: scale(.1) rotate(0deg); opacity: 1; } to { transform: scale(1.6) rotate(540deg); opacity: 0; } }
 .rf-btns { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
 .rank-chip { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--fx-gold-hi, #f4d48e); margin: 2px 0 6px; }
 .rank-chip svg { flex: none; }
@@ -2494,8 +2505,45 @@ const SAND_ESS = {
 };
 for (const [id, [name, stats, other, [pn, pt], [an, mana, time, at]]] of Object.entries(SAND_ESS)) ESSENCES[id] = { id, name, cls: MONSTERS.find(m => m.id === id).cls, source: id, stats, other, passive: { name: pn, text: pt }, active: { name: an, mana, time, text: at } };
 
+// ===== Зелёная шахта (разломы, часть 3; 07.11): гоблины-шахтёры, кобольды, слизи; минибоссы глава стражи и главный прораб; страж — Римуру, король слизи.
+const MINE_MON = [
+  ["goblin-miner", 9, "Гоблин-шахтёр", "Малый гуманоид", "humanoid", "13", "10 (3к6)", "6 м", [10, 14, 10, 8, 9, 8], "Тёмное зрение 18 м.", [["Кирка", "Ковыряет штольни; киркой обрушивает свод на врагов.", "behavior"], ["Кирка", "+4 к попаданию, 1к6+2 колющего.", "attacks"]]],
+  ["kobold", 9, "Кобольд", "Малый гуманоид", "humanoid", "12", "8 (2к6+1)", "9 м", [7, 15, 10, 8, 7, 8], "Тёмное зрение 18 м.", [["Стая", "Бьют гурьбой и ставят самодельные ловушки.", "behavior"], ["Кинжал", "+4 к попаданию, 1к4+2 колющего.", "attacks"]]],
+  ["slime", 9, "Слизь", "Малая тварь", "beast", "8", "14 (4к6)", "4,5 м", [12, 6, 14, 1, 6, 1], "Слепое зрение 6 м.", [["Студень", "Липкий комок; удары дубин вязнут в нём.", "behavior"], ["Ложноножка", "+3 к попаданию, 1к6+1 дробящего.", "attacks"]]],
+  ["kobold-guard", 8, "Кобольд-страж", "Малый гуманоид", "humanoid", "15 (щит)", "26 (6к6+6)", "7,5 м", [13, 12, 13, 8, 10, 8], "Тёмное зрение 18 м.", [["Щит штольни", "Перекрывает проход щитом; таранит и сбивает с ног.", "behavior"], ["Копьё", "+5 к попаданию, 1к8+2 колющего.", "attacks"]]],
+  ["goblin-blaster", 8, "Гоблин-подрывник", "Малый гуманоид", "humanoid", "12", "22 (5к6+5)", "9 м", [8, 15, 12, 12, 9, 8], "Тёмное зрение 18 м.", [["Динамит", "Шахтёр-подрывник: швыряет динамитные шашки.", "behavior"], ["Нож", "+4 к попаданию, 1к4+2 колющего.", "attacks"]]],
+  ["acid-slime", 8, "Кислотная слизь", "Средняя тварь", "beast", "9", "30 (4к10+8)", "4,5 м", [14, 6, 15, 1, 6, 1], "Слепое зрение 6 м.", [["Едкая", "Разъедает доспехи; ударившего обжигает кислотой.", "behavior"], ["Ложноножка", "+5 к попаданию, 1к8+2 дробящего.", "attacks"]]],
+  ["stone-slime", 8, "Каменная слизь", "Средняя тварь", "beast", "14 (камень)", "32 (5к10+5)", "3 м", [15, 5, 16, 1, 6, 1], "Слепое зрение 6 м.", [["Каменная корка", "Медленная, покрыта каменной коркой; может окаменеть.", "behavior"], ["Каменный удар", "+5 к попаданию, 1к10+2 дробящего.", "attacks"]]],
+  ["split-slime", 8, "Делящаяся слизь", "Средняя тварь", "beast", "9", "30 (4к10+8)", "6 м", [13, 8, 14, 1, 6, 1], "Слепое зрение 6 м.", [["Деление", "От сильного удара (8+) отделяет малую слизь (не больше двух раз).", "behavior"], ["Ложноножка", "+5 к попаданию, 1к8+2 дробящего.", "attacks"]]],
+  ["mine-ghost", 8, "Рудничный призрак", "Средний дух", "elemental", "12", "27 (6к8)", "0 м, полёт 9 м", [6, 14, 10, 10, 12, 14], "Тёмное зрение 36 м.", [["Боится света", "Дух погибшего шахтёра: при свете факела бьёт с помехой, во тьме его трудно задеть.", "behavior"], ["Касание могилы", "+5 к попаданию, 2к6 некротическим.", "attacks"]]],
+  ["cart-mimic", 8, "Вагонетка-мимик", "Средняя тварь", "beast", "14 (железо)", "34 (4к10+12)", "9 м", [16, 10, 15, 4, 9, 4], "Чувство вибраций 9 м.", [["Вагонетка", "Прячется среди вагонеток и наезжает; в кузове — руда (2 камня при победе).", "behavior"], ["Укус", "+5 к попаданию, 1к10+3 колющего.", "attacks"]]],
+  ["kobold-captain", 7, "Глава стражи кобольдов", "Средний гуманоид", "humanoid", "17 (кольчуга и щит)", "52 (8к8+16)", "9 м", [16, 12, 15, 10, 12, 12], "Тёмное зрение 18 м.", [["Командир", "Минибосс шахты: держит строй, смыкает щиты стражи.", "behavior"], ["Боевой молот", "+6 к попаданию, 1к10+3 дробящего.", "attacks"]]],
+  ["goblin-foreman", 7, "Главный прораб", "Малый гуманоид", "humanoid", "15", "48 (11к6+11)", "9 м", [12, 15, 13, 14, 11, 13], "Тёмное зрение 18 м.", [["Прораб", "Минибосс шахты: орёт «Свистать всех!» и швыряет усиленный динамит.", "behavior"], ["Кирка прораба", "+6 к попаданию, 1к8+3 колющего.", "attacks"]]],
+  ["rimuru", 7, "Римуру, король слизи", "Большая тварь", "beast", "14", "78 (12к10+12)", "6 м", [20, 10, 20, 12, 14, 12], "Слепое зрение 18 м.", [["Страж шахты", "Римуру — король слизи, страж Зелёной шахты: статы и бонусы эссенции на 30 % выше обычного 7 класса, эссенция выпадает в 30 % (71+ на к100). Срастается, поглощает павших и копирует их силу.", "behavior"], ["Поглощающее касание", "+8 к попаданию, 2к8+5 дробящего.", "attacks"]]],
+];
+for (const [id, cls, name, size, ph, ac, hp, speed, abil, senses, traits] of MINE_MON) MONSTERS.push({ id, zone: "goblin", rare: false, weight: 1, name, floor: 1, cls,
+  rank: id === "rimuru" ? "guardian" : cls <= 7 ? "special" : "normal", size, type: /дух/.test(size) ? "Дух" : /гуманоид/.test(size) ? "Гуманоид" : "Тварь",
+  group: id === "rimuru" ? "Один, в конце шахты" : cls === 7 ? "Один, на своём уровне шахты" : "Группы по 2–3", sz: /Большой|Большая/.test(size) ? "большой" : /Малый|Малая/.test(size) ? "малый" : "средний", rift: "mine",
+  areas: ["Разлом: Зелёная шахта"], ac, hp, speed, cr: String(10 - cls), abil, senses, traits, loot: `Камень ${cls}-го класса.`, essence: id, ph, statDraft: true });
+const MINE_ESS = {
+  "goblin-miner": ["Эссенция гоблина-шахтёра", { str: 2, con: 1, cha: -1 }, [], ["Шахтёрская сноровка", "Вне боя: при раскопках лопата с шансом 50 % не тратит прочность."], ["Обвал кирки", 2, "действие", "Бьёшь киркой в свод: враги на линии 2 клеток — спасбросок Ловкости (Сл 8 + мод. Сил), провал: 1к6 дробящего и сбиты с ног. Перезарядка 3 раунда."]],
+  kobold: ["Эссенция кобольда", { dex: 2, wis: 1, str: -1 }, [], ["Стайная тактика", "Преимущество на атаку, если союзник стоит рядом с целью."], ["Камнепад", 2, "действие", "Ставишь скрытую ловушку в клетке в 2 клетках: наступивший получает 1к6 и опутан. Перезарядка 3 раунда."]],
+  slime: ["Эссенция слизи", { con: 2, str: 1, dex: -1 }, [], ["Студенистое тело", "Сопротивление дробящему урону."], ["Липкий плевок", 2, "действие", "Враг в 3 клетках — спасбросок Ловкости (Сл 8 + мод. Тел), провал: опутан до конца своего следующего хода. Перезарядка 3 раунда."]],
+  "kobold-guard": ["Эссенция кобольда-стража", { con: 2, str: 1, dex: 1, int: -1, cha: -1 }, [], ["Упор в штольне", "Враги рядом с тобой теряют 1 клетку движения; со щитом тебя нельзя сдвинуть против воли."], ["Таран щитом", 3, "действие", "Враг рядом — спасбросок Силы (Сл 8 + мод. Сил), провал: отброшен на 1 клетку и сбит с ног. Перезарядка 3 раунда."]],
+  "goblin-blaster": ["Эссенция гоблина-подрывника", { dex: 2, int: 2, str: -1, wis: -1 }, [], ["Короткий фитиль", "Твои огненные умения и взрывы наносят +1к4 урона огнём."], ["Динамитная шашка", 3, "действие", "Бросок на 3 клетки: 1к6+2 огнём в клетке и соседних, спасбросок Ловкости (Сл 8 + мод. Лов) — половина. Перезарядка 4 раунда."]],
+  "acid-slime": ["Эссенция кислотной слизи", { con: 2, str: 2, dex: -1, int: -1 }, [], ["Едкая плоть", "Раз в раунд, когда тебя бьют в ближнем бою, атакующий получает 1к4 кислотой."], ["Кислотный плевок", 3, "действие", "Враг в 4 клетках — спасбросок Ловкости (Сл 8 + мод. Тел), провал: 1к6 кислотой и −1 Защиты до конца боя. Перезарядка 3 раунда."]],
+  "stone-slime": ["Эссенция каменной слизи", { con: 3, str: 1, dex: -1, cha: -1 }, [], ["Каменная корка", "+2 Защиты, но скорость в бою на 1 клетку меньше."], ["Окаменеть", 3, "действие", "До начала твоего следующего хода сопротивление дробящему, колющему и рубящему урону, но ты не двигаешься. Перезарядка 3 раунда."]],
+  "split-slime": ["Эссенция делящейся слизи", { con: 3, str: 1, dex: -1, int: -1 }, [], ["Второе тело", "Раз за бой, когда ОЗ падают до 0, ты встаёшь с 5 ОЗ."], ["Отпочковать", 3, "действие", "Рядом появляется слизень-приманка (Угроза 3): враги охотнее бьют его. Перезарядка 4 раунда."]],
+  "mine-ghost": ["Эссенция рудничного призрака", { wis: 2, cha: 2, str: -1, con: -1 }, [], ["Свет погибели", "Во тьме (без факела) атаки по тебе с помехой."], ["Шёпот обвала", 3, "действие", "Враг в 4 клетках — спасбросок Мудрости (Сл 8 + мод. Хар), провал: испуган до конца своего следующего хода. Перезарядка 3 раунда."]],
+  "cart-mimic": ["Эссенция вагонетки-мимика", { con: 2, str: 2, dex: -1, wis: -1 }, [], ["Двойное дно", "Вне боя: в рюкзаке на 3 ячейки больше — тайник в двойном дне, как у кузова вагонетки."], ["Наезд", 3, "действие", "Рывок по прямой до 4 клеток к врагу: все на пути — спасбросок Ловкости (Сл 8 + мод. Сил), провал: 1к8 дробящего и сбиты с ног. Перезарядка 3 раунда."]],
+  "kobold-captain": ["Эссенция главы стражи кобольдов", { con: 3, cha: 2, dex: -1, int: -1 }, ["Угроза +1"], ["Командир штольни", "Союзники в 2 клетках получают +1 к спасброскам."], ["Сомкнуть щиты", 4, "действие", "Ты и союзники рядом получаете +2 Защиты до начала твоего следующего хода. Перезарядка 4 раунда."]],
+  "goblin-foreman": ["Эссенция главного прораба", { int: 2, cha: 2, dex: 1, str: -1, wis: -1 }, [], ["Прораб", "Вне боя: раскопки приносят на 50 % больше камней (с округлением вверх), а лопата тратит прочность только через раз."], ["Свистать всех!", 4, "действие", "Зовёшь на помощь гоблина-шахтёра: он появляется рядом и бьётся на твоей стороне до конца боя. Перезарядка 5 раундов."]],
+  rimuru: ["Эссенция Римуру, короля слизи", { con: 3, str: 2, wis: 2, dex: -1, cha: -1 }, ["Иммунитет к яду и кислоте"], ["Регенерация слизи", "В начале хода восстанавливаешь 3 ОЗ; урон ядом и кислотой на тебя не действует."], ["Великое поглощение", 4, "действие", "Поглощаешь тело павшего существа в соседней клетке: до конца боя получаешь его пассивную способность и 5 временных ОЗ. Перезарядка 4 раунда."]],
+};
+for (const [id, [name, stats, other, [pn, pt], [an, mana, time, at]]] of Object.entries(MINE_ESS)) ESSENCES[id] = { id, name, cls: MONSTERS.find(m => m.id === id).cls, source: id, stats, other, passive: { name: pn, text: pt }, active: { name: an, mana, time, text: at } };
+
 const RIFT_RANK = 7, RIFT_EXIT_DAYS = 2;
-const RIFTS = { blood: { name: "Кровавая крепость", zone: "undead", w: 5, h: 15 }, ice: { name: "Ледяной грот", zone: "stone", w: 3, h: 15 }, sand: { name: "Зыбучие пески", zone: "beast", w: 15, h: 15 } };
+const RIFTS = { blood: { name: "Кровавая крепость", zone: "undead", w: 5, h: 15 }, ice: { name: "Ледяной грот", zone: "stone", w: 3, h: 15 }, sand: { name: "Зыбучие пески", zone: "beast", w: 15, h: 15 }, mine: { name: "Зелёная шахта", zone: "goblin", w: 5, h: 3 } };
 const riftF1Open = r => !!(r && r.floor === 1 && partyRank() <= RIFT_RANK && (r.day === 3 || (r.day === 4 && r.act <= 2)));
 function riftSync() {
   const r = state.run; if (!r || r.floor !== 1 || r.rift) return;
@@ -2503,7 +2551,7 @@ function riftSync() {
   if (riftF1Open(r) && !R) {
     const byZone = {};
     for (let y = 0; y < FLOOR1.size; y++) for (let x = 0; x < FLOOR1.size; x++) { const za = zoneAt(x, y); if (za.kind !== "zone" || FLOOR1.portals[tkey(x, y)] || tileType(x, y) !== "floor") continue; (byZone[za.zones[0]] ||= []).push(tkey(x, y)); }
-    const tiles = {}; for (const ks of Object.values(byZone)) tiles[ks[rnd(ks.length)]] = { id: ["blood", "ice", "sand"][rnd(3)] };          // темы 1 этажа: Кровавая крепость, Ледяной грот, Зыбучие пески
+    const tiles = {}; for (const ks of Object.values(byZone)) tiles[ks[rnd(ks.length)]] = { id: ["blood", "ice", "sand", "mine"][rnd(4)] };          // темы 1 этажа: Кровавая крепость, Ледяной грот, Зыбучие пески, Зелёная шахта
     r.riftsF1 = { tiles };
     logRun("Разломы открылись на 1 этаже: по порталу в каждой зоне, до середины 4-го дня.");
     dgUi.res = { title: "Разломы открылись", roll: "", pic: "rift-open", lines: ["Разломы открылись на 1 этаже.", "В каждой зоне появился портал разлома; они закроются после 2-го действия 4-го дня."] };
@@ -2518,7 +2566,7 @@ function riftMarks(px, py, up) {
 }
 const riftButtons = () => { const r = state.run, t = r && !r.rift && riftAt(r.pos.x, r.pos.y); return t ? [{ id: "rift-enter", label: "Войти в разлом", sub: RIFTS[t.id].name }] : []; };
 // ----- карта разлома -----
-const riftCell = (R, x, y) => R.id === "blood" ? ((y >= 0 && y <= 4 && x >= 0 && x <= 4) || (y >= 5 && y <= 14 && x >= 1 && x <= 3)) : R.id === "ice" ? (x >= 0 && x <= 2 && y >= 0 && y <= 14) : R.id === "sand" ? (x >= 0 && x <= 14 && y >= 0 && y <= 14) : false;
+const riftCell = (R, x, y) => R.id === "blood" ? ((y >= 0 && y <= 4 && x >= 0 && x <= 4) || (y >= 5 && y <= 14 && x >= 1 && x <= 3)) : R.id === "ice" ? (x >= 0 && x <= 2 && y >= 0 && y <= 14) : R.id === "sand" ? (x >= 0 && x <= 14 && y >= 0 && y <= 14) : R.id === "mine" ? (x >= 0 && x < R.w && y >= 0 && y < R.h) : false;
 function riftBuild(id) {
   const D = RIFTS[id], R = { id, w: D.w, h: D.h, steps: 0, visited: [], cleared: {}, done: {} };
   if (id === "blood") {
@@ -2532,6 +2580,7 @@ function riftBuild(id) {
     R.minis = { [tkey(rnd(3), 5)]: minis[0], [tkey(rnd(3), 10)]: minis[1] };
     R.cold = {}; for (const c of state.party) if (!c.dead) R.cold[c.id] = 0;
   }
+  if (id === "mine") { R.level = 1; mineLevel(R); return R; }
   if (id === "sand") {          // пустыня 15 × 15 (спецификация автора): старт внизу по центру, 2 утопающих маяка, страж в центре (7,7) — после обоих маяков
     R.start = { x: 7, y: 14 }; R.boss = { x: 7, y: 7 }; R.minis = {};
     const ok = (x, y) => y <= 11 && !(x >= 6 && x <= 9 && y >= 6 && y <= 9);
@@ -2547,7 +2596,7 @@ function riftEnter() {
   const r = state.run, t = riftAt(r.pos.x, r.pos.y); if (!t) return;
   r.rift = riftBuild(t.id); r.rift.save = { day: r.day, act: r.act, key: tkey(r.pos.x, r.pos.y) };
   logRun(`Отряд входит в разлом «${RIFTS[t.id].name}». Время этажа остановилось.`);
-  dgUi.res = { title: RIFTS[t.id].name, roll: "", pic: "rift-enter", lines: t.id === "sand" ? ["Портал схлопывается за спиной. Здесь время этажа не идёт; на выходе пройдёт 2 дня.", "Где-то в барханах тонут два древних маяка. Подойдёшь ближе — почувствуешь их зов. Раскачай маяк, и на зов явится его хозяин.", "Когда утонут оба маяка, в центре пустыни проснётся Кель. В бою берегитесь зыбучего песка."] : t.id === "ice" ? ["Портал схлопывается за спиной. Здесь время этажа не идёт; на выходе пройдёт 2 дня.", "Холод: каждый шаг без горящего факела — +1 к замерзанию (до 10). С факелом холод спадает на 2, но факел тут горит на 1 ход меньше. В боях на поле стоят имперские жаровни — их можно разжечь.", "Внизу пещеры — страж у огромной жаровни и сундук."] : ["Портал схлопывается за спиной. Здесь время этажа не идёт; на выходе пройдёт 2 дня.", "Ищите спуск в последнем ряду двора — он ведёт на 5 уровней вниз, в канализацию. В конце коридора — страж и сундук."] };
+  dgUi.res = { title: RIFTS[t.id].name, roll: "", pic: "rift-enter", lines: t.id === "mine" ? ["Портал схлопывается за спиной. Здесь время этажа не идёт; на выходе пройдёт 2 дня.", "Пять уровней штолен: спуск на каждом — в одном из дальних рядов. 4-й уровень тёмный — берите факелы. В конце — логово короля слизи.", "Жилы богаты камнями: здесь можно копать, если есть лопата."] : t.id === "sand" ? ["Портал схлопывается за спиной. Здесь время этажа не идёт; на выходе пройдёт 2 дня.", "Где-то в барханах тонут два древних маяка. Подойдёшь ближе — почувствуешь их зов. Раскачай маяк, и на зов явится его хозяин.", "Когда утонут оба маяка, в центре пустыни проснётся Кель. В бою берегитесь зыбучего песка."] : t.id === "ice" ? ["Портал схлопывается за спиной. Здесь время этажа не идёт; на выходе пройдёт 2 дня.", "Холод: каждый шаг без горящего факела — +1 к замерзанию (до 10). С факелом холод спадает на 2, но факел тут горит на 1 ход меньше. В боях на поле стоят имперские жаровни — их можно разжечь.", "Внизу пещеры — страж у огромной жаровни и сундук."] : ["Портал схлопывается за спиной. Здесь время этажа не идёт; на выходе пройдёт 2 дня.", "Ищите спуск в последнем ряду двора — он ведёт на 5 уровней вниз, в канализацию. В конце коридора — страж и сундук."] };
 }
 function riftExit() {
   const r = state.run, R = r.rift; if (!R) return;
@@ -2557,6 +2606,64 @@ function riftExit() {
   if (r.day > FL().days) { r.day = FL().days; r.act = FL().acts; r.ending ||= "time"; }
   dgUi.res = { title: "Выход из разлома", roll: "", pic: "rift-enter", lines: [`Снаружи прошло ${RIFT_EXIT_DAYS} дня: день ${r.day}, действие ${r.act}.`] };
 }
+// ----- Зелёная шахта (спецификация автора): уровни 1–3 — 5×3, старт в центре нижнего ряда, спуск случайно в одном из двух дальних рядов; 4-й — 7×5, тёмный, спуск в дальнем ряду; 5-й — коридор 1×3 к стражу
+const MINE_LV = { 1: [5, 3], 2: [5, 3], 3: [5, 3], 4: [7, 5], 5: [1, 3] };
+function mineLevel(R) {
+  const [w, h] = MINE_LV[R.level]; R.w = w; R.h = h; R.start = { x: Math.floor(w / 2), y: h - 1 }; R.pos = { ...R.start }; R.visited = [tkey(R.pos.x, R.pos.y)]; R.cleared = {}; R.minis = {}; R.dug = {};
+  R.descent = R.level <= 3 ? { x: rnd(w), y: rnd(2) } : R.level === 4 ? { x: rnd(w), y: 0 } : null;
+  R.boss = R.level === 5 ? { x: 0, y: 0 } : null;
+  const free = () => { for (let g = 0; g < 50; g++) { const x = rnd(w), y = rnd(h); if ((x !== R.start.x || y !== R.start.y) && !(R.descent && x === R.descent.x && y === R.descent.y)) return tkey(x, y); } return tkey(0, 0); };
+  if (R.level === 2) R.minis[free()] = "kobold-captain"; if (R.level === 3) R.minis[free()] = "goblin-foreman";
+}
+const mineDark = R => R.id === "mine" && R.level === 4 && !state.run.light;
+function riftDig() {          // раскопки в шахте: раз на клетку, лопата изнашивается как обычно (шахтёр/прораб берегут её), камни щедрее
+  const r = state.run, R = r.rift; if (!R || R.id !== "mine" || dgUi.enc) return; const k = R.level + ":" + tkey(R.pos.x, R.pos.y); if (R.dug[k]) return;
+  const dg = typeof pickShovel === "function" ? pickShovel() : null; if (!dg) { toast("Нужна лопата"); return; }
+  R.dug[k] = true; riftTick(); const lines = [];
+  if (digShouldWear()) { dg.e.uses--; if (dg.e.uses <= 0) { dg.c.bag.splice(dg.i, 1); lines.push(`${GEAR[dg.e.id].name} (${dg.c.name}) сломалась.`); } } else lines.push("Лопата не затупилась.");
+  r.digBoost = partyHas("goblin-foreman"); lines.push(giveParty({ t: "g", id: R.level <= 2 ? "stone-9" : "stone-8", qty: R.level <= 2 ? 2 + rnd(2) : 1 + rnd(2) })); r.digBoost = false;
+  logRun("Шахта: раскопки — " + lines.join(" ")); dgUi.res = { title: "Раскопки в шахте", roll: "", lines };
+}
+// ----- Алтарь 1 этажа (автор 07.11): в период разломов можно пожертвовать 5 камней; 4 камня 9 класса одной зоны + 1 камень 8 класса той же зоны (1–2 этаж) открывают разлом её темы
+const ALTAR_THEME = { goblin: "mine", beast: "ice", undead: "blood", stone: "sand" };
+const altarKey = () => tkey(Math.floor(FLOOR1.size / 2), Math.floor(FLOOR1.size / 2));
+const atAltar = () => { const r = state.run; return !!(r && r.floor === 1 && !r.rift && tkey(r.pos.x, r.pos.y) === altarKey()); };
+const altarOpen = () => { const r = state.run; return atAltar() && riftF1Open(r) && !(r.riftsF1 && r.riftsF1.tiles && r.riftsF1.tiles[altarKey()]); };
+function altarCombo(pick) {          // pick: { ключ сумки: число } → тема разлома или null
+  const rows = Object.entries(pick).filter(([, n]) => n > 0).map(([k, n]) => { const it = sack().items[k], m = it && it.mon && MONSTERS.find(x => x.id === it.mon); return { n, cls: it && it.cls, m }; });
+  if (rows.reduce((a, r) => a + r.n, 0) !== 5 || rows.some(r => !r.m || r.m.rift)) return null;
+  const n9 = rows.filter(r => r.cls === 9), n8 = rows.filter(r => r.cls === 8);
+  if (n9.reduce((a, r) => a + r.n, 0) !== 4 || n8.reduce((a, r) => a + r.n, 0) !== 1) return null;
+  const zone = n9[0].m.zone; if (!ALTAR_THEME[zone] || n9.some(r => r.m.zone !== zone || r.m.floor !== 1)) return null;
+  const m8 = n8[0].m; if (m8.zone !== zone || !(m8.floor === 2 || m8.floor === 1 || (m8.floors || []).includes(2))) return null;
+  return ALTAR_THEME[zone];
+}
+function altarOverlay() {
+  const A = dgUi.altar, rows = sackRows().filter(r => (r.cls === 9 || r.cls === 8) && r.mon), tot = Object.values(A.pick).reduce((a, n) => a + n, 0);
+  return `<div class="mapov" role="dialog" aria-modal="true" aria-label="Алтарь">
+    <div class="panel fx-frame enc-panel altar-panel">
+      <div class="ph-head"><h3>Алтарь</h3><span class="fx-eyebrow" style="font-size:11px">выбрано ${tot}/5</span></div>
+      <p class="fx-p" style="margin:0 0 6px">Древний камень гудит: разломы рядом. Можно положить на алтарь 5 камней 9 и 8 класса.</p>
+      <div class="altar-list">${rows.length ? rows.map(r => { const n = A.pick[r.key] || 0; return `<div class="altar-row"><span><b>${esc(r.name)}</b><small>${r.cls} класс · есть ${r.qty}</small></span>
+        <span class="altar-ctl"><button class="fx-btn" data-altar="minus" data-k="${r.key}"${n ? "" : " disabled"}>−</button><output>${n}</output><button class="fx-btn" data-altar="plus" data-k="${r.key}"${n < r.qty && tot < 5 ? "" : " disabled"}>+</button></span></div>`; }).join("") : `<p class="fx-hint">В сумке нет камней 9 и 8 класса.</p>`}</div>
+      <div class="altar-btns"><button class="fx-btn" data-altar="cancel">Отменить</button><button class="fx-btn primary" data-altar="give"${tot === 5 ? "" : " disabled"}>Пожертвовать</button></div>
+    </div></div>`;
+}
+function altarGive() {
+  const r = state.run, A = dgUi.altar; if (!A) return; const theme = altarCombo(A.pick);
+  for (const [k, n] of Object.entries(A.pick)) { const it = sack().items[k]; if (it) { it.qty -= n; if (it.qty <= 0) delete sack().items[k]; } }
+  dgUi.altar = null;
+  if (!theme) { logRun("Алтарь принял 5 камней, но ничего не произошло."); dgUi.res = { title: "Алтарь", roll: "", lines: ["Камни рассыпаются пылью. Алтарь молчит — видно, нужна другая жертва."] }; return; }
+  riftSync(); r.riftsF1 ||= { tiles: {} }; r.riftsF1.tiles[altarKey()] = { id: theme, altar: true };
+  logRun(`Алтарь принял жертву: над ним раскрывается разлом «${RIFTS[theme].name}».`);
+  dgUi.res = { title: "Разлом открывается", roll: "", pic: "rift-open", anim: "rift", lines: [`Камни вспыхивают и тают — над алтарём разверзается разлом «${RIFTS[theme].name}».`, "Войти можно кнопкой «Войти в разлом» прямо здесь."] };
+}
+if (typeof document !== "undefined") document.addEventListener("click", e => {
+  const b = e.target.closest && e.target.closest("[data-altar]"); if (!b || !dgUi.altar) return; const a = b.dataset.altar, A = dgUi.altar;
+  if (a === "plus") A.pick[b.dataset.k] = (A.pick[b.dataset.k] || 0) + 1; else if (a === "minus") A.pick[b.dataset.k] = Math.max(0, (A.pick[b.dataset.k] || 0) - 1);
+  else if (a === "cancel") dgUi.altar = null; else if (a === "give") altarGive();
+  saveChar(); rerender();
+});
 const sandBeaconAt = (R, x, y) => R.beacons ? R.beacons.findIndex(b => b.x === x && b.y === y) : -1;
 const sandBossReady = R => !!(R.beacons && R.beacons.every(b => b.done));
 function riftBeacon() {          // активировать утопающий маяк — зов минибосса
@@ -2566,9 +2673,11 @@ function riftBeacon() {          // активировать утопающий 
 }
 const RIFT_POOL = { yard: { 9: ["skeleton", "zombie", "skeleton-archer", "ghoul"], 8: ["skeleton-warrior"] }, sewer: { 9: ["blood-slave", "blood-bat"], 8: ["blood-ghoul", "vampire-servant", "blood-priest", "blood-puddle"] },
   ice: { 9: ["ice-imp", "frost-beetle"], 8: ["snow-hunter", "ice-spirit"] },
-  sand: { 9: ["sand-vulture", "sand-scorpion", "worm-larva"], 8: ["sand-worm", "big-stinger", "pseudo-cactus"] } };
+  sand: { 9: ["sand-vulture", "sand-scorpion", "worm-larva"], 8: ["sand-worm", "big-stinger", "pseudo-cactus"] },
+  mine: { 9: ["goblin-miner", "kobold", "slime"], 8: ["kobold-guard", "goblin-blaster", "acid-slime", "stone-slime", "split-slime", "cart-mimic"] },
+  mine4: { 9: ["slime", "kobold", "goblin-miner"], 8: ["mine-ghost", "mine-ghost", "acid-slime", "stone-slime", "split-slime", "cart-mimic"] } };
 function riftGroup(R, y, sev) {
-  const P = RIFT_POOL[R.id === "ice" || R.id === "sand" ? R.id : y <= 4 ? "yard" : "sewer"], pk = a => a[rnd(a.length)];
+  const P = RIFT_POOL[R.id === "mine" ? (R.level === 4 ? "mine4" : "mine") : R.id === "ice" || R.id === "sand" ? R.id : y <= 4 ? "yard" : "sewer"], pk = a => a[rnd(a.length)];
   if (sev === "easy") return [pk(P[9]), pk(P[9]), ...(Math.random() < .5 ? [pk(P[9])] : [])];
   if (sev === "mid") return [pk(P[8]), pk(P[9]), pk(P[9])];
   return [pk(P[8]), pk(P[8]), pk(P[9])];
@@ -2595,7 +2704,7 @@ function riftColdStep(d0) {
     const st = COLD_STEPS.find(([n]) => was < n && now >= n); if (st) logRun(`${c.name}: холод ${now}/10 — ${st[1]}.`);
     if (now === 10 && was < 10) { c.hp = Math.max(1, hpOf(c) - 1); logRun(`${c.name} коченеет: −1 ОЗ от холода.`); } }
 }
-function riftFight(title, list, o = {}) { const R = state.run.rift; startSpecial(title, { zone: RIFTS[R.id].zone, place: RIFTS[R.id].name, list, ...(R.id === "ice" ? { cold: R.cold, big10: true, bigBrazier: list[0] === "half-troll" } : R.id === "sand" ? { big10: true } : {}) }, o); dgUi.enc.riftKey = tkey(R.pos.x, R.pos.y); }
+function riftFight(title, list, o = {}) { const R = state.run.rift; startSpecial(title, { zone: RIFTS[R.id].zone, place: RIFTS[R.id].name, list, ...(R.id === "ice" ? { cold: R.cold, big10: true, bigBrazier: list[0] === "half-troll" } : R.id === "sand" ? { big10: true } : R.id === "mine" ? { mineLevel: R.level, dark: mineDark(R) } : {}) }, o); dgUi.enc.riftKey = tkey(R.pos.x, R.pos.y); }
 function riftMove(x, y) {
   const r = state.run, R = r.rift; if (!R || dgUi.enc) return;
   if (Math.abs(x - R.pos.x) + Math.abs(y - R.pos.y) !== 1 || !riftCell(R, x, y)) return;
@@ -2607,7 +2716,11 @@ function riftMove(x, y) {
     logRun("Спуск: отряд проходит 5 уровней вниз и выходит в кровавую канализацию."); toast("Спуск в канализацию");
   }
   const fresh = !R.visited.includes(k); if (fresh) R.visited.push(k);
-  if (R.minis[k] && !R.done[k]) { riftFight(MONSTERS.find(m => m.id === R.minis[k]).name, [R.minis[k], R.id === "blood" ? "blood-slave" : R.id === "ice" ? "ice-imp" : R.minis[k]]); return; }
+  if (R.minis[k] && !R.done[k]) { riftFight(MONSTERS.find(m => m.id === R.minis[k]).name, [R.minis[k], R.id === "blood" ? "blood-slave" : R.id === "ice" ? "ice-imp" : R.minis[k] === "kobold-captain" ? "kobold-guard" : R.minis[k] === "goblin-foreman" ? "goblin-miner" : R.minis[k]]); return; }
+  if (R.id === "mine" && R.descent && x === R.descent.x && y === R.descent.y) {
+    R.level++; mineLevel(R); logRun(R.level === 5 ? "Спуск: отряд выходит в узкий коридор — впереди логово короля слизи." : R.level === 4 ? "Спуск на 4-й уровень: здесь кромешная тьма, без факела не видно ни зги." : `Спуск на ${R.level}-й уровень шахты.`); toast(`Шахта: уровень ${R.level}`); return;
+  }
+  if (R.id === "mine" && R.boss && x === R.boss.x && y === R.boss.y && !R.bossDead) { riftFight("Страж разлома: Римуру, король слизи", ["rimuru", "slime"]); return; }
   if (R.id === "sand") {          // маяки: в зоне 5×5 — «далёкий зов»; центр — только после обоих маяков
     for (const b of R.beacons) if (!b.done && !b.felt && Math.max(Math.abs(b.x - R.pos.x), Math.abs(b.y - R.pos.y)) <= 2) { b.felt = true; logRun("Вы чувствуете далёкий зов…"); toast("Вы чувствуете далёкий зов"); }
     if (sandBeaconAt(R, R.pos.x, R.pos.y) >= 0) { logRun("Из песка торчит верхушка утопающего маяка."); return; }
@@ -2615,8 +2728,9 @@ function riftMove(x, y) {
   }
   if (R.boss && R.pos.x === R.boss.x && R.pos.y === R.boss.y && !R.bossDead) { if (R.id === "ice") riftFight("Страж разлома: Грольф", ["half-troll", "ice-imp"]); else riftFight("Страж разлома: Мордрейн", ["death-knight", "vampire-servant"]); return; }
   if (!fresh || R.cleared[k]) return;
-  const d = 1 + rnd(20), sev = d <= 6 ? "hard" : d <= 10 ? "mid" : d <= 14 ? "easy" : null;
+  const d = Math.max(1, 1 + rnd(20) - (mineDark(R) ? 3 : 0)), sev = d <= 6 ? "hard" : d <= 10 ? "mid" : d <= 14 ? "easy" : null;
   if (sev) { R.cleared[k] = true; riftFight(`${d <= 2 ? "Засада" : sev === "hard" ? "Тяжёлая встреча" : sev === "mid" ? "Средняя встреча" : "Лёгкая встреча"} (к20 = ${d})`, riftGroup(R, R.pos.y, sev), d <= 2 ? { ambush: true } : {}); return; }
+  if (R.id === "mine" && d >= 17) { const line = giveParty({ t: "g", id: R.level <= 2 ? "stone-9" : "stone-8", qty: R.level <= 2 ? 2 + rnd(2) : 1 + rnd(2) }); logRun(`Шахта: жила (к20 = ${d}) — ${line}`); dgUi.res = { title: "Рудная жила", roll: `к20 = ${d}`, pic: "find", lines: [line] }; return; }
   if (d >= 19) { const line = giveParty({ t: "g", id: R.id === "blood" && R.pos.y <= 4 ? "stone-9" : R.id === "ice" && R.pos.y <= 6 ? "stone-9" : R.id === "sand" && R.pos.y >= 10 ? "stone-9" : "stone-8", qty: 1 + rnd(2) }); logRun(`Разлом: находка (к20 = ${d}) — ${line}`); dgUi.res = { title: "Находка", roll: `к20 = ${d}`, pic: "find", lines: [line] }; }
   else logRun(`Разлом: тихо (к20 = ${d}).`);
 }
@@ -2642,6 +2756,7 @@ function riftFightDone(e, killed) {
   if (R.minis[e.riftKey] && ids.includes(R.minis[e.riftKey])) R.done[e.riftKey] = true;
   if (ids.includes("death-knight")) { R.bossDead = true; logRun("Мордрейн повержен: сундук стража открыт для отряда."); }
   if (R.beacons && e.beacon != null && ids.includes(R.beacons[e.beacon].mini)) { R.beacons[e.beacon].done = true; logRun(sandBossReady(R) ? "Оба маяка утонули: в центре пустыни просыпается Кель." : "Маяк утонул в песке. Остался второй."); }
+  if (ids.includes("rimuru")) { R.bossDead = true; logRun("Римуру повержен: сундук стража открыт для отряда."); }
   if (ids.includes("kel-worm")) { R.bossDead = true; logRun("Кель повержен: сундук стража открыт для отряда."); }
   if (ids.includes("half-troll")) { R.bossDead = true; logRun("Грольф повержен: сундук стража открыт для отряда."); }
   if (R.cold && e.cold) for (const [k, v] of Object.entries(e.cold)) R.cold[k] = v;          // холод после боя
@@ -2652,7 +2767,7 @@ function riftMarkOf(R, x, y, seen, near) {
   const k = tkey(x, y);
   if (R.id === "sand") { const bi = sandBeaconAt(R, x, y); if (bi >= 0 && (seen || near || R.beacons[bi].felt)) return R.beacons[bi].done ? "beaconDone" : "beacon";
     if (R.boss && x === R.boss.x && y === R.boss.y && !sandBossReady(R)) return seen || near ? "sandStir" : ""; }
-  if (R.descent && x === R.descent.x && y === R.descent.y && (seen || near)) return "descent";
+  if (R.descent && x === R.descent.x && y === R.descent.y && (seen || near) && !mineDark(R)) return "descent";
   if (R.minis[k] && !R.done[k] && (seen || near)) return "mini";
   if (R.boss && x === R.boss.x && y === R.boss.y && (R.id !== "sand" || sandBossReady(R))) return R.bossDead ? (R.chestOpen ? "open" : "chest") : (seen || near || y === R.h - 1) ? "boss" : "";
   if (R.start && x === R.start.x && y === R.start.y && seen) return "exit";
@@ -2675,7 +2790,7 @@ function riftStage() {
   const r = state.run, R = r.rift, D = RIFTS[R.id], { x: px, y: py } = R.pos, parts = [];
   const sq = (x, y, attrs) => `<rect x="${(x - px) * T - T / 2 + 2}" y="${(y - py) * T - T / 2 + 2}" width="${T - 4}" height="${T - 4}" rx="${PX.ok ? 2 : 6}" ${attrs}/>`;
   const at = (x, y, inner) => `<g transform="translate(${(x - px) * T} ${(y - py) * T})">${inner}</g>`;
-  const zoneSty = y => R.id === "blood" ? (y <= 4 ? "undead" : "crypt") : R.id === "ice" ? "mines" : R.id === "sand" ? "camp" : "cave";
+  const zoneSty = y => R.id === "blood" ? (y <= 4 ? "undead" : "crypt") : R.id === "ice" ? "mines" : R.id === "sand" ? "camp" : R.id === "mine" ? "cave" : "cave";
   const fillOf = (x, y) => PX.ok ? PX.fill(zoneSty(y), tileHash(x, y + 50)) : R.id === "ice" ? "#3c4a58" : (y <= 4 ? "#494557" : "#4a2a30");
   for (let y = 0; y < R.h; y++) for (let x = 0; x < R.w; x++) {
     if (!riftCell(R, x, y) || Math.abs(x - px) > 4 || Math.abs(y - py) > 4) continue;
@@ -2695,8 +2810,9 @@ function riftStage() {
   const here = riftMarkOf(R, px, py, true, true);
   if (here && here !== "descent") parts.push(`<g transform="translate(-16 -16) scale(.6)">${RIFT_ICO[here]}</g>`);
   parts.push(`<g transform="${here && here !== "descent" ? "translate(8 8) scale(.8)" : ""}">${ICON.party}</g>`);
-  const half = T * 3.6, atStart = R.pos.x === R.start.x && R.pos.y === R.start.y, atBoss = R.boss && px === R.boss.x && py === R.boss.y;
-  const part = R.id === "sand" ? `Пустыня · маяки ${R.beacons.filter(b => b.done).length}/2` : R.id === "blood" ? (py <= 4 ? "Двор крепости" : `Канализация · ряд ${py - 4} из ${R.h - 5}`) : R.id === "ice" ? `Пещера · ряд ${py + 1} из ${R.h}` : "";
+  if (mineDark(R)) parts.push(`<rect x="${-T * 4}" y="${-T * 4}" width="${T * 8}" height="${T * 8}" fill="#000" opacity=".55" pointer-events="none"/>`);
+  const half = T * 3.6, atStart = R.pos.x === R.start.x && R.pos.y === R.start.y && (R.id !== "mine" || R.level === 1), atBoss = R.boss && px === R.boss.x && py === R.boss.y;
+  const part = R.id === "mine" ? `Шахта · уровень ${R.level}/5${mineDark(R) ? " · тьма" : ""}` : R.id === "sand" ? `Пустыня · маяки ${R.beacons.filter(b => b.done).length}/2` : R.id === "blood" ? (py <= 4 ? "Двор крепости" : `Канализация · ряд ${py - 4} из ${R.h - 5}`) : R.id === "ice" ? `Пещера · ряд ${py + 1} из ${R.h}` : "";
   const coldRow = R.cold ? `<div class="rf-cold">${state.party.filter(c => !c.dead).map(c => { const v = R.cold[c.id] || 0; return `<span class="${v >= 8 ? "hi" : v >= 4 ? "mid" : ""}" title="Холод ${v}/10">❄ ${esc(c.name.split(" ")[0])} ${v}</span>`; }).join("")}</div>` : "";
   return `<svg viewBox="${-half} ${-half} ${half * 2} ${half * 2}" id="rf-svg" role="img" aria-label="${esc(D.name)}"><defs>${ICON_DEFS}</defs>${parts.join("")}</svg>
     <button class="fx-btn corner-btn l" data-rift="map" aria-label="Схема разлома">${ICO_MAP}Карта</button>
@@ -2704,6 +2820,7 @@ function riftStage() {
     <div class="rf-bar">
       <button class="fx-btn" data-rift="rest">${ICO_ACT.rest}Привал</button>
       ${r.light ? `<button class="fx-btn" data-dg="torch-off"><img src="${artPath("field/torch-on")}" alt="" width="18" height="18">Погасить факел</button>` : `<button class="fx-btn" data-dg="torch-on"${partyTorches() || r.torchLeft > 0 ? "" : " disabled"}><img src="${artPath("field/torch-off")}" alt="" width="18" height="18">Факел (${partyTorches()})</button>`}
+      ${R.id === "mine" && !R.dug[R.level + ":" + tkey(px, py)] && shovelsOf().length ? `<button class="fx-btn" data-rift="dig">${ICO_ACT.dig}Копать</button>` : ""}
       ${R.id === "sand" && sandBeaconAt(R, px, py) >= 0 && !R.beacons[sandBeaconAt(R, px, py)].done ? `<button class="fx-btn primary" data-rift="beacon">Раскачать маяк</button>` : ""}
       ${atBoss && R.bossDead && !R.chestOpen ? `<button class="fx-btn primary" data-rift="chest">Открыть сундук</button>` : ""}
       ${atStart || R.bossDead ? `<button class="fx-btn${R.bossDead ? " primary" : ""}" data-rift="exit">Выйти из разлома</button>` : ""}
@@ -2730,6 +2847,7 @@ if (typeof document !== "undefined") document.addEventListener("click", e => {
   const a = b.dataset.rift;
   if (a === "map") { dgUi.riftMap = !dgUi.riftMap; rerender(); return; }
   if (a === "beacon") riftBeacon();
+  if (a === "dig") riftDig();
   if (a === "move") riftMove(+b.dataset.x, +b.dataset.y); else if (a === "rest") riftRest(); else if (a === "chest") riftChest(); else if (a === "exit") riftExit();
   saveChar(); rerender();
 });
@@ -2783,9 +2901,9 @@ const MON_BOOST = { "swamp-fang": { hp: 1.6, dmg: 4, hit: 2 }, "goblin-thief": {
 const F3_C7_BOOST = { hp: 1.35, dmg: 3, hit: 1 }, F3_C7_LIGHT = { hp: 1.15, dmg: 1, hit: 1 }, F3_C7_HEAVY = { hp: 1.5, dmg: 4, hit: 2 };
 const F3_C7_TIER = { "choir-dead": null, "bell-ringer": null, "glen-warden": null, "ember-reaper": F3_C7_LIGHT, "orc-executioner": F3_C7_LIGHT, "ash-executioner": F3_C7_LIGHT, "orc-shaman": F3_C7_LIGHT, "marble-saint": F3_C7_LIGHT,
   "tracker-hunter": F3_C7_HEAVY, "trap-master": F3_C7_HEAVY, "boulder-beetle": F3_C7_HEAVY, "maid-shade": F3_C7_HEAVY };          // по прогонам «отряд в стали» (07.11)
-Object.assign(MON_ARMOR, { "sand-vulture": 0, "sand-scorpion": 2, "worm-larva": 1, "sand-worm": 2, "big-stinger": 2, "pseudo-cactus": 2, "mirage-scorpion": 2, "dead-vulture": 1, "kel-worm": 3, "ice-imp": 0, "frost-beetle": 2, "snow-hunter": 1, "ice-spirit": 0, "mammoth-calf": 1, "ice-deer": 0, "half-troll": 2 });          // Ледяной грот
+Object.assign(MON_ARMOR, { "goblin-miner": 1, kobold: 1, slime: 0, "kobold-guard": 2, "goblin-blaster": 1, "acid-slime": 0, "stone-slime": 3, "split-slime": 0, "mine-ghost": 0, "cart-mimic": 3, "kobold-captain": 3, "goblin-foreman": 2, rimuru: 1, "sand-vulture": 0, "sand-scorpion": 2, "worm-larva": 1, "sand-worm": 2, "big-stinger": 2, "pseudo-cactus": 2, "mirage-scorpion": 2, "dead-vulture": 1, "kel-worm": 3, "ice-imp": 0, "frost-beetle": 2, "snow-hunter": 1, "ice-spirit": 0, "mammoth-calf": 1, "ice-deer": 0, "half-troll": 2 });          // Ледяной грот
 Object.assign(MON_BOOST, { "flesh-golem": { hp: 1.15, dmg: 2, hit: 1 }, abomination: { hp: 1.5, dmg: 4, hit: 2 } });          // Мордрейн (страж) — без правки: статблок = обычный 7 класс ×1,3 (v116)
-Object.assign(MON_BOOST, { "mirage-scorpion": { hp: 1.4, dmg: 3, hit: 1 }, "dead-vulture": { hp: 1.4, dmg: 3, hit: 1 }, "kel-worm": { hp: 1.2, dmg: 2, hit: 1 }, "half-troll": { hp: 1.2, dmg: 2, hit: 1 }, "mammoth-calf": { hp: 1.4, dmg: 3, hit: 1 }, "ice-deer": { hp: 1.5, dmg: 3, hit: 2 } });          // минибоссы Ледяного грота (07.11, отряд в стали 5 ур.)
+Object.assign(MON_BOOST, { "mirage-scorpion": { hp: 1.5, dmg: 3, hit: 2 }, "dead-vulture": { hp: 1.5, dmg: 3, hit: 2 }, "kel-worm": { hp: 1.35, dmg: 3, hit: 1 }, "kobold-captain": { hp: 1.4, dmg: 3, hit: 1 }, "goblin-foreman": { hp: 1.4, dmg: 3, hit: 1 }, rimuru: { hp: 1.35, dmg: 3, hit: 1 }, "half-troll": { hp: 1.2, dmg: 2, hit: 1 }, "mammoth-calf": { hp: 1.4, dmg: 3, hit: 1 }, "ice-deer": { hp: 1.5, dmg: 3, hit: 2 } });          // минибоссы Ледяного грота (07.11, отряд в стали 5 ур.)
 MONSTERS.forEach(m => { if (m.floor === 3 && m.cls === 7 && !MON_BOOST[m.id] && !m.dyn) { const b = m.id in F3_C7_TIER ? F3_C7_TIER[m.id] : F3_C7_BOOST; if (b) MON_BOOST[m.id] = b; } });
 MONSTERS.forEach(m => { const b = MON_BOOST[m.id]; if (!b || m.boost) return; m.boost = b; if (b.dodge && m.dodge != null) m.dodge += b.dodge; if (b.prot && m.prot != null) m.prot = Math.max(0, m.prot + b.prot); if (b.hp && typeof m.hp === "string") m.hp = m.hp.replace(/^\d+/, n => String(Math.round(+n * b.hp))); });
 // ===== конец данных монстров
@@ -2829,8 +2947,8 @@ const DISTRICTS = [
 
 // Готовые рисованные картинки (webp) заменяют векторные заглушки.
 // Дата сборки для телефона: build.sh вписывает её сюда, в веб-версии строка пустая.
-const APP_BUILD = "08.11.2026 02:26";
-const APP_VERSION = 1794086774;                 // номер сборки, тоже вписывает build.sh
+const APP_BUILD = "08.11.2026 03:35";
+const APP_VERSION = 1794090946;                 // номер сборки, тоже вписывает build.sh
 const UPDATE_URL = "https://raw.githubusercontent.com/Sayat9/Sputnik/main/www/";
 const RASTER = new Set(["items/steel-pike", "items/calm-flute", "items/dice", "items/art-falling-star", "items/art-echo-blade", "items/art-discharge-staff", "items/weak-salt", "items/silver-salt", "items/tollbell", "items/director-quiver", "items/flame", "items/herb-poison", "items/herb-food", "items/herb-rest", "items/repair-charm", "items/durable-charm", "items/regen-charm", "items/herb-heal", "items/herb-mana", "items/boots", "items/wind", "items/whetstone", "items/daedalus-hammer", "items/unbreakable-charm", "items/pike", "items/bell", "items/flask", "items/monocle", "buildings/arena", "buildings/academy", "buildings/bank", "buildings/storage", "races/dragon-f", "races/fairy-f", "races/gnome-f", "races/darkfairy-f", "events/to-labyrinth", "races/human-f", "races/barbarian-f", "races/dwarf-f", "races/beastkin-f", "events/to-town", "events/ambush", "events/monsters", "events/nothing", "events/travelers", "events/treasure", "items/mace", "items/warhammer", "items/armor-leather", "items/armor-hide", "items/armor-chainmail", "items/steel-dagger", "items/steel-sword", "items/steel-greatsword", "items/steel-shield", "items/steel-tower-shield", "items/shortbow", "items/longbow", "items/rapier", "items/shield", "items/tower-shield", "items/unknown-mushroom", "items/stone-9", "items/stone-8", "items/stone-7", "items/ration", "items/potion", "items/torch", "items/arrows", "items/clothes", "items/shovel", "items/shovel-good", "items/shovel-best", "items/dagger", "items/sword", "items/greatsword", "items/spear", "monsters/goblin-king-face", "monsters/goblin-king-full", "monsters/goblin-bomber-face", "monsters/goblin-bomber-full", "monsters/hobgoblin-shield-face", "monsters/hobgoblin-shield-full", "races/barbarian", "races/human", "races/dwarf", "races/beastkin", "races/fairy", "races/dragon", "monsters/goblin-face", "monsters/goblin-full", "monsters/goblin-archer-face", "monsters/goblin-archer-full", "monsters/goblin-sword-face", "monsters/goblin-sword-full", "monsters/goblin-spear-face", "monsters/goblin-spear-full", "monsters/wolf-face", "monsters/wolf-full", "monsters/fox-face", "monsters/fox-full", "monsters/mouse-face", "monsters/mouse-full", "monsters/bat-face", "monsters/bat-full", "monsters/hobgoblin-face", "monsters/hobgoblin-full", "monsters/zombie-face", "monsters/zombie-full", "monsters/skeleton-face", "monsters/skeleton-full", "monsters/skeleton-archer-face", "monsters/skeleton-archer-full", "monsters/ghoul-face", "monsters/ghoul-full", "monsters/dark-bear-face", "monsters/dark-bear-full", "monsters/skeleton-warrior-face", "monsters/skeleton-warrior-full", "monsters/living-stone-face", "monsters/living-stone-full", "monsters/wisp-face", "monsters/wisp-full", "monsters/pixie-face", "monsters/pixie-full", "monsters/green-boulder-face", "monsters/green-boulder-full", "monsters/stone-guardian-face", "monsters/stone-guardian-full", "monsters/spider-queen-face", "monsters/spider-queen-full", "monsters/ash-wraith-face", "monsters/ash-wraith-full", "monsters/ash-spirit-face", "monsters/ash-spirit-full", "monsters/plague-fat-face", "monsters/plague-fat-full", "monsters/bone-hound-face", "monsters/bone-hound-full", "monsters/dust-crawler-face", "monsters/dust-crawler-full", "monsters/faceless-ringer-face", "monsters/faceless-ringer-full", "monsters/mirror-dead-face", "monsters/mirror-dead-full", "monsters/whisperer-face", "monsters/whisperer-full", "monsters/morok-face", "monsters/morok-full", "monsters/grey-shade-face", "monsters/grey-shade-full", "monsters/blackwing-face", "monsters/blackwing-full", "monsters/swamp-fang-face", "monsters/swamp-fang-full", "monsters/web-spider-face", "monsters/web-spider-full", "monsters/goblin-shaman-face", "monsters/goblin-shaman-full", "monsters/goblin-assassin-face", "monsters/goblin-assassin-full", "monsters/goblin-trapper-face", "monsters/goblin-trapper-full", "monsters/goblin-elder-face", "monsters/goblin-elder-full", "monsters/hobgoblin-brute-face", "monsters/hobgoblin-brute-full", "monsters/hobgoblin-thrower-face", "monsters/hobgoblin-thrower-full", "monsters/hobgoblin-driver-face", "monsters/hobgoblin-driver-full", "monsters/goblin-thief-face", "monsters/goblin-thief-full", "monsters/horned-hare-face", "monsters/horned-hare-full", "monsters/swamp-toad-face", "monsters/swamp-toad-full", "monsters/burrower-face", "monsters/burrower-full", "monsters/crow-face", "monsters/crow-full", "monsters/dire-wolf-face", "monsters/dire-wolf-full", "monsters/werewolf-face", "monsters/werewolf-full", "monsters/giant-mole-face", "monsters/giant-mole-full", "monsters/bone-knight-face", "monsters/bone-knight-full", "monsters/gravedigger-face", "monsters/gravedigger-full", "monsters/corpse-eater-face", "monsters/corpse-eater-full", "monsters/drop-face", "monsters/drop-full", "monsters/dust-whirl-face", "monsters/dust-whirl-full", "monsters/magma-hound-face", "monsters/magma-hound-full", "monsters/crystalloid-face", "monsters/crystalloid-full", "monsters/lake-spirit-face", "monsters/lake-spirit-full", "monsters/magma-golem-face", "monsters/magma-golem-full", "monsters/deep-serpent-face", "monsters/deep-serpent-full", "monsters/crystal-colossus-face", "monsters/crystal-colossus-full", "monsters/storm-spirit-face", "monsters/storm-spirit-full", "monsters/rift-heart-face", "monsters/rift-heart-full", "items/compass", "items/steel-mace", "items/steel-rapier", "items/unknown-herb", "items/twin-daggers", "items/unknown-stone", "items/steel-twin-daggers", "items/potion-good", "items/coins", "items/steel-spear", "items/steel-warhammer", "items/steel-shortbow", "items/steel-longbow", "items/steel-armor-leather", "items/steel-armor-hide", "items/steel-armor-chainmail", "items/gloves", "items/staff", "items/axe", "items/greataxe", "items/firstaid", "items/flute", "items/chalice", "items/once-more", "items/guard", "items/beginners-luck", "buildings/tower", "buildings/guild", "buildings/church", "buildings/library", "buildings/gate", "buildings/tavern", "buildings/shop", "buildings/forge", "buildings/board", "buildings/hall", "races/gnome", "races/darkfairy", "monsters/rat-face", "monsters/rat-full", "monsters/rat-king-face", "monsters/rat-king-full", "monsters/rat-catcher-face", "monsters/rat-catcher-full", "monsters/silence-keeper-face", "monsters/silence-keeper-full", "monsters/orc-wolf-face", "monsters/orc-wolf-full", "monsters/orc-thrower-face", "monsters/orc-thrower-full", "monsters/orc-spear-face", "monsters/orc-spear-full", "monsters/orc-scout-face", "monsters/orc-scout-full", "monsters/orc-falcon-face", "monsters/orc-falcon-full", "monsters/mimic-face", "monsters/mimic-full", "monsters/orc-chief-face", "monsters/orc-chief-full", "items/repair-kit", "items/repair-kit-pro", "monsters/orc-executioner-face", "monsters/orc-executioner-full", "monsters/orc-shaman-face", "monsters/orc-shaman-full", "monsters/orc-guard-face", "monsters/orc-guard-full", "items/brotherhood-ring", "items/hearth", "items/mana-charm", "items/fatigue-charm", "items/hunger-charm", "items/steel-greataxe", "items/steel-axe", "items/steel-gloves", "items/steel-staff", "items/art-shadow-fang", "items/art-flurry-rapier", "items/art-reaper-axe", "items/art-ricochet-bow", "items/art-rift-hammer", "items/art-bastion-shield", "items/art-mirage-armor", "items/art-magnet-mail", "monsters/grey-vulture-face", "monsters/grey-vulture-full", "monsters/thorn-hound-face", "monsters/thorn-hound-full", "monsters/bone-ranger-face", "monsters/bone-ranger-full", "monsters/forge-smith-face", "monsters/forge-smith-full", "monsters/magma-wyrm-face", "monsters/magma-wyrm-full"]);
 const artPath = p => `assets/${p}.${RASTER.has(p) ? "webp" : "svg"}`;
@@ -3514,7 +3632,7 @@ function derived(t, c = char) {
 // Вес по D&D 5e (1 фунт ≈ 0,5 кг): грузоподъёмность Сил × 7,5 кг; больше Сил × 2,5 — «нагружен» (−3 м),
 // больше Сил × 5 — «тяжело нагружен» (−6 м и помеха). Варвар «Великан» считается Большим: всё ×2.
 // По rules.md бежать нельзя, если груз больше половины грузоподъёмности.
-const bagSize = c => (c.race === "barbarian" ? 15 : 10) + ((c.essences || []).includes("mimic") ? 5 : 0);          // «Бездонная пасть» мимика: +5 ячеек
+const bagSize = c => (c.race === "barbarian" ? 15 : 10) + ((c.essences || []).includes("mimic") ? 5 : 0) + ((c.essences || []).includes("cart-mimic") ? 3 : 0);          // «Двойное дно» вагонетки-мимика: +3          // «Бездонная пасть» мимика: +5 ячеек
 const QUIVER = 40;                                   // колчан лучника в начале: 40 обычных стрел (одна ячейка рюкзака)
 const stackMax = (e, c) => e.t === "g" ? (GEAR[e.id].find && !findKnown(c, e.id) ? 1 : GEAR[e.id].stack) : 1;
 function addToBag(c, e) {
@@ -3619,7 +3737,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 115;
+const BATTLE_REV = 116;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }
@@ -4809,7 +4927,7 @@ function tierList(room) {
 function startSpecial(title, enc, o = {}) {
   const r = state.run, p = { x: r.pos.x, y: r.pos.y }, ev = { kind: "hard", title, raw: 0, n: 0, cause: "special", sp: o.sp || null, note: o.note || "" };
   startFight(ev, p, { zone: enc.zone, place: enc.place, list: enc.list, border: false, fog: enc.fog || 0 });
-  for (const k of ["cold", "big10", "bigBrazier"]) if (enc[k] != null) ev[k] = enc[k];          // Ледяной грот: холод отряда, поле 10×10, огромная жаровня
+  for (const k of ["cold", "big10", "bigBrazier", "mineLevel", "dark"]) if (enc[k] != null) ev[k] = enc[k];          // Ледяной грот: холод отряда, поле 10×10, огромная жаровня
   if (o.key) ev.key = o.key;
   ev.ambush = !!o.ambush; if (ev.ambush) ev.title += "!";
   ev.init = rollInitiative(ev.list, ev.ambush);
@@ -5627,7 +5745,8 @@ const shovelsOf = () => state.party.flatMap(c => (c.bag || []).map((e, i) => ({ 
 const pickShovel = () => shovelsOf().sort((a, b) => a.e.uses - b.e.uses)[0] || null;
 const pickOne = arr => arr[rnd(arr.length)];
 function giveParty(e) {
-  if (e.t === "g" && /^stone-\d$/.test(e.id)) { if (gemHorns() && !e.noGem) e = { ...e, qty: (e.qty || 1) + 1 };          // «Рога-самоцветы»: находка камней +1
+  if (e.t === "g" && /^stone-\d$/.test(e.id)) { if (gemHorns() && !e.noGem) e = { ...e, qty: (e.qty || 1) + 1 };
+    if (state.run && state.run.digBoost) e = { ...e, qty: Math.ceil((e.qty || 1) * 1.5) };          // «Прораб»: раскопки +50 % камней          // «Рога-самоцветы»: находка камней +1
     const n = e.qty || 1, cls = +e.id.slice(6); const got = sackAdd(null, cls, n), gt = stoneGotText(got); return `Камни ${cls}-го класса × ${n}${gt ? " (" + gt + ")" : ""} — в сумку для камней`; }
   let name = (itemOf(e) || {}).name || e.id; const q = e.qty || 1;
   let left = q, got = [];
@@ -5703,13 +5822,21 @@ function searchReward(row, sr, digger, lines) {
     luckReward(lr[1], lines);
   }
 }
-function doSearch(kind) {
+const partyHas = id => (state.party || []).some(c => !c.dead && (c.essences || []).includes(id));
+function digShouldWear() {          // «Шахтёрская сноровка» (50 % не тратит прочность), «Прораб» (через раз)
+  const r = state.run || {};
+  if (partyHas("goblin-foreman")) { r.foremanDig = !r.foremanDig; if (!r.foremanDig) return false; }
+  if (partyHas("goblin-miner") && rnd(2) === 0) return false;
+  return true;
+}
+function doSearch(kind) { const r0 = state.run; if (kind === "dig" && r0) r0.digBoost = partyHas("goblin-foreman"); try { return doSearch0(kind); } finally { if (r0) r0.digBoost = false; } }
+function doSearch0(kind) {
   const r = state.run, sr = { ...dgUi.sr, kind }, sp = specialAt(r.pos.x, r.pos.y), lines = [];
   let digger = null;
   if (kind === "dig") {
     digger = pickShovel();
     if (digger) {
-      digger.e.uses--;
+      if (digShouldWear()) digger.e.uses--; else lines.push("Лопата не затупилась.");
       if (digger.e.uses <= 0) { digger.c.bag.splice(digger.i, 1); lines.push(`${GEAR[digger.e.id].name} (${digger.c.name}) сломалась.`); }
     }
   }
@@ -6180,7 +6307,7 @@ function resultOverlay() {
   return `<div class="mapov" role="dialog" aria-modal="true" aria-label="${e.title}">
     <div class="panel fx-frame enc-panel">
       <div class="ph-head"><h3>${e.title}</h3><span class="fx-eyebrow" style="font-size:11px">${e.roll}</span></div>
-      ${e.pic ? `<div class="ev-stage shown res-pic">${evPic(e.pic)}</div>` : ""}
+      ${e.pic ? `<div class="ev-stage shown res-pic${e.anim === "rift" ? " rift-anim" : ""}">${evPic(e.pic)}${e.anim === "rift" ? `<span class="rift-swirl"></span>` : ""}</div>` : ""}
       <ul class="res-list">${e.lines.map(l => `<li>${l}</li>`).join("")}</ul>
       <div style="display:flex;justify-content:center"><button class="fx-btn primary big" data-dg="res-done">Готово</button></div>
     </div></div>`;
@@ -6958,6 +7085,7 @@ function stageOverlay() {
       <button class="fx-btn" data-act="explore"${r.tier ? " disabled" : ""}>${ICO_ACT.explore}Исследовать<small>этот фрагмент, к20</small></button>
       ${tileType(r.pos.x, r.pos.y) === "portal" ? `<button class="fx-btn portal-btn" data-act="portal">${ICO_ACT.run}Войти в портал<small>${portalName(r.pos.x, r.pos.y)}</small></button>` : ""}
       ${(() => { const sh = shovelsOf(); return `<button class="fx-btn dig-btn" data-act="dig"${sh.length ? "" : " disabled"}>${ICO_ACT.dig}Копать<small>${sh.length ? `лопат: ${sh.length}, к20` : "нужна лопата"}</small></button>`; })()}
+      ${typeof atAltar === "function" && atAltar() ? `<button class="fx-btn altar-btn${altarOpen() ? " lit" : ""}" data-dg="altar"${altarOpen() ? "" : " disabled"}>${ICO_ACT.explore}Взаимодействовать<small>${altarOpen() ? "алтарь отзывается" : "алтарь молчит"}</small></button>` : ""}
     </div></div>`;
   return "";
 }
@@ -7148,6 +7276,7 @@ function renderDungeon() {
   ${dgUi.map ? floorMapOverlay() : ""}
   ${dgUi.phase === "rest" ? restOverlay() : ""}
   ${r.rift && dgUi.riftMap ? riftMapOverlay() : ""}
+  ${dgUi.altar ? altarOverlay() : ""}
   ${dgUi.phase === "explore" || dgUi.phase === "dig" ? searchOverlay() : ""}
   ${dgUi.phase === "portal" ? portalOverlay() : ""}
   ${huntAnimOverlay()}
@@ -7516,6 +7645,7 @@ document.addEventListener("click", e => {
     else { dgUi.map = ds.inv === "mmap" ? "magic" : "plain"; }
     rerender(); return;
   }
+  if (ds.dg === "altar") { if (altarOpen()) dgUi.altar = { pick: {} }; rerender(); return; }
   if (ds.sp === "f3altar") { dgUi.res = { title: "Алтарь Сердца этажа", roll: "", lines: ["Древний камень в самом сердце Звона, исчерченный стёртыми знаками. Колокола вокруг смолкают, когда к нему подходишь.", "Пока алтарь молчит — ничего не происходит."] }; rerender(); return; }
   if (ds.sp) { dgUi.inv = false; dgUi.sup = false; dgUi.gm = false; dgUi.spDo = ds.sp; act("sp"); return; }
   if (ds.act) {

@@ -15,6 +15,8 @@
   // Рисунки клеток (viewBox 0 0 100 100). obstacle — непроходима и даёт укрытие линиям, проходящим через неё.
   const sh = '<ellipse cx="50" cy="82" rx="34" ry="9" fill="#000" opacity=".28"/>';
   D.SVG = {
+    dynamite: '<ellipse cx="50" cy="86" rx="34" ry="7" fill="#000" opacity=".3"/><rect x="20" y="34" width="60" height="48" rx="4" fill="#8a5a2a" stroke="#3a2410" stroke-width="4"/><path d="M20 50 H80 M20 66 H80" stroke="#5a3a18" stroke-width="3"/><rect x="34" y="20" width="10" height="20" rx="2" fill="#c83a2a" stroke="#5a1a10" stroke-width="2"/><rect x="48" y="16" width="10" height="24" rx="2" fill="#c83a2a" stroke="#5a1a10" stroke-width="2"/><path d="M53 16 Q60 6 66 10" stroke="#e8d8b0" stroke-width="2" fill="none"/><text x="50" y="62" text-anchor="middle" font-size="18" font-weight="bold" fill="#f4d48e">TNT</text>',
+    torchstand: '<ellipse cx="50" cy="88" rx="22" ry="6" fill="#000" opacity=".3"/><path d="M50 86 V40 M36 86 H64" stroke="#5a4a3a" stroke-width="6" stroke-linecap="round"/><path d="M44 40 h12 l-2 -8 h-8z" fill="#3a3430" stroke="#1a1410" stroke-width="2"/><path d="M48 32 C46 26 52 24 50 18" stroke="#9a9a9a" stroke-width="2" fill="none" opacity=".7"/>',
     quicksand: '<ellipse cx="50" cy="56" rx="44" ry="30" fill="#b89a5a" stroke="#6a5430" stroke-width="3"/><path d="M24 56 Q50 30 76 56 Q50 80 30 58 Q50 44 64 58 Q50 68 40 58" fill="none" stroke="#7a6038" stroke-width="3" stroke-linecap="round"/>',
     brazier: '<ellipse cx="50" cy="88" rx="30" ry="7" fill="#000" opacity=".3"/><path d="M38 64 L28 88 M62 64 L72 88 M50 66 V88" stroke="#3a2e1c" stroke-width="5"/><path d="M18 40 H82 L70 66 H30 Z" fill="#7a6a4a" stroke="#2a2418" stroke-width="4"/><path d="M24 46 H76" stroke="#a89470" stroke-width="3"/>',
     brazierLit: '<ellipse cx="50" cy="88" rx="30" ry="7" fill="#000" opacity=".3"/><path d="M38 64 L28 88 M62 64 L72 88 M50 66 V88" stroke="#3a2e1c" stroke-width="5"/><path d="M18 40 H82 L70 66 H30 Z" fill="#b8903a" stroke="#2a2418" stroke-width="4"/><path d="M30 40 Q24 22 40 6 Q42 22 50 14 Q60 26 56 4 Q76 22 70 40 Z" fill="#f4a43a"/><path d="M40 40 Q38 28 48 20 Q52 30 58 26 Q62 34 58 40Z" fill="#ffe08a"/>',
@@ -72,6 +74,8 @@
   };
   // Свойства клеток. cost — стоимость входа (2 = труднопроходная), cover — укрытие для занявшего клетку (дальние атаки +2 КД).
   D.terrain = {
+    dynamite:      { name: "Ящик динамита", obstacle: true, note: "Не пройти, укрытие. Разрушить может любой: взрыв 2к6 огнём всем вокруг (Ловкость Сл 13 — половина)." },
+    torchstand:    { name: "Стойка с потухшим факелом", obstacle: true, note: "Не пройти. Разрушить: с шансом 20 % уцелеет факел." },
     quicksand:     { name: "Зыбучий песок", cost: 2, sand: true, note: "Труднопроходим. Вошёл — спасбросок Ловкости (Сл 12), провал: увяз (не двигаться до конца следующего хода). 3 хода подряд в песке — 1к6 урона." },
     brazier:       { name: "Имперская жаровня", obstacle: true, flammable: true, note: "Не пройти, укрытие. Огонь (факел, огненная атака) разжигает её." },
     brazierLit:    { name: "Горящая жаровня", obstacle: true, light: 3, note: "Рядом с ней холод не растёт, в конце хода героя рядом −1 холод. Ледяные твари её гасят." },
@@ -173,6 +177,9 @@
     owlmark:     { name: "Метка совы", ico: '<circle cx="8" cy="12" r="3"/><circle cx="16" cy="12" r="3"/><path d="M5 7l3 2M19 7l-3 2"/>', desc: "Атаки по цели с преимуществом." },
     chilled:     { name: "Без тепла", ico: '<path d="M12 3v18M4 8l16 8M20 8L4 16"/>', desc: "−2 к урону до конца боя." },
     sunk:        { name: "Увяз в песке", ico: '<path d="M4 18h16M7 14c2-2 8-2 10 0M12 4v8"/>', desc: "Не может двигаться до конца своего следующего хода." },
+    corroded:    { name: "Броня разъедена", ico: '<path d="M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6z"/><path d="M9 10l2 3 4-5"/>', desc: "Защита снижена до конца боя." },
+    stonecrust:  { name: "Каменная корка", ico: '<path d="M4 18l4-10 4 4 4-8 4 14z"/>', desc: "+2 Защиты." },
+    shieldlock:  { name: "Щиты сомкнуты", ico: '<path d="M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6z"/>', desc: "+2 Защиты до начала хода командира." },
     pecked:      { name: "Исклёван", atkDis: true, ico: '<path d="M4 12c4-6 12-6 16 0-4 6-12 6-16 0z"/><path d="M9 9l6 6M15 9l-6 6"/>', desc: "Помеха на атаки." },
     spinestance: { name: "Колючая стойка", ico: '<path d="M12 2v6M12 16v6M2 12h6M16 12h6M5 5l4 4M15 15l4 4M19 5l-4 4M9 15l-4 4"/>', desc: "+3 Защиты и ответная атака каждому, кто атакует. Сбивают огонь, область или атака с броском 20+." },
     hookreach:   { name: "Когти-крючья", ico: '<path d="M6 4c6 0 10 4 10 10M16 14l-3 4M16 14l4 2"/>', desc: "До конца хода досягаемость ближних атак +1; задетого издалека притягивает." },

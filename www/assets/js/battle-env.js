@@ -21,6 +21,8 @@
     palisade: { hp: 20, ac: 10, res: ["pierce"], vuln: ["slash"], drop: [[0.02, 0], [0, 0.015]] },
     stash:    { hp: 6, ac: 9, res: [], vuln: ["slash"], drop: [[0, 0], [0, 0]] },          // походный сундучок Ведьмина леса: награда и мимик — в destroyObject
     spearstuck: { hp: 1, ac: 6, res: [], drop: [[0, 0], [0, 0]] },          // воткнутое копьё-громоотвод: препятствие с 1 ОЗ, сбитое лежит на земле (battle-weap.js)
+    dynamite: { hp: 6, ac: 8, res: [], drop: [[0, 0], [0, 0]] },          // ящик динамита (Зелёная шахта): взрывается при уничтожении
+    torchstand: { hp: 6, ac: 9, res: [], drop: [[0, 0], [0, 0]] },          // стойка с потухшим факелом (4-й уровень шахты): 20 % — факел
     deadfall: { hp: 24, ac: 11, res: ["pierce"], vuln: ["slash"], drop: [[0.02, 0], [0, 0.015]] },
   };
   D.recoil = { maxNat: 3, dmg: [1, 4] };                          // обычное оружие (не молот и не тяжёлое), натуральное 1–3 по камню: отдача в руку
@@ -56,6 +58,8 @@
     const g = ui(); if (g) { g.fxText({ x, y, size: 1, id: "obj" }, "разрушено", "dmg"); g.refresh(); }
     if (t === "stash") { stashBreak(x, y, src); return; }
     if (t === "spearstuck") { if (B.artSpearDown) B.artSpearDown(x, y, src); return; }
+    if (t === "dynamite") { log("Ящик динамита взрывается!", "bad"); const g2 = ui(); if (g2) g2.banner("Взрыв!"); B.queue(async () => { for (const o of B.live().filter(o => B.footprint(o).some(([fx, fy]) => Math.max(Math.abs(fx - x), Math.abs(fy - y)) <= 1))) { const sv = await B.ess.save(o, "dex", 13, "Взрыв динамита", [], null); await B.applyDamage(src && !src.isObj ? src : null, o, [{ v: (() => { const n = roll(2, 6).total; return sv.ok ? Math.floor(n / 2) : n; })(), dt: "fire", label: "Взрыв динамита" }], { splash: true, noAbilParts: true }); } for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) if ((dx || dy) && B.inB(x + dx, y + dy) && B.terrain(x + dx, y + dy) === "dynamite") destroyObject(x + dx, y + dy, null); }); return; }
+    if (t === "torchstand") { if (rnd(100) < 20) { (S.found ||= []).push({ t: "g", id: "torch", qty: 1 }); log("В обломках стойки уцелел факел.", "good"); } else log("Факел на стойке рассыпался в труху."); return; }
     const [p9, p8] = stoneChance(t);
     if (p9 && rnd(1000) < p9 * 1000) { (S.found ||= []).push({ t: "g", id: "stone-9", qty: 1 }); log(`Среди обломков блестит магический камень (9-й класс).`, "good"); }
     if (p8 && rnd(1000) < p8 * 1000) { (S.found ||= []).push({ t: "g", id: "stone-8", qty: 1 }); log(`Среди обломков блестит магический камень (8-й класс).`, "good"); }

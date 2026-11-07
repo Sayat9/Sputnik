@@ -94,6 +94,58 @@
 
 > `full-body a colossal infernal desert worm with glowing magma cracks between armored segments, a vast maw erupting from cracking sand, sandstorm and beacons sinking in the dunes, desert of quicksand and sinking ancient beacons, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
 
+### Гоблин-шахтёр — `monsters/goblin-miner-full`
+
+> `full-body a small grimy goblin miner with a dented helmet with a candle, a pickaxe and a sack of ore, green-lit abandoned mine with rails and crystals, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Кобольд — `monsters/kobold-full`
+
+> `full-body a small scaly dog-like kobold with a dagger and a crude rope trap, mine tunnel, green-lit abandoned mine with rails and crystals, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Слизь — `monsters/slime-full`
+
+> `full-body a small translucent green slime blob with bubbles and bits of rock inside, green-lit abandoned mine with rails and crystals, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Кобольд-страж — `monsters/kobold-guard-full`
+
+> `full-body a sturdy kobold guard with a big wooden shield and a spear blocking a mine passage, green-lit abandoned mine with rails and crystals, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Гоблин-подрывник — `monsters/goblin-blaster-full`
+
+> `full-body a manic goblin sapper with goggles and a bandolier of lit dynamite sticks, green-lit abandoned mine with rails and crystals, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Кислотная слизь — `monsters/acid-slime-full`
+
+> `full-body a bubbling yellow-green acid slime melting the rails beneath it, fumes rising, green-lit abandoned mine with rails and crystals, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Каменная слизь — `monsters/stone-slime-full`
+
+> `full-body a slow grey slime covered in a crust of stone plates and pebbles, green-lit abandoned mine with rails and crystals, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Делящаяся слизь — `monsters/split-slime-full`
+
+> `full-body a jiggly emerald slime splitting into smaller blobs, green-lit abandoned mine with rails and crystals, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Рудничный призрак — `monsters/mine-ghost-full`
+
+> `full-body a ghostly dead miner with a broken lantern and pickaxe, pale glow, fleeing from torchlight, green-lit abandoned mine with rails and crystals, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Вагонетка-мимик — `monsters/cart-mimic-full`
+
+> `full-body a mine cart mimic with iron teeth on the rim, a tongue among the ore, legs of rusty rails, green-lit abandoned mine with rails and crystals, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Глава стражи кобольдов — `monsters/kobold-captain-full`
+
+> `full-body a grizzled kobold captain in chainmail with a war hammer and a tall shield, commanding, green-lit abandoned mine with rails and crystals, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Главный прораб — `monsters/goblin-foreman-full`
+
+> `full-body a fat goblin foreman with a whistle, a hard hat, a big pickaxe and a crate of dynamite, green-lit abandoned mine with rails and crystals, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Римуру, король слизи — `monsters/rimuru-full`
+
+> `full-body a huge regal blue-green king slime with a golden crown floating inside it, absorbing glowing crystals, green-lit mine cavern, green-lit abandoned mine with rails and crystals, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
 ### Раб крови — `monsters/blood-slave-full`
 
 > `full-body an emaciated pale undead slave in chains with drained grey skin and hollow red eyes, blood-soaked gothic fortress and dark sewers with red torchlight, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`

@@ -84,6 +84,13 @@ const CASES = [          // [метка, этаж, уровень героев, 
   ['Пе: миражный скорпион+скорпион', 1, LV7, ['mirage-scorpion', 'sand-scorpion'], 'beast', { sand: 1 }],
   ['Пе: стервятник мёртвых земель+падальщик', 1, LV7, ['dead-vulture', 'sand-vulture'], 'beast', { sand: 1 }],
   ['Пе: Кель', 1, LV7, ['kel-worm'], 'beast', { sand: 1 }],
+  ['Ш: 3 шахтёра/кобольда/слизь', 1, LV7, ['goblin-miner', 'kobold', 'slime'], 'goblin', { mine: 1 }],
+  ['Ш: страж+подрывник+кобольд', 1, LV7, ['kobold-guard', 'goblin-blaster', 'kobold'], 'goblin', { mine: 1 }],
+  ['Ш: кислотная+каменная+делящаяся', 1, LV7, ['acid-slime', 'stone-slime', 'split-slime'], 'goblin', { mine: 1 }],
+  ['Ш: призрак+вагонетка+слизь (тьма)', 1, LV7, ['mine-ghost', 'cart-mimic', 'slime'], 'goblin', { mine: 4 }],
+  ['Ш: глава стражи+страж', 1, LV7, ['kobold-captain', 'kobold-guard'], 'goblin', { mine: 2 }],
+  ['Ш: главный прораб+шахтёр', 1, LV7, ['goblin-foreman', 'goblin-miner'], 'goblin', { mine: 3 }],
+  ['Ш: Римуру+слизь', 1, LV7, ['rimuru', 'slime'], 'goblin', { mine: 5 }],
   ['Г: противный+3 гоблина', 2, 3, ['nasty-goblin', 'goblin', 'goblin-sword', 'goblin-spear'], 'goblin'],
   ['Г: провокатор+3 гоблина', 2, 3, ['goblin-provoker', 'goblin', 'goblin-archer', 'goblin-spear'], 'goblin'],
 ].filter(c => !ONLY || c[0].includes(ONLY));
@@ -138,7 +145,7 @@ const PARTIES = process.env.STEEL ? [['сталь: меч', 'сталь: дву�
           state.party = names.map((n, j) => mk(n, j, lvl)); if (/^В:/.test(label)) state.party.forEach(c => { if (c.equip.main) c.equip.main.salt = true; });          // лес: у отряда оружие с солью (призраки) state.run.floor = floor; state.run.status = {};
           state.party.forEach(c => { state.run.status[c.id] = { fat: 0, sat: 3 }; });
           if (!info) info = state.party.map(c => { const d = derived(totals(c), c); return `${d.ac}${d.prot != null ? '/' + d.prot : ''} ОЗ ${maxHp(c)}`; });
-          const L2 = list === 'KING' ? kingEscort() : list; const z = zone || (MONSTERS.find(x => x.id === L2[0]) || {}).zone || 'stone'; if (xo && xo.big) state.party.forEach(c => { (c.bag ||= []).push({ t: 'g', id: 'torch', qty: 3 }); }); const iceX = xo && xo.sand ? { place: 'Зыбучие пески', big10: true } : xo && xo.ice ? { place: 'Ледяной грот', big10: true, bigBrazier: !!xo.big, cold: Object.fromEntries(state.party.map(c => [c.id, 0])) } : {}; const r = await Battle.sim({ list: L2.slice(), zone: z, floor, ambush: false, kind: 'hard', title: 't', ...iceX }); const S = r.S;
+          const L2 = list === 'KING' ? kingEscort() : list; const z = zone || (MONSTERS.find(x => x.id === L2[0]) || {}).zone || 'stone'; if (xo && xo.big) state.party.forEach(c => { (c.bag ||= []).push({ t: 'g', id: 'torch', qty: 3 }); }); const iceX = xo && xo.mine ? { place: 'Зелёная шахта', mineLevel: xo.mine, dark: xo.mine === 4 } : xo && xo.sand ? { place: 'Зыбучие пески', big10: true } : xo && xo.ice ? { place: 'Ледяной грот', big10: true, bigBrazier: !!xo.big, cold: Object.fromEntries(state.party.map(c => [c.id, 0])) } : {}; const r = await Battle.sim({ list: L2.slice(), zone: z, floor, ambush: false, kind: 'hard', title: 't', ...iceX }); const S = r.S;
           if (r.outcome === 'win' || r.outcome === 'retreat') win++;
           const hs = S.units.filter(u => u.side === 'hero' && !u.summon && u.hero);
           if (hs.every(u => u.down || u.dead || !u.alive)) wipe++;

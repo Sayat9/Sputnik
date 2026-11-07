@@ -2621,5 +2621,121 @@
       const g = ui(); if (g) g.refresh(); return true; },
     ai(u) { const ts = foesIn(u, 4); return ts.length >= 1 ? { unit: ts[0], score: 11 } : null; },
   };
+  /* ===== Разлом «Зелёная шахта» (07.11): 13 монстров ===== */
+  Object.assign(D.essCd, { "goblin-miner": 3, kobold: 3, slime: 3, "kobold-guard": 3, "goblin-blaster": 4, "acid-slime": 3, "stone-slime": 3, "split-slime": 4, "mine-ghost": 3, "cart-mimic": 3, "kobold-captain": 4, "goblin-foreman": 5, rimuru: 4 });
+  Object.assign(D.monTune, {
+    "goblin-miner": { role: "brute", focus: ["nearest"], fleeHp: 0.3 }, kobold: { role: "skirmish", focus: ["weak", "nearest"], fleeHp: 0.3 }, slime: { role: "brute", focus: ["nearest"], noFlee: true },
+    "kobold-guard": { role: "brute", focus: ["nearest"], noFlee: true }, "goblin-blaster": { role: "ranged", keep: 3, focus: ["cluster", "nearest"], fleeHp: 0.3 }, "acid-slime": { role: "brute", focus: ["nearest"], noFlee: true },
+    "stone-slime": { role: "brute", focus: ["nearest"], noFlee: true }, "split-slime": { role: "brute", focus: ["nearest"], noFlee: true }, "mine-ghost": { role: "skirmish", focus: ["weak", "nearest"], noFlee: true },
+    "cart-mimic": { role: "brute", focus: ["cluster", "nearest"], noFlee: true }, "kobold-captain": { role: "brute", focus: ["weak", "nearest"], noFlee: true }, "goblin-foreman": { role: "ranged", keep: 2, focus: ["cluster", "nearest"], noFlee: true }, rimuru: { role: "brute", focus: ["weak", "nearest"], noFlee: true },
+  });
+  const lineFrom = (u, t, n) => { const sx = Math.sign(t.x - u.x), sy = Math.sign(t.y - u.y), out = []; let x = u.x, y = u.y; for (let i = 0; i < n; i++) { x += sx; y += sy; if (!B.inB(x, y)) break; out.push([x, y]); } return out; };
+  const unitsOn = (cells, side) => live().filter(o => o.side !== side && cells.some(([cx, cy]) => footprint(o).some(([fx2, fy]) => fx2 === cx && fy === cy)));
+  /* Гоблин-шахтёр (9): «Шахтёрская сноровка» — вне боя (index.html digShouldWear) */
+  P["goblin-miner"] = {};
+  A["goblin-miner"] = {
+    time: "action", tgt(u) { return specUnit(u, "Обвал кирки: в сторону кого?", foesIn(u, 2), B.cellsWithin(u, 2), "attack"); }, can(u) { return foesIn(u, 2).length ? true : "нет цели в 2 клетках"; },
+    async run(u, pk, ctl) { const t = pk.unit; if (!t) return false; ctl.commit(); log(`${u.name} обрушивает свод киркой.`, "skill"); for (const o of unitsOn(lineFrom(u, t, 2), u.side)) { const sv = await saveDmg(u, o, "dex", dcOf(u, "str"), [1, 6], "bludgeon", "Обвал кирки"); if (!sv.ok && alive(o)) addStatus(o, "prone", { k: Infinity }); } return true; },
+    ai(u) { const ts = foesIn(u, 2); return ts.length ? { unit: ts[0], score: 8 } : null; },
+  };
+  /* Кобольд (9) */
+  P.kobold = { attackMods(u, ctx) { if (ctx.tgt && ctx.adv && alliesOf(u).some(a => a !== u && alive(a) && !a.down && dist(a, ctx.tgt) <= 1)) ctx.adv.push("стайная тактика"); } };
+  A.kobold = {
+    time: "action", tgt(u) { const cs = B.cellsWithin(u, 2).filter(([x, y]) => !B.occupant(x, y) && !(B.terrain(x, y))); return { type: "cell", prompt: "Камнепад: куда поставить ловушку?", cells: cs, kind: "attack" }; }, can() { return true; },
+    async run(u, pk, ctl) { let c = pk.cell; if (!c) { const cs = B.cellsWithin(u, 2).filter(([x, y]) => !B.occupant(x, y) && !B.terrain(x, y)); c = cs[Math.floor(Math.random() * cs.length)]; } if (!c) return false; ctl.commit(); setTrap(u, c[0], c[1], { dmg: "1к6" }); log(`${u.name} возится у стены штольни.`, "skill"); return true; },
+    ai(u) { return foesIn(u, 4).length && !within(u, 1).length ? { score: 5 } : null; },
+  };
+  /* Слизь (9) */
+  P.slime = { resist(u, { dt }) { return dt === "bludgeon"; } };
+  A.slime = {
+    time: "action", tgt(u) { return specUnit(u, "Липкий плевок: в кого?", foesIn(u, 3), B.cellsWithin(u, 3), "attack"); }, can(u) { return foesIn(u, 3).length ? true : "нет цели в 3 клетках"; },
+    async run(u, pk, ctl) { const t = pk.unit; if (!t) return false; ctl.commit(); const sv = await save(t, "dex", dcOf(u, "con"), "Липкий плевок", ["restrain"], u); if (!sv.ok && alive(t)) { addStatus(t, "restrained", { k: 2, when: "end" }); fx(t, "прилип", "bad"); } return true; },
+    ai(u) { const ts = foesIn(u, 3).filter(t => !has(t, "restrained")); return ts.length ? { unit: ts[0], score: 8 } : null; },
+  };
+  /* Кобольд-страж (8) */
+  P["kobold-guard"] = { slowAura(e, { u }) { return dist(e, u) <= 1 ? 1 : 0; }, immune(u, c) { return c && c.id === "push" && (u.side !== "hero" || (B.offOf && B.offOf(u) && /shield/.test(B.offOf(u).id || ""))); } };
+  A["kobold-guard"] = {
+    time: "action", tgt(u) { return specUnit(u, "Таран щитом: кого?", within(u, 1), cellsAround(u, 1), "attack"); }, can(u) { return within(u, 1).length ? true : "никого рядом"; },
+    async run(u, pk, ctl) { const t = pk.unit; if (!t) return false; ctl.commit(); const sv = await save(t, "str", dcOf(u, "str"), "Таран щитом", ["push"], u); if (!sv.ok && alive(t)) { if (B.push) await B.push(t, u.x, u.y, 1); if (alive(t)) addStatus(t, "prone", { k: Infinity }); fx(t, "сбит", "bad"); } return true; },
+    ai(u) { const ts = within(u, 1).filter(t => !has(t, "prone")); return ts.length ? { unit: ts[0], score: 9 } : null; },
+  };
+  /* Гоблин-подрывник (8) */
+  P["goblin-blaster"] = { abilityParts(u, { tgt, parts, o }) { if (!tgt || tgt.side === u.side || o.fuseDone || !parts.some(p => p.dt === "fire" && p.v > 0)) return; o.fuseDone = true; parts.push({ v: roll(1, 4).total, dt: "fire", label: "Короткий фитиль" }); } };
+  const blast = async (u, t, dice, label) => { const cx = t.x, cy = t.y; log(`${u.name} швыряет ${label.toLowerCase()}.`, "skill"); const g = ui(); if (g && g.fxAbility) try { g.fxAbility(u, label); } catch (e) {}
+    for (const o of live().filter(o => o !== u && footprint(o).some(([fx2, fy]) => Math.max(Math.abs(fx2 - cx), Math.abs(fy - cy)) <= 1))) await saveDmg(u, o, "dex", dcOf(u, "dex"), dice, "fire", label);
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) if (B.inB(cx + dx, cy + dy) && B.terrain(cx + dx, cy + dy) === "dynamite" && B.hitObject) {} };
+  A["goblin-blaster"] = {
+    time: "action", tgt(u) { return specUnit(u, "Динамитная шашка: в кого?", foesIn(u, 3), B.cellsWithin(u, 3), "attack"); }, can(u) { return foesIn(u, 3).length ? true : "нет цели в 3 клетках"; },
+    async run(u, pk, ctl) { const t = pk.unit; if (!t) return false; ctl.commit(); await blast(u, t, [1, 6, 2], "Динамитная шашка"); return true; },
+    ai(u) { const ts = foesIn(u, 3).filter(t => dist(u, t) >= 2); return ts.length ? { unit: ts.sort((a, b) => live().filter(o => o.side === a.side && dist(o, a) <= 1).length - live().filter(o => o.side === b.side && dist(o, b) <= 1).length).pop(), score: 11 } : null; },
+  };
+  /* Кислотная слизь (8) */
+  P["acid-slime"] = { async onDamagedAsync(u, { src, o }) { if (!src || !alive(src) || !(o && o.melee) || u.acidRound === B.S.round) return; u.acidRound = B.S.round; await B.applyDamage(u, src, [{ v: roll(1, 4).total, dt: "acid", label: "Едкая плоть" }], { src: u, noAbilParts: true }); } };
+  A["acid-slime"] = {
+    time: "action", tgt(u) { return specUnit(u, "Кислотный плевок: в кого?", foesIn(u, 4), B.cellsWithin(u, 4), "attack"); }, can(u) { return foesIn(u, 4).length ? true : "нет цели в 4 клетках"; },
+    async run(u, pk, ctl) { const t = pk.unit; if (!t) return false; ctl.commit(); const sv = await save(t, "dex", dcOf(u, "con"), "Кислотный плевок", [], u); if (!sv.ok && alive(t)) { await B.applyDamage(u, t, [{ v: roll(1, 6).total, dt: "acid", label: "Кислотный плевок" }], { src: u }); if (alive(t)) { const c = has(t, "corroded"); if (c) c.data.prot = (c.data.prot || 0) - 1; else addStatus(t, "corroded", { k: Infinity, data: { prot: -1 } }); fx(t, "броня разъедена", "bad"); } } else fx(t, "увернулся", ""); return true; },
+    ai(u) { const ts = foesIn(u, 4); return ts.length ? { unit: ts.sort((a, b) => (b.prot || 0) - (a.prot || 0))[0], score: 10 } : null; },
+  };
+  /* Каменная слизь (8) */
+  P["stone-slime"] = { speedBonus() { return -1; }, turnStart(u) { if (!has(u, "stonecrust")) addStatus(u, "stonecrust", { k: Infinity, data: { prot: 2 } }); } };
+  A["stone-slime"] = {
+    time: "action", tgt() { return { type: "none" }; }, can(u) { return has(u, "faithwall") ? "уже окаменел" : true; },
+    async run(u, pk, ctl) { ctl.commit(); addStatus(u, "faithwall", { k: Infinity, data: { endAtStartOf: u.id } }); addStatus(u, "slowed", { k: Infinity, data: { mult: 0, endAtStartOf: u.id } }); fx(u, "окаменел", "good"); log(`${u.name} каменеет: до своего хода физический урон вполовину.`, "skill"); return true; },
+    ai(u) { return u.hp < u.maxHp * 0.6 && within(u, 1).length ? { score: 9 } : null; },
+  };
+  /* Делящаяся слизь (8): эссенция «Второе тело»; монстр делится от удара 8+ */
+  P["split-slime"] = { beforeZero(u) { if (u.side !== "hero" || u.secondBody) return false; u.secondBody = true; log(`${u.name}: второе тело — встаёт с 5 ОЗ!`, "good"); fx(u, "второе тело", "good"); return 5; } };
+  P["body:split-slime"] = { onDamaged(u, { total }) { if (total < 8 || !alive(u) || (u.splits || 0) >= 2) return; u.splits = (u.splits || 0) + 1; B.queue(async () => { if (!alive(u)) return; const m = B.monUnit("slime", -1), c = B.freeCellsNear(u, 1, m)[0]; if (!c) return; m.x = c[0]; m.y = c[1]; m.noReward = true; B.addUnit(m, B.S.order[B.S.turn]); log(`От ${u.name} отделяется малая слизь.`, "bad"); }); } };
+  A["split-slime"] = {
+    time: "action", tgt() { return { type: "none" }; }, can(u) { return B.freeCellsNear(u, 1, { size: 1, side: u.side, id: "x" }).length ? true : "нет места рядом"; },
+    async run(u, pk, ctl) { ctl.commit(); const m = B.monUnit("slime", -1), c = B.freeCellsNear(u, 1, m)[0]; if (!c) return true; m.x = c[0]; m.y = c[1]; m.noReward = true;
+      if (u.side === "hero") { m.side = "hero"; m.summon = true; m.auto = true; m.kind = "slime"; m.threat = 3; m.name = "Слизень-приманка"; }
+      B.addUnit(m, B.S.order[B.S.turn]); if (u.side === "hero") { m.side = "hero"; m.threat = 3; } log(`${u.name} отпочковывает слизня.`, "skill"); const g = ui(); if (g) g.refresh(); return true; },
+    ai(u) { return (u.buds || 0) < 1 && within(u, 1).length ? (u.buds = (u.buds || 0) + 1, { score: 6 }) : null; },
+  };
+  /* Рудничный призрак (8) */
+  P["mine-ghost"] = { defendMods(t, ctx) { const S = B.S; if (S && S.dark && !S.torch && ctx && ctx.dis) ctx.dis.push("свет погибели"); } };
+  P["body:mine-ghost"] = { attackMods(u, ctx) { const S = B.S; if (S && (S.torch || !S.dark) && ctx.dis) ctx.dis.push("боится света"); } };
+  A["mine-ghost"] = {
+    time: "action", tgt(u) { return specUnit(u, "Шёпот обвала: кого?", foesIn(u, 4), B.cellsWithin(u, 4), "attack"); }, can(u) { return foesIn(u, 4).length ? true : "нет цели в 4 клетках"; },
+    async run(u, pk, ctl) { const t = pk.unit; if (!t) return false; ctl.commit(); const sv = await save(t, "wis", dcOf(u, "cha"), "Шёпот обвала", ["fear"], u); if (!sv.ok && alive(t)) { addStatus(t, "frightened", { k: 2, when: "end", data: { by: u.id } }); fx(t, "испуган", "bad"); } return true; },
+    ai(u) { const ts = foesIn(u, 4).filter(t => !has(t, "frightened")); return ts.length ? { unit: ts[0], score: 9 } : null; },
+  };
+  /* Вагонетка-мимик (8): «Двойное дно» — рюкзак (index.html bagSize); у монстра — руда при гибели */
+  P["cart-mimic"] = {};
+  P["body:cart-mimic"] = { onDeath(u) { const S = B.S; if (S) { (S.found ||= []).push({ t: "g", id: "stone-8", qty: 2 }); log("Из кузова вагонетки высыпается руда: 2 камня.", "good"); } } };
+  A["cart-mimic"] = {
+    time: "action", tgt(u) { return specUnit(u, "Наезд: на кого?", foesIn(u, 4).filter(t => dist(u, t) >= 2), B.cellsWithin(u, 4), "attack"); }, can(u) { return foesIn(u, 4).some(t => dist(u, t) >= 2) ? true : "нет цели в 2–4 клетках"; },
+    async run(u, pk, ctl) { const t = pk.unit; if (!t) return false; ctl.commit(); const cells = lineFrom(u, t, 4), vic = unitsOn(cells, u.side); log(`${u.name} с грохотом наезжает!`, "skill");
+      for (const o of vic) { const sv = await save(o, "dex", dcOf(u, "str"), "Наезд", ["prone"], u); if (!sv.ok && alive(o)) { await B.applyDamage(u, o, [{ v: roll(1, 8).total, dt: "bludgeon", label: "Наезд" }], { src: u }); if (alive(o)) addStatus(o, "prone", { k: Infinity }); } }
+      const c = freeNear(u, t); if (c) await B.teleport(u, c[0], c[1]); return true; },
+    ai(u) { const ts = foesIn(u, 4).filter(t => dist(u, t) >= 2); return ts.length ? { unit: ts[0], score: 11 } : null; },
+  };
+  /* Глава стражи кобольдов (7, минибосс): танк */
+  P["kobold-captain"] = { saveAura(a, { u, ctx }) { if (u !== a && u.side === a.side && dist(a, u) <= 2 && ctx && ctx.mods) ctx.mods.push({ l: "Командир штольни", v: 1 }); } };
+  A["kobold-captain"] = {
+    time: "action", tgt() { return { type: "none" }; }, can() { return true; },
+    async run(u, pk, ctl) { ctl.commit(); for (const a of [u, ...alliesOf(u).filter(x => x !== u && alive(x) && dist(u, x) <= 1)]) { addStatus(a, "shieldlock", { k: Infinity, data: { prot: 2, endAtStartOf: u.id } }); fx(a, "щиты сомкнуты", "good"); } log(`${u.name}: «Сомкнуть щиты!»`, "skill"); return true; },
+    ai(u) { const n = alliesOf(u).filter(x => x !== u && alive(x) && dist(u, x) <= 1).length; return within(u, 1).length && !has(u, "shieldlock") ? { score: 8 + n * 3 } : null; },
+  };
+  /* Главный прораб (7, минибосс): доход (вне боя) + призыв */
+  P["goblin-foreman"] = {};
+  P["body:goblin-foreman"] = { attackMods() {} };
+  A["goblin-foreman"] = {
+    time: "action", tgt() { return { type: "none" }; }, can(u) { return B.freeCellsNear(u, 2, { size: 1, side: u.side, id: "x" }).length ? true : "нет места рядом"; },
+    async run(u, pk, ctl) { ctl.commit(); log(`${u.name}: «Свистать всех!»`, "skill"); const g = ui(); if (g) g.banner("Свистать всех!");
+      if (u.side !== "hero") { const got = B.spawnFoes(["goblin-miner", "goblin-miner"], u); got.forEach(m => { m.noReward = true; }); return true; }
+      const m = B.monUnit("goblin-miner", -1), c = B.freeCellsNear(u, 1, m)[0]; if (!c) return true; m.x = c[0]; m.y = c[1]; m.side = "hero"; m.summon = true; m.auto = true; m.kind = "miner"; m.noReward = true; m.name = "Шахтёр-помощник"; B.addUnit(m, B.S.order[B.S.turn]); m.side = "hero"; if (g) g.refresh(); return true; },
+    ai(u) { return (u.calls || 0) < 1 ? (u.calls = 1, { score: 14 }) : null; },
+  };
+  /* Римуру, король слизи (7, страж) */
+  P.rimuru = { dmgFlat(u, { dt, v }) { return (dt === "poison" || dt === "acid") && v > 0 ? -v : 0; }, turnStart(u) { if (u.hp < u.maxHp) { B.heal(u, 3, u); fx(u, "+3", "good"); } } };
+  const rimBodies = u => B.S.units.filter(o => o !== u && !alive(o) && !o.fled && o.ref !== undefined && o.x != null && dist(u, o) <= 1 && !o.eaten);
+  A.rimuru = {
+    time: "action", tgt(u) { const bs = rimBodies(u); return { type: "none", prompt: bs.length ? `Поглотить: ${bs[0].name}` : "" }; }, can(u) { return rimBodies(u).length ? true : "рядом нет павших"; },
+    async run(u, pk, ctl) { const b = rimBodies(u)[0]; if (!b) return false; ctl.commit(); b.eaten = true; const pid = b.ref && P[b.ref] ? b.ref : null; if (pid && !u.pass.includes(pid)) u.pass.push(pid);
+      u.temp = Math.max(u.temp || 0, 5); log(`${u.name} поглощает ${b.name}${pid ? " и перенимает его силу" : ""}: +5 временных ОЗ.`, "skill"); fx(u, "поглощение", "good"); return true; },
+    ai(u) { return rimBodies(u).length ? { score: 13 } : null; },
+  };
   B.fillActiveTimes();
 })();
