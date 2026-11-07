@@ -4879,7 +4879,7 @@ function genTravelers(f) {
 function travCrystals(sp) { const out = {}, add = (cls, n) => { out[cls] = (out[cls] || 0) + n; }; add(sp.cls, Math.ceil(sp.lvl / 2)); for (const e of sp.ess || []) { const k = (ESSENCES[e] || {}).cls || 9; add(k, 10 - k); } return out; }
 const wpick = rows => { let t = Math.random(), v = rows[rows.length - 1][0]; for (const [x, w] of rows) { t -= w; if (t < 0) { v = x; break; } } return v; };
 function travCarry(f) {
-  return { arrows: null, ration: 3 + rnd(3), potion: f <= 1 ? (Math.random() < .3 ? 1 : 0) : f === 2 ? wpick([[0, .35], [1, .5], [2, .15]]) : wpick([[0, .15], [1, .5], [2, .3], [3, .05]]),          // 04.11: зелий у путников меньше
+  return { arrows: null, ration: 3 + rnd(3), potion: f <= 1 ? (Math.random() < .3 ? 2 : 1) : f === 2 ? wpick([[1, .65], [2, .35]]) : wpick([[2, .7], [3, .3]]),          // 07.11 (автор): всегда минимум 1 зелье, на 3 этаже — минимум 2
     torch: Math.random() < (f >= 2 ? .5 : .3) ? 1 + (f >= 3 ? rnd(2) : 0) : 0, compass: Math.random() < .04, map: Math.random() < .05, weapon: Math.random() < .5 };
 }
 // Добыча с убитых путников: строки для экрана итога (оружие, еда, зелья, факелы, компас, карта этажа).

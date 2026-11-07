@@ -269,8 +269,8 @@ const L = require('./bui_lib.js');
     o.f2 = [...o.f2].sort(); return o;
   });
   ok('еда: минимум 3 на путника', CR.ration >= 3, CR.ration);
-  ok('зелья: 1 эт. — не факт, что есть (0 или 1)', CR.f1.zero > 100 && CR.f1.one > 100 && CR.f1.other === 0, JSON.stringify(CR.f1));
-  ok('зелья: 2 этаж 0–2, на 3 этаже 0–3 (v112: зелий меньше)', JSON.stringify(CR.f2) === '[0,1,2]' && CR.f3min === 0, JSON.stringify([CR.f2, CR.f3min]));
+  ok('зелья: 1 эт. — минимум 1 (1 или 2)', CR.f1.zero === 0 && CR.f1.one > 100 && CR.f1.other > 50, JSON.stringify(CR.f1));
+  ok('зелья: 2 этаж 1–2, на 3 этаже минимум 2 (автор 07.11)', JSON.stringify(CR.f2) === '[1,2]' && CR.f3min === 2, JSON.stringify([CR.f2, CR.f3min]));
   ok('компас — низкий шанс, карта этажа — около 5 %, оружие — около половины', CR.comp / CR.n > .02 && CR.comp / CR.n < .07 && CR.map / CR.n > .035 && CR.map / CR.n < .07 && CR.wpn / CR.n > .43 && CR.wpn / CR.n < .57, JSON.stringify([CR.comp, CR.map, CR.wpn, CR.n]));
 
   // выдача добычи с убитых
