@@ -48,9 +48,9 @@
 
 ### Детёныш мамонта — `monsters/mammoth-calf-full`
 
-> `full-body a young woolly mammoth calf with shaggy brown fur covered in frost and short sharp tusks, charging, frozen cave, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+> `full-body a young woolly mammoth calf with shaggy brown fur covered in frost and short tusks sheathed in jagged ice, charging, frozen cave, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
 
-### Хрустальный Рог — `monsters/ice-deer-full`
+### Сребророг — `monsters/ice-deer-full`
 
 > `full-body a majestic white stag with huge antlers of clear crystal ice, frost breath, glowing pale eyes, frozen cave with icicles, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
 

@@ -433,6 +433,7 @@
     const ctx = { u, abil, dc, o, mods, adv, dis, tags: o.tags || [] };
     hookAll(u, "saveMods", ctx);
     if (abil === "wis" && has(u, "mourned")) dis.push("плач по живым");
+    if ((abil === "str" || abil === "dex") && has(u, "iced")) dis.push("обледенение");          // дубина Грольфа
     for (const a of alliesOf(u)) hookAll(a, "saveAura", { ally: a, u, abil, ctx });                // «Под защитой духов», «Голос старейшины»
     if (abil === "dex" && o.from && B.wallCover) { const w = B.wallCover(o.from, u); if (w) mods.push({ l: "Живая стена", v: 2 }); }
     return ctx;
@@ -485,6 +486,7 @@
     const mods = [{ l: SKILL_RU[skill] || skill, v: skillMod(u, skill) }, ...(o.mods || [])];
     const adv = [...(o.adv || [])], dis = [...(o.dis || [])];
     if (has(u, "shaken") && SKILL_ABIL[skill] === "dex") { dis.push("оглушён грохотом"); removeStatus(u, "shaken"); }
+    if (has(u, "iced") && (SKILL_ABIL[skill] === "dex" || SKILL_ABIL[skill] === "str")) dis.push("обледенение");
     if (has(u, "miredDis")) { dis.push("увяз в топи"); removeStatus(u, "miredDis"); }
     const fl = has(u, "fooled"); if (fl && !fl.data.chkUsed && (skill === "perception" || skill === "insight")) { dis.push("обманут"); fl.data.chkUsed = true; }
     const ctx = { u, skill, o, mods, adv, dis, tags: o.tags || [] }; hookAll(u, "checkMods", ctx);

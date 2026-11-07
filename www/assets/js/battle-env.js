@@ -411,4 +411,5 @@
     }
     if (B.UI && B.UI.active) B.UI.refreshNow();
   };
+  { const prevWA = B.weapActions; B.weapActions = u => { const out = prevWA ? prevWA(u) : []; return B.iceActions ? B.iceActions(u, out) : out; }; }          // «Разжечь огромную жаровню» (Ледяной грот)
 })();

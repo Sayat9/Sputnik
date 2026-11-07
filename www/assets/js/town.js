@@ -244,13 +244,13 @@
   }
   // Сумка для камней в левой колонке: нажатие или перетаскивание на лавочника открывает окно продажи.
   function sackTile() {
-    const rows = sackRows(), n = rows.reduce((a, r) => a + r.qty, 0), val = rows.reduce((a, r) => a + r.qty * r.price, 0);
+    const rows = sackRows(), n = rows.reduce((a, r) => a + r.qty, 0), val = Math.round(rows.reduce((a, r) => a + r.qty * r.price, 0) * stoneMult());
     return `<button class="tw-sacktile" data-t="sacktile" aria-label="Сумка для камней: ${n} камней"><span class="tw-sackico">${ICO_SACK}</span><span><b>Сумка для камней</b><small>${n ? `${n} шт. · продать за ${val}` : "пока пусто"}</small></span></button>`;
   }
   // Окно продажи: слева галочка, имя и класс, ползунок количества, справа сумма; кнопка «Продать» закреплена внизу.
   function skInit() { const sel = {}, num = {}; for (const r of sackRows()) { sel[r.key] = true; num[r.key] = r.qty; } return { sel, num }; }
   const skRows = () => sackRows().map(r => ({ ...r, take: Math.max(0, Math.min(r.qty, ui.sk.num[r.key] ?? r.qty)), on: ui.sk.sel[r.key] !== false }));
-  const skTotal = () => skRows().filter(r => r.on).reduce((a, r) => ({ n: a.n + r.take, g: a.g + r.take * r.price }), { n: 0, g: 0 });
+  const skTotal = () => { const t = skRows().filter(r => r.on).reduce((a, r) => ({ n: a.n + r.take, g: a.g + r.take * r.price }), { n: 0, g: 0 }); t.g = Math.round(t.g * stoneMult()); return t; };
   function skHtml() {
     const rows = skRows(), t = skTotal();
     return `<div class="tw-dlg" role="dialog" aria-label="Продажа камней"><div class="tw-sk fx-frame">
@@ -278,7 +278,7 @@
     const c = hero(), rows = skRows().filter(r => r.on && r.take > 0); if (!rows.length) return;
     let n = 0, g = 0;
     for (const r of rows) { const it = sack().items[r.key]; it.qty -= r.take; n += r.take; g += r.take * r.price; }
-    addGold(c, g); visit(); ui.talk = talk(); ui.msg = `Продано камней: ${n} за ${g} монет — ${c.name}.`; ui.sk = sackRows().length ? skInit() : null; saveChar();
+    g = Math.round(g * stoneMult()); addGold(c, g); visit(); ui.talk = talk(); ui.msg = `Продано камней: ${n} за ${g} монет — ${c.name}.`; ui.sk = sackRows().length ? skInit() : null; saveChar();
   }
   B.shop = { render: renderShop, init: () => ({ sheet: true }) };
   B.forge = { render: renderShop, init: () => ({ sheet: true, tab: "base" }) };

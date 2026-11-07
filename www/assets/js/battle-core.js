@@ -286,7 +286,8 @@
     for (const c of u.conds) {
       if (["grappled", "restrained", "pinned", "trapped", "spearstop", "bastion", "unconscious", "stable", "buried", "paralyzed", "underground", "mired", "encased"].includes(c.id)) return 0;
     }
-    for (const c of u.conds) if (c.id === "packhowl") sp += 1;          // «Загонный вой» вожака гончих (03.11)
+    for (const c of u.conds) if (c.id === "packhowl") sp += 1;
+    for (const c of u.conds) if (c.id === "iced") sp -= 2;          // обледенение (дубина Грольфа)          // «Загонный вой» вожака гончих (03.11)
     for (const c of u.conds) if (c.id === "slowed") { if (c.data.mult != null) sp = Math.floor(sp * c.data.mult); if (c.data.add) sp += c.data.add; }
     if (B.coldSpd) sp -= B.coldSpd(u);          // холод Ледяного грота
     return Math.max(0, sp);
@@ -467,7 +468,7 @@
     if (ev.cold) {          // Ледяной грот: холод героев (общий объект с картой разлома), 2–3 имперские жаровни, у стража — огромная горящая жаровня
       S.cold = ev.cold;
       let n = 2 + Math.floor(Math.random() * 2); for (let k = 0; k < 60 && n > 0; k++) { const x = 1 + Math.floor(Math.random() * (B.W - 2)), y = 2 + Math.floor(Math.random() * (B.H - 5)); if (S.cells[y] && !S.cells[y][x]) { S.cells[y][x] = "brazier"; n--; } }
-      if (ev.bigBrazier) { const x = Math.floor(B.W / 2), y = B.H - 1; S.cells[y][x] = "bigBrazier"; S.bigBrazier = { x, y, hp: 60 }; }
+      if (ev.bigBrazier) { const x = Math.floor(B.W / 2), y = B.H - 1; S.cells[y][x] = "bigBrazier"; S.bigBrazier = { x, y }; }
     }
     if (ev.place === "Пылающие земли") { let n = 3 + Math.floor(Math.random() * 2); for (let k = 0; k < 40 && n > 0; k++) { const x = Math.floor(Math.random() * B.W), y = 2 + Math.floor(Math.random() * (B.H - 4)); if (S.cells[y] && !S.cells[y][x]) { S.cells[y][x] = "fire"; n--; } } }          // пылающие земли: 3–4 очага огня на поле
     if (B.placeEnv && !ev.arena) B.placeEnv(S, ev);

@@ -19,18 +19,21 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
     R.pos = { x: 1, y: 13 }; riftMove(1, 14); o.boss = dgUi.enc && dgUi.enc.list; o.bossEv = dgUi.enc && { cold: !!dgUi.enc.cold, big10: dgUi.enc.big10, bb: dgUi.enc.bigBrazier, place: dgUi.enc.place }; dgUi.enc = null;
     o.ess = ['ice-imp', 'frost-beetle', 'snow-hunter', 'ice-spirit', 'mammoth-calf', 'ice-deer', 'half-troll'].every(id => ESSENCES[id] && MONSTERS.find(m => m.id === id && m.rift === 'ice'));
     o.guard = MONSTERS.find(m => m.id === 'half-troll').rank;
+    // «Рога-самоцветы»: находка камней +1, продажа ×1,1
+    state.sack = { items: {}, mig: true, mig2: true }; state.party[0].essences = ['ice-deer']; giveParty({ t: 'g', id: 'stone-9', qty: 2 }); o.gem = Object.values(state.sack.items).reduce((a, it) => a + it.qty, 0); o.mult = stoneMult(); state.party[0].essences = [];
     // Сердце этажа
     run.rift = null; run.floor = 3; f3(); run.pos = { x: 15, y: 14 }; o.altar = f3Buttons().map(b => b.id).includes('f3altar');
     return o;
   });
   ok('Ледяной грот: 3×15, три жаровни, оба минибосса', r.id === 'ice' && r.w === 3 && r.h === 15 && r.braz === 3 && r.minis === 'ice-deer,mammoth-calf', r);
   ok('шаги без факела: холод +1 за шаг', r.cold0 === 0 && r.coldDark === 2, r);
-  ok('с факелом холод −1, свежий факел горит на 1 ход меньше', r.coldTorch === 1 && r.torchAfter === 2, r);
+  ok('с факелом холод −2, свежий факел горит на 1 ход меньше', r.coldTorch === 0 && r.torchAfter === 2, r);
   ok('на 10 холода — 1 урон, счётчик остаётся 10', r.hpCold === 1 && r.cold10 === 10, r);
   ok('жаровня зажигается факелом и греет соседние клетки', r.lit && r.coldWarm === 4, r);
   ok('страж — Грольф с огромной жаровней, поле 10×10, холод в бою', r.boss && r.boss[0] === 'half-troll' && r.bossEv.cold && r.bossEv.big10 && r.bossEv.bb, r);
   ok('7 монстров грота с эссенциями, Грольф — страж', r.ess && r.guard === 'guardian', r);
   ok('Сердце этажа: алтарь', r.altar, r);
+  ok('Сребророг: находка камней +1, продажа камней +10 %', r.gem === 3 && r.mult === 1.1, r);
   for (const f of FILES) await p.addScriptTag({ path: `/home/user/app/assets/js/${f}.js` });
   const t = await p.evaluate(async () => {
     const B = Battle; B.cfg.fast = true; const out = {};
@@ -44,6 +47,15 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
     await B.addCold(h, 5); out.c10 = cold.p0; out.hpLost = h.maxHp - h.hp;
     const tr = B.mons()[0]; const t2 = B.heroes()[1]; await B.applyDamage(tr, t2, [{ v: 2, dt: 'cold' }], { src: tr }); out.hitCold = cold.p1;
     S.cells[S.bigBrazier.y][S.bigBrazier.x] = 'bigBrazier'; await B.applyDamage(tr, t2, [{ v: 2, dt: 'cold' }], { src: tr }); out.warmBlock = cold.p1;
+    // огромная жаровня гаснет через 2 раунда, разжечь — факел героя рядом, −2 холода
+    const bb = S.bigBrazier; bb.litRound = S.round; S.round += 2; await B.coldTurnStart(t2); out.bigOut = S.cells[bb.y][bb.x] === 'bigBrazierOut';
+    t2.x = bb.x - 1; t2.y = bb.y - 1; t2.hero.bag = [{ t: 'g', id: 'torch', qty: 1 }]; t2.t = t2.t || {}; B.resetTurn ? B.resetTurn(t2) : null; cold.p1 = 5;
+    const acts = B.weapActions(t2), bact = acts.find(a => a.id === 'bigbrazier'); out.bigAct = !!bact; if (bact) { await bact.run(); } out.bigLit = S.cells[bb.y][bb.x] === 'bigBrazier'; out.bigCold = cold.p1; out.torchLeft = countGear(t2.hero, 'torch');
+    // обледенение
+    const t3 = B.heroes()[0]; cold.p0 = 0; B.addStatus(t3, 'iced', { k: Infinity, data: { dc: 30 } }); const spI = B.speedOf(t3); B.removeStatus(t3, 'iced'); out.icedSlow = B.speedOf(t3) - spI;
+    // мамонт: двуручное +1к6 холодом
+    const mc = B.monUnit('mammoth-calf', 2); mc.side = 'mon'; const ctx = { atk: { kind: 'melee' }, extra: [], mods: [] }; B.P['mammoth-calf'].attackMods(mc, ctx); out.mamExtra = ctx.extra.map(e => e.dt + e.n + 'd' + e.s).join();
+    const hctx = { atk: { kind: 'melee', w: { name: 'x', props: ['Тяжёлое', 'Двуручное'] } }, extra: [], mods: [] }; B.P['mammoth-calf'].attackMods(t3, hctx); out.mamHero = hctx.extra.length;
     // жаровня: факел зажигает, тварь гасит
     let bx = -1, by = -1; S.cells.forEach((row, y) => row.forEach((c, x) => { if (c === 'brazier' && bx < 0) { bx = x; by = y; } }));
     B.igniteAt(bx, by, 'тест'); out.lit = S.cells[by][bx] === 'brazierLit';
@@ -54,8 +66,11 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
   ok('бой: поле 10×10, 2–3 жаровни, огромная жаровня', t.size === 10 && t.braz >= 2 && t.big, t);
   ok('холод 6: −1 клетка движения, статус «Холод»', t.c6 === 6 && t.slow === 1 && t.frost, t);
   ok('холод 10: урон за каждую прибавку сверх', t.c10 === 10 && t.hpLost >= 2, t);
-  ok('удар холодом ледяной твари студит; огромная жаровня не даёт холоду расти', t.hitCold === 2 && t.warmBlock === 2, t);
+  ok('Грольф: каждое попадание +2 холода; горящая огромная жаровня не даёт холоду расти', t.hitCold === 2 && t.warmBlock === 2, t);
   ok('огонь зажигает жаровню, ледяная тварь рядом её гасит', t.lit && t.doused, t);
+  ok('огромная жаровня гаснет через 2 раунда; разжечь — действие и факел героя, всем −2 холода', t.bigOut && t.bigAct && t.bigLit && t.bigCold === 3 && t.torchLeft === 0, t);
+  ok('обледенение: −2 клетки движения', t.icedSlow === 2, t);
+  ok('мамонт: тяжёлый удар +1к6 холодом (монстр и герой с двуручным)', t.mamExtra === 'cold1d6' && t.mamHero === 1, t);
   ok('нет ошибок страницы', !errs.length, errs.slice(0, 3));
   console.log(`проверок: ${n}, не прошли: ${bad}`); await b.close();
 })();

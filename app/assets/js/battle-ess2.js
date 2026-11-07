@@ -2367,7 +2367,23 @@
   B.coldHit = async (src, tgt, parts) => {
     if (!src || src.side !== "mon" || !src.mon || src.mon.rift !== "ice" || !B.S || !B.S.cold) return;
     if (!parts.some(p => p.dt === "cold")) return;
-    await B.addCold(tgt, src.ref === "half-troll" || src.ref === "ice-deer" ? 2 : 1, src.name);
+    await B.addCold(tgt, 1, src.name);
+  };
+  const prevColdHit = B.coldHit;
+  B.coldHit = async (src, tgt, parts) => {          // Грольф: каждое его попадание +2 холода, любым уроном (автор 07.11)
+    if (src && src.ref === "half-troll" && src.side === "mon" && B.S && B.S.cold) { await B.addCold(tgt, 2, src.name); return; }
+    return prevColdHit(src, tgt, parts);
+  };
+  // Огромная жаровня у стража (автор 07.11): горит 2 раунда и гаснет; разжечь — действие героя рядом и 1 факел из его рюкзака; разожжённая снимает каждому герою 2 холода.
+  const bigLight = async (S, who) => { const bb = S.bigBrazier; S.cells[bb.y][bb.x] = "bigBrazier"; bb.litRound = S.round; log(`${who ? who + " разжигает" : "Пылает"} огромную жаровню: тепло на 2 раунда, холод −2.`, "good"); for (const h of B.heroes()) if (alive(h) && !h.down) await B.addCold(h, -2); const g = ui(); if (g) g.refresh(); };
+  B.iceActions = (u, out) => {          // подключается в battle-env.js (battle-weap.js переопределяет B.weapActions позже)
+    const S = B.S, bb = S && S.bigBrazier;
+    if (u.side === "hero" && u.hero && bb && S.cells[bb.y][bb.x] === "bigBrazierOut" && footprint(u).some(([x, y]) => Math.max(Math.abs(x - bb.x), Math.abs(y - bb.y)) <= 1)) {
+      const torches = typeof countGear === "function" ? countGear(u.hero, "torch") : 0, act = B.timeOK(u, "action");
+      out.push({ id: "bigbrazier", cat: "other", label: "Разжечь огромную жаровню", ico: "attack", sub: `действие и 1 факел (у героя: ${torches}): тепло на 2 раунда, всем героям −2 холода`, time: "action", enabled: !!act && torches > 0, why: !act ? "действие потрачено" : "нет факелов",
+        run: async () => { if (!(typeof takeGear === "function" && takeGear(u.hero, "torch", 1))) return false; B.spendTime(u, "action"); await bigLight(S, u.name); return true; } });
+    }
+    return out;
   };
   B.coldTurnStart = async u => {
     const S = B.S; if (!S) return;
@@ -2376,14 +2392,18 @@
     if (u.side === "hero") syncFrost(u);
     if (u.side !== "mon" || !u.mon || u.mon.rift !== "ice") return;
     for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { const x = u.x + dx, y = u.y + dy; if (B.inB(x, y) && S.cells[y] && S.cells[y][x] === "brazierLit") { S.cells[y][x] = "brazier"; log(`${u.name} дышит стужей на жаровню — пламя гаснет.`, "bad"); fx(u, "гасит жаровню", "bad"); } }
-    const bb = S.bigBrazier; if (u.ref === "half-troll" && bb && bigLit() && footprint(u).some(([x, y]) => Math.max(Math.abs(x - bb.x), Math.abs(y - bb.y)) <= 1)) {
-      bb.hp -= 20; log(`${u.name} крушит огромную жаровню дубиной (${Math.max(0, bb.hp)}/60).`, "bad");
-      if (bb.hp <= 0) { S.cells[bb.y][bb.x] = "bigBrazierOut"; log("Огромная жаровня опрокинута и гаснет: на поле снова стужа.", "bad"); } }
+  };
+  const prevColdTS = B.coldTurnStart;
+  B.coldTurnStart = async u => {
+    const S = B.S, bb = S && S.bigBrazier;
+    if (bb) { if (bb.litRound == null && bigLit()) await bigLight(S); if (bigLit() && S.round - bb.litRound >= 2) { S.cells[bb.y][bb.x] = "bigBrazierOut"; log("Огромная жаровня прогорела и гаснет — нужен факел, чтобы разжечь её снова.", "bad"); const g = ui(); if (g) { g.banner("Жаровня погасла"); g.refresh(); } } }
+    if (has(u, "iced") && alive(u) && !u.down) { const st = has(u, "iced"); const sv = await save(u, "con", st.data.dc || 13, "Обледенение: стряхнуть лёд", [], null); if (sv.ok) { removeStatus(u, "iced"); log(`${u.name} стряхивает лёд.`, "good"); } }
+    return prevColdTS(u);
   };
   B.coldTurnEnd = async u => {
     if (u.side !== "hero" || !B.S || !B.S.cold) return;
     const bb = B.S.bigBrazier;
-    if (litNear(u, 1) || (bb && bigLit() && Math.max(Math.abs(u.x - bb.x), Math.abs(u.y - bb.y)) <= 2)) await B.addCold(u, -1);
+    if (litNear(u, 1)) await B.addCold(u, -1);
   };
   Object.assign(D.essCd, { "ice-imp": 3, "frost-beetle": 3, "snow-hunter": 3, "ice-spirit": 3, "mammoth-calf": 3, "ice-deer": 4, "half-troll": 4 });
   Object.assign(D.monTune, {
@@ -2423,17 +2443,21 @@
     async run(u, pk, ctl) { const t = pk.unit; if (!t) return false; ctl.commit(); log(`${u.name} мечет ледяное копьё в ${t.name}.`, "skill"); const sv = await saveDmg(u, t, "con", dcOf(u, "int"), [2, 6], "cold", "Ледяное копьё"); if (!sv.ok && alive(t)) addStatus(t, "slowed", { k: 2, when: "end", data: { mult: 0.5 } }); return true; },
     ai(u) { const ts = foesIn(u, 6); return ts.length ? { unit: ts[0], score: 12 } : null; },
   };
-  /* Детёныш мамонта (7) */
-  P["mammoth-calf"] = { resist(u, { dt }) { return dt === "cold"; }, attackMods(u, ctx) { if (!u.t || (u.t.moved || 0) < 2 || u.strideRound === B.S.round) return; u.strideRound = B.S.round; ctx.dmgPlus = (ctx.dmgPlus || 0) + roll(1, 6).total; ctx.mods && ctx.mods.push({ l: "Мамонтова поступь", v: 0 }); } };
-  const ramTargets = u => enemiesOf(u).filter(t => alive(t) && !t.down && dist(u, t) <= 4 && (!B.visibleTo || B.visibleTo(u, t)));
+  /* Детёныш мамонта (7): сборка «тяжёлое двуручное + холод» (v118, автор) */
+  const heavyMelee = (u, atk) => !!atk && atk.kind === "melee" && (u.side !== "hero" || (atk.w && B.wprops && B.wprops(atk.w).two));
+  P["mammoth-calf"] = { resist(u, { dt }) { return dt === "cold"; },
+    attackMods(u, ctx) { if (!heavyMelee(u, ctx.atk)) return; ctx.extra.push({ n: 1, s: 6, b: 0, dt: "cold", label: "Морозный размах" });
+      if (has(u, "icecharge")) ctx.extra.push({ n: 2, s: 6, b: 0, dt: "cold", label: "Ледяной натиск" }); },
+    onHitDealt(u, { tgt, atk }) { if (!has(u, "icecharge") || !heavyMelee(u, atk) || !tgt || !alive(tgt) || tgt.down) return; B.queue(async () => { if (!alive(tgt) || tgt.down) return; const sv = await save(tgt, "str", dcOf(u, "str"), "Ледяной натиск", ["prone"], u); if (!sv.ok && alive(tgt)) { addStatus(tgt, "prone", { k: Infinity }); fx(tgt, "сбит с ног", "bad"); } }); } };
   A["mammoth-calf"] = {
-    time: "action", tgt(u) { return specUnit(u, "Таран бивнями: кого?", ramTargets(u), B.cellsWithin(u, 4), "attack"); }, can(u) { return ramTargets(u).length ? true : "нет цели рядом"; },
-    async run(u, pk, ctl) { const t = pk.unit; if (!t) return false; ctl.commit(); if (dist(u, t) > 1) await B.pullAdjacent(u, t); if (dist(u, t) > 1) { log(`${u.name} не добегает до ${t.name}.`, "skill"); return true; }
-      log(`${u.name} таранит ${t.name} бивнями.`, "skill"); const sv = await saveDmg(u, t, "str", dcOf(u, "str"), [2, 8], "bludgeon", "Таран бивнями"); if (!sv.ok && alive(t) && !B.immuneTo?.(t, "prone")) addStatus(t, "prone", { k: Infinity }); return true; },
-    ai(u) { const ts = ramTargets(u).sort((a, b) => dist(u, b) - dist(u, a)); return ts.length ? { unit: ts[0], score: 13 } : null; },
+    time: "bonus", tgt() { return { type: "none" }; },
+    can(u) { if (has(u, "icecharge")) return "уже действует"; if (u.side === "hero") { const a = (B.heroAttacks ? B.heroAttacks(u) : []).find(x => heavyMelee(u, x)); if (!a) return "нужно двуручное оружие ближнего боя"; } return true; },
+    async run(u, pk, ctl) { ctl.commit(); addStatus(u, "icecharge", { k: Infinity, data: { endAtEndOf: u.id, endTurnNo: u.turnsTaken } }); fx(u, "ледяной натиск", "good"); log(`${u.name}: оружие покрывается льдом — до конца хода удары тяжёлым оружием +2к6 холодом и сбивают с ног.`, "skill"); return true; },
+    ai(u) { return within(u, 1).length && !has(u, "icecharge") ? { score: 12 } : null; },
   };
-  /* Хрустальный Рог (7) */
-  P["ice-deer"] = { onMissedBy(u, { att, atk }) { if (!att || !atk || atk.kind !== "melee" || !alive(att)) return; B.queue(async () => { if (alive(att)) await B.applyDamage(u, att, [{ v: roll(1, 4).total, dt: "pierce", label: "Хрустальные рога" }], { src: u }); }); } };
+  /* Сребророг (7): эссенция — доход (камни), монстр — осколки рогов (тело) */
+  P["body:ice-deer"] = { onMissedBy(u, { att, atk }) { if (!att || !atk || atk.kind !== "melee" || !alive(att)) return; B.queue(async () => { if (alive(att)) await B.applyDamage(u, att, [{ v: roll(1, 4).total, dt: "pierce", label: "Хрустальные рога" }], { src: u }); }); } };
+  P["ice-deer"] = {};          // «Рога-самоцветы» — вне боя (index.html: находки камней +1, лавочник платит за камни +10 %)
   A["ice-deer"] = {
     time: "action", tgt() { return { type: "none" }; }, can(u) { return foesIn(u, 2).length ? true : "никого в 2 клетках"; },
     async run(u, pk, ctl) { ctl.commit(); log(`${u.name} ревёт — по пещере звенит лёд.`, "skill"); for (const t of foesIn(u, 2)) { const sv = await save(t, "wis", dcOf(u, "wis"), "Ледяной рёв", ["fear"], u); if (!sv.ok && alive(t)) { addStatus(t, "frightened", { k: 2, when: "end", data: { by: u.id } }); if (u.mon && u.mon.rift === "ice") await B.addCold(t, 1, "ледяной рёв"); } } return true; },
@@ -2445,7 +2469,7 @@
   A["half-troll"] = {
     time: "action", tgt(u) { return specUnit(u, "Ледяная дубина: кого?", within(u, 1), cellsAround(u, 1), "attack"); }, can(u) { return within(u, 1).length ? true : "никого рядом"; },
     async run(u, pk, ctl) { const a = atkFor(u, "melee"), t = pk.unit; if (!a || !t) return false; const r = await B.doAttack(u, t, a, { extra: [{ n: 2, s: 6, b: 0, dt: "cold", label: "Ледяная дубина" }], onCommit: () => ctl.commit() });
-      if (r && r.hit && alive(t) && !t.down) { const sv = await save(t, "con", dcOf(u, "str"), "Ледяная дубина", [], u); if (!sv.ok && alive(t)) { addStatus(t, "slowed", { k: 2, when: "end", data: { mult: 0 } }); fx(t, "вмёрз", "bad"); } } return !(r && r.cancelled); },
+      if (r && r.hit && alive(t) && !t.down) { const sv = await save(t, "con", dcOf(u, "str"), "Ледяная дубина", [], u); if (!sv.ok && alive(t)) { addStatus(t, "iced", { k: Infinity, data: { dc: dcOf(u, "str") } }); fx(t, "обледенение", "bad"); log(`${t.name} покрывается льдом: −2 клетки движения, помеха на Силу и Ловкость, пока не стряхнёт (Телосложение в начале хода).`, "bad"); } } return !(r && r.cancelled); },
     ai(u) { const ts = within(u, 1); return ts.length ? { unit: ts.sort((a, b) => a.hp - b.hp)[0], score: 15 } : null; },
   };
   B.fillActiveTimes();
