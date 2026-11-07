@@ -163,6 +163,12 @@
     let h = "";
     const vis = S.phase === "fight" || S.phase === "result" ? B.visionCells() : null;
     for (const z of S.zones || []) { const ow = z.owner ? B.byId(z.owner) : null; if (vis && ow && ow.side === "mon" && !B.seenByParty(ow)) continue; for (const [x, y] of B.zoneCells(z)) if (!vis || vis.has(x + "," + y)) h += `<div class="bt-zcell k-${z.kind}" style="left:${x * cell}px;top:${y * cell}px;width:${cell}px;height:${cell}px"></div>`; }          // зона невидимого монстра не показывается
+    if (S.cold) {          // Ледяной грот: тёплые клетки — у горящих жаровен; горящая огромная жаровня греет всё поле
+      const bb = S.bigBrazier, bigOn = bb && S.cells[bb.y][bb.x] === "bigBrazier", warm = new Set();
+      for (let y = 0; y < B.H; y++) for (let x = 0; x < B.W; x++) if (S.cells[y] && S.cells[y][x] === "brazierLit") for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) if (B.inB(x + dx, y + dy)) warm.add((x + dx) + "," + (y + dy));
+      if (bigOn) h += `<div class="bt-warmall"></div>`;
+      for (const k of warm) { const [x, y] = k.split(",").map(Number); h += `<div class="bt-zcell k-warm" style="left:${x * cell}px;top:${y * cell}px;width:${cell}px;height:${cell}px"></div>`; }
+    }
     l.innerHTML = h;
   }
   // Мягкая тень от полных укрытий и тумана: тёмный слой по клеткам (чем меньше героев видят клетку, тем гуще), размытый, чтобы края были с полутенью.

@@ -384,3 +384,7 @@ body.bt-active .dice-fab { display: none; }
 .bt-portrait { position: fixed; inset: 0; z-index: 9600; background: rgb(8 6 4 / .92); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 16px; }
 .bt-portrait img { max-width: 100%; max-height: calc(100% - 40px); object-fit: contain; border-radius: 10px; border: 1px solid var(--fx-gold, #d6a64c); box-shadow: 0 8px 30px #000; }
 .bt-portrait small { color: var(--fx-gold-hi, #f4d48e); font-size: 15px; }
+
+/* Ледяной грот: тёплые клетки у жаровен и тёплое поле от огромной жаровни (07.11) */
+.bt-zcell.k-warm { background: radial-gradient(circle, rgb(255 170 70 / .32), rgb(255 140 40 / .12)); box-shadow: inset 0 0 0 1px rgb(255 190 110 / .45); }
+.bt-warmall { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 100%, rgb(255 160 60 / .22), rgb(255 140 40 / .06) 70%, transparent); pointer-events: none; }

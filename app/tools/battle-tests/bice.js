@@ -21,6 +21,11 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
     o.guard = MONSTERS.find(m => m.id === 'half-troll').rank;
     // «Рога-самоцветы»: находка камней +1, продажа ×1,1
     state.sack = { items: {}, mig: true, mig2: true }; state.party[0].essences = ['ice-deer']; giveParty({ t: 'g', id: 'stone-9', qty: 2 }); o.gem = Object.values(state.sack.items).reduce((a, it) => a + it.qty, 0); o.mult = stoneMult(); state.party[0].essences = [];
+    // артефакты от холода
+    const c0 = state.party[0], p0 = derived(totals(c0), c0).prot; c0.equip.back = { t: 'g', id: 'hide-cloak' }; o.cloakProt = derived(totals(c0), c0).prot - p0;
+    run.rift = { cold: { p0: 0 } }; riftColdStep(1); riftColdStep(1); riftColdStep(1); o.cloakCold = run.rift.cold.p0;
+    c0.equip.back = null; c0.equip.hands2 = { t: 'g', id: 'frost-gloves' }; run.rift.cold = { p0: 5 }; riftColdStep(1); riftColdStep(1); o.gloveCold = run.rift.cold.p0; c0.equip.hands2 = null; run.rift = null;
+    o.slots = !!(SLOTS.back && SLOTS.hands2) && ['frost-gloves', 'hide-cloak', 'frost-amulet'].every(id => GEAR[id] && ARTIFACTS[id]);
     // Сердце этажа
     run.rift = null; run.floor = 3; f3(); run.pos = { x: 15, y: 14 }; o.altar = f3Buttons().map(b => b.id).includes('f3altar');
     return o;
@@ -34,6 +39,9 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
   ok('7 монстров грота с эссенциями, Грольф — страж', r.ess && r.guard === 'guardian', r);
   ok('Сердце этажа: алтарь', r.altar, r);
   ok('Сребророг: находка камней +1, продажа камней +10 %', r.gem === 3 && r.mult === 1.1, r);
+  ok('плащ толстой шкуры: +1 Защиты, каждый 3-й холод не прибавляется', r.cloakProt === 1 && r.cloakCold === 2, r);
+  ok('рукавицы: раз в 2 хода −1 холод (5 → +1 → +0)', r.gloveCold === 6, r);
+  ok('слоты «Спина» и «Руки (доп.)», три артефакта в библиотеке артефактов', r.slots, r);
   for (const f of FILES) await p.addScriptTag({ path: `/home/user/app/assets/js/${f}.js` });
   const t = await p.evaluate(async () => {
     const B = Battle; B.cfg.fast = true; const out = {};
@@ -56,6 +64,9 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
     // мамонт: двуручное +1к6 холодом
     const mc = B.monUnit('mammoth-calf', 2); mc.side = 'mon'; const ctx = { atk: { kind: 'melee' }, extra: [], mods: [] }; B.P['mammoth-calf'].attackMods(mc, ctx); out.mamExtra = ctx.extra.map(e => e.dt + e.n + 'd' + e.s).join();
     const hctx = { atk: { kind: 'melee', w: { name: 'x', props: ['Тяжёлое', 'Двуручное'] } }, extra: [], mods: [] }; B.P['mammoth-calf'].attackMods(t3, hctx); out.mamHero = hctx.extra.length;
+    // артефакты в бою: рукавицы −1 и плащ −2 к урону холодом, амулет +1к4 холодом
+    const hh = B.heroes()[1]; hh.hero.equip.hands = { t: 'g', id: 'frost-gloves' }; hh.hero.equip.back = { t: 'g', id: 'hide-cloak' }; const hp1 = hh.hp; await B.applyDamage(null, hh, [{ v: 5, dt: 'cold' }], {}); out.gearRed = hp1 - hh.hp;
+    hh.hero.equip.charm = { t: 'g', id: 'frost-amulet' }; const im = B.mons()[0], ih = im.hp; await B.applyDamage(hh, im, [{ v: 1, dt: 'cold' }], { src: hh }); out.amulet = ih - im.hp;
     // жаровня: факел зажигает, тварь гасит
     let bx = -1, by = -1; S.cells.forEach((row, y) => row.forEach((c, x) => { if (c === 'brazier' && bx < 0) { bx = x; by = y; } }));
     B.igniteAt(bx, by, 'тест'); out.lit = S.cells[by][bx] === 'brazierLit';
@@ -70,6 +81,7 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
   ok('огонь зажигает жаровню, ледяная тварь рядом её гасит', t.lit && t.doused, t);
   ok('огромная жаровня гаснет через 2 раунда; разжечь — действие и факел героя, всем −2 холода', t.bigOut && t.bigAct && t.bigLit && t.bigCold === 3 && t.torchLeft === 0, t);
   ok('обледенение: −2 клетки движения', t.icedSlow === 2, t);
+  ok('рукавицы и плащ режут урон холодом на 3; амулет инея +1к4 к холоду', t.gearRed === 2 && t.amulet >= 1, t);
   ok('мамонт: тяжёлый удар +1к6 холодом (монстр и герой с двуручным)', t.mamExtra === 'cold1d6' && t.mamHero === 1, t);
   ok('нет ошибок страницы', !errs.length, errs.slice(0, 3));
   console.log(`проверок: ${n}, не прошли: ${bad}`); await b.close();

@@ -2436,7 +2436,7 @@ const ICE_MON = [
     [["Морозная аура", "Вихрь ледяной пыли: рядом с ним стынет кровь. Боится огня.", "behavior"], ["Касание стужи", "+5 к попаданию, 1к8+2 холодом.", "attacks"]]],
   ["mammoth-calf", 7, "Детёныш мамонта", "Большой зверь", "beast", "13 (шерсть)", "60 (8к10+16)", "12 м", [20, 9, 17, 3, 11, 6], "",
     [["Густая шерсть", "Минибосс грота: мохнатый таран с бивнями в ледяной корке — удары морозят, натиск сбивает с ног (размер 1×2 — пока занимает 2×2).", "behavior"], ["Бивни", "+7 к попаданию, 2к8+5 колющего.", "attacks"]]],
-  ["ice-deer", 7, "Сребророг", "Большой зверь", "beast", "15", "55 (10к8+10)", "15 м", [15, 18, 13, 6, 16, 9], "Тёмное зрение 18 м.",
+  ["ice-deer", 7, "Арктический Сребророг", "Большой зверь", "beast", "15", "55 (10к8+10)", "15 м", [15, 18, 13, 6, 16, 9], "Тёмное зрение 18 м.",
     [["Хрустальные рога", "Минибосс грота: белый олень с ветвистыми рогами из чистого льда; осколки рогов ранят тех, кто промахнулся вблизи, рёв гонит прочь.", "behavior"], ["Рога", "+7 к попаданию, 2к6+4 колющего.", "attacks"]]],
   ["half-troll", 7, "Грольф Инеевая Челюсть, дикий полутролль", "Большой гуманоид", "humanoid", "16 (шкуры и лёд)", "78 (12к10+12)", "9 м", [23, 12, 21, 8, 13, 10], "Тёмное зрение 18 м.",
     [["Страж грота", "Грольф — дикий полутролль, страж Ледяного грота: статы и бонусы эссенции на 30 % выше обычного 7 класса, эссенция выпадает в 30 % (71+ на к100). Срастается, если не жечь огнём; гасит и крушит жаровни (размер 2×1 — пока занимает 2×2).", "behavior"], ["Ледяная дубина", "+8 к попаданию, 2к8+5 дробящего.", "attacks"]]],
@@ -2451,7 +2451,7 @@ const ICE_ESS = {
   "snow-hunter": ["Эссенция снежного охотника", { dex: 2, wis: 1, str: 1, cha: -1, int: -1 }, [], ["Белая маскировка", "В первом раунде боя атаки по тебе с помехой."], ["Гарпун", 3, "действие", "Бросок гарпуна во врага в 4 клетках: спасбросок Ловкости (Сл 8 + мод. Лов), провал — 1к10 + мод. Лов колющего и цель не может двигаться до конца своего следующего хода. Перезарядка 3 раунда."]],
   "ice-spirit": ["Эссенция ледяного духа", { int: 2, wis: 2, str: -1, con: -1 }, ["Сопротивление холоду"], ["Морозная аура", "Враги, начинающие ход рядом с тобой, получают 1к4 урона холодом."], ["Ледяное копьё", 3, "действие", "Враг в 6 клетках — спасбросок Телосложения (Сл 8 + мод. Инт), провал: 2к6 холодом и скорость вдвое меньше до конца его следующего хода; успех — половина урона. Перезарядка 3 раунда."]],
   "mammoth-calf": ["Эссенция детёныша мамонта", { str: 3, con: 2, dex: -1, int: -1 }, ["Сопротивление холоду"], ["Морозный размах", "Твои атаки двуручным оружием ближнего боя наносят +1к6 урона холодом."], ["Ледяной натиск", 3, "доп. действие", "До конца хода атаки двуручным оружием ближнего боя наносят ещё +2к6 холодом, а цель, по которой ты попал, — спасбросок Силы (Сл 8 + мод. Сил), провал: сбита с ног. Нужно двуручное оружие. Перезарядка 3 раунда."]],
-  "ice-deer": ["Эссенция Сребророга", { dex: 3, wis: 2, str: -1, cha: -1 }, [], ["Рога-самоцветы", "Вне боя: когда отряд находит камни монстров (находка, раскопки, сундук), камней на 1 больше; лавочник платит за камни на 10 % больше."], ["Ледяной рёв", 3, "действие", "Враги в 2 клетках — спасбросок Мудрости (Сл 8 + мод. Мдр), провал: испуганы до конца своего следующего хода (помеха на атаки). Перезарядка 4 раунда."]],
+  "ice-deer": ["Эссенция арктического Сребророга", { dex: 3, wis: 2, str: -1, cha: -1 }, [], ["Рога-самоцветы", "Вне боя: когда отряд находит камни монстров (находка, раскопки, сундук), камней на 1 больше; лавочник платит за камни на 10 % больше."], ["Ледяной рёв", 3, "действие", "Враги в 2 клетках — спасбросок Мудрости (Сл 8 + мод. Мдр), провал: испуганы до конца своего следующего хода (помеха на атаки). Перезарядка 4 раунда."]],
   "half-troll": ["Эссенция дикого полутролля", { str: 3, con: 3, int: -1, wis: -1 }, ["Сопротивление холоду"], ["Регенерация", "В начале хода восстанавливаешь 5 ОЗ, если с прошлого хода не получал урона огнём."], ["Ледяная дубина", 4, "действие", "Атака с +2к6 холодом; попал — спасбросок Телосложения (Сл 8 + мод. Сил), провал: цель не может двигаться до конца своего следующего хода. Перезарядка 4 раунда."]],
 };
 for (const [id, [name, stats, other, [pn, pt], [an, mana, time, at]]] of Object.entries(ICE_ESS)) ESSENCES[id] = { id, name, cls: MONSTERS.find(m => m.id === id).cls, source: id, stats, other, passive: { name: pn, text: pt }, active: { name: an, mana, time, text: at } };
@@ -2528,9 +2528,15 @@ function riftTick() {
 // ----- холод Ледяного грота (автор 07.11): 0–10 у каждого героя; 4 — инициатива −1, 6 — ещё −1 клетка движения в бою, 8 — инициатива −2 и движение −2, 10 — 1 урон за каждую попытку подняться выше
 const riftWarmAt = (R, x, y) => !!R.braziers && Object.entries(R.braziers).some(([k, b]) => { if (!b.lit) return false; const [bx, by] = k.split(",").map(Number); return Math.abs(bx - x) + Math.abs(by - y) <= 1; });
 const COLD_STEPS = [[4, "инициатива −1"], [6, "в бою −1 клетка движения"], [8, "инициатива −2 и движение −2"], [10, "каждый шаг холода — 1 урон"]];
-function riftColdStep(d) {
+const wears = (c, slot, id) => !!(c.equip && c.equip[slot] && c.equip[slot].id === id && !c.equip[slot].broken);
+const wearsGloves = c => wears(c, "hands", "frost-gloves") || wears(c, "hands2", "frost-gloves");
+function riftColdStep(d0) {
   const R = state.run.rift; if (!R || !R.cold) return;
-  for (const c of state.party) { if (c.dead) continue; const was = R.cold[c.id] || 0;
+  for (const c of state.party) { if (c.dead) continue; let d = d0;
+    if (d > 0 && wears(c, "back", "hide-cloak")) { const k = c.id + "~3", n = (R.cold[k] || 0) + 1; R.cold[k] = n % 3; if (n >= 3) { logRun(`${c.name}: плащ толстой шкуры удержал тепло — холод не прибавился.`); d = 0; } }
+    if (wearsGloves(c)) { const k = c.id + "~g", n = (R.cold[k] || 0) + 1; R.cold[k] = n % 2; if (n >= 2) d -= 1; }          // рукавицы: раз в 2 хода −1 холод
+    if (!d) continue;
+    const was = R.cold[c.id] || 0;
     if (d > 0 && was >= 10) { c.hp = Math.max(1, hpOf(c) - 1); logRun(`${c.name} коченеет: −1 ОЗ от холода.`); continue; }
     const now = Math.max(0, Math.min(10, was + d)); R.cold[c.id] = now;
     const st = COLD_STEPS.find(([n]) => was < n && now >= n); if (st) logRun(`${c.name}: холод ${now}/10 — ${st[1]}.`);
@@ -2573,7 +2579,8 @@ function riftRest() {
 }
 function riftChest() {
   const r = state.run, R = r.rift; if (!R || !R.bossDead || R.chestOpen) return;
-  R.chestOpen = true; const x = fireChestRoll(), lines = [x.line, giveParty({ t: "g", id: "stone-8", qty: 3 }), giveParty({ t: "g", id: "stone-7", qty: 2 })];
+  R.chestOpen = true; const x = fireChestRoll(), lines = [x.line, giveParty({ t: "g", id: "stone-8", qty: 3, noGem: true }), giveParty({ t: "g", id: "stone-7", qty: 2, noGem: true })];
+  if (R.id === "ice" && !treasureOwned("frost-amulet")) { addToBag(state.party.find(c => !c.dead), { t: "g", id: "frost-amulet", qty: 1 }); lines.push("Бонус грота: «Амулет инея» (9 класс) — +1к4 к урону холодом."); }
   logRun(`Сундук разлома открыт (к20 = ${x.d}): ${lines.join(" ")}`); dgUi.res = { title: "Сундук стража", roll: `к20 = ${x.d}`, lines };
 }
 function riftFightDone(e, killed) {
@@ -2618,6 +2625,7 @@ function riftStage() {
     if (seen) parts.push(sq(x, y, `fill="${fillOf(x, y)}" stroke="#6e5634" stroke-width="1.2"`), R.id === "blood" && y >= 5 ? sq(x, y, `fill="#6a0e18" opacity=".28" pointer-events="none"`) : "");
     else parts.push(sq(x, y, `fill="#120c10" stroke="#2c1a20" stroke-width="1.2"`));
     if (R.id === "ice" && seen) parts.push(sq(x, y, `fill="#bfe4ff" opacity=".14" pointer-events="none"`));
+    if (R.id === "ice" && seen && riftWarmAt(R, x, y)) parts.push(sq(x, y, `fill="#ffa040" opacity=".28" pointer-events="none"`));          // тепло у горящей жаровни
     const m = riftMarkOf(R, x, y, seen, near); if (m) parts.push(at(x, y, `<g transform="scale(.9)">${RIFT_ICO[m]}</g>`));
     if (go) parts.push(`<g class="tile-hit" data-rift="move" data-x="${x}" data-y="${y}">${sq(x, y, `fill="${seen ? "rgb(214 166 76 / .14)" : "rgb(120 110 95 / .22)"}" stroke="#f4d48e" stroke-width="1.8" stroke-dasharray="6 5"`)}
       ${seen || m ? "" : at(x, y, `<text text-anchor="middle" dominant-baseline="central" font-family="Kelly Slab, Georgia, serif" font-size="22" fill="#f4d48e" opacity=".75">?</text>`)}</g>`);
@@ -2625,6 +2633,7 @@ function riftStage() {
   parts.push(sq(px, py, `fill="${fillOf(px, py)}" stroke="#f4d48e" stroke-width="2.5"`));
   if (R.id === "blood" && py >= 5) parts.push(sq(px, py, `fill="#6a0e18" opacity=".28"`));
   if (R.id === "ice") parts.push(sq(px, py, `fill="#bfe4ff" opacity=".14"`));
+  if (R.id === "ice" && riftWarmAt(R, px, py)) parts.push(sq(px, py, `fill="#ffa040" opacity=".28"`));
   if (r.light) parts.push(`<circle r="${T * 1.6}" fill="url(#torchGlow)" pointer-events="none"/>`);
   const here = riftMarkOf(R, px, py, true, true);
   if (here && here !== "descent") parts.push(`<g transform="translate(-16 -16) scale(.6)">${RIFT_ICO[here]}</g>`);
@@ -2764,8 +2773,8 @@ const DISTRICTS = [
 
 // Готовые рисованные картинки (webp) заменяют векторные заглушки.
 // Дата сборки для телефона: build.sh вписывает её сюда, в веб-версии строка пустая.
-const APP_BUILD = "07.11.2026 23:49";
-const APP_VERSION = 1794077376;                 // номер сборки, тоже вписывает build.sh
+const APP_BUILD = "08.11.2026 00:50";
+const APP_VERSION = 1794081005;                 // номер сборки, тоже вписывает build.sh
 const UPDATE_URL = "https://raw.githubusercontent.com/Sayat9/Sputnik/main/www/";
 const RASTER = new Set(["items/steel-pike", "items/calm-flute", "items/dice", "items/art-falling-star", "items/art-echo-blade", "items/art-discharge-staff", "items/weak-salt", "items/silver-salt", "items/tollbell", "items/director-quiver", "items/flame", "items/herb-poison", "items/herb-food", "items/herb-rest", "items/repair-charm", "items/durable-charm", "items/regen-charm", "items/herb-heal", "items/herb-mana", "items/boots", "items/wind", "items/whetstone", "items/daedalus-hammer", "items/unbreakable-charm", "items/pike", "items/bell", "items/flask", "items/monocle", "buildings/arena", "buildings/academy", "buildings/bank", "buildings/storage", "races/dragon-f", "races/fairy-f", "races/gnome-f", "races/darkfairy-f", "events/to-labyrinth", "races/human-f", "races/barbarian-f", "races/dwarf-f", "races/beastkin-f", "events/to-town", "events/ambush", "events/monsters", "events/nothing", "events/travelers", "events/treasure", "items/mace", "items/warhammer", "items/armor-leather", "items/armor-hide", "items/armor-chainmail", "items/steel-dagger", "items/steel-sword", "items/steel-greatsword", "items/steel-shield", "items/steel-tower-shield", "items/shortbow", "items/longbow", "items/rapier", "items/shield", "items/tower-shield", "items/unknown-mushroom", "items/stone-9", "items/stone-8", "items/stone-7", "items/ration", "items/potion", "items/torch", "items/arrows", "items/clothes", "items/shovel", "items/shovel-good", "items/shovel-best", "items/dagger", "items/sword", "items/greatsword", "items/spear", "monsters/goblin-king-face", "monsters/goblin-king-full", "monsters/goblin-bomber-face", "monsters/goblin-bomber-full", "monsters/hobgoblin-shield-face", "monsters/hobgoblin-shield-full", "races/barbarian", "races/human", "races/dwarf", "races/beastkin", "races/fairy", "races/dragon", "monsters/goblin-face", "monsters/goblin-full", "monsters/goblin-archer-face", "monsters/goblin-archer-full", "monsters/goblin-sword-face", "monsters/goblin-sword-full", "monsters/goblin-spear-face", "monsters/goblin-spear-full", "monsters/wolf-face", "monsters/wolf-full", "monsters/fox-face", "monsters/fox-full", "monsters/mouse-face", "monsters/mouse-full", "monsters/bat-face", "monsters/bat-full", "monsters/hobgoblin-face", "monsters/hobgoblin-full", "monsters/zombie-face", "monsters/zombie-full", "monsters/skeleton-face", "monsters/skeleton-full", "monsters/skeleton-archer-face", "monsters/skeleton-archer-full", "monsters/ghoul-face", "monsters/ghoul-full", "monsters/dark-bear-face", "monsters/dark-bear-full", "monsters/skeleton-warrior-face", "monsters/skeleton-warrior-full", "monsters/living-stone-face", "monsters/living-stone-full", "monsters/wisp-face", "monsters/wisp-full", "monsters/pixie-face", "monsters/pixie-full", "monsters/green-boulder-face", "monsters/green-boulder-full", "monsters/stone-guardian-face", "monsters/stone-guardian-full", "monsters/spider-queen-face", "monsters/spider-queen-full", "monsters/ash-wraith-face", "monsters/ash-wraith-full", "monsters/ash-spirit-face", "monsters/ash-spirit-full", "monsters/plague-fat-face", "monsters/plague-fat-full", "monsters/bone-hound-face", "monsters/bone-hound-full", "monsters/dust-crawler-face", "monsters/dust-crawler-full", "monsters/faceless-ringer-face", "monsters/faceless-ringer-full", "monsters/mirror-dead-face", "monsters/mirror-dead-full", "monsters/whisperer-face", "monsters/whisperer-full", "monsters/morok-face", "monsters/morok-full", "monsters/grey-shade-face", "monsters/grey-shade-full", "monsters/blackwing-face", "monsters/blackwing-full", "monsters/swamp-fang-face", "monsters/swamp-fang-full", "monsters/web-spider-face", "monsters/web-spider-full", "monsters/goblin-shaman-face", "monsters/goblin-shaman-full", "monsters/goblin-assassin-face", "monsters/goblin-assassin-full", "monsters/goblin-trapper-face", "monsters/goblin-trapper-full", "monsters/goblin-elder-face", "monsters/goblin-elder-full", "monsters/hobgoblin-brute-face", "monsters/hobgoblin-brute-full", "monsters/hobgoblin-thrower-face", "monsters/hobgoblin-thrower-full", "monsters/hobgoblin-driver-face", "monsters/hobgoblin-driver-full", "monsters/goblin-thief-face", "monsters/goblin-thief-full", "monsters/horned-hare-face", "monsters/horned-hare-full", "monsters/swamp-toad-face", "monsters/swamp-toad-full", "monsters/burrower-face", "monsters/burrower-full", "monsters/crow-face", "monsters/crow-full", "monsters/dire-wolf-face", "monsters/dire-wolf-full", "monsters/werewolf-face", "monsters/werewolf-full", "monsters/giant-mole-face", "monsters/giant-mole-full", "monsters/bone-knight-face", "monsters/bone-knight-full", "monsters/gravedigger-face", "monsters/gravedigger-full", "monsters/corpse-eater-face", "monsters/corpse-eater-full", "monsters/drop-face", "monsters/drop-full", "monsters/dust-whirl-face", "monsters/dust-whirl-full", "monsters/magma-hound-face", "monsters/magma-hound-full", "monsters/crystalloid-face", "monsters/crystalloid-full", "monsters/lake-spirit-face", "monsters/lake-spirit-full", "monsters/magma-golem-face", "monsters/magma-golem-full", "monsters/deep-serpent-face", "monsters/deep-serpent-full", "monsters/crystal-colossus-face", "monsters/crystal-colossus-full", "monsters/storm-spirit-face", "monsters/storm-spirit-full", "monsters/rift-heart-face", "monsters/rift-heart-full", "items/compass", "items/steel-mace", "items/steel-rapier", "items/unknown-herb", "items/twin-daggers", "items/unknown-stone", "items/steel-twin-daggers", "items/potion-good", "items/coins", "items/steel-spear", "items/steel-warhammer", "items/steel-shortbow", "items/steel-longbow", "items/steel-armor-leather", "items/steel-armor-hide", "items/steel-armor-chainmail", "items/gloves", "items/staff", "items/axe", "items/greataxe", "items/firstaid", "items/flute", "items/chalice", "items/once-more", "items/guard", "items/beginners-luck", "buildings/tower", "buildings/guild", "buildings/church", "buildings/library", "buildings/gate", "buildings/tavern", "buildings/shop", "buildings/forge", "buildings/board", "buildings/hall", "races/gnome", "races/darkfairy", "monsters/rat-face", "monsters/rat-full", "monsters/rat-king-face", "monsters/rat-king-full", "monsters/rat-catcher-face", "monsters/rat-catcher-full", "monsters/silence-keeper-face", "monsters/silence-keeper-full", "monsters/orc-wolf-face", "monsters/orc-wolf-full", "monsters/orc-thrower-face", "monsters/orc-thrower-full", "monsters/orc-spear-face", "monsters/orc-spear-full", "monsters/orc-scout-face", "monsters/orc-scout-full", "monsters/orc-falcon-face", "monsters/orc-falcon-full", "monsters/mimic-face", "monsters/mimic-full", "monsters/orc-chief-face", "monsters/orc-chief-full", "items/repair-kit", "items/repair-kit-pro", "monsters/orc-executioner-face", "monsters/orc-executioner-full", "monsters/orc-shaman-face", "monsters/orc-shaman-full", "monsters/orc-guard-face", "monsters/orc-guard-full", "items/brotherhood-ring", "items/hearth", "items/mana-charm", "items/fatigue-charm", "items/hunger-charm", "items/steel-greataxe", "items/steel-axe", "items/steel-gloves", "items/steel-staff", "items/art-shadow-fang", "items/art-flurry-rapier", "items/art-reaper-axe", "items/art-ricochet-bow", "items/art-rift-hammer", "items/art-bastion-shield", "items/art-mirage-armor", "items/art-magnet-mail", "monsters/grey-vulture-face", "monsters/grey-vulture-full", "monsters/thorn-hound-face", "monsters/thorn-hound-full", "monsters/bone-ranger-face", "monsters/bone-ranger-full", "monsters/forge-smith-face", "monsters/forge-smith-full", "monsters/magma-wyrm-face", "monsters/magma-wyrm-full"]);
 const artPath = p => `assets/${p}.${RASTER.has(p) ? "webp" : "svg"}`;
@@ -3145,6 +3154,8 @@ const SLOTS = {
   ring1:     { label: "Кольцо",      col: 3, row: 3, icon: '<circle cx="12" cy="14" r="6"/><path d="M10 6l2-3 2 3"/>' },
   ring2:     { label: "Кольцо",      col: 3, row: 4, icon: '<circle cx="12" cy="14" r="6"/><path d="M10 6l2-3 2 3"/>' },
   charm:     { label: "Талисман",    col: 3, row: 5, icon: '<path d="M12 3c2 3 5 4 5 9a5 5 0 0 1-10 0c0-5 3-6 5-9z"/>' },
+  back:      { label: "Спина",       col: 1, row: 6, icon: '<path d="M8 3h8l3 18H5z"/><path d="M9 3c0 3 6 3 6 0"/>' },
+  hands2:    { label: "Руки (доп.)", col: 3, row: 6, icon: '<path d="M7 20v-8l-2-3V5h2v4h1V3h2v6h1V3h2v6h1V5h2v9l-2 6z"/><circle cx="18" cy="5" r="2"/>' },
 };
 
 // Снаряжение, которое не оружие и не броня. weight — кг за 1 штуку, stack — сколько помещается в 1 ячейку рюкзака.
@@ -3176,6 +3187,9 @@ const GEAR = {
   "regen-charm": { short: "Амулет", name: "Амулет регенерации", weight: 0, stack: 1, slot: "charm", cls: 8, treasure: true, note: "Амулет 8 класса. В конце дня носитель восстанавливает 2 ОЗ." },
   "mana-charm": { short: "Амулет", name: "Амулет маны", weight: 0, stack: 1, slot: "charm", cls: 9, treasure: true, note: "Амулет 9 класса. В конце дня носитель восстанавливает 2 маны." },
   "fatigue-charm": { short: "Амулет", name: "Амулет усталости", weight: 0, stack: 1, slot: "charm", cls: 7, treasure: true, note: "Амулет 7 класса. В конце дня носитель снимает 1 уровень Усталости." },
+  "frost-gloves": { short: "Рукавицы", name: "Рукавицы северянина", weight: 0.5, stack: 1, slot: "hands", cls: 8, treasure: true, note: "Артефакт 8 класса (руки). Урон холодом по носителю −1. В зонах с заморозкой раз в 2 хода снимает носителю 1 холода." },
+  "hide-cloak": { short: "Плащ", name: "Плащ толстой шкуры", weight: 3, stack: 1, slot: "back", cls: 7, treasure: true, note: "Артефакт 7 класса (спина). +1 Защиты. Урон холодом по носителю −2. В зонах с заморозкой каждый третий холод не прибавляется (счётчик сбрасывается)." },
+  "frost-amulet": { short: "Амулет", name: "Амулет инея", weight: 0, stack: 1, slot: "charm", cls: 9, treasure: true, note: "Уникальный амулет 9 класса (сундук стража Ледяного грота). Когда носитель наносит урон холодом, +1к4." },
   "hunger-charm": { short: "Амулет", name: "Амулет голода", weight: 0, stack: 1, slot: "charm", cls: 6, treasure: true, note: "Амулет 6 класса. В конце дня голод носителя утоляется, как после пайка." },
   "potion-good": { short: "Зелье+", name: "Зелье лечения", weight: 0.25, stack: 5, use: "drink", heal: "2к4 + 4", note: "Восстанавливает 2к4 + 4 ОЗ (6–12, в среднем 9). Черновик." },
   chalice: { short: "Чаша", name: "Чаша здоровья", weight: 0.5, stack: 1, cls: 8, treasure: true, note: "Сокровище 8 класса. Наполните водой (бесплатно в городе, у воды в лабиринте и в бою, или за паёк на Отдыхе): через 2 дня вода станет улучшенным зельем лечения (2к4 + 4). После питья чаша остаётся." },
@@ -3212,6 +3226,9 @@ GEAR_ICON["repair-kit-pro"] = `<svg viewBox="0 0 24 24" fill="none" stroke="curr
 GEAR_ICON.whetstone = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><path d="M4 14l10-8 6 4-10 8z" fill="#9fb4c2" opacity=".35"/><path d="M4 14l10-8 6 4-10 8z"/><path d="M8 11.5l6 4M7 17l8 3" opacity=".6"/></svg>`;
 GEAR_ICON["daedalus-hammer"] = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><path d="M13 3l8 4-2 4-8-4z" fill="#f2c94c" opacity=".4"/><path d="M13 3l8 4-2 4-8-4z"/><path d="M13 9L5 21M4 20l2 2" /></svg>`;
 GEAR_ICON["unbreakable-charm"] = AMU("#9fb4c2"); GEAR_ICON["repair-charm"] = AMU("#d6a64c"); GEAR_ICON["durable-charm"] = AMU("#7ad0dc"); GEAR_ICON["regen-charm"] = AMU("#e0584a");
+GEAR_ICON["frost-amulet"] = AMU("#9ad0ff");
+GEAR_ICON["frost-gloves"] = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M7 21v-8l-2-3V6h2v4h1V4h2v6h1V4h2v6h1V6h2v9l-2 6z" fill="#c9d8e6" fill-opacity=".35"/><path d="M7 17h9" stroke="#9ad0ff"/></svg>`;
+GEAR_ICON["hide-cloak"] = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M8 3h8l3 18H5z" fill="#8a6a44" fill-opacity=".5"/><path d="M9 3c0 3 6 3 6 0M7 12l2 1M17 12l-2 1M6 18l3 1M18 18l-3 1"/></svg>`;
 GEAR_ICON["mana-charm"] = AMU("#5b8def"); GEAR_ICON["fatigue-charm"] = AMU("#9b7bd6"); GEAR_ICON["hunger-charm"] = AMU("#7bc653");
 GEAR_ICON["calm-flute"] = GEAR_ICON.flute;
 GEAR_ICON.chalice = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M6 4h12c0 5-2 8-6 8S6 9 6 4z" fill="currentColor" opacity=".2"/><path d="M6 4h12c0 5-2 8-6 8S6 9 6 4zM12 12v6M8 20h8"/><path d="M8 7c2 1 6 1 8 0" opacity=".7"/></svg>`;
@@ -3429,6 +3446,7 @@ function derived(t, c = char) {
   if (eb.dodge) { ac += eb.dodge; dodgeSrc.push(`${eb.dodge > 0 ? "+" : "−"}${Math.abs(eb.dodge)} эссенции`); }                                                                  // эссенции «КД +N» дают Защиту (решение автора 02.11)
   pen(OVERLOAD[ld.level].dodge, LOAD_NAME[ld.level].toLowerCase());
   if (awkward2h(c)) { pen(AWK.dodge, "неудобный хват двуручного"); warnings.push(`Двуручное и вещь во второй руке: −${AWK.dodge} Уворот, −1,5 м скорости, −${AWK.hit} к попаданию обоими оружиями.`); }
+  if (c.equip && c.equip.back && c.equip.back.id === "hide-cloak" && !c.equip.back.broken) add(1, "плащ толстой шкуры");
   prot = Math.max(0, prot);
   const acSrc = `10 + Лов ${dex >= 0 ? "+" : "−"}${Math.abs(dex)}${dodgeSrc.length ? " " + dodgeSrc.join(", ") : ""}`, protTxt = protSrc.join(", ") || "без брони";
   const mana = 10 + 2 * c.level + eb.mp + (main && main.id === "staff" ? 1 : 0);          // посох: +1 к мане
@@ -3545,7 +3563,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 112;
+const BATTLE_REV = 113;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }
@@ -3690,7 +3708,7 @@ function loadNet() {
   return netLoad;
 }
 /* ----- здания города (assets/js/town.js грузится при первом входе в здание) ----- */
-const TOWN_REV = 26, TOWN_FILES = ["assets/css/town.css", "assets/js/town.js"];
+const TOWN_REV = 27, TOWN_FILES = ["assets/css/town.css", "assets/js/town.js"];
 let townLoad = null;
 function loadTown() {
   if (window.Town && window.Town.ready) return Promise.resolve(true);
@@ -4884,8 +4902,8 @@ function spTreasureHere() {
 }
 // Сокровище находят бросок к20 (решение автора): 1–8 камни (10–15 штук, чем выше бросок, тем больше и тем больше среди них 8 класса), 9–13 расходники (чем выше, тем больше),
 // 14–16 броня, 17 оружие (моё допущение: числа 17 в вашей таблице не было), 18–19 сокровище 9 класса, 20 сокровище 8 класса; какое именно — случайно из списка.
-const TREASURE_POOL = { 9: ["guard", "flame", "hearth", "dice", "bell", "once-more", "wind", "silver-salt", "whetstone", "repair-charm", "mana-charm"], 7: ["brotherhood-ring", "daedalus-hammer", "fatigue-charm"],
-  8: ["chalice", "beginners-luck", "flask", "monocle", "boots", "director-quiver", "durable-charm", "regen-charm"], 6: ["unbreakable-charm", "hunger-charm"] };
+const TREASURE_POOL = { 9: ["guard", "flame", "hearth", "dice", "bell", "once-more", "wind", "silver-salt", "whetstone", "repair-charm", "mana-charm"], 7: ["brotherhood-ring", "daedalus-hammer", "fatigue-charm", "hide-cloak"],
+  8: ["chalice", "beginners-luck", "flask", "monocle", "boots", "director-quiver", "durable-charm", "regen-charm", "frost-gloves"], 6: ["unbreakable-charm", "hunger-charm"] };
 const treasureOwned = id => (TREASURES[id] ? treasure(id).owned : state.party.some(c => [...(c.bag || []), ...Object.values(c.equip || {})].some(e => e && e.id === id)));
 function treasurePick(cls) {
   const free = TREASURE_POOL[cls].filter(id => id === "once-more" || !treasureOwned(id));
@@ -6379,7 +6397,7 @@ const ARTIFACTS = {
   "once-more": { cls: 9, name: "«Ещё раз»", ico: () => ICO_AGAIN, text: "Одноразовый предмет: позволяет перебросить неудачный бросок на эссенцию после боя." },
   chalice: { cls: 8, name: "Чаша здоровья", ico: () => GEAR_ICON.chalice, text: GEAR.chalice.note },
   "beginners-luck": { cls: 8, name: "Удача новичка", ico: () => GEAR_ICON["beginners-luck"], text: GEAR["beginners-luck"].note },
-  ...Object.fromEntries(["whetstone", "daedalus-hammer", "unbreakable-charm", "repair-charm", "durable-charm", "regen-charm", "mana-charm", "fatigue-charm", "hunger-charm"].map(id => [id, { cls: GEAR[id].cls, name: GEAR[id].name, ico: () => GEAR_ICON[id], text: GEAR[id].note }])),
+  ...Object.fromEntries(["whetstone", "daedalus-hammer", "unbreakable-charm", "repair-charm", "durable-charm", "regen-charm", "mana-charm", "fatigue-charm", "hunger-charm", "frost-gloves", "hide-cloak", "frost-amulet"].map(id => [id, { cls: GEAR[id].cls, name: GEAR[id].name, ico: () => GEAR_ICON[id], text: GEAR[id].note }])),
   "calm-flute": { cls: 9, name: "Флейта успокоения", ico: () => GEAR_ICON.flute, text: GEAR["calm-flute"].note },
   tollbell: { cls: 7, name: "Серебряный колокольчик", ico: () => ICO_BELL, text: "Уникальный (сокровищница Звона). Раз в день: если монстр атаковал героя ментальной атакой или дебаффом и герой провалил проверку (Инт, Муд или Хар), колокольчик звенит сам — перебросок с преимуществом получает пострадавший и все остальные, кого задела та же способность. Можно взвести заранее из Инвентаря: тогда следующие ментальные проверки команды идут с преимуществом." },
   boots: { cls: 8, name: "Сапоги скороходы", ico: () => ICO_BOOTS, text: "Раз в день: Движение проходит сразу 2 клетки, а Бег — 3 клетки (одна из пробегаемых клеток — без проверки)." },
@@ -7569,7 +7587,7 @@ function townCard(c) {
 const $hero = document.getElementById("heroov");
 let heroUi = null;
 const HSLOTS = [["main", "Правая рука"], ["off", "Левая рука"], ["body", "Тело"], ["head", "Шлем"], ["hands", "Перчатки"], ["feet", "Ботинки"],
-  ["ring1", "Кольцо"], ["ring2", "Кольцо"], ["accessory", "Аксессуар"], ["charm", "Талисман"]];
+  ["ring1", "Кольцо"], ["ring2", "Кольцо"], ["accessory", "Аксессуар"], ["charm", "Талисман"], ["back", "Спина"], ["hands2", "Руки (доп.)"]];
 const heroById = id => state.party.find(c => c.id === id);
 function itemThumb(e, c) {
   const it = itemOf(e, c); if (!it) return "";
@@ -7741,6 +7759,8 @@ function selPanel(c) {
   }
   if (it.slot === "charm") btns.push(`<button class="fx-btn" data-hx="equip" data-slot-to="charm">Надеть талисман</button>`);
   if (it.slot === "ring") btns.push(`<button class="fx-btn" data-hx="equip" data-slot-to="ring">Надеть кольцо</button>`);
+  if (it.slot === "hands") btns.push(`<button class="fx-btn" data-hx="equip" data-slot-to="handsAny">Надеть на руки</button>`);
+  if (it.slot === "back") btns.push(`<button class="fx-btn" data-hx="equip" data-slot-to="back">Надеть на спину</button>`);
   if (it.use === "find") btns.push(`<button class="fx-btn primary" data-hx="usefind">${it.find === "mush" ? "Съесть" : "Применить"}</button>`);
   if (it.kindOf === "weapon" && it.group !== "shield" && it.kind !== "Боеприпасы") btns.push(`<button class="fx-btn" data-hx="equip" data-slot-to="main">В правую руку</button>`);
   if (it.kindOf === "weapon" && (it.group === "shield" || (it.group === "melee" && (!isTwoHandedWeapon(it) || isBigGrip(c) || c.race === "barbarian")))) { const mi = mainItem(c), bowBlock = mi && mi.group === "ranged" && !lightMelee(it); btns.push(`<button class="fx-btn" data-hx="equip" data-slot-to="off"${bowBlock ? " disabled" : ""}>В левую руку</button>`); }          // к двуручному можно взять вещь во вторую руку — со штрафом неудобного хвата (03.11)
@@ -8015,7 +8035,7 @@ $hero.addEventListener("click", e => {
     }
     case "equip": {
       if (isBroken(entry)) { toast("Сломано: чинится в кузнице или ремонтным набором на ночлеге"); return; }
-      const slot = ds.slotTo === "ring" ? (c.equip.ring1 ? "ring2" : "ring1") : ds.slotTo, it = itemOf(entry);
+      const slot = ds.slotTo === "ring" ? (!c.equip.ring1 ? "ring1" : !c.equip.ring2 ? "ring2" : !c.equip.hands2 ? "hands2" : "ring2") : ds.slotTo === "handsAny" ? (!c.equip.hands ? "hands" : "hands2") : ds.slotTo, it = itemOf(entry);          // доп. слот рук: кольца, перчатки и т. п. (07.11)
       c.bag.splice(heroUi.sel, 1); heroUi.sel = null;
       const prev = c.equip[slot];
       c.equip[slot] = entry.t === "c" ? { t: "c", name: entry.name } : { t: entry.t, id: entry.id, ...durKeep(entry), ...(entry.used != null ? { used: entry.used } : {}) };

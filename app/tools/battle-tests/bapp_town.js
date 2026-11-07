@@ -67,6 +67,7 @@ const L = require('./bui_lib.js');
   ok('библиотека: первая проверка — тип', await p.evaluate(() => /Этап 1 из 4/.test(document.querySelector('.tw-scroll').innerText)));
   const known0 = await p.evaluate(() => Object.keys(journal().known).length + JSON.stringify(Object.values(journal().known).map(r => r.revealed)));
   for (let i = 0; i < 6; i++) { if (!(await p.$('[data-t="lr-roll"]'))) break; await p.evaluate(() => { window.__libDie = 20; }); await p.click('[data-t="lr-roll"]'); const pick = await p.$('[data-t="lr-pick"]'); if (pick) await pick.click(); }
+  const n20 = await p.$('[data-t="lr-nat20"]'); ok('библиотека: натуральная 20 на последней проверке — бонус: пассивка или активка эссенции', !!n20); if (n20) await n20.click();
   ok('библиотека: после успешных проверок — найдено сведение', await p.evaluate(() => /Найдено/.test(document.querySelector('.tw-scroll').innerText)), await p.evaluate(() => document.querySelector('.tw-scroll').innerText.slice(0, 300)));
   const known1 = await p.evaluate(() => Object.keys(journal().known).length + JSON.stringify(Object.values(journal().known).map(r => r.revealed)));
   ok('библиотека: запись изменилась', known0 !== known1);

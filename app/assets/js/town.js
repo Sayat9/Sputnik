@@ -388,7 +388,8 @@
     seenKeys(m.id, [k]);
     const lab = (monSections(m).find(x => x.k === k) || {}).label || k;
     lr.result = `${isNew ? "Новая запись в библиотеке: " : ""}${m.name} (${m.cls} класс) — ${lab}.`;
-    lr.step = "done"; saveChar();
+    const rec = journal().known[m.id], left = ["ess-passive", "ess-active"].filter(x => m.essence && !(rec && rec.revealed.includes(x)) && monSections(m).some(y => y.k === x));
+    lr.step = lr.nat20 && left.length ? "nat20" : "done"; lr.nat20left = left; saveChar();
   }
   function lrRoll(n) {
     const lr = ui.lr; if (!lr || lr.step !== "stage" || lr.choosing) return;
@@ -396,6 +397,7 @@
     visit();
     const name = STAGES[lr.stage][1];
     if (STAGES[lr.stage][0] === "info" && die >= 19) lr.essOK = true;
+    if (STAGES[lr.stage][0] === "info" && die === 20) lr.nat20 = true;          // натуральная 20 на последней проверке: бонусом — пассивка или активка эссенции (автор 07.11)
     lr.lastRoll = { die, bonus, total, dc, pass };
     if (pass) { lr.choosing = true; lr.log.push(`${name}: к20 ${die}${bonus ? (bonus > 0 ? " + " : " − ") + Math.abs(bonus) : ""} = ${total} против Сл ${dc} — успех, выбираешь сам.`); return; }
     const o = lrOptions(lr), pick = o.length ? o[rnd(o.length)] : null;
@@ -425,6 +427,8 @@
       return `${head}${log}<p class="tw-lead">Проверку бросает сама библиотека, в итоге видно только результат.</p>
         <button class="fx-btn primary" data-t="lr-roll" data-n="0" style="margin-top:8px">Провести проверку</button>`;
     }
+    if (lr.step === "nat20") return `${log}<div class="tw-result fx-frame"><p><b>Найдено:</b> ${esc(lr.result)}</p><p><b>Натуральная 20!</b> В записях нашлось ещё и описание эссенции — выбери, что узнать:</p></div>
+      <div class="tw-rows">${lr.nat20left.map(k => `<div class="tw-row"><div class="tw-who"><div><b>${k === "ess-passive" ? "Пассивка эссенции" : "Активка эссенции"}</b></div></div><button class="fx-btn primary" data-t="lr-nat20" data-v="${k}">Узнать</button></div>`).join("")}</div>`;
     if (lr.step === "done") return `${log}<div class="tw-result fx-frame"><p><b>Найдено:</b> ${esc(lr.result)}</p><p style="opacity:.75;font-size:13px">Запись попала в библиотеку (кнопка «Библиотека» на главном экране и в лабиринте).</p></div>
       <button class="fx-btn primary" data-t="lr-restart">Ещё одно исследование</button>`;
     return `${log}<p class="tw-msg">По этим условиям в библиотеке больше нечего найти.</p><button class="fx-btn primary" data-t="lr-restart">Начать заново</button>`;
@@ -861,7 +865,8 @@
       case "tv-pay": tavernPay(); break;
       case "lr-cat": ui.lr = { step: "hero", cat: ds.k, log: [], picks: {}, stage: 0 }; break;
       case "lr-hero": if (ui.lr) { ui.lr.hero = ds.id; ui.lr.step = "cls"; } break;
-      case "lr-cls": if (ui.lr && libOpen(+ds.n)) { const n = +ds.n; Object.assign(ui.lr, { cls: n, cand: libCands(n), stage: 0, picks: {}, log: [], mon: null, essOK: false, choosing: false }); lrAdvance(ui.lr); } break;
+      case "lr-nat20": if (ui.lr && ui.lr.step === "nat20" && ui.lr.mon) { seenKeys(ui.lr.mon.id, [ds.v]); ui.lr.result += ` Бонус за 20: ${ds.v === "ess-passive" ? "пассивка" : "активка"} эссенции.`; ui.lr.step = "done"; saveChar(); } break;
+      case "lr-cls": if (ui.lr && libOpen(+ds.n)) { const n = +ds.n; Object.assign(ui.lr, { cls: n, cand: libCands(n), stage: 0, picks: {}, log: [], mon: null, essOK: false, nat20: false, choosing: false }); lrAdvance(ui.lr); } break;
       case "lr-roll": lrRoll(+ds.n); break;
       case "lr-pick": if (ui.lr && ui.lr.choosing) lrApply(ui.lr, ds.v); break;
       case "lr-restart": ui.lr = { step: "hero", cat: "monsters", log: [], picks: {}, stage: 0 }; break;

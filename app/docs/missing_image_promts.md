@@ -50,7 +50,7 @@
 
 > `full-body a young woolly mammoth calf with shaggy brown fur covered in frost and short tusks sheathed in jagged ice, charging, frozen cave, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
 
-### Сребророг — `monsters/ice-deer-full`
+### Арктический Сребророг — `monsters/ice-deer-full`
 
 > `full-body a majestic white stag with huge antlers of clear crystal ice, frost breath, glowing pale eyes, frozen cave with icicles, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
 
@@ -334,6 +334,18 @@
 
 ## Сокровища и артефакты
 
+### Рукавицы северянина — `items/frost-gloves`
+
+> `a pair of worn thick fur-lined leather mittens with frost-blue stitching and a faint icy glow, on a stone pedestal in a labyrinth niche, hand-painted dark fantasy item art, painterly, square 1:1, no text`
+
+### Плащ толстой шкуры — `items/hide-cloak`
+
+> `a heavy worn cloak of thick shaggy beast hide with a bone clasp, frost on the fur, draped over a stone pedestal in a labyrinth niche, hand-painted dark fantasy item art, painterly, square 1:1, no text`
+
+### Амулет инея — `items/frost-amulet`
+
+> `a worn silver amulet with a pale blue ice crystal that breathes frost mist, on a leather cord, on a stone pedestal in a labyrinth niche, hand-painted dark fantasy item art, painterly, square 1:1, no text`
+
 ## Находки (после определения)
 
 ### Живой гриб — `mush-heal`
@@ -385,3 +397,32 @@
 ## Здания города
 
 Все 14 зданий нарисованы.
+
+## Поле боя и карта: факелы и жаровни (Ледяной грот)
+
+Сверху вниз, без фона (прозрачный PNG), 512 × 512, вид сверху под углом, как остальные объекты поля боя.
+
+### Факел горит — `field/torch-on`
+
+> `top-down three-quarter view of a wooden torch with oil-soaked rags burning with a bright orange flame and sparks, transparent background, hand-painted dark fantasy game asset, painterly, square 1:1, no text`
+
+### Факел погас — `field/torch-off`
+
+> `top-down three-quarter view of an extinguished wooden torch with charred blackened rags and a thin wisp of smoke, transparent background, hand-painted dark fantasy game asset, painterly, square 1:1, no text`
+
+### Имперская жаровня горит — `field/brazier-on`
+
+> `top-down three-quarter view of an old bronze imperial brazier on three legs with an eagle emblem, burning brightly with orange flames and warm glow, frost around its base melting, transparent background, hand-painted dark fantasy game asset, painterly, square 1:1, no text`
+
+### Имперская жаровня погасла — `field/brazier-off`
+
+> `top-down three-quarter view of an old bronze imperial brazier on three legs with an eagle emblem, cold and extinguished, grey ash and icicles hanging from the rim, transparent background, hand-painted dark fantasy game asset, painterly, square 1:1, no text`
+
+### Огромная жаровня горит — `field/big-brazier-on`
+
+> `top-down three-quarter view of a huge ancient bronze fire bowl on a stone pedestal, roaring tall flames and embers, strong warm light, transparent background, hand-painted dark fantasy game asset, painterly, square 1:1, no text`
+
+### Огромная жаровня погасла — `field/big-brazier-off`
+
+> `top-down three-quarter view of a huge ancient bronze fire bowl on a stone pedestal, extinguished, cold ash, frost creeping over the rim, transparent background, hand-painted dark fantasy game asset, painterly, square 1:1, no text`
+

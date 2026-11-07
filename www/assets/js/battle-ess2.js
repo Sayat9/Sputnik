@@ -2358,8 +2358,10 @@
   B.addCold = async (u, n, why) => {
     const k = coldKey(u); if (!k || !B.S || !B.S.cold || !alive(u) || u.down) return;
     if (n > 0 && (litNear(u, 1) || bigLit())) return;          // у горящей жаровни холод не растёт; огромная жаровня греет всё поле
-    let c = B.S.cold[k] || 0, dmg = 0;
-    for (let i = 0; i < Math.abs(n); i++) { if (n < 0) { c = Math.max(0, c - 1); continue; } if (c >= 10) { dmg++; continue; } c++; if (c === 10) dmg++; }
+    let c = B.S.cold[k] || 0, dmg = 0; const cloak = gearOn(u, "back", "hide-cloak");
+    for (let i = 0; i < Math.abs(n); i++) { if (n < 0) { c = Math.max(0, c - 1); continue; }
+      if (cloak) { const ck = k + "~3", m = (B.S.cold[ck] || 0) + 1; B.S.cold[ck] = m % 3; if (m >= 3) { log(`${u.name}: плащ толстой шкуры удержал тепло.`, "good"); continue; } }          // каждый 3-й холод не прибавляется
+      if (c >= 10) { dmg++; continue; } c++; if (c === 10) dmg++; }
     const was = B.S.cold[k] || 0; B.S.cold[k] = c; syncFrost(u);
     if (c !== was) { const st = [[4, "инициатива −1"], [6, "−1 клетка движения"], [8, "инициатива −2, движение −2"], [10, "окоченение"]].find(([t]) => was < t && c >= t); if (st) { log(`${u.name}: холод ${c}/10 — ${st[1]}.`, "bad"); fx(u, `холод ${c}`, "bad"); } }
     if (dmg) { log(`${u.name} коченеет: ${dmg} урона холодом${why ? " (" + why + ")" : ""}.`, "bad"); await B.applyDamage(null, u, [{ v: dmg, dt: "cold", label: "Окоченение" }], { pure: true }); }
@@ -2397,14 +2399,21 @@
   B.coldTurnStart = async u => {
     const S = B.S, bb = S && S.bigBrazier;
     if (bb) { if (bb.litRound == null && bigLit()) await bigLight(S); if (bigLit() && S.round - bb.litRound >= 2) { S.cells[bb.y][bb.x] = "bigBrazierOut"; log("Огромная жаровня прогорела и гаснет — нужен факел, чтобы разжечь её снова.", "bad"); const g = ui(); if (g) { g.banner("Жаровня погасла"); g.refresh(); } } }
+    if (u.side === "hero" && S && S.opts && S.opts.autoHeroes && bb && S.cells[bb.y][bb.x] === "bigBrazierOut" && alive(u) && !u.down && B.iceActions) {          // прогон: герой рядом разжигает огромную жаровню
+      const act = B.iceActions(u, []).find(a => a.id === "bigbrazier" && a.enabled); if (act) await act.run(); }
     if (has(u, "iced") && alive(u) && !u.down) { const st = has(u, "iced"); const sv = await save(u, "con", st.data.dc || 13, "Обледенение: стряхнуть лёд", [], null); if (sv.ok) { removeStatus(u, "iced"); log(`${u.name} стряхивает лёд.`, "good"); } }
     return prevColdTS(u);
   };
+  const gearOn = (u, slot, id) => !!(u && u.hero && u.hero.equip && u.hero.equip[slot] && u.hero.equip[slot].id === id && !u.hero.equip[slot].broken);
+  B.gearOn = gearOn;
   B.coldTurnEnd = async u => {
     if (u.side !== "hero" || !B.S || !B.S.cold) return;
+    if (gearOn(u, "hands", "frost-gloves") || gearOn(u, "hands2", "frost-gloves")) { const gk = u.hero.id + "~g", m = (B.S.cold[gk] || 0) + 1; B.S.cold[gk] = m % 2; if (m >= 2) await B.addCold(u, -1); }          // рукавицы северянина: раз в 2 хода −1 холод
     const bb = B.S.bigBrazier;
     if (litNear(u, 1)) await B.addCold(u, -1);
   };
+  // нарисованные картинки факелов и жаровен (assets/field/*.webp), когда они появятся в RASTER, заменяют SVG на поле боя
+  if (typeof RASTER !== "undefined") for (const [t, f] of [["brazier", "brazier-off"], ["brazierLit", "brazier-on"], ["bigBrazier", "big-brazier-on"], ["bigBrazierOut", "big-brazier-off"]]) if (RASTER.has("field/" + f)) D.SVG[t] = `<image href="assets/field/${f}.webp" x="0" y="0" width="100" height="100"/>`;
   Object.assign(D.essCd, { "ice-imp": 3, "frost-beetle": 3, "snow-hunter": 3, "ice-spirit": 3, "mammoth-calf": 3, "ice-deer": 4, "half-troll": 4 });
   Object.assign(D.monTune, {
     "ice-imp": { role: "skirmish", focus: ["weak", "nearest"], fleeHp: 0.25 }, "frost-beetle": { role: "brute", focus: ["cluster", "nearest"], noFlee: true },

@@ -407,7 +407,7 @@ const L = require('./bui_lib.js');
   // ---------- 14. академия ----------
   await p.evaluate(() => { state.run = null; const c = state.party[0]; c.gold = 6000; c.edu = {}; location.hash = 'town'; rerender(); });
   await p.click('[data-bld="academy"]'); await p.waitForSelector('.tw-rows');
-  await p.click('[data-t="atab"][data-k="repair"]');
+  await p.evaluate(() => state.party.forEach(c => { c.rank = 8; }));   await p.click('[data-t="atab"][data-k="repair"]');
   const rows = await p.evaluate(() => [...document.querySelectorAll('.tw-row')].map(r => r.textContent.replace(/\s+/g, ' ').trim()));
   ok('академия: группа «Ремонт» с двумя курсами', rows.length === 2 && /Ученик ремонта/.test(rows[0]) && /Мастер ремонта/.test(rows[1]), rows);
   await L.shot(p, 'dur-academy');

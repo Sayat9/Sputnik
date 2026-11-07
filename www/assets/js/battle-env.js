@@ -412,4 +412,8 @@
     if (B.UI && B.UI.active) B.UI.refreshNow();
   };
   { const prevWA = B.weapActions; B.weapActions = u => { const out = prevWA ? prevWA(u) : []; return B.iceActions ? B.iceActions(u, out) : out; }; }          // «Разжечь огромную жаровню» (Ледяной грот)
+  { const W = B.P && B.P.weap; if (W) {          // артефакты от холода и «Амулет инея» (07.11)
+    const g = (u, slot, id) => B.gearOn && B.gearOn(u, slot, id);
+    W.dmgFlat = (u, c) => c.dt !== "cold" || !(c.v > 0) ? 0 : -((g(u, "hands", "frost-gloves") || g(u, "hands2", "frost-gloves") ? 1 : 0) + (g(u, "back", "hide-cloak") ? 2 : 0));
+    W.dmgBonusVs = (u, c) => c.dt === "cold" && g(u, "charm", "frost-amulet") ? B.roll(1, 4).total : 0; } }
 })();
