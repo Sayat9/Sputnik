@@ -30,6 +30,34 @@
 
 ### Разлом «Кровавая крепость» (07.11)
 
+### Ледяной бесёнок — `monsters/ice-imp-full`
+
+> `full-body a small mischievous imp made of blue ice and frost with icicle claws and glowing pale eyes, frozen cave with icicles and ancient bronze imperial braziers, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Инеевый жук — `monsters/frost-beetle-full`
+
+> `full-body a dog-sized beetle with a carapace crusted in white hoarfrost, breathing a cloud of icy mist, frozen cave with icicles, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Снежный охотник — `monsters/snow-hunter-full`
+
+> `full-body a wild tribal hunter wrapped in white furs with a bone harpoon on a rope, face painted with blue frost marks, frozen cave with snowdrifts, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Ледяной дух — `monsters/ice-spirit-full`
+
+> `full-body a floating whirling spirit of ice dust and snowflakes with a faint ghostly face and long icy fingers, frozen cave glowing pale blue, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Детёныш мамонта — `monsters/mammoth-calf-full`
+
+> `full-body a young woolly mammoth calf with shaggy brown fur covered in frost and short sharp tusks, charging, frozen cave, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Хрустальный Рог — `monsters/ice-deer-full`
+
+> `full-body a majestic white stag with huge antlers of clear crystal ice, frost breath, glowing pale eyes, frozen cave with icicles, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Грольф Инеевая Челюсть, дикий полутролль — `monsters/half-troll-full`
+
+> `full-body a huge savage half-troll with grey-blue warty skin, frost on his shoulders, a jaw rimed with ice and a massive club wrapped in ice, standing beside a giant blazing bronze brazier in a frozen cave, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
 ### Раб крови — `monsters/blood-slave-full`
 
 > `full-body an emaciated pale undead slave in chains with drained grey skin and hollow red eyes, blood-soaked gothic fortress and dark sewers with red torchlight, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`

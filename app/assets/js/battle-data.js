@@ -15,6 +15,10 @@
   // Рисунки клеток (viewBox 0 0 100 100). obstacle — непроходима и даёт укрытие линиям, проходящим через неё.
   const sh = '<ellipse cx="50" cy="82" rx="34" ry="9" fill="#000" opacity=".28"/>';
   D.SVG = {
+    brazier: '<ellipse cx="50" cy="88" rx="30" ry="7" fill="#000" opacity=".3"/><path d="M38 64 L28 88 M62 64 L72 88 M50 66 V88" stroke="#3a2e1c" stroke-width="5"/><path d="M18 40 H82 L70 66 H30 Z" fill="#7a6a4a" stroke="#2a2418" stroke-width="4"/><path d="M24 46 H76" stroke="#a89470" stroke-width="3"/>',
+    brazierLit: '<ellipse cx="50" cy="88" rx="30" ry="7" fill="#000" opacity=".3"/><path d="M38 64 L28 88 M62 64 L72 88 M50 66 V88" stroke="#3a2e1c" stroke-width="5"/><path d="M18 40 H82 L70 66 H30 Z" fill="#b8903a" stroke="#2a2418" stroke-width="4"/><path d="M30 40 Q24 22 40 6 Q42 22 50 14 Q60 26 56 4 Q76 22 70 40 Z" fill="#f4a43a"/><path d="M40 40 Q38 28 48 20 Q52 30 58 26 Q62 34 58 40Z" fill="#ffe08a"/>',
+    bigBrazier: '<ellipse cx="50" cy="90" rx="44" ry="8" fill="#000" opacity=".35"/><path d="M8 34 H92 L78 72 H22 Z" fill="#9a7a34" stroke="#2a2418" stroke-width="5"/><path d="M30 72 L20 92 M70 72 L80 92" stroke="#2a2418" stroke-width="6"/><path d="M14 34 Q8 10 30 0 Q32 18 44 8 Q52 22 60 2 Q86 14 84 34 Z" fill="#f4a43a"/><path d="M28 34 Q26 18 42 12 Q48 26 58 18 Q70 26 66 34Z" fill="#ffe08a"/>',
+    bigBrazierOut: '<ellipse cx="50" cy="90" rx="44" ry="8" fill="#000" opacity=".35"/><path d="M8 34 H92 L78 72 H22 Z" fill="#4a4034" stroke="#1a1610" stroke-width="5"/><path d="M30 72 L20 92 M70 72 L80 92" stroke="#1a1610" stroke-width="6"/><path d="M20 34 Q40 24 80 34" stroke="#cfe8ff" stroke-width="3" fill="none"/>',
     rock: sh + '<path d="M14 74 Q10 48 30 38 Q44 24 62 32 Q86 36 88 62 Q90 78 70 82 Q40 88 14 74Z" fill="#74787b" stroke="#2f3235" stroke-width="3" stroke-linejoin="round"/>' +
       '<path d="M30 42 Q44 32 60 38" stroke="#a9adb0" stroke-width="3.5" fill="none" stroke-linecap="round"/><path d="M52 52 L60 68 M36 60 L44 72" stroke="#4a4d50" stroke-width="2.5" stroke-linecap="round"/>' +
       '<path d="M20 68 Q30 60 40 68Z" fill="#5d8a4a" opacity=".8"/>',
@@ -67,6 +71,10 @@
   };
   // Свойства клеток. cost — стоимость входа (2 = труднопроходная), cover — укрытие для занявшего клетку (дальние атаки +2 КД).
   D.terrain = {
+    brazier:       { name: "Имперская жаровня", obstacle: true, flammable: true, note: "Не пройти, укрытие. Огонь (факел, огненная атака) разжигает её." },
+    brazierLit:    { name: "Горящая жаровня", obstacle: true, light: 3, note: "Рядом с ней холод не растёт, в конце хода героя рядом −1 холод. Ледяные твари её гасят." },
+    bigBrazier:    { name: "Огромная жаровня", obstacle: true, light: 4, note: "Греет всё поле: холод у героев не растёт, в 2 клетках от неё −1 холод в конце хода. Страж крушит её." },
+    bigBrazierOut: { name: "Разбитая жаровня", obstacle: true, note: "Не пройти, укрытие. Погасла." },
     rock:    { name: "Валун", obstacle: true, note: "Не пройти. Даёт укрытие тем, кто за ним." },
     tree:    { name: "Дерево", obstacle: true, note: "Не пройти. Даёт укрытие." },
     tent:    { name: "Шатёр", obstacle: true, note: "Не пройти. Даёт укрытие." },
@@ -125,6 +133,7 @@
 
   // Сцены фона по месту боя (ev.place): если место известно, фон рисуется под него, иначе — по зоне.
   D.scenes = {
+    ice:    { name: "Ледяная пещера", re: /лед[яо]н|грот|иней|снеж/i, base: "#3a5060", base2: "#121c26", dots: ["#6a8aa0", "#22364a", "#a8c8dc"], tufts: "#cfe6f2" },
     cave:   { name: "Пещера", re: /пещер|шахт|логово пауч|паутин|нор[ыа]|логово/i, base: "#303844", base2: "#12161c", dots: ["#46525e", "#222a32", "#5a6874"], tufts: "#3f5a46" },
     swamp:  { name: "Топь", re: /топ[ьи]|болот/i, base: "#34452a", base2: "#141d12", dots: ["#46603a", "#222f1c", "#5e7a46"], tufts: "#7fa04e" },
     crypt:  { name: "Склеп", re: /склеп|часовн|курган|кладбищ|гробниц/i, base: "#383442", base2: "#17151f", dots: ["#524e66", "#262330", "#6a6682"], tufts: "#5b6a4a" },
@@ -160,6 +169,8 @@
     mourned:     { name: "Плач", ico: '<path d="M12 4c3 4 5 7 5 10a5 5 0 0 1-10 0c0-3 2-6 5-10z"/>', desc: "Помеха к спасброскам Мудрости." },
     owlmark:     { name: "Метка совы", ico: '<circle cx="8" cy="12" r="3"/><circle cx="16" cy="12" r="3"/><path d="M5 7l3 2M19 7l-3 2"/>', desc: "Атаки по цели с преимуществом." },
     chilled:     { name: "Без тепла", ico: '<path d="M12 3v18M4 8l16 8M20 8L4 16"/>', desc: "−2 к урону до конца боя." },
+    frost:       { name: "Холод", ico: '<path d="M12 2v20M4 7l16 10M20 7L4 17M9 3l3 3 3-3M9 21l3-3 3 3"/>', desc: "Замерзание 0–10: 4+ инициатива −1; 6+ ещё −1 клетка движения; 8+ инициатива −2 и движение −2; 10 — 1 урон за каждую прибавку." },
+    frostbite:   { name: "Обморожен", ico: '<path d="M12 3v18M5 8l14 8M19 8L5 16"/>', desc: "−1 к попаданию." },
     mutarmor:    { name: "Наросты", ico: '<path d="M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6z"/>', desc: "Мутация: +2 Защиты на раунд." },
     queenshell:  { name: "Панцирь", ico: '<path d="M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6z"/>', desc: "Королева ловушек: +2 Защиты до своего хода." },
     queenlegs:   { name: "Паучьи лапы", ico: '<path d="M12 12l-7-5M12 12l7-5M12 12l-7 5M12 12l7 5"/><circle cx="12" cy="12" r="2.5"/>', desc: "Королева ловушек: +2 к попаданию до своего хода." },

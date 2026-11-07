@@ -73,6 +73,11 @@ const CASES = [          // [метка, этаж, уровень героев, 
   ['К: голем плоти+раб', 1, LV7, ['flesh-golem', 'blood-slave'], 'undead'],
   ['К: поганище+раб', 1, LV7, ['abomination', 'blood-slave'], 'undead'],
   ['К: Мордрейн+слуга', 1, LV7, ['death-knight', 'vampire-servant'], 'undead'],
+  ['И: 3 беса/жука', 1, LV7, ['ice-imp', 'frost-beetle', 'ice-imp'], 'stone', { ice: 1 }],
+  ['И: охотник+дух+бес', 1, LV7, ['snow-hunter', 'ice-spirit', 'ice-imp'], 'stone', { ice: 1 }],
+  ['И: мамонтёнок+бес', 1, LV7, ['mammoth-calf', 'ice-imp'], 'stone', { ice: 1 }],
+  ['И: Хрустальный Рог+бес', 1, LV7, ['ice-deer', 'ice-imp'], 'stone', { ice: 1 }],
+  ['И: Грольф+бес', 1, LV7, ['half-troll', 'ice-imp'], 'stone', { ice: 1, big: 1 }],
   ['Г: противный+3 гоблина', 2, 3, ['nasty-goblin', 'goblin', 'goblin-sword', 'goblin-spear'], 'goblin'],
   ['Г: провокатор+3 гоблина', 2, 3, ['goblin-provoker', 'goblin', 'goblin-archer', 'goblin-spear'], 'goblin'],
 ].filter(c => !ONLY || c[0].includes(ONLY));
@@ -118,7 +123,7 @@ const PARTIES = process.env.STEEL ? [['сталь: меч', 'сталь: дву�
     };
     state.run = state.run || { floor: 1, pos: { x: 5, y: 5 }, status: {}, light: true };
     const out = { cases: [], heroes: {} };
-    for (const party of PARTIES) for (const [label, floor, lvl, list, zone] of CASES) {
+    for (const party of PARTIES) for (const [label, floor, lvl, list, zone, xo] of CASES) {
       const names = party.map(find);
       let win = 0, wipe = 0, rounds = 0; const per = names.map(() => ({ down: 0, dead: 0, hp: 0, hpTot: 0 }));
       let info = null;
@@ -127,7 +132,7 @@ const PARTIES = process.env.STEEL ? [['сталь: меч', 'сталь: дву�
           state.party = names.map((n, j) => mk(n, j, lvl)); if (/^В:/.test(label)) state.party.forEach(c => { if (c.equip.main) c.equip.main.salt = true; });          // лес: у отряда оружие с солью (призраки) state.run.floor = floor; state.run.status = {};
           state.party.forEach(c => { state.run.status[c.id] = { fat: 0, sat: 3 }; });
           if (!info) info = state.party.map(c => { const d = derived(totals(c), c); return `${d.ac}${d.prot != null ? '/' + d.prot : ''} ОЗ ${maxHp(c)}`; });
-          const L2 = list === 'KING' ? kingEscort() : list; const z = zone || (MONSTERS.find(x => x.id === L2[0]) || {}).zone || 'stone'; const r = await Battle.sim({ list: L2.slice(), zone: z, floor, ambush: false, kind: 'hard', title: 't' }); const S = r.S;
+          const L2 = list === 'KING' ? kingEscort() : list; const z = zone || (MONSTERS.find(x => x.id === L2[0]) || {}).zone || 'stone'; const iceX = xo && xo.ice ? { place: 'Ледяной грот', big10: true, bigBrazier: !!xo.big, cold: Object.fromEntries(state.party.map(c => [c.id, 0])) } : {}; const r = await Battle.sim({ list: L2.slice(), zone: z, floor, ambush: false, kind: 'hard', title: 't', ...iceX }); const S = r.S;
           if (r.outcome === 'win' || r.outcome === 'retreat') win++;
           const hs = S.units.filter(u => u.side === 'hero' && !u.summon && u.hero);
           if (hs.every(u => u.down || u.dead || !u.alive)) wipe++;

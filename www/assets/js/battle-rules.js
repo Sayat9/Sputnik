@@ -178,6 +178,7 @@
         if (tgt.hp <= 0) await dropToZero(tgt, left - before, { ...o, src, dt: parts[0] ? parts[0].dt : null, taken: left });
       }
       if (tgt.alive) hookAll(tgt, "onDamaged", { src, total: left, o });
+      if (tgt.alive && left > 0 && B.coldHit) await B.coldHit(src, tgt, parts);          // удар холодом ледяной твари студит героя
       if (tgt.alive && left > 0 && tgt.hp < tgt.maxHp * 0.6 && tgt.hp + left >= tgt.maxHp * 0.6) for (const w of B.live()) if (w.side !== tgt.side && !w.down) hookAll(w, "foeBloodied", { tgt, src });          // ОЗ врага упали ниже 60 % (жрец крови, v116)
       if (tgt.alive && !tgt.down && tgt.conc && B.concCheck) await B.concCheck(tgt, left);
       if (tgt.alive && B.hookAllAsync) await B.hookAllAsync(tgt, "onDamagedAsync", { src, total: left, o });
@@ -612,7 +613,7 @@
   /* ===== ход: начало, конец, инициатива ===== */
   function rollInitiative() {
     const S = B.S;
-    const rows = live().map(u => ({ u, d20: d(20), mod: amod(u.abil.dex) + (u.initB || 0) + hookSum(u, "initBonus", {}) }));
+    const rows = live().map(u => ({ u, d20: d(20), mod: amod(u.abil.dex) + (u.initB || 0) + hookSum(u, "initBonus", {}) + (B.coldInit ? B.coldInit(u) : 0) }));
     rows.forEach(r => { r.total = r.d20 + r.mod; });
     // в засаде монстры ходят первыми; герой, которого нельзя застать врасплох («Чует шаги»), идёт по своей инициативе вместе с ними
     const surprised = u => u.side === "hero" && !hookAny(u, "noSurprise", {});
@@ -635,6 +636,7 @@
     if (has(u, "overswung") || has(u, "quaked")) u.t.bonus = 0;                                       // «Тяжёлый замах»: нет доп. действия                                       // оглушение: нет доп. действия и реакции
     tickStatuses(u, "start");
     hookAll(u, "turnStart", {});
+    if (alive(u) && B.coldTurnStart) await B.coldTurnStart(u);          // ледяные твари гасят жаровни, страж крушит огромную (Ледяной грот)
     // начало хода: кровотечение, горение, хватка и т. п.
     const bl = has(u, "bleeding"); if (bl && alive(u)) { const bd = bl.data && bl.data.dice ? B.parseDice(bl.data.dice) : null, bv = bd ? roll(bd.n, bd.s).total : 1; log(`${u.name} истекает кровью (${bv}).`); await applyDamage(bl.src ? B.byId(bl.src) : null, u, [{ v: bv, dt: "slash", label: "Кровотечение" }], {}); }
     const bn = has(u, "burning"); if (bn && alive(u)) { if (has(u, "wet")) removeStatus(u, "burning"); else { const r = roll(1, 4).total; log(`${u.name} горит: ${r}.`); await applyDamage(null, u, [{ v: r, dt: "fire", label: "Горение" }], {}); } }
@@ -661,6 +663,7 @@
     if (alive(u) && B.endTurnSaves) await B.endTurnSaves(u);                                    // повторные спасброски: проклятие, паралич, «Чужой голос»
     tickStatuses(u, "end");
     hookAll(u, "turnEnd", {});
+    if (alive(u) && B.coldTurnEnd) await B.coldTurnEnd(u);          // жаровни греют, холод (Ледяной грот)
     if (alive(u) && B.hookAllAsync) await B.hookAllAsync(u, "turnEndAsync", {});
     if (u.side === "hero" && u.hero) { u.hero.insp = u.insp; }
     if (B.flushQueue) await B.flushQueue();

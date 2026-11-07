@@ -384,6 +384,7 @@
   B.igniteAt = function (x, y, who) {
     const S = B.S; if (!S || !flam(x, y)) return false;
     const k = B.key(x, y), old = B.terrain(x, y);
+    if (old === "brazier") { S.cells[y][x] = "brazierLit"; B.log(`Имперская жаровня разгорается${who ? " (" + who + ")" : ""}: рядом с ней тепло.`, "good"); const g0 = B.UI && B.UI.active ? B.UI : null; if (g0) { try { g0.refreshNow(); } catch (e) {} } return true; }
     (S.fireOld ||= {})[k] = { old, left: FIRE_ROUNDS }; S.cells[y][x] = "fire";
     if (old === "web" && S.ev) S.ev.webBurned = true;          // паутина на поле сгорела — после боя горит и паутина на тайле карты
     B.log(`${D.terrain[old].name} вспыхивает${who ? " (" + who + ")" : ""}.`, "bad");

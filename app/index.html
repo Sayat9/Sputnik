@@ -729,6 +729,9 @@ body.forge-open, body.bt-active, body:has(.mapov:not([hidden])), body:has(.bt-ro
 .rf-title { font: 400 18px/1.1 var(--f-display); text-align: center; }
 .rf-sub { font: 700 10px/1 var(--f-fancy); letter-spacing: .08em; color: var(--fx-muted); text-transform: uppercase; text-align: center; }
 .rf-pill { white-space: nowrap; font-size: 12px; }
+.rf-cold { position: absolute; left: 8px; right: 8px; top: 92px; z-index: 3; display: flex; gap: 4px; justify-content: center; flex-wrap: wrap; pointer-events: none; }
+.rf-cold span { background: rgb(14 24 34 / .85); border: 1px solid #6aa8d0; border-radius: 999px; padding: 2px 8px; font: 600 11px/1.3 var(--f-data); color: #cfe8ff; }
+.rf-cold span.mid { border-color: #9ad0ff; color: #fff; } .rf-cold span.hi { border-color: #e5806f; color: #ffd8d0; }
 .rf-btns { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
 .rank-chip { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--fx-gold-hi, #f4d48e); margin: 2px 0 6px; }
 .rank-chip svg { flex: none; }
@@ -2416,8 +2419,40 @@ const BLOOD_ESS = {
 };
 for (const [id, [name, stats, other, [pn, pt], [an, mana, time, at]]] of Object.entries(BLOOD_ESS)) ESSENCES[id] = { id, name, cls: MONSTERS.find(m => m.id === id).cls, source: id, stats, other, passive: { name: pn, text: pt }, active: { name: an, mana, time, text: at } };
 
+// ===== Ледяной грот (разломы, часть 2; 07.11): монстры 9–7, минибоссы детёныш мамонта и олень «Хрустальный Рог», страж — дикий полутролль Грольф.
+const ICE_MON = [
+  ["ice-imp", 9, "Ледяной бесёнок", "Малый дух", "elemental", "13", "10 (3к6)", "9 м, лазание 6 м", [7, 16, 11, 8, 10, 9], "Тёмное зрение 18 м.",
+    [["Пакостник", "Стайки бесят жгут морозом и плюются льдом; их удары студят героя.", "behavior"], ["Когти", "+5 к попаданию, 1к4+3 холодом.", "attacks"]]],
+  ["frost-beetle", 9, "Инеевый жук", "Малый зверь", "beast", "14 (панцирь)", "13 (3к8)", "6 м", [13, 10, 14, 2, 9, 3], "Чувство вибраций 6 м.",
+    [["Морозное облако", "Покрыт коркой инея; выдыхает облако стужи, от которого стынут руки.", "behavior"], ["Жвалы", "+3 к попаданию, 1к6+1 колющего.", "attacks"]]],
+  ["snow-hunter", 8, "Снежный охотник", "Средний гуманоид", "humanoid", "13 (шкуры)", "30 (5к8+8)", "9 м", [14, 16, 13, 10, 14, 8], "Тёмное зрение 18 м.",
+    [["Белая маскировка", "Дикарь в белых шкурах: сливается со снегом и бьёт гарпуном издалека.", "behavior"], ["Копьё", "+5 к попаданию, 1к8+3 колющего.", "attacks"]]],
+  ["ice-spirit", 8, "Ледяной дух", "Средний дух", "elemental", "12", "26 (6к8)", "0 м, полёт 9 м", [8, 14, 10, 14, 14, 10], "Тёмное зрение 18 м.",
+    [["Морозная аура", "Вихрь ледяной пыли: рядом с ним стынет кровь. Боится огня.", "behavior"], ["Касание стужи", "+5 к попаданию, 1к8+2 холодом.", "attacks"]]],
+  ["mammoth-calf", 7, "Детёныш мамонта", "Большой зверь", "beast", "13 (шерсть)", "60 (8к10+16)", "12 м", [20, 9, 17, 3, 11, 6], "",
+    [["Густая шерсть", "Минибосс грота: мохнатый таран с бивнями, холод ему нипочём (размер 1×2 — пока занимает 2×2).", "behavior"], ["Бивни", "+7 к попаданию, 2к8+5 колющего.", "attacks"]]],
+  ["ice-deer", 7, "Хрустальный Рог", "Большой зверь", "beast", "15", "55 (10к8+10)", "15 м", [15, 18, 13, 6, 16, 9], "Тёмное зрение 18 м.",
+    [["Хрустальные рога", "Минибосс грота: олень с рогами из чистого льда; осколки рогов ранят тех, кто промахнулся, рёв гонит прочь.", "behavior"], ["Рога", "+7 к попаданию, 2к6+4 колющего.", "attacks"]]],
+  ["half-troll", 7, "Грольф Инеевая Челюсть, дикий полутролль", "Большой гуманоид", "humanoid", "16 (шкуры и лёд)", "78 (12к10+12)", "9 м", [23, 12, 21, 8, 13, 10], "Тёмное зрение 18 м.",
+    [["Страж грота", "Грольф — дикий полутролль, страж Ледяного грота: статы и бонусы эссенции на 30 % выше обычного 7 класса, эссенция выпадает в 30 % (71+ на к100). Срастается, если не жечь огнём; гасит и крушит жаровни (размер 2×1 — пока занимает 2×2).", "behavior"], ["Ледяная дубина", "+8 к попаданию, 2к8+5 дробящего.", "attacks"]]],
+];
+for (const [id, cls, name, size, ph, ac, hp, speed, abil, senses, traits] of ICE_MON) MONSTERS.push({ id, zone: "stone", rare: false, weight: 1, name, floor: 1, cls,
+  rank: id === "half-troll" ? "guardian" : cls <= 7 ? "special" : "normal", size, type: /дух/.test(size) ? "Дух" : /гуманоид/.test(size) ? "Гуманоид" : "Зверь",
+  group: id === "half-troll" ? "Один, у огромной жаровни в конце грота" : "Группы по 2–3", sz: /Большой|Большая/.test(size) ? "большой" : /Малый|Малая/.test(size) ? "малый" : "средний", rift: "ice",
+  areas: ["Разлом: Ледяной грот"], ac, hp, speed, cr: String(10 - cls), abil, senses, traits, loot: `Камень ${cls}-го класса.`, essence: id, ph, statDraft: true });
+const ICE_ESS = {
+  "ice-imp": ["Эссенция ледяного бесёнка", { dex: 2, con: 1, str: -1 }, [], ["Колючий иней", "Раз в раунд, когда тебя бьют в ближнем бою, атакующий получает 1к4 урона холодом."], ["Ледяной плевок", 2, "действие", "Враг в 4 клетках — спасбросок Ловкости (Сл 8 + мод. Лов), провал: 1к8 холодом и −2 клетки движения до конца его следующего хода. Перезарядка 3 раунда."]],
+  "frost-beetle": ["Эссенция инеевого жука", { con: 2, str: 1, dex: -1 }, [], ["Ледяной панцирь", "Первый урон по тебе за раунд уменьшается на 2."], ["Морозное облако", 2, "действие", "Враги рядом — спасбросок Телосложения (Сл 8 + мод. Тел), провал: 1к6 холодом и −1 к попаданию до конца их следующего хода. Перезарядка 3 раунда."]],
+  "snow-hunter": ["Эссенция снежного охотника", { dex: 2, wis: 1, str: 1, cha: -1, int: -1 }, [], ["Белая маскировка", "В первом раунде боя атаки по тебе с помехой."], ["Гарпун", 3, "действие", "Бросок гарпуна во врага в 4 клетках: спасбросок Ловкости (Сл 8 + мод. Лов), провал — 1к10 + мод. Лов колющего и цель не может двигаться до конца своего следующего хода. Перезарядка 3 раунда."]],
+  "ice-spirit": ["Эссенция ледяного духа", { int: 2, wis: 2, str: -1, con: -1 }, ["Сопротивление холоду"], ["Морозная аура", "Враги, начинающие ход рядом с тобой, получают 1к4 урона холодом."], ["Ледяное копьё", 3, "действие", "Враг в 6 клетках — спасбросок Телосложения (Сл 8 + мод. Инт), провал: 2к6 холодом и скорость вдвое меньше до конца его следующего хода; успех — половина урона. Перезарядка 3 раунда."]],
+  "mammoth-calf": ["Эссенция детёныша мамонта", { str: 3, con: 2, dex: -1, int: -1 }, ["Сопротивление холоду"], ["Мамонтова поступь", "Если в этом ходу ты прошёл 2 клетки и больше, первая твоя атака наносит +1к6 урона."], ["Таран бивнями", 3, "действие", "Рывок до 3 клеток к врагу и удар: спасбросок Силы (Сл 8 + мод. Сил), провал — 2к8 дробящего и сбит с ног, успех — половина урона. Перезарядка 3 раунда."]],
+  "ice-deer": ["Эссенция Хрустального Рога", { dex: 3, wis: 2, str: -1, cha: -1 }, [], ["Хрустальные рога", "Когда враг в ближнем бою промахивается по тебе, он получает 1к4 колющего от осколков."], ["Ледяной рёв", 3, "действие", "Враги в 2 клетках — спасбросок Мудрости (Сл 8 + мод. Мдр), провал: испуганы до конца своего следующего хода (помеха на атаки). Перезарядка 4 раунда."]],
+  "half-troll": ["Эссенция дикого полутролля", { str: 3, con: 3, int: -1, wis: -1 }, ["Сопротивление холоду"], ["Регенерация", "В начале хода восстанавливаешь 5 ОЗ, если с прошлого хода не получал урона огнём."], ["Ледяная дубина", 4, "действие", "Атака с +2к6 холодом; попал — спасбросок Телосложения (Сл 8 + мод. Сил), провал: цель не может двигаться до конца своего следующего хода. Перезарядка 4 раунда."]],
+};
+for (const [id, [name, stats, other, [pn, pt], [an, mana, time, at]]] of Object.entries(ICE_ESS)) ESSENCES[id] = { id, name, cls: MONSTERS.find(m => m.id === id).cls, source: id, stats, other, passive: { name: pn, text: pt }, active: { name: an, mana, time, text: at } };
+
 const RIFT_RANK = 7, RIFT_EXIT_DAYS = 2;
-const RIFTS = { blood: { name: "Кровавая крепость", zone: "undead", w: 5, h: 15 } };
+const RIFTS = { blood: { name: "Кровавая крепость", zone: "undead", w: 5, h: 15 }, ice: { name: "Ледяной грот", zone: "stone", w: 3, h: 15 } };
 const riftF1Open = r => !!(r && r.floor === 1 && partyRank() <= RIFT_RANK && (r.day === 3 || (r.day === 4 && r.act <= 2)));
 function riftSync() {
   const r = state.run; if (!r || r.floor !== 1 || r.rift) return;
@@ -2425,7 +2460,7 @@ function riftSync() {
   if (riftF1Open(r) && !R) {
     const byZone = {};
     for (let y = 0; y < FLOOR1.size; y++) for (let x = 0; x < FLOOR1.size; x++) { const za = zoneAt(x, y); if (za.kind !== "zone" || FLOOR1.portals[tkey(x, y)] || tileType(x, y) !== "floor") continue; (byZone[za.zones[0]] ||= []).push(tkey(x, y)); }
-    const tiles = {}; for (const ks of Object.values(byZone)) tiles[ks[rnd(ks.length)]] = { id: "blood" };          // пока готова одна тема — Кровавая крепость
+    const tiles = {}; for (const ks of Object.values(byZone)) tiles[ks[rnd(ks.length)]] = { id: ["blood", "ice"][rnd(2)] };          // темы 1 этажа: Кровавая крепость, Ледяной грот
     r.riftsF1 = { tiles };
     logRun("Разломы открылись на 1 этаже: по порталу в каждой зоне, до середины 4-го дня.");
     dgUi.res = { title: "Разломы открылись", roll: "", pic: "rift-open", lines: ["Разломы открылись на 1 этаже.", "В каждой зоне появился портал разлома; они закроются после 2-го действия 4-го дня."] };
@@ -2440,7 +2475,7 @@ function riftMarks(px, py, up) {
 }
 const riftButtons = () => { const r = state.run, t = r && !r.rift && riftAt(r.pos.x, r.pos.y); return t ? [{ id: "rift-enter", label: "Войти в разлом", sub: RIFTS[t.id].name }] : []; };
 // ----- карта разлома -----
-const riftCell = (R, x, y) => R.id === "blood" ? ((y >= 0 && y <= 4 && x >= 0 && x <= 4) || (y >= 5 && y <= 14 && x >= 1 && x <= 3)) : false;
+const riftCell = (R, x, y) => R.id === "blood" ? ((y >= 0 && y <= 4 && x >= 0 && x <= 4) || (y >= 5 && y <= 14 && x >= 1 && x <= 3)) : R.id === "ice" ? (x >= 0 && x <= 2 && y >= 0 && y <= 14) : false;
 function riftBuild(id) {
   const D = RIFTS[id], R = { id, w: D.w, h: D.h, steps: 0, visited: [], cleared: {}, done: {} };
   if (id === "blood") {
@@ -2448,13 +2483,20 @@ function riftBuild(id) {
     const minis = Math.random() < .5 ? ["flesh-golem", "abomination"] : ["abomination", "flesh-golem"];
     R.minis = { [tkey(1 + rnd(3), 8)]: minis[0], [tkey(1 + rnd(3), 11)]: minis[1] };
   }
+  if (id === "ice") {          // пещера 3 × 15: вход сверху, минибоссы на 6-м и 10-м рядах, три имперские жаровни, страж внизу у огромной жаровни
+    R.start = { x: 1, y: 0 }; R.boss = { x: 1, y: 14 };
+    const minis = Math.random() < .5 ? ["mammoth-calf", "ice-deer"] : ["ice-deer", "mammoth-calf"];
+    R.minis = { [tkey(rnd(3), 5)]: minis[0], [tkey(rnd(3), 10)]: minis[1] };
+    R.braziers = {}; for (let n = 0, g = 0; n < 3 && g < 60; g++) { const k = tkey(rnd(3), 2 + rnd(11)); if (!R.minis[k] && !R.braziers[k]) { R.braziers[k] = { lit: false }; n++; } }
+    R.cold = {}; for (const c of state.party) if (!c.dead) R.cold[c.id] = 0;
+  }
   R.pos = { ...R.start }; R.visited.push(tkey(R.pos.x, R.pos.y)); return R;
 }
 function riftEnter() {
   const r = state.run, t = riftAt(r.pos.x, r.pos.y); if (!t) return;
   r.rift = riftBuild(t.id); r.rift.save = { day: r.day, act: r.act, key: tkey(r.pos.x, r.pos.y) };
   logRun(`Отряд входит в разлом «${RIFTS[t.id].name}». Время этажа остановилось.`);
-  dgUi.res = { title: RIFTS[t.id].name, roll: "", pic: "rift-enter", lines: ["Портал схлопывается за спиной. Здесь время этажа не идёт; на выходе пройдёт 2 дня.", "Ищите спуск в последнем ряду двора — он ведёт на 5 уровней вниз, в канализацию. В конце коридора — страж и сундук."] };
+  dgUi.res = { title: RIFTS[t.id].name, roll: "", pic: "rift-enter", lines: t.id === "ice" ? ["Портал схлопывается за спиной. Здесь время этажа не идёт; на выходе пройдёт 2 дня.", "Холод: каждый шаг без горящего факела — +1 к замерзанию (до 10). С факелом холод спадает, но факел тут горит на 1 ход меньше. Имперские жаровни можно зажечь — у них тепло.", "Внизу пещеры — страж у огромной жаровни и сундук."] : ["Портал схлопывается за спиной. Здесь время этажа не идёт; на выходе пройдёт 2 дня.", "Ищите спуск в последнем ряду двора — он ведёт на 5 уровней вниз, в канализацию. В конце коридора — страж и сундук."] };
 }
 function riftExit() {
   const r = state.run, R = r.rift; if (!R) return;
@@ -2464,18 +2506,37 @@ function riftExit() {
   if (r.day > FL().days) { r.day = FL().days; r.act = FL().acts; r.ending ||= "time"; }
   dgUi.res = { title: "Выход из разлома", roll: "", pic: "rift-enter", lines: [`Снаружи прошло ${RIFT_EXIT_DAYS} дня: день ${r.day}, действие ${r.act}.`] };
 }
-const RIFT_POOL = { yard: { 9: ["skeleton", "zombie", "skeleton-archer", "ghoul"], 8: ["skeleton-warrior"] }, sewer: { 9: ["blood-slave", "blood-bat"], 8: ["blood-ghoul", "vampire-servant", "blood-priest", "blood-puddle"] } };
+const RIFT_POOL = { yard: { 9: ["skeleton", "zombie", "skeleton-archer", "ghoul"], 8: ["skeleton-warrior"] }, sewer: { 9: ["blood-slave", "blood-bat"], 8: ["blood-ghoul", "vampire-servant", "blood-priest", "blood-puddle"] },
+  ice: { 9: ["ice-imp", "frost-beetle"], 8: ["snow-hunter", "ice-spirit"] } };
 function riftGroup(R, y, sev) {
-  const P = RIFT_POOL[y <= 4 ? "yard" : "sewer"], pk = a => a[rnd(a.length)];
+  const P = RIFT_POOL[R.id === "ice" ? "ice" : y <= 4 ? "yard" : "sewer"], pk = a => a[rnd(a.length)];
   if (sev === "easy") return [pk(P[9]), pk(P[9]), ...(Math.random() < .5 ? [pk(P[9])] : [])];
   if (sev === "mid") return [pk(P[8]), pk(P[9]), pk(P[9])];
   return [pk(P[8]), pk(P[8]), pk(P[9])];
 }
 function riftTick() {
-  const r = state.run; tick(); r.rift.steps++;
-  if (r.light) { r.torchLeft = (r.torchLeft || 0) - 1; if (r.torchLeft <= 0) { r.light = false; r.torchLeft = 0; logRun("Факел догорел."); } }
+  const r = state.run, R = r.rift; tick(); R.steps++;
+  if (r.light) { if (R.id === "ice" && r.torchLeft >= 4) r.torchLeft--;          // в гроте свежий факел горит на 1 ход меньше
+    r.torchLeft = (r.torchLeft || 0) - 1; if (r.torchLeft <= 0) { r.light = false; r.torchLeft = 0; logRun("Факел догорел."); } }
+  if (R.id === "ice") riftColdStep(r.light || riftWarmAt(R, R.pos.x, R.pos.y) ? -1 : 1);
 }
-function riftFight(title, list, o = {}) { const R = state.run.rift; startSpecial(title, { zone: RIFTS[R.id].zone, place: RIFTS[R.id].name, list }, o); dgUi.enc.riftKey = tkey(R.pos.x, R.pos.y); }
+// ----- холод Ледяного грота (автор 07.11): 0–10 у каждого героя; 4 — инициатива −1, 6 — ещё −1 клетка движения в бою, 8 — инициатива −2 и движение −2, 10 — 1 урон за каждую попытку подняться выше
+const riftWarmAt = (R, x, y) => !!R.braziers && Object.entries(R.braziers).some(([k, b]) => { if (!b.lit) return false; const [bx, by] = k.split(",").map(Number); return Math.abs(bx - x) + Math.abs(by - y) <= 1; });
+const COLD_STEPS = [[4, "инициатива −1"], [6, "в бою −1 клетка движения"], [8, "инициатива −2 и движение −2"], [10, "каждый шаг холода — 1 урон"]];
+function riftColdStep(d) {
+  const R = state.run.rift; if (!R || !R.cold) return;
+  for (const c of state.party) { if (c.dead) continue; const was = R.cold[c.id] || 0;
+    if (d > 0 && was >= 10) { c.hp = Math.max(1, hpOf(c) - 1); logRun(`${c.name} коченеет: −1 ОЗ от холода.`); continue; }
+    const now = Math.max(0, Math.min(10, was + d)); R.cold[c.id] = now;
+    const st = COLD_STEPS.find(([n]) => was < n && now >= n); if (st) logRun(`${c.name}: холод ${now}/10 — ${st[1]}.`);
+    if (now === 10 && was < 10) { c.hp = Math.max(1, hpOf(c) - 1); logRun(`${c.name} коченеет: −1 ОЗ от холода.`); } }
+}
+function riftLightBrazier() {
+  const r = state.run, R = r.rift, b = R && R.braziers && R.braziers[tkey(R.pos.x, R.pos.y)]; if (!b || b.lit || dgUi.enc) return;
+  if (!r.light && !partyTorches()) { toast("Нужен факел"); return; }
+  b.lit = true; logRun("Отряд разжигает имперскую жаровню: рядом с ней тепло, холод спадает."); dgUi.res = { title: "Имперская жаровня", roll: "", lines: ["Старая бронзовая жаровня занимается пламенем.", "На её клетке и соседних холод не растёт, а каждый шаг рядом снимает 1."] };
+}
+function riftFight(title, list, o = {}) { const R = state.run.rift; startSpecial(title, { zone: RIFTS[R.id].zone, place: RIFTS[R.id].name, list, ...(R.id === "ice" ? { cold: R.cold, big10: true, bigBrazier: list[0] === "half-troll" } : {}) }, o); dgUi.enc.riftKey = tkey(R.pos.x, R.pos.y); }
 function riftMove(x, y) {
   const r = state.run, R = r.rift; if (!R || dgUi.enc) return;
   if (Math.abs(x - R.pos.x) + Math.abs(y - R.pos.y) !== 1 || !riftCell(R, x, y)) return;
@@ -2487,12 +2548,12 @@ function riftMove(x, y) {
     logRun("Спуск: отряд проходит 5 уровней вниз и выходит в кровавую канализацию."); toast("Спуск в канализацию");
   }
   const fresh = !R.visited.includes(k); if (fresh) R.visited.push(k);
-  if (R.minis[k] && !R.done[k]) { riftFight(MONSTERS.find(m => m.id === R.minis[k]).name, [R.minis[k], R.id === "blood" ? "blood-slave" : R.minis[k]]); return; }
-  if (R.boss && R.pos.x === R.boss.x && R.pos.y === R.boss.y && !R.bossDead) { riftFight("Страж разлома: Мордрейн", ["death-knight", "vampire-servant"]); return; }
+  if (R.minis[k] && !R.done[k]) { riftFight(MONSTERS.find(m => m.id === R.minis[k]).name, [R.minis[k], R.id === "blood" ? "blood-slave" : R.id === "ice" ? "ice-imp" : R.minis[k]]); return; }
+  if (R.boss && R.pos.x === R.boss.x && R.pos.y === R.boss.y && !R.bossDead) { if (R.id === "ice") riftFight("Страж разлома: Грольф", ["half-troll", "ice-imp"]); else riftFight("Страж разлома: Мордрейн", ["death-knight", "vampire-servant"]); return; }
   if (!fresh || R.cleared[k]) return;
   const d = 1 + rnd(20), sev = d <= 6 ? "hard" : d <= 10 ? "mid" : d <= 14 ? "easy" : null;
   if (sev) { R.cleared[k] = true; riftFight(`${d <= 2 ? "Засада" : sev === "hard" ? "Тяжёлая встреча" : sev === "mid" ? "Средняя встреча" : "Лёгкая встреча"} (к20 = ${d})`, riftGroup(R, R.pos.y, sev), d <= 2 ? { ambush: true } : {}); return; }
-  if (d >= 19) { const line = giveParty({ t: "g", id: R.pos.y <= 4 ? "stone-9" : "stone-8", qty: 1 + rnd(2) }); logRun(`Разлом: находка (к20 = ${d}) — ${line}`); dgUi.res = { title: "Находка", roll: `к20 = ${d}`, pic: "find", lines: [line] }; }
+  if (d >= 19) { const line = giveParty({ t: "g", id: R.id === "blood" && R.pos.y <= 4 ? "stone-9" : R.id === "ice" && R.pos.y <= 6 ? "stone-9" : "stone-8", qty: 1 + rnd(2) }); logRun(`Разлом: находка (к20 = ${d}) — ${line}`); dgUi.res = { title: "Находка", roll: `к20 = ${d}`, pic: "find", lines: [line] }; }
   else logRun(`Разлом: тихо (к20 = ${d}).`);
 }
 function riftRest() {
@@ -2501,6 +2562,7 @@ function riftRest() {
   for (const c of state.party) { if (c.dead) continue; const st = r.status[c.id]; const got = eatRations(c, 1); if (got) { st.sat = Math.min(9, st.sat + 3); st.starve = 0; } st.fat = Math.max(0, st.fat - 2); st.awake = 0;
     const h = Math.max(1, Math.round(maxHp(c) * 0.3)); c.hp = Math.min(maxHp(c), hpOf(c) + h); c.mp = Math.min(maxMp(c), (c.mp ?? 0) + Math.ceil(maxMp(c) / 2)); lines.push(`${c.name}: +${h} ОЗ${got ? "" : " (без еды)"}`); }
   R.steps += 3; logRun("Разлом: привал. " + lines.join("; "));
+  if (R.cold) { const warm = riftWarmAt(R, R.pos.x, R.pos.y); if (warm) for (const k of Object.keys(R.cold)) R.cold[k] = 0; else riftColdStep(r.light ? -1 : 1); lines.push(warm ? "У жаровни отряд отогрелся: холод 0." : r.light ? "Факел греет: холод −1." : "Без огня привал студит: холод +1."); }
   if (rnd(6) === 0) { riftFight("Нападение на привале", riftGroup(R, R.pos.y, "mid")); return; }
   dgUi.res = { title: "Привал в разломе", roll: "", lines };
 }
@@ -2514,11 +2576,14 @@ function riftFightDone(e, killed) {
   const ids = killed.map(i => e.list[i]);
   if (R.minis[e.riftKey] && ids.includes(R.minis[e.riftKey])) R.done[e.riftKey] = true;
   if (ids.includes("death-knight")) { R.bossDead = true; logRun("Мордрейн повержен: сундук стража открыт для отряда."); }
+  if (ids.includes("half-troll")) { R.bossDead = true; logRun("Грольф повержен: сундук стража открыт для отряда."); }
+  if (R.cold && e.cold) for (const [k, v] of Object.entries(e.cold)) R.cold[k] = v;          // холод после боя
 }
 // Экран разлома (v115): заменяет карту этажа в рамке .stage — камера на отряде, как на обычной карте; полная схема — по кнопке «Карта».
 const riftCanStep = (R, x, y) => riftCell(R, x, y) && Math.abs(x - R.pos.x) + Math.abs(y - R.pos.y) === 1 && !(R.id === "blood" && ((y >= 5 && R.pos.y <= 4) || (y <= 4 && R.pos.y >= 5)));
 function riftMarkOf(R, x, y, seen, near) {
   const k = tkey(x, y);
+  if (R.braziers && R.braziers[k] && (seen || near)) return R.braziers[k].lit ? "brazierLit" : "brazier";
   if (R.descent && x === R.descent.x && y === R.descent.y && (seen || near)) return "descent";
   if (R.minis[k] && !R.done[k] && (seen || near)) return "mini";
   if (R.boss && x === R.boss.x && y === R.boss.y) return R.bossDead ? (R.chestOpen ? "open" : "chest") : (seen || near || y === R.h - 1) ? "boss" : "";
@@ -2531,38 +2596,45 @@ const RIFT_ICO = {
   boss: `<circle r="17" fill="#2a0a0e" stroke="#f4d48e" stroke-width="2.5"/><text text-anchor="middle" dominant-baseline="central" font-size="20" fill="#f4d48e">♛</text>`,
   chest: `<rect x="-14" y="-9" width="28" height="20" rx="3" fill="#6a4a1e" stroke="#f4d48e" stroke-width="2"/><path d="M-14 -1 H14" stroke="#f4d48e" stroke-width="2"/><rect x="-3" y="-3" width="6" height="6" fill="#f4d48e"/>`,
   open: `<rect x="-14" y="-4" width="28" height="15" rx="3" fill="#3e2c14" stroke="#8a7648" stroke-width="2"/><path d="M-14 -4 L-10 -14 H14 L14 -4" fill="none" stroke="#8a7648" stroke-width="2"/>`,
+  brazier: `<path d="M-12 -2 H12 L8 8 H-8 Z" fill="#7a6a4a" stroke="#2a2418" stroke-width="2"/><path d="M-4 8 L-7 15 M4 8 L7 15" stroke="#2a2418" stroke-width="2.5"/>`,
+  brazierLit: `<path d="M-12 -2 H12 L8 8 H-8 Z" fill="#b8903a" stroke="#2a2418" stroke-width="2"/><path d="M-4 8 L-7 15 M4 8 L7 15" stroke="#2a2418" stroke-width="2.5"/><path d="M-6 -2 Q-8 -10 -2 -16 Q-1 -9 3 -12 Q7 -6 5 -2 Z" fill="#f4a43a"/><path d="M-2 -2 Q-3 -7 0 -10 Q2 -6 2 -2Z" fill="#ffe08a"/>`,
   exit: `<ellipse rx="12" ry="16" fill="#2a0a2e" stroke="#c45cff" stroke-width="2.5"/><ellipse rx="6" ry="10" fill="#c45cff" opacity=".55"/>`,
 };
 function riftStage() {
   const r = state.run, R = r.rift, D = RIFTS[R.id], { x: px, y: py } = R.pos, parts = [];
   const sq = (x, y, attrs) => `<rect x="${(x - px) * T - T / 2 + 2}" y="${(y - py) * T - T / 2 + 2}" width="${T - 4}" height="${T - 4}" rx="${PX.ok ? 2 : 6}" ${attrs}/>`;
   const at = (x, y, inner) => `<g transform="translate(${(x - px) * T} ${(y - py) * T})">${inner}</g>`;
-  const zoneSty = y => R.id === "blood" ? (y <= 4 ? "undead" : "crypt") : "cave";
-  const fillOf = (x, y) => PX.ok ? PX.fill(zoneSty(y), tileHash(x, y + 50)) : (y <= 4 ? "#494557" : "#4a2a30");
+  const zoneSty = y => R.id === "blood" ? (y <= 4 ? "undead" : "crypt") : R.id === "ice" ? "mines" : "cave";
+  const fillOf = (x, y) => PX.ok ? PX.fill(zoneSty(y), tileHash(x, y + 50)) : R.id === "ice" ? "#3c4a58" : (y <= 4 ? "#494557" : "#4a2a30");
   for (let y = 0; y < R.h; y++) for (let x = 0; x < R.w; x++) {
     if (!riftCell(R, x, y) || Math.abs(x - px) > 4 || Math.abs(y - py) > 4) continue;
     const k = tkey(x, y), cur = x === px && y === py, seen = R.visited.includes(k), near = Math.abs(x - px) + Math.abs(y - py) === 1, go = riftCanStep(R, x, y);
     if (cur) continue;
     if (seen) parts.push(sq(x, y, `fill="${fillOf(x, y)}" stroke="#6e5634" stroke-width="1.2"`), R.id === "blood" && y >= 5 ? sq(x, y, `fill="#6a0e18" opacity=".28" pointer-events="none"`) : "");
     else parts.push(sq(x, y, `fill="#120c10" stroke="#2c1a20" stroke-width="1.2"`));
+    if (R.id === "ice" && seen) parts.push(sq(x, y, `fill="#bfe4ff" opacity=".14" pointer-events="none"`));
     const m = riftMarkOf(R, x, y, seen, near); if (m) parts.push(at(x, y, `<g transform="scale(.9)">${RIFT_ICO[m]}</g>`));
     if (go) parts.push(`<g class="tile-hit" data-rift="move" data-x="${x}" data-y="${y}">${sq(x, y, `fill="${seen ? "rgb(214 166 76 / .14)" : "rgb(120 110 95 / .22)"}" stroke="#f4d48e" stroke-width="1.8" stroke-dasharray="6 5"`)}
       ${seen || m ? "" : at(x, y, `<text text-anchor="middle" dominant-baseline="central" font-family="Kelly Slab, Georgia, serif" font-size="22" fill="#f4d48e" opacity=".75">?</text>`)}</g>`);
   }
   parts.push(sq(px, py, `fill="${fillOf(px, py)}" stroke="#f4d48e" stroke-width="2.5"`));
   if (R.id === "blood" && py >= 5) parts.push(sq(px, py, `fill="#6a0e18" opacity=".28"`));
+  if (R.id === "ice") parts.push(sq(px, py, `fill="#bfe4ff" opacity=".14"`));
   if (r.light) parts.push(`<circle r="${T * 1.6}" fill="url(#torchGlow)" pointer-events="none"/>`);
   const here = riftMarkOf(R, px, py, true, true);
   if (here && here !== "descent") parts.push(`<g transform="translate(-16 -16) scale(.6)">${RIFT_ICO[here]}</g>`);
   parts.push(`<g transform="${here && here !== "descent" ? "translate(8 8) scale(.8)" : ""}">${ICON.party}</g>`);
   const half = T * 3.6, atStart = R.pos.x === R.start.x && R.pos.y === R.start.y, atBoss = R.boss && px === R.boss.x && py === R.boss.y;
-  const part = R.id === "blood" ? (py <= 4 ? "Двор крепости" : `Канализация · ряд ${py - 4} из ${R.h - 5}`) : "";
+  const part = R.id === "blood" ? (py <= 4 ? "Двор крепости" : `Канализация · ряд ${py - 4} из ${R.h - 5}`) : R.id === "ice" ? `Пещера · ряд ${py + 1} из ${R.h}` : "";
+  const brz = R.braziers && R.braziers[tkey(px, py)];
+  const coldRow = R.cold ? `<div class="rf-cold">${state.party.filter(c => !c.dead).map(c => { const v = R.cold[c.id] || 0; return `<span class="${v >= 8 ? "hi" : v >= 4 ? "mid" : ""}" title="Холод ${v}/10">❄ ${esc(c.name.split(" ")[0])} ${v}</span>`; }).join("")}</div>` : "";
   return `<svg viewBox="${-half} ${-half} ${half * 2} ${half * 2}" id="rf-svg" role="img" aria-label="${esc(D.name)}"><defs>${ICON_DEFS}</defs>${parts.join("")}</svg>
     <button class="fx-btn corner-btn l" data-rift="map" aria-label="Схема разлома">${ICO_MAP}Карта</button>
-    <div class="phase-pill rf-pill" style="top:58px">${esc(part)}</div>
+    <div class="phase-pill rf-pill" style="top:58px">${esc(part)}</div>${coldRow}
     <div class="rf-bar">
       <button class="fx-btn" data-rift="rest">${ICO_ACT.rest}Привал</button>
       ${r.light ? `<button class="fx-btn" data-dg="torch-off">Погасить факел</button>` : `<button class="fx-btn" data-dg="torch-on"${partyTorches() || r.torchLeft > 0 ? "" : " disabled"}>Факел (${partyTorches()})</button>`}
+      ${brz && !brz.lit ? `<button class="fx-btn primary" data-rift="brazier"${r.light || partyTorches() ? "" : " disabled"}>Зажечь жаровню</button>` : ""}
       ${atBoss && R.bossDead && !R.chestOpen ? `<button class="fx-btn primary" data-rift="chest">Открыть сундук</button>` : ""}
       ${atStart || R.bossDead ? `<button class="fx-btn${R.bossDead ? " primary" : ""}" data-rift="exit">Выйти из разлома</button>` : ""}
     </div>`;
@@ -2573,20 +2645,21 @@ function riftMapOverlay() {
   for (let y = 0; y < R.h; y++) for (let x = 0; x < R.w; x++) {
     if (!riftCell(R, x, y)) { cells += `<span class="rf-c rf-wall"></span>`; continue; }
     const k = tkey(x, y), cur = R.pos.x === x && R.pos.y === y, seen = R.visited.includes(k), near = Math.abs(x - R.pos.x) + Math.abs(y - R.pos.y) === 1;
-    const m = riftMarkOf(R, x, y, seen, near), mark = cur ? "●" : { descent: "▼", mini: "☠", boss: "♛", chest: "◆", open: "✓", exit: "◎" }[m] || "";
+    const m = riftMarkOf(R, x, y, seen, near), mark = cur ? "●" : { descent: "▼", mini: "☠", boss: "♛", chest: "◆", open: "✓", exit: "◎", brazier: "ψ", brazierLit: "🔥" }[m] || "";
     cells += `<span class="rf-c${cur ? " rf-cur" : seen ? " rf-seen" : ""}">${mark}</span>`;
   }
   return `<div class="mapov" role="dialog" aria-modal="true" aria-label="Схема: ${esc(D.name)}">
     <div class="panel fx-frame enc-panel">
       <div class="ph-head"><h3>${esc(D.name)}</h3><button class="fx-btn" data-rift="map" aria-label="Закрыть схему" style="width:42px;height:42px;padding:0;display:grid;place-items:center">${ICO_X}</button></div>
       <div class="rf-grid" style="grid-template-columns:repeat(${R.w},1fr)">${cells}</div>
-      <p class="rf-legend">● отряд · ▼ спуск · ☠ минибосс · ♛ страж · ◆ сундук · ◎ выход</p>
+      <p class="rf-legend">● отряд · ${R.id === "ice" ? "ψ жаровня · 🔥 горит" : "▼ спуск"} · ☠ минибосс · ♛ страж · ◆ сундук · ◎ выход</p>
     </div></div>`;
 }
 if (typeof document !== "undefined") document.addEventListener("click", e => {
   const b = e.target.closest && e.target.closest("[data-rift]"); if (!b || !state.run || !state.run.rift) return;
   const a = b.dataset.rift;
   if (a === "map") { dgUi.riftMap = !dgUi.riftMap; rerender(); return; }
+  if (a === "brazier") riftLightBrazier();
   if (a === "move") riftMove(+b.dataset.x, +b.dataset.y); else if (a === "rest") riftRest(); else if (a === "chest") riftChest(); else if (a === "exit") riftExit();
   saveChar(); rerender();
 });
@@ -2640,7 +2713,9 @@ const MON_BOOST = { "swamp-fang": { hp: 1.6, dmg: 4, hit: 2 }, "goblin-thief": {
 const F3_C7_BOOST = { hp: 1.35, dmg: 3, hit: 1 }, F3_C7_LIGHT = { hp: 1.15, dmg: 1, hit: 1 }, F3_C7_HEAVY = { hp: 1.5, dmg: 4, hit: 2 };
 const F3_C7_TIER = { "choir-dead": null, "bell-ringer": null, "glen-warden": null, "ember-reaper": F3_C7_LIGHT, "orc-executioner": F3_C7_LIGHT, "ash-executioner": F3_C7_LIGHT, "orc-shaman": F3_C7_LIGHT, "marble-saint": F3_C7_LIGHT,
   "tracker-hunter": F3_C7_HEAVY, "trap-master": F3_C7_HEAVY, "boulder-beetle": F3_C7_HEAVY, "maid-shade": F3_C7_HEAVY };          // по прогонам «отряд в стали» (07.11)
-Object.assign(MON_BOOST, { "flesh-golem": { hp: 1.15, dmg: 2, hit: 1 }, abomination: { hp: 1.5, dmg: 4, hit: 2 } });          // Мордрейн (страж) — без правки: статблок = обычный 7 класс ×1,3 (v116)          // разлом «Кровавая крепость» (07.11, прогоны отрядом в стали)
+Object.assign(MON_ARMOR, { "ice-imp": 0, "frost-beetle": 2, "snow-hunter": 1, "ice-spirit": 0, "mammoth-calf": 1, "ice-deer": 0, "half-troll": 2 });          // Ледяной грот
+Object.assign(MON_BOOST, { "flesh-golem": { hp: 1.15, dmg: 2, hit: 1 }, abomination: { hp: 1.5, dmg: 4, hit: 2 } });          // Мордрейн (страж) — без правки: статблок = обычный 7 класс ×1,3 (v116)
+Object.assign(MON_BOOST, { "mammoth-calf": { hp: 1.4, dmg: 3, hit: 1 }, "ice-deer": { hp: 1.5, dmg: 3, hit: 2 } });          // минибоссы Ледяного грота (07.11, отряд в стали 5 ур.)
 MONSTERS.forEach(m => { if (m.floor === 3 && m.cls === 7 && !MON_BOOST[m.id] && !m.dyn) { const b = m.id in F3_C7_TIER ? F3_C7_TIER[m.id] : F3_C7_BOOST; if (b) MON_BOOST[m.id] = b; } });
 MONSTERS.forEach(m => { const b = MON_BOOST[m.id]; if (!b || m.boost) return; m.boost = b; if (b.dodge && m.dodge != null) m.dodge += b.dodge; if (b.prot && m.prot != null) m.prot = Math.max(0, m.prot + b.prot); if (b.hp && typeof m.hp === "string") m.hp = m.hp.replace(/^\d+/, n => String(Math.round(+n * b.hp))); });
 // ===== конец данных монстров
@@ -3465,7 +3540,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 110;
+const BATTLE_REV = 111;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }
@@ -4653,6 +4728,7 @@ function tierList(room) {
 function startSpecial(title, enc, o = {}) {
   const r = state.run, p = { x: r.pos.x, y: r.pos.y }, ev = { kind: "hard", title, raw: 0, n: 0, cause: "special", sp: o.sp || null, note: o.note || "" };
   startFight(ev, p, { zone: enc.zone, place: enc.place, list: enc.list, border: false, fog: enc.fog || 0 });
+  for (const k of ["cold", "big10", "bigBrazier"]) if (enc[k] != null) ev[k] = enc[k];          // Ледяной грот: холод отряда, поле 10×10, огромная жаровня
   if (o.key) ev.key = o.key;
   ev.ambush = !!o.ambush; if (ev.ambush) ev.title += "!";
   ev.init = rollInitiative(ev.list, ev.ambush);
@@ -5683,6 +5759,7 @@ const f3 = () => { const r = state.run; return (r.f3 ||= f3Gen()); };
 const TOLL_MSG = "Звон серебряного колокольчика возвращает воспоминания о доме";
 const NOISE_MAX = 20, NOISE_BY_CLS = { 9: 1, 8: 2, 7: 4, 6: 7 }, TOLL_DC = 8, TOLL_STEP_NOISE = 1, TOLL_STEP_BAD = 2, TOLL_CALM = 1;
 const isToll = (x, y) => curFloor() === 3 && ["Звон", "Сердце этажа"].includes(FLOOR3.zoneName(x, y)) && tileType(x, y) === "floor";
+const HEART_ALTAR = "15,14";          // алтарь Сердца этажа (автор 07.11): пока ничего не делает, рядом — сундук Звона
 const TOLL_CHEST = "15,15", FIRE_CHEST = "4,5", FIRE_BOOST = 10, ART_DROPS = ["thunder-spear", "magnet-gloves", "shadow-daggers", "falling-star", "echo-blade", "discharge-staff", "mirror-shield", "moon-sword", "storm-axe", "meteor-mace", "rampart-pike", "ricochet-bow", "shadow-fang", "reaper-axe", "flurry-rapier", "rift-hammer", "bastion-shield", "mirage-armor", "magnet-mail"];          // сундук Пылающих земель: артефакт гарантирован
 function f3Noise(n, why) {
   const r = state.run; if (!r || r.floor !== 3 || !(n > 0)) return;
@@ -5703,6 +5780,7 @@ function f3TollStep() {          // шаг по Звону: лёгкая про�
 }
 function f3Buttons() {
   const r = state.run, F = f3(), out = [];
+  if (tkey(r.pos.x, r.pos.y) === HEART_ALTAR) out.push({ id: "f3altar", label: "Осмотреть алтарь", sub: "Сердце этажа · без действия" });
   if (tkey(r.pos.x, r.pos.y) === TOLL_CHEST && !F.chestOpen) out.push({ id: "f3chest", label: "Открыть сундук Звона", sub: "сокровищница в центре" });
   if (typeof QUEEN_AT !== "undefined" && tkey(r.pos.x, r.pos.y) === QUEEN_AT && !F.trapOpen) out.push(F.queenDead ? { id: "f3trapchest", label: "Открыть сундук мастерской", sub: "сокровищница Зоны ловушек" } : { id: "f3queen", label: "Подойти к сундуку мастерской", sub: "его стережёт королева ловушек" });          // решение автора 03.11: босс всегда у сундука
   if (tkey(r.pos.x, r.pos.y) === FIRE_CHEST && !F.fireOpen) out.push({ id: "f3fire", label: "Открыть сундук горнила", sub: "сокровищница Пылающих земель" });
@@ -5945,6 +6023,8 @@ function f3AfterAction(kind) {
 const f3Pen = () => { const r = state.run; if (r.floor !== 3) return false; const F = f3(); while (F.pen > 0) { F.pen--; tick(); if (advanceTime()) return true; } return false; };
 // Рисунки на сцене: подсвеченные ловушки (до 5 клеток), валуны и хищник в радиусе 3.
 const F3_ICON = {
+  altar: `<rect x="-13" y="-2" width="26" height="12" rx="2" fill="#6a6470" stroke="#2a2630" stroke-width="2"/><rect x="-9" y="-9" width="18" height="8" rx="1.5" fill="#857e8c" stroke="#2a2630" stroke-width="2"/><circle cy="-13" r="3" fill="#c45cff" opacity=".7"/>`,
+  chest: `<rect x="-13" y="-8" width="26" height="18" rx="3" fill="#6a4a1e" stroke="#f4d48e" stroke-width="2"/><path d="M-13 0 H13" stroke="#f4d48e" stroke-width="2"/><rect x="-3" y="-3" width="6" height="6" fill="#f4d48e"/>`,
   bear: `<path d="M-12 5 L-8 -6 L-4 4 L0 -6 L4 4 L8 -6 L12 5Z" fill="#9aa0a8" stroke="#2a2e34" stroke-width="1.5"/><path d="M-13 7 H13" stroke="#2a2e34" stroke-width="2.5"/>`,
   wire: `<circle cx="-13" r="3" fill="#7a5a34"/><circle cx="13" r="3" fill="#7a5a34"/><path d="M-13 0 H13" stroke="#e8e0c8" stroke-width="1.6" stroke-dasharray="4 2"/>`,
   boulder: `<circle r="14" fill="#8a847a" stroke="#3a362e" stroke-width="2.5"/><path d="M-6 -5 L3 -9 M-9 3 L0 6 M4 -1 L9 4" stroke="#5a564e" stroke-width="1.5" fill="none"/>`,
@@ -5958,6 +6038,7 @@ const lanternOpen = () => { const r = state.run; return !!(r && r.floor === 3 &&
 const lanternPathAt = (x, y) => lanternOpen() && LANTERN_PATH.includes(tkey(x, y));
 function f3Marks(px, py, up) {
   const r = state.run, F = r.f3, out = []; if (!F || r.floor !== 3) return out;
+  for (const [k, ico] of [[HEART_ALTAR, F3_ICON.altar], ...(F.chestOpen ? [] : [[TOLL_CHEST, F3_ICON.chest]])]) { const [x, y] = k.split(",").map(Number); if (Math.max(Math.abs(x - px), Math.abs(y - py)) <= 4) out.push(up((x - px) * T, (y - py) * T, ico)); }          // Сердце этажа: алтарь и сундук
   if (lanternOpen()) for (const k of LANTERN_PATH) { const [x, y] = k.split(",").map(Number); if (Math.max(Math.abs(x - px), Math.abs(y - py)) <= 4) out.push(up((x - px) * T, (y - py) * T, `<circle r="9" fill="#f4d48e" opacity=".35"/><circle r="4" fill="#f4d48e"/>`)); }
   for (const [k, tr] of Object.entries(F.traps)) { if (!tr.seen && !treasure("monocle").owned) continue; const [x, y] = k.split(",").map(Number); if (Math.abs(x - px) + Math.abs(y - py) > 5) continue; out.push(up((x - px) * T, (y - py) * T, `<g transform="scale(.9)" opacity=".95">${F3_ICON[tr.t]}</g>`)); }
   for (const b of F.boulders) if (Math.max(Math.abs(b.x - px), Math.abs(b.y - py)) <= 3) out.push(up((b.x - px) * T, (b.y - py) * T, `<g transform="scale(.95)">${F3_ICON.boulder}<path d="M0 0 L${b.dx * 12} ${b.dy * 12}" stroke="#f4d48e" stroke-width="2.5" marker-end="none"/></g>`));
@@ -7353,6 +7434,7 @@ document.addEventListener("click", e => {
     else { dgUi.map = ds.inv === "mmap" ? "magic" : "plain"; }
     rerender(); return;
   }
+  if (ds.sp === "f3altar") { dgUi.res = { title: "Алтарь Сердца этажа", roll: "", lines: ["Древний камень в самом сердце Звона, исчерченный стёртыми знаками. Колокола вокруг смолкают, когда к нему подходишь.", "Пока алтарь молчит — ничего не происходит."] }; rerender(); return; }
   if (ds.sp) { dgUi.inv = false; dgUi.sup = false; dgUi.gm = false; dgUi.spDo = ds.sp; act("sp"); return; }
   if (ds.act) {
     dgUi.inv = false; dgUi.sup = false; dgUi.gm = false; dgUi.path = [];

@@ -288,6 +288,7 @@
     }
     for (const c of u.conds) if (c.id === "packhowl") sp += 1;          // «Загонный вой» вожака гончих (03.11)
     for (const c of u.conds) if (c.id === "slowed") { if (c.data.mult != null) sp = Math.floor(sp * c.data.mult); if (c.data.add) sp += c.data.add; }
+    if (B.coldSpd) sp -= B.coldSpd(u);          // холод Ледяного грота
     return Math.max(0, sp);
   }
   // Сколько движения стоит встать: половина скорости, а если сбил «Могильщик» («Глубокая яма») — всё оставшееся перемещение.
@@ -452,7 +453,7 @@
   /* ===== состояние боя ===== */
   function newBattle(ev) {
     const zone = D.zones[ev.zone] ? ev.zone : "goblin";
-    B.setSize(((ev.floor || (state.run && state.run.floor) || 1) >= 3) ? 10 : 7);          // 3 этаж — поле 10×10
+    B.setSize(((ev.floor || (state.run && state.run.floor) || 1) >= 3 || ev.big10) ? 10 : 7);          // ev.big10 — поле 10×10 (Ледяной грот)          // 3 этаж — поле 10×10
     const S = { n: W, ev, zone, scene: D.sceneOf ? D.sceneOf(ev) : null, fog: ev.fog || 0, sight: ev.sight != null ? ev.sight : (ev.void ? -2 : 0), noElev: !!(ev.noElev || ev.void), ambush: !!ev.ambush, heroAmbush: !!ev.heroAmbush, dark: false, torch: false, units: [], order: [], turn: 0, round: 1, phase: "init", log: [], killed: [], objs: [], drops: [], opts: Object.assign({ showMonHp: false, autoSaves: false, autoEnd: true }, (state.settings && state.settings.battleOpts) || {}, { autoHeroes: false }), outcome: null, arrowLog: {}, zones: [], bodies: [], q: [], started: Date.now() };
     try { S.dark = typeof inDarkness === "function" && !!(state.run && isDark(state.run.pos.x, state.run.pos.y)) && !(state.run && state.run.light); S.torch = !!(state.run && state.run.light); } catch (e) { S.dark = false; }
     S.torchFixed = S.torch;          // факел, зажжённый на карте, горит весь бой; факел, зажжённый в бою, — 3 раунда (battle-act.js)
@@ -463,6 +464,11 @@
     if (ev.place === "Храм изваяний") { let n = 2 + Math.floor(Math.random() * 2); for (let k = 0; k < 40 && n > 0; k++) { const x = Math.floor(Math.random() * B.W), y = 2 + Math.floor(Math.random() * (B.H - 4)); if (S.cells[y] && !S.cells[y][x]) { S.cells[y][x] = "statue"; n--; } } }          // храм: 2–3 изваяния на поле (их оживляет скульптор)
     if ((ev.list || []).includes("fog-lantern")) S.dark = true;          // бой с Фонарщиком: обзор 1 клетка, с факелом 2 (лес −2, тьма −2)
     if (ev.place === "Зона ловушек") { let n = 2 + Math.floor(Math.random() * 2); for (let k = 0; k < 40 && n > 0; k++) { const x = Math.floor(Math.random() * B.W), y = 2 + Math.floor(Math.random() * (B.H - 4)); if (S.cells[y] && !S.cells[y][x] && !S.objs.some(o => o.x === x && o.y === y)) { S.objs.push({ id: "zt" + k, kind: "trap", x, y, dc: 13, hidden: true, owner: "mon", by: null, dmg: "2к6", dt: "pierce", noticed: [] }); n--; } } }          // Зона ловушек: на поле уже взведено 2–3 ловушки
+    if (ev.cold) {          // Ледяной грот: холод героев (общий объект с картой разлома), 2–3 имперские жаровни, у стража — огромная горящая жаровня
+      S.cold = ev.cold;
+      let n = 2 + Math.floor(Math.random() * 2); for (let k = 0; k < 60 && n > 0; k++) { const x = 1 + Math.floor(Math.random() * (B.W - 2)), y = 2 + Math.floor(Math.random() * (B.H - 5)); if (S.cells[y] && !S.cells[y][x]) { S.cells[y][x] = "brazier"; n--; } }
+      if (ev.bigBrazier) { const x = Math.floor(B.W / 2), y = B.H - 1; S.cells[y][x] = "bigBrazier"; S.bigBrazier = { x, y, hp: 60 }; }
+    }
     if (ev.place === "Пылающие земли") { let n = 3 + Math.floor(Math.random() * 2); for (let k = 0; k < 40 && n > 0; k++) { const x = Math.floor(Math.random() * B.W), y = 2 + Math.floor(Math.random() * (B.H - 4)); if (S.cells[y] && !S.cells[y][x]) { S.cells[y][x] = "fire"; n--; } } }          // пылающие земли: 3–4 очага огня на поле
     if (B.placeEnv && !ev.arena) B.placeEnv(S, ev);
     uidSeq = 1;
