@@ -15,7 +15,7 @@ const L = require('./bui_lib.js');
     r.pos = { x: 24, y: 1 }; r.pending = null; dgUi.phase = 'move'; dgUi.target = { x: 25, y: 1 }; act('move'); out.fogFar = (r.log || []).slice(-3).some(l => /неприглядный туман/.test(l.t || l));
     r.pending = null; dgUi.phase = 'move'; dgUi.target = { x: 26, y: 1 }; act('move'); out.fogNear = (r.log || []).slice(-4).some(l => /неприглядный туман/.test(l.t || l));
     // вход снаружи — обычный шаг; внутри — случайный
-    r.pos = { x: 26, y: 1 }; r.visited = [tkey(26, 1)]; dgUi.phase = 'move'; dgUi.target = { x: 27, y: 1 }; const before = r.visited.length; act('move');
+    f3().trailDead = true; /* потерявшийся след не путает шаг (v112) */ r.pos = { x: 26, y: 1 }; r.visited = [tkey(26, 1)]; dgUi.phase = 'move'; dgUi.target = { x: 27, y: 1 }; const before = r.visited.length; act('move');
     out.entered = r.pos.x === 27 && r.pos.y === 1 && voidHere(); out.notVisited = !r.visited.includes('27,1');
     out.runOff = (() => { rerender(); const bt = document.querySelector('[data-act="run"]'); return !bt || bt.disabled; })();
     const dirs = new Set(), poss = new Set(); let exits = 0, boss = 0, escaped = 0, inside = 0;

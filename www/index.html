@@ -717,6 +717,15 @@ body.forge-open, body.bt-active, body:has(.mapov:not([hidden])), body:has(.bt-ro
 .roll-grid .fx-btn.on { background: var(--fx-gold); color: #1d140a; border-color: var(--fx-gold-hi); }
 /* бросок события делает приложение: кубик крутится, потом вылетает картинка события */
 .ev-panel { position: relative; text-align: center; }
+.rf-grid { display: grid; gap: 3px; max-width: 260px; margin: 8px auto; }
+.rf-c { aspect-ratio: 1; border-radius: 4px; display: grid; place-items: center; font-size: 14px; background: #120c10; border: 1px solid #2c1a20; color: var(--fx-gold-hi, #f4d48e); padding: 0; }
+.rf-wall { background: transparent; border-color: transparent; }
+.rf-seen { background: #3a1f24; }
+.rf-cur { background: #7a2a2a; border-color: #f4d48e; }
+.rf-go { background: #24161a; border: 1px dashed #c45cff; cursor: pointer; }
+.rf-go.rf-seen { background: #3a1f24; }
+.rf-legend { font-size: 11px; text-align: center; opacity: .75; margin: 2px 0 8px; }
+.rf-btns { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
 .rank-chip { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--fx-gold-hi, #f4d48e); margin: 2px 0 6px; }
 .rank-chip svg { flex: none; }
 .res-pic { margin-bottom: 8px; }
@@ -2364,6 +2373,177 @@ function mimicHoard(c) {
   return lines;
 }
 /*WITCH-END*/
+/*RIFT-BEGIN*/
+// ===== Разломы (спецификация автора 07.11; первая часть: основа + Кровавая крепость). Открываются с 7 ранга отряда (partyRank() ≤ 7).
+// 1 этаж: с 3-го дня до 2-го действия 4-го дня — по порталу в каждой зоне. Внутри разлома время этажа стоит (свой счётчик шагов: голод, усталость, факел);
+// на выходе снаружи проходит 2 дня. Разлом — отдельная карта поверх этажа (riftOverlay), бои — обычные тактические (startSpecial).
+const BLOOD_MON = [
+  ["blood-slave", 9, "Раб крови", "Средняя нежить", "undead", "11", "13 (3к8)", "6 м", [13, 10, 13, 4, 8, 5], "Тёмное зрение 18 м.",
+    [["Подношение", "Иссушённый невольник крепости; умирая, отдаёт остатки крови хозяевам.", "behavior"], ["Укус", "+3 к попаданию, 1к6+1 колющего.", "attacks"]]],
+  ["blood-bat", 9, "Летучая мышь-кровосос", "Малый зверь", "beast", "13", "9 (2к6+2)", "1,5 м, полёт 12 м", [6, 16, 12, 2, 12, 4], "Слепое зрение 18 м.",
+    [["Стая", "Летает стаями, пьёт кровь и тут же затягивает раны.", "behavior"], ["Укус", "+5 к попаданию, 1к4+3 колющего.", "attacks"]]],
+  ["blood-ghoul", 8, "Кровавый гуль", "Средняя нежить", "undead", "13", "26 (4к8+8)", "9 м", [15, 15, 14, 6, 10, 6], "Тёмное зрение 18 м.",
+    [["Пожиратель", "Когти парализуют; добивает раненых и лечится их кровью.", "behavior"], ["Когти", "+5 к попаданию, 1к8+3 рубящего.", "attacks"]]],
+  ["vampire-servant", 8, "Слуга вампиров", "Средняя нежить", "undead", "14", "28 (5к8+5)", "9 м", [14, 16, 12, 10, 10, 14], "Тёмное зрение 36 м.",
+    [["Жажда", "Бросается в бой голодным: первые раунды бьёт сильнее, вытягивает жизнь.", "behavior"], ["Когти", "+5 к попаданию, 1к8+3 рубящего.", "attacks"]]],
+  ["blood-priest", 8, "Жрец крови", "Средний гуманоид", "humanoid", "12", "24 (5к8+2)", "9 м", [10, 12, 12, 13, 15, 14], "Тёмное зрение 18 м.",
+    [["Кровавый обряд", "Лечит союзников своей кровью; печатью не даёт героям лечиться.", "behavior"], ["Ритуальный нож", "+4 к попаданию, 1к6+2 колющего.", "attacks"]]],
+  ["blood-puddle", 8, "Кровавая лужа", "Средняя тварь", "beast", "9", "34 (4к10+12)", "4,5 м", [15, 6, 16, 2, 8, 2], "Слепое зрение 9 м.",
+    [["Слизистое тело", "Сгусток крови: клинки вязнут в нём; затягивает жертву внутрь.", "behavior"], ["Ложноножка", "+5 к попаданию, 1к8+3 дробящего.", "attacks"]]],
+  ["flesh-golem", 7, "Голем плоти", "Большой конструкт", "elemental", "13", "60 (8к10+16)", "6 м", [19, 9, 18, 5, 8, 4], "Тёмное зрение 18 м.",
+    [["Сшитая плоть", "Минибосс канализации: срастается на глазах, если не жечь и не разъедать.", "behavior"], ["Кулак", "+6 к попаданию, 2к8+4 дробящего.", "attacks"]]],
+  ["abomination", 7, "Поганище", "Большая нежить", "undead", "12", "64 (7к10+21)", "6 м", [18, 8, 18, 4, 8, 4], "Тёмное зрение 18 м.",
+    [["Смрад", "Минибосс канализации: груда гниющей плоти, от смрада мутит, рвёт кислотой.", "behavior"], ["Крюк", "+6 к попаданию, 2к6+4 колющего.", "attacks"]]],
+  ["death-knight", 7, "Мордрейн, низший рыцарь смерти", "Средняя нежить", "undead", "18 (латы)", "98 (12к8+44)", "9 м", [23, 14, 21, 13, 16, 18], "Тёмное зрение 36 м.",
+    [["Страж крепости", "Мордрейн — павший рыцарь, страж Кровавой крепости (статы и эссенция +30 %).", "behavior"], ["Две атаки", "За ход два удара мечом.", "attacks"], ["Рунный меч", "+9 к попаданию, 2к8+6 рубящего.", "attacks"]]],
+];
+for (const [id, cls, name, size, ph, ac, hp, speed, abil, senses, traits] of BLOOD_MON) MONSTERS.push({ id, zone: "undead", rare: false, weight: 1, name, floor: 1, cls,
+  rank: id === "death-knight" ? "boss" : cls <= 7 ? "special" : "normal", size, type: /нежить/.test(size) ? "Нежить" : /конструкт/.test(size) ? "Конструкт" : /гуманоид/.test(size) ? "Гуманоид" : /тварь/.test(size) ? "Тварь" : "Зверь",
+  group: id === "death-knight" ? "Один, в конце крепости" : "Группы по 2–3", sz: /Большой|Большая/.test(size) ? "большой" : /Малый|Малая/.test(size) ? "малый" : "средний", rift: "blood",
+  areas: ["Разлом: Кровавая крепость"], ac, hp, speed, cr: String(10 - cls), abil, senses, traits, loot: `Камень ${cls}-го класса.`, essence: id, ph, statDraft: true });
+const BLOOD_ESS = {
+  "blood-slave": ["Эссенция раба крови", { con: 2, str: 1, int: -1 }, [], ["Подношение крови", "Когда ты падаешь, ближайший союзник рядом восстанавливает 1к6 ОЗ."], ["Укус отчаяния", 2, "действие", "Атака; если у тебя меньше половины ОЗ — +1к6 урона. Перезарядка 3 раунда."]],
+  "blood-bat": ["Эссенция летучей мыши-кровососа", { dex: 2, wis: 1, str: -1 }, [], ["Кровосос", "Попав атакой, восстанавливаешь 1к4 ОЗ (раз в раунд)."], ["Облако крыльев", 2, "доп. действие", "До начала твоего следующего хода атаки по тебе с помехой. Перезарядка 3 раунда."]],
+  "blood-ghoul": ["Эссенция кровавого гуля", { str: 2, con: 2, int: -1, cha: -1 }, [], ["Парализующие когти", "Попадание в ближнем бою: спасбросок Телосложения (Сл 8 + мод. Тел), провал — скорость 0 до конца хода цели."], ["Пожирание", 3, "действие", "Атака по цели, у которой меньше половины ОЗ: +2к6 урона, попал — восстанавливаешь 5 ОЗ. Перезарядка 3 раунда."]],
+  "vampire-servant": ["Эссенция слуги вампиров", { dex: 2, cha: 2, con: -1, wis: -1 }, [], ["Жажда", "В первые 2 раунда боя +2 к попаданию и урону."], ["Вытягивание жизни", 3, "действие", "Атака с +1к8 некротическим; попал — восстанавливаешь столько же. Перезарядка 3 раунда."]],
+  "blood-priest": ["Эссенция жреца крови", { wis: 2, cha: 2, con: -1, str: -1 }, [], ["Жертвенное лечение", "В начале хода можешь отдать 3 ОЗ, чтобы самый раненый союзник в 3 клетках восстановил 2к4."], ["Кровавая печать", 2, "доп. действие", "Враг в 4 клетках не может восстанавливать ОЗ до конца своего следующего хода. Перезарядка 3 раунда."]],
+  "blood-puddle": ["Эссенция кровавой лужи", { con: 2, str: 2, dex: -1, int: -1 }, [], ["Слизистое тело", "Сопротивление рубящему и колющему урону."], ["Поглотить", 3, "действие", "Враг рядом — спасбросок Силы (Сл 8 + мод. Тел), провал: опутан на 2 хода и 1к6 кислотой. Перезарядка 3 раунда."]],
+  "flesh-golem": ["Эссенция голема плоти", { con: 3, str: 2, dex: -1, int: -1 }, [], ["Сшитая плоть", "В начале хода восстанавливаешь 5 ОЗ, если с прошлого хода не получал урона огнём или кислотой."], ["Мясной таран", 3, "действие", "Враг рядом — спасбросок Силы (Сл 8 + мод. Сил), провал: 2к6 дробящего и отброшен на 2 клетки. Перезарядка 3 раунда."]],
+  abomination: ["Эссенция поганища", { con: 2, str: 2, dex: -1, cha: -1 }, ["Сопротивление яду"], ["Смрад", "В начале твоего хода враги рядом — спасбросок Телосложения (Сл 8 + мод. Тел), провал: отравлены до конца своего хода."], ["Рвотная волна", 3, "действие", "Враги в 2 клетках — спасбросок Ловкости (Сл 8 + мод. Тел), провал 2к6 ядом, успех половина. Перезарядка 4 раунда."]],
+  "death-knight": ["Эссенция низшего рыцаря смерти", { str: 3, con: 2, cha: 2, dex: -1, wis: -1 }, [], ["Кровавая аура", "Союзники в 2 клетках от тебя наносят +1 урона."], ["Удар смерти", 4, "действие", "Атака с +2к8 некротическим; попал — восстанавливаешь половину этого урона. Перезарядка 4 раунда."]],
+};
+for (const [id, [name, stats, other, [pn, pt], [an, mana, time, at]]] of Object.entries(BLOOD_ESS)) ESSENCES[id] = { id, name, cls: MONSTERS.find(m => m.id === id).cls, source: id, stats, other, passive: { name: pn, text: pt }, active: { name: an, mana, time, text: at } };
+
+const RIFT_RANK = 7, RIFT_EXIT_DAYS = 2;
+const RIFTS = { blood: { name: "Кровавая крепость", zone: "undead", w: 5, h: 15 } };
+const riftF1Open = r => !!(r && r.floor === 1 && partyRank() <= RIFT_RANK && (r.day === 3 || (r.day === 4 && r.act <= 2)));
+function riftSync() {
+  const r = state.run; if (!r || r.floor !== 1 || r.rift) return;
+  const R = r.riftsF1;
+  if (riftF1Open(r) && !R) {
+    const byZone = {};
+    for (let y = 0; y < FLOOR1.size; y++) for (let x = 0; x < FLOOR1.size; x++) { const za = zoneAt(x, y); if (za.kind !== "zone" || FLOOR1.portals[tkey(x, y)] || tileType(x, y) !== "floor") continue; (byZone[za.zones[0]] ||= []).push(tkey(x, y)); }
+    const tiles = {}; for (const ks of Object.values(byZone)) tiles[ks[rnd(ks.length)]] = { id: "blood" };          // пока готова одна тема — Кровавая крепость
+    r.riftsF1 = { tiles };
+    logRun("Разломы открылись на 1 этаже: по порталу в каждой зоне, до середины 4-го дня.");
+    dgUi.res = { title: "Разломы открылись", roll: "", pic: "rift-open", lines: ["Разломы открылись на 1 этаже.", "В каждой зоне появился портал разлома; они закроются после 2-го действия 4-го дня."] };
+  } else if (R && !R.closed && (r.day > 4 || (r.day === 4 && r.act > 2))) { R.closed = true; logRun("Разломы на 1 этаже закрылись."); }
+}
+const riftAt = (x, y) => { const r = state.run, R = r && r.floor === 1 && r.riftsF1; const t = R && !R.closed && R.tiles[tkey(x, y)]; return t && !t.done ? t : null; };
+function riftMarks(px, py, up) {
+  const r = state.run, R = r && r.floor === 1 && r.riftsF1, out = []; if (!R || R.closed) return out;
+  for (const [k, t] of Object.entries(R.tiles)) { if (t.done) continue; const [x, y] = k.split(",").map(Number); if (Math.max(Math.abs(x - px), Math.abs(y - py)) > 5) continue;
+    out.push(up((x - px) * T, (y - py) * T, `<ellipse rx="13" ry="17" fill="#2a0a2e" stroke="#c45cff" stroke-width="2.5"/><ellipse rx="7" ry="11" fill="#c45cff" opacity=".55"/>`)); }
+  return out;
+}
+const riftButtons = () => { const r = state.run, t = r && !r.rift && riftAt(r.pos.x, r.pos.y); return t ? [{ id: "rift-enter", label: "Войти в разлом", sub: RIFTS[t.id].name }] : []; };
+// ----- карта разлома -----
+const riftCell = (R, x, y) => R.id === "blood" ? ((y >= 0 && y <= 4 && x >= 0 && x <= 4) || (y >= 5 && y <= 14 && x >= 1 && x <= 3)) : false;
+function riftBuild(id) {
+  const D = RIFTS[id], R = { id, w: D.w, h: D.h, steps: 0, visited: [], cleared: {}, done: {} };
+  if (id === "blood") {
+    R.start = { x: 1 + rnd(2), y: 0 }; R.descent = { x: rnd(5), y: 4 }; R.boss = { x: 2, y: 14 };
+    const minis = Math.random() < .5 ? ["flesh-golem", "abomination"] : ["abomination", "flesh-golem"];
+    R.minis = { [tkey(1 + rnd(3), 8)]: minis[0], [tkey(1 + rnd(3), 11)]: minis[1] };
+  }
+  R.pos = { ...R.start }; R.visited.push(tkey(R.pos.x, R.pos.y)); return R;
+}
+function riftEnter() {
+  const r = state.run, t = riftAt(r.pos.x, r.pos.y); if (!t) return;
+  r.rift = riftBuild(t.id); r.rift.save = { day: r.day, act: r.act, key: tkey(r.pos.x, r.pos.y) };
+  logRun(`Отряд входит в разлом «${RIFTS[t.id].name}». Время этажа остановилось.`);
+  dgUi.res = { title: RIFTS[t.id].name, roll: "", pic: "rift-enter", lines: ["Портал схлопывается за спиной. Здесь время этажа не идёт; на выходе пройдёт 2 дня.", "Ищите спуск в последнем ряду двора — он ведёт на 5 уровней вниз, в канализацию. В конце коридора — страж и сундук."] };
+}
+function riftExit() {
+  const r = state.run, R = r.rift; if (!R) return;
+  const t = r.riftsF1 && r.riftsF1.tiles[R.save.key]; if (t) t.done = true;
+  r.day = R.save.day + RIFT_EXIT_DAYS; r.act = R.save.act; r.rift = null;
+  logRun(`Отряд вышел из разлома. Снаружи прошло ${RIFT_EXIT_DAYS} дня — сейчас день ${r.day}.`);
+  if (r.day > FL().days) { r.day = FL().days; r.act = FL().acts; r.ending ||= "time"; }
+  dgUi.res = { title: "Выход из разлома", roll: "", pic: "rift-enter", lines: [`Снаружи прошло ${RIFT_EXIT_DAYS} дня: день ${r.day}, действие ${r.act}.`] };
+}
+const RIFT_POOL = { yard: { 9: ["skeleton", "zombie", "skeleton-archer", "ghoul"], 8: ["skeleton-warrior"] }, sewer: { 9: ["blood-slave", "blood-bat"], 8: ["blood-ghoul", "vampire-servant", "blood-priest", "blood-puddle"] } };
+function riftGroup(R, y, sev) {
+  const P = RIFT_POOL[y <= 4 ? "yard" : "sewer"], pk = a => a[rnd(a.length)];
+  if (sev === "easy") return [pk(P[9]), pk(P[9]), ...(Math.random() < .5 ? [pk(P[9])] : [])];
+  if (sev === "mid") return [pk(P[8]), pk(P[9]), pk(P[9])];
+  return [pk(P[8]), pk(P[8]), pk(P[9])];
+}
+function riftTick() {
+  const r = state.run; tick(); r.rift.steps++;
+  if (r.light) { r.torchLeft = (r.torchLeft || 0) - 1; if (r.torchLeft <= 0) { r.light = false; r.torchLeft = 0; logRun("Факел догорел."); } }
+}
+function riftFight(title, list, o = {}) { const R = state.run.rift; startSpecial(title, { zone: RIFTS[R.id].zone, place: RIFTS[R.id].name, list }, o); dgUi.enc.riftKey = tkey(R.pos.x, R.pos.y); }
+function riftMove(x, y) {
+  const r = state.run, R = r.rift; if (!R || dgUi.enc) return;
+  if (Math.abs(x - R.pos.x) + Math.abs(y - R.pos.y) !== 1 || !riftCell(R, x, y)) return;
+  if (R.id === "blood" && y >= 5 && R.pos.y <= 4) return;          // во двор назад и вниз — только через спуск
+  if (R.id === "blood" && y <= 4 && R.pos.y >= 5) return;
+  riftTick(); R.pos = { x, y }; let k = tkey(x, y);
+  if (R.id === "blood" && x === R.descent.x && y === R.descent.y) {          // спуск на 5 уровней вниз — в канализацию
+    R.pos = { x: Math.min(3, Math.max(1, x)), y: 5 }; k = tkey(R.pos.x, R.pos.y);
+    logRun("Спуск: отряд проходит 5 уровней вниз и выходит в кровавую канализацию."); toast("Спуск в канализацию");
+  }
+  const fresh = !R.visited.includes(k); if (fresh) R.visited.push(k);
+  if (R.minis[k] && !R.done[k]) { riftFight(MONSTERS.find(m => m.id === R.minis[k]).name, [R.minis[k], R.id === "blood" ? "blood-slave" : R.minis[k]]); return; }
+  if (R.boss && R.pos.x === R.boss.x && R.pos.y === R.boss.y && !R.bossDead) { riftFight("Страж разлома: Мордрейн", ["death-knight", "vampire-servant"]); return; }
+  if (!fresh || R.cleared[k]) return;
+  const d = 1 + rnd(20), sev = d <= 6 ? "hard" : d <= 10 ? "mid" : d <= 14 ? "easy" : null;
+  if (sev) { R.cleared[k] = true; riftFight(`${d <= 2 ? "Засада" : sev === "hard" ? "Тяжёлая встреча" : sev === "mid" ? "Средняя встреча" : "Лёгкая встреча"} (к20 = ${d})`, riftGroup(R, R.pos.y, sev), d <= 2 ? { ambush: true } : {}); return; }
+  if (d >= 19) { const line = giveParty({ t: "g", id: R.pos.y <= 4 ? "stone-9" : "stone-8", qty: 1 + rnd(2) }); logRun(`Разлом: находка (к20 = ${d}) — ${line}`); dgUi.res = { title: "Находка", roll: `к20 = ${d}`, pic: "find", lines: [line] }; }
+  else logRun(`Разлом: тихо (к20 = ${d}).`);
+}
+function riftRest() {
+  const r = state.run, R = r.rift; if (!R || dgUi.enc) return;
+  const lines = [];
+  for (const c of state.party) { if (c.dead) continue; const st = r.status[c.id]; const got = eatRations(c, 1); if (got) { st.sat = Math.min(9, st.sat + 3); st.starve = 0; } st.fat = Math.max(0, st.fat - 2); st.awake = 0;
+    const h = Math.max(1, Math.round(maxHp(c) * 0.3)); c.hp = Math.min(maxHp(c), hpOf(c) + h); c.mp = Math.min(maxMp(c), (c.mp ?? 0) + Math.ceil(maxMp(c) / 2)); lines.push(`${c.name}: +${h} ОЗ${got ? "" : " (без еды)"}`); }
+  R.steps += 3; logRun("Разлом: привал. " + lines.join("; "));
+  if (rnd(6) === 0) { riftFight("Нападение на привале", riftGroup(R, R.pos.y, "mid")); return; }
+  dgUi.res = { title: "Привал в разломе", roll: "", lines };
+}
+function riftChest() {
+  const r = state.run, R = r.rift; if (!R || !R.bossDead || R.chestOpen) return;
+  R.chestOpen = true; const x = fireChestRoll(), lines = [x.line, giveParty({ t: "g", id: "stone-8", qty: 3 }), giveParty({ t: "g", id: "stone-7", qty: 2 })];
+  logRun(`Сундук разлома открыт (к20 = ${x.d}): ${lines.join(" ")}`); dgUi.res = { title: "Сундук стража", roll: `к20 = ${x.d}`, lines };
+}
+function riftFightDone(e, killed) {
+  const R = state.run && state.run.rift; if (!R || !e.riftKey) return;
+  const ids = killed.map(i => e.list[i]);
+  if (R.minis[e.riftKey] && ids.includes(R.minis[e.riftKey])) R.done[e.riftKey] = true;
+  if (ids.includes("death-knight")) { R.bossDead = true; logRun("Мордрейн повержен: сундук стража открыт для отряда."); }
+}
+function riftOverlay() {
+  const r = state.run, R = r.rift, D = RIFTS[R.id], atStart = R.pos.x === R.start.x && R.pos.y === R.start.y, atBoss = R.boss && R.pos.x === R.boss.x && R.pos.y === R.boss.y;
+  let cells = "";
+  for (let y = 0; y < R.h; y++) for (let x = 0; x < R.w; x++) {
+    if (!riftCell(R, x, y)) { cells += `<span class="rf-c rf-wall"></span>`; continue; }
+    const k = tkey(x, y), cur = R.pos.x === x && R.pos.y === y, seen = R.visited.includes(k), near = Math.abs(x - R.pos.x) + Math.abs(y - R.pos.y) === 1;
+    const okMove = near && !(R.id === "blood" && ((y >= 5 && R.pos.y <= 4) || (y <= 4 && R.pos.y >= 5)));
+    const mark = cur ? "●" : R.descent && x === R.descent.x && y === R.descent.y && (seen || near) ? "▼" : R.minis[k] && !R.done[k] && (seen || near) ? "☠" : R.boss && x === R.boss.x && y === R.boss.y && (seen || near || y === R.h - 1) ? (R.bossDead ? (R.chestOpen ? "✓" : "◆") : "♛") : "";
+    cells += okMove ? `<button class="rf-c rf-go${seen ? " rf-seen" : ""}" data-rift="move" data-x="${x}" data-y="${y}">${mark}</button>` : `<span class="rf-c${cur ? " rf-cur" : seen ? " rf-seen" : ""}">${mark}</span>`;
+  }
+  return `<div class="mapov rift-ov" role="dialog" aria-label="${esc(D.name)}">
+    <div class="panel fx-frame enc-panel">
+      <div class="ph-head"><h3>${esc(D.name)}</h3><span class="fx-eyebrow" style="font-size:11px">шагов: ${R.steps} · время этажа стоит</span></div>
+      <div class="rf-grid" style="grid-template-columns:repeat(${R.w},1fr)">${cells}</div>
+      <p class="rf-legend">● отряд · ▼ спуск · ☠ минибосс · ♛ страж · ◆ сундук</p>
+      <div class="rf-btns">
+        <button class="fx-btn" data-rift="rest">Привал</button>
+        ${atBoss && R.bossDead && !R.chestOpen ? `<button class="fx-btn primary" data-rift="chest">Открыть сундук</button>` : ""}
+        ${atStart || R.bossDead ? `<button class="fx-btn${R.bossDead ? " primary" : ""}" data-rift="exit">Выйти из разлома</button>` : ""}
+      </div>
+    </div></div>`;
+}
+if (typeof document !== "undefined") document.addEventListener("click", e => {
+  const b = e.target.closest && e.target.closest("[data-rift]"); if (!b || !state.run || !state.run.rift) return;
+  const a = b.dataset.rift;
+  if (a === "move") riftMove(+b.dataset.x, +b.dataset.y); else if (a === "rest") riftRest(); else if (a === "chest") riftChest(); else if (a === "exit") riftExit();
+  saveChar(); rerender();
+});
+/*RIFT-END*/
+// Картинка перехода между этажами (07.11): после смены этажа — окно с заставкой.
+if (typeof switchFloor === "function") { const _sf = switchFloor; switchFloor = function () { const r = state.run, f = r && r.floor; _sf.apply(this, arguments); const r2 = state.run; if (r2 && r2.floor !== f && !dgUi.res) dgUi.res = { title: `${r2.floor} этаж`, roll: "", pic: "floor-change", lines: [`Портал выводит отряд на ${r2.floor} этаж. День ${r2.day}.`] }; }; }
 /*DB-BEGIN*/
 // Сгенерировано tools/mondb.mjs из campaign/db/monsters.json — не править руками (node tools/mondb.mjs gen).
 /*DB-END*/
@@ -2389,7 +2569,7 @@ MONSTERS.forEach(m => { if (STUB_ART.includes(m.id)) delete m.ph; });
 // Защита монстров (решение автора 02.11, вариант Б для всех): Уворот = 10 + мод. Лов − штраф брони; Защита = ярус брони + 1 за каждый класс выше 9-го.
 // Ярусы: 0 — без брони (пикси, духи, звери без панциря), 1 — лёгкая (гоблины, шкуры), 2 — хорошая (гоблин-мечник, хобгоблины, чешуя, хитин),
 // 3 — бронированные стражи (кольчуга, латы, щитоносцы), 4 — каменные/стальные тела и большие живые статуи. Штраф Уворота по ярусу — черновик.
-const MON_ARMOR = {"goblin": 1, "goblin-archer": 1, "goblin-sword": 2, "goblin-spear": 1, "goblin-shaman": 1, "goblin-assassin": 1, "goblin-trapper": 1, "goblin-elder": 1, "hobgoblin": 2, "hobgoblin-brute": 2, "hobgoblin-thrower": 2, "hobgoblin-driver": 2, "hobgoblin-shield": 3, "goblin-king": 3, "goblin-bomber": 1, "goblin-thief": 1, "rat-catcher": 1, "dark-bear": 1, "horned-hare": 0, "swamp-toad": 0, "burrower": 0, "crow": 0, "dire-wolf": 1, "web-spider": 1, "werewolf": 1, "giant-mole": 2, "swamp-fang": 2, "spider-queen": 2, "blackwing": 0, "rat": 0, "rat-king": 0, "wolf": 0, "fox": 0, "mouse": 0, "bat": 0, "orc-wolf": 0, "orc-falcon": 0, "skeleton-warrior": 3, "grey-shade": 0, "morok": 0, "whisperer": 0, "mirror-dead": 1, "faceless-ringer": 1, "dust-crawler": 1, "bone-hound": 0, "gravedigger": 0, "plague-fat": 0, "ash-spirit": 0, "bone-knight": 3, "corpse-eater": 2, "ash-wraith": 1, "zombie": 0, "skeleton": 1, "skeleton-archer": 0, "ghoul": 0, "drop": 0, "dust-whirl": 0, "magma-hound": 1, "crystalloid": 3, "lake-spirit": 0, "magma-golem": 4, "deep-serpent": 2, "crystal-colossus": 4, "storm-spirit": 0, "rift-heart": 4, "stone-guardian": 4, "living-stone": 4, "toll-beetle": 2, "echo-jackal": 0, "toll-rat": 0, "toll-guard": 3, "shrieker": 0, "toll-bull": 3, "bell-ringer": 2, "toll-hunter": 2, "choir-dead": 0, "stone-acolyte": 2, "dust-cherub": 0, "caryatid": 3, "marble-halberdier": 3, "marble-guardian": 3, "marble-saint": 2, "faceless-sculptor": 3, "nasty-goblin": 1, "goblin-provoker": 1, "bone-ranger": 1, "thorn-hound": 1, "grey-vulture": 0, "pack-leader": 1, "stone-elk": 3, "iron-fox": 2, "glen-warden": 3, "tracker-hunter": 1, "keen-raven": 0, "silent-predator": 1, "coal-beetle": 2, "ember-salamander": 1, "trap-crab": 2, "wire-spider": 0, mourner: 0, changeling: 1, "lost-trail": 1, "lost-wanderer": 1, scarecrow: 1, "witch-owl": 0, "failed-specimen": 2, "maid-shade": 0, "witch-cat": 0, "fog-lantern": 2, "bolt-golem": 3, "trap-master": 1, "boulder-beetle": 3, "trap-queen": 3, "ash-executioner": 2, "brazier-golem": 3, "ember-reaper": 1, "magma-wyrm": 3, "forge-smith": 3, "green-boulder": 4, "pixie": 0, "wisp": 0, "silence-keeper": 1, "mimic": 2, "orc-scout": 1, "orc-spear": 2, "orc-thrower": 1, "orc-guard": 3, "orc-shaman": 1, "orc-executioner": 2, "orc-chief": 3};
+const MON_ARMOR = {"goblin": 1, "goblin-archer": 1, "goblin-sword": 2, "goblin-spear": 1, "goblin-shaman": 1, "goblin-assassin": 1, "goblin-trapper": 1, "goblin-elder": 1, "hobgoblin": 2, "hobgoblin-brute": 2, "hobgoblin-thrower": 2, "hobgoblin-driver": 2, "hobgoblin-shield": 3, "goblin-king": 3, "goblin-bomber": 1, "goblin-thief": 1, "rat-catcher": 1, "dark-bear": 1, "horned-hare": 0, "swamp-toad": 0, "burrower": 0, "crow": 0, "dire-wolf": 1, "web-spider": 1, "werewolf": 1, "giant-mole": 2, "swamp-fang": 2, "spider-queen": 2, "blackwing": 0, "rat": 0, "rat-king": 0, "wolf": 0, "fox": 0, "mouse": 0, "bat": 0, "orc-wolf": 0, "orc-falcon": 0, "skeleton-warrior": 3, "grey-shade": 0, "morok": 0, "whisperer": 0, "mirror-dead": 1, "faceless-ringer": 1, "dust-crawler": 1, "bone-hound": 0, "gravedigger": 0, "plague-fat": 0, "ash-spirit": 0, "bone-knight": 3, "corpse-eater": 2, "ash-wraith": 1, "zombie": 0, "skeleton": 1, "skeleton-archer": 0, "ghoul": 0, "drop": 0, "dust-whirl": 0, "magma-hound": 1, "crystalloid": 3, "lake-spirit": 0, "magma-golem": 4, "deep-serpent": 2, "crystal-colossus": 4, "storm-spirit": 0, "rift-heart": 4, "stone-guardian": 4, "living-stone": 4, "toll-beetle": 2, "echo-jackal": 0, "toll-rat": 0, "toll-guard": 3, "shrieker": 0, "toll-bull": 3, "bell-ringer": 2, "toll-hunter": 2, "choir-dead": 0, "stone-acolyte": 2, "dust-cherub": 0, "caryatid": 3, "marble-halberdier": 3, "marble-guardian": 3, "marble-saint": 2, "faceless-sculptor": 3, "nasty-goblin": 1, "goblin-provoker": 1, "bone-ranger": 1, "thorn-hound": 1, "grey-vulture": 0, "pack-leader": 1, "stone-elk": 3, "iron-fox": 2, "glen-warden": 3, "tracker-hunter": 1, "keen-raven": 0, "silent-predator": 1, "coal-beetle": 2, "ember-salamander": 1, "trap-crab": 2, "wire-spider": 0, "blood-slave": 0, "blood-bat": 0, "blood-ghoul": 1, "vampire-servant": 1, "blood-priest": 0, "blood-puddle": 0, "flesh-golem": 2, abomination: 1, "death-knight": 3, mourner: 0, changeling: 1, "lost-trail": 1, "lost-wanderer": 1, scarecrow: 1, "witch-owl": 0, "failed-specimen": 2, "maid-shade": 0, "witch-cat": 0, "fog-lantern": 2, "bolt-golem": 3, "trap-master": 1, "boulder-beetle": 3, "trap-queen": 3, "ash-executioner": 2, "brazier-golem": 3, "ember-reaper": 1, "magma-wyrm": 3, "forge-smith": 3, "green-boulder": 4, "pixie": 0, "wisp": 0, "silence-keeper": 1, "mimic": 2, "orc-scout": 1, "orc-spear": 2, "orc-thrower": 1, "orc-guard": 3, "orc-shaman": 1, "orc-executioner": 2, "orc-chief": 3};
 const MON_ARMOR_NAME = ["без брони", "лёгкая броня", "хорошая броня", "тяжёлая броня", "каменное или стальное тело"], MON_DODGE_PEN = [0, 0, 1, 2, 3];
 function monDefOf(m) {
   const tier = m.armor != null ? m.armor : MON_ARMOR[m.id] != null ? MON_ARMOR[m.id] : (/Гуманоид/.test(m.type || "") ? 1 : 0);
@@ -2411,6 +2591,7 @@ const MON_BOOST = { "swamp-fang": { hp: 1.6, dmg: 4, hit: 2 }, "goblin-thief": {
 const F3_C7_BOOST = { hp: 1.35, dmg: 3, hit: 1 }, F3_C7_LIGHT = { hp: 1.15, dmg: 1, hit: 1 }, F3_C7_HEAVY = { hp: 1.5, dmg: 4, hit: 2 };
 const F3_C7_TIER = { "choir-dead": null, "bell-ringer": null, "glen-warden": null, "ember-reaper": F3_C7_LIGHT, "orc-executioner": F3_C7_LIGHT, "ash-executioner": F3_C7_LIGHT, "orc-shaman": F3_C7_LIGHT, "marble-saint": F3_C7_LIGHT,
   "tracker-hunter": F3_C7_HEAVY, "trap-master": F3_C7_HEAVY, "boulder-beetle": F3_C7_HEAVY, "maid-shade": F3_C7_HEAVY };          // по прогонам «отряд в стали» (07.11)
+Object.assign(MON_BOOST, { "flesh-golem": { hp: 1.15, dmg: 2, hit: 1 }, abomination: { hp: 1.5, dmg: 4, hit: 2 }, "death-knight": { hp: 0.7, dmg: -3, hit: -1 } });          // разлом «Кровавая крепость» (07.11, прогоны отрядом в стали)
 MONSTERS.forEach(m => { if (m.floor === 3 && m.cls === 7 && !MON_BOOST[m.id] && !m.dyn) { const b = m.id in F3_C7_TIER ? F3_C7_TIER[m.id] : F3_C7_BOOST; if (b) MON_BOOST[m.id] = b; } });
 MONSTERS.forEach(m => { const b = MON_BOOST[m.id]; if (!b || m.boost) return; m.boost = b; if (b.dodge && m.dodge != null) m.dodge += b.dodge; if (b.prot && m.prot != null) m.prot = Math.max(0, m.prot + b.prot); if (b.hp && typeof m.hp === "string") m.hp = m.hp.replace(/^\d+/, n => String(Math.round(+n * b.hp))); });
 // ===== конец данных монстров
@@ -2454,8 +2635,8 @@ const DISTRICTS = [
 
 // Готовые рисованные картинки (webp) заменяют векторные заглушки.
 // Дата сборки для телефона: build.sh вписывает её сюда, в веб-версии строка пустая.
-const APP_BUILD = "07.11.2026 17:25";
-const APP_VERSION = 1794054346;                 // номер сборки, тоже вписывает build.sh
+const APP_BUILD = "07.11.2026 18:24";
+const APP_VERSION = 1794057848;                 // номер сборки, тоже вписывает build.sh
 const UPDATE_URL = "https://raw.githubusercontent.com/Sayat9/Sputnik/main/www/";
 const RASTER = new Set(["items/steel-pike", "items/calm-flute", "items/dice", "items/art-falling-star", "items/art-echo-blade", "items/art-discharge-staff", "items/weak-salt", "items/silver-salt", "items/tollbell", "items/director-quiver", "items/flame", "items/herb-poison", "items/herb-food", "items/herb-rest", "items/repair-charm", "items/durable-charm", "items/regen-charm", "items/herb-heal", "items/herb-mana", "items/boots", "items/wind", "items/whetstone", "items/daedalus-hammer", "items/unbreakable-charm", "items/pike", "items/bell", "items/flask", "items/monocle", "buildings/arena", "buildings/academy", "buildings/bank", "buildings/storage", "races/dragon-f", "races/fairy-f", "races/gnome-f", "races/darkfairy-f", "events/to-labyrinth", "races/human-f", "races/barbarian-f", "races/dwarf-f", "races/beastkin-f", "events/to-town", "events/ambush", "events/monsters", "events/nothing", "events/travelers", "events/treasure", "items/mace", "items/warhammer", "items/armor-leather", "items/armor-hide", "items/armor-chainmail", "items/steel-dagger", "items/steel-sword", "items/steel-greatsword", "items/steel-shield", "items/steel-tower-shield", "items/shortbow", "items/longbow", "items/rapier", "items/shield", "items/tower-shield", "items/unknown-mushroom", "items/stone-9", "items/stone-8", "items/stone-7", "items/ration", "items/potion", "items/torch", "items/arrows", "items/clothes", "items/shovel", "items/shovel-good", "items/shovel-best", "items/dagger", "items/sword", "items/greatsword", "items/spear", "monsters/goblin-king-face", "monsters/goblin-king-full", "monsters/goblin-bomber-face", "monsters/goblin-bomber-full", "monsters/hobgoblin-shield-face", "monsters/hobgoblin-shield-full", "races/barbarian", "races/human", "races/dwarf", "races/beastkin", "races/fairy", "races/dragon", "monsters/goblin-face", "monsters/goblin-full", "monsters/goblin-archer-face", "monsters/goblin-archer-full", "monsters/goblin-sword-face", "monsters/goblin-sword-full", "monsters/goblin-spear-face", "monsters/goblin-spear-full", "monsters/wolf-face", "monsters/wolf-full", "monsters/fox-face", "monsters/fox-full", "monsters/mouse-face", "monsters/mouse-full", "monsters/bat-face", "monsters/bat-full", "monsters/hobgoblin-face", "monsters/hobgoblin-full", "monsters/zombie-face", "monsters/zombie-full", "monsters/skeleton-face", "monsters/skeleton-full", "monsters/skeleton-archer-face", "monsters/skeleton-archer-full", "monsters/ghoul-face", "monsters/ghoul-full", "monsters/dark-bear-face", "monsters/dark-bear-full", "monsters/skeleton-warrior-face", "monsters/skeleton-warrior-full", "monsters/living-stone-face", "monsters/living-stone-full", "monsters/wisp-face", "monsters/wisp-full", "monsters/pixie-face", "monsters/pixie-full", "monsters/green-boulder-face", "monsters/green-boulder-full", "monsters/stone-guardian-face", "monsters/stone-guardian-full", "monsters/spider-queen-face", "monsters/spider-queen-full", "monsters/ash-wraith-face", "monsters/ash-wraith-full", "monsters/ash-spirit-face", "monsters/ash-spirit-full", "monsters/plague-fat-face", "monsters/plague-fat-full", "monsters/bone-hound-face", "monsters/bone-hound-full", "monsters/dust-crawler-face", "monsters/dust-crawler-full", "monsters/faceless-ringer-face", "monsters/faceless-ringer-full", "monsters/mirror-dead-face", "monsters/mirror-dead-full", "monsters/whisperer-face", "monsters/whisperer-full", "monsters/morok-face", "monsters/morok-full", "monsters/grey-shade-face", "monsters/grey-shade-full", "monsters/blackwing-face", "monsters/blackwing-full", "monsters/swamp-fang-face", "monsters/swamp-fang-full", "monsters/web-spider-face", "monsters/web-spider-full", "monsters/goblin-shaman-face", "monsters/goblin-shaman-full", "monsters/goblin-assassin-face", "monsters/goblin-assassin-full", "monsters/goblin-trapper-face", "monsters/goblin-trapper-full", "monsters/goblin-elder-face", "monsters/goblin-elder-full", "monsters/hobgoblin-brute-face", "monsters/hobgoblin-brute-full", "monsters/hobgoblin-thrower-face", "monsters/hobgoblin-thrower-full", "monsters/hobgoblin-driver-face", "monsters/hobgoblin-driver-full", "monsters/goblin-thief-face", "monsters/goblin-thief-full", "monsters/horned-hare-face", "monsters/horned-hare-full", "monsters/swamp-toad-face", "monsters/swamp-toad-full", "monsters/burrower-face", "monsters/burrower-full", "monsters/crow-face", "monsters/crow-full", "monsters/dire-wolf-face", "monsters/dire-wolf-full", "monsters/werewolf-face", "monsters/werewolf-full", "monsters/giant-mole-face", "monsters/giant-mole-full", "monsters/bone-knight-face", "monsters/bone-knight-full", "monsters/gravedigger-face", "monsters/gravedigger-full", "monsters/corpse-eater-face", "monsters/corpse-eater-full", "monsters/drop-face", "monsters/drop-full", "monsters/dust-whirl-face", "monsters/dust-whirl-full", "monsters/magma-hound-face", "monsters/magma-hound-full", "monsters/crystalloid-face", "monsters/crystalloid-full", "monsters/lake-spirit-face", "monsters/lake-spirit-full", "monsters/magma-golem-face", "monsters/magma-golem-full", "monsters/deep-serpent-face", "monsters/deep-serpent-full", "monsters/crystal-colossus-face", "monsters/crystal-colossus-full", "monsters/storm-spirit-face", "monsters/storm-spirit-full", "monsters/rift-heart-face", "monsters/rift-heart-full", "items/compass", "items/steel-mace", "items/steel-rapier", "items/unknown-herb", "items/twin-daggers", "items/unknown-stone", "items/steel-twin-daggers", "items/potion-good", "items/coins", "items/steel-spear", "items/steel-warhammer", "items/steel-shortbow", "items/steel-longbow", "items/steel-armor-leather", "items/steel-armor-hide", "items/steel-armor-chainmail", "items/gloves", "items/staff", "items/axe", "items/greataxe", "items/firstaid", "items/flute", "items/chalice", "items/once-more", "items/guard", "items/beginners-luck", "buildings/tower", "buildings/guild", "buildings/church", "buildings/library", "buildings/gate", "buildings/tavern", "buildings/shop", "buildings/forge", "buildings/board", "buildings/hall", "races/gnome", "races/darkfairy", "monsters/rat-face", "monsters/rat-full", "monsters/rat-king-face", "monsters/rat-king-full", "monsters/rat-catcher-face", "monsters/rat-catcher-full", "monsters/silence-keeper-face", "monsters/silence-keeper-full", "monsters/orc-wolf-face", "monsters/orc-wolf-full", "monsters/orc-thrower-face", "monsters/orc-thrower-full", "monsters/orc-spear-face", "monsters/orc-spear-full", "monsters/orc-scout-face", "monsters/orc-scout-full", "monsters/orc-falcon-face", "monsters/orc-falcon-full", "monsters/mimic-face", "monsters/mimic-full", "monsters/orc-chief-face", "monsters/orc-chief-full", "items/repair-kit", "items/repair-kit-pro", "monsters/orc-executioner-face", "monsters/orc-executioner-full", "monsters/orc-shaman-face", "monsters/orc-shaman-full", "monsters/orc-guard-face", "monsters/orc-guard-full", "items/brotherhood-ring", "items/hearth", "items/mana-charm", "items/fatigue-charm", "items/hunger-charm", "items/steel-greataxe", "items/steel-axe", "items/steel-gloves", "items/steel-staff", "items/art-shadow-fang", "items/art-flurry-rapier", "items/art-reaper-axe", "items/art-ricochet-bow", "items/art-rift-hammer", "items/art-bastion-shield", "items/art-mirage-armor", "items/art-magnet-mail", "monsters/grey-vulture-face", "monsters/grey-vulture-full", "monsters/thorn-hound-face", "monsters/thorn-hound-full", "monsters/bone-ranger-face", "monsters/bone-ranger-full", "monsters/forge-smith-face", "monsters/forge-smith-full", "monsters/magma-wyrm-face", "monsters/magma-wyrm-full"]);
 const artPath = p => `assets/${p}.${RASTER.has(p) ? "webp" : "svg"}`;
@@ -3235,7 +3416,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 108;
+const BATTLE_REV = 109;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }
@@ -3268,7 +3449,7 @@ function essPrice(id) { const m = MONSTERS.find(x => x.id === essSource(id)); re
 // Каждое возвращение из лабиринта на доске появляются 2 задания. Принятое держится 2 захода (runs), после 2-го — последний шанс сдать в городе; при следующем спуске сгорает.
 const QUEST_RUNS = 2;
 function questBoard() { return (state.quests ||= { list: [], seq: 0 }); }
-const questMons = rare => MONSTERS.filter(m => m.floor === 1 && m.cls === 9 && !m.draft && !!m.rare === rare);
+const questMons = rare => MONSTERS.filter(m => m.floor === 1 && m.cls === 9 && !m.draft && !m.rift && !!m.rare === rare);
 function postQuests() {
   const b = questBoard();
   for (const q of b.list) if (!q.taken) q.age = (q.age || 0) + 1;
@@ -3315,7 +3496,7 @@ function sack() {
 }
 // Камни без хозяина (находки, раскопки, сундуки, «20» и т. п.) — решение автора 31.10: каждый камень становится камнем случайного монстра того же класса с этого этажа.
 function stonePool(cls, fl) {
-  const ok = x => !x.dyn && !x.draft && x.cls === cls;
+  const ok = x => !x.dyn && !x.draft && x.cls === cls && (!x.rift || !!(state.run && state.run.rift));          // монстры разломов — только для находок внутри разлома
   let pool = [];
   // Сначала монстры этого места, потом — той же зоны (на этаже элементалей — элементали), и только если таких нет — весь этаж
   const r = state.run, here = fl && r && r.pos && curFloor() === fl;
@@ -3378,7 +3559,7 @@ function loadNet() {
   return netLoad;
 }
 /* ----- здания города (assets/js/town.js грузится при первом входе в здание) ----- */
-const TOWN_REV = 24, TOWN_FILES = ["assets/css/town.css", "assets/js/town.js"];
+const TOWN_REV = 25, TOWN_FILES = ["assets/css/town.css", "assets/js/town.js"];
 let townLoad = null;
 function loadTown() {
   if (window.Town && window.Town.ready) return Promise.resolve(true);
@@ -4309,10 +4490,10 @@ function genEncounterRaw(x, y, day, n = 1, forceRare = false) {
   if (curFloor() >= 2) return genEncounter2(x, y, day, n, z);
   const zone = z.zones[rnd(z.zones.length)];
   // 8 класс: с 7-го дня у портала зоны — первая встреча там всегда он, дальше на к20 = 1–2. В одиночку.
-  const r = state.run, elite = MONSTERS.find(m => m.zone === zone && m.cls === 8 && m.floor === 1 && !m.draft);
+  const r = state.run, elite = MONSTERS.find(m => m.zone === zone && m.cls === 8 && m.floor === 1 && !m.draft && !m.rift);
   if (day >= 7 && elite && (!r.elite7 || (isDark(x, y) && n <= 2))) { r.elite7 = true;          // первая встреча 7-го дня — всегда 8 класс (где угодно в зоне), дальше только у портала на 1–2
     return { list: [elite.id], zone, border: z.kind === "border" }; }
-  const pool = MONSTERS.filter(m => m.zone === zone && m.cls === 9 && m.floor === 1 && !m.draft);
+  const pool = MONSTERS.filter(m => m.zone === zone && m.cls === 9 && m.floor === 1 && !m.draft && !m.rift);          // монстры разломов — только в разломах
   const std = pool.filter(m => !m.rare), rare = pool.filter(m => m.rare);
   const max = day >= 5 ? 3 : day >= 3 ? 2 : 1, sev = eventOf(Math.min(n, 12))[1];
   const stdCount = sev === "easy" ? 1 : sev === "mid" ? Math.max(1, max - 1) : max;
@@ -4608,7 +4789,8 @@ function spTreasureGive(t) {
   dgUi.res = { title: "Сокровище", roll: `${t.name} · к20 = ${d}`, lines }; saveChar(); rerender();
 }
 // Кнопки особых действий в меню (каждая тратит действие).
-function spButtons() {
+function spButtons() { return [...riftButtons(), ...spButtonsBase()]; }
+function spButtonsBase() {
   if (state.run && state.run.floor === 3) return f3Buttons();
   const r = state.run, sp = spOf(); if (!sp) return [];
   const out = [], k = spTileKey(), S = SP2[sp.v];
@@ -4639,6 +4821,7 @@ function spEnterTier() {
 }
 // Одно особое действие; время (tick) уже потрачено в act().
 function spDo(id) {
+  if (id === "rift-enter") { riftEnter(); return; }          // разлом (07.11)
   if (state.run && state.run.floor === 3) { f3Do(id); return; }
   const r = state.run, sp = spOf(); if (!sp) return;
   const k = spTileKey();
@@ -4784,7 +4967,7 @@ const shuf = a => { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) 
 const pick1 = a => a[rnd(a.length)];
 
 /* ----- картинки-заставки: assets/events/<имя>.webp, пока нет — .svg-заглушка ----- */
-const EV_PIC = { dig: "dig", ambush: "ambush", trap: "ambush", hard: "monsters", mid: "monsters", easy: "monsters", empty: "nothing", group: "travelers", find: "treasure" };
+const EV_PIC = { "rift-open": "rift-open", "rift-enter": "rift-enter", "floor-change": "floor-change", find: "treasure", dig: "dig", ambush: "ambush", trap: "ambush", hard: "monsters", mid: "monsters", easy: "monsters", empty: "nothing", group: "travelers", find: "treasure" };
 const evPic = k => `<img class="ev-pic" src="${artPath("events/" + (EV_PIC[k] || "nothing"))}" alt="">`;          // нарисованные — webp (путь в RASTER), пока нет — svg-заглушка
 
 /* ----- бросок делает приложение: ~1,5 с крутится кубик, ~1,2 с виден результат, потом само подтверждается (с Игральными кубиками — ждёт «Подтвердить»/«перебросить») ----- */
@@ -5909,6 +6092,7 @@ function finishFight() {
   spFightDone(e, killed.map(i => e.list[i]));
   orcFightDone(e, killed.map(i => e.list[i]));
   f3MonFightDone({ list: e.list, killed });
+  try { riftFightDone(e, killed); } catch (err) {}
   dgUi.enc = null;
 }
 // Ночная встреча в Отдыхе: к6 = 1 (без караула 1–2, во тьме +1), состав — по броску к20 мастера.
@@ -6468,7 +6652,7 @@ function stageSvg() {
     const ft = flameTarget(from0);
     if (ft && inBounds(ft.x, ft.y)) parts.push(up((ft.x - px) * T, (ft.y - py) * T, `<circle r="26" fill="url(#torchGlow)"/><g style="color:#f4b443" transform="translate(-14 -14) scale(1.15)" pointer-events="none">${ICO_FLAME}</g>`));
   }
-  parts.push(...f3Marks(px, py, up));
+  parts.push(...f3Marks(px, py, up), ...riftMarks(px, py, up));
   const darkHere = isDark(px, py) && !r.light;
   parts.push(sq(px, py, darkHere ? 'fill="#14100c" stroke="#f4d48e" stroke-width="2.5"' : `fill="${tileFill(px, py)}" stroke="#f4d48e" stroke-width="2.5"`));
   if (tileType(px, py) === "floor") parts.push(up(0, 0, `<g opacity="${darkHere ? .3 : 1}">${tileDeco(px, py)}</g>`));
@@ -6751,6 +6935,7 @@ function renderDungeon() {
   </div>
   ${dgUi.map ? floorMapOverlay() : ""}
   ${dgUi.phase === "rest" ? restOverlay() : ""}
+  ${r.rift ? riftOverlay() : ""}
   ${dgUi.phase === "explore" || dgUi.phase === "dig" ? searchOverlay() : ""}
   ${dgUi.phase === "portal" ? portalOverlay() : ""}
   ${huntAnimOverlay()}
@@ -6977,6 +7162,7 @@ function act(kind) {
   dgUi.phase = "menu"; dgUi.path = []; dgUi.rest = null; dgUi.target = null; dgUi.sr = null;
   f3AfterAction(kind);
   if (advanceTime()) return;
+  try { riftSync(); } catch (e) {}          // разломы 1 этажа открываются и закрываются по времени
   { const sp = spOf(); while (sp && sp.pen > 0) { sp.pen--; tick(); if (advanceTime()) return; } }
   if (f3Pen()) return;          // паутина съела действие
   if (kind !== "move" && kind !== "run") campCheck();
@@ -7370,7 +7556,7 @@ function essCard(id, extra = "", cls = "") {
     <div class="trait">${pas ? `<b>${esc(e.passive.name)} (П).</b> ${esc(e.passive.text)}` : `<b>?? (П).</b> ??`}</div>
     <div class="trait">${act}</div>${extra}</div>`;
 }
-const floor1Essences = () => [...new Set(MONSTERS.filter(m => m.floor === 1 && !m.draft && ESSENCES[m.essence]).map(m => m.essence))];
+const floor1Essences = () => [...new Set(MONSTERS.filter(m => m.floor === 1 && !m.draft && !m.rift && ESSENCES[m.essence]).map(m => m.essence))];
 /* Навыки эссенций вне боя (решение автора 03.11): кнопка на карточке эссенции в «Навыках» героя, тратит ману, откат в действиях захода. */
 const quietOn = () => { const r = state.run; return !!(r && r.quiet && absAct(r) < r.quiet); };
 const OOB = {
@@ -7771,7 +7957,7 @@ function unlockJournal(cls) {
   const j = journal();
   if (!j.unlocked || !j.tiers.includes(cls)) { j.unlocked = true; if (!j.tiers.includes(cls)) j.tiers.push(cls); }
 }
-const libMonsters = () => MONSTERS.filter(m => !m.dyn && (journal().known[m.id] || (!m.draft && journal().tiers.includes(m.cls) && (m.floor === 1 || (m.floor === 2 && journal().seenFloor2)))));          // монстры 2 этажа появляются «?» после первого спуска на 2 этаж          // монстры любого этажа попадают в библиотеку, как только записаны (встреча, поиск, гильдия); неизвестные «?» показываются только для открытых классов 1 этажа
+const libMonsters = () => MONSTERS.filter(m => !m.dyn && (journal().known[m.id] || (!m.draft && !m.rift && journal().tiers.includes(m.cls) && (m.floor === 1 || (m.floor === 2 && journal().seenFloor2)))));          // монстры 2 этажа появляются «?» после первого спуска на 2 этаж          // монстры любого этажа попадают в библиотеку, как только записаны (встреча, поиск, гильдия); неизвестные «?» показываются только для открытых классов 1 этажа
 const MON_PH = `<svg viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" fill="#120e09"/><circle cx="50" cy="42" r="18" fill="#2a2016" stroke="#6e5634"/><path d="M18 100 C22 74 36 66 50 66 C64 66 78 74 82 100Z" fill="#2a2016" stroke="#6e5634"/></svg>`;
 const monArt = (m, full) => (full ? ART.monsterFull(m.id) : ART.monsterFace(m.id));
 

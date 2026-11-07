@@ -6,6 +6,18 @@
 
 ## События на шаге (заставки)
 
+### Разломы открылись — `events/rift-open` (оповещение, 07.11)
+
+> `wide shot of a dark dungeon floor where several violet glowing rifts tear open in the air like cracks in reality, swirling purple light, debris floating, hand-painted dark fantasy illustration, painterly, landscape 3:2, no characters, no text`
+
+### Вход в разлом — `events/rift-enter` (07.11)
+
+> `first-person view stepping into a swirling crimson and violet portal rift, a distorted different dungeon visible beyond, sparks and floating stones, hand-painted dark fantasy illustration, painterly, landscape 3:2, no characters, no text`
+
+### Переход между этажами — `events/floor-change` (07.11)
+
+> `an ancient spiral stone staircase descending through a glowing golden portal arch into the next level of a huge labyrinth tower, warm light from below, hand-painted dark fantasy illustration, painterly, landscape 3:2, no characters, no text`
+
 ### Раскопки — `events/dig` (экран действия «Копать», 03.11)
 
 > `wide shot inside a dark dungeon corridor, a worn iron shovel stuck in a freshly dug pit of earth and stones, a few old coins and a cracked gem glinting in the dirt, torchlight from the side, hand-painted dark fantasy illustration, painterly, landscape 3:2, no characters, no text`
@@ -15,6 +27,44 @@
 ## Монстры
 
 Новый монстр без картинки: полный рост 1024 × 1536 (иконку лица вырезаю сам). Нужны монстры 3 этажа: Хранитель Тишины, мимик и 9 обитателей Лагеря орков.
+
+### Разлом «Кровавая крепость» (07.11)
+
+### Раб крови — `monsters/blood-slave-full`
+
+> `full-body an emaciated pale undead slave in chains with drained grey skin and hollow red eyes, blood-soaked gothic fortress and dark sewers with red torchlight, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Летучая мышь-кровосос — `monsters/blood-bat-full`
+
+> `full-body a large red-eyed vampire bat with torn leathery wings, fangs dripping blood, blood-soaked gothic fortress and dark sewers with red torchlight, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Кровавый гуль — `monsters/blood-ghoul-full`
+
+> `full-body a hunched ghoul with long paralysing claws, blood-smeared mouth, crouching to pounce, blood-soaked gothic fortress and dark sewers with red torchlight, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Слуга вампиров — `monsters/vampire-servant-full`
+
+> `full-body a gaunt vampire servant in a ragged butler coat, sharp fangs and claws, hungry eyes, blood-soaked gothic fortress and dark sewers with red torchlight, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Жрец крови — `monsters/blood-priest-full`
+
+> `full-body a robed cultist priest with a ritual knife and bloody runes on his hands, red sigils glowing, blood-soaked gothic fortress and dark sewers with red torchlight, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Кровавая лужа — `monsters/blood-puddle-full`
+
+> `full-body a living pool of thick blood rising into a slimy shape with pseudopods, bones floating inside, blood-soaked gothic fortress and dark sewers with red torchlight, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Голем плоти — `monsters/flesh-golem-full`
+
+> `full-body a huge stitched flesh golem made of sewn body parts, iron bolts, massive fists, blood-soaked gothic fortress and dark sewers with red torchlight, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Поганище — `monsters/abomination-full`
+
+> `full-body a bloated rotting abomination of fused corpses with a meat hook and chains, sickly green fumes, blood-soaked gothic fortress and dark sewers with red torchlight, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Мордрейн, низший рыцарь смерти — `monsters/death-knight-full`
+
+> `full-body a fallen death knight in blackened runed plate armor with a glowing red runesword, tattered cape, cold blue eyes, blood-soaked gothic fortress and dark sewers with red torchlight, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
 
 ### Ведьмин лес (3 этаж, 04.11)
 

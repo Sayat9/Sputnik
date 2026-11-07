@@ -345,7 +345,7 @@
   const STAGES = [["kind", "Тип монстра"], ["rank", "Ранг: обычный, редкий или особый"], ["novel", "Известный или новый монстр"], ["info", "Вид сведений"]];
   const rankGroup = m => { const r = rankOf(m); return r === "normal" || r === "rare" ? r : "special"; };
   const libBonus = c => { const t = totals(c); return mod(t.int.total) + mod(t.wis.total); };
-  const libCands = cls => MONSTERS.filter(m => !m.draft && m.floor === 1 && m.cls === cls);
+  const libCands = cls => MONSTERS.filter(m => !m.draft && !m.rift && m.floor === 1 && m.cls === cls);
   const essKey = k => /^ess-/.test(k);
   // Какие сведения о монстре ещё не раскрыты (эссенция — только если lr.essOK).
   function lrInfoOpts(m, essOK) {
@@ -485,7 +485,7 @@
      ===================================================================== */
   const ARENA_PAY = 3;                                                                            // монет за убитого 9 класса: тройная цена камня (решение автора)
   const ARENA_FIGHT_MAX = 6;
-  const arenaPool = rare => MONSTERS.filter(m => m.floor === 1 && m.cls === 9 && !m.draft && !!m.rare === rare);
+  const arenaPool = rare => MONSTERS.filter(m => m.floor === 1 && m.cls === 9 && !m.draft && !m.rift && !!m.rare === rare);
   const arenaMon = () => { const rare = Math.random() < .1 && arenaPool(true).length, pool = arenaPool(!!rare); return pool[rnd(pool.length)]; };
   // Сила монстра для ставок: ОЗ × защита × средний урон (грубо; ставки — не точная наука).
   function mpower(m) {
