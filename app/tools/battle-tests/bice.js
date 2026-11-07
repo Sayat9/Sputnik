@@ -9,13 +9,12 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
   const r = await p.evaluate(() => {
     state.party = [Object.assign(clone(state.example), { id: 'p0', example: false, level: 5, rank: 7 })]; newRun(); const run = state.run; run.floor = 1; run.day = 3; run.act = 1;
     riftSync(); dgUi.res = null; const k = Object.keys(run.riftsF1.tiles)[0]; run.riftsF1.tiles[k].id = 'ice'; const [x, y] = k.split(',').map(Number); run.pos = { x, y }; spDo('rift-enter'); dgUi.res = null;
-    const R = run.rift, o = { id: R.id, w: R.w, h: R.h, braz: Object.keys(R.braziers).length, minis: Object.values(R.minis).sort().join(), cold0: R.cold.p0 };
+    const R = run.rift, o = { id: R.id, w: R.w, h: R.h, braz: R.braziers ? Object.keys(R.braziers).length : 0, minis: Object.values(R.minis).sort().join(), cold0: R.cold.p0 };
     run.light = false; const go = (x, y) => { riftMove(x, y); dgUi.enc = null; dgUi.res = null; };
-    R.minis = {}; R.braziers = {}; go(1, 1); go(1, 2); o.coldDark = R.cold.p0;
+    R.minis = {}; go(1, 1); go(1, 2); o.coldDark = R.cold.p0;
     run.light = true; run.torchLeft = 4; go(1, 3); o.torchAfter = run.torchLeft; o.coldTorch = R.cold.p0;
     run.light = false; R.cold.p0 = 10; const hp0 = hpOf(state.party[0]); R.visited = []; go(1, 4); o.hpCold = hp0 - hpOf(state.party[0]); o.cold10 = R.cold.p0;
-    R.braziers[tkey(1, 5)] = { lit: false }; R.pos = { x: 1, y: 5 }; run.inv = run.inv; state.party[0].bag = [{ t: 'g', id: 'torch', qty: 2 }]; riftLightBrazier(); dgUi.res = null; o.lit = R.braziers[tkey(1, 5)].lit;
-    R.cold.p0 = 5; go(1, 6); o.coldWarm = R.cold.p0;
+    R.cold.p0 = 5; run.light = false; R.pos = { x: 1, y: 5 }; go(1, 6); o.coldNoWarm = R.cold.p0;
     R.pos = { x: 1, y: 13 }; riftMove(1, 14); o.boss = dgUi.enc && dgUi.enc.list; o.bossEv = dgUi.enc && { cold: !!dgUi.enc.cold, big10: dgUi.enc.big10, bb: dgUi.enc.bigBrazier, place: dgUi.enc.place }; dgUi.enc = null;
     o.ess = ['ice-imp', 'frost-beetle', 'snow-hunter', 'ice-spirit', 'mammoth-calf', 'ice-deer', 'half-troll'].every(id => ESSENCES[id] && MONSTERS.find(m => m.id === id && m.rift === 'ice'));
     o.guard = MONSTERS.find(m => m.id === 'half-troll').rank;
@@ -30,11 +29,11 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
     run.rift = null; run.floor = 3; f3(); run.pos = { x: 15, y: 14 }; o.altar = f3Buttons().map(b => b.id).includes('f3altar');
     return o;
   });
-  ok('Ледяной грот: 3×15, три жаровни, оба минибосса', r.id === 'ice' && r.w === 3 && r.h === 15 && r.braz === 3 && r.minis === 'ice-deer,mammoth-calf', r);
+  ok('Ледяной грот: 3×15, жаровен на карте нет (только в бою), оба минибосса', r.id === 'ice' && r.w === 3 && r.h === 15 && r.braz === 0 && r.minis === 'ice-deer,mammoth-calf', r);
   ok('шаги без факела: холод +1 за шаг', r.cold0 === 0 && r.coldDark === 2, r);
   ok('с факелом холод −2, свежий факел горит на 1 ход меньше', r.coldTorch === 0 && r.torchAfter === 2, r);
   ok('на 10 холода — 1 урон, счётчик остаётся 10', r.hpCold === 1 && r.cold10 === 10, r);
-  ok('жаровня зажигается факелом и греет соседние клетки', r.lit && r.coldWarm === 4, r);
+  ok('на карте без факела холод растёт (жаровен на карте нет)', r.coldNoWarm === 6, r);
   ok('страж — Грольф с огромной жаровней, поле 10×10, холод в бою', r.boss && r.boss[0] === 'half-troll' && r.bossEv.cold && r.bossEv.big10 && r.bossEv.bb, r);
   ok('7 монстров грота с эссенциями, Грольф — страж', r.ess && r.guard === 'guardian', r);
   ok('Сердце этажа: алтарь', r.altar, r);
