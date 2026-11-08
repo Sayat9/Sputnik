@@ -2735,11 +2735,24 @@ function riftMove(x, y) {
   }
   if (R.boss && R.pos.x === R.boss.x && R.pos.y === R.boss.y && !R.bossDead) { if (R.id === "ice") riftFight("Страж разлома: Грольф", ["half-troll", "ice-imp"]); else riftFight("Страж разлома: Мордрейн", ["death-knight", "vampire-servant"]); return; }
   if (!fresh || R.cleared[k]) return;
-  const d = Math.max(1, 1 + rnd(20) - (mineDark(R) ? 3 : 0)), sev = d <= 6 ? "hard" : d <= 10 ? "mid" : d <= 14 ? "easy" : null;
+  const d = Math.max(1, 1 + rnd(20) - (mineDark(R) ? 3 : 0)), sev = d <= 6 ? "hard" : d <= 10 ? "mid" : d <= 15 ? "easy" : null;          // 15 — монстры вместо путников (08.11)
   if (sev) { R.cleared[k] = true; riftFight(`${d <= 2 ? "Засада" : sev === "hard" ? "Тяжёлая встреча" : sev === "mid" ? "Средняя встреча" : "Лёгкая встреча"} (к20 = ${d})`, riftGroup(R, R.pos.y, sev), d <= 2 ? { ambush: true } : {}); return; }
   if (R.id === "mine" && d >= 17) { const line = giveParty({ t: "g", id: R.level <= 2 ? "stone-9" : "stone-8", qty: R.level <= 2 ? 2 + rnd(2) : 1 + rnd(2) }); logRun(`Шахта: жила (к20 = ${d}) — ${line}`); dgUi.res = { title: "Рудная жила", roll: `к20 = ${d}`, pic: "find", lines: [line] }; return; }
+  if (d <= 18 && !(R.id === "mine" && d >= 17)) { const x = riftSupplies(); logRun(`Разлом: припасы (к20 = ${d}; к20 = ${x.d}) — ${x.lines.join("; ")}`); dgUi.res = { title: "Брошенные припасы", roll: `к20 = ${d} · припасы к20 = ${x.d}`, pic: "find", lines: x.lines }; return; }          // 16–18 — припасы вместо путников (08.11)
   if (d >= 19) { const line = giveParty({ t: "g", id: R.id === "blood" && R.pos.y <= 4 ? "stone-9" : R.id === "ice" && R.pos.y <= 6 ? "stone-9" : R.id === "sand" && R.pos.y >= 10 ? "stone-9" : "stone-8", qty: 1 + rnd(2) }); logRun(`Разлом: находка (к20 = ${d}) — ${line}`); dgUi.res = { title: "Находка", roll: `к20 = ${d}`, pic: "find", lines: [line] }; }
   else logRun(`Разлом: тихо (к20 = ${d}).`);
+}
+// Припасы в разломе (08.11, вместо путников): к20 — еда, факелы, зелья лечения или камни.
+function riftSupplies() {
+  const d = 1 + rnd(20), g = (id, qty) => giveParty({ t: "g", id, qty }), lines = [];
+  if (d <= 5) lines.push(g("ration", 1));
+  else if (d <= 8) lines.push(g("ration", 2));
+  else if (d <= 12) lines.push(g("torch", 1 + rnd(2)));
+  else if (d <= 16) lines.push(g("potion", 1));
+  else if (d <= 18) lines.push(g("stone-9", 2 + rnd(2)));
+  else if (d === 19) lines.push(g("potion", 1), g("ration", 1));
+  else lines.push(g("potion", 2), g("torch", 1));
+  return { d, lines };
 }
 function riftRest() {
   const r = state.run, R = r.rift; if (!R || dgUi.enc) return;
