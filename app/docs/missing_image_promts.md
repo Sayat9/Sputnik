@@ -130,6 +130,88 @@
 
 > `an ornate brass and glass syringe filled with glowing green mutagen, on dark wood, hand-painted dark fantasy item icon, painterly, square, no text`
 
+### Гоблинград (разлом 2 этажа, 08.11)
+
+### Гоблин-торговец — `monsters/goblin-merchant-full`
+
+> `full-body a greedy goblin merchant with a heavy coin purse and a tray of trinkets, throwing coins, a bustling ancient goblin city of crooked wooden houses, lanterns and narrow streets, a palace on a hill, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Фонарщик — `monsters/goblin-lamplighter-full`
+
+> `full-body a goblin lamplighter carrying a long pole with a glowing oil lantern, a bustling ancient goblin city of crooked wooden houses, lanterns and narrow streets, a palace on a hill, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Сторожевая гиена — `monsters/city-hyena-full`
+
+> `full-body a scrawny spotted hyena with a spiked guard collar, barking, a bustling ancient goblin city of crooked wooden houses, lanterns and narrow streets, a palace on a hill, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Карманник — `monsters/goblin-pickpocket-full`
+
+> `full-body a sly small goblin pickpocket in a hood holding a stolen potion, grinning, a bustling ancient goblin city of crooked wooden houses, lanterns and narrow streets, a palace on a hill, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Гоблин-поджигатель — `monsters/goblin-arsonist-full`
+
+> `full-body a goblin arsonist with burning bottles of oil and singed clothes, slums, a bustling ancient goblin city of crooked wooden houses, lanterns and narrow streets, a palace on a hill, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Безумный гоблин — `monsters/mad-goblin-full`
+
+> `full-body a wild-eyed mad goblin laughing hysterically, holding a broken plank, ragged clothes, a bustling ancient goblin city of crooked wooden houses, lanterns and narrow streets, a palace on a hill, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Городской стражник — `monsters/city-guard-full`
+
+> `full-body a goblin city guard in chainmail with a long halberd, standing at attention, a bustling ancient goblin city of crooked wooden houses, lanterns and narrow streets, a palace on a hill, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Крышный лучник — `monsters/roof-archer-full`
+
+> `full-body a goblin archer crouching on a rooftop with a short bow, a bustling ancient goblin city of crooked wooden houses, lanterns and narrow streets, a palace on a hill, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Механический пёс — `monsters/clockwork-hound-full`
+
+> `full-body a clockwork dog made of copper plates, gears and springs, glowing eyes, a bustling ancient goblin city of crooked wooden houses, lanterns and narrow streets, a palace on a hill, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Гоблин-глашатай — `monsters/goblin-herald-full`
+
+> `full-body a goblin herald in bright tabard blowing a large curved horn, a bustling ancient goblin city of crooked wooden houses, lanterns and narrow streets, a palace on a hill, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Шаман-жрец храма — `monsters/temple-shaman-full`
+
+> `full-body a goblin temple priest with ancestral skull staff and ritual paint, a bustling ancient goblin city of crooked wooden houses, lanterns and narrow streets, a palace on a hill, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Головорез — `monsters/slum-thug-full`
+
+> `full-body a burly goblin thug with a spiked club, scars, lurking in an alley, a bustling ancient goblin city of crooked wooden houses, lanterns and narrow streets, a palace on a hill, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Хобгоблин-сержант — `monsters/hob-sergeant-full`
+
+> `full-body a disciplined hobgoblin sergeant in scale armor with a longsword and shield, shouting orders, a bustling ancient goblin city of crooked wooden houses, lanterns and narrow streets, a palace on a hill, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Тролегоблин-носильщик — `monsters/trollgob-porter-full`
+
+> `full-body a huge troll-goblin hybrid porter carrying a massive gate bar as a club, a bustling ancient goblin city of crooked wooden houses, lanterns and narrow streets, a palace on a hill, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Безумный берсерк — `monsters/mad-berserker-full`
+
+> `full-body a frenzied goblin berserker with a big axe, foaming, covered in war paint, a bustling ancient goblin city of crooked wooden houses, lanterns and narrow streets, a palace on a hill, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Капитан городской стражи — `monsters/city-captain-full`
+
+> `full-body a goblin city guard captain in plate armor with a tower shield and flail, red plume, a bustling ancient goblin city of crooked wooden houses, lanterns and narrow streets, a palace on a hill, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Главный инженер — `monsters/chief-engineer-full`
+
+> `full-body a goblin chief engineer piloting a small steam-powered walker machine with a claw arm, a bustling ancient goblin city of crooked wooden houses, lanterns and narrow streets, a palace on a hill, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Безумный пиромант — `monsters/mad-pyromancer-full`
+
+> `full-body a mad goblin pyromancer engulfed in his own flames, laughing, holding a fuse, burning slums, a bustling ancient goblin city of crooked wooden houses, lanterns and narrow streets, a palace on a hill, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Вождь Гракх Основатель — `monsters/gob-founder-full`
+
+> `full-body a mighty goblin warlord founder king in trophy plate armor with a great axe and a war banner, throne room, a bustling ancient goblin city of crooked wooden houses, lanterns and narrow streets, a palace on a hill, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Корона основателя — `items/founder-crown`
+
+> `a crude but majestic goblin crown of iron and gold with trophy fangs, on dark wood, hand-painted dark fantasy item icon, painterly, square, no text`
+
 ### Раб крови — `monsters/blood-slave-full`
 
 > `full-body an emaciated pale undead slave in chains with drained grey skin and hollow red eyes, blood-soaked gothic fortress and dark sewers with red torchlight, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`

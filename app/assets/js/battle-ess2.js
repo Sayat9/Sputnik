@@ -3032,7 +3032,7 @@
     ai(u) { return u.side === "hero" && within(u, 1).length ? { score: 9 } : null; },
   };
   /* Диалог как в новеллах (автор 08.11): портрет слева, текст справа; видят все (и мастер, и игроки по сети), каждый закрывает касанием */
-  const DLG_START = { "nat-start": "ВЫ ПРИШЛИ ПОМЕШАТЬ МОЕМУ ШЕДЕВРУ!?" };
+  const DLG_START = { "nat-start": "ВЫ ПРИШЛИ ПОМЕШАТЬ МОЕМУ ШЕДЕВРУ!?", "king-start": "ГРАКХ ПОСТРОИЛ ЭТОТ ГОРОД НА ВАШИХ КОСТЯХ!" };
   B.say = (who, text) => { const S = B.S; if (!S) return; S.dlgKey ||= Math.random().toString(36).slice(2, 8); (S.dialogs ||= []).push({ n: S.dialogs.length + 1, who, text }); B.showDialogs(); };
   const dlgSeen = new Set(), dlgQ = [];
   const dlgOpen = () => { if (document.getElementById("vn-dlg") || !dlgQ.length) return; const d = dlgQ.shift(), m = (typeof MONSTERS !== "undefined" && MONSTERS.find(x => x.id === d.who)) || { name: d.who };
@@ -3043,5 +3043,146 @@
   if (typeof setInterval === "function" && typeof document !== "undefined") setInterval(() => { const S = B.S; if (!S || !B.running) return;
     if (S.phase === "fight" && S.ev && S.ev.dialog && !S.dlgStarted && !(B.Net && B.Net.mirroring)) { S.dlgStarted = true; B.say(S.ev.dialog.who, DLG_START[S.ev.dialog.start] || ""); }
     if (S.dialogs) B.showDialogs(); }, 400);
+  /* ===== Гоблинград (08.11): монстры 9–6 класса ===== */
+  Object.assign(D.essCd, { "goblin-merchant": 3, "goblin-lamplighter": 4, "city-hyena": 3, "goblin-pickpocket": 3, "goblin-arsonist": 3, "mad-goblin": 4, "city-guard": 3, "roof-archer": 4, "clockwork-hound": 3, "goblin-herald": 4, "temple-shaman": 3, "slum-thug": 3, "hob-sergeant": 4, "trollgob-porter": 3, "mad-berserker": 3, "city-captain": 4, "chief-engineer": 4, "mad-pyromancer": 4, "gob-founder": 4 });
+  Object.assign(D.monTune, {
+    "goblin-merchant": { role: "skirmish", focus: ["weak", "nearest"], fleeHp: 0.5 }, "goblin-lamplighter": { role: "brute", focus: ["nearest"], fleeHp: 0.3 }, "city-hyena": { role: "skirmish", focus: ["weak", "nearest"], fleeHp: 0.25 },
+    "goblin-pickpocket": { role: "skirmish", focus: ["weak", "nearest"], fleeHp: 0.4 }, "goblin-arsonist": { role: "ranged", keep: 3, focus: ["cluster", "nearest"], fleeHp: 0.3 }, "mad-goblin": { role: "brute", focus: ["nearest"], noFlee: true },
+    "city-guard": { role: "brute", focus: ["nearest"], noFlee: true }, "roof-archer": { role: "ranged", keep: 3, focus: ["weak", "nearest"], fleeHp: 0.25 }, "clockwork-hound": { role: "brute", focus: ["nearest"], noFlee: true },
+    "goblin-herald": { role: "ranged", keep: 2, focus: ["nearest"], fleeHp: 0.3 }, "temple-shaman": { role: "ranged", keep: 3, focus: ["nearest"], fleeHp: 0.3 }, "slum-thug": { role: "brute", focus: ["weak", "nearest"], fleeHp: 0.25 },
+    "hob-sergeant": { role: "brute", focus: ["nearest"], noFlee: true }, "trollgob-porter": { role: "brute", focus: ["cluster", "nearest"], noFlee: true }, "mad-berserker": { role: "brute", focus: ["weak", "nearest"], noFlee: true },
+    "city-captain": { role: "brute", focus: ["nearest"], noFlee: true }, "chief-engineer": { role: "brute", focus: ["cluster", "nearest"], noFlee: true }, "mad-pyromancer": { role: "ranged", keep: 3, focus: ["cluster", "nearest"], noFlee: true }, "gob-founder": { role: "brute", focus: ["weak", "nearest"], noFlee: true },
+  });
+  Object.assign(D.status, { gcstand: { name: "Последний рубеж", good: true, ico: '<path d="M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6z"/>', desc: "+3 Защиты." } });
+  // кто последним ударил цель в этом раунде («Кровь основателя», «Корона основателя»)
+  const prevDoAtk = B.doAttack;
+  B.doAttack = async function (att, tgt, atk, o) { const r = await prevDoAtk(att, tgt, atk, o); if (r && r.hit && tgt && B.S) { tgt.lastHitR = B.S.round; tgt.lastHitBy = att.id; } return r; };
+  const hitByAlly = (u, t) => t && B.S && t.lastHitR === B.S.round && t.lastHitBy && t.lastHitBy !== u.id && alliesOf(u).some(a => a.id === t.lastHitBy);
+  B.initAura = u => ([u, ...alliesOf(u)].some(a => alive(a) && (a.pass || []).includes("hob-sergeant")) ? 2 : 0);          // «Муштра» (battle-rules.js, инициатива)
+  B.protAura = t => ([t, ...alliesOf(t)].some(a => alive(a) && !a.down && (a.pass || []).includes("city-captain") && dist(a, t) <= 1 && a.hero && a.hero.equip && a.hero.equip.off && /shield/.test(a.hero.equip.off.id || "")) ? 1 : 0);          // «Щит и строй»
+  const lineCells = (u, c, n) => { const dx = Math.sign(c[0] - u.x), dy = Math.sign(c[1] - u.y), out = []; for (let i = 1; i <= n; i++) { const x = u.x + dx * i, y = u.y + dy * i; if (B.inB(x, y)) out.push([x, y]); } return out; };
+  const inCells = (o, cells) => footprint(o).some(([x, y]) => cells.some(([cx, cy]) => cx === x && cy === y));
+  /* Гоблин-торговец (9) */
+  P["goblin-merchant"] = {};
+  A["goblin-merchant"] = { time: "bonus", tgt(u) { return specUnit(u, "Монетой в глаз: в кого?", foesIn(u, 4), B.cellsWithin(u, 4), "attack"); }, can(u) { return foesIn(u, 4).length ? true : "нет цели в 4 клетках"; },
+    async run(u, pk, ctl) { const t = pk.unit; if (!t) return false; ctl.commit(); const sv = await save(t, "dex", dcOf(u, "dex"), "Монетой в глаз", [], u); if (!sv.ok && alive(t)) { addStatus(t, "dazzled", { k: 1, when: "end" }); fx(t, "монета в глаз", "bad"); } else fx(t, "увернулся", ""); return true; },
+    ai(u) { const ts = foesIn(u, 4); return ts.length ? { unit: ts[0], score: 7 } : null; } };
+  /* Фонарщик (9) */
+  P["goblin-lamplighter"] = {};
+  A["goblin-lamplighter"] = { time: "action", tgt(u) { return { type: "cell", prompt: "Масло на мостовую: в какую сторону?", cells: cellsAround(u, 1).filter(([x, y]) => B.inB(x, y)), kind: "attack" }; }, can() { return true; },
+    async run(u, pk, ctl) { const c = pk.cell; if (!c) return false; ctl.commit(); const cells = lineCells(u, c, 3); for (const [x, y] of cells) fireAt(x, y, 2); log(`${u.name} разливает горящее масло.`, "skill");
+      for (const o of live().filter(o => alive(o) && o.side !== u.side && inCells(o, cells))) await B.applyDamage(u, o, [{ v: roll(1, 6).total, dt: "fire", label: "Горящее масло" }], { src: u }); const g = ui(); if (g) g.refresh(); return true; },
+    ai(u) { const t = foesIn(u, 3)[0]; return t ? { cell: [u.x + Math.sign(t.x - u.x), u.y + Math.sign(t.y - u.y)], score: 8 } : null; } };
+  /* Сторожевая гиена (9) */
+  P["city-hyena"] = { attackMods(u, ctx) { if (ctx.tgt && (has(ctx.tgt, "prone") || has(ctx.tgt, "restrained")) && ctx.extra) ctx.extra.push({ n: 1, s: 6, b: 0, dt: "pierce", label: "Добить упавшего" }); } };
+  P["body:city-hyena"] = { async attackDone(u, { tgt, res }) { if (res && res.hit && tgt && alive(tgt) && !tgt.down && !has(tgt, "prone") && Math.random() < .4) { B.knock(tgt, u); fx(tgt, "сбит с ног", "bad"); } } };
+  A["city-hyena"] = { time: "action", tgt(u) { return specUnit(u, "Хватка: кого?", within(u, 1), cellsAround(u, 1), "attack"); }, can(u) { return within(u, 1).length ? true : "никого рядом"; },
+    async run(u, pk, ctl) { const a = atkFor(u, "melee"), t = pk.unit; if (!a || !t) return false; ctl.commit(); const r = await B.doAttack(u, t, a, {}); if (r && r.hit && alive(t) && !t.down) { const sv = await save(t, "str", dcOf(u, "dex"), "Хватка", ["grapple"], u); if (!sv.ok && alive(t)) { addStatus(t, "grappled", { k: 1, when: "end", data: { by: u.id } }); fx(t, "схвачен", "bad"); } } return true; },
+    ai(u) { return within(u, 1).length ? { unit: within(u, 1)[0], score: 8 } : null; } };
+  /* Карманник (9): крадёт зелье, отдаёт при гибели */
+  P["goblin-pickpocket"] = {};
+  P["gc-nobonus"] = { turnStart(u) { if (tmpOn(u, "gc-nobonus") && u.t) { u.t.bonus = 0; fx(u, "без доп. действия", "bad"); } } };
+  P["body:goblin-pickpocket"] = { onHitDealt(u, { tgt }) { const c = tgt && tgt.hero; if (!c || u.stole || typeof countGear !== "function") return; for (const id of ["potion-good", "potion", "torch"]) if (countGear(c, id) > 0 && takeGear(c, id, 1)) { u.stole = id; log(`${u.name} вытаскивает у ${tgt.name}: ${id === "torch" ? "факел" : "зелье"}!`, "bad"); fx(tgt, "обокрали", "bad"); break; } },
+    onDeath(u) { if (u.stole && typeof giveParty === "function") { const id = u.stole; u.stole = null; B.queue(async () => { log(`Украденное возвращено: ${giveParty({ t: "g", id, qty: 1 })}.`); }); } } };
+  A["goblin-pickpocket"] = { time: "action", tgt(u) { return specUnit(u, "Обчистить: кого?", within(u, 1), cellsAround(u, 1), "attack"); }, can(u) { return within(u, 1).length ? true : "никого рядом"; },
+    async run(u, pk, ctl) { const t = pk.unit; if (!t) return false; ctl.commit(); const sv = await save(t, "dex", dcOf(u, "dex"), "Обчистить", [], u); if (!sv.ok && alive(t)) { B.tmpPass(t, "gc-nobonus", 1); fx(t, "обчистили", "bad"); } else fx(t, "заметил", ""); return true; },
+    ai(u) { return within(u, 1).length ? { unit: within(u, 1)[0], score: 6 } : null; } };
+  /* Гоблин-поджигатель (9) */
+  P["goblin-arsonist"] = { resist(u, { dt }) { return dt === "fire"; } };
+  A["goblin-arsonist"] = { time: "action", tgt(u) { return { type: "cell", prompt: "Бутылка с маслом: куда?", cells: B.cellsWithin(u, 4), kind: "attack" }; }, can() { return true; },
+    async run(u, pk, ctl) { const c = pk.cell; if (!c) return false; ctl.commit(); fireAt(c[0], c[1], 2); log(`${u.name} швыряет горящую бутылку.`, "skill"); for (const o of live().filter(o => alive(o) && inCells(o, [c]))) await saveDmg(u, o, "dex", dcOf(u, "dex"), [1, 8], "fire", "Бутылка с маслом"); const g = ui(); if (g) g.refresh(); return true; },
+    ai(u) { const t = foesIn(u, 4)[0]; return t ? { cell: [t.x, t.y], score: 9 } : null; } };
+  /* Безумный гоблин (9) */
+  P["mad-goblin"] = { immune(u, { id }) { return id === "frightened"; } };
+  A["mad-goblin"] = { time: "action", tgt() { return { type: "none" }; }, can(u) { return foesIn(u, 2).length ? true : "никого в 2 клетках"; },
+    async run(u, pk, ctl) { ctl.commit(); log(`${u.name} безумно хохочет.`, "skill"); for (const t of foesIn(u, 2)) { const sv = await save(t, "wis", dcOf(u, "cha"), "Безумный хохот", ["frightened"], u); if (!sv.ok && alive(t)) { addStatus(t, "frightened", { k: 1, when: "end", data: { by: u.id } }); fx(t, "испуган", "bad"); } } return true; },
+    ai(u) { const n = foesIn(u, 2).length; return n >= 2 && !u.laughed ? (u.laughed = true, { score: 9 }) : null; } };
+  /* Городской стражник (8) */
+  P["city-guard"] = { attackMods(u, ctx) { if (u.t && !(u.t.moved > 0)) ctx.mods.push({ l: "На посту", v: 2 }); } };
+  A["city-guard"] = { time: "action", tgt(u) { const a = atkFor(u, "melee"), r = (a && a.reach) || 1; const ts = enemiesOf(u).filter(t => alive(t) && !t.down && dist(u, t) <= Math.max(r, u.side === "hero" ? r : 2)); return specUnit(u, "Подсечка: кого?", ts, B.cellsWithin(u, 2), "attack"); },
+    can(u) { return enemiesOf(u).some(t => alive(t) && !t.down && dist(u, t) <= 2) ? true : "никого рядом"; },
+    async run(u, pk, ctl) { const a = atkFor(u, "melee"), t = pk.unit; if (!a || !t) return false; ctl.commit(); const r = await B.doAttack(u, t, { ...a, reach: Math.max(a.reach || 1, u.side === "hero" ? (a.reach || 1) : 2) }, {}); if (r && r.hit && alive(t) && !t.down) { const sv = await save(t, "str", dcOf(u, "str"), "Подсечка алебардой", ["prone"], u); if (!sv.ok && alive(t)) { B.knock(t, u); fx(t, "сбит с ног", "bad"); } } return true; },
+    ai(u) { const ts = enemiesOf(u).filter(t => alive(t) && !t.down && dist(u, t) <= 2 && !has(t, "prone")); return ts.length ? { unit: ts[0], score: 10 } : null; } };
+  /* Крышный лучник (8) */
+  P["roof-archer"] = { attackMods(u, ctx) { if (ctx.atk && ctx.atk.kind === "ranged" && ctx.tgt && dist(u, ctx.tgt) > 1) ctx.mods.push({ l: "С высоты", v: 1 }); } };
+  P["body:roof-archer"] = { attackMods(u, ctx) { if (B.S.round === 1 && ctx.atk && ctx.atk.kind === "ranged" && ctx.adv) ctx.adv.push("с крыши"); } };
+  A["roof-archer"] = { time: "action", tgt(u) { return { type: "cell", prompt: "Град стрел: центр 3×3", cells: B.cellsWithin(u, 8), kind: "attack" }; }, can(u) { return u.side !== "hero" || B.attacksOf(u).some(a => a.kind === "ranged" && a.w && a.w.group === "ranged") ? true : "нужен лук"; },
+    async run(u, pk, ctl) { const c = pk.cell; if (!c) return false; ctl.commit(); const cells = vialArea(c); log(`${u.name}: град стрел!`, "skill"); for (const o of live().filter(o => alive(o) && o.side !== u.side && inArea(o, cells))) await saveDmg(u, o, "dex", dcOf(u, "dex"), [1, 8], "pierce", "Град стрел"); return true; },
+    ai(u) { return vialAI(u, 8); } };
+  /* Механический пёс (8) */
+  P["clockwork-hound"] = { dmgFlat(u, { v }) { return v > 0 ? -1 : 0; } };
+  P["body:clockwork-hound"] = { onDeath(u) { B.queue(async () => { log(`${u.name} разлетается шестернями!`, "bad"); for (const o of live().filter(o => o !== u && dist(u, o) <= 1)) if (alive(o)) await saveDmg(u, o, "dex", dcOf(u, "con"), [1, 6], "pierce", "Шестерни"); }); } };
+  A["clockwork-hound"] = { time: "bonus", tgt(u) { return { type: "cell", prompt: "Рывок на пружинах: куда?", cells: B.cellsWithin(u, 4).filter(([x, y]) => (x === u.x || y === u.y || Math.abs(x - u.x) === Math.abs(y - u.y)) && B.canStand(u, x, y)), kind: "move" }; }, can() { return true; },
+    async run(u, pk, ctl) { let c = pk.cell; if (!c) { const t = enemiesOf(u).filter(e => alive(e) && !e.down).sort((a, b) => dist(u, a) - dist(u, b))[0]; if (!t) return false; c = B.freeCellsNear(t, 1, u)[0]; } if (!c) return false; ctl.commit(); await B.teleport(u, c[0], c[1]); fx(u, "рывок", "good"); return true; },
+    ai(u) { return !within(u, 1).length && enemiesOf(u).some(e => alive(e) && !e.down && dist(u, e) <= 5) ? { score: 7 } : null; } };
+  /* Гоблин-глашатай (8) */
+  P["goblin-herald"] = { saveAura(a, { u, ctx }) { if (a !== u && dist(a, u) <= 3 && ctx && ctx.tags && ctx.tags.some(t => t === "frightened" || t === "charm")) ctx.mods.push({ l: "Голос площади", v: 1 }); } };
+  P["gc-horn"] = { attackMods(u, ctx) { if (tmpOn(u, "gc-horn")) ctx.mods.push({ l: "Сигнал рога", v: 1 }); } };
+  A["goblin-herald"] = { time: "bonus", tgt() { return { type: "none" }; }, can() { return true; },
+    async run(u, pk, ctl) { ctl.commit(); const g = ui(); if (g) g.banner("Сигнал рога"); log(`${u.name} трубит в рог!`, "skill"); for (const o of [u, ...alliesOf(u)].filter(o => alive(o) && dist(u, o) <= 3)) B.tmpPass(o, "gc-horn", 2); if (B.S.ev) B.S.ev.gcHorn = true; return true; },
+    ai(u) { return !u.horned ? (u.horned = true, { score: 10 }) : null; } };
+  /* Шаман-жрец храма (8) */
+  P["temple-shaman"] = {};
+  P["gc-curse"] = { saveMods(u, ctx) { if (tmpOn(u, "gc-curse")) ctx.mods.push({ l: "Проклятие слабости", v: -2 }); } };
+  P["body:temple-shaman"] = { turnStart(u) { if (B.S.round % 2) return; const al = alliesOf(u).filter(a => alive(a) && !a.down && dist(u, a) <= 4 && a.hp < a.maxHp).sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp)[0]; if (al) { const v = roll(1, 8).total + 2; B.heal(al, v, u); fx(al, `+${v}`, "good"); log(`${u.name} лечит ${al.name} (+${v}).`, "skill"); } } };
+  A["temple-shaman"] = { time: "action", tgt(u) { return specUnit(u, "Проклятие слабости: на кого?", foesIn(u, 5), B.cellsWithin(u, 5), "attack"); }, can(u) { return foesIn(u, 5).length ? true : "нет цели в 5 клетках"; },
+    async run(u, pk, ctl) { const t = pk.unit; if (!t) return false; ctl.commit(); const sv = await save(t, "wis", dcOf(u, "wis"), "Проклятие слабости", ["curse"], u); if (!sv.ok && alive(t)) { B.tmpPass(t, "gc-curse", 2); fx(t, "проклят", "bad"); } else fx(t, "устоял", ""); return true; },
+    ai(u) { const ts = foesIn(u, 5).filter(t => !tmpOn(t, "gc-curse")); return ts.length ? { unit: ts[0], score: 8 } : null; } };
+  /* Головорез (8) */
+  P["slum-thug"] = { attackMods(u, ctx) { if (ctx.melee && ctx.extra && ctx.tgt && (B.S.round === 1 || (B.visibleTo && !B.visibleTo(ctx.tgt, u)))) ctx.extra.push({ n: 1, s: 8, b: 0, dt: "bludgeon", label: "Исподтишка" }); } };
+  A["slum-thug"] = { time: "action", tgt(u) { return specUnit(u, "Оглушить: кого?", within(u, 1), cellsAround(u, 1), "attack"); }, can(u) { return within(u, 1).length ? true : "никого рядом"; },
+    async run(u, pk, ctl) { const a = atkFor(u, "melee"), t = pk.unit; if (!a || !t) return false; ctl.commit(); const r = await B.doAttack(u, t, a, {}); if (r && r.hit && alive(t) && !t.down) { const sv = await save(t, "con", dcOf(u, "str"), "Оглушить", ["stun"], u); if (!sv.ok && alive(t)) { addStatus(t, "stunned", { k: 1, when: "end" }); fx(t, "оглушён", "bad"); } } return true; },
+    ai(u) { return within(u, 1).length ? { unit: within(u, 1)[0], score: 10 } : null; } };
+  /* Хобгоблин-сержант (7) */
+  P["hob-sergeant"] = { attackMods(u, ctx) { if (B.S.round === 1) ctx.mods.push({ l: "Муштра", v: 1 }); }, attackAura(a, { att, ctx }) { if (B.S.round === 1 && att !== a && ctx) ctx.mods.push({ l: "Муштра", v: 1 }); } };
+  A["hob-sergeant"] = { time: "bonus", tgt(u) { const al = alliesOf(u).filter(a => alive(a) && !a.down && dist(u, a) <= 3 && enemiesOf(a).some(e => alive(e) && !e.down && dist(a, e) <= 1)); return { type: "unit", prompt: "В атаку! Кто бьёт?", units: al.map(a => a.id), cells: [], kind: "buff" }; },
+    can(u) { return alliesOf(u).some(a => alive(a) && !a.down && dist(u, a) <= 3 && enemiesOf(a).some(e => alive(e) && !e.down && dist(a, e) <= 1)) ? true : "нет союзника рядом с врагом"; },
+    async run(u, pk, ctl) { const a = pk.unit || alliesOf(u).find(x => alive(x) && !x.down && dist(u, x) <= 3 && enemiesOf(x).some(e => alive(e) && !e.down && dist(x, e) <= 1)); if (!a) return false; const atk = atkFor(a, "melee"), t = enemiesOf(a).find(e => alive(e) && !e.down && dist(a, e) <= 1); if (!atk || !t) return false; ctl.commit(); log(`${u.name}: «В атаку!» — ${a.name} бьёт.`, "skill"); await B.doAttack(a, t, atk, {}); return true; },
+    ai(u) { return this.can(u) === true ? { score: 9 } : null; } };
+  /* Тролегоблин-носильщик (7) */
+  P["trollgob-porter"] = { dmgFlat(u, { dt, v }) { if (!(v > 0)) return 0; return dt === "fire" ? roll(1, 6).total : -2; } };
+  P["body:trollgob-porter"] = { dmgFlat(u, { dt }) { if (dt === "fire" && B.S) u.burnR = B.S.round; return 0; }, turnStart(u) { if (!alive(u) || u.hp >= u.maxHp || (u.burnR != null && B.S.round - u.burnR <= 1)) return; B.heal(u, 3, u); fx(u, "+3", "good"); } };
+  A["trollgob-porter"] = { time: "action", tgt() { return { type: "none" }; }, can(u) { return within(u, 1).length ? true : "никого рядом"; },
+    async run(u, pk, ctl) { const a = atkFor(u, "melee"); if (!a) return false; ctl.commit(); log(`${u.name}: размах засовом!`, "skill"); for (const t of within(u, 1).slice()) if (alive(t) && !t.down) await B.doAttack(u, t, a, {}); return true; },
+    ai(u) { return within(u, 1).length >= 2 ? { score: 12 } : null; } };
+  /* Безумный берсерк (7) */
+  P["mad-berserker"] = { attackMods(u, ctx) { if (ctx.melee) { const q = Math.min(3, Math.floor((u.maxHp - u.hp) / (u.maxHp / 4))); if (q > 0) ctx.dmgPlus = (ctx.dmgPlus || 0) + q; } } };
+  A["mad-berserker"] = { time: "action", tgt(u) { const ts = enemiesOf(u).filter(t => alive(t) && !t.down && dist(u, t) <= 4); return specUnit(u, "Кровавый рывок: на кого?", ts, B.cellsWithin(u, 4), "attack"); }, can(u) { return enemiesOf(u).some(t => alive(t) && !t.down && dist(u, t) <= 4) ? true : "нет цели в 4 клетках"; },
+    async run(u, pk, ctl) { const a = atkFor(u, "melee"), t = pk.unit; if (!a || !t) return false; ctl.commit(); if (dist(u, t) > 1) await B.pullAdjacent(u, t); if (dist(u, t) > 1) return true; await B.doAttack(u, t, a, { extra: [{ n: 1, s: 8, b: 0, dt: "slash", label: "Кровавый рывок" }] }); await B.applyDamage(u, u, [{ v: roll(1, 4).total, dt: "slash", label: "Кровавый рывок" }], {}); return true; },
+    ai(u) { const ts = enemiesOf(u).filter(t => alive(t) && !t.down && dist(u, t) >= 2 && dist(u, t) <= 4); return ts.length ? { unit: ts.sort((a, b) => a.hp - b.hp)[0], score: 11 } : null; } };
+  /* Капитан городской стражи (6, страж) */
+  P["city-captain"] = {};
+  P["body:city-captain"] = { turnStart(u) { if (B.S.round === 2 && !u.called) { u.called = true; const got = B.spawnFoes(["city-guard"], u); got.forEach(m => { m.noReward = true; }); log(`${u.name} зовёт стражника!`, "bad"); }
+    if (!u.stand && u.hp < u.maxHp / 2) { u.stand = true; addStatus(u, "gcstand", { k: Infinity, data: { prot: 2 } }); fx(u, "последний рубеж", "bad"); log(`${u.name} уходит в глухую оборону: +2 Защиты.`, "bad"); } } };
+  A["city-captain"] = { time: "action", tgt() { return { type: "none" }; }, can(u) { return u.side === "hero" ? true : false; },
+    async run(u, pk, ctl) { ctl.commit(); addStatus(u, "gcstand", { k: 1, when: "start", data: { prot: 3 } }); addStatus(u, "threatup", { k: 1, when: "start" }); fx(u, "последний рубеж", "good"); log(`${u.name}: последний рубеж!`, "skill"); return true; },
+    ai(u) { return u.side === "hero" && within(u, 1).length >= 2 ? { score: 8 } : null; } };
+  /* Главный инженер (6, страж): шагоход = временные ОЗ */
+  P["chief-engineer"] = {};
+  P["body:chief-engineer"] = { turnStart(u) { if (!u.walker) { u.walker = true; u.temp = Math.max(u.temp || 0, 20); fx(u, "шагоход 20", "bad"); log(`${u.name} сидит в шагоходе: 20 временных ОЗ.`, "bad"); }
+    if (B.S.round === 3 && !u.called) { u.called = true; const got = B.spawnFoes(["clockwork-hound"], u); got.forEach(m => { m.noReward = true; }); log(`${u.name} выпускает механического пса!`, "bad"); } } };
+  A["chief-engineer"] = { time: "action", tgt(u) { return { type: "cell", prompt: "Залп шагохода: центр 3×3", cells: B.cellsWithin(u, 6), kind: "attack" }; }, can() { return true; },
+    async run(u, pk, ctl) { const c = pk.cell; if (!c) return false; ctl.commit(); const cells = vialArea(c), g = ui(); if (g) g.banner("Залп шагохода"); for (const o of live().filter(o => alive(o) && o.side !== u.side && inArea(o, cells))) await saveDmg(u, o, "dex", dcOf(u, "int"), [2, 6], "fire", "Залп шагохода"); return true; },
+    ai(u) { return vialAI(u, 6); } };
+  /* Безумный пиромант (6, страж, необязательный) */
+  P["mad-pyromancer"] = { attackMods(u, ctx) { if (ctx.atk && ctx.atk.dt === "fire" && ctx.extra) ctx.extra.push({ n: 1, s: 6, b: 0, dt: "fire", label: "Чистое пламя" }); }, dmgFlat(u, { dt, v }) { return dt === "fire" && v > 0 ? -v : 0; }, immune(u, { id }) { return id === "burning"; } };
+  P["body:mad-pyromancer"] = {
+    turnStart(u) { const heroes = enemiesOf(u).filter(e => alive(e) && !e.down); for (let i = 0; i < 1 && heroes.length; i++) { const h = heroes[rnd(heroes.length)], c = cellsAround(h, 1)[Math.floor(Math.random() * 8)]; if (c) fireAt(c[0], c[1], 2); }
+      if (!u.selfLit && u.hp < u.maxHp / 2) { u.selfLit = true; fx(u, "поджигает себя", "bad"); log(`${u.name} поджигает сам себя и хохочет!`, "bad"); } const g = ui(); if (g) g.refresh(); },
+    async turnEndAsync(u) { if (!u.selfLit) return; for (const o of enemiesOf(u).filter(o => alive(o) && dist(u, o) <= 1)) await B.applyDamage(u, o, [{ v: roll(1, 4).total, dt: "fire", label: "Аура огня" }], { src: u }); },
+  };
+  A["mad-pyromancer"] = { time: "action", tgt(u) { return { type: "cell", prompt: "Огненный вал: в какую сторону?", cells: cellsAround(u, 1).filter(([x, y]) => B.inB(x, y)), kind: "attack" }; }, can() { return true; },
+    async run(u, pk, ctl) { const c = pk.cell; if (!c) return false; ctl.commit(); const cells = lineCells(u, c, 4), g = ui(); if (g) g.banner("Огненный вал"); for (const [x, y] of cells) fireAt(x, y, 2);
+      for (const o of live().filter(o => alive(o) && o.side !== u.side && inCells(o, cells))) await saveDmg(u, o, "dex", dcOf(u, "int"), [2, 6], "fire", "Огненный вал"); if (g) g.refresh(); return true; },
+    ai(u) { const t = foesIn(u, 4).sort((a, b) => dist(u, a) - dist(u, b))[0]; return t ? { cell: [u.x + Math.sign(t.x - u.x), u.y + Math.sign(t.y - u.y)], score: 11 } : null; } };
+  /* Вождь Гракх Основатель (6, финальный страж) */
+  P["gob-founder"] = { attackMods(u, ctx) { if (ctx.tgt && ctx.extra && hitByAlly(u, ctx.tgt)) ctx.extra.push({ n: 1, s: 8, b: 0, dt: ctx.atk && ctx.atk.dt || "slash", label: "Кровь основателя" }); } };
+  P["gc-clich"] = { attackMods(u, ctx) { if (tmpOn(u, "gc-clich")) { ctx.mods.push({ l: "Клич Гракха", v: 1 }); ctx.dmgPlus = (ctx.dmgPlus || 0) + 2; } } };
+  P["body:gob-founder"] = { attackAura(a, { att, ctx }) { if (att !== a && ctx && alive(a)) ctx.dmgPlus = (ctx.dmgPlus || 0) + 1; },
+    turnStart(u) { if (!u.guard && u.hp < u.maxHp / 2) { u.guard = true; const got = B.spawnFoes(["hobgoblin-shield"], u); got.forEach(m => { m.noReward = true; }); log(`${u.name} зовёт личную гвардию!`, "bad"); } },
+    onDeath(u) { if (B.say) B.say("gob-founder", "город… будет… помнить…"); } };
+  A["gob-founder"] = { time: "bonus", tgt() { return { type: "none" }; }, can() { return true; },
+    async run(u, pk, ctl) { ctl.commit(); const g = ui(); if (g) g.banner("Клич Гракха"); log(`${u.name}: клич Гракха!`, "skill"); for (const o of alliesOf(u).filter(o => alive(o) && !o.down && dist(u, o) <= 3)) { B.tmpPass(o, "gc-clich", 2); fx(o, "клич", "good"); } return true; },
+    ai(u) { return !u.cried && alliesOf(u).some(o => alive(o) && dist(u, o) <= 3) ? (u.cried = true, { score: 10 }) : null; } };
   B.fillActiveTimes();
 })();

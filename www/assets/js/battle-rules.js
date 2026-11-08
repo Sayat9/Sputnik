@@ -157,7 +157,7 @@
     for (const id of tgt.pass) { const P = B.P && B.P[id]; if (P && P.dmgTotal) total = P.dmgTotal(tgt, { total, o, src, notes }); }
     total = Math.max(0, total);
     { // Защита (вариант Б, решение автора 02.11): вычитается из физического урона попадания; от попадания остаётся хотя бы 1; крит пробивает половину Защиты (черновик)
-      const pr = Math.max(0, (tgt.prot || 0) + (tgt.conds || []).reduce((q, c) => q + ((c.data && c.data.prot) || 0), 0) + ((o.ctx && o.ctx.protPlus) || 0) - ((o.ctx && o.ctx.protIgnore) || 0));          // двуручное оружие пробивает 1 Защиты
+      const pr = Math.max(0, (tgt.prot || 0) + (B.protAura ? B.protAura(tgt) : 0) + (tgt.conds || []).reduce((q, c) => q + ((c.data && c.data.prot) || 0), 0) + ((o.ctx && o.ctx.protPlus) || 0) - ((o.ctx && o.ctx.protIgnore) || 0));          // двуручное оружие пробивает 1 Защиты
       if (pr > 0 && phys > 0 && total > 0 && !o.pure) { let cut = Math.min(o.crit ? Math.floor(pr / 2) : pr, phys - 1, total - 1); if (D.protMaxShare) cut = Math.min(cut, Math.floor(phys * D.protMaxShare)); if (cut > 0) { total -= cut; notes.push(`защита −${cut}`); } }
     }
     { const a = o.ctx && o.ctx.atk, pm = a && (a.twin || a.pairArmor) && a.dmgMult;          // парный удар (02.11): сначала Защита, потом ×0,6 — иначе броня съедала урон клинков целиком
@@ -617,7 +617,7 @@
   /* ===== ход: начало, конец, инициатива ===== */
   function rollInitiative() {
     const S = B.S;
-    const rows = live().map(u => ({ u, d20: d(20), mod: amod(u.abil.dex) + (u.initB || 0) + hookSum(u, "initBonus", {}) + (B.coldInit ? B.coldInit(u) : 0) }));
+    const rows = live().map(u => ({ u, d20: d(20), mod: amod(u.abil.dex) + (u.initB || 0) + hookSum(u, "initBonus", {}) + (B.initAura ? B.initAura(u) : 0) + (B.coldInit ? B.coldInit(u) : 0) }));
     rows.forEach(r => { r.total = r.d20 + r.mod; });
     // в засаде монстры ходят первыми; герой, которого нельзя застать врасплох («Чует шаги»), идёт по своей инициативе вместе с ними
     const surprised = u => u.side === "hero" && !hookAny(u, "noSurprise", {});

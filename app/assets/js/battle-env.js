@@ -420,5 +420,5 @@
   { const W = B.P && B.P.weap; if (W) {          // артефакты от холода и «Амулет инея» (07.11)
     const g = (u, slot, id) => B.gearOn && B.gearOn(u, slot, id);
     W.dmgFlat = (u, c) => c.dt !== "cold" || !(c.v > 0) ? 0 : -((g(u, "hands", "frost-gloves") || g(u, "hands2", "frost-gloves") ? 1 : 0) + (g(u, "back", "hide-cloak") ? 2 : 0));
-    W.dmgBonusVs = (u, c) => c.dt === "cold" && g(u, "charm", "frost-amulet") ? B.roll(1, 4).total : 0; } }
+    W.dmgBonusVs = (u, c) => (c.dt === "cold" && g(u, "charm", "frost-amulet") ? B.roll(1, 4).total : 0) + (g(u, "charm", "founder-crown") && c.tgt && B.S && c.tgt.lastHitR === B.S.round && c.tgt.lastHitBy && c.tgt.lastHitBy !== u.id ? B.roll(1, 4).total : 0); } }          // «Корона основателя» (Гоблинград)
 })();

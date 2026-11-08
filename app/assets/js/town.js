@@ -20,7 +20,7 @@
   // Цена продажи вещей лавочнику не меняется (считается от базовой цены g.base).
   const RANK_GOODS = { "potion-good": 8, "shovel-good": 8, compass: 8 };
   const rankMul = (r, open) => r >= 9 ? 1.1 : open != null && r <= open - 1 ? 0.9 : 1;
-  GOODS.forEach(g => { const b = g.price; g.base = b; Object.defineProperty(g, "price", { configurable: true, get() { const r = partyRank(), need = RANK_GOODS[g.key]; return Math.max(1, Math.round(b * (r >= 9 ? 1.1 : need && r <= need - 1 ? 0.9 : 1))); } }); });
+  GOODS.forEach(g => { const b = g.price; g.base = b; Object.defineProperty(g, "price", { configurable: true, get() { const r = partyRank(), need = RANK_GOODS[g.key]; return Math.max(1, Math.round(b * (r >= 9 ? 1.1 : need && r <= need - 1 ? 0.9 : 1) * (partyHas("goblin-merchant") ? 0.9 : 1))); } }); });          // «Торгаш» гоблина-торговца: −10 %
   const goodOpen = g => !RANK_GOODS[g.key] || partyRank() <= RANK_GOODS[g.key];
   // Кузница: на 9 ранге обычное оружие и броня +10 %, улучшенное (стальное) открывается с 8-го ранга, на 7-м на него −10 %.
   const forgeRank = (p, steel) => Math.max(1, Math.round(p * (steel ? (partyRank() <= 7 ? 0.9 : 1) : (partyRank() >= 9 ? 1.1 : 1))));
@@ -217,7 +217,8 @@
   }
   /* ---------- починка в кузнице (решение автора 28.10): целое оружие и броню — до максимума за 5 монет (комплект — 10), сломанное — за 20 % полной цены ---------- */
   const fixFull = e => (e.art ? artValue(e.art) : e.steel ? (e.t === "a" ? FORGE_PRICE.steelArmor : FORGE_PRICE.steelWeapon) : (e.t === "a" ? FORGE_PRICE.armor : FORGE_PRICE.weapon));
-  const fixPrice = e => (e.broken ? Math.max(1, Math.round(fixFull(e) * 0.2)) : 5);                // скидка дварфа на починку не действует: цены автора 5 / 10 / 20 %
+  const fixPrice0 = e => (e.broken ? Math.max(1, Math.round(fixFull(e) * 0.2)) : 5);
+  const fixPrice = e => Math.max(1, Math.round(fixPrice0(e) * (partyHas("chief-engineer") ? 0.7 : 1)));          // «Механик» главного инженера: ремонт −30 %                // скидка дварфа на починку не действует: цены автора 5 / 10 / 20 %
   const fixNeed = e => isDurable(e) && (e.broken || durOf(e) < durMax(e));
   const fixItems = c => [...Object.entries(c.equip || {}).filter(([, e]) => isDurable(e)).map(([sl, e]) => ({ e, key: "eq:" + sl, where: ({ main: "в правой руке", off: "в левой руке", body: "надето" })[sl] || "надето" })),
     ...(c.bag || []).map((e, i) => ({ e, key: "bag:" + i, where: "в рюкзаке" })).filter(x => isDurable(x.e))];
@@ -716,7 +717,7 @@
   // Оружие и броня: рыночная цена — как в кузнице (обычное 10/15, стальное 25/40); кузнец берёт −10 %, магазин −20 %; сломанное — пятая часть. Продаётся только из рюкзака.
   const gearMarket = e => { if (!e || (e.t !== "w" && e.t !== "a") || e.art) return 0; const base = e.t === "w" ? (e.steel ? FORGE_PRICE.steelWeapon : FORGE_PRICE.weapon) : (e.steel ? FORGE_PRICE.steelArmor : FORGE_PRICE.armor); return e.broken ? Math.max(1, Math.round(base * 0.2)) : base; };
   const gearPay = e => Math.max(1, Math.round(gearMarket(e) * (ui && ui.b === "forge" ? 0.9 : 0.8)));
-  const unitPrice = e => { const g = GOODS.find(x => x.e && x.e.t === "g" && e && e.t === "g" && x.e.id === e.id); return g ? g.base / g.e.qty : 0; };          // продажа — от базовой цены (ранг на неё не влияет)
+  const unitPrice = e => { const g = GOODS.find(x => x.e && x.e.t === "g" && e && e.t === "g" && x.e.id === e.id); return g ? g.base / g.e.qty * (partyHas("goblin-merchant") ? 1.1 : 1) : 0; };          // продажа — от базовой цены (ранг на неё не влияет)
   const sellValue = (e, n) => Math.floor(unitPrice(e) * n + 1e-9);
   function sellItem(i, all) {
     const c = hero(), e = (c.bag || [])[i]; if (!e || (ui.b !== "shop" && !(ui.b === "forge" && gearMarket(e)))) return;

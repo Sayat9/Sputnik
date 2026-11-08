@@ -449,7 +449,7 @@
     if (S.torch) { ui() && ui().toast("Свет уже есть"); return false; }
     if (!(S.torchLeft > 0) && !takeGear(u.hero, "torch", 1)) return false;
     if (!(S.torchLeft > 0)) S.torchLeft = TORCH_ROUNDS;
-    spendTime(u, "action"); S.torch = true; S.torchBy = u.id;
+    spendTime(u, (u.pass || []).includes("goblin-lamplighter") ? "bonus" : "action"); S.torch = true; S.torchBy = u.id;          // «Фонарщик» — доп. действием
     log(`${u.name} зажигает факел: тьма отступает (раундов света: ${S.torchLeft}).`, "good"); if (ui()) { ui().fxText(u, "свет", "good"); ui().refresh(); } return true;
   }
   async function douseTorch(u) {
@@ -655,7 +655,7 @@
       const near = []; for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { const t = B.inB(u.x + dx, u.y + dy) ? B.tinfo(u.x + dx, u.y + dy) : null; if ((dx || dy) && t && t.flammable) near.push([u.x + dx, u.y + dy]); }
       if (near.length) opts.push({ id: "ignite", cat: "other", label: "Поджечь", ico: "torch", sub: "факелом: паутина и сухая трава рядом", time: "bonus", enabled: B.timeOK(u, "bonus"), why: "нужно бонусное действие", run: async () => { spendTime(u, "bonus"); for (const [x, y] of near) B.igniteAt(x, y, u.name); return true; } });
     }
-    if ((countGear(c, "torch") > 0 || B.S.torchLeft > 0) && B.S.dark && !B.S.torch) opts.push({ id: "torch", cat: "other", label: "Зажечь факел", ico: "torch", sub: B.S.torchLeft > 0 ? `полное действие · догорит через ${B.S.torchLeft} р.` : "полное действие · один факел светит 3 раунда", time: "action", enabled: !act0, why: act0, run: () => lightTorch(u) });
+    if ((countGear(c, "torch") > 0 || B.S.torchLeft > 0) && B.S.dark && !B.S.torch) { const lamp = (u.pass || []).includes("goblin-lamplighter"), w = lamp ? bon : act0, tl = lamp ? "доп. действие" : "полное действие"; opts.push({ id: "torch", cat: "other", label: "Зажечь факел", ico: "torch", sub: B.S.torchLeft > 0 ? `${tl} · догорит через ${B.S.torchLeft} р.` : `${tl} · один факел светит 3 раунда`, time: lamp ? "bonus" : "action", enabled: !w, why: w, run: () => lightTorch(u) }); }
     if (B.S.dark && B.S.torch && !B.S.torchFixed) opts.push({ id: "douse", cat: "other", label: "Потушить факел", ico: "torch", sub: `доп. действие · остаток света ${B.S.torchLeft} р. сохранится`, time: "bonus", enabled: !bon, why: bon, run: () => douseTorch(u) });
     const off = B.offOf(u), main = B.mainOf(u);
     if (off && off.id === "shield") opts.push({ id: "shieldbash", cat: "attack", label: "Удар щитом", ico: "shield", sub: "щитом · толчок, доп. действие", time: "bonus", enabled: !bon && enemiesOf(u).some(e => dist(u, e) <= 1), why: bon || "нет врага рядом", run: () => doShove(u, "bonus") });
