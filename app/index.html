@@ -1337,8 +1337,8 @@ const ACADEMY = [
   { id: "nav1", grp: "nav", name: "Навигатор: 1 этаж", price: 400, nav: 1, rank: 9, text: "На 1 этаже карта показывает направление к ближайшему порталу на следующий этаж." },
   { id: "rep1", grp: "repair", name: "Ученик ремонта", price: 800, text: "Герой чинит лучше: +3 к починке (дварфам +5) — ремонтные наборы и артефакты восстанавливают больше прочности." },
   { id: "rep2", grp: "repair", name: "Мастер ремонта", price: 3500, rank: 8, need: "rep1", text: "Мастер: +9 к починке (дварфам +15) вместо ученика. Нужен курс «Ученик ремонта» — обучение с основ." },
-  { id: "nav2", grp: "nav", name: "Навигатор: 2 этаж", price: 800, nav: 2, rank: 8, need: "nav1", text: "То же на 2 этаже, а в разломе «Чаща прошлого» отряд не теряется в чаще. Нужен курс «Навигатор: 1 этаж» — обучение с основ." },
-  { id: "nav3", grp: "nav", name: "Навигатор: 3 этаж", price: 1500, nav: 3, rank: 7, need: "nav2", text: "То же на 3 этаже; в Ведьмином лесу и вокруг него половина сбитых шагов всё же идёт куда нужно. Нужен курс «Навигатор: 2 этаж»." },
+  { id: "nav2", grp: "nav", name: "Навигатор: 2 этаж", price: 800, nav: 2, rank: 8, need: "nav1", text: "То же на 2 этаже. Нужен курс «Навигатор: 1 этаж» — обучение с основ." },          // тайный бонус: не теряется в «Чаще прошлого» (решение автора — не писать)
+  { id: "nav3", grp: "nav", name: "Навигатор: 3 этаж", price: 1500, nav: 3, rank: 7, need: "nav2", text: "То же на 3 этаже. Нужен курс «Навигатор: 2 этаж» — обучение с основ." },          // тайный бонус: в Ведьмином лесу половина сбитых шагов идёт куда нужно
   // Тайм-менеджмент (решение автора 03.11): действует, если курс знает кто-то из живых героев; уровни не складываются — берётся лучший.
   // Ранг для каждого уровня — моё предложение: I — 9, II — 8, III — 7, IV — 6 + особое условие (автор пришлёт позже; пока курс IV закрыт).
   { id: "tm1", grp: "time", name: "Тайм-менеджмент I", price: 200, rank: 9, text: "В городе 6 действий до открытия врат (вместо 5)." },
@@ -3791,15 +3791,19 @@ function essPrice(id) { const m = MONSTERS.find(x => x.id === essSource(id)); re
 // Каждое возвращение из лабиринта на доске появляются 2 задания. Принятое держится 2 захода (runs), после 2-го — последний шанс сдать в городе; при следующем спуске сгорает.
 const QUEST_RUNS = 2;
 function questBoard() { return (state.quests ||= { list: [], seq: 0 }); }
-const questMons = rare => MONSTERS.filter(m => m.floor === 1 && m.cls === 9 && !m.draft && !m.rift && !!m.rare === rare);
+// Задания по классам (решение автора 08.11): 9 класс — всегда, вкладка 8 класса — с 8 ранга, 7 класса — с 7 ранга. Награда — по цене камня класса.
+const QUEST_CLS = { 9: { n: [8, 3], r: [3, 3], pay: 3, rpay: 8 }, 8: { n: [4, 3], r: [2, 2], pay: 15, rpay: 40 }, 7: { n: [2, 2], r: [1, 2], pay: 60, rpay: 160 } };
+const fightableMon = m => !m.draft && !m.rift && !m.dyn && !m.spectral && m.rank === "normal";          // обычные монстры этажей: без стражей, особых, разломов и призраков
+const questMons = (rare, cls = 9) => MONSTERS.filter(m => m.cls === cls && fightableMon(m) && !!m.rare === rare && (cls !== 9 || m.floor === 1));
 function postQuests() {
   const b = questBoard();
   for (const q of b.list) if (!q.taken) q.age = (q.age || 0) + 1;
   b.list = b.list.filter(q => q.taken || q.age < 2);
-  for (let i = 0; i < 2; i++) {
-    const rare = Math.random() < .3 && questMons(true).length > 0, pool = questMons(rare), m = pool[Math.floor(Math.random() * pool.length)];
-    const need = rare ? 3 + Math.floor(Math.random() * 3) : 8 + Math.floor(Math.random() * 3);
-    b.list.push({ id: ++b.seq, mon: m.id, rare, need, reward: need * (rare ? 8 : 3), taken: false, runs: 0, age: 0 });
+  for (const cls of [9, 8, 7]) for (let i = 0; i < 2; i++) {
+    const rare = Math.random() < .3 && questMons(true, cls).length > 0, pool = questMons(rare, cls), m = pool[Math.floor(Math.random() * pool.length)], Q = QUEST_CLS[cls];
+    if (!m) continue;
+    const [a, k] = rare ? Q.r : Q.n, need = a + Math.floor(Math.random() * k);
+    b.list.push({ id: ++b.seq, mon: m.id, cls, rare, need, reward: need * (rare ? Q.rpay : Q.pay), taken: false, runs: 0, age: 0 });
   }
 }
 const questStones = q => sackCount(q.mon);

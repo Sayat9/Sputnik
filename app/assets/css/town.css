@@ -195,3 +195,4 @@
 .tw-row > .fx-btn, .tw-row > .tw-btns > .fx-btn { min-width: 112px; justify-content: center; text-align: center; }
 .tw-sel .tw-btns { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 8px; width: min(100%, 300px); margin: 0 auto; }
 .tw-sel .tw-btns .fx-btn { width: 100%; }
+.tw-qtabs { margin: 6px 12px 0; }

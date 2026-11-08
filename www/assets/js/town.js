@@ -73,7 +73,7 @@
   T.state = () => ui;
   // Клиент игрока: показывает здание, открытое у ведущего (только просмотр, время не тратится).
   // Игрок может сам листать вкладки, выбирать героя и смотреть подробности (03.11): пока он что-то открыл, обновления ведущего не сбивают его вид.
-  const MIRROR_OK = new Set(["hero", "bag", "stock", "ftab", "gtab", "gmon", "gback", "atab", "ttab"]);
+  const MIRROR_OK = new Set(["hero", "bag", "stock", "ftab", "gtab", "gmon", "gback", "atab", "ttab", "qtab"]);
   T.mirror = snap => { const own = ui && ui.mirror && ui.local && ui.b === snap.b ? { hero: ui.hero, sel: ui.sel, tab: ui.tab, mon: ui.mon, local: true } : {}; ui = { ...snap, ...own, mirror: true }; host.classList.add("tw-mirror"); host.hidden = false; document.body.classList.add("forge-open"); render(); };
   T.unmirror = () => { host.classList.remove("tw-mirror"); if (ui && ui.mirror) { ui = null; host.hidden = true; host.innerHTML = ""; document.body.classList.remove("forge-open"); } };
   const spend = n => { ui.cost += n; };
@@ -469,9 +469,11 @@
   B.board = {
     init: () => ({ cost: 1 }),                                                  // решение автора: поход к доске заданий — одно городское действие
     render() {
-      const list = questBoard().list;
+      const cls = [9, 8, 7].filter(c => c === 9 || partyRank() <= c), tab = cls.includes(ui.btab) ? ui.btab : 9;          // вкладки 8 и 7 класса — с 8 и 7 ранга (решение автора 08.11)
+      const list = questBoard().list.filter(q => (q.cls || 9) === tab);
+      const tabs = cls.length > 1 ? `<div class="tw-tabs tw-qtabs" role="tablist">${cls.map(c => `<button class="fx-btn" role="tab" aria-selected="${tab === c}" data-t="qtab" data-k="${c}">${c} класс</button>`).join("")}</div>` : "";
       return `<div class="tw-panel tw-boardpanel"><button class="fx-btn tw-x tw-xc" data-t="close" aria-label="Закрыть">${ICO_X}</button>
-        <div class="tw-wall"><div class="tw-plank">Доска объявлений</div>
+        <div class="tw-wall"><div class="tw-plank">Доска объявлений</div>${tabs}
           <div class="tw-sheets">${list.map(questSheet).join("")}
             <article class="tw-sheetq news"><i class="tw-pin"></i><small class="tw-qk">События</small><p>Сейчас в городе тихо. Новости появятся здесь.</p></article></div>
           ${list.length ? "" : `<p class="tw-qempty">Заданий пока нет: они появятся, когда отряд вернётся из лабиринта.</p>`}
@@ -489,7 +491,8 @@
      ===================================================================== */
   const ARENA_PAY = 3;                                                                            // монет за убитого 9 класса: тройная цена камня (решение автора)
   const ARENA_FIGHT_MAX = 6;
-  const arenaPool = rare => MONSTERS.filter(m => m.floor === 1 && m.cls === 9 && !m.draft && !m.rift && !!m.rare === rare);
+  const arenaCls = () => (partyRank() <= 7 ? [8, 7] : [9, 8]);          // монстры арены по рангу отряда; без стражей и монстров разломов (решение автора 08.11)
+  const arenaPool = rare => MONSTERS.filter(m => arenaCls().includes(m.cls) && fightableMon(m) && !!m.rare === rare);
   const arenaMon = () => { const rare = Math.random() < .1 && arenaPool(true).length, pool = arenaPool(!!rare); return pool[rnd(pool.length)]; };
   // Сила монстра для ставок: ОЗ × защита × средний урон (грубо; ставки — не точная наука).
   function mpower(m) {
@@ -503,7 +506,7 @@
     if (!a || a.trips !== trips) {
       a = state.arena = { trips, bouts: [] };
       for (let i = 0; i < 3; i++) {
-        let x = arenaMon(), y = arenaMon(), g = 0; while (y.id === x.id && g++ < 20) y = arenaMon();
+        let x = arenaMon(), y = arenaMon(), g = 0; while ((y.id === x.id || y.cls !== x.cls) && g++ < 60) y = arenaMon();
         const pa = Math.pow(mpower(x), 1.4) / (Math.pow(mpower(x), 1.4) + Math.pow(mpower(y), 1.4)), odds = p => Math.round(Math.min(8, Math.max(1.1, 0.9 / p)) * 20) / 20;
         a.bouts.push({ a: x.id, b: y.id, pa, oa: odds(pa), ob: odds(1 - pa), res: null });
       }
@@ -532,9 +535,9 @@
             return `<div class="tw-bout fx-frame">${side(A, "a", b.oa)}<span class="tw-vs">VS</span>${side(Bm, "b", b.ob)}${panel}${res}</div>`; }).join("")}</div>${msgLine()}`;
       } else {
         const n = ui.fightN;
-        body += `<p class="tw-lead">Отряд выходит на арену сам. Выберите число противников — случайные монстры 9 класса, редкие нечасто. За каждого убитого арена платит ${ARENA_PAY} монеты (тройная цена камня). Лута нет: камни и находки забирают администраторы, выпавшую эссенцию тоже — взамен бонус 20 % её цены.</p>
+        body += `<p class="tw-lead">Отряд выходит на арену сам. Выберите число противников — случайные монстры ${arenaCls().join(" и ")} класса (по рангу отряда), редкие нечасто. За каждого убитого арена платит тройную цену его камня: ${arenaCls().map(c => `${c} класс — ${ARENA_PAY * stonePrice(c)}`).join(", ")} монет. Лута нет: камни и находки забирают администраторы, выпавшую эссенцию тоже — взамен бонус 20 % её цены.</p>
           <div class="tw-stake"><div class="tw-dlg-row"><button class="fx-btn" data-t="afn" data-d="-1">−</button><b class="tw-stk">${n}</b><button class="fx-btn" data-t="afn" data-d="1">+</button></div>
-          <p class="tw-lead" style="text-align:center">Награда при победе: <b style="color:var(--fx-gold-hi)">${n * ARENA_PAY}</b> монет · после боя +1 Усталость каждому, раны не заживут и ночлег в таверне будет закрыт до следующего спуска.</p>
+          <p class="tw-lead" style="text-align:center">Награда при победе: <b style="color:var(--fx-gold-hi)">${n * ARENA_PAY * Math.min(...arenaCls().map(stonePrice))}–${n * ARENA_PAY * Math.max(...arenaCls().map(stonePrice))}</b> монет · после боя +1 Усталость каждому, раны не заживут и ночлег в таверне будет закрыт до следующего спуска.</p>
           <button class="fx-btn primary big" data-t="afight">${ui.ok === "fight" ? "Точно выйти? Нажми ещё раз" : "Выйти на арену"}</button></div>${msgLine()}`;
       }
       return frame("Арена", "Рафдония", body);
@@ -886,6 +889,7 @@
       case "artsell": artSell(ds.key, ds.b); break;
       case "purge": purge(ds.id); break;
       case "qaccept": questAccept(ds.id); break;
+      case "qtab": ui.btab = +ds.k; break;
       case "qdone": questDone(ds.id); break;
       case "atab": ui.tab = ds.k; ui.pick = null; ui.ok = null; break;
       case "apick": ui.pick = ui.pick && ui.pick.i === +ds.i && ui.pick.side === ds.s ? null : { i: +ds.i, side: ds.s }; break;

@@ -9,10 +9,10 @@ const L = require('./bui_lib.js');
     state.quests = null; state.party.forEach(c => { c.gold = 0; c.bag = (c.bag || []).filter(e => !(e.t === 'g' && /stone|qstone/.test(e.id))); state.sack = null; });
     endRun(true);                                                   // возвращение №1: на доске 2 задания
     const bq = () => questBoard().list;
-    out.two = bq().length === 2;
-    out.valid = bq().every(q => { const m = MONSTERS.find(x => x.id === q.mon); return m && m.cls === 9 && m.floor === 1 && !m.draft && !!m.rare === q.rare && (q.rare ? q.need >= 3 && q.need <= 5 : q.need >= 8 && q.need <= 10) && q.reward > 0 && !q.taken; });
+    out.two = bq().filter(q => (q.cls || 9) === 9).length === 2 && bq().length === 6;          // по 2 задания на 9, 8 и 7 класс (08.11)
+    out.valid = bq().filter(q => q.cls === 9).every(q => { const m = MONSTERS.find(x => x.id === q.mon); return m && m.cls === 9 && m.floor === 1 && !m.draft && !!m.rare === q.rare && (q.rare ? q.need >= 3 && q.need <= 5 : q.need >= 8 && q.need <= 10) && q.reward > 0 && !q.taken; });
     // много возвращений: диапазоны
-    const seen = { n: new Set(), r: new Set() }; for (let i = 0; i < 300; i++) { state.quests = null; postQuests(); for (const q of questBoard().list) (q.rare ? seen.r : seen.n).add(q.need); }
+    const seen = { n: new Set(), r: new Set() }; for (let i = 0; i < 300; i++) { state.quests = null; postQuests(); for (const q of questBoard().list.filter(q => q.cls === 9)) (q.rare ? seen.r : seen.n).add(q.need); }
     out.rangeN = [...seen.n].sort().join() === '10,8,9'.split(',').sort().join() || ([...seen.n].every(v => v >= 8 && v <= 10) && seen.n.size === 3);
     out.rangeR = [...seen.r].every(v => v >= 3 && v <= 5) && seen.r.size === 3;
     state.quests = null; postQuests(); newRun();                    // чистая доска и заход
