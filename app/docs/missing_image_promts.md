@@ -64,6 +64,72 @@
 
 > `full-body a mechanical wooden-and-iron mannequin with swinging pendulum blades for arms, standing in a narrow trapped corridor, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
 
+### Чаща прошлого (разлом 2 этажа, 08.11)
+
+### Мшистый ёж — `monsters/moss-hedgehog-full`
+
+> `full-body a small hedgehog covered in green moss with long sharp needles, half curled into a spiky ball, ancient dense primeval forest with giant mossy trees, sunbeams, a sinister laboratory hidden deep inside, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Светлячковый рой — `monsters/firefly-swarm-full`
+
+> `full-body a glowing swarm of hundreds of fireflies forming a vague creature shape, flashing blinding light, ancient dense primeval forest with giant mossy trees, sunbeams, a sinister laboratory hidden deep inside, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Клеймёный зверёк — `monsters/branded-critter-full`
+
+> `full-body a small mutated weasel-like animal with a burned laboratory brand on its side and bubbling green acid veins, ancient dense primeval forest with giant mossy trees, sunbeams, a sinister laboratory hidden deep inside, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Древесная рысь — `monsters/tree-lynx-full`
+
+> `full-body a lynx with bark-patterned fur crouching on a thick branch, ready to pounce from the canopy, ancient dense primeval forest with giant mossy trees, sunbeams, a sinister laboratory hidden deep inside, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Пёс-химера — `monsters/chimera-hound-full`
+
+> `full-body a two-headed mutant hound with stitched seams, both heads snarling, ancient dense primeval forest with giant mossy trees, sunbeams, a sinister laboratory hidden deep inside, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Гомункул-лаборант — `monsters/homunculus-full`
+
+> `full-body a small grey homunculus in a tiny lab coat holding a syringe and a vial of glowing serum, ancient dense primeval forest with giant mossy trees, sunbeams, a sinister laboratory hidden deep inside, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Алхимик-интерн — `monsters/alch-intern-full`
+
+> `full-body a nervous young alchemist apprentice in a stained leather apron juggling three mislabeled glowing flasks, ancient dense primeval forest with giant mossy trees, sunbeams, a sinister laboratory hidden deep inside, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Лютоволк, неудачный образец — `monsters/lab-direwolf-full`
+
+> `full-body a huge scarred mutant wolf with patches of missing fur and surgical stitches, a metal collar with a key card, ancient dense primeval forest with giant mossy trees, sunbeams, a sinister laboratory hidden deep inside, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Старший алхимик — `monsters/senior-alch-full`
+
+> `full-body a stern older alchemist in goggles and leather apron, holding a bubbling flask and a syringe of mutagen, ancient dense primeval forest with giant mossy trees, sunbeams, a sinister laboratory hidden deep inside, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Вепрь-мутант — `monsters/mutant-boar-full`
+
+> `full-body a massive mutated boar with enormous tusks, bony plates and glowing veins, charging, ancient dense primeval forest with giant mossy trees, sunbeams, a sinister laboratory hidden deep inside, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Беглая химера — `monsters/fled-chimera-full`
+
+> `full-body a chimera with a lion body and a hissing snake for a tail, broken shackle on its leg, ancient dense primeval forest with giant mossy trees, sunbeams, a sinister laboratory hidden deep inside, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Матка роя — `monsters/swarm-mother-full`
+
+> `full-body a large glowing insect queen surrounded by a cloud of fireflies, abdomen pulsing with light, ancient dense primeval forest with giant mossy trees, sunbeams, a sinister laboratory hidden deep inside, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Падший хранитель чащи — `monsters/fallen-keeper-full`
+
+> `full-body a giant corrupted ancient elk made of bark and roots, dark rot in its antlers, roots erupting from the ground around it, ancient dense primeval forest with giant mossy trees, sunbeams, a sinister laboratory hidden deep inside, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Натуралист-химеролог — `monsters/naturalist-full`
+
+> `full-body a mad naturalist scientist mid-transformation, one arm a clawed beast limb, holding a mutagen syringe, cracked spectacles, ancient dense primeval forest with giant mossy trees, sunbeams, a sinister laboratory hidden deep inside, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Луна, искусственный ликантроп — `monsters/luna-full`
+
+> `full-body a female werewolf with silver-white fur and a laboratory number tattoo, glowing amber eyes, torn hospital gown, moonlight, ancient dense primeval forest with giant mossy trees, sunbeams, a sinister laboratory hidden deep inside, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+
+### Шприц мутагена — `items/mutagen-syringe`
+
+> `an ornate brass and glass syringe filled with glowing green mutagen, on dark wood, hand-painted dark fantasy item icon, painterly, square, no text`
+
 ### Раб крови — `monsters/blood-slave-full`
 
 > `full-body an emaciated pale undead slave in chains with drained grey skin and hollow red eyes, blood-soaked gothic fortress and dark sewers with red torchlight, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`

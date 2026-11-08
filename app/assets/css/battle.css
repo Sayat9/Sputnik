@@ -391,3 +391,12 @@ body.bt-active .dice-fab { display: none; }
 
 .bt-zcell.k-kel { background: repeating-linear-gradient(45deg, rgb(200 120 40 / .35) 0 6px, rgb(120 70 20 / .2) 6px 12px); box-shadow: inset 0 0 0 2px rgb(255 160 60 / .7); animation: kelpulse 1s ease-in-out infinite alternate; }
 @keyframes kelpulse { from { opacity: .55; } to { opacity: 1; } }
+/* Диалог как в новеллах (Чаща прошлого, 08.11): портрет слева, текст справа; касание где угодно закрывает */
+.vn-dlg { position: fixed; inset: 0; z-index: 9000; display: flex; align-items: flex-end; justify-content: center; padding: 0 12px calc(16px + env(safe-area-inset-bottom)); background: rgb(0 0 0 / .25); cursor: pointer; }
+.vn-box { width: min(640px, 100%); display: flex; gap: 12px; align-items: stretch; padding: 12px; background: rgb(20 14 10 / .94); border: 2px solid #c9a35a; border-radius: 12px; box-shadow: 0 10px 30px rgb(0 0 0 / .6); animation: vnIn .25s ease-out; }
+.vn-face { width: 96px; height: 96px; flex: 0 0 96px; object-fit: cover; border-radius: 8px; border: 2px solid #6e5634; background: #1a120c; }
+.vn-txt { display: flex; flex-direction: column; gap: 4px; min-width: 0; color: #f0e2c4; }
+.vn-txt b { font: 700 16px/1.2 var(--f-fancy, Georgia, serif); color: #f4d48e; }
+.vn-txt p { margin: 0; font-size: 17px; line-height: 1.35; }
+.vn-txt small { margin-top: auto; opacity: .6; font-size: 12px; }
+@keyframes vnIn { from { transform: translateY(16px); opacity: 0; } to { transform: none; opacity: 1; } }

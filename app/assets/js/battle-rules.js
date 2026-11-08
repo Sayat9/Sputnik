@@ -284,7 +284,7 @@
     if (B.isFlying(tgt) && !has(tgt, "prone")) { ac += 3; ctx.acNotes.push("в полёте +3"); }
     if (B.inDark(tgt) && !B.seesInDark(att, tgt)) { ac += 2; ctx.acNotes.push("во тьме +2"); }
     ctx.ac = ac;
-    hookAll(att, "attackMods", ctx); hookAll(tgt, "defendMods", ctx);
+    if (!o.noPass) hookAll(att, "attackMods", ctx); hookAll(tgt, "defendMods", ctx);          // noPass: вторая атака «Двойного укуса» — без пассивок (автор 08.11)
     if (has(tgt, "owlmark")) ctx.adv.push("метка совы");
     if (has(att, "chilled")) ctx.dmgPlus = (ctx.dmgPlus || 0) - 2;          // «Касание без тепла»
     for (const c of att.conds || []) { const st = D.status[c.id]; if (st && st.atkDis) ctx.dis.push(st.name); if (st && c.data && c.data.atkMod) ctx.mods.push({ l: st.name, v: c.data.atkMod }); }          // «Визг», «Песок в глаза» — помеха на атаки (03.11)

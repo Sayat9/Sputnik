@@ -415,6 +415,7 @@
     }
     if (B.UI && B.UI.active) B.UI.refreshNow();
   };
+  { const prevEA = B.envActions; B.envActions = u => { const out = prevEA ? prevEA(u) : []; return B.pastActions ? B.pastActions(u, out) : out; }; }          // корни хранителя и шприц мутагена (Чаща прошлого, battle-ess2.js)
   { const prevWA = B.weapActions; B.weapActions = u => { const out = prevWA ? prevWA(u) : []; return B.iceActions ? B.iceActions(u, out) : out; }; }          // «Разжечь огромную жаровню» (Ледяной грот)
   { const W = B.P && B.P.weap; if (W) {          // артефакты от холода и «Амулет инея» (07.11)
     const g = (u, slot, id) => B.gearOn && B.gearOn(u, slot, id);

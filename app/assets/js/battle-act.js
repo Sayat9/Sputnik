@@ -430,7 +430,7 @@
   const POTIONS = { potion: { n: 1, s: 4, b: 2, name: "Слабое зелье лечения" }, "potion-good": { n: 2, s: 4, b: 4, name: "Зелье лечения" } };
   async function usePotion(u, pid = "potion") {
     const c = u.hero, chal = pid === "chalice", P = POTIONS[chal ? "potion-good" : pid];
-    const near = [u, ...alliesOf(u).filter(a => dist(u, a) <= 1 && !a.dead)];
+    const near = [u, ...alliesOf(u).filter(a => dist(u, a) <= (B.potionReach ? B.potionReach(u) : 1) && !a.dead)];
     const t = await UI().pickUnit({ prompt: "Зелье лечения: кому?", units: near.map(a => a.id), cells: [], kind: "heal", includeSelf: true });
     if (!t) return false;
     const ses = B.session(u, { kind: "heal", u, title: P.name, sub: `${u.name} → ${t.name}` });
@@ -438,7 +438,7 @@
     if (!r) { ses.close(); return false; }
     if (chal) chaliceEmpty(c); else takeGear(c, pid, 1);
     spendTime(u, "bonus");
-    const n = r.sum + P.b; const got = heal(t, n, u);
+    const n = Math.max(1, r.sum + P.b + (B.potionBonus ? B.potionBonus(u, t) : 0)); const got = heal(t, n, u);
     await ses.finish({ text: got ? `Восстановлено ${got} ОЗ` : "Лечение не подействовало", heal: true, tgt: t, dmg: got });
     return true;
   }

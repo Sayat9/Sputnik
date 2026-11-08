@@ -2550,11 +2550,69 @@ const MINE_ESS = {
 };
 for (const [id, [name, stats, other, [pn, pt], [an, mana, time, at]]] of Object.entries(MINE_ESS)) ESSENCES[id] = { id, name, cls: MONSTERS.find(m => m.id === id).cls, source: id, stats, other, passive: { name: pn, text: pt }, active: { name: an, mana, time, text: at } };
 
+// ===== Разлом «Чаща прошлого» (2 этаж, звери; утверждено автором 08.11): новые монстры 9–6 класса =====
+const PAST_MON = [
+  ["moss-hedgehog", 9, "Мшистый ёж", "Малый зверь", "beast", "14 (мох и иглы)", "12 (3к6+2)", "6 м", [8, 12, 15, 2, 12, 5], "Тёмное зрение 9 м.",
+    [["Иглы", "Колет того, кто бьёт его вплотную; в опасности сворачивается в колючий шар.", "behavior"], ["Укус", "+3 к попаданию, 1к6+1 колющего.", "attacks"]]],
+  ["firefly-swarm", 9, "Светлячковый рой", "Малая тварь", "beast", "12", "10 (3к6)", "0 м, полёт 9 м", [3, 15, 10, 1, 12, 4], "Слепое зрение 3 м.",
+    [["Вспышка", "Мерцающее облако жуков; слепит вспышкой, боится огня и широких ударов.", "behavior"], ["Жала", "+4 к попаданию, 1к4+2 колющего.", "attacks"]]],
+  ["branded-critter", 9, "Клеймёный зверёк", "Малый зверь", "beast", "12", "11 (2к6+4)", "9 м", [10, 14, 14, 3, 10, 4], "Тёмное зрение 9 м.",
+    [["Подопытный", "Сбежал из лаборатории с клеймом на боку; при смерти лопается кислотой.", "behavior"], ["Укус", "+4 к попаданию, 1к6+2 колющего.", "attacks"]]],
+  ["tree-lynx", 8, "Древесная рысь", "Средний зверь", "beast", "14", "26 (4к8+8)", "12 м, лазание 9 м", [14, 17, 14, 3, 13, 6], "Тёмное зрение 18 м.",
+    [["Из крон", "Прыгает из ветвей: первый удар — с преимуществом и сбивает с ног.", "behavior"], ["Когти", "+5 к попаданию, 1к8+3 рубящего.", "attacks"]]],
+  ["chimera-hound", 8, "Пёс-химера", "Средний зверь", "beast", "13", "30 (4к8+12)", "12 м", [16, 13, 16, 3, 11, 5], "Тёмное зрение 18 м.",
+    [["Две головы", "Кусает обеими головами; раненый звереет.", "behavior"], ["Укус", "+5 к попаданию, 1к8+3 колющего.", "attacks"]]],
+  ["homunculus", 8, "Гомункул-лаборант", "Малая тварь", "beast", "12", "22 (5к6+5)", "9 м", [8, 13, 12, 12, 14, 6], "Тёмное зрение 18 м.",
+    [["Ассистент", "Держится позади, лечит и усиливает мутантов растворами.", "behavior"], ["Скальпель", "+4 к попаданию, 1к6+2 рубящего.", "attacks"]]],
+  ["alch-intern", 8, "Алхимик-интерн", "Средний гуманоид", "humanoid", "12 (фартук)", "24 (5к8+2)", "9 м", [9, 13, 12, 15, 9, 10], "",
+    [["Склянка наугад", "Бросает склянки, не глядя на ярлык: огонь, кислота или сонный газ.", "behavior"], ["Склянка", "+4 к попаданию, 1к6+2 огнём (бросок 6 м).", "attacks"]]],
+  ["lab-direwolf", 7, "Лютоволк, неудачный образец", "Большой зверь", "beast", "14 (шрамы)", "52 (7к10+14)", "15 м", [18, 15, 16, 3, 12, 7], "Тёмное зрение 18 м, тонкий нюх.",
+    [["По следу", "Идёт по следу отряда; на ошейнике — ключ-карта лаборатории.", "behavior"], ["Рвущий укус", "+6 к попаданию, 2к6+4 колющего.", "attacks"]]],
+  ["senior-alch", 7, "Старший алхимик", "Средний гуманоид", "humanoid", "13 (кожаный фартук)", "44 (8к8+8)", "9 м", [10, 14, 13, 17, 12, 11], "",
+    [["Точная склянка", "Бросает склянки по области; в беде пьёт мутаген и звереет.", "behavior"], ["Склянка", "+6 к попаданию, 2к6+3 кислотой (бросок 9 м).", "attacks"]]],
+  ["mutant-boar", 7, "Вепрь-мутант", "Большой зверь", "beast", "14 (толстая шкура)", "58 (7к10+20)", "12 м", [19, 10, 18, 2, 10, 5], "Тёмное зрение 9 м.",
+    [["Таран бивнем", "Разгоняется и бьёт бивнем, отбрасывая цель.", "behavior"], ["Бивни", "+6 к попаданию, 2к6+4 колющего.", "attacks"]]],
+  ["fled-chimera", 7, "Беглая химера", "Большой зверь", "beast", "14", "54 (7к10+16)", "12 м", [18, 14, 17, 3, 12, 8], "Тёмное зрение 18 м.",
+    [["Змеиный хвост", "Хвост-змея кусает тех, кто задержался рядом; рёв подбадривает стаю.", "behavior"], ["Когти", "+6 к попаданию, 2к6+4 рубящего.", "attacks"]]],
+  ["swarm-mother", 7, "Матка роя", "Средняя тварь", "beast", "13", "46 (7к8+14)", "6 м, полёт 9 м", [8, 14, 15, 4, 14, 10], "Слепое зрение 6 м.",
+    [["Облако светлячков", "Светится в облаке роя и выпускает новых светлячков.", "behavior"], ["Жало", "+6 к попаданию, 2к6+2 ядом.", "attacks"]]],
+  ["fallen-keeper", 6, "Падший хранитель чащи", "Огромный зверь", "beast", "15 (кора)", "76 (9к12+22)", "12 м", [21, 10, 18, 6, 16, 9], "Тёмное зрение 18 м, чувство корней 9 м.",
+    [["Сердце чащи", "Искажённый древний лось. Его корни держат лес: пока он жив, не пройти.", "behavior"], ["Рога", "+8 к попаданию, 2к8+5 колющего.", "attacks"]]],
+  ["naturalist", 6, "Натуралист-химеролог", "Средний гуманоид", "humanoid", "16 (усиленный халат)", "72 (11к8+22)", "9 м", [16, 15, 18, 19, 14, 12], "Тёмное зрение 18 м (мутаген).",
+    [["Три фазы", "Учёный, затем полузверь, затем химера: с каждой третью ОЗ вкалывает себе новый мутаген.", "behavior"], ["Скальпель-когти", "+8 к попаданию, 2к6+5 рубящего.", "attacks"]]],
+  ["luna", 6, "Луна, искусственный ликантроп", "Средний гуманоид", "beast", "15", "70 (11к8+20)", "12 м", [18, 18, 17, 6, 14, 10], "Тёмное зрение 36 м, нюх.",
+    [["Две формы", "Удачный образец: оборотень с когтями, а с половины ОЗ — огромный волк; меняет форму каждые 2 раунда.", "behavior"], ["Когти / укус", "+7 к попаданию, 2к6+4 рубящего.", "attacks"]]],
+];
+for (const [id, cls, name, size, ph, ac, hp, speed, abil, senses, traits] of PAST_MON) MONSTERS.push({ id, zone: "beast", rare: false, weight: 1, name, floor: 2, cls,
+  rank: cls <= 6 ? "guardian" : "normal", size, type: /гуманоид/.test(size) && ph === "humanoid" ? "Гуманоид" : /тварь/.test(size) ? "Тварь" : "Зверь",
+  group: id === "fallen-keeper" ? "Один, в сердце чащи (центр разлома)" : id === "naturalist" ? "Один, в лаборатории" : id === "luna" ? "Одна, в нижнем ярусе лаборатории" : id === "lab-direwolf" ? "У лаборатории и по следу отряда" : "Группы по 2–3",
+  sz: /Огромн/.test(size) ? "огромный" : /Большой|Большая/.test(size) ? "большой" : /Малый|Малая/.test(size) ? "малый" : "средний", rift: "past",
+  areas: ["Разлом: Чаща прошлого"], ac, hp, speed, cr: String(10 - cls), abil, senses, traits, loot: `Камень ${cls}-го класса.${id === "lab-direwolf" ? " Ключ-карта лаборатории (пока у отряда меньше 3)." : ""}`, essence: id, ph, statDraft: true });
+const PAST_ESS = {
+  "moss-hedgehog": ["Эссенция мшистого ежа", { con: 2, wis: 1, dex: -1 }, [], ["Иглы", "Кто попал по тебе в ближнем бою, получает 1 колющего урона (3, если ты в обороне)."], ["Клубок", 2, "доп. действие", "До начала твоего следующего хода +3 Защиты и тебя нельзя сбить с ног, но скорость 0. Перезарядка 4 раунда."]],
+  "firefly-swarm": ["Эссенция светлячкового роя", { dex: 2, wis: 1, str: -1 }, [], ["Живой свет", "Вокруг тебя тусклый свет: бой и броски встреч в темноте для отряда — как с факелом (факел не тратится, след не растёт)."], ["Слепящее мерцание", 3, "действие", "Враги в 2 клетках — спасбросок Телосложения (Сл 8 + мод. Лов), провал: ослеплены вспышкой до конца своего хода. Перезарядка 4 раунда."]],
+  "branded-critter": ["Эссенция клеймёного зверька", { con: 2, dex: 1, cha: -1 }, [], ["Подопытный", "+2 к спасброскам от яда и кислоты; урон ядом и кислотой по тебе на 2 меньше."], ["Едкая слюна", 3, "действие", "Враг в 4 клетках — спасбросок Ловкости (Сл 8 + мод. Тел), провал: 1к8 кислотой и −1 Защиты на 2 раунда. Перезарядка 3 раунда."]],
+  "tree-lynx": ["Эссенция древесной рыси", { dex: 3, wis: 1, int: -1, cha: -1 }, [], ["Из крон", "В первом раунде боя первая атака — с преимуществом; попала — цель делает спасбросок Силы (Сл 8 + мод. Лов) или сбита с ног."], ["Рысий прыжок", 2, "доп. действие", "Прыжок до 3 клеток через препятствия, не провоцируя атак. Перезарядка 3 раунда."]],
+  "chimera-hound": ["Эссенция пса-химеры", { str: 2, con: 2, int: -1, cha: -1 }, [], ["Вторая голова", "Пока у тебя меньше половины ОЗ, +2 к урону ближних атак."], ["Двойной укус", 3, "действие", "Только с одним оружием: две атаки по одной цели или двум соседним; вторая — с −2 к попаданию, на неё не действуют пассивки. Перезарядка 3 раунда."]],
+  homunculus: ["Эссенция гомункула-лаборанта", { int: 2, wis: 2, str: -1, con: -1 }, [], ["Ассистент", "Зелье, которое ты даёшь союзнику, лечит на 1к4 больше; отдать зелье соседнему союзнику — доп. действием."], ["Укрепляющий раствор", 2, "доп. действие", "Союзник в 3 клетках получает 1к6 + мод. Инт временных ОЗ и +1 к атакам на 2 раунда. Перезарядка 4 раунда."]],
+  "alch-intern": ["Эссенция алхимика-интерна", { int: 3, dex: 1, wis: -1, str: -1 }, [], ["Неопытная рука", "Когда пьёшь зелье лечения — бросок к4: 1 — лечит на 2 меньше, 2–3 — обычно, 4 — ещё +1к6."], ["Склянка наугад", 3, "действие", "Бросок в клетку в 3 клетках (3×3), эффект случайный: огонь 2к6, кислота 2к4 и −1 Защиты или сонный газ — спасбросок Телосложения (Сл 8 + мод. Инт), провал: оглушён до конца своего хода. Перезарядка 3 раунда."]],
+  "lab-direwolf": ["Эссенция лютоволка", { str: 3, dex: 2, int: -1, cha: -1 }, [], ["Рвущие клыки", "Атака по цели с кровотечением — +1к6 урона; крит накладывает кровотечение 1к4."], ["Вой лаборатории", 3, "действие", "Враги в 3 клетках — спасбросок Мудрости (Сл 8 + мод. Сил), провал: испуганы на раунд. Перезарядка 4 раунда."]],
+  "senior-alch": ["Эссенция старшего алхимика", { int: 3, con: 2, str: -1, cha: -1 }, [], ["Мастер зелий", "Зелья лечения пьёшь доп. действием, они лечат на 1к6 больше. Вне боя на привале — «Сварить зелье»: 2 травы → зелье лечения, 4 травы → хорошее зелье (раз за привал)."], ["Склянка", 3, "действие", "Клетка в 5 клетках (3×3), эффект случайный: огонь 3к6, кислота 2к6 и −2 Защиты или сонный газ — спасбросок Телосложения (Сл 8 + мод. Инт), провал: оглушён до конца своего хода. Перезарядка 3 раунда."]],
+  "mutant-boar": ["Эссенция вепря-мутанта", { str: 3, con: 2, dex: -1, int: -1 }, [], ["Тяжёлый лоб", "С двуручным или тяжёлым оружием +2 к урону; тебя нельзя сбить с ног."], ["Таран бивнем", 3, "действие", "Рывок до 3 клеток к врагу и атака оружием с +1 к урону; цель отлетает на 1 клетку. Врезалась в препятствие или существо — ещё 1к6 урона, а ты получаешь 1–2 урона. Перезарядка 3 раунда."]],
+  "fled-chimera": ["Эссенция беглой химеры", { str: 3, con: 2, wis: -1, int: -1 }, [], ["Змеиный хвост", "Раз в раунд, когда враг заканчивает ход рядом с тобой, хвост кусает его: 1к6 ядом, провал спасброска Телосложения (Сл 8 + мод. Тел) — отравлен на раунд."], ["Львиный рык", 3, "доп. действие", "Ты и союзники в 2 клетках получаете +2 к урону на 2 раунда. Перезарядка 4 раунда."]],
+  "swarm-mother": ["Эссенция матки роя", { wis: 3, cha: 2, str: -1, int: -1 }, [], ["Облако светлячков", "Вокруг тебя свет (как у роя); враги рядом с тобой −1 к атакам."], ["Призыв роя", 3, "действие", "Два светлячковых роя на 3 раунда; они бьются на твоей стороне. Перезарядка 5 раундов."]],
+  "fallen-keeper": ["Эссенция падшего хранителя чащи", { con: 4, wis: 3, str: 2, dex: -1, int: -1, cha: -1 }, [], ["Корни земли", "На любом привале весь отряд восстанавливает на 15 % от максимума ОЗ больше."], ["Оплетающие корни", 4, "действие", "Область 3×3 в 5 клетках: 2к6 дробящего; провал спасброска Силы (Сл 8 + мод. Мдр) — опутан 2 раунда. Корни остаются на поле 2 хода; их рубят режущим или жгут огнём. Перезарядка 4 раунда."]],
+  naturalist: ["Эссенция натуралиста-химеролога", { int: 4, con: 3, wis: 2, str: -1, cha: -1, dex: -1 }, [], ["Препаратор", "С каждого убитого зверя или твари — 15 % шанс на лишний камень этого монстра."], ["Мутаген", 3, "доп. действие", "На 3 раунда на выбор: когти (+1к6 к ближнему урону), шкура (+2 Защиты) или регенерация (5 ОЗ в начале хода). В конце — потеря 1к4 ОЗ. Перезарядка 5 раундов."]],
+  luna: ["Эссенция Луны", { str: 5, dex: 5, int: -1, wis: -1 }, ["Серебро жжёт (серебряное оружие наносит +1к6)"], ["Лунная кровь", "Регенерация 3 ОЗ в начале хода (не в раунд, когда тебя ранили огнём или серебром). Вне боя «Чутьё зверя»: ночью и на привале отряд не застают врасплох — засада становится обычной встречей."], ["Трансформация", 3, "доп. действие", "Форма на 1 ход: огромный волк — до 10 очков Ловкости переходят в Силу (Ловкость не ниже 9), +1 клетка скорости, укус сбивает с ног; оборотень — до 10 очков Силы в Ловкость (Сила не ниже 9), с одним оружием две атаки лёгким, с двумя — +2 к броскам атаки. Перезарядка 2 раунда."]],
+};
+for (const [id, [name, stats, other, [pn, pt], [an, mana, time, at]]] of Object.entries(PAST_ESS)) ESSENCES[id] = { id, name, cls: MONSTERS.find(m => m.id === id).cls, source: id, stats, other, passive: { name: pn, text: pt }, active: { name: an, mana, time, text: at } };
+
 const RIFT_RANK = 7, RIFT_EXIT_DAYS = 2;
-const RIFTS = { blood: { name: "Кровавая крепость", zone: "undead", w: 5, h: 15 }, ice: { name: "Ледяной грот", zone: "stone", w: 3, h: 15 }, sand: { name: "Зыбучие пески", zone: "beast", w: 15, h: 15 }, mine: { name: "Зелёная шахта", zone: "goblin", w: 5, h: 3 } };
+const RIFTS = { blood: { name: "Кровавая крепость", zone: "undead", w: 5, h: 15 }, ice: { name: "Ледяной грот", zone: "stone", w: 3, h: 15 }, sand: { name: "Зыбучие пески", zone: "beast", w: 15, h: 15 }, mine: { name: "Зелёная шахта", zone: "goblin", w: 5, h: 3 }, past: { name: "Чаща прошлого", zone: "beast", w: 15, h: 15 } };
 const riftF1Open = r => !!(r && r.floor === 1 && partyRank() <= RIFT_RANK && (r.day === 3 || (r.day === 4 && r.act <= 2)));
 function riftSync() {
-  const r = state.run; if (!r || r.floor !== 1 || r.rift) return;
+  const r = state.run; if (r && r.floor === 2 && !r.rift) { pastSync(); return; }
+  if (!r || r.floor !== 1 || r.rift) return;
   const R = r.riftsF1;
   if (riftF1Open(r) && !R) {
     const byZone = {};
@@ -2565,16 +2623,16 @@ function riftSync() {
     dgUi.res = { title: "Разломы открылись", roll: "", pic: "rift-open", lines: ["Разломы открылись на 1 этаже.", "В каждой зоне появился портал разлома; они закроются после 2-го действия 4-го дня."] };
   } else if (R && !R.closed && (r.day > 4 || (r.day === 4 && r.act > 2))) { R.closed = true; logRun("Разломы на 1 этаже закрылись."); }
 }
-const riftAt = (x, y) => { const r = state.run, R = r && r.floor === 1 && r.riftsF1; const t = R && !R.closed && R.tiles[tkey(x, y)]; return t && !t.done ? t : null; };
+const riftAt = (x, y) => { const r = state.run, R = r && (r.floor === 1 ? r.riftsF1 : r.floor === 2 ? r.riftsF2 : null); const t = R && !R.closed && R.tiles[tkey(x, y)]; return t && !t.done ? t : null; };
 function riftMarks(px, py, up) {
-  const r = state.run, R = r && r.floor === 1 && r.riftsF1, out = []; if (!R || R.closed) return out;
+  const r = state.run, R = r && (r.floor === 1 ? r.riftsF1 : r.floor === 2 ? r.riftsF2 : null), out = []; if (!R || R.closed) return out;
   for (const [k, t] of Object.entries(R.tiles)) { if (t.done) continue; const [x, y] = k.split(",").map(Number); if (Math.max(Math.abs(x - px), Math.abs(y - py)) > 5) continue;
     out.push(up((x - px) * T, (y - py) * T, `<ellipse rx="13" ry="17" fill="#2a0a2e" stroke="#c45cff" stroke-width="2.5"/><ellipse rx="7" ry="11" fill="#c45cff" opacity=".55"/>`)); }
   return out;
 }
 const riftButtons = () => { const r = state.run, t = r && !r.rift && riftAt(r.pos.x, r.pos.y); return t ? [{ id: "rift-enter", label: "Войти в разлом", sub: RIFTS[t.id].name }] : []; };
 // ----- карта разлома -----
-const riftCell = (R, x, y) => R.id === "blood" ? ((y >= 0 && y <= 4 && x >= 0 && x <= 4) || (y >= 5 && y <= 14 && x >= 1 && x <= 3)) : R.id === "ice" ? (x >= 0 && x <= 2 && y >= 0 && y <= 14) : R.id === "sand" ? (x >= 0 && x <= 14 && y >= 0 && y <= 14) : R.id === "mine" ? (x >= 0 && x < R.w && y >= 0 && y < R.h) : false;
+const riftCell = (R, x, y) => R.id === "blood" ? ((y >= 0 && y <= 4 && x >= 0 && x <= 4) || (y >= 5 && y <= 14 && x >= 1 && x <= 3)) : R.id === "ice" ? (x >= 0 && x <= 2 && y >= 0 && y <= 14) : R.id === "sand" ? (x >= 0 && x <= 14 && y >= 0 && y <= 14) : R.id === "mine" ? (x >= 0 && x < R.w && y >= 0 && y < R.h) : R.id === "past" ? (x >= 0 && x < 15 && y >= 0 && y < 15) : false;
 function riftBuild(id) {
   const D = RIFTS[id], R = { id, w: D.w, h: D.h, steps: 0, visited: [], cleared: {}, done: {} };
   if (id === "blood") {
@@ -2589,6 +2647,7 @@ function riftBuild(id) {
     R.cold = {}; for (const c of state.party) if (!c.dead) R.cold[c.id] = 0;
   }
   if (id === "mine") { R.level = 1; mineLevel(R); return R; }
+  if (id === "past") pastGen(R);
   if (id === "sand") {          // пустыня 15 × 15 (спецификация автора): старт внизу по центру, 2 утопающих маяка, страж в центре (7,7) — после обоих маяков
     R.start = { x: 7, y: 14 }; R.boss = { x: 7, y: 7 }; R.minis = {};
     const ok = (x, y) => y <= 11 && !(x >= 6 && x <= 9 && y >= 6 && y <= 9);
@@ -2604,11 +2663,11 @@ function riftEnter() {
   const r = state.run, t = riftAt(r.pos.x, r.pos.y); if (!t) return;
   r.rift = riftBuild(t.id); r.rift.save = { day: r.day, act: r.act, key: tkey(r.pos.x, r.pos.y) };
   logRun(`Отряд входит в разлом «${RIFTS[t.id].name}». Время этажа остановилось.`);
-  dgUi.res = { title: RIFTS[t.id].name, roll: "", pic: "rift-enter", lines: t.id === "mine" ? ["Портал схлопывается за спиной. Здесь время этажа не идёт; на выходе пройдёт 2 дня.", "Пять уровней штолен: спуск на каждом — в одном из дальних рядов. 4-й уровень тёмный — берите факелы. В конце — логово короля слизи.", "Жилы богаты камнями: здесь можно копать, если есть лопата."] : t.id === "sand" ? ["Портал схлопывается за спиной. Здесь время этажа не идёт; на выходе пройдёт 2 дня.", "Где-то в барханах тонут два древних маяка. Подойдёшь ближе — почувствуешь их зов. Раскачай маяк, и на зов явится его хозяин.", "Когда утонут оба маяка, в центре пустыни проснётся Кель. В бою берегитесь зыбучего песка."] : t.id === "ice" ? ["Портал схлопывается за спиной. Здесь время этажа не идёт; на выходе пройдёт 2 дня.", "Холод: каждый шаг без горящего факела — +1 к замерзанию (до 10). С факелом холод спадает на 2, но факел тут горит на 1 ход меньше. В боях на поле стоят имперские жаровни — их можно разжечь.", "Внизу пещеры — страж у огромной жаровни и сундук."] : ["Портал схлопывается за спиной. Здесь время этажа не идёт; на выходе пройдёт 2 дня.", "Ищите спуск в последнем ряду двора — он ведёт на 5 уровней вниз, в канализацию. В конце коридора — страж и сундук."] };
+  dgUi.res = { title: RIFTS[t.id].name, roll: "", pic: "rift-enter", lines: t.id === "past" ? PAST_INTRO : t.id === "mine" ? ["Портал схлопывается за спиной. Здесь время этажа не идёт; на выходе пройдёт 2 дня.", "Пять уровней штолен: спуск на каждом — в одном из дальних рядов. 4-й уровень тёмный — берите факелы. В конце — логово короля слизи.", "Жилы богаты камнями: здесь можно копать, если есть лопата."] : t.id === "sand" ? ["Портал схлопывается за спиной. Здесь время этажа не идёт; на выходе пройдёт 2 дня.", "Где-то в барханах тонут два древних маяка. Подойдёшь ближе — почувствуешь их зов. Раскачай маяк, и на зов явится его хозяин.", "Когда утонут оба маяка, в центре пустыни проснётся Кель. В бою берегитесь зыбучего песка."] : t.id === "ice" ? ["Портал схлопывается за спиной. Здесь время этажа не идёт; на выходе пройдёт 2 дня.", "Холод: каждый шаг без горящего факела — +1 к замерзанию (до 10). С факелом холод спадает на 2, но факел тут горит на 1 ход меньше. В боях на поле стоят имперские жаровни — их можно разжечь.", "Внизу пещеры — страж у огромной жаровни и сундук."] : ["Портал схлопывается за спиной. Здесь время этажа не идёт; на выходе пройдёт 2 дня.", "Ищите спуск в последнем ряду двора — он ведёт на 5 уровней вниз, в канализацию. В конце коридора — страж и сундук."] };
 }
 function riftExit() {
   const r = state.run, R = r.rift; if (!R) return;
-  const t = r.riftsF1 && r.riftsF1.tiles[R.save.key]; if (t) t.done = true;
+  const RF = r.floor === 2 ? r.riftsF2 : r.riftsF1, t = RF && RF.tiles[R.save.key]; if (t) t.done = true;
   r.day = R.save.day + RIFT_EXIT_DAYS; r.act = R.save.act; r.rift = null;
   logRun(`Отряд вышел из разлома. Снаружи прошло ${RIFT_EXIT_DAYS} дня — сейчас день ${r.day}.`);
   if (r.day > FL().days) { r.day = FL().days; r.act = FL().acts; r.ending ||= "time"; }
@@ -2623,7 +2682,7 @@ function mineLevel(R) {
   const free = () => { for (let g = 0; g < 50; g++) { const x = rnd(w), y = rnd(h); if ((x !== R.start.x || y !== R.start.y) && !(R.descent && x === R.descent.x && y === R.descent.y)) return tkey(x, y); } return tkey(0, 0); };
   if (R.level === 2) R.minis[free()] = "kobold-captain"; if (R.level === 3) R.minis[free()] = "goblin-foreman";
 }
-const mineDark = R => R.id === "mine" && R.level === 4 && !state.run.light;
+const mineDark = R => R.id === "mine" && R.level === 4 && !state.run.light && !(typeof partyGlow === "function" && partyGlow());
 function riftDig() {          // раскопки в шахте: раз на клетку, лопата изнашивается как обычно (шахтёр/прораб берегут её), камни щедрее
   const r = state.run, R = r.rift; if (!R || R.id !== "mine" || dgUi.enc) return; const k = R.level + ":" + tkey(R.pos.x, R.pos.y); if (R.dug[k]) return;
   const dg = typeof pickShovel === "function" ? pickShovel() : null; if (!dg) { toast("Нужна лопата"); return; }
@@ -2685,6 +2744,7 @@ const RIFT_POOL = { yard: { 9: ["skeleton", "zombie", "skeleton-archer", "ghoul"
   mine: { 9: ["goblin-miner", "kobold", "slime"], 8: ["kobold-guard", "goblin-blaster", "acid-slime", "stone-slime", "split-slime", "cart-mimic"] },
   mine4: { 9: ["slime", "kobold", "goblin-miner"], 8: ["mine-ghost", "mine-ghost", "acid-slime", "stone-slime", "split-slime", "cart-mimic"] } };
 function riftGroup(R, y, sev) {
+  if (R.id === "past") return pastGroup(R, sev);
   const P = RIFT_POOL[R.id === "mine" ? (R.level === 4 ? "mine4" : "mine") : R.id === "ice" || R.id === "sand" ? R.id : y <= 4 ? "yard" : "sewer"], pk = a => a[rnd(a.length)];
   if (sev === "easy") return [pk(P[9]), pk(P[9]), ...(Math.random() < .5 ? [pk(P[9])] : [])];
   if (sev === "mid") return [pk(P[8]), pk(P[9]), pk(P[9])];
@@ -2712,9 +2772,10 @@ function riftColdStep(d0) {
     const st = COLD_STEPS.find(([n]) => was < n && now >= n); if (st) logRun(`${c.name}: холод ${now}/10 — ${st[1]}.`);
     if (now === 10 && was < 10) { c.hp = Math.max(1, hpOf(c) - 1); logRun(`${c.name} коченеет: −1 ОЗ от холода.`); } }
 }
-function riftFight(title, list, o = {}) { const R = state.run.rift; startSpecial(title, { zone: RIFTS[R.id].zone, place: RIFTS[R.id].name, list, ...(R.id === "ice" ? { cold: R.cold, big10: true, bigBrazier: list[0] === "half-troll" } : R.id === "sand" ? { big10: true } : R.id === "mine" ? { mineLevel: R.level, dark: mineDark(R) } : {}) }, o); dgUi.enc.riftKey = tkey(R.pos.x, R.pos.y); }
+function riftFight(title, list, o = {}) { const R = state.run.rift; startSpecial(title, { zone: RIFTS[R.id].zone, place: RIFTS[R.id].name, list, ...(R.id === "ice" ? { cold: R.cold, big10: true, bigBrazier: list[0] === "half-troll" } : R.id === "sand" ? { big10: true } : R.id === "mine" ? { mineLevel: R.level, dark: mineDark(R) } : R.id === "past" ? { dark: pastDark(R), big10: ["fallen-keeper", "naturalist", "luna"].includes(list[0]) } : {}) }, o); dgUi.enc.riftKey = tkey(R.pos.x, R.pos.y); }
 function riftMove(x, y) {
   const r = state.run, R = r.rift; if (!R || dgUi.enc) return;
+  if (R.id === "past") { pastMove(x, y); return; }
   if (Math.abs(x - R.pos.x) + Math.abs(y - R.pos.y) !== 1 || !riftCell(R, x, y)) return;
   if (R.id === "blood" && y >= 5 && R.pos.y <= 4) return;          // во двор назад и вниз — только через спуск
   if (R.id === "blood" && y <= 4 && R.pos.y >= 5) return;
@@ -2757,17 +2818,20 @@ function riftSupplies() {
 }
 function riftRest() {
   const r = state.run, R = r.rift; if (!R || dgUi.enc) return;
-  const lines = [];
+  const lines = [], pk = R.id === "past" ? pastTile(R, R.pos.x, R.pos.y) : "", pmul = pk === "stream" ? 2 : 1;          // ручей — отдых вдвое сильнее
+  if (pk === "lab" && !R.natDead) { toast("Сначала откройте лабораторию"); return; }
   for (const c of state.party) { if (c.dead) continue; const st = r.status[c.id]; const got = eatRations(c, 1); if (got) { st.sat = Math.min(9, st.sat + 3); st.starve = 0; } st.fat = Math.max(0, st.fat - 2); st.awake = 0;
-    const h = Math.max(1, Math.round(maxHp(c) * 0.3)); c.hp = Math.min(maxHp(c), hpOf(c) + h); c.mp = Math.min(maxMp(c), (c.mp ?? 0) + Math.ceil(maxMp(c) / 2)); lines.push(`${c.name}: +${h} ОЗ${got ? "" : " (без еды)"}`); }
-  R.steps += 3; logRun("Разлом: привал. " + lines.join("; "));
+    const h = Math.max(1, Math.round(maxHp(c) * 0.3 * pmul + maxHp(c) * restBonusPct())); c.hp = Math.min(maxHp(c), hpOf(c) + h); c.mp = Math.min(maxMp(c), (c.mp ?? 0) + (pmul > 1 ? maxMp(c) : Math.ceil(maxMp(c) / 2))); if (pmul > 1) st.fat = Math.max(0, st.fat - 2); lines.push(`${c.name}: +${h} ОЗ${got ? "" : " (без еды)"}`); }
+  R.steps += 3; r.canBrew = true; logRun("Разлом: привал. " + lines.join("; "));
+  if (R.id === "past") { const out = pastRestAfter(R, pk, lines); if (out) return; }
   if (R.cold) { riftColdStep(r.light ? -2 : 1); lines.push(r.light ? "Факел греет: холод −2." : "Без огня привал студит: холод +1."); }
-  if (rnd(6) === 0) { riftFight("Нападение на привале", riftGroup(R, R.pos.y, "mid")); return; }
+  if (R.id !== "past" && rnd(6) === 0) { riftFight("Нападение на привале", riftGroup(R, R.pos.y, "mid")); return; }
   dgUi.res = { title: "Привал в разломе", roll: "", lines };
 }
 function riftChest() {
   const r = state.run, R = r.rift; if (!R || !R.bossDead || R.chestOpen) return;
   R.chestOpen = true; const x = fireChestRoll(), lines = [x.line, giveParty({ t: "g", id: "stone-8", qty: 3, noGem: true }), giveParty({ t: "g", id: "stone-7", qty: 2, noGem: true })];
+  if (R.id === "past" && Math.random() < .4) { addToBag(state.party.find(c => !c.dead), { t: "g", id: "mutagen-syringe", qty: 1 }); lines.push("Эксклюзив лаборатории: «Шприц мутагена» (8 класс)."); }          // шанс 40 % (автор 08.11)
   if (R.id === "ice" && !treasureOwned("frost-amulet")) { addToBag(state.party.find(c => !c.dead), { t: "g", id: "frost-amulet", qty: 1 }); lines.push("Бонус грота: «Амулет инея» (9 класс) — +1к4 к урону холодом."); }
   logRun(`Сундук разлома открыт (к20 = ${x.d}): ${lines.join(" ")}`); dgUi.res = { title: "Сундук стража", roll: `к20 = ${x.d}`, lines };
 }
@@ -2781,11 +2845,13 @@ function riftFightDone(e, killed) {
   if (ids.includes("kel-worm")) { R.bossDead = true; logRun("Кель повержен: сундук стража открыт для отряда."); }
   if (ids.includes("half-troll")) { R.bossDead = true; logRun("Грольф повержен: сундук стража открыт для отряда."); }
   if (R.cold && e.cold) for (const [k, v] of Object.entries(e.cold)) R.cold[k] = v;          // холод после боя
+  if (R.id === "past") pastFightDone(R, e, ids);
 }
 // Экран разлома (v115): заменяет карту этажа в рамке .stage — камера на отряде, как на обычной карте; полная схема — по кнопке «Карта».
-const riftCanStep = (R, x, y) => riftCell(R, x, y) && Math.abs(x - R.pos.x) + Math.abs(y - R.pos.y) === 1 && !(R.id === "blood" && ((y >= 5 && R.pos.y <= 4) || (y <= 4 && R.pos.y >= 5)));
+const riftCanStep = (R, x, y) => riftCell(R, x, y) && Math.abs(x - R.pos.x) + Math.abs(y - R.pos.y) === 1 && !(R.id === "past" && pastTile(R, x, y) === "roots") && !(R.id === "blood" && ((y >= 5 && R.pos.y <= 4) || (y <= 4 && R.pos.y >= 5)));
 function riftMarkOf(R, x, y, seen, near) {
   const k = tkey(x, y);
+  if (R.id === "past") return pastMarkOf(R, x, y, seen, near);
   if (R.id === "sand") { const bi = sandBeaconAt(R, x, y); if (bi >= 0 && (seen || near || R.beacons[bi].felt)) return R.beacons[bi].done ? "beaconDone" : "beacon";
     if (R.boss && x === R.boss.x && y === R.boss.y && !sandBossReady(R)) return seen || near ? "sandStir" : ""; }
   if (R.descent && x === R.descent.x && y === R.descent.y && (seen || near) && !mineDark(R)) return "descent";
@@ -2812,34 +2878,43 @@ function riftStage() {
   const sq = (x, y, attrs) => `<rect x="${(x - px) * T - T / 2 + 2}" y="${(y - py) * T - T / 2 + 2}" width="${T - 4}" height="${T - 4}" rx="${PX.ok ? 2 : 6}" ${attrs}/>`;
   const at = (x, y, inner) => `<g transform="translate(${(x - px) * T} ${(y - py) * T})">${inner}</g>`;
   const zoneSty = y => R.id === "blood" ? (y <= 4 ? "undead" : "crypt") : R.id === "ice" ? "mines" : R.id === "sand" ? "camp" : R.id === "mine" ? "cave" : "cave";
-  const fillOf = (x, y) => PX.ok ? PX.fill(zoneSty(y), tileHash(x, y + 50)) : R.id === "ice" ? "#3c4a58" : (y <= 4 ? "#494557" : "#4a2a30");
+  const fillOf = (x, y) => R.id === "past" ? PAST_FILL[pastTile(R, x, y)] || "#2f4a2a" : PX.ok ? PX.fill(zoneSty(y), tileHash(x, y + 50)) : R.id === "ice" ? "#3c4a58" : (y <= 4 ? "#494557" : "#4a2a30");
   for (let y = 0; y < R.h; y++) for (let x = 0; x < R.w; x++) {
     if (!riftCell(R, x, y) || Math.abs(x - px) > 4 || Math.abs(y - py) > 4) continue;
     const k = tkey(x, y), cur = x === px && y === py, seen = R.visited.includes(k), near = Math.abs(x - px) + Math.abs(y - py) === 1, go = riftCanStep(R, x, y);
     if (cur) continue;
-    if (seen) parts.push(sq(x, y, `fill="${fillOf(x, y)}" stroke="#6e5634" stroke-width="1.2"`), R.id === "blood" && y >= 5 ? sq(x, y, `fill="#6a0e18" opacity=".28" pointer-events="none"`) : "");
+    const pastSee = R.id === "past" && (near || pastTile(R, x, y) === "roots" && Math.abs(x - px) + Math.abs(y - py) <= 2 || pastTile(R, x, y) === "keeper");
+    if (seen || pastSee) parts.push(sq(x, y, `fill="${fillOf(x, y)}" stroke="#6e5634" stroke-width="1.2"${seen ? "" : ` opacity=".7"`}`), R.id === "past" && pastTile(R, x, y) === "roots" ? at(x, y, RIFT_ICO.roots) : "", R.id === "blood" && y >= 5 ? sq(x, y, `fill="#6a0e18" opacity=".28" pointer-events="none"`) : "");
     else parts.push(sq(x, y, `fill="#120c10" stroke="#2c1a20" stroke-width="1.2"`));
     if (R.id === "ice" && seen) parts.push(sq(x, y, `fill="#bfe4ff" opacity=".14" pointer-events="none"`));
     const m = riftMarkOf(R, x, y, seen, near); if (m) parts.push(at(x, y, `<g transform="scale(.9)">${RIFT_ICO[m]}</g>`));
+    if (R.id === "past" && near && pastTile(R, x, y) === "roots") parts.push(`<g class="tile-hit" data-rift="roots">${sq(x, y, `fill="transparent"`)}</g>`);
     if (go) parts.push(`<g class="tile-hit" data-rift="move" data-x="${x}" data-y="${y}">${sq(x, y, `fill="${seen ? "rgb(214 166 76 / .14)" : "rgb(120 110 95 / .22)"}" stroke="#f4d48e" stroke-width="1.8" stroke-dasharray="6 5"`)}
-      ${seen || m ? "" : at(x, y, `<text text-anchor="middle" dominant-baseline="central" font-family="Kelly Slab, Georgia, serif" font-size="22" fill="#f4d48e" opacity=".75">?</text>`)}</g>`);
+      ${seen || m || pastSee ? "" : at(x, y, `<text text-anchor="middle" dominant-baseline="central" font-family="Kelly Slab, Georgia, serif" font-size="22" fill="#f4d48e" opacity=".75">?</text>`)}</g>`);
   }
   parts.push(sq(px, py, `fill="${fillOf(px, py)}" stroke="#f4d48e" stroke-width="2.5"`));
   if (R.id === "blood" && py >= 5) parts.push(sq(px, py, `fill="#6a0e18" opacity=".28"`));
   if (R.id === "ice") parts.push(sq(px, py, `fill="#bfe4ff" opacity=".14"`));
   if (r.light) parts.push(`<circle r="${T * 1.6}" fill="url(#torchGlow)" pointer-events="none"/>`);
+  if (R.id === "past" && !R.keeperDead && Math.max(Math.abs(PAST_KEEP.x - px), Math.abs(PAST_KEEP.y - py)) > 3) {          // хранитель виден издалека: стрелка к нему на краю экрана
+    const dx = PAST_KEEP.x - px, dy = PAST_KEEP.y - py, k = T * 3.1 / Math.max(Math.abs(dx), Math.abs(dy)), ang = Math.atan2(dy, dx) * 180 / Math.PI;
+    parts.push(`<g transform="translate(${dx * k} ${dy * k})" pointer-events="none"><circle r="15" fill="#c4ff6a" opacity=".22"/><g transform="rotate(${ang})"><path d="M-7 -8 L9 0 L-7 8 Z" fill="#c4ff6a" stroke="#1c2a10" stroke-width="1.5"/></g></g>`);
+  }
   const here = riftMarkOf(R, px, py, true, true);
   if (here && here !== "descent") parts.push(`<g transform="translate(-16 -16) scale(.6)">${RIFT_ICO[here]}</g>`);
   parts.push(`<g transform="${here && here !== "descent" ? "translate(8 8) scale(.8)" : ""}">${ICON.party}</g>`);
   if (mineDark(R)) parts.push(`<rect x="${-T * 4}" y="${-T * 4}" width="${T * 8}" height="${T * 8}" fill="#000" opacity=".55" pointer-events="none"/>`);
   const half = T * 3.6, atStart = R.pos.x === R.start.x && R.pos.y === R.start.y && (R.id !== "mine" || R.level === 1), atBoss = R.boss && px === R.boss.x && py === R.boss.y;
-  const part = R.id === "mine" ? `Шахта · уровень ${R.level}/5${mineDark(R) ? " · тьма" : ""}` : R.id === "sand" ? `Пустыня · маяки ${R.beacons.filter(b => b.done).length}/2` : R.id === "blood" ? (py <= 4 ? "Двор крепости" : `Канализация · ряд ${py - 4} из ${R.h - 5}`) : R.id === "ice" ? `Пещера · ряд ${py + 1} из ${R.h}` : "";
+  const part = R.id === "past" ? `${PAST_NAME[pastTile(R, px, py)]} · след ${R.trail}/10 · ключ-карты ${R.keys}/3` : R.id === "mine" ? `Шахта · уровень ${R.level}/5${mineDark(R) ? " · тьма" : ""}` : R.id === "sand" ? `Пустыня · маяки ${R.beacons.filter(b => b.done).length}/2` : R.id === "blood" ? (py <= 4 ? "Двор крепости" : `Канализация · ряд ${py - 4} из ${R.h - 5}`) : R.id === "ice" ? `Пещера · ряд ${py + 1} из ${R.h}` : "";
   const coldRow = R.cold ? `<div class="rf-cold">${state.party.filter(c => !c.dead).map(c => { const v = R.cold[c.id] || 0; return `<span class="${v >= 8 ? "hi" : v >= 4 ? "mid" : ""}" title="Холод ${v}/10">❄ ${esc(c.name.split(" ")[0])} ${v}</span>`; }).join("")}</div>` : "";
   return `<svg viewBox="${-half} ${-half} ${half * 2} ${half * 2}" id="rf-svg" role="img" aria-label="${esc(D.name)}"><defs>${ICON_DEFS}</defs>${parts.join("")}</svg>
     <button class="fx-btn corner-btn l" data-rift="map" aria-label="Схема разлома">${ICO_MAP}Карта</button>
     <div class="phase-pill rf-pill" style="top:58px">${esc(part)}</div>${coldRow}
     <div class="rf-bar">
-      <button class="fx-btn" data-rift="rest">${ICO_ACT.rest}Привал</button>
+      ${R.id === "past" && R.signs[tkey(px, py)] ? `<button class="fx-btn primary" data-rift="sign">Прочитать табличку</button>` : ""}
+      ${R.id === "past" ? pastBar(R, px, py) : ""}
+      ${brewButtons().map(b => `<button class="fx-btn" data-rift="${b.id}"${b.disabled ? " disabled" : ""}>${b.label}<small>${b.sub}</small></button>`).join("")}
+      ${R.id === "past" && pastTile(R, px, py) === "lab" && !R.natDead ? "" : `<button class="fx-btn" data-rift="rest">${ICO_ACT.rest}${R.id === "past" ? ({ stream: "Отдых у ручья", hollow: "Спрятаться в дупле", glade: "Отдохнуть на поляне", lab: "Отдохнуть" })[pastTile(R, px, py)] || "Привал" : "Привал"}</button>`}
       ${r.light ? `<button class="fx-btn" data-dg="torch-off"><img src="${artPath("field/torch-on")}" alt="" width="18" height="18">Погасить факел</button>` : `<button class="fx-btn" data-dg="torch-on"${partyTorches() || r.torchLeft > 0 ? "" : " disabled"}><img src="${artPath("field/torch-off")}" alt="" width="18" height="18">Факел (${partyTorches()})</button>`}
       ${R.id === "mine" && !R.dug[R.level + ":" + tkey(px, py)] && shovelsOf().length ? `<button class="fx-btn" data-rift="dig">${ICO_ACT.dig}Копать</button>` : ""}
       ${R.id === "sand" && sandBeaconAt(R, px, py) >= 0 && !R.beacons[sandBeaconAt(R, px, py)].done ? `<button class="fx-btn primary" data-rift="beacon">Раскачать маяк</button>` : ""}
@@ -2851,24 +2926,191 @@ function riftMapOverlay() {
   const r = state.run, R = r.rift, D = RIFTS[R.id];
   let cells = "";
   for (let y = 0; y < R.h; y++) for (let x = 0; x < R.w; x++) {
-    if (!riftCell(R, x, y)) { cells += `<span class="rf-c rf-wall"></span>`; continue; }
+    if (!riftCell(R, x, y) || (R.id === "past" && pastTile(R, x, y) === "roots")) { cells += `<span class="rf-c rf-wall"></span>`; continue; }
     const k = tkey(x, y), cur = R.pos.x === x && R.pos.y === y, seen = R.visited.includes(k), near = Math.abs(x - R.pos.x) + Math.abs(y - R.pos.y) === 1;
-    const m = riftMarkOf(R, x, y, seen, near), mark = cur ? "●" : { descent: "▼", mini: "☠", boss: "♛", chest: "◆", open: "✓", exit: "◎", beacon: "♜", beaconDone: "·", sandStir: "≈" }[m] || "";
-    cells += `<span class="rf-c${cur ? " rf-cur" : seen ? " rf-seen" : ""}">${mark}</span>`;
+    const m = riftMarkOf(R, x, y, seen, near), mark = cur ? "●" : { descent: "▼", mini: "☠", boss: "♛", chest: "◆", open: "✓", exit: "◎", beacon: "♜", beaconDone: "·", sandStir: "≈", keeperGlow: "✶", lab: "⌂", sign: "▭" }[m] || "";
+    cells += `<span class="rf-c${cur ? " rf-cur" : seen ? " rf-seen" : ""}"${R.id === "past" && seen && !cur ? ` style="background:${PAST_FILL[pastTile(R, x, y)]}"` : m === "keeperGlow" ? ` style="color:#c4ff6a"` : ""}>${mark}</span>`;
   }
   return `<div class="mapov" role="dialog" aria-modal="true" aria-label="Схема: ${esc(D.name)}">
     <div class="panel fx-frame enc-panel">
       <div class="ph-head"><h3>${esc(D.name)}</h3><button class="fx-btn" data-rift="map" aria-label="Закрыть схему" style="width:42px;height:42px;padding:0;display:grid;place-items:center">${ICO_X}</button></div>
       <div class="rf-grid" style="grid-template-columns:repeat(${R.w},1fr)">${cells}</div>
-      <p class="rf-legend">● отряд · ${R.id === "ice" ? "" : R.id === "sand" ? "♜ маяк · " : "▼ спуск · "} ☠ минибосс · ♛ страж · ◆ сундук · ◎ выход</p>
+      <p class="rf-legend">● отряд · ${R.id === "past" ? "✶ хранитель · ⌂ лаборатория · ▭ табличка · ▒ корни · " : R.id === "ice" ? "" : R.id === "sand" ? "♜ маяк · " : "▼ спуск · "} ☠ минибосс · ♛ страж · ◆ сундук · ◎ выход</p>
     </div></div>`;
 }
+// ===== Разлом 2 этажа «Чаща прошлого» (звери; спецификация автора 08.11) =====
+// Карта 15×15 генерируется: старт — левый нижний угол, лаборатория — правый верхний. Диагональ x = y — стена корней,
+// единственный проход — клетка Падшего хранителя в центре (7,7); после победы корни увядают. Шкала следа 0–10: на 10 нападает лютоволк.
+const restBonusPct = () => (partyHas("fallen-keeper") ? 0.15 : 0);
+// «Мастер зелий» (старший алхимик, 08.11): после привала — отдельное действие «Сварить зелье»: 2 травы → зелье лечения, 4 травы → хорошее зелье; раз за привал
+const HERB_IDS = ["herb-heal", "herb-mana", "herb-poison", "herb-food", "herb-rest"];
+const herbCount = () => state.party.reduce((a, c) => a + (c.bag || []).filter(e => e.t === "g" && HERB_IDS.includes(e.id)).reduce((q, e) => q + e.qty, 0), 0);
+const canBrew = () => !!(state.run && state.run.canBrew && partyHas("senior-alch"));
+function brewButtons() { if (!canBrew()) return []; const n = herbCount(); return [{ id: "brew2", label: "Сварить зелье", sub: `2 травы → зелье лечения (трав: ${n})`, disabled: n < 2 }, ...(n >= 4 ? [{ id: "brew4", label: "Сварить хорошее зелье", sub: `4 травы → зелье лечения+ (трав: ${n})` }] : [])]; }
+function brewPotion(k) {
+  if (!canBrew() || herbCount() < k) return; let left = k;
+  for (const c of state.party) for (const e of (c.bag || []).filter(e => e.t === "g" && HERB_IDS.includes(e.id))) { if (!left) break; const t = Math.min(left, e.qty); e.qty -= t; left -= t; }
+  for (const c of state.party) c.bag = (c.bag || []).filter(e => !(e.t === "g" && e.qty <= 0));
+  state.run.canBrew = false; const line = giveParty({ t: "g", id: k >= 4 ? "potion-good" : "potion", qty: 1 });
+  logRun(`Старший алхимик варит зелье из ${k} трав: ${line}`); dgUi.res = { title: "Варка зелья", roll: "", lines: [`Из ${k} трав сварено: ${line}`] };
+}          // «Корни земли» хранителя: на любом привале всем +15 % ОЗ
+const PAST_LAB = { x: 14, y: 0 }, PAST_KEEP = { x: 7, y: 7 }, PAST_START = { x: 0, y: 14 };
+const PAST_NAME = { thicket: "Чаща", dense: "Густая чаща", stream: "Ручей", hollow: "Дупло", glade: "Поляна", roots: "Корни", lab: "Лаборатория", keeper: "Сердце чащи" };
+const PAST_SIGN = {          // таблички (тексты утверждены автором 08.11)
+  start: "ОН СЛЕДИТ ЗА НАМИ",
+  thicket: "тропы путаются… шли на восток — вышли к тому же пню. дважды. держитесь вместе. кто знает лес — пусть ведёт",
+  dense: "темно даже днём. огонь. ДЕРЖИТЕ ОГОНЬ. Тим пошёл на шорох без факела… мы слышали только хруст",
+  stream: "вода смывает запах. он теряет след. здесь можно спать… можно… наконец-то",
+  hollow: "залезли в дупло. он прошёл мимо. дышал прямо над нами. не выходите. не выходите до утра",
+  glade: "НЕ ОТДЫХАЙТЕ НА ПОЛЯНЕ. солнце, трава, тишина… так они приманивают. мы сели всего на минуту",
+  lab: "дверь не берёт ни топор ни огонь. нужны карты — три. у волков из лаборатории, на ошейниках… у меня одна. уже не успею",
+};
+const PAST_INTRO = ["Портал схлопывается за спиной. Здесь время этажа не идёт; на выходе пройдёт 2 дня.", "Древний лес, каким он был до Волчьей чащи. Где-то в правом верхнем углу — лаборатория.", "Что-то идёт по вашему следу: шум шагов, огонь и поляны его приманивают, ручьи и дупла сбивают со следа."];
+const PAST_POOL = {
+  9: ["wolf", "crow", "horned-hare", "moss-hedgehog", "firefly-swarm", "branded-critter"],
+  8: ["web-spider", "dire-wolf", "tree-lynx", "chimera-hound", "homunculus", "alch-intern"],
+  7: ["werewolf", "mutant-boar", "fled-chimera", "swarm-mother", "senior-alch", "lab-direwolf"],
+};
+const pastHas = id => MONSTERS.some(m => m.id === id);
+const pastPick = cls => { const a = PAST_POOL[cls].filter(pastHas); return a[rnd(a.length)]; };
+const pastTile = (R, x, y) => (R.keeperDead && R.map[tkey(x, y)] === "roots" ? "thicket" : R.map[tkey(x, y)]);
+const pastNearLab = (x, y) => Math.max(Math.abs(x - PAST_LAB.x), Math.abs(y - PAST_LAB.y)) <= 3;
+const partyGlow = () => partyHas("firefly-swarm") || partyHas("swarm-mother");          // «Живой свет» роя: тьма — как с факелом
+const pastDark = R => !state.run.light && !partyGlow() && pastTile(R, R.pos.x, R.pos.y) === "dense";
+function pastGen(R) {
+  const N = 15, m = {}, inB = (x, y) => x >= 0 && y >= 0 && x < N && y < N, set = (x, y, t) => { if (inB(x, y)) m[tkey(x, y)] = t; };
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) m[tkey(x, y)] = "thicket";
+  for (let i = 0; i < 9; i++) { let x = rnd(N), y = rnd(N); for (let j = 0; j < 7; j++) { set(x, y, "dense"); const [dx, dy] = [[1, 0], [-1, 0], [0, 1], [0, -1]][rnd(4)]; x = Math.max(0, Math.min(N - 1, x + dx)); y = Math.max(0, Math.min(N - 1, y + dy)); } }
+  for (let s = 0; s < 2; s++) {          // ручьи: извилистые полосы через весь лес
+    if (s === 0) { let y = 2 + rnd(11); for (let x = 0; x < N; x++) { set(x, y, "stream"); if (Math.random() < .35) { y = Math.max(0, Math.min(N - 1, y + (rnd(2) ? 1 : -1))); set(x, y, "stream"); } } }
+    else { let x = 2 + rnd(11); for (let y = 0; y < N; y++) { set(x, y, "stream"); if (Math.random() < .35) { x = Math.max(0, Math.min(N - 1, x + (rnd(2) ? 1 : -1))); set(x, y, "stream"); } } }
+  }
+  for (let i = 0; i < 6; i++) { const x = rnd(N), y = rnd(N); set(x, y, "glade"); if (rnd(2)) set(x + (rnd(2) ? 1 : -1), y, "glade"); }
+  for (let i = 0; i < 6; i++) set(rnd(N), rnd(N), "hollow");
+  for (let i = 0; i < N; i++) m[tkey(i, i)] = "roots";          // стена корней по диагонали
+  m[tkey(PAST_KEEP.x, PAST_KEEP.y)] = "keeper"; m[tkey(PAST_LAB.x, PAST_LAB.y)] = "lab"; m[tkey(PAST_START.x, PAST_START.y)] = "thicket";
+  R.map = m; R.start = { ...PAST_START }; R.boss = { ...PAST_LAB }; R.minis = {}; R.trail = 0; R.keys = 0; R.explore = 0; R.signs = { [tkey(PAST_START.x, PAST_START.y)]: "start", [tkey(PAST_LAB.x, PAST_LAB.y)]: "lab" }; R.signTypes = {}; R.washed = {};
+}
+function pastSync() {          // порталы разлома на 2 этаже (Волчья чаща): то же окно, что на 1 этаже — 3-й день и до 2-го действия 4-го
+  const r = state.run; if (!r || r.floor !== 2 || r.rift || r.variant !== "beast") return;
+  const open = partyRank() <= RIFT_RANK && (r.day === 3 || (r.day === 4 && r.act <= 2)), R = r.riftsF2;
+  if (open && !R) {
+    const V = FL().variant, free = [];
+    for (let y = 0; y < FL().size; y++) for (let x = 0; x < FL().size; x++) { const pl = V.placeAt ? V.placeAt(x, y) : null; if (tileType(x, y) === "floor" && (!pl || pl.name === SP2.beast.plain) && !(x === r.pos.x && y === r.pos.y)) free.push(tkey(x, y)); }
+    const tiles = {}; for (let i = 0; i < 2 && free.length; i++) tiles[free.splice(rnd(free.length), 1)[0]] = { id: "past" };
+    r.riftsF2 = { tiles };
+    logRun("В Волчьей чаще открылись разломы: два портала в прошлое леса, до середины 4-го дня.");
+    dgUi.res = { title: "Разломы открылись", roll: "", pic: "rift-open", lines: ["В Волчьей чаще открылись два портала разлома — в прошлое этого леса.", "Они закроются после 2-го действия 4-го дня."] };
+  } else if (R && !R.closed && (r.day > 4 || (r.day === 4 && r.act > 2))) { R.closed = true; logRun("Разломы в Волчьей чаще закрылись."); }
+}
+function pastGroup(R, sev) {
+  const lab = pastNearLab(R.pos.x, R.pos.y), c9 = () => pastPick(9), c8 = () => pastPick(8), c7 = () => (lab && Math.random() < .5 && pastHas("lab-direwolf") ? "lab-direwolf" : pastPick(7));
+  if (lab) return sev === "easy" ? [c8(), c9(), c9()] : sev === "mid" ? [c7(), c9(), c9()] : [c7(), c8(), c9()];          // у лаборатории — чаще 7 класс и лютоволки
+  if (sev === "easy") return [c9(), c9(), ...(Math.random() < .5 ? [c9()] : [])];
+  if (sev === "mid") return [c8(), c9(), c9()];
+  return Math.random() < .3 ? [c7(), c9()] : [c8(), c8(), c9()];
+}
+function pastTrail(d, why) {
+  const R = state.run.rift, was = R.trail; R.trail = Math.max(0, Math.min(10, R.trail + d));
+  if (R.trail !== was && why) logRun(`След: ${why} (${was} → ${R.trail}/10).`);
+  pastBirds();
+}
+function pastBirds() {          // щебет птиц стихает по мере роста следа, на 9+ — тишина (звук пришлёт автор)
+  const R = state.run && state.run.rift; const vol = !R || R.id !== "past" ? 0 : R.trail >= 9 ? 0 : 1 - R.trail / 9;
+  if (typeof window !== "undefined" && window.pastBirdsAudio) try { window.pastBirdsAudio(vol); } catch (e) {}
+}
+function pastMove(x, y) {
+  const r = state.run, R = r.rift;
+  if (Math.abs(x - R.pos.x) + Math.abs(y - R.pos.y) !== 1 || !riftCell(R, x, y)) return;
+  if (pastTile(R, x, y) === "roots") { dgUi.res = { title: "Корни", roll: "", lines: ["Сила испорченной природы не даёт пройти."] }; return; }
+  let t = pastTile(R, x, y);
+  if ((t === "thicket" || t === "dense") && !partyEdu("nav2")) {          // чаща: можно заблудиться (тайный бонус «Навигатора: 2 этаж» — не теряться)
+    const wis = Math.max(...state.party.filter(c => !c.dead).map(c => mod((totals(c).wis || {}).total || 10))), d = 1 + rnd(20);
+    if (d + wis < 12) {
+      const opts = [[1, 0], [-1, 0], [0, 1], [0, -1]].map(([dx, dy]) => ({ x: R.pos.x + dx, y: R.pos.y + dy })).filter(p => riftCell(R, p.x, p.y) && !["roots", "keeper", "lab"].includes(pastTile(R, p.x, p.y)) && !(p.x === x && p.y === y));
+      if (opts.length) { const o = opts[rnd(opts.length)]; logRun(`Отряд заблудился в чаще (Мудрость: к20 = ${d} ${wis >= 0 ? "+" : "−"} ${Math.abs(wis)} < 12) и вышел не туда.`); toast("Заблудились в чаще"); x = o.x; y = o.y; t = pastTile(R, x, y); }
+    }
+  }
+  riftTick(); if (t === "thicket" || t === "dense") tick();          // в чаще идти тяжелее: лишнее действие
+  R.prev = { ...R.pos }; R.pos = { x, y }; const k = tkey(x, y), fresh = !R.visited.includes(k); if (fresh) R.visited.push(k);
+  pastTrail(1 + (r.light ? 1 : 0) + (t === "glade" ? 1 : 0), `шаг${r.light ? ", факел" : ""}${t === "glade" ? ", поляна" : ""}`);
+  if (t === "stream" && !R.washed[k]) { R.washed[k] = true; pastTrail(-5, "ручей смыл запах"); }
+  if (fresh && !R.signs[k] && PAST_SIGN[t] && !R.signTypes[t] && Math.max(Math.abs(x - 7), Math.abs(y - 7)) <= 4 && Math.random() < .25) { R.signs[k] = t; R.signTypes[t] = true; logRun("На дереве прибита табличка."); toast("Здесь табличка"); }
+  if (t === "keeper" && !R.keeperDead) { riftFight("Страж разлома: Падший хранитель чащи", pastHas("fallen-keeper") ? ["fallen-keeper", pastPick(9)] : [pastPick(8), pastPick(8)]); dgUi.enc.pastKeeper = true; return; }
+  if (R.trail >= 10) { const list = [pastHas("lab-direwolf") ? "lab-direwolf" : pastPick(7), pastPick(9), ...(Math.random() < .5 ? [pastPick(9)] : [])]; R.trail = 0; pastBirds(); logRun("След привёл его к вам!"); riftFight("Он нашёл вас!", list, { ambush: false }); dgUi.enc.pastChase = true; return; }
+  if (t === "lab" || !fresh || R.cleared[k]) return;
+  const dark = t === "dense" && !r.light && !partyGlow(), d = Math.max(1, 1 + rnd(20) - (dark ? 2 : 0)), roll = `к20 = ${d}${dark ? " (тьма −2)" : ""}`;
+  const sev = t === "glade" ? (d <= 8 ? "hard" : d <= 14 ? "mid" : null) : d <= 6 ? "hard" : d <= 10 ? "mid" : d <= 15 ? "easy" : null;
+  if (sev) { R.cleared[k] = true; riftFight(`${d <= 2 && t !== "glade" ? "Засада" : sev === "hard" ? "Тяжёлая встреча" : sev === "mid" ? "Средняя встреча" : "Лёгкая встреча"} (${roll})`, riftGroup(R, y, sev), d <= 2 ? { ambush: true } : {}); return; }
+  if (t === "glade") { logRun(`Поляна: тихо (${roll}). Здесь можно отдохнуть… но стоит ли?`); return; }
+  if (d <= 18) { const s2 = riftSupplies(); logRun(`Разлом: припасы (${roll}; к20 = ${s2.d}) — ${s2.lines.join("; ")}`); dgUi.res = { title: "Брошенные припасы", roll: `${roll} · припасы к20 = ${s2.d}`, pic: "find", lines: s2.lines }; return; }
+  const line = giveParty({ t: "g", id: Math.random() < .5 ? "stone-9" : "stone-8", qty: 1 + rnd(2) }); logRun(`Разлом: находка (${roll}) — ${line}`); dgUi.res = { title: "Находка", roll, pic: "find", lines: [line] };
+}
+function pastRestAfter(R, pk, lines) {          // особые привалы: ручей — ×2 и спокойно; дупло — спрятаться (след −3); поляна — ловушка; лаборатория — безопасно
+  if (pk === "stream") { lines.push("У ручья спится спокойно: отдых вдвое сильнее."); return false; }
+  if (pk === "hollow") { pastTrail(-3, "отряд спрятался в дупле"); lines.push("Отряд прячется в дупле: никто не нашёл, след остыл (−3)."); return false; }
+  if (pk === "lab") { lines.push("За тяжёлой дверью лаборатории безопасно."); return false; }
+  if (pk === "glade") { if (Math.random() < .5) { riftFight("Ловушка поляны!", riftGroup(R, R.pos.y, Math.random() < .5 ? "hard" : "mid")); return true; } lines.push("На поляне пронесло… в этот раз."); return false; }
+  if (rnd(6) === 0) { riftFight("Нападение на привале", riftGroup(R, R.pos.y, "mid")); return true; }
+  return false;
+}
+function pastFightDone(R, e, ids) {
+  const ws = ids.filter(id => id === "lab-direwolf").length;
+  if (ws && R.keys < 3) { const was = R.keys; R.keys = Math.min(3, R.keys + ws); logRun(`С ошейника лютоволка снята ключ-карта (${R.keys}/3).${R.keys >= 3 ? " Теперь дверь лаборатории откроется." : ""}`); if (R.keys > was) toast(`Ключ-карта ${R.keys}/3`); }
+  if (e.pastKeeper) { if (ids.includes("fallen-keeper") || !pastHas("fallen-keeper")) { R.keeperDead = true; logRun("Падший хранитель повержен: корни увядают, путь к лаборатории открыт."); } else if (R.prev) R.pos = { ...R.prev }; }          // не победили — отряд отходит назад
+  if (e.pastNat && (ids.includes("naturalist") || !pastHas("naturalist"))) { R.natDead = true; logRun("Натуралист повержен: в лаборатории открыт спуск вниз."); }
+  if (e.pastLuna && (ids.includes("luna") || !pastHas("luna"))) { R.bossDead = true; logRun("Луна повержена: сундук лаборатории открыт для отряда."); }
+}
+function pastLabEnter() {
+  const R = state.run.rift; if (R.natDead || R.keys < 3) return;
+  riftFight("Лаборатория: Натуралист-химеролог", pastHas("naturalist") ? ["naturalist", ...(pastHas("homunculus") ? ["homunculus"] : [])] : [pastPick(7), pastPick(8)]); dgUi.enc.pastNat = true; dgUi.enc.dialog = { start: "nat-start", death: "nat-death", who: "naturalist" };
+}
+function pastLabDown() {
+  const R = state.run.rift; if (!R.natDead || R.bossDead) return;
+  riftFight("Нижний ярус: Луна, искусственный ликантроп", pastHas("luna") ? ["luna"] : [pastPick(7), pastPick(7)]); dgUi.enc.pastLuna = true;
+}
+function pastExplore() {          // исследовать лабораторию: 3 раза за заход (автор 08.11)
+  const R = state.run.rift; if (!R.natDead || R.explore >= 3) return;
+  R.explore++; riftTick(); const d = 1 + rnd(20), g = (id, q) => giveParty({ t: "g", id, qty: q }), lines = [];
+  if (d <= 9) lines.push("Битое стекло, пустые клетки, обгоревшие записи — ничего полезного.");
+  else if (d <= 14) lines.push(g("potion", 2));
+  else if (d <= 18) lines.push(g("potion-good", 1), g("stone-9", 2), g("stone-8", 1));
+  else lines.push(g("potion-good", 2), g("stone-8", 2));
+  logRun(`Лаборатория: исследование ${R.explore}/3 (к20 = ${d}) — ${lines.join("; ")}`);
+  dgUi.res = { title: `Исследование лаборатории ${R.explore}/3`, roll: `к20 = ${d}`, pic: "find", lines };
+}
+function pastBar(R, px, py) {          // кнопки на клетке лаборатории
+  if (pastTile(R, px, py) !== "lab") return "";
+  if (!R.natDead) return `<button class="fx-btn primary" data-rift="lab-in"${R.keys >= 3 ? "" : " disabled"}>Войти в лабораторию<small>${R.keys >= 3 ? "дверь откроется" : `нужны 3 ключ-карты (${R.keys}/3)`}</small></button>`;
+  return `${R.explore < 3 ? `<button class="fx-btn" data-rift="lab-explore">Исследовать (${3 - R.explore})</button>` : ""}${R.bossDead ? "" : `<button class="fx-btn primary" data-rift="lab-down">Спуститься в лабораторию</button>`}`;
+}
+function pastMarkOf(R, x, y, seen, near) {
+  const t = pastTile(R, x, y);
+  if (t === "keeper" && !R.keeperDead) return "keeperGlow";          // клетка хранителя подсвечена издалека
+  if (t === "lab") return R.bossDead ? (R.chestOpen ? "open" : "chest") : seen || near || pastNearLab(R.pos.x, R.pos.y) ? "lab" : "";
+  if (R.signs[tkey(x, y)] && (seen || near)) return "sign";
+  if (x === R.start.x && y === R.start.y && seen) return "exit";
+  return "";
+}
+const PAST_FILL = { thicket: "#2f4a2a", dense: "#17281a", stream: "#2c5870", hollow: "#5a4028", glade: "#6f8c3c", roots: "#3a2a1e", lab: "#4a4f5c", keeper: "#2a3a1e" };
+Object.assign(RIFT_ICO, {
+  keeperGlow: `<circle r="24" fill="#c4ff6a" opacity=".18"/><circle r="20" fill="#1c2a10" stroke="#c4ff6a" stroke-width="2.5"/><path d="M-9 8 Q-4 -2 -8 -12 M0 10 V-13 M9 8 Q4 -2 8 -12 M-8 -4 L-14 -9 M8 -4 L14 -9" stroke="#c4ff6a" stroke-width="2.2" fill="none" stroke-linecap="round"/>`,
+  lab: `<rect x="-15" y="-13" width="30" height="26" rx="3" fill="#2a2e38" stroke="#9ad0ff" stroke-width="2"/><rect x="-6" y="-2" width="12" height="15" fill="#11151c" stroke="#9ad0ff" stroke-width="1.5"/><path d="M-11 -8 H11" stroke="#9ad0ff" stroke-width="1.5"/>`,
+  sign: `<rect x="-11" y="-12" width="22" height="13" rx="2" fill="#8a6a3a" stroke="#2a1a0a" stroke-width="2"/><path d="M0 1 V13" stroke="#2a1a0a" stroke-width="3"/><path d="M-6 -7 H6 M-6 -4 H3" stroke="#2a1a0a" stroke-width="1.4"/>`,
+  roots: `<path d="M-18 14 Q-8 2 -14 -14 M-4 16 Q2 0 -4 -16 M10 16 Q4 2 12 -14 M-14 -2 Q0 -8 14 2 M-16 8 Q0 4 16 10" stroke="#8a5a2e" stroke-width="3.2" fill="none" stroke-linecap="round"/><path d="M-12 -8 Q-2 -2 10 -10" stroke="#5a3a1e" stroke-width="2.5" fill="none"/>`,
+});
 if (typeof document !== "undefined") document.addEventListener("click", e => {
   const b = e.target.closest && e.target.closest("[data-rift]"); if (!b || !state.run || !state.run.rift) return;
   const a = b.dataset.rift;
   if (a === "map") { dgUi.riftMap = !dgUi.riftMap; rerender(); return; }
   if (a === "beacon") riftBeacon();
   if (a === "dig") riftDig();
+  if (a === "sign") { const R = state.run.rift, t = R.signs[tkey(R.pos.x, R.pos.y)]; dgUi.res = { title: "Табличка", roll: "", lines: [PAST_SIGN[t]], sign: true }; }
+  if (a === "roots") dgUi.res = { title: "Корни", roll: "", lines: ["Сила испорченной природы не даёт пройти."] };
+  if (a === "lab-in") pastLabEnter();
+  if (a === "brew2" || a === "brew4") brewPotion(a === "brew4" ? 4 : 2);
+  if (a === "lab-down") pastLabDown();
+  if (a === "lab-explore") pastExplore();
   if (a === "move") riftMove(+b.dataset.x, +b.dataset.y); else if (a === "rest") riftRest(); else if (a === "chest") riftChest(); else if (a === "exit") riftExit();
   saveChar(); rerender();
 });
@@ -2922,6 +3164,7 @@ const MON_BOOST = { "swamp-fang": { hp: 1.6, dmg: 4, hit: 2 }, "goblin-thief": {
 const F3_C7_BOOST = { hp: 1.35, dmg: 3, hit: 1 }, F3_C7_LIGHT = { hp: 1.15, dmg: 1, hit: 1 }, F3_C7_HEAVY = { hp: 1.5, dmg: 4, hit: 2 };
 const F3_C7_TIER = { "choir-dead": null, "bell-ringer": null, "glen-warden": null, "ember-reaper": F3_C7_LIGHT, "orc-executioner": F3_C7_LIGHT, "ash-executioner": F3_C7_LIGHT, "orc-shaman": F3_C7_LIGHT, "marble-saint": F3_C7_LIGHT,
   "tracker-hunter": F3_C7_HEAVY, "trap-master": F3_C7_HEAVY, "boulder-beetle": F3_C7_HEAVY, "maid-shade": F3_C7_HEAVY };          // по прогонам «отряд в стали» (07.11)
+Object.assign(MON_ARMOR, { "moss-hedgehog": 1, "firefly-swarm": 0, "branded-critter": 0, "tree-lynx": 0, "chimera-hound": 1, homunculus: 0, "alch-intern": 1, "lab-direwolf": 1, "senior-alch": 1, "mutant-boar": 2, "fled-chimera": 1, "swarm-mother": 0, "fallen-keeper": 3, naturalist: 2, luna: 2 });
 Object.assign(MON_ARMOR, { "unfinished-blade": 3, "ash-owl": 0, "clockwork-orange": 2, "pendulum-guard": 3, "goblin-miner": 1, kobold: 1, slime: 0, "kobold-guard": 2, "goblin-blaster": 1, "acid-slime": 0, "stone-slime": 3, "split-slime": 0, "mine-ghost": 0, "cart-mimic": 3, "kobold-captain": 3, "goblin-foreman": 2, rimuru: 1, "sand-vulture": 0, "sand-scorpion": 2, "worm-larva": 1, "sand-worm": 2, "big-stinger": 2, "pseudo-cactus": 2, "mirage-scorpion": 2, "dead-vulture": 1, "kel-worm": 3, "ice-imp": 0, "frost-beetle": 2, "snow-hunter": 1, "ice-spirit": 0, "mammoth-calf": 1, "ice-deer": 0, "half-troll": 2 });          // Ледяной грот
 Object.assign(MON_BOOST, { "flesh-golem": { hp: 1.15, dmg: 2, hit: 1 }, abomination: { hp: 1.5, dmg: 4, hit: 2 } });          // Мордрейн (страж) — без правки: статблок = обычный 7 класс ×1,3 (v116)
 Object.assign(MON_BOOST, { "mirage-scorpion": { hp: 1.5, dmg: 3, hit: 2 }, "dead-vulture": { hp: 1.5, dmg: 3, hit: 2 }, "kel-worm": { hp: 1.35, dmg: 3, hit: 1 }, "kobold-captain": { hp: 1.4, dmg: 3, hit: 1 }, "goblin-foreman": { hp: 1.4, dmg: 3, hit: 1 }, rimuru: { hp: 1.35, dmg: 3, hit: 1 }, "half-troll": { hp: 1.2, dmg: 2, hit: 1 }, "mammoth-calf": { hp: 1.4, dmg: 3, hit: 1 }, "ice-deer": { hp: 1.5, dmg: 3, hit: 2 } });          // минибоссы Ледяного грота (07.11, отряд в стали 5 ур.)
@@ -3384,6 +3627,7 @@ const GEAR = {
   "fatigue-charm": { short: "Амулет", name: "Амулет усталости", weight: 0, stack: 1, slot: "charm", cls: 7, treasure: true, note: "Амулет 7 класса. В конце дня носитель снимает 1 уровень Усталости." },
   "frost-gloves": { short: "Рукавицы", name: "Рукавицы северянина", weight: 0.5, stack: 1, slot: "hands", cls: 8, treasure: true, note: "Артефакт 8 класса (руки). Урон холодом по носителю −1. В зонах с заморозкой раз в 2 хода снимает носителю 1 холода." },
   "hide-cloak": { short: "Плащ", name: "Плащ толстой шкуры", weight: 3, stack: 1, slot: "back", cls: 7, treasure: true, note: "Артефакт 7 класса (спина). +1 Защиты. Урон холодом по носителю −2. В зонах с заморозкой каждый третий холод не прибавляется (счётчик сбрасывается)." },
+  "mutagen-syringe": { short: "Шприц", name: "Шприц мутагена", weight: 0.1, stack: 1, cls: 8, treasure: true, note: "Эксклюзив сундука лаборатории (Чаща прошлого). Раз в день в бою (доп. действие): +2 к Силе, регенерация 3 ОЗ в начале хода или тёмное зрение до конца боя; с шансом 1 к 6 — побочный эффект −1к6 ОЗ." },
   "frost-amulet": { short: "Амулет", name: "Амулет инея", weight: 0, stack: 1, slot: "charm", cls: 9, treasure: true, note: "Уникальный амулет 9 класса (сундук стража Ледяного грота). Когда носитель наносит урон холодом, +1к4." },
   "hunger-charm": { short: "Амулет", name: "Амулет голода", weight: 0, stack: 1, slot: "charm", cls: 6, treasure: true, note: "Амулет 6 класса. В конце дня голод носителя утоляется, как после пайка." },
   "potion-good": { short: "Зелье+", name: "Зелье лечения", weight: 0.25, stack: 5, use: "drink", heal: "2к4 + 4", note: "Восстанавливает 2к4 + 4 ОЗ (6–12, в среднем 9). Черновик." },
@@ -3422,6 +3666,7 @@ GEAR_ICON.whetstone = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor
 GEAR_ICON["daedalus-hammer"] = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><path d="M13 3l8 4-2 4-8-4z" fill="#f2c94c" opacity=".4"/><path d="M13 3l8 4-2 4-8-4z"/><path d="M13 9L5 21M4 20l2 2" /></svg>`;
 GEAR_ICON["unbreakable-charm"] = AMU("#9fb4c2"); GEAR_ICON["repair-charm"] = AMU("#d6a64c"); GEAR_ICON["durable-charm"] = AMU("#7ad0dc"); GEAR_ICON["regen-charm"] = AMU("#e0584a");
 GEAR_ICON["frost-amulet"] = AMU("#9ad0ff");
+GEAR_ICON["mutagen-syringe"] = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 3l3 3M16.5 4.5l3 3M19 6l-9 9-3-3 9-9M7 12l-3 3 3 3 3-3M4 20l2-2" /><path d="M10 9l1.5 1.5M12 7l1.5 1.5" stroke-width="1.2"/></svg>`;
 GEAR_ICON["frost-gloves"] = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M7 21v-8l-2-3V6h2v4h1V4h2v6h1V4h2v6h1V6h2v9l-2 6z" fill="#c9d8e6" fill-opacity=".35"/><path d="M7 17h9" stroke="#9ad0ff"/></svg>`;
 GEAR_ICON["hide-cloak"] = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M8 3h8l3 18H5z" fill="#8a6a44" fill-opacity=".5"/><path d="M9 3c0 3 6 3 6 0M7 12l2 1M17 12l-2 1M6 18l3 1M18 18l-3 1"/></svg>`;
 GEAR_ICON["mana-charm"] = AMU("#5b8def"); GEAR_ICON["fatigue-charm"] = AMU("#9b7bd6"); GEAR_ICON["hunger-charm"] = AMU("#7bc653");
@@ -3758,7 +4003,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 119;
+const BATTLE_REV = 120;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }
@@ -5138,7 +5383,7 @@ function spTreasureGive(t) {
   dgUi.res = { title: "Сокровище", roll: `${t.name} · к20 = ${d}`, lines }; saveChar(); rerender();
 }
 // Кнопки особых действий в меню (каждая тратит действие).
-function spButtons() { return [...riftButtons(), ...spButtonsBase()]; }
+function spButtons() { return [...riftButtons(), ...brewButtons(), ...spButtonsBase()]; }
 function spButtonsBase() {
   if (state.run && state.run.floor === 3) return f3Buttons();
   const r = state.run, sp = spOf(); if (!sp) return [];
@@ -5170,7 +5415,8 @@ function spEnterTier() {
 }
 // Одно особое действие; время (tick) уже потрачено в act().
 function spDo(id) {
-  if (id === "rift-enter") { riftEnter(); return; }          // разлом (07.11)
+  if (id === "rift-enter") { riftEnter(); return; }
+  if (id === "brew2" || id === "brew4") { brewPotion(id === "brew4" ? 4 : 2); return; }          // «Мастер зелий» старшего алхимика          // разлом (07.11)
   if (state.run && state.run.floor === 3) { f3Do(id); return; }
   const r = state.run, sp = spOf(); if (!sp) return;
   const k = spTileKey();
@@ -5293,6 +5539,7 @@ function resolveRoll() {
     startFight(ev, p, enc);
     ev.ambush = kind === "ambush" || p.cause === "rest-noguard";
     if (ev.ambush && p.cause === "rest" && r.fluteGuard) { ev.ambush = false; logRun("Караульный с флейтой услышал врагов заранее: засады нет."); }
+    if (ev.ambush && /^rest|camp/.test(p.cause || "") && partyHas("luna")) { ev.ambush = false; logRun("Чутьё зверя (эссенция Луны): отряд учуял врагов заранее — засады нет."); }
     if (ev.ambush) ev.title = "Засада!";
     bellSave(ev);
     ev.init = rollInitiative(ev.list, ev.ambush);
@@ -7462,7 +7709,7 @@ function act(kind) {
       if (hc) { addToBag(hc, { t: "g", id: "ration", qty: 1 }); cdSet("flask"); eaten--; logRun(`Фляга странника: один паёк возвращён ${hc.name}.`); }
     }
     for (const l of execRepairs(rs)) logRun(l);
-    tick(sleepers);
+    tick(sleepers); r.canBrew = true;
     const fluteOn = !!(rs.flute && fluteHeroes().length), fluteFx = { fat: 0 };
     if (fluteOn) {
       tick(); const pl = fluteHeroes().sort((a, b) => (fluteItemOf(b).id === "calm-flute") - (fluteItemOf(a).id === "calm-flute"))[0], d20 = 1 + rnd(20), o = fluteOutcome(pl, d20);
@@ -7477,7 +7724,7 @@ function act(kind) {
     const healed = [];
     for (const c of state.party) if (sleepers.has(c.id) && !c.dead) {            // погибший не лечится: его возвращает только мастер
       const st = r.status[c.id], before = hpOf(c);
-      c.hp = Math.min(maxHp(c), before + restHeal(c, st.fat, st.starve >= 3));
+      c.hp = Math.min(maxHp(c), before + restHeal(c, st.fat, st.starve >= 3) + Math.round(maxHp(c) * restBonusPct()));          // «Корни земли» хранителя: +15 %
       c.mp = maxMp(c); c.flags = {};                       // длинный отдых: мана и дневные способности
       c.insp = Math.min(inspMax(c), (c.insp ?? inspMax(c)) + 1);          // переброс возвращает только сон: по одному за ночь, гном хранит два
       if (c.hp > before) healed.push(`${c.name} +${c.hp - before}`);
