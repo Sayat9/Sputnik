@@ -6,77 +6,7 @@
 
 ## События на шаге (заставки)
 
-### Разломы открылись — `events/rift-open` (оповещение, 07.11)
-
-> `wide shot of a dark dungeon floor where several violet glowing rifts tear open in the air like cracks in reality, swirling purple light, debris floating, hand-painted dark fantasy illustration, painterly, landscape 3:2, no characters, no text`
-
-### Вход в разлом — `events/rift-enter` (07.11)
-
-> `first-person view stepping into a swirling crimson and violet portal rift, a distorted different dungeon visible beyond, sparks and floating stones, hand-painted dark fantasy illustration, painterly, landscape 3:2, no characters, no text`
-
-### Переход между этажами — `events/floor-change` (07.11)
-
-> `an ancient spiral stone staircase descending through a glowing golden portal arch into the next level of a huge labyrinth tower, warm light from below, hand-painted dark fantasy illustration, painterly, landscape 3:2, no characters, no text`
-
-### Раскопки — `events/dig` (экран действия «Копать», 03.11)
-
-> `wide shot inside a dark dungeon corridor, a worn iron shovel stuck in a freshly dug pit of earth and stones, a few old coins and a cracked gem glinting in the dirt, torchlight from the side, hand-painted dark fantasy illustration, painterly, landscape 3:2, no characters, no text`
-
-Все нарисованы (засада, монстры, ничего, путники, сокровище, вход в лабиринт, возвращение в город). Новая заставка — `assets/events/<имя>.webp`, 1536 × 1024.
-
-## Монстры
-
-Новый монстр без картинки: полный рост 1024 × 1536 (иконку лица вырезаю сам). Нужны монстры 3 этажа: Хранитель Тишины, мимик и 9 обитателей Лагеря орков.
-
-### Разлом «Кровавая крепость» (07.11)
-
-### Ледяной бесёнок — `monsters/ice-imp-full`
-
-> `full-body a small mischievous imp made of blue ice and frost with icicle claws and glowing pale eyes, frozen cave with icicles and ancient bronze imperial braziers, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
-
-### Инеевый жук — `monsters/frost-beetle-full`
-
-> `full-body a dog-sized beetle with a carapace crusted in white hoarfrost, breathing a cloud of icy mist, frozen cave with icicles, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
-
-### Снежный охотник — `monsters/snow-hunter-full`
-
-> `full-body a wild tribal hunter wrapped in white furs with a bone harpoon on a rope, face painted with blue frost marks, frozen cave with snowdrifts, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
-
-### Ледяной дух — `monsters/ice-spirit-full`
-
-> `full-body a floating whirling spirit of ice dust and snowflakes with a faint ghostly face and long icy fingers, frozen cave glowing pale blue, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
-
-### Детёныш мамонта — `monsters/mammoth-calf-full`
-
-> `full-body a young woolly mammoth calf with shaggy brown fur covered in frost and short tusks sheathed in jagged ice, charging, frozen cave, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
-
-### Арктический Сребророг — `monsters/ice-deer-full`
-
-> `full-body a majestic white stag with huge antlers of clear crystal ice, frost breath, glowing pale eyes, frozen cave with icicles, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
-
-### Грольф Инеевая Челюсть, дикий полутролль — `monsters/half-troll-full`
-
-> `full-body a huge savage half-troll with grey-blue warty skin, frost on his shoulders, a jaw rimed with ice and a massive club wrapped in ice, standing beside a giant blazing bronze brazier in a frozen cave, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
-
-### Стервятник-падальщик — `monsters/sand-vulture-full`
-
-> `full-body a scrawny bald desert vulture with ragged dusty feathers and a hooked beak, desert of quicksand and sinking ancient beacons, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
-
-### Малый скорпион — `monsters/sand-scorpion-full`
-
-> `full-body a dog-sized sand-coloured scorpion with thick chitin plates and a dripping stinger, desert of quicksand and sinking ancient beacons, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
-
-### Личинка песчаного червя — `monsters/worm-larva-full`
-
-> `full-body a pale segmented sand worm larva with a round toothy maw bursting out of the sand, desert of quicksand and sinking ancient beacons, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
-
-### Взрослый песчаный червь — `monsters/sand-worm-full`
-
-> `full-body a huge segmented sandworm with armored ochre plates rearing out of a dune, ring of teeth, desert of quicksand and sinking ancient beacons, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
-
-### Большое жало — `monsters/big-stinger-full`
-
-> `full-body a giant black-and-amber scorpion with a long barbed tail dripping green venom, desert of quicksand and sinking ancient beacons, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
+### Разломы и новые монстры (07.11)
 
 ### Псевдокактус — `monsters/pseudo-cactus-full`
 
@@ -85,34 +15,6 @@
 ### Миражный скорпион — `monsters/mirage-scorpion-full`
 
 > `full-body a large translucent scorpion shimmering like a heat mirage, with ghostly duplicate silhouettes around it, desert of quicksand and sinking ancient beacons, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
-
-### Стервятник мёртвых земель — `monsters/dead-vulture-full`
-
-> `full-body a gigantic storm vulture with dark tattered wings, bone-white skull head and hooked iron-like talons, sandstorm behind, desert of quicksand and sinking ancient beacons, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
-
-### Кель адской пустыни — `monsters/kel-worm-full`
-
-> `full-body a colossal infernal desert worm with glowing magma cracks between armored segments, a vast maw erupting from cracking sand, sandstorm and beacons sinking in the dunes, desert of quicksand and sinking ancient beacons, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
-
-### Гоблин-шахтёр — `monsters/goblin-miner-full`
-
-> `full-body a small grimy goblin miner with a dented helmet with a candle, a pickaxe and a sack of ore, green-lit abandoned mine with rails and crystals, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
-
-### Кобольд — `monsters/kobold-full`
-
-> `full-body a small scaly dog-like kobold with a dagger and a crude rope trap, mine tunnel, green-lit abandoned mine with rails and crystals, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
-
-### Слизь — `monsters/slime-full`
-
-> `full-body a small translucent green slime blob with bubbles and bits of rock inside, green-lit abandoned mine with rails and crystals, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
-
-### Кобольд-страж — `monsters/kobold-guard-full`
-
-> `full-body a sturdy kobold guard with a big wooden shield and a spear blocking a mine passage, green-lit abandoned mine with rails and crystals, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
-
-### Гоблин-подрывник — `monsters/goblin-blaster-full`
-
-> `full-body a manic goblin sapper with goggles and a bandolier of lit dynamite sticks, green-lit abandoned mine with rails and crystals, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
 
 ### Кислотная слизь — `monsters/acid-slime-full`
 
@@ -240,63 +142,11 @@
 
 > `full-body a towering hooded spirit warden carrying many glowing lanterns on a long chain flail, fog swirling around, misty dark witch forest with crooked trees and pale fog, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
 
-### Зона ловушек (3 этаж, 03.11)
-
-### Капкан-краб — `monsters/trap-crab-full`
-
-> `full-body a squat crab with a rusty iron shell shaped like an open bear trap, serrated claws, half buried in gravel, a ruined maze of rusty traps, spikes and tripwires among grey rocks, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
-
-### Проволочный паук — `monsters/wire-spider-full`
-
-> `full-body a thin long-legged spider made of tarnished wire and bone, stretching glinting steel threads between stones, a ruined maze of rusty traps, spikes and tripwires among grey rocks, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
-
-### Самострел-голем — `monsters/bolt-golem-full`
-
-> `full-body a squat iron construct turret on short stubby legs with a huge loaded crossbow mounted on its chest, quivers of bolts on its back, a ruined maze of rusty traps, spikes and tripwires among grey rocks, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
-
-### Мастер ловушек — `monsters/trap-master-full`
-
-> `full-body a lean hooded trapper with goggles, belts full of springs, gears and caltrops, a small crossbow in hand, crouching near a hidden trap, a ruined maze of rusty traps, spikes and tripwires among grey rocks, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
-
-### Валун-жук — `monsters/boulder-beetle-full`
-
-> `full-body a huge beetle with a round stone carapace like a boulder, curled half into a rolling ball, a heavy horn in front, a ruined maze of rusty traps, spikes and tripwires among grey rocks, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
-
-### Королева ловушек — `monsters/trap-queen-full`
-
-> `full-body a tall mechanical doll queen resembling a woman, porcelain face, brass body, mechanical spider legs and blade arms instead of limbs, gears visible, surrounded by traps, a ruined maze of rusty traps, spikes and tripwires among grey rocks, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
-
-### Пылающие земли (3 этаж, 03.11)
-
-### Угольный жук — `monsters/coal-beetle-full`
-
-> `full-body a dog-sized beetle with a cracked coal-black carapace glowing orange in the seams, mandibles dripping embers, scorched ash plain with lava cracks and drifting embers, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
-
-### Огненная саламандра — `monsters/ember-salamander-full`
-
-> `full-body a large lithe fire salamander lizard with glowing orange stripes along black scales, flames licking from its back, a burning trail behind its tail, scorched ash plain with lava cracks and drifting embers, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
-
-### Пепельный палач — `monsters/ash-executioner-full`
-
-> `full-body a tall executioner in a soot-blackened iron mask and burnt cuirass, holding a huge chipped two-handed sword with glowing ember edge, ash falling around him, scorched ash plain with lava cracks and drifting embers, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
-
-### Жаровня-голем — `monsters/brazier-golem-full`
-
-> `full-body a squat cast-iron golem whose chest is an open brazier full of burning coals, red-hot fists, scorched ash plain with lava cracks and drifting embers, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
-
-### Жнец углей — `monsters/ember-reaper-full`
-
-> `full-body a gaunt undead reaper in a burnt hooded robe, wielding a scythe with a glowing ember blade, ash falling from it, scorched ash plain with lava cracks and drifting embers, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
-
 ### Охотничьи угодья и гоблины под Угрозу (03.11)
 
 ### Вожак гончих — `monsters/pack-leader-full`
 
 > `full-body a big scarred hound leader with a torn ear, howling, other hounds in the mist behind, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
-
-### Каменный лось — `monsters/stone-elk-full`
-
-> `full-body a massive elk with hide like grey stone and granite antlers, standing firm in a misty glade, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
 
 ### Железная лиса — `monsters/iron-fox-full`
 

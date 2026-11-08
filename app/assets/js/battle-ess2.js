@@ -2417,7 +2417,7 @@
   Object.assign(D.essCd, { "ice-imp": 3, "frost-beetle": 3, "snow-hunter": 3, "ice-spirit": 3, "mammoth-calf": 3, "ice-deer": 4, "half-troll": 4 });
   Object.assign(D.monTune, {
     "ice-imp": { role: "skirmish", focus: ["weak", "nearest"], fleeHp: 0.25 }, "frost-beetle": { role: "brute", focus: ["cluster", "nearest"], noFlee: true },
-    "snow-hunter": { role: "ranged", keep: 3, focus: ["weak", "nearest"], fleeHp: 0.3 }, "ice-spirit": { role: "ranged", keep: 2, focus: ["nearest"], noFlee: true },
+    "snow-hunter": { role: "skirmish", focus: ["weak", "nearest"], fleeHp: 0.3 }, "ice-spirit": { role: "ranged", keep: 2, focus: ["nearest"], noFlee: true },
     "mammoth-calf": { role: "brute", focus: ["nearest"], noFlee: true }, "ice-deer": { role: "skirmish", focus: ["cluster", "nearest"], noFlee: true }, "half-troll": { role: "brute", focus: ["weak", "nearest"], noFlee: true },
   });
   const foesIn = (u, r) => enemiesOf(u).filter(t => alive(t) && !t.down && dist(u, t) <= r && !B.lineBlocked(u, t) && (!B.visibleTo || B.visibleTo(u, t)));
@@ -2439,9 +2439,9 @@
   /* Снежный охотник (8) */
   P["snow-hunter"] = { defendMods(t, ctx) { if (B.S && B.S.round === 1 && ctx && ctx.dis) ctx.dis.push("белая маскировка"); } };
   A["snow-hunter"] = {
-    time: "action", tgt(u) { return specUnit(u, "Гарпун: в кого?", foesIn(u, 4), B.cellsWithin(u, 4), "attack"); }, can(u) { return foesIn(u, 4).length ? true : "нет цели в 4 клетках"; },
-    async run(u, pk, ctl) { const t = pk.unit; if (!t) return false; ctl.commit(); log(`${u.name} мечет гарпун в ${t.name}.`, "skill"); const sv = await save(t, "dex", dcOf(u, "dex"), "Гарпун", [], u);
-      if (!sv.ok && alive(t)) { await B.applyDamage(u, t, [{ v: roll(1, 10).total + Math.max(0, amod(u.abil.dex)), dt: "pierce", label: "Гарпун" }], { src: u }); if (alive(t)) { addStatus(t, "slowed", { k: 2, when: "end", data: { mult: 0 } }); fx(t, "пригвождён", "bad"); } } else fx(t, "увернулся", ""); return true; },
+    time: "action", tgt(u) { return specUnit(u, "Прыжок из засады: на кого?", foesIn(u, 4), B.cellsWithin(u, 4), "attack"); }, can(u) { return foesIn(u, 4).length ? true : "нет цели в 4 клетках"; },
+    async run(u, pk, ctl) { const t = pk.unit; if (!t) return false; ctl.commit(); log(`${u.name} прыгает на ${t.name}.`, "skill"); if (dist(u, t) > 1) await B.pullAdjacent(u, t); const sv = await save(t, "dex", dcOf(u, "dex"), "Прыжок из засады", [], u);
+      if (!sv.ok && alive(t)) { await B.applyDamage(u, t, [{ v: roll(1, 10).total + Math.max(0, amod(u.abil.dex)), dt: "pierce", label: "Прыжок из засады" }], { src: u }); if (alive(t)) { addStatus(t, "slowed", { k: 2, when: "end", data: { mult: 0 } }); fx(t, "прижат к земле", "bad"); } } else fx(t, "увернулся", ""); return true; },
     ai(u) { const ts = foesIn(u, 4).filter(t => !has(t, "slowed")); return ts.length ? { unit: ts.sort((a, b) => a.hp - b.hp)[0], score: 11 } : null; },
   };
   /* Ледяной дух (8): «Морозная аура» — в B.coldTurnStart */
