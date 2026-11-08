@@ -72,7 +72,7 @@ const L = require('./bui_lib.js');
   ok('экстракт: Бег без Усталости и без проверок, один заряд', res.windNoFat && res.windNoPass && res.windCharge, res);
   ok('экстракт действует на один Бег', res.windOnce);
   ok('экстракт расходуется после 10 зарядов', res.windGone);
-  ok('уровни: на 2-й 20 опыта, на 3-й 40, на 4-й 80', JSON.stringify(res.need) === '[20,40,80,80]', res.need);
+  ok('уровни: на 2-й 20 опыта, на 3-й 40, на 4-й 150, на 5-й 300', JSON.stringify(res.need) === '[20,40,150,300]', res.need);
   ok('опыт за первого убитого вида: 9→1, 8→2, 7→3, 6→4, 5→5', JSON.stringify(res.monXp) === '[1,2,3,4,5]', res.monXp);
   ok('3 уровень: 39 опыта — ещё 2, 40 — 3-й, остаток 0', JSON.stringify(res.lvl2) === '[2,39]' && JSON.stringify(res.lvl3) === '[3,0]' && JSON.stringify(res.lvl1to2) === '[2,0]', [res.lvl2, res.lvl3, res.lvl1to2]);
   ok('достижение «портал на 2 этаж до конца 2-го дня»: +2 опыта каждому, один раз', res.ach1.xp.every(x => x === 2) && res.ach1.done && /Достижение/.test(res.ach1.res || '') && res.ach1again.every(x => x === 2), res.ach1);
