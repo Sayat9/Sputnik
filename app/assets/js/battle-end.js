@@ -61,7 +61,8 @@
   function rewardsPlan(S, outcome) {
     const ev = S.ev, killed = [...new Set(S.killed)].filter(i => i >= 0 && ev.list[i]), species = killed.map(i => ev.list[i]);
     const fresh = [...new Set(species.map(xpKeyOf))].filter(id => !/^tcls-/.test(id) && !(journal().known[id] && journal().known[id].xpDone));          // путники опыта не дают (решение автора 01.11)          // путники — опыт каждый раз          // путники: опыт по классу (trav-9/8/7), а не за каждого
-    const xp = fresh.reduce((a, id) => a + monXp(xpInfo(id)), 0);
+    const guardXp = ev.arena ? 0 : 2 * species.filter(id => (MONSTERS.find(m => m.id === id) || {}).rank === "guardian").length;          // страж: +2 опыта за каждую победу, даже повторную (решение автора 08.11)
+    const xp = fresh.reduce((a, id) => a + monXp(xpInfo(id)), 0) + guardXp;
     const stones = {};                                                                  // камни по видам монстров: id → { cls, n }, они идут в сумку для камней
     if (!ev.arena) for (const id of species) {
       const m = MONSTERS.find(x => x.id === id);
@@ -88,7 +89,7 @@
     const wins = S.forceWins ? S.forceWins.map(id => ({ id, r: 99 })) : rolls.filter(x => x.r >= essNeed(x.id) && !((MONSTERS.find(m => m.id === x.id) || {}).dyn));          // forceWins — только для проверок
     const best = S.forceWins ? wins[0] : rolls.length ? rolls.reduce((a, b) => (a.r - essNeed(a.id) >= b.r - essNeed(b.id) ? a : b)) : null;
     const people = species.length > 0 && species.every(id => (MONSTERS.find(m => m.id === id) || {}).dyn);          // убиты одни путники: эссенций у них нет, броска нет
-    return { killed, species, fresh, xp, stones, rolls: people ? [] : rolls, wins, best: people ? null : best, kills, people };
+    return { killed, species, fresh, xp, guardXp, stones, rolls: people ? [] : rolls, wins, best: people ? null : best, kills, people };
   }
   const digits = r => { const v = r % 100; return [Math.floor(v / 10), v % 10]; };
 
@@ -138,7 +139,7 @@
     UI.mode = "result"; UI.setHl(new Map()); UI.refreshNow();
     const [title, cls] = TITLE[outcome] || TITLE.flee;
     const fallen = B.heroes().filter(h => h.dead).map(h => h.name), downed = B.heroes().filter(h => h.down && !h.dead).map(h => h.name);
-    const xpLine = plan.xp ? `<li class="xp"><b>Опыт: +${plan.xp}</b> каждому герою <small>(новые виды: ${plan.fresh.map(id => esc(xpInfo(id).name)).join(", ")})</small></li>` : (plan.people && plan.species.every(id => /^tcls-/.test(xpKeyOf(id))) ? `<li class="muted">Опыт: за людей не даётся</li>` : plan.species.length ? `<li class="muted">Опыт: эти виды уже убиты раньше</li>` : "");
+    const xpLine = plan.xp ? `<li class="xp"><b>Опыт: +${plan.xp}</b> каждому герою <small>(${[plan.fresh.length ? `новые виды: ${plan.fresh.map(id => esc(xpInfo(id).name)).join(", ")}` : "", plan.guardXp ? `страж: +${plan.guardXp}` : ""].filter(Boolean).join("; ")})</small></li>` : (plan.people && plan.species.every(id => /^tcls-/.test(xpKeyOf(id))) ? `<li class="muted">Опыт: за людей не даётся</li>` : plan.species.length ? `<li class="muted">Опыт: эти виды уже убиты раньше</li>` : "");
     const stoneLines = gotLines.map(t => `<li class="stone">${esc(t)}</li>`).join("");
     const nothing = !plan.species.length;
     modal.hidden = false;

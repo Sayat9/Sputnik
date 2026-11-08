@@ -1337,7 +1337,8 @@ const ACADEMY = [
   { id: "nav1", grp: "nav", name: "Навигатор: 1 этаж", price: 400, nav: 1, rank: 9, text: "На 1 этаже карта показывает направление к ближайшему порталу на следующий этаж." },
   { id: "rep1", grp: "repair", name: "Ученик ремонта", price: 800, text: "Герой чинит лучше: +3 к починке (дварфам +5) — ремонтные наборы и артефакты восстанавливают больше прочности." },
   { id: "rep2", grp: "repair", name: "Мастер ремонта", price: 3500, rank: 8, need: "rep1", text: "Мастер: +9 к починке (дварфам +15) вместо ученика. Нужен курс «Ученик ремонта» — обучение с основ." },
-  { id: "nav2", grp: "nav", name: "Навигатор: 2 этаж", price: 800, nav: 2, rank: 8, need: "nav1", text: "То же на 2 этаже. Нужен курс «Навигатор: 1 этаж» — обучение с основ." },
+  { id: "nav2", grp: "nav", name: "Навигатор: 2 этаж", price: 800, nav: 2, rank: 8, need: "nav1", text: "То же на 2 этаже, а в разломе «Чаща прошлого» отряд не теряется в чаще. Нужен курс «Навигатор: 1 этаж» — обучение с основ." },
+  { id: "nav3", grp: "nav", name: "Навигатор: 3 этаж", price: 1500, nav: 3, rank: 7, need: "nav2", text: "То же на 3 этаже; в Ведьмином лесу и вокруг него половина сбитых шагов всё же идёт куда нужно. Нужен курс «Навигатор: 2 этаж»." },
   // Тайм-менеджмент (решение автора 03.11): действует, если курс знает кто-то из живых героев; уровни не складываются — берётся лучший.
   // Ранг для каждого уровня — моё предложение: I — 9, II — 8, III — 7, IV — 6 + особое условие (автор пришлёт позже; пока курс IV закрыт).
   { id: "tm1", grp: "time", name: "Тайм-менеджмент I", price: 200, rank: 9, text: "В городе 6 действий до открытия врат (вместо 5)." },
@@ -3757,7 +3758,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 118;
+const BATTLE_REV = 119;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }
@@ -7404,9 +7405,10 @@ function act(kind) {
     const boots = !wasVoid && bootsOn() && dgUi.path.length >= 2;          // сапоги скороходы: пройти сразу 2 клетки шагом (промежуточная — без события)
     if (boots) { const m = dgUi.path[0]; visit(m.x, m.y); if (r.floor === 3) f3Step(m.x, m.y); r.bootsDay = r.day; r.boots = false; }
     const trailEss = state.party.some(c => !c.dead && (c.essences || []).includes("lost-trail")), F3w = r.floor === 3 ? f3() : {};
-    const lostStep = !wasVoid && witchBand(r.pos.x, r.pos.y) && !F3w.trailDead && Math.random() < .3 && !(trailEss && Math.random() < .5);          // потерявшийся след: 30 % шаг уходит не туда
+    const nav3 = r.floor === 3 && partyEdu("nav3");          // «Навигатор: 3 этаж» — половина сбитых шагов идёт куда нужно (08.11)
+    const lostStep = !wasVoid && witchBand(r.pos.x, r.pos.y) && !F3w.trailDead && Math.random() < .3 && !(trailEss && Math.random() < .5) && !(nav3 && Math.random() < .5);          // потерявшийся след: 30 % шаг уходит не туда
     if (lostStep) { logRun("Потерявшийся след путает тропы: шаг уходит не туда."); toast("Тропа путает шаги"); }
-    if ((wasVoid || lostStep) && !(wasVoid && (lanternPathAt(t.x, t.y) || (trailEss && Math.random() < .5)))) {          // Ведьмин лес: куда бы ни шли, шаг уходит в случайную сторону; за краем этажа стоим на месте (прямой путь фонарщика и «Знаток троп» — нет)
+    if ((wasVoid || lostStep) && !(wasVoid && (lanternPathAt(t.x, t.y) || (trailEss && Math.random() < .5) || (nav3 && Math.random() < .5)))) {          // Ведьмин лес: куда бы ни шли, шаг уходит в случайную сторону; за краем этажа стоим на месте (прямой путь фонарщика и «Знаток троп» — нет)
       const [dx, dy] = [[1, 0], [-1, 0], [0, 1], [0, -1]][rnd(4)], nx = r.pos.x + dx, ny = r.pos.y + dy;
       t = inBounds(nx, ny) ? { x: nx, y: ny } : { x: r.pos.x, y: r.pos.y };
       r.spin = [0, 90, 180, 270][rnd(4)];
