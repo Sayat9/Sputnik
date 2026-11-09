@@ -364,8 +364,8 @@
   const STAGES = [["kind", "Тип монстра"], ["rank", "Ранг: обычный, редкий или особый"], ["novel", "Известный или новый монстр"], ["info", "Вид сведений"]];
   const rankGroup = m => { const r = rankOf(m); return r === "normal" || r === "rare" ? r : "special"; };
   const libBonus = c => { const t = totals(c); return mod(t.int.total) + mod(t.wis.total); };
-  // Кандидаты — все готовые монстры класса со всех этажей и разломов (правка 09.11: раньше брался только 1 этаж без разломов).
-  const libCands = cls => MONSTERS.filter(m => !m.draft && m.cls === cls);
+  // Кандидаты — все готовые монстры класса со всех этажей, кроме разломов (правка 09.11: раньше брался только 1 этаж).
+  const libCands = cls => MONSTERS.filter(m => !m.draft && !m.rift && m.cls === cls);          // монстры разломов в библиотеке не ищутся (секрет)
   const LIB_ZONE_RU = { goblin: "Гоблины", beast: "Звери", undead: "Нежить", stone: "Элементали и камень", orc: "Орки" };
   const essKey = k => /^ess-/.test(k);
   // Какие сведения о монстре ещё не раскрыты (эссенция — только если lr.essOK).
@@ -513,8 +513,10 @@
   const ARENA_PAY = 3;                                                                            // монет за убитого 9 класса: тройная цена камня (решение автора)
   const ARENA_FIGHT_MAX = 6;
   const arenaCls = () => (partyRank() <= 7 ? [8, 7] : [9, 8]);          // монстры арены по рангу отряда; без стражей и монстров разломов (решение автора 08.11)
-  const arenaPool = rare => MONSTERS.filter(m => arenaCls().includes(m.cls) && fightableMon(m) && !!m.rare === rare);
-  const arenaMon = () => { const rare = Math.random() < .1 && arenaPool(true).length, pool = arenaPool(!!rare); return pool[rnd(pool.length)]; };
+  // 09.11: на арене нет редких монстров и монстров особых мест (Туманная часовня, «только в группе/со стаей», привязанные к тайлу).
+  const arenaSpecial = m => (m.areas || []).some(a => /Туманная часовня/.test(a)) || /^(Только|Вершина|Каждый день)/.test(m.spawn || "");
+  const arenaPool = () => MONSTERS.filter(m => arenaCls().includes(m.cls) && fightableMon(m) && !m.rare && !arenaSpecial(m));
+  const arenaMon = () => { const pool = arenaPool(); return pool[rnd(pool.length)]; };
   // Сила монстра для ставок: ОЗ × защита × средний урон (грубо; ставки — не точная наука).
   function mpower(m) {
     const hp = parseInt(m.hp, 10) || 5, ac = parseInt(m.ac, 10) || 12; let dmg = 0;

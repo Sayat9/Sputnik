@@ -78,6 +78,7 @@ body.bt-active .dice-fab { display: none; }
 .bt-bars i b { display: block; height: 100%; width: 100%; transition: width .35s; }
 .bt-bars i.hp { display: flex; }
 .bt-bars i.hp b { flex: none; }
+.bt-bars i.hp b:not(.tmp) { background: linear-gradient(#e85d4d, #9c2c24); }          /* 09.11: полоска ОЗ над фишкой была без цвета (строка цвета ушла в комментарий) */
 .bt-bars i.hp b.tmp, .bt-meter i.tmp { width: 0; background: repeating-linear-gradient(135deg, #fff2c4 0 2px, #c9a95a 2px 4px) !important; box-shadow: inset 0 0 0 1px rgb(255 255 255 / .35); }
 .bt-bars i.mp b { background: linear-gradient(#6fb6f0, #3a7cc4); }
 .bt-bars[hidden], .bt-bars i[hidden] { display: none; }
