@@ -21,13 +21,15 @@ MON = [dict(id=x["id"], zone=x.get("kind") or "monster",          # 09.11: гр�
 RANKS = [("normal", "Обычный"), ("rare", "Редкий"), ("special", "Особый"), ("guardian", "Страж"), ("boss", "Босс"), ("lord", "Лорд")]
 RASTER = set(re.search(r'const RASTER = new Set\(\[([^\]]*)\]', SRC).group(1).replace('"', "").replace(" ", "").split(","))
 def face(m):
-    if m["ph"]: return f"assets/monsters/ph-{m['ph']}-face.svg"
     p = f"monsters/{m['id']}-face"
+    if p in RASTER: return f"assets/{p}.webp"          # 09.11: нарисованная картинка важнее силуэта (ph в данных снимается в игре позже, STUB_ART)
+    if m["ph"]: return f"assets/monsters/ph-{m['ph']}-face.svg"
     return f"assets/{p}.{'webp' if p in RASTER else 'svg'}"
 def full(m):
     """Портрет в полный рост (рядом с иконкой в записи монстра)."""
-    if m["ph"]: return f"assets/monsters/ph-{m['ph']}-full.svg"
     p = f"monsters/{m['id']}-full"
+    if p in RASTER: return f"assets/{p}.webp"
+    if m["ph"]: return f"assets/monsters/ph-{m['ph']}-full.svg"
     return f"assets/{p}.{'webp' if p in RASTER else 'svg'}"
 
 ZONES = [(k, v, "") for k, v in DATA["KIND_RU"].items()]          # 09.11: группы по виду существа (гуманоиды, звери, насекомые, нежить, духи, элементали, механизмы, слизи, чудовища)
