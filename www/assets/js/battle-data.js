@@ -267,8 +267,10 @@
   // Размер на поле (09.11, автор): [ширина, высота] в клетках. 2×1 — длинные звери (медведь, лось, вепрь, скорпионы, змеи, химеры);
   // 2×2 — только настоящие гиганты (мамонтёнок, колосс, големы); рослые гуманоиды и нежить — 1×1. Кель и Падший хранитель («огромные») — тоже 2×2: 3×3 на поле 10×10 ломает их бой (раньше Кель из-за «Огромная» вообще был 1×1).
   D.foot = {
-    "dark-bear": [2, 1], "stone-elk": [2, 1], "ice-deer": [2, 1], "glen-warden": [2, 1], "silent-predator": [2, 1], "toll-bull": [2, 1], "mutant-boar": [2, 1],
-    "lab-direwolf": [2, 1], "fled-chimera": [2, 1], "swamp-fang": [2, 1], "big-stinger": [2, 1], "mirage-scorpion": [2, 1], "magma-wyrm": [2, 1], "deep-serpent": [2, 1], "boulder-beetle": [2, 1],
+    // 09.11 (автор): «широкие» 2×1 (медведь, скорпионы, жуки) и «длинные» 1×2 — копытные, волки, змеи, хищники: тело вдоль поля
+    "dark-bear": [2, 1], "big-stinger": [2, 1], "mirage-scorpion": [2, 1], "boulder-beetle": [2, 1],
+    "stone-elk": [1, 2], "ice-deer": [1, 2], "glen-warden": [1, 2], "silent-predator": [1, 2], "toll-bull": [1, 2], "mutant-boar": [1, 2],
+    "lab-direwolf": [1, 2], "fled-chimera": [1, 2], "swamp-fang": [1, 2], "magma-wyrm": [1, 2], "deep-serpent": [1, 2],
     "mammoth-calf": [2, 2], "crystal-colossus": [2, 2], "magma-golem": [2, 2], "rift-heart": [2, 2], "giant-mole": [2, 2], "spider-queen": [2, 2], "faceless-sculptor": [2, 2], "flesh-golem": [2, 2], "kel-worm": [2, 2], "fallen-keeper": [2, 2],
     "faceless-ringer": [1, 1], "bone-knight": [1, 1], "corpse-eater": [1, 1], "werewolf": [1, 1], "orc-chief": [1, 1], "forge-smith": [1, 1], "half-troll": [1, 1], "trollgob-porter": [1, 1],
     "fog-lantern": [1, 1], "dead-vulture": [1, 1],
