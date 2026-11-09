@@ -351,7 +351,7 @@
     const reach = enemiesOf(u).filter(t => alive(t) && !t.down && B.dist(u, t) <= 3);
     if (!reach.length) { toast("Нет цели в 3 клетках"); return false; }
     const tgt = await UI().pickUnit({ prompt: "Метеорный удар: выберите цель (прыжок до 2 клеток)", units: reach.map(t => t.id), cells: [], kind: "attack" }); if (!tgt) return false;
-    const tmp = { size: u.size, side: u.side, id: u.id };
+    const tmp = { size: u.size, w: u.w, h: u.h, side: u.side, id: u.id };
     let land = null; if (B.dist(u, tgt) <= 1) land = [u.x, u.y]; else {
       const near = (B.freeCellsNear(tgt, 1, tmp) || []).filter(c => Math.max(Math.abs(c[0] - u.x), Math.abs(c[1] - u.y)) <= 2).sort((a, b) => Math.max(Math.abs(a[0] - u.x), Math.abs(a[1] - u.y)) - Math.max(Math.abs(b[0] - u.x), Math.abs(b[1] - u.y)));
       land = near[0] || null;

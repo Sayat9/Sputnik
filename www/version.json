@@ -1,5 +1,5 @@
 {
- "version": 1794251126,
+ "version": 1794253248,
  "files": [
   "assets/buildings/academy.webp",
   "assets/buildings/arena.webp",
@@ -559,7 +559,7 @@
   "assets/buildings/storage.webp": "73feb5b8b9f83341de80a87645f171ba",
   "assets/buildings/tavern.webp": "812c88667997f640e80c34b331e547b2",
   "assets/buildings/tower.webp": "a8d571c86cb743cdbcdfe7d63aaed744",
-  "assets/css/battle.css": "9b4d66f8d19b9e86785a0079520c61e5",
+  "assets/css/battle.css": "e8d9a73052c4807ab9db63b43025e073",
   "assets/css/town.css": "e4d1d58c8187456550148df7a4d90c7a",
   "assets/events/ambush.svg": "cc4762918cfd926e70eaa40ce53b322c",
   "assets/events/ambush.webp": "5fcd1fb31bf6c99e7ec0ac72e84aee85",
@@ -716,19 +716,19 @@
   "assets/items/wind.webp": "a6d6f642a096cf8956003b06c1f69e63",
   "assets/js/battle-act.js": "909c5eb148dbfb32738830db90d02d12",
   "assets/js/battle-ai.js": "75273a2ffefc6cf36ee597ee213bbafe",
-  "assets/js/battle-core.js": "ce496cedc8aa83ee87c74658858901db",
-  "assets/js/battle-data.js": "57590a6e6743456a27bea91fd293905a",
+  "assets/js/battle-core.js": "590381cf6a36d5a5dea4d677566c7715",
+  "assets/js/battle-data.js": "a892076a4bd408c4bdb63326230008bb",
   "assets/js/battle-dice.js": "17fdcb05e4189dd60b9ce24d0382f5cf",
   "assets/js/battle-end.js": "f0092809ea45d5ac3f792316c841c29d",
   "assets/js/battle-env.js": "63f7bb8bd842ab5b4c779d2991d10f51",
   "assets/js/battle-ess.js": "cb315186ca700e31b2675cbb16f9a68d",
-  "assets/js/battle-ess2.js": "2dcc738b7d9cb5a3b2c754a779530888",
+  "assets/js/battle-ess2.js": "3df31319714dacb7f0738ddcfd107370",
   "assets/js/battle-ext.js": "9537dc61e0be9892da70beb794fddaee",
   "assets/js/battle-menu.js": "bc0ffeb073425536db5755d1a30e4379",
   "assets/js/battle-net.js": "f8172bd74527ba982fd73ea9ac71dbf3",
   "assets/js/battle-rules.js": "2e98056d9784af3da9d97308cd58d590",
-  "assets/js/battle-ui.js": "8f21e0f78d31691e49121682dbf78a23",
-  "assets/js/battle-weap.js": "c9e4beee558a954ca716015287d2d619",
+  "assets/js/battle-ui.js": "d820b4b00c37dbecfdbf5b2c84d3065c",
+  "assets/js/battle-weap.js": "b551d9681452f492a7fa892c158d8cb4",
   "assets/js/battle.js": "adb047f6c19b8ca8e21fdb322f898c7d",
   "assets/js/net.js": "2e8be9ea96e5cf1bd44c120e636e4520",
   "assets/js/netglue.js": "a986bfadec03d6b266a867d44a1167eb",
@@ -1086,6 +1086,6 @@
   "fonts/f8.woff2": "6cc1ee17091d59eb93821c3594e8f38f",
   "fonts/f9.woff2": "070433480b7b645f69b543f284e386ce",
   "fonts/fonts.css": "1585a72a8d157b26cb424ab433fd4e19",
-  "index.html": "39adfe4b2994b7f53b91a488ef085974"
+  "index.html": "62c79a95756fec07a9755d18c1e3bd58"
  }
 }

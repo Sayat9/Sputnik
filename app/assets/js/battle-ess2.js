@@ -1034,7 +1034,7 @@
   };
   B.summonKeeper = function () {
     const S = B.S; if (!S) return null;
-    const idx = S.units.filter(x => x.side === "mon").length, k = B.monUnit("silence-keeper", idx), tmp = { size: k.size, side: "mon", id: "tmpkeeper" };
+    const idx = S.units.filter(x => x.side === "mon").length, k = B.monUnit("silence-keeper", idx), tmp = { size: k.size, w: k.w, h: k.h, side: "mon", id: "tmpkeeper" };
     const cells = []; for (let y = 0; y < Math.min(3, B.H); y++) for (let x = 0; x < B.W; x++) if (B.canStand(k, x, y) && !live().some(o => o.x === x && o.y === y)) cells.push([x, y]);
     const c = cells.length ? cells[Math.floor(cells.length / 2)] : (B.freeCellsNear({ x: Math.floor(B.W / 2), y: 0, size: 1, side: "mon", id: "x" }, 4, tmp)[0] || [0, 0]);
     k.x = c[0]; k.y = c[1]; k.startCell = [k.x, k.y];
@@ -1534,7 +1534,7 @@
   B.spawnFoes = function (ids, near) {
     const S = B.S, got = [];
     for (const id of ids) {
-      const m = B.monUnit(id, S.ev.list.length), tmp = { size: m.size, side: "mon", id: "tmp" };
+      const m = B.monUnit(id, S.ev.list.length), tmp = { size: m.size, w: m.w, h: m.h, side: "mon", id: "tmp" };
       const cells = []; for (let y = 0; y < Math.min(2, B.H); y++) for (let x = 0; x < B.W; x++) if (B.canStand(tmp, x, y) && !live().some(o => footprint(o).some(([fx0, fy0]) => fx0 === x && fy0 === y))) cells.push([x, y]);
       const c = cells.length ? cells[Math.floor(Math.random() * cells.length)] : (B.freeCellsNear(near || { x: Math.floor(B.W / 2), y: 0, size: 1, side: "mon", id: "x" }, 3, tmp)[0]);
       if (!c) continue; m.x = c[0]; m.y = c[1]; S.ev.list.push(id); B.addUnit(m, S.order[S.turn]); got.push(m);

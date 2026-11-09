@@ -264,6 +264,15 @@
   D.essCd = { goblin: 3, "goblin-archer": 2, "goblin-sword": 2, "goblin-spear": 2, wolf: 3, fox: 2, mouse: 3, bat: 3, zombie: 2, skeleton: 3, "skeleton-archer": 3,
     ghoul: 2, "living-stone": 2, pixie: 3, wisp: 3, "green-boulder": 3, hobgoblin: 2, "dark-bear": 3, "skeleton-warrior": 2, "stone-guardian": 3 };
   // Эссенции 2 этажа: перезарядки прямо в rules.md. battle 99 — «раз за бой»; «Нож в спину» — перезарядка пассивки.
+  // Размер на поле (09.11, автор): [ширина, высота] в клетках. 2×1 — длинные звери (медведь, лось, вепрь, скорпионы, змеи, химеры);
+  // 2×2 — только настоящие гиганты (мамонтёнок, колосс, големы); рослые гуманоиды и нежить — 1×1. Кель и Падший хранитель («огромные») — тоже 2×2: 3×3 на поле 10×10 ломает их бой (раньше Кель из-за «Огромная» вообще был 1×1).
+  D.foot = {
+    "dark-bear": [2, 1], "stone-elk": [2, 1], "ice-deer": [2, 1], "glen-warden": [2, 1], "silent-predator": [2, 1], "toll-bull": [2, 1], "mutant-boar": [2, 1],
+    "lab-direwolf": [2, 1], "fled-chimera": [2, 1], "swamp-fang": [2, 1], "big-stinger": [2, 1], "mirage-scorpion": [2, 1], "magma-wyrm": [2, 1], "deep-serpent": [2, 1], "boulder-beetle": [2, 1],
+    "mammoth-calf": [2, 2], "crystal-colossus": [2, 2], "magma-golem": [2, 2], "rift-heart": [2, 2], "giant-mole": [2, 2], "spider-queen": [2, 2], "faceless-sculptor": [2, 2], "flesh-golem": [2, 2], "kel-worm": [2, 2], "fallen-keeper": [2, 2],
+    "faceless-ringer": [1, 1], "bone-knight": [1, 1], "corpse-eater": [1, 1], "werewolf": [1, 1], "orc-chief": [1, 1], "forge-smith": [1, 1], "half-troll": [1, 1], "trollgob-porter": [1, 1],
+    "fog-lantern": [1, 1], "dead-vulture": [1, 1],
+  };
   Object.assign(D.essCd, { rat: 2, "rat-king": 4, "rat-catcher": 3 });
   Object.assign(D.essCd, { drop: 2, "dust-whirl": 2, "magma-hound": 3, crystalloid: 3, "lake-spirit": 3, "magma-golem": 4, "deep-serpent": 2, "crystal-colossus": 4, "storm-spirit": 4, "rift-heart": 4 });
   Object.assign(D.essCd, { "goblin-shaman": 2, "goblin-assassin": 3, "goblin-trapper": 3, "goblin-elder": 3, "hobgoblin-brute": 2, "hobgoblin-thrower": 2, "hobgoblin-driver": 3,

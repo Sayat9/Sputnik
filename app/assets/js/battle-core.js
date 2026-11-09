@@ -49,7 +49,7 @@
   const key = (x, y) => x + "," + y;
   const cheb = (ax, ay, bx, by) => Math.max(Math.abs(ax - bx), Math.abs(ay - by));
   const DIRS = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]];
-  function footprint(u, x = u.x, y = u.y) { const out = []; for (let dy = 0; dy < u.size; dy++) for (let dx = 0; dx < u.size; dx++) out.push([x + dx, y + dy]); return out; }
+  function footprint(u, x = u.x, y = u.y) { const w = u.w || u.size || 1, h = u.h || u.size || 1, out = []; for (let dy = 0; dy < h; dy++) for (let dx = 0; dx < w; dx++) out.push([x + dx, y + dy]); return out; }          // 09.11: прямоугольные бойцы (u.w × u.h, напр. медведь 2×1)
   // Расстояние между юнитами (или юнитом в другой клетке) — минимум по клеткам, диагональ = 1.
   function dist(a, b, ax = a.x, ay = a.y) {
     let m = 99;
@@ -234,6 +234,7 @@
       speedC: cellsOfM(sp.walk), flyC: cellsOfM(sp.fly), climbC: cellsOfM(sp.climb), atk: (cb.atk || []).map(a => { const dm = parseDice(a.dmg), cut = (D.monDmgCut[m.cls] || 0) - (D.monDmgPerCls || 0) * Math.max(0, 9 - (m.cls || 9)); const bo = m.boost || {}; return { ...a, hit: (a.hit || 0) + (bo.hit || 0), dmg: { ...dm, b: Math.max(0, dm.b - cut) + (bo.dmg || 0) } }; }),          // m.boost — точечное усиление (MON_BOOST)
       seq: cb.seq || null, vuln: cb.vuln || [],
       skills: parseSkills(m.senses), initB: 0, face: ART.monsterFace(id), blind: cb.blind || 0, tremor: cb.tremor || 0, dv: /Тёмное зрение/.test(m.senses || ""), shield: !!cb.shield, rare: !!m.rare, cls: m.cls });
+    { const f = D.foot && D.foot[id]; if (f) { u.w = f[0]; u.h = f[1]; u.size = f[0] === f[1] ? f[0] : 2; } }          // 09.11: размер на поле по таблице (1×1, 2×1, 2×2); класс размера u.size: 2×1 — «большой»
     ABIL.forEach((k, i) => { u.abil[k] = m.abil[i]; });
     if (m.carry && m.carry.arrows != null && u.atk.some(a => a.kind === "ranged")) { u.arrows = m.carry.arrows; u.atk.forEach(a => { if (a.kind === "ranged" && !/метнуть/.test(a.n)) a.ammo = true; }); }          // путник-лучник: стрелы считаются
     if (m.essences) u.ess = m.essences.filter(e => ESSENCES[e]);          // путники: до трёх эссенций
@@ -357,7 +358,7 @@
     else r = Math.max(r, B.heroReach ? B.heroReach(u) : 1);
     return r;
   }
-  function center(u) { return [u.x + (u.size - 1) / 2, u.y + (u.size - 1) / 2]; }
+  function center(u) { return [u.x + ((u.w || u.size) - 1) / 2, u.y + ((u.h || u.size) - 1) / 2]; }
   // Клетки, через которые проходит линия между юнитами (без их собственных клеток).
   function lineCells(a, b) {
     const [ax, ay] = center(a), [bx, by] = center(b), n = Math.max(1, Math.ceil(Math.max(Math.abs(bx - ax), Math.abs(by - ay)) * 4));

@@ -137,10 +137,10 @@
       }
       const gone = u.fled || u.escaped || (!u.alive && (u.side === "mon" || u.summon)) || (u.side === "mon" && (S.hideMons || B.isUnseen(u) || (S.phase === "fight" && !B.seenByParty(u))));
       el.hidden = gone;
-      const sz = u.size * cell;
-      el.style.width = sz + "px"; el.style.height = sz + "px"; el.style.left = u.x * cell + "px"; el.style.top = u.y * cell + "px";
+      const fw = (u.w || u.size) * cell, fh = (u.h || u.size) * cell;
+      el.style.width = fw + "px"; el.style.height = fh + "px"; el.style.left = u.x * cell + "px"; el.style.top = u.y * cell + "px";
       const cur = S.order[S.turn] === u.id && S.phase === "fight";
-      el.className = `bt-token ${u.side}${u.size > 1 ? " big" : ""}${cur ? " cur" : ""}${u.down ? " down" : ""}${u.dead ? " dead" : ""}${has(u, "hidden") ? " hidden-st" : ""}${has(u, "underground") ? " under" : ""}${u.summon ? " summon k-" + u.kind : ""}${u.spectral ? " ghost" : ""}${UI.targetIds && UI.targetIds.has(u.id) ? " target" : ""}${UI.selIds && UI.selIds.has(u.id) ? " sel" : ""}`;
+      el.className = `bt-token ${u.side}${u.size > 1 ? " big" : ""}${(u.w || u.size) !== (u.h || u.size) ? " wide" : ""}${cur ? " cur" : ""}${u.down ? " down" : ""}${u.dead ? " dead" : ""}${has(u, "hidden") ? " hidden-st" : ""}${has(u, "underground") ? " under" : ""}${u.summon ? " summon k-" + u.kind : ""}${u.spectral ? " ghost" : ""}${UI.targetIds && UI.targetIds.has(u.id) ? " target" : ""}${UI.selIds && UI.selIds.has(u.id) ? " sel" : ""}`;
       const showHp = u.side === "hero" || S.opts.showMonHp;
       const bars = el.querySelector(".bt-bars"); bars.hidden = !showHp;
       if (showHp) {
@@ -299,12 +299,12 @@
   }
 
   /* ===== эффекты ===== */
-  const centerOf = u => ({ x: (u.x + u.size / 2) * cell, y: (u.y + u.size / 2) * cell });
+  const centerOf = u => ({ x: (u.x + (u.w || u.size) / 2) * cell, y: (u.y + (u.h || u.size) / 2) * cell });
   function floatText(u, text, cls, big) {
     if (!UI.active || !root) return;
     const fx = root.querySelector(".bt-fx"), c = centerOf(u), el = document.createElement("span");
     el.className = "bt-float " + (cls || "") + (big ? " big" : ""); el.textContent = text;
-    el.style.left = c.x + (Math.random() * 16 - 8) + "px"; el.style.top = c.y - u.size * cell * 0.35 + "px";
+    el.style.left = c.x + (Math.random() * 16 - 8) + "px"; el.style.top = c.y - (u.h || u.size) * cell * 0.35 + "px";
     fx.appendChild(el); setTimeout(() => el.remove(), 1300);
   }
   const defer = fn => { if (B.Dice && B.Dice.isOpen && B.Dice.isOpen()) UI.pendingFx.push(fn); else fn(); };
@@ -321,7 +321,7 @@
   // Минимальный эффект способности монстра: кольцо вокруг колдующего, кольца на целях и подпись с названием.
   UI.fxAbility = (u, name, targets) => defer(() => {
     const fx = root && root.querySelector(".bt-fx"); if (!fx) return;
-    const mk = (t, cls) => { const el = document.createElement("div"); el.className = cls; el.style.cssText = `left:${t.x * cell}px;top:${t.y * cell}px;width:${(t.size || 1) * cell}px;height:${(t.size || 1) * cell}px`; fx.appendChild(el); setTimeout(() => el.remove(), 1200); };
+    const mk = (t, cls) => { const el = document.createElement("div"); el.className = cls; el.style.cssText = `left:${t.x * cell}px;top:${t.y * cell}px;width:${(t.w || t.size || 1) * cell}px;height:${(t.h || t.size || 1) * cell}px`; fx.appendChild(el); setTimeout(() => el.remove(), 1200); };
     const unseen = u.side === "mon" && B.S && B.S.phase === "fight" && !B.seenByParty(u);          // невидимый монстр: ни вспышки на его клетке, ни названия
     if (!unseen) mk(u, "bt-cast"); for (const t of targets || []) if (t && t.id !== u.id && (!unseen || B.seenByParty(t) || t.side === "hero")) mk(t, "bt-cast tgt");
     UI.banner(unseen ? "Враг во мраке применяет способность" : `${u.name}: ${name}`, 1500);
