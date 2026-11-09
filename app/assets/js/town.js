@@ -71,9 +71,10 @@
     rerender();
   };
   T.state = () => ui;
+  T.refresh = () => { if (ui) render(); };
   // Клиент игрока: показывает здание, открытое у ведущего (только просмотр, время не тратится).
   // Игрок может сам листать вкладки, выбирать героя и смотреть подробности (03.11): пока он что-то открыл, обновления ведущего не сбивают его вид.
-  const MIRROR_OK = new Set(["hero", "bag", "stock", "ftab", "gtab", "gmon", "gback", "atab", "ttab", "qtab"]);
+  const MIRROR_OK = new Set(["hero", "bag", "stock", "ftab", "gtab", "gmon", "gback", "atab", "ttab", "qtab", "rost-out", "rost-in"]);
   T.mirror = snap => { const own = ui && ui.mirror && ui.local && ui.b === snap.b ? { hero: ui.hero, sel: ui.sel, tab: ui.tab, mon: ui.mon, local: true } : {}; ui = { ...snap, ...own, mirror: true }; host.classList.add("tw-mirror"); host.hidden = false; document.body.classList.add("forge-open"); render(); };
   T.unmirror = () => { host.classList.remove("tw-mirror"); if (ui && ui.mirror) { ui = null; host.hidden = true; host.innerHTML = ""; document.body.classList.remove("forge-open"); } };
   const spend = n => { ui.cost += n; };
@@ -294,7 +295,9 @@
     B.tavern = {
       init: () => ({ sleep: {}, food: {} }),
       render() {
-        if (!state.party.length) return frame("Таверна", "Рафдония", noParty());
+        const tabs = `<div class="tw-tabs" role="tablist"><button class="fx-btn" role="tab" aria-selected="${ui.tab !== "roster"}" data-t="ttab" data-k="rest">Отдых</button><button class="fx-btn" role="tab" aria-selected="${ui.tab === "roster"}" data-t="ttab" data-k="roster">Отряд и запас</button></div>`;
+        if (ui.tab === "roster") return frame("Таверна", "Рафдония", tabs + rosterHtml());
+        if (!state.party.length) return frame("Таверна", "Рафдония", tabs + noParty());
         const live = state.party.filter(c => !c.dead);
         const locked = !!state.arenaLock;
         if (locked) ui.sleep = {};
@@ -303,13 +306,28 @@
           return `<div class="tw-row"><div class="tw-who">${portrait(c)}<div><b>${esc(c.name)}</b><small>Усталость ${st.fat}/4 · ${hungerText(st)} · ОЗ ${hpOf(c)}/${maxHp(c)}</small></div></div>
             <div class="tw-chk"><button class="fx-btn${ui.sleep[c.id] ? " on" : ""}" data-t="tv" data-k="sleep" data-id="${c.id}" aria-pressed="${!!ui.sleep[c.id]}"${locked ? " disabled" : ""}>Сон · ${TAVERN.sleep}</button>
             <button class="fx-btn${ui.food[c.id] ? " on" : ""}" data-t="tv" data-k="food" data-id="${c.id}" aria-pressed="${!!ui.food[c.id]}">Еда · ${TAVERN.food}</button></div></div>`; }).join("");
-        const body = `<div class="tw-npc">${img("assets/npc/innkeeper.webp", "Хозяин таверны")}<span>Добро пожаловать! Кровать мягкая, эль холодный.</span></div>${locked ? `<p class="tw-msg" style="color:var(--fx-danger)">После боя на арене раны не успеют зажить: ночлег недоступен до следующего спуска (еда — можно).</p>` : ""}<p class="tw-lead">Ночлег снимает усталость и лечит, ужин и завтрак — сытость на заход. Без них следующий спуск начнётся с усталостью и голодом. Ночь занимает три городских действия, еда — одно.</p>
+        const body = tabs + `<div class="tw-npc">${img("assets/npc/innkeeper.webp", "Хозяин таверны")}<span>Добро пожаловать! Кровать мягкая, эль холодный.</span></div>${locked ? `<p class="tw-msg" style="color:var(--fx-danger)">После боя на арене раны не успеют зажить: ночлег недоступен до следующего спуска (еда — можно).</p>` : ""}<p class="tw-lead">Ночлег снимает усталость и лечит, ужин и завтрак — сытость на заход. Без них следующий спуск начнётся с усталостью и голодом. Ночь занимает три городских действия, еда — одно.</p>
           <div class="tw-rows">${rows}</div>${msgLine()}`;
         const sleepers = live.filter(c => ui.sleep[c.id]).length, eaters = live.filter(c => ui.food[c.id]).length;
         const foot = `<div class="tw-sel"><b>К оплате: ${total}</b><span class="tw-hint">У отряда: ${partyGold()} монет · спят: ${sleepers}, едят: ${eaters}</span><span class="tw-btns"><button class="fx-btn" data-t="tv-all">${locked ? "Всем еда" : "Всем всё"}</button><button class="fx-btn primary" data-t="tv-pay"${total > 0 && partyGold() >= total ? "" : " disabled"}>Оплатить</button></span></div>`;
         return frame("Таверна", "Рафдония", body, foot);
       },
     };
+  }
+
+  // Отряд и запас (09.11): бесплатно, без городского действия; ведущий — свои герои, игрок — свои (запас хранится на его устройстве)
+  function rosterHtml() {
+    const player = !!ui.mirror, mine = c => (player ? !!(window.NetGlue && NetGlue.isMine && NetGlue.isMine(c)) : !c.owner);
+    const party = (state.party || []).filter(c => !c.dead), res = typeof reserveHeroes === "function" ? reserveHeroes() : [];
+    const row = (c, btn) => `<div class="tw-row"><div class="tw-who">${portrait(c)}<div><b>${esc(c.name)}</b><small>${c.level || 1} уровень${c.owner && !mine(c) ? " · герой игрока" : ""}</small></div></div>${btn}</div>`;
+    const pRows = party.map(c => row(c, mine(c) ? `<button class="fx-btn" data-t="rost-out" data-id="${c.id}">В запас</button>` : "")).join("") || `<p class="tw-lead">В отряде никого.</p>`;
+    const rRows = res.map(c => row(c, `<button class="fx-btn primary" data-t="rost-in" data-id="${c.id}">В отряд</button>`)).join("") || `<p class="tw-lead">Запас пуст. Сюда уходят герои, которых убрали из отряда; запас хранится на этом устройстве и не пропадает с новой партией.</p>`;
+    return `<p class="tw-lead">Пересобрать отряд можно бесплатно — городское действие не тратится. ${player ? "Ты распоряжаешься только своими героями." : "Герои игроков убирают и возвращают сами игроки."}</p>
+      <div class="fx-section">В отряде</div><div class="tw-rows">${pRows}</div><div class="fx-section">Запас</div><div class="tw-rows">${rRows}</div>${msgLine()}`;
+  }
+  async function rosterAct(kind, id) {
+    if (ui.mirror) { const r = await (kind === "out" ? NetGlue.rosterOut(id) : NetGlue.rosterIn(id)); ui.msg = r && r.ok ? (kind === "out" ? "Герой ушёл в запас." : "Герой вернулся в отряд.") : `Не вышло: ${(r && r.why) || "ведущий отказал"}`; render(); return; }
+    const why = kind === "out" ? heroToReserve(id) : heroFromReserve(id); ui.msg = why ? `Не вышло: ${why}` : kind === "out" ? "Герой ушёл в запас." : "Герой вернулся в отряд."; render(); if (typeof rerender === "function") try { rerender(); } catch (e) {}
   }
 
   /* =====================================================================
@@ -865,6 +883,8 @@
       case "sell1": sellItem(+ds.i, false); break;
       case "sellall": sellItem(+ds.i, true); break;
       case "tv": { const m = ui[ds.k]; m[ds.id] = !m[ds.id]; break; }
+      case "rost-out": rosterAct("out", ds.id); return;
+      case "rost-in": rosterAct("in", ds.id); return;
       case "tv-all": for (const c of state.party.filter(x => !x.dead)) { if (!state.arenaLock) ui.sleep[c.id] = true; ui.food[c.id] = true; } break;
       case "tv-pay": tavernPay(); break;
       case "lr-cat": ui.lr = { step: "hero", cat: ds.k, log: [], picks: {}, stage: 0 }; break;

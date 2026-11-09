@@ -3321,8 +3321,8 @@ Object.assign(RIFT_ICO, {
 // склеп 4×4 в левом верхнем углу и собор 3×3 в правом верхнем — пока закрыты. Вместо дней — фазы: день и ночь по 10 действий.
 // День: в поселении и полях встреч нет и кубик не бросается; на кладбище встречи редкие, монстры не выше 8 класса.
 // Ночь: на кладбище встречи чаще, с обычными наградами и 7 классом; светящиеся могилы (до 3, имена; последнее — имя старосты).
-const GY_ELDER = { name: "Староста Освальд Тисс", face: "assets/npc/elder.webp" };
-const GY_GRAVES = ["Марта Холл", "Брам Тисс", "Освальд Тисс"];
+const GY_ELDER = { name: "Староста Азик Эггерс", face: "assets/npc/elder.webp" };
+const GY_GRAVES = ["Марта Холл", "Брам Тисс", "Азик Эггерс"];
 const GY_NAME = { village: "Поселение", tavern: "Таверна", field: "Пшеничное поле", grave: "Кладбище", crypt: "Склеп", cathedral: "Собор" };
 const GY_FILL = { village: "#5a4a32", tavern: "#7a5226", field: "#8a7a3a", grave: "#3c4038", crypt: "#2a2630", cathedral: "#32283c" };
 const GY_POOL = { 9: ["zombie", "skeleton", "skeleton-archer", "ghoul", "dust-crawler", "bone-hound", "grey-shade", "morok"], 8: ["skeleton-warrior", "gravedigger", "plague-fat", "whisperer", "mirror-dead"], 7: ["bone-knight", "corpse-eater", "ash-wraith"] };
@@ -4473,7 +4473,7 @@ function openKills(c) {
 }
 function openSack() { const $i = document.getElementById("iteminfo"); $i.innerHTML = sackViewHtml(); $i.hidden = false; }
 /* ----- онлайн (assets/js/net.js — связь, netglue.js — ведущий и игрок) ----- */
-const NET_REV = 4, NET_FILES = ["assets/js/net.js", "assets/js/netglue.js"];
+const NET_REV = 5, NET_FILES = ["assets/js/net.js", "assets/js/netglue.js"];
 let netLoad = null;
 function loadNet() {
   if (window.NetGlue && window.NetGlue.ready) return Promise.resolve(true);
@@ -8388,6 +8388,26 @@ function itemThumb(e, c) {
 /* ----- монеты: у каждого героя свой кошелёк (c.gold), веса нет, делятся при гибели героя ----- */
 const COIN_SVG = `<svg class="coin" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="#e5b84f" stroke="#7a5412" stroke-width="1.5"/><circle cx="12" cy="12" r="5.5" fill="none" stroke="#9a6d1c" stroke-width="1.2"/><path d="M12 8.5v7M10 10.5h3.2a1.2 1.2 0 010 2.4H10.8" stroke="#7a5412" stroke-width="1.2" fill="none" stroke-linecap="round"/></svg>`;
 const goldOf = c => Math.max(0, Math.floor(c.gold || 0));
+/* ----- Запас героев на аккаунте (автор 09.11): герои хранятся на устройстве отдельно от партии; в таверне — бесплатно убрать в запас / вернуть ----- */
+const ACC_KEY = "sputnik.account.v1";
+function accLoad() { try { const a = JSON.parse(localStorage.getItem(ACC_KEY) || "null"); return a && Array.isArray(a.heroes) ? a : { heroes: [] }; } catch (e) { return { heroes: [] }; } }
+function accStore(a) { try { localStorage.setItem(ACC_KEY, JSON.stringify(a)); } catch (e) {} }
+const reserveHeroes = () => accLoad().heroes;
+function reservePut(c) { const a = accLoad(); a.heroes = a.heroes.filter(x => x.id !== c.id); a.heroes.push(JSON.parse(JSON.stringify(c))); accStore(a); }
+function reserveTake(id) { const a = accLoad(), c = a.heroes.find(x => x.id === id); a.heroes = a.heroes.filter(x => x.id !== id); accStore(a); return c || null; }
+const rosterLocked = () => !!(state.run || (typeof Battle !== "undefined" && Battle.S && Battle.running));
+function heroToReserve(id) {          // ведущий: свой герой (без владельца) — в запас аккаунта
+  if (rosterLocked()) return "только в городе";
+  const c = (state.party || []).find(x => x.id === id); if (!c || c.dead) return "нет такого героя";
+  if (state.party.filter(x => !x.dead).length <= 1) return "в отряде должен остаться хотя бы один герой";
+  state.party = state.party.filter(x => x !== c); const pl = { ...c }; delete pl.owner; reservePut(pl); saveChar(); return "";
+}
+function heroFromReserve(id) {
+  if (rosterLocked()) return "только в городе";
+  const c = reserveTake(id); if (!c) return "нет такого героя в запасе";
+  if ((state.party || []).some(x => x.id === c.id)) return "";
+  state.party.push(c); saveChar(); return "";
+}
 const partyGold = () => state.party.reduce((a, c) => a + goldOf(c), 0);
 const addGold = (c, n) => { c.gold = goldOf(c) + Math.max(0, Math.floor(n)); };
 // Платит prefer, если не хватает — добирают остальные (сначала самые богатые). false — монет в отряде мало.
