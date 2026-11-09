@@ -56,10 +56,15 @@
   `;
   document.head.appendChild(css);
   // Режим «смотрю экран ведущего»: экран листается пальцем, но нажатия по нему не срабатывают (кроме удержания карточек героев — меню героя).
+  // Свой компас игрока: выбор «показать/убрать» хранится у игрока и накладывается поверх состояния ведущего.
+  const localCompass = () => { if (G.compassLocal == null || !state.inventory || !state.inventory.compass || !state.inventory.compass.owned) return; state.inventory.compass.active = true; state.inventory.compassOn = G.compassLocal; };
   const followBlock = e => {
     if (!document.body.classList.contains("net-follow")) return;
     const v = e.target && e.target.closest && e.target.closest("#view"); if (!v || e.target.closest("[data-hero]")) return;
     e.stopPropagation(); if (e.type === "click" || e.type === "contextmenu" || e.type === "dblclick") e.preventDefault();
+    // 09.11: компас и карта в углу экрана лабиринта — игрок открывает сам, у себя (у ведущего ничего не меняется)
+    if (e.type === "click" && e.target.closest("[data-dg='compass']")) { const inv = inventory(); if (!inv.compass || !inv.compass.owned) return; G.compassLocal = !(inv.compass.active && inv.compassOn); localCompass(); dgUi.kickCompass = G.compassLocal; try { rerender(); } catch (err) {} return; }
+    if (e.type === "click" && e.target.closest("[data-dg='floormap']")) { openMap(); return; }
   };
   for (const t of ["click", "dblclick", "contextmenu", "pointerdown", "pointerup", "mousedown", "mouseup", "change", "input", "keydown"]) window.addEventListener(t, followBlock, true);
   const nbh = () => { const b = document.getElementById("netbar"); if (b && b.offsetHeight) document.documentElement.style.setProperty("--nbh", b.offsetHeight + "px"); };
@@ -348,6 +353,7 @@
     for (const k of Object.keys(V)) if (k.startsWith("s:")) ns[k.slice(2)] = V[k];
     state = ns; char = curChar();
     if (V.dgUi) dgUi = V.dgUi;
+    localCompass();
     if (V.bat !== undefined && window.Battle && Battle.Net) Battle.Net.mirror(V.bat);
     else if (V.bat !== undefined && V.bat) loadBattle().then(ok => { if (ok && Battle.Net) Battle.Net.mirror(G.view.bat); });
     // экран: идём за ведущим

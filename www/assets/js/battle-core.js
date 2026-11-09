@@ -261,7 +261,7 @@
   function removeStatus(u, id) { const i = u.conds.findIndex(c => c.id === id); if (i >= 0) { u.conds.splice(i, 1); const g = ui(); if (g) g.refresh(); return true; } return false; }
   function tickStatuses(u, when) {
     const gone = [];
-    u.conds = u.conds.filter(c => { if (c.when === when && c.k !== Infinity && u.turnsTaken >= c.k) { gone.push(c); return false; } return true; });
+    u.conds = u.conds.filter(c => { if (c.when === when && c.k != null && c.k !== Infinity && u.turnsTaken >= c.k) { gone.push(c); return false; } return true; });
     return gone;
   }
   // Перезарядка способности: n раундов, в которые её нельзя применить снова (rules.md, «Перезарядка (КД)»). Счёт идёт в конце своих ходов;

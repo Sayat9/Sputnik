@@ -158,16 +158,20 @@
   // Состояние боя без ссылок на героев и функций (герой — только id): для автосохранения и онлайна.
   B.ser = S => JSON.parse(JSON.stringify(S, (k, v) => (k === "ev" ? undefined : k === "hero" ? (typeof v === "string" ? v : v && v.id) : typeof v === "function" ? undefined : v)));
   // Кладёт снимок в S (на месте: цикл боя держит ссылку на S) и снова связывает героев с отрядом.
+  // JSON (сеть, автосохранение боя) превращает Infinity в null: бессрочные статусы («до начала моего хода», невидимость, затаился…) после передачи
+  // снимались на первом же тике (turnsTaken >= null). Возвращаем Infinity (09.11).
+  B.fixInf = S => { for (const u of (S && S.units) || []) for (const c of u.conds || []) if (c.k == null) c.k = Infinity; return S; };
   B.restoreInto = (S, snap) => {
     const keepEv = S.ev; for (const k of Object.keys(S)) delete S[k];
     Object.assign(S, JSON.parse(JSON.stringify(snap))); S.ev = keepEv; if (S.n) B.setSize(S.n);
+    B.fixInf(S);
     for (const u of S.units) if (typeof u.hero === "string") u.hero = (state.party || []).find(c => c.id === u.hero) || null;
     let maxId = 0; for (const u of S.units) { const m = /^u(\d+)$/.exec(u.id); if (m) maxId = Math.max(maxId, +m[1]); } B.setUid(maxId + 1);
     return S;
   };
   B.resume = async function (ev, S) {
     if (B.running) return;
-    B.running = true; ev.battleStarted = true; S.ev = ev;
+    B.running = true; ev.battleStarted = true; S.ev = ev; B.fixInf(S);
     try {
       let maxId = 0;
       for (const u of S.units) { if (typeof u.hero === "string") u.hero = (state.party || []).find(c => c.id === u.hero) || null; const m = /^u(\d+)$/.exec(u.id); if (m) maxId = Math.max(maxId, +m[1]); }

@@ -1654,7 +1654,7 @@ const ESSENCES = {
   "zombie": {
     id: "zombie", name: "Эссенция: зомби", cls: 9, source: "zombie",
     stats: {"str": 1, "con": 1}, other: ["Максимум ОЗ +1", "Скорость −1,5 м"],
-    passive: { name: "Упрямая плоть", text: "Когда урон опускает тебя до 0 ОЗ, делаешь спасбросок Телосложения Сл 5 + полученный урон; успех — остаёшься с 1 ОЗ. Каждый следующий успех до длинного отдыха повышает Сл на 5. Не работает против критического попадания и урона излучением." },
+    passive: { name: "Упрямая плоть", text: "Когда урон опускает тебя до 0 ОЗ, делаешь спасбросок Телосложения Сл 5 + полученный урон; успех — остаёшься с 1 ОЗ. Каждый следующий успех до длинного отдыха повышает Сл на 5. Не работает против критического попадания и урона излучением. Перезарядка 2 хода." },
     active: { name: "Мёртвая хватка", mana: 2, time: "действие", text: "Существо в 1,5 м, до конца твоего следующего хода. Сл 8 + БМ + мод. Силы, спасбросок Силы. Провал — цель схвачена, её скорость 0; вырваться: действие, Атлетика или Акробатика против Сл. Успех — ничего." },
   },
   "skeleton": {
@@ -4335,7 +4335,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 125;
+const BATTLE_REV = 126;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }
@@ -4473,7 +4473,7 @@ function openKills(c) {
 }
 function openSack() { const $i = document.getElementById("iteminfo"); $i.innerHTML = sackViewHtml(); $i.hidden = false; }
 /* ----- онлайн (assets/js/net.js — связь, netglue.js — ведущий и игрок) ----- */
-const NET_REV = 5, NET_FILES = ["assets/js/net.js", "assets/js/netglue.js"];
+const NET_REV = 6, NET_FILES = ["assets/js/net.js", "assets/js/netglue.js"];
 let netLoad = null;
 function loadNet() {
   if (window.NetGlue && window.NetGlue.ready) return Promise.resolve(true);

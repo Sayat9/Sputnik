@@ -379,6 +379,8 @@
   P.zombie = {
     async beforeZero(u, c) {
       const o = c.o || {}; if (o.crit || o.dt === "radiant") return false;
+      if (u.stubbornTurn != null && (u.turnsTaken || 0) - u.stubbornTurn < 2) return false;          // 09.11 (автор): перезарядка 2 хода
+      u.stubbornTurn = u.turnsTaken || 0;
       const flags = u.hero ? (u.hero.flags = u.hero.flags || {}) : u.flags; const n = flags.stubborn || 0;
       const dc = 5 + (o.taken || c.left) + 5 * n;
       const sv = await save(u, "con", dc, "Упрямая плоть");

@@ -200,8 +200,9 @@
   const shadowPath = u => { const map = B.pathMap(u, Math.floor(speedOf(u) / 2), {}); return { map, cells: [...map.values()].filter(v => (v.x !== u.x || v.y !== u.y) && B.canStand(u, v.x, v.y)) }; };
   A["goblin-assassin"] = {
     time: "bonus",
-    tgt(u) { const sp = shadowPath(u); return { type: "cell", prompt: "Уход в тень: куда (половина скорости, без атак по возможности)", cells: sp.cells.map(v => [v.x, v.y]), kind: "move", path: sp.map, optional: true }; },
-    can(u) { return speedOf(u) >= 2 || B.hideSpot(u, { near: true }) ? true : "слишком медленный"; },
+    tgt(u) { const sp = shadowPath(u); if (!sp.cells.length) return { type: "self" };          // 09.11: двигаться некуда (окружён, скорость 0) — уходит в тень на месте
+      return { type: "cell", prompt: "Уход в тень: куда (половина скорости, без атак по возможности)", cells: sp.cells.map(v => [v.x, v.y]), kind: "move", path: sp.map, optional: true }; },
+    can(u) { return true; },          // 09.11: можно и стоя на месте (без перемещения)
     async run(u, pk, ctl) {
       ctl.commit();
       if (pk.cell) { const sp = shadowPath(u), path = B.pathTo(sp.map, pk.cell[0], pk.cell[1]); const r = await B.moveAlong(u, path, { noProvoke: true }); u.t.moved += r.spent; }
