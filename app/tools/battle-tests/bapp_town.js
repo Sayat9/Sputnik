@@ -63,6 +63,7 @@ const L = require('./bui_lib.js');
   // --- библиотека
   await p.evaluate(() => { location.hash = 'town'; rerender(); }); await p.click('[data-bld="library"]'); await p.waitForSelector('[data-t="lr-cat"]');
   ok('библиотека: выбор категории (предметы — скоро)', await p.evaluate(() => /Предметы/.test(document.querySelector('.tw-scroll').innerText) && /Монстры/.test(document.querySelector('.tw-scroll').innerText)));
+  const libT0 = await p.evaluate(() => townClock().t);
   await p.click('[data-t="lr-cat"][data-k="monsters"]'); await p.click('[data-t="lr-hero"]'); await p.click('[data-t="lr-cls"][data-n="9"]');
   ok('библиотека: первая проверка — тип', await p.evaluate(() => /Этап 1 из 4/.test(document.querySelector('.tw-scroll').innerText)));
   const known0 = await p.evaluate(() => Object.keys(journal().known).length + JSON.stringify(Object.values(journal().known).map(r => r.revealed)));
@@ -71,7 +72,7 @@ const L = require('./bui_lib.js');
   ok('библиотека: после успешных проверок — найдено сведение', await p.evaluate(() => /Найдено/.test(document.querySelector('.tw-scroll').innerText)), await p.evaluate(() => document.querySelector('.tw-scroll').innerText.slice(0, 300)));
   const known1 = await p.evaluate(() => Object.keys(journal().known).length + JSON.stringify(Object.values(journal().known).map(r => r.revealed)));
   ok('библиотека: запись изменилась', known0 !== known1);
-  ok('библиотека: исследование — 1 действие', await p.evaluate(() => Town.state().cost) === 1);
+  ok('библиотека: исследование — 1 действие (списывается сразу, 09.11)', await p.evaluate(t0 => townClock().t - t0, libT0) === 1);
   await p.click('[data-t="lr-restart"]'); await p.click('[data-t="lr-hero"]'); await p.click('[data-t="lr-cls"][data-n="9"]');
   for (let i = 0; i < 6; i++) { if (!(await p.$('[data-t="lr-roll"]'))) break; await p.evaluate(() => { window.__libDie = 1; }); await p.click('[data-t="lr-roll"]'); if (await p.$('[data-t="lr-pick"]')) break; }
   ok('библиотека: провал — случайный выбор без меню', await p.evaluate(() => /провал/.test(document.querySelector('.tw-scroll').innerText)));

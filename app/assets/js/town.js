@@ -78,7 +78,11 @@
   T.mirror = snap => { const own = ui && ui.mirror && ui.local && ui.b === snap.b ? { hero: ui.hero, sel: ui.sel, tab: ui.tab, mon: ui.mon, local: true } : {}; ui = { ...snap, ...own, mirror: true }; host.classList.add("tw-mirror"); host.hidden = false; document.body.classList.add("forge-open"); render(); };
   T.unmirror = () => { host.classList.remove("tw-mirror"); if (ui && ui.mirror) { ui = null; host.hidden = true; host.innerHTML = ""; document.body.classList.remove("forge-open"); } };
   const spend = n => { ui.cost += n; };
-  const visit = () => { ui.cost = Math.max(ui.cost, 1); };
+  // 09.11: после арены ночлег закрыт, только если до открытия врат осталось 2 действия или меньше («врата через 3» и больше — спать можно).
+  const sleepLocked = () => { if (!state.arenaLock) return false; const g = gateInfo(); return g.open || g.left <= 2; };
+  // Списать городские действия сразу (часы меняются, не дожидаясь выхода из здания).
+  const spendNow = n => { const c = townClock(); c.t += n; chaliceTick(n); saveChar(); const gi = gateInfo(); toast(`Прошло городских действий: ${n}. Врата ${gi.open ? "открыты сейчас" : "закрыты ещё " + gi.left + " д."}.`); };
+  const visit = () => { if (!ui.paid) ui.cost = Math.max(ui.cost, 1); };          // ui.paid — посещение уже оплачено (возврат на арену после боя, 09.11)
 
   function render() {
     if (!ui) return;
@@ -299,7 +303,7 @@
         if (ui.tab === "roster") return frame("Таверна", "Рафдония", tabs + rosterHtml());
         if (!state.party.length) return frame("Таверна", "Рафдония", tabs + noParty());
         const live = state.party.filter(c => !c.dead);
-        const locked = !!state.arenaLock;
+        const locked = sleepLocked();
         if (locked) ui.sleep = {};
         const total = live.reduce((a, c) => a + (ui.sleep[c.id] ? TAVERN.sleep : 0) + (ui.food[c.id] ? TAVERN.food : 0), 0);
         const rows = live.map(c => { const st = carryOf(c);
@@ -415,7 +419,7 @@
   function lrRoll(n) {
     const lr = ui.lr; if (!lr || lr.step !== "stage" || lr.choosing) return;
     const c = state.party.find(x => x.id === lr.hero) || hero(), bonus = libBonus(c), dc = libDc(lr.cls), die = n || window.__libDie || 1 + rnd(20), total = die + bonus, pass = total >= dc;
-    visit();
+    if (!lr.paid) { lr.paid = true; spendNow(1); }          // 09.11: каждое исследование — одно городское действие, списывается сразу, а не при выходе
     const name = STAGES[lr.stage][1];
     if (STAGES[lr.stage][0] === "info" && die >= 19) lr.essOK = true;
     if (STAGES[lr.stage][0] === "info" && die === 20) lr.nat20 = true;          // натуральная 20 на последней проверке: бонусом — пассивка или активка эссенции (автор 07.11)
@@ -558,7 +562,7 @@
             return `<div class="tw-bout fx-frame">${side(A, "a", b.oa)}<span class="tw-vs">VS</span>${side(Bm, "b", b.ob)}${panel}${res}</div>`; }).join("")}</div>${msgLine()}`;
       } else {
         const n = ui.fightN;
-        body += `<p class="tw-lead">Отряд выходит на арену сам. Выберите число противников — случайные монстры ${arenaCls().join(" и ")} класса (по рангу отряда), редкие нечасто. За каждого убитого арена платит тройную цену его камня: ${arenaCls().map(c => `${c} класс — ${ARENA_PAY * stonePrice(c)}`).join(", ")} монет. Лута нет: камни и находки забирают администраторы, выпавшую эссенцию тоже — взамен бонус 20 % её цены.</p>
+        body += `<p class="tw-lead">Отряд выходит на арену сам. Выберите число противников — случайные монстры ${arenaCls().join(" и ")} класса (по рангу отряда), без редких и монстров особых мест. За каждого убитого арена платит тройную цену его камня: ${arenaCls().map(c => `${c} класс — ${ARENA_PAY * stonePrice(c)}`).join(", ")} монет. Лута нет: камни и находки забирают администраторы, выпавшую эссенцию тоже — взамен бонус 20 % её цены.</p>
           <div class="tw-stake"><div class="tw-dlg-row"><button class="fx-btn" data-t="afn" data-d="-1">−</button><b class="tw-stk">${n}</b><button class="fx-btn" data-t="afn" data-d="1">+</button></div>
           <p class="tw-lead" style="text-align:center">Награда при победе: <b style="color:var(--fx-gold-hi)">${n * ARENA_PAY * Math.min(...arenaCls().map(stonePrice))}–${n * ARENA_PAY * Math.max(...arenaCls().map(stonePrice))}</b> монет · после боя +1 Усталость каждому, раны не заживут и ночлег в таверне будет закрыт до следующего спуска.</p>
           <button class="fx-btn primary big" data-t="afight">${ui.ok === "fight" ? "Точно выйти? Нажми ещё раз" : "Выйти на арену"}</button></div>${msgLine()}`;
@@ -582,7 +586,7 @@
     const zone = MONSTERS.find(m => m.id === list[0]).zone;
     const ev = { kind: "hard", title: "Арена", arena: true, list, zone, floor: 1, key: "arena", outcome: null, killed: [], turn: 0, round: 1, tactical: true, border: false, place: "Арена", cause: "arena", raw: 0, n: 0, ambush: false };
     ev.init = rollInitiative(list, false);
-    spend(1); T.close();
+    visit(); T.close();          // 09.11: ставки и бой в одном посещении — одно городское действие (раньше бой прибавлял второе)
     loadBattle().then(ok => { if (!ok || !window.Battle) { toast("Бой не загрузился"); return; } window.Battle.ensure(ev); });
   }
   // Итог боя на арене (вызывает battleDone): усталость, запрет ночлега, опыт за новые виды, возврат на арену.
@@ -593,7 +597,7 @@
     try { for (const id of killed) seenKeys(id, ["type"]); awardXp(killed); } catch (e) { /* опыт не критичен */ }
     const total = res.plan && res.plan.arena ? res.plan.arena.total : 0;
     saveChar(); toast(`Арена: убито ${killed.length} из ${ev.list.length}, получено ${total} монет. Усталость +1, ночлег закрыт.`);
-    setTimeout(() => { T.open("arena"); ui.tab = "fight"; ui.msg = `Бой окончен: убито ${killed.length} из ${ev.list.length}, ${total} монет отряду.`; render(); }, 500);
+    setTimeout(() => { T.open("arena"); ui.paid = true; ui.tab = "fight"; ui.msg = `Бой окончен: убито ${killed.length} из ${ev.list.length}, ${total} монет отряду.`; render(); }, 500);
   };
 
   /* =====================================================================
@@ -765,7 +769,7 @@
   }
   function tavernPay() {
     const live = state.party.filter(c => !c.dead);
-    if (state.arenaLock) ui.sleep = {};
+    if (sleepLocked()) ui.sleep = {};
     const total = live.reduce((a, c) => a + (ui.sleep[c.id] ? TAVERN.sleep : 0) + (ui.food[c.id] ? TAVERN.food : 0), 0);
     if (!total || !payGold(live[0], total)) { ui.msg = "Не хватает монет."; return; }
     let slept = 0, ate = 0;
@@ -889,7 +893,7 @@
       case "tv": { const m = ui[ds.k]; m[ds.id] = !m[ds.id]; break; }
       case "rost-out": rosterAct("out", ds.id); return;
       case "rost-in": rosterAct("in", ds.id); return;
-      case "tv-all": for (const c of state.party.filter(x => !x.dead)) { if (!state.arenaLock) ui.sleep[c.id] = true; ui.food[c.id] = true; } break;
+      case "tv-all": for (const c of state.party.filter(x => !x.dead)) { if (!sleepLocked()) ui.sleep[c.id] = true; ui.food[c.id] = true; } break;
       case "tv-pay": tavernPay(); break;
       case "lr-cat": ui.lr = { step: "hero", cat: ds.k, log: [], picks: {}, stage: 0 }; break;
       case "lr-hero": if (ui.lr) { ui.lr.hero = ds.id; ui.lr.step = "cls"; } break;
