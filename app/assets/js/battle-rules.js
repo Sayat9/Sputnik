@@ -339,6 +339,7 @@
   }
   B.monArrowFate = monArrowFate;
   async function doAttack(att, tgt, atk, o = {}) {
+    if (o.reaction && att && tgt && !canSeeUnit(att, tgt)) { log(`${att.name} не видит ${tgt.name} — удар реакцией не состоялся.`); return { hit: false, skipped: true }; }          // реакцией не бьют того, кого не видят (невидимка)
     const g0 = ui(); if (g0 && atk.kind !== "melee" && g0.setTraj) g0.setTraj([{ a: att, b: tgt }]);          // траектория выстрела видна на поле, пока идёт бросок
     try { return await doAttack0(att, tgt, atk, o); } finally { if (g0 && g0.setTraj) g0.setTraj(null); }
   }
@@ -534,7 +535,7 @@
   async function onEnter(u, from) {
     // реакции вроде «Встречного удара»: враги, у которых юнит вошёл в досягаемость
     for (const e of enemiesOf(u)) {
-      if (!canAct(e) || (!e.t.react && !(B.freeReact && B.freeReact(e)))) continue;
+      if (!canAct(e) || (!e.t.react && !(B.freeReact && B.freeReact(e))) || !canSeeUnit(e, u)) continue;          // невидимку на подходе не встречают
       for (const id of e.pass) { const P = B.P && B.P[id]; if (P && P.reactEnter) { await P.reactEnter(e, u, from); if (!alive(u) || u.down) return; } }
     }
   }

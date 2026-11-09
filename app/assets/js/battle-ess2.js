@@ -1602,7 +1602,7 @@
   /* Эхо-шакал (9): «Чуткий слух» (не застать врасплох), «Эхо» — союзник попал, шакал бьёт ту же цель вполсилы (реакция) */
   P["echo-jackal"] = {
     async allyHitAsync(a, att, tgt) {
-      if (a.side !== "mon" || !a.t || !a.t.react || (a.cd && a.cd["echo-jackal"] > 0) || !alive(tgt) || tgt.down) return;
+      if (a.side !== "mon" || !a.t || !a.t.react || (a.cd && a.cd["echo-jackal"] > 0) || !alive(tgt) || tgt.down || !B.canSeeUnit(a, tgt)) return;
       const k = atkFor(a, "melee"); if (!k || dist(a, tgt) > (k.reach || 1)) return;
       a.t.react = 0; if (B.setCd) B.setCd(a, "echo-jackal", D.essCd["echo-jackal"]); log(`${a.name}: эхо — бьёт следом.`, "skill");
       await B.doAttack(a, tgt, k, { scale: 0.5, echo: true, noRedirect: true });
@@ -1768,7 +1768,7 @@
   B.redirectAttack = async function (att, tgt, atk, o) {
     if (atk && atk.kind === "melee" && !o.echo) for (const h of friends(tgt)) {
       if (!h.pass.includes("marble-halberdier") || !h.t || !h.t.react || (h.cd && h.cd["marble-halberdier"] > 0)) continue;
-      const k = atkFor(h, "melee"); if (!k || dist(h, att) > (k.reach || 1)) continue;
+      const k = atkFor(h, "melee"); if (!k || dist(h, att) > (k.reach || 1) || !B.canSeeUnit(h, att)) continue;
       h.t.react = 0; if (B.setCd) B.setCd(h, "marble-halberdier", D.essCd["marble-halberdier"]); log(`${h.name}: перехват древком!`, "skill");
       const r = await B.doAttack(h, att, k, { echo: true, noRedirect: true });
       if (r && r.hit) { o.dis = (o.dis || []).concat(["перехват древком"]); }

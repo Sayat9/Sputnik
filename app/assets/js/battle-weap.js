@@ -176,7 +176,7 @@
     onMissedBy(u, ctx) {
       const { att, res } = ctx; if (!ctx.melee || res.parried || res.swapped || !u.hero) return;
       const main = B.mainOf(u); if (!main || !(main.id === "sword" || (main.artId === "moon-sword" && has(u, "moonguard")))) return;
-      if (!(u.t && u.t.react > 0) || !canAct(u) || att.side === u.side || dist(u, att) > 1) return;
+      if (!(u.t && u.t.react > 0) || !canAct(u) || att.side === u.side || dist(u, att) > 1 || (B.canSeeUnit && !B.canSeeUnit(u, att))) return;
       const dual = B.offOf && (B.offOf(u) || {}).id === "sword" && main.id === "sword";          // два меча: парирование при промахе больше чем на 2 (черновик)
       if (!(ctx.ac - res.total > (dual ? 2 : 4))) return;
       res.post.push(async () => {
