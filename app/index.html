@@ -8615,7 +8615,7 @@ function selPanel(c) {
   if (it.slot === "back") btns.push(`<button class="fx-btn" data-hx="equip" data-slot-to="back">Надеть на спину</button>`);
   if (it.use === "find") btns.push(`<button class="fx-btn primary" data-hx="usefind">${it.find === "mush" ? "Съесть" : "Применить"}</button>`);
   if (it.kindOf === "weapon" && it.group !== "shield" && it.kind !== "Боеприпасы") btns.push(`<button class="fx-btn" data-hx="equip" data-slot-to="main">В правую руку</button>`);
-  if (it.kindOf === "weapon" && (it.group === "shield" || (it.id === "tower-shield" && pikeShield(mainItem(c), it)) || (it.group === "melee" && (!isTwoHandedWeapon(it) || isBigGrip(c) || c.race === "barbarian")))) {          /* ростовой щит к пике — любому герою (09.11) */ const mi = mainItem(c), bowBlock = mi && mi.group === "ranged" && !lightMelee(it); btns.push(`<button class="fx-btn" data-hx="equip" data-slot-to="off"${bowBlock ? " disabled" : ""}>В левую руку</button>`); }          // к двуручному можно взять вещь во вторую руку — со штрафом неудобного хвата (03.11)
+  if (it.kindOf === "weapon" && (it.group === "shield" || (it.id === "tower-shield" && pikeShield(mainItem(c), it)) || ((it.props || []).includes("Можно со щитом") && ["shield", "tower-shield"].includes((mainItem(c) || {}).id)) || (it.group === "melee" && (!isTwoHandedWeapon(it) || isBigGrip(c) || c.race === "barbarian")))) {          /* ростовой щит к пике — любому герою (09.11) */ const mi = mainItem(c), bowBlock = mi && mi.group === "ranged" && !lightMelee(it); btns.push(`<button class="fx-btn" data-hx="equip" data-slot-to="off"${bowBlock ? " disabled" : ""}>В левую руку</button>`); }          // к двуручному можно взять вещь во вторую руку — со штрафом неудобного хвата (03.11)
   if (it.kindOf === "armor" || it.slot === "body") btns.push(`<button class="fx-btn" data-hx="equip" data-slot-to="body">Надеть</button>`);
   const others = state.party.filter(o => o.id !== c.id);
   if (others.length) btns.push(`<button class="fx-btn" data-hx="give-toggle" aria-expanded="${heroUi.give}">Передать</button>`);
@@ -8892,8 +8892,11 @@ $hero.addEventListener("click", e => {
       const prev = c.equip[slot];
       c.equip[slot] = entry.t === "c" ? { t: "c", name: entry.name } : { t: entry.t, id: entry.id, ...durKeep(entry), ...(entry.used != null ? { used: entry.used } : {}) };
       durAmulet(c);
-      if (prev) addToBag(c, { ...prev, qty: 1 });
-      if (slot === "off" && isTwoHandedWeapon(it) && it.group !== "ranged" && c.race === "barbarian") c.giantGrip = true;
+      const shieldLike = x => !!(x && (x.id === "shield" || x.id === "tower-shield"));
+      if (prev && slot === "main" && (it && (it.props || []).includes("Можно со щитом")) && shieldLike(itemOf(prev)) && !c.equip.off) c.equip.off = prev;          // 09.11: пика вместо щита в правой руке — щит переходит в левую
+      else if (prev) addToBag(c, { ...prev, qty: 1 });
+      if (slot === "off" && it && (it.props || []).includes("Можно со щитом") && shieldLike(itemOf(c.equip.main))) { const t0 = c.equip.main; c.equip.main = c.equip.off; c.equip.off = t0; }          // пика «в левую руку» при щите в правой — меняем местами: пика в правую, щит в левую
+      if (slot === "off" && isTwoHandedWeapon(it) && it.group !== "ranged" && c.race === "barbarian" && !pikeShield(itemOf(c.equip.main), itemOf(c.equip.off))) c.giantGrip = true;
       if (c.race === "barbarian" && c.equip.main && c.equip.off) { const mi2 = itemOf(c.equip.main), oi2 = itemOf(c.equip.off); if (!pikeShield(mi2, oi2) && ((isTwoHandedWeapon(mi2) && mi2.group !== "ranged") || (isTwoHandedWeapon(oi2) && oi2.group !== "ranged"))) c.giantGrip = true; }          // варвару можно двуручное (пика, ростовой щит) и вторую руку: «Великан», штраф к Ловкости в предупреждениях          // второе двуручное в левую руку: «Великан» с большим штрафом
       if (slot === "main" && isTwoHandedWeapon(it) && it.group === "ranged" && c.equip.off && !lightMelee(itemOf(c.equip.off))) {
         if (addToBag(c, { ...c.equip.off, qty: 1 })) { toast("Нет места для предмета из левой руки"); c.equip.main = prev; c.bag.push(entry); if (prev) takeLast(c, prev); saveChar(); renderHero(); return; }
