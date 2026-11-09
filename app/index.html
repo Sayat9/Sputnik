@@ -4484,7 +4484,7 @@ function loadNet() {
   return netLoad;
 }
 /* ----- здания города (assets/js/town.js грузится при первом входе в здание) ----- */
-const TOWN_REV = 28, TOWN_FILES = ["assets/css/town.css", "assets/js/town.js"];
+const TOWN_REV = 29, TOWN_FILES = ["assets/css/town.css", "assets/js/town.js"];
 let townLoad = null;
 function loadTown() {
   if (window.Town && window.Town.ready) return Promise.resolve(true);
@@ -8927,7 +8927,7 @@ function unlockJournal(cls) {
   const j = journal();
   if (!j.unlocked || !j.tiers.includes(cls)) { j.unlocked = true; if (!j.tiers.includes(cls)) j.tiers.push(cls); }
 }
-const libMonsters = () => MONSTERS.filter(m => !m.dyn && (journal().known[m.id] || (!m.draft && !m.rift && journal().tiers.includes(m.cls) && (m.floor === 1 || (m.floor === 2 && journal().seenFloor2)))));          // монстры 2 этажа появляются «?» после первого спуска на 2 этаж          // монстры любого этажа попадают в библиотеку, как только записаны (встреча, поиск, гильдия); неизвестные «?» показываются только для открытых классов 1 этажа
+const libMonsters = () => MONSTERS.filter(m => !m.dyn && (journal().known[m.id] || (!m.draft && journal().tiers.includes(m.cls))));          /* 09.11: открытый класс показывает всех своих монстров — все этажи и разломы */          // монстры 2 этажа появляются «?» после первого спуска на 2 этаж          // монстры любого этажа попадают в библиотеку, как только записаны (встреча, поиск, гильдия); неизвестные «?» показываются только для открытых классов 1 этажа
 const MON_PH = `<svg viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" fill="#120e09"/><circle cx="50" cy="42" r="18" fill="#2a2016" stroke="#6e5634"/><path d="M18 100 C22 74 36 66 50 66 C64 66 78 74 82 100Z" fill="#2a2016" stroke="#6e5634"/></svg>`;
 const monArt = (m, full) => (full ? ART.monsterFull(m.id) : ART.monsterFace(m.id));
 

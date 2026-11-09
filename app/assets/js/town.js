@@ -364,7 +364,9 @@
   const STAGES = [["kind", "Тип монстра"], ["rank", "Ранг: обычный, редкий или особый"], ["novel", "Известный или новый монстр"], ["info", "Вид сведений"]];
   const rankGroup = m => { const r = rankOf(m); return r === "normal" || r === "rare" ? r : "special"; };
   const libBonus = c => { const t = totals(c); return mod(t.int.total) + mod(t.wis.total); };
-  const libCands = cls => MONSTERS.filter(m => !m.draft && !m.rift && m.floor === 1 && m.cls === cls);
+  // Кандидаты — все готовые монстры класса со всех этажей и разломов (правка 09.11: раньше брался только 1 этаж без разломов).
+  const libCands = cls => MONSTERS.filter(m => !m.draft && m.cls === cls);
+  const LIB_ZONE_RU = { goblin: "Гоблины", beast: "Звери", undead: "Нежить", stone: "Элементали и камень", orc: "Орки" };
   const essKey = k => /^ess-/.test(k);
   // Какие сведения о монстре ещё не раскрыты (эссенция — только если lr.essOK).
   function lrInfoOpts(m, essOK) {
@@ -380,7 +382,7 @@
   }
   function lrOptions(lr) {
     const st = STAGES[lr.stage][0], c = lrFiltered(lr, lr.stage);
-    if (st === "kind") return [...new Set(c.map(m => m.zone))].map(v => ({ v, label: KIND_RU[v] || v }));
+    if (st === "kind") return [...new Set(c.map(m => m.zone))].map(v => ({ v, label: LIB_ZONE_RU[v] || KIND_RU[v] || v }));
     if (st === "rank") return ["normal", "rare", "special"].filter(r => c.some(m => rankGroup(m) === r)).map(v => ({ v, label: RANK_RU[v] }));
     if (st === "novel") return ["known", "new"].filter(n => c.some(m => (n === "new") === !journal().known[m.id] && (n === "new" || lrInfoOpts(m, lr.essOK).length))).map(v => ({ v, label: NOVEL_RU[v] }));
     return lr.mon ? lrInfoOpts(lr.mon, lr.essOK).map(o => ({ v: o.k, label: o.label })) : [];

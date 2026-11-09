@@ -11,7 +11,7 @@ const L = require('./bui_lib.js');
     const before = libMonsters().some(m => m.id === m2.id); seenKeys(m2.id, ['area']); const after = libMonsters().some(m => m.id === m2.id);
     return { id: m2.id, before, after };
   });
-  ok('монстр 2 этажа попадает в библиотеку после записи', !A.before && A.after, A);
+  ok('монстр 2 этажа виден в библиотеке при открытом классе (09.11) и после записи', A.before && A.after, A);
   // нет кнопки «Инвентарь» в меню исследования
   await p.evaluate(() => { location.hash = 'labyrinth'; rerender(); });
   await p.waitForTimeout(400);
