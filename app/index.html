@@ -1141,9 +1141,9 @@ dl.kv { margin: 0; }
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>
       Персонаж
     </button>
-    <button disabled>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>
-      Заход <small>скоро</small>
+    <button data-action="heroes" id="tab-heroes">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c.8-3.4 3.2-5 6-5s5.2 1.6 6 5"/><circle cx="17" cy="9" r="2.4"/><path d="M15.5 14.6c2.6-.4 4.7 1 5.5 4.4"/></svg>
+      Герои
     </button>
   </div>
 </nav>
@@ -4156,7 +4156,7 @@ const hasEssence = (c, id) => (c.essences || []).includes(id);
 const mainItem = (c = char) => itemOf((c.equip || {}).main);
 const isBigGrip = c => !!(c.giantGrip && c.race === "barbarian");                     // «Великан»: двуручное в одной руке
 // Лук держат одной рукой, а вторая свободна для кинжала; для остального двуручного обе руки заняты (кроме «Великана»).
-const pikeShield = (m, off) => !!(m && (m.props || []).includes("Можно со щитом") && off && off.id === "shield");          // пика с малым щитом
+const pikeShield = (m, off) => !!(m && (m.props || []).includes("Можно со щитом") && off && (off.id === "shield" || off.id === "tower-shield"));          // пика со щитом — малым или ростовым (09.11, автор)
 const twoHanded = (c = char) => { const m = mainItem(c); return isTwoHandedWeapon(m) && m.group !== "ranged" && !isBigGrip(c) && !pikeShield(m, itemOf((c.equip || {}).off)) && !(c.equip || {}).off; };          // обе руки заняты двуручным (вторая рука пуста)
 // Неудобный хват (автор 03.11): двуручное оружие ближнего боя и ещё вещь во второй руке, когда нет своего правила («Великан» варвара, пика со щитом, лук с кинжалом) — −1 Уворот, −1,5 м скорости, −2 к попаданию обоими оружиями.
 const AWK = { dodge: 1, speed: 1.5, hit: 2 };
@@ -4196,8 +4196,8 @@ function derived(t, c = char) {
   if (armor && armor.kindOf === "armor") { const d = DEF_ARMOR[armor.cat] || DEF_ARMOR.light; add(d.prot + (armor.steel ? 1 : 0), armor.name.toLowerCase()); pen(d.dodge + (armor.steel ? 1 : 0), armor.name.toLowerCase()); }
   else if (armor) add(DEF_ARMOR.clothes.prot, "одежда");
   const off = liveItem(c.equip.off), main = liveItem(c.equip.main);
-  const tower = main && main.id === "tower-shield";
-  const shieldIt = tower ? main : off && off.id === "shield" && !twoHanded(c) ? off : null;
+  const tower = main && main.id === "tower-shield", towerOff = off && off.id === "tower-shield" && pikeShield(main, off);          // ростовой щит в левой руке при пике (09.11)
+  const shieldIt = tower ? main : towerOff ? off : off && off.id === "shield" && !twoHanded(c) ? off : null;
   if (shieldIt) { const d = DEF_SHIELD[shieldIt.id]; add(d.prot + (shieldIt.steel ? 1 : 0), shieldIt.name.toLowerCase()); pen(d.dodge + (shieldIt.steel ? 1 : 0), shieldIt.name.toLowerCase()); }
   const hasShield = !!shieldIt;
   if (c.race === "dwarf" && hasShield) add(1, "крепкая рука");
@@ -4343,7 +4343,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 129;
+const BATTLE_REV = 130;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }
@@ -4481,7 +4481,7 @@ function openKills(c) {
 }
 function openSack() { const $i = document.getElementById("iteminfo"); $i.innerHTML = sackViewHtml(); $i.hidden = false; }
 /* ----- онлайн (assets/js/net.js — связь, netglue.js — ведущий и игрок) ----- */
-const NET_REV = 6, NET_FILES = ["assets/js/net.js", "assets/js/netglue.js"];
+const NET_REV = 7, NET_FILES = ["assets/js/net.js", "assets/js/netglue.js"];
 let netLoad = null;
 function loadNet() {
   if (window.NetGlue && window.NetGlue.ready) return Promise.resolve(true);
@@ -8615,7 +8615,7 @@ function selPanel(c) {
   if (it.slot === "back") btns.push(`<button class="fx-btn" data-hx="equip" data-slot-to="back">Надеть на спину</button>`);
   if (it.use === "find") btns.push(`<button class="fx-btn primary" data-hx="usefind">${it.find === "mush" ? "Съесть" : "Применить"}</button>`);
   if (it.kindOf === "weapon" && it.group !== "shield" && it.kind !== "Боеприпасы") btns.push(`<button class="fx-btn" data-hx="equip" data-slot-to="main">В правую руку</button>`);
-  if (it.kindOf === "weapon" && (it.group === "shield" || (it.group === "melee" && (!isTwoHandedWeapon(it) || isBigGrip(c) || c.race === "barbarian")))) { const mi = mainItem(c), bowBlock = mi && mi.group === "ranged" && !lightMelee(it); btns.push(`<button class="fx-btn" data-hx="equip" data-slot-to="off"${bowBlock ? " disabled" : ""}>В левую руку</button>`); }          // к двуручному можно взять вещь во вторую руку — со штрафом неудобного хвата (03.11)
+  if (it.kindOf === "weapon" && (it.group === "shield" || (it.id === "tower-shield" && pikeShield(mainItem(c), it)) || (it.group === "melee" && (!isTwoHandedWeapon(it) || isBigGrip(c) || c.race === "barbarian")))) {          /* ростовой щит к пике — любому герою (09.11) */ const mi = mainItem(c), bowBlock = mi && mi.group === "ranged" && !lightMelee(it); btns.push(`<button class="fx-btn" data-hx="equip" data-slot-to="off"${bowBlock ? " disabled" : ""}>В левую руку</button>`); }          // к двуручному можно взять вещь во вторую руку — со штрафом неудобного хвата (03.11)
   if (it.kindOf === "armor" || it.slot === "body") btns.push(`<button class="fx-btn" data-hx="equip" data-slot-to="body">Надеть</button>`);
   const others = state.party.filter(o => o.id !== c.id);
   if (others.length) btns.push(`<button class="fx-btn" data-hx="give-toggle" aria-expanded="${heroUi.give}">Передать</button>`);
@@ -8894,7 +8894,7 @@ $hero.addEventListener("click", e => {
       durAmulet(c);
       if (prev) addToBag(c, { ...prev, qty: 1 });
       if (slot === "off" && isTwoHandedWeapon(it) && it.group !== "ranged" && c.race === "barbarian") c.giantGrip = true;
-      if (c.race === "barbarian" && c.equip.main && c.equip.off) { const mi2 = itemOf(c.equip.main), oi2 = itemOf(c.equip.off); if ((isTwoHandedWeapon(mi2) && mi2.group !== "ranged" && !pikeShield(mi2, oi2)) || (isTwoHandedWeapon(oi2) && oi2.group !== "ranged")) c.giantGrip = true; }          // варвару можно двуручное (пика, ростовой щит) и вторую руку: «Великан», штраф к Ловкости в предупреждениях          // второе двуручное в левую руку: «Великан» с большим штрафом
+      if (c.race === "barbarian" && c.equip.main && c.equip.off) { const mi2 = itemOf(c.equip.main), oi2 = itemOf(c.equip.off); if (!pikeShield(mi2, oi2) && ((isTwoHandedWeapon(mi2) && mi2.group !== "ranged") || (isTwoHandedWeapon(oi2) && oi2.group !== "ranged"))) c.giantGrip = true; }          // варвару можно двуручное (пика, ростовой щит) и вторую руку: «Великан», штраф к Ловкости в предупреждениях          // второе двуручное в левую руку: «Великан» с большим штрафом
       if (slot === "main" && isTwoHandedWeapon(it) && it.group === "ranged" && c.equip.off && !lightMelee(itemOf(c.equip.off))) {
         if (addToBag(c, { ...c.equip.off, qty: 1 })) { toast("Нет места для предмета из левой руки"); c.equip.main = prev; c.bag.push(entry); if (prev) takeLast(c, prev); saveChar(); renderHero(); return; }
         delete c.equip.off;
@@ -9695,6 +9695,8 @@ function openSettings() {
   ov.hidden = false;
 }
 document.addEventListener("click", e => { if (e.target.closest('[data-action="settings"]')) openSettings(); });
+// 09.11: кнопка «Герои» в нижнем меню (вместо «Заход · скоро») — окно героя: данные, инвентарь (надеть/снять), навыки; свайп листает героев отряда.
+document.addEventListener("click", e => { if (!e.target.closest('[data-action="heroes"]')) return; const c = (state.party || []).find(x => !x.dead) || (state.party || [])[0]; if (!c) { toast("В отряде пока нет героев"); return; } openHero(c.id); });
 setTimeout(() => { try { gameOverCheck(); } catch (e) {} }, 400);
 try { rankMigrate(); } catch (e) {}          // ранги для старых партий: кто уже был на 2 этаже и убил монстра 8 класса — сразу 8-й          // отряд погиб целиком до перезапуска — снова «Игра окончена»
 if (settings().tactical) loadBattle().then(ok => { if (ok && state.fightSnap) resumeFight(); else if (ok && state.encSnap && state.run && isMaster() && !dgUi.enc) { dgUi.enc = { ...state.encSnap, battleStarted: false }; location.hash = "labyrinth"; rerender(); } }); else { state.fightSnap = null; state.encSnap = null; } state.encSnap = null;

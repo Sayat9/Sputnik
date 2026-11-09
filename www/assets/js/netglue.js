@@ -419,7 +419,7 @@
   function goOffline() { G.follow = true; updateBar(); if (location.hash.slice(1) !== "") location.hash = ""; else rerender(); }
   function onBar(a) {
     if (a === "game") { G.follow = true; closeOv(); updateBar(); if (N.status !== "online") { goOffline(); return; } const h = G.view.hash || ""; if (location.hash.slice(1) !== h && GAME_HASH.includes(h)) location.hash = h; else rerender(); }
-    else if (a === "ref") { G.follow = false; updateBar(); closeOv(); location.hash = "#ref"; }
+    else if (a === "ref") { closeOv(); if (window.Battle && Battle.UI && Battle.UI.active && Battle.UI.peek) { G.follow = false; Battle.UI.peek("ref"); return; } G.follow = false; updateBar(); location.hash = "#ref"; }          // 09.11: в бою — бой сворачивается, справочник поверх
     else if (a === "map") openMap();
     else if (a === "heroes") openHeroes();
     else if (a === "more") openMore();

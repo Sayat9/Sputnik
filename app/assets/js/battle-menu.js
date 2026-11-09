@@ -249,6 +249,7 @@
       <div class="bt-switches">
         ${PLAYER ? "" : `<button class="fx-btn" data-m="monhp">ОЗ монстров: ${S.opts.showMonHp ? "показаны" : "скрыты"}</button>`}
         <button class="fx-btn" data-m="autosave">Спасброски героев: ${S.opts.autoSaves ? "авто" : "вручную"}</button>
+        <button class="fx-btn" data-m="peekref">Справочник (бой не прерывается)</button>
         <button class="fx-btn" data-m="autoend">Конец хода сам, когда кончились действия: ${S.opts.autoEnd ? "вкл" : "выкл"}</button>
         ${PLAYER ? "" : `<button class="fx-btn" data-m="auto">Авто-бой героев: ${S.opts.autoHeroes ? "вкл" : "выкл"}</button>
         <button class="fx-btn" data-m="gm">Мастер: завершить бой…</button>`}</div>
@@ -256,6 +257,7 @@
     m.onclick = async e => {
       const b = e.target.closest("[data-m]"); if (!b && e.target !== m) return; const k = b && b.dataset.m;
       if (!k || k === "close") { hideModal(); return; }
+      if (k === "peekref") { hideModal(); UI.peek("ref"); return; }
       if (k === "monhp") S.opts.showMonHp = !S.opts.showMonHp; if (k === "autosave") S.opts.autoSaves = !S.opts.autoSaves; if (k === "autoend") S.opts.autoEnd = !S.opts.autoEnd;
       if (k === "monhp" || k === "autosave" || k === "autoend") { try { (state.settings ||= {}).battleOpts = { showMonHp: !!S.opts.showMonHp, autoSaves: !!S.opts.autoSaves, autoEnd: S.opts.autoEnd !== false }; saveChar(); } catch (e) {} }          // эти переключатели помнятся между боями
       if (k === "autoend" && S.opts.autoEnd && UI.turnUnit && UI.mode === "hero" && !UI.busy && !UI.pick && B.turnSpent(UI.turnUnit)) { hideModal(); endTurn(); return; }

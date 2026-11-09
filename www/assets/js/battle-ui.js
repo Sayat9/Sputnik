@@ -10,6 +10,21 @@
   UI.esc = esc; UI.ico = ico; UI.stIco = stIco; UI.sleep = sleep;
   let root = null, board = null, cell = 52, cellEls = [], tokenEls = new Map(), raf = 0;
   UI.cell = () => cell; UI.root = () => root;
+  // 09.11: свернуть бой и посмотреть другой экран (справочник): бой прячется, поверх — кнопка «Вернуться в бой»; бой при этом не прерывается.
+  UI.peek = function (hash = "ref") {
+    if (!root) return;
+    UI.peekBack = location.hash.slice(1); document.body.classList.add("bt-peek");
+    let btn = document.getElementById("bt-back");
+    if (!btn) { btn = document.createElement("button"); btn.id = "bt-back"; btn.className = "fx-btn primary"; btn.type = "button"; btn.textContent = "⚔ Вернуться в бой"; btn.onclick = () => UI.unpeek(); document.body.appendChild(btn); }
+    btn.hidden = false;
+    if (location.hash.slice(1) !== hash) location.hash = hash; else if (typeof rerender === "function") rerender();
+  };
+  UI.unpeek = function () {
+    document.body.classList.remove("bt-peek"); const btn = document.getElementById("bt-back"); if (btn) btn.hidden = true;
+    if (window.NetGlue && typeof isMaster === "function" && !isMaster()) NetGlue.follow = true;          // игрок снова следит за экраном ведущего
+    const back = UI.peekBack; UI.peekBack = null; if (back != null && location.hash.slice(1) !== back) location.hash = back;
+    if (UI.refreshNow) try { UI.refreshNow(); } catch (e) {}
+  };
 
   /* ===== фон по зоне ===== */
   function mulberry(a) { return () => { a |= 0; a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
@@ -73,6 +88,7 @@
     if (!UI.active) return;
     window.removeEventListener("resize", fit); window.removeEventListener("popstate", onPop);
     if (UI._pushed) { UI._pushed = false; try { history.back(); } catch (e) {} }
+    document.body.classList.remove("bt-peek"); { const bb = document.getElementById("bt-back"); if (bb) bb.hidden = true; }
     if (root) root.remove(); root = null; board = null; cellEls = []; tokenEls = new Map(); UI.active = false; UI.built = false;
     document.body.classList.remove("forge-open", "bt-active"); if (window.Sfx) Sfx.setMusic(null);
   };

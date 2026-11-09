@@ -1,5 +1,5 @@
 {
- "version": 1794253697,
+ "version": 1794255547,
  "files": [
   "assets/buildings/academy.webp",
   "assets/buildings/arena.webp",
@@ -559,7 +559,7 @@
   "assets/buildings/storage.webp": "73feb5b8b9f83341de80a87645f171ba",
   "assets/buildings/tavern.webp": "812c88667997f640e80c34b331e547b2",
   "assets/buildings/tower.webp": "a8d571c86cb743cdbcdfe7d63aaed744",
-  "assets/css/battle.css": "e8d9a73052c4807ab9db63b43025e073",
+  "assets/css/battle.css": "f5b3ccc990bacb36da41706a7061e876",
   "assets/css/town.css": "e4d1d58c8187456550148df7a4d90c7a",
   "assets/events/ambush.svg": "cc4762918cfd926e70eaa40ce53b322c",
   "assets/events/ambush.webp": "5fcd1fb31bf6c99e7ec0ac72e84aee85",
@@ -724,14 +724,14 @@
   "assets/js/battle-ess.js": "cb315186ca700e31b2675cbb16f9a68d",
   "assets/js/battle-ess2.js": "a4726b1307ab9c0bfae0931dd02d554e",
   "assets/js/battle-ext.js": "9537dc61e0be9892da70beb794fddaee",
-  "assets/js/battle-menu.js": "bc0ffeb073425536db5755d1a30e4379",
+  "assets/js/battle-menu.js": "ae57a07f6827cb990c566a0b55fc303d",
   "assets/js/battle-net.js": "f8172bd74527ba982fd73ea9ac71dbf3",
   "assets/js/battle-rules.js": "2e98056d9784af3da9d97308cd58d590",
-  "assets/js/battle-ui.js": "d820b4b00c37dbecfdbf5b2c84d3065c",
+  "assets/js/battle-ui.js": "42125a6cfd38f2bafd4d78e1a642dae3",
   "assets/js/battle-weap.js": "b551d9681452f492a7fa892c158d8cb4",
   "assets/js/battle.js": "adb047f6c19b8ca8e21fdb322f898c7d",
   "assets/js/net.js": "2e8be9ea96e5cf1bd44c120e636e4520",
-  "assets/js/netglue.js": "a986bfadec03d6b266a867d44a1167eb",
+  "assets/js/netglue.js": "cd2a2ac21038a45a163757b71d2ff05c",
   "assets/js/town.js": "bf27caefb1b4017aff99b1a4fd5d6861",
   "assets/logo-admin.png": "aa45354a89500a24e2f481f6d7d3ee4a",
   "assets/logo.png": "2eea126130fb32be9d28f407acbc25bb",
@@ -1086,6 +1086,6 @@
   "fonts/f8.woff2": "6cc1ee17091d59eb93821c3594e8f38f",
   "fonts/f9.woff2": "070433480b7b645f69b543f284e386ce",
   "fonts/fonts.css": "1585a72a8d157b26cb424ab433fd4e19",
-  "index.html": "bc998171a051224dd0ae5821b1d5b10d"
+  "index.html": "d397f3c23843b73bc4981d862f6ef6b9"
  }
 }
