@@ -86,7 +86,7 @@
   }
   // Лучшее действие из текущей позиции юнита: {kind, ...score}
   function bestAction(u, pr) {
-    let best = null; const ts = targetsOf(u); if (!ts.length) return null;
+    let best = null; const ts = targetsOf(u), blindTurn = !ts.length;          // 09.11: целей не видно — атак нет, но способности с blindOK пробуем
     const attacks = B.attacksOf(u);
     const useRangedFirst = pr.ranged === "ifNoMelee";
     for (const atk of attacks) {
@@ -104,6 +104,7 @@
     for (const id of u.ess) {
       if (!abilityReady(u, id)) continue;
       const A = B.A[id]; if (A.time !== "action") continue;
+      if (blindTurn && !A.blindOK) continue;          // без видимых целей — только способности с пометкой blindOK (звонарь: двойники заранее)
       const r = A.ai && A.ai(u); if (!r) continue;
       if (u.spareDown) { if (r.unit && r.unit.down) continue; if (r.targets) { r.targets = r.targets.filter(t => !t.down); if (!r.targets.length) continue; } }
       let sc, picks = {};
@@ -278,7 +279,7 @@
     if (has(u, "mired") && B.timeOK(u, "action") && !(bestAction(u, pr))) { B.spendTime(u, "action"); removeStatus(u, "mired"); u.bogStill = 0; u.t.move = speedOf(u); log(`${u.name} выбирается из топи.`, "good"); }          // автобой: вылезает, если некого бить
     // сдавленный/опутанный: пробуем вырваться, если некого бить
     const stuck = has(u, "grappled") || has(u, "trapped") || has(u, "restrained") || has(u, "pinned") || has(u, "buried");
-    const es = targetsOf(u); if (!es.length) { await searchMove(u); return; }
+    const es = targetsOf(u); if (!es.length) { if (B.timeOK(u, "action")) { const pre = bestAction(u, pr); if (pre && pre.kind === "ability") await performAction(u, pre, pr); } if (alive(u) && !u.down) await searchMove(u); return; }          // 09.11: никого не видно — сперва способность с blindOK (звонарь), потом поиск
     await preBonus(u, pr);
     if (!alive(u) || u.down) return;
     if (B.hookAllAsync) await B.hookAllAsync(u, "aiBonus", {});                          // доп. действия пассивок: «Пожиратель»

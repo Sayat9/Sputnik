@@ -852,7 +852,7 @@
     doubleAttacked(owner, c) { fool(c.att, owner); },                                    // кто атаковал двойника — обманут
   };
   A["faceless-ringer"] = {
-    time: "action",
+    time: "action", blindOK: true,          // звонит и до того, как увидел героев (туман часовни)
     tgt() { return { type: "self" }; },
     can(u) { return B.freeCellsNear(u, 1, TMP(u)).length ? true : "некуда поставить двойников"; },
     async run(u, pk, ctl) {
@@ -864,7 +864,7 @@
       if (n && alive(u) && !u.down) await B.hideRoll(u, { anywhere: true, seen: true, cancel: false, toast: false, title: "Колокол теней" });          // сразу пытается спрятаться, даже без укрытия
       return true;
     },
-    ai(u) { return enemiesOf(u).length && !Object.keys(u.bellLeft || {}).length ? { score: 4 } : null; },
+    ai(u) { return enemiesOf(u).length && !B.doublesOf(u).length ? { score: 40 } : null; },          // 09.11: раньше оценка 4 всегда проигрывала удару — звонарь не звонил вовсе; теперь звонит, когда двойников нет (перезарядка 6)
   };
 
   /* ----- Пыльный ползун (9): «Упорство мертвеца», «Горсть пыли» ----- */
