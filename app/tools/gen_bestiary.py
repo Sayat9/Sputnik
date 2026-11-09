@@ -13,7 +13,7 @@ rules = open(RULES, encoding="utf-8").read()
 import json, subprocess
 DATA = json.loads(subprocess.check_output(["node", os.path.join(HERE, "dump_monsters.mjs")]))
 _ZG = {"goblin", "beast", "undead", "stone"}
-MON = [dict(id=x["id"], zone=x["zone"] if x["zone"] in _ZG else ("beast" if "Зверь" in (x.get("type") or "") else "goblin"),          # орки и др. новые зоны — по группе существа
+MON = [dict(id=x["id"], zone=x.get("kind") or "monster",          # 09.11: группа — вид существа (monCat в index.html), а не зона обитания
  rare=x["rare"], name=x["name"], ph=x.get("ph"), floor=x["floor"], floors=x["floors"], cls=x["cls"],
             rank="rare" if x["rank"] == "normal" and x["rare"] else x["rank"], draft=bool(x.get("draft")), stub=bool(x.get("stub")),
             statDraft=bool(x.get("statDraft")), areas=x["areas"], spawn=x.get("spawn"),
@@ -30,8 +30,7 @@ def full(m):
     p = f"monsters/{m['id']}-full"
     return f"assets/{p}.{'webp' if p in RASTER else 'svg'}"
 
-ZONES = [("goblin", "Гуманоиды", "зона гоблинов · северо-запад"), ("beast", "Звери", "зона зверей · юго-запад"),
-         ("undead", "Нежить", "зона нежити · северо-восток"), ("stone", "Элементали", "зона элементов · юго-восток")]
+ZONES = [(k, v, "") for k, v in DATA["KIND_RU"].items()]          # 09.11: группы по виду существа (гуманоиды, звери, насекомые, нежить, духи, элементали, механизмы, слизи, чудовища)
 
 def inline(t):
     t = html.escape(t, quote=False)

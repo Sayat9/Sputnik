@@ -1702,8 +1702,16 @@ const ESSENCES = {
 };
 
 // Общие категории монстров (решение автора 31.10): по виду существа, а не по зоне. monCat(m) берёт их из поля type.
-const KIND_RU = { humanoid: "Гуманоиды", beast: "Звери", undead: "Нежить", spirit: "Духи и элементали", thing: "Твари" };
-const monCat = m => { const t = String((m && m.type) || "").toLowerCase(); return /нежить/.test(t) ? "undead" : /дух|элементал/.test(t) ? "spirit" : /зверь|животн/.test(t) ? "beast" : /гуманоид/.test(t) ? "humanoid" : "thing"; };
+const KIND_RU = { humanoid: "Гуманоиды", beast: "Звери", vermin: "Насекомые и пауки", undead: "Нежить", spirit: "Духи и призраки", elemental: "Элементали", construct: "Механизмы и конструкты", ooze: "Слизи", monster: "Чудовища и мутанты" };          // 09.11 (автор): больше видов; пугало — механизм/конструкт, а не нежить
+// Вид по id там, где поле type не говорит главного (жуки и скорпионы записаны «Зверь», слизи и химеры — «Тварь» и т. п.).
+const MON_KIND = {
+  vermin: ["web-spider", "spider-queen", "coal-beetle", "boulder-beetle", "frost-beetle", "sand-scorpion", "big-stinger", "mirage-scorpion", "firefly-swarm", "swarm-mother", "toll-beetle", "trap-crab", "wire-spider"],
+  elemental: ["ice-imp", "ice-spirit"],
+  ooze: ["slime", "acid-slime", "stone-slime", "split-slime", "rimuru", "blood-puddle"],
+  monster: ["chimera-hound", "lab-direwolf", "mutant-boar", "fled-chimera", "luna"],
+};
+const MON_KIND_BY_ID = Object.fromEntries(Object.entries(MON_KIND).flatMap(([k, ids]) => ids.map(id => [id, k])));
+const monCat = m => { if (m && MON_KIND_BY_ID[m.id]) return MON_KIND_BY_ID[m.id]; const t = String((m && m.type) || "").toLowerCase(); return /нежить/.test(t) ? "undead" : /конструкт/.test(t) ? "construct" : /элементал/.test(t) ? "elemental" : /призрак|дух/.test(t) ? "spirit" : /зверь|животн/.test(t) ? "beast" : /гуманоид/.test(t) ? "humanoid" : "monster"; };
 const RANKS = { normal: "Обычный", rare: "Редкий", special: "Особый", guardian: "Страж", lord: "Лорд этажа", boss: "Босс" };          // boss — Хранитель Тишины, Мимик (03.11: раньше в бестиарии было «undefined»)
 const rankOf = m => m.rank === "normal" && m.rare ? "rare" : m.rank;
 const MONSTERS = [
@@ -4484,7 +4492,7 @@ function loadNet() {
   return netLoad;
 }
 /* ----- здания города (assets/js/town.js грузится при первом входе в здание) ----- */
-const TOWN_REV = 31, TOWN_FILES = ["assets/css/town.css", "assets/js/town.js"];
+const TOWN_REV = 32, TOWN_FILES = ["assets/css/town.css", "assets/js/town.js"];
 let townLoad = null;
 function loadTown() {
   if (window.Town && window.Town.ready) return Promise.resolve(true);

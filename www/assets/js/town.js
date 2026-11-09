@@ -379,14 +379,14 @@
   }
   function lrFiltered(lr, upto) {
     let c = lr.cand;
-    if (upto > 0 && lr.picks.kind) c = c.filter(m => m.zone === lr.picks.kind);
+    if (upto > 0 && lr.picks.kind) c = c.filter(m => monCat(m) === lr.picks.kind);          // 09.11: тип — по виду существа (KIND_RU), а не по зоне
     if (upto > 1 && lr.picks.rank) c = c.filter(m => rankGroup(m) === lr.picks.rank);
     if (upto > 2 && lr.picks.novel) c = c.filter(m => (lr.picks.novel === "new") === !journal().known[m.id]);
     return c;
   }
   function lrOptions(lr) {
     const st = STAGES[lr.stage][0], c = lrFiltered(lr, lr.stage);
-    if (st === "kind") return [...new Set(c.map(m => m.zone))].map(v => ({ v, label: LIB_ZONE_RU[v] || KIND_RU[v] || v }));
+    if (st === "kind") return [...new Set(c.map(m => monCat(m)))].map(v => ({ v, label: KIND_RU[v] || v }));
     if (st === "rank") return ["normal", "rare", "special"].filter(r => c.some(m => rankGroup(m) === r)).map(v => ({ v, label: RANK_RU[v] }));
     if (st === "novel") return ["known", "new"].filter(n => c.some(m => (n === "new") === !journal().known[m.id] && (n === "new" || lrInfoOpts(m, lr.essOK).length))).map(v => ({ v, label: NOVEL_RU[v] }));
     return lr.mon ? lrInfoOpts(lr.mon, lr.essOK).map(o => ({ v: o.k, label: o.label })) : [];
