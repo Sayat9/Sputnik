@@ -17,7 +17,7 @@ MON = [dict(id=x["id"], zone=x.get("kind") or "monster",          # 09.11: гр�
  rare=x["rare"], name=x["name"], ph=x.get("ph"), floor=x["floor"], floors=x["floors"], cls=x["cls"],
             rank="rare" if x["rank"] == "normal" and x["rare"] else x["rank"], draft=bool(x.get("draft")), stub=bool(x.get("stub")),
             statDraft=bool(x.get("statDraft")), areas=x["areas"], spawn=x.get("spawn"),
-            dodge=x.get("dodge"), prot=x.get("prot"), armor=x.get("armor")) for x in DATA["MONSTERS"]]
+            dodge=x.get("dodge"), prot=x.get("prot"), armor=x.get("armor"), essence=x.get("essence")) for x in DATA["MONSTERS"]]
 RANKS = [("normal", "Обычный"), ("rare", "Редкий"), ("special", "Особый"), ("guardian", "Страж"), ("boss", "Босс"), ("lord", "Лорд")]
 RASTER = set(re.search(r'const RASTER = new Set\(\[([^\]]*)\]', SRC).group(1).replace('"', "").replace(" ", "").split(","))
 def face(m):
@@ -87,6 +87,38 @@ if os.path.exists(DRAFTS):                      # черновики автор�
         title, body = part.split("\n", 1)
         blocks.setdefault(title.strip(), body.split("\n## ")[0])
 
+STATN = {"str": "Сила", "dex": "Ловкость", "con": "Телосложение", "int": "Интеллект", "wis": "Мудрость", "cha": "Харизма"}
+RAW = {x["id"]: x for x in DATA["MONSTERS"]}
+ABN = ["СИЛ", "ЛОВ", "ТЕЛ", "ИНТ", "МДР", "ХАР"]
+def stat_html(m, body):
+    """09.11: статы, особенности и добыча из данных игры, если в записи (rules.md) их нет."""
+    if "Опасность" in body or "Статы" in body: return ""
+    x = RAW.get(m["id"]) or {}
+    out = ""
+    line = " · ".join(v for v in (x.get("size"), f'ОЗ {x["hp"]}' if x.get("hp") else "", f'скорость {x["speed"]}' if x.get("speed") else "", f'опасность {x["cr"]}' if x.get("cr") else "") if v)
+    if line or x.get("abil"): out += "<h4>Статы</h4>"
+    if line: out += f"<p>{inline(line)}</p>"
+    ab = x.get("abil")
+    if ab: out += '<div class="tbl"><table><thead><tr>' + "".join(f"<th>{n}</th>" for n in ABN) + "</tr></thead><tbody><tr>" + "".join(f"<td>{v} ({(v - 10) // 2:+d})</td>".replace("+-", "−").replace("(-", "(−") for v in ab) + "</tr></tbody></table></div>"
+    if x.get("senses"): out += f"<p>{inline(x['senses'])}</p>"
+    tr = x.get("traits") or []
+    if tr: out += "<h4>Особенности</h4><ul>" + "".join(f"<li><b>{inline(t[0])}.</b> {inline(t[1])}</li>" for t in tr) + "</ul>"
+    if x.get("loot"): out += f"<p><b>Добыча:</b> {inline(x['loot'])}</p>"
+    return out
+
+def ess_html(m, body):
+    """09.11: эссенция из данных игры (ESSENCES), если в тексте записи её нет (раньше у многих монстров эссенция в книге не показывалась)."""
+    e = DATA["ESSENCES"].get(m.get("essence") or "")
+    if not e or "(П)" in body or "(А)" in body: return ""
+    st = ", ".join(f'{STATN.get(k, k)} {v:+d}'.replace('-', '−') for k, v in (e.get("stats") or {}).items() if v)
+    oth = "; ".join(e.get("other") or [])
+    pa, ac = e.get("passive") or {}, e.get("active") or {}
+    out = f'<h4>{inline(e.get("name", "Эссенция"))}</h4>'
+    if st or oth: out += f'<p>{inline(" · ".join(x for x in (st, oth) if x))}</p>'
+    if pa: out += f'<h4 class="pas">{inline(pa.get("name", ""))} (П)</h4><p>{inline(pa.get("text", ""))}</p>'
+    if ac: out += f'<h4 class="act">{inline(ac.get("name", ""))} (А)</h4><p>{inline(str(ac.get("mana", "")) + " маны, " + ac.get("time", "") + ". " + ac.get("text", ""))}</p>'
+    return out
+
 cards, idx = [], []
 for zid, zname, zdesc in ZONES:
     ms = [m for m in MON if m["zone"] == zid]
@@ -111,7 +143,7 @@ for zid, zname, zdesc in ZONES:
   <header><div class="pics"><img class="face" src="{face(m)}" alt="Иконка: {m["name"]}" loading="lazy"><img class="full" src="{full(m)}" alt="{m["name"]} в полный рост" loading="lazy"></div>
     <div class="hd"><h3>{m["name"]}</h3><div class="tags">{"".join(tags)}</div>
     <p class="habit">{inline(habit)}</p></div></header>
-  {spawn}<div class="body">{md(body)}</div>
+  {spawn}<div class="body">{md(body)}{stat_html(m, body)}{ess_html(m, body)}</div>
 </article>''')
 
 def frow(label, key, opts):

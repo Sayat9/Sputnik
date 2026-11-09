@@ -277,9 +277,9 @@
     let aura = 0; for (const a of alliesOf(tgt)) aura = Math.max(aura, hookSum(a, "acAura", { ally: a, tgt, ctx }));
     if (aura && tgt.hero) { ctx.protPlus = (ctx.protPlus || 0) + aura; ctx.notes.push(`аура: Защита +${aura}`); }          // у героев аура «+КД» союзника даёт Защиту (решение автора 02.11)
     else if (aura) { ac += aura; ctx.acNotes.push(`стена щитов +${aura}`); }
-    if (atk.pairArmor) { ctx.protIgnore = (ctx.protIgnore || 0) + 99; ctx.notes.push("второй удар пары: Защита уже учтена"); }
+    // 09.11 (автор: «вторая атака игнорирует броню»): Защита цели режет оба удара пары (v91 вычитала её один раз — тогда пара ×0,6 без модификатора была слабее одного клинка)
     if (melee && atk.w && atk.w.group !== "ranged" && typeof isTwoHandedWeapon === "function" && isTwoHandedWeapon(atk.w)) { ctx.protIgnore = (ctx.protIgnore || 0) + 1; ctx.notes.push("двуручное: −1 Защиты цели"); }          // решение автора 02.11
-    else if (melee && atk.w && !atk.pairArmor && ["dagger", "twin-daggers", "spear"].includes(atk.w.id)) { ctx.protIgnore = (ctx.protIgnore || 0) + 1; ctx.notes.push("остриё ищет щель: −1 Защиты цели"); }          // кинжал и копьё били слишком слабо против брони (автор 02.11)
+    else if (melee && atk.w && ["dagger", "twin-daggers", "spear"].includes(atk.w.id)) { ctx.protIgnore = (ctx.protIgnore || 0) + 1; ctx.notes.push("остриё ищет щель: −1 Защиты цели"); }          // кинжал и копьё били слишком слабо против брони (автор 02.11)
     // Полёт и тьма (решение автора 02.11): летящая цель +3 к Увороту, цель во тьме +2; тёмное зрение, слепое зрение и чувство вибраций атакующего в своём радиусе снимают бонус тьмы
     if (B.isFlying(tgt) && !has(tgt, "prone")) { ac += 3; ctx.acNotes.push("в полёте +3"); }
     if (B.inDark(tgt) && !B.seesInDark(att, tgt)) { ac += 2; ctx.acNotes.push("во тьме +2"); }
