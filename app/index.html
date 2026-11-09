@@ -1071,6 +1071,16 @@ dl.kv { margin: 0; }
   main .wrap > * { animation: rise .25s ease both; }
   @keyframes rise { from { transform: translateY(4px); } to { transform: none; } }
 }
+/* Диалог как в новеллах (общий: бой и карта, 09.11): табличка с именем над окном, портрет слева, текст справа; касание где угодно — дальше */
+.vn-dlg { position: fixed; inset: 0; z-index: 9000; display: flex; align-items: flex-end; justify-content: center; padding: 0 12px calc(16px + env(safe-area-inset-bottom)); background: rgb(0 0 0 / .25); cursor: pointer; }
+.vn-wrap { width: min(640px, 100%); display: flex; flex-direction: column; align-items: flex-start; animation: vnIn .25s ease-out; }
+.vn-name { margin: 0 0 -2px 14px; padding: 4px 14px 5px; background: #2a1d10; border: 2px solid #c9a35a; border-bottom: none; border-radius: 10px 10px 0 0; font: 700 15px/1.2 var(--f-fancy, Georgia, serif); color: #f4d48e; position: relative; z-index: 1; }
+.vn-box { width: 100%; display: flex; gap: 12px; align-items: stretch; padding: 12px; background: rgb(20 14 10 / .95); border: 2px solid #c9a35a; border-radius: 12px; box-shadow: 0 10px 30px rgb(0 0 0 / .6); box-sizing: border-box; }
+.vn-face { width: 96px; height: 96px; flex: 0 0 96px; object-fit: cover; border-radius: 8px; border: 2px solid #6e5634; background: #1a120c; }
+.vn-txt { display: flex; flex-direction: column; gap: 4px; min-width: 0; color: #f0e2c4; }
+.vn-txt p { margin: 0; font-size: 17px; line-height: 1.35; }
+.vn-txt small { margin-top: auto; opacity: .6; font-size: 12px; }
+@keyframes vnIn { from { transform: translateY(16px); opacity: 0; } to { transform: none; opacity: 1; } }
 </style>
 
 <header class="top">
@@ -2658,7 +2668,7 @@ const GC_ESS = {
 for (const [id, [name, stats, other, [pn, pt], [an, mana, time, at]]] of Object.entries(GC_ESS)) ESSENCES[id] = { id, name, cls: MONSTERS.find(m => m.id === id).cls, source: id, stats, other, passive: { name: pn, text: pt }, active: { name: an, mana, time, text: at } };
 
 const RIFT_RANK = 7, RIFT_EXIT_DAYS = 2;
-const RIFTS = { blood: { name: "Кровавая крепость", zone: "undead", w: 5, h: 15 }, ice: { name: "Ледяной грот", zone: "stone", w: 3, h: 15 }, sand: { name: "Зыбучие пески", zone: "beast", w: 15, h: 15 }, mine: { name: "Зелёная шахта", zone: "goblin", w: 5, h: 3 }, past: { name: "Чаща прошлого", zone: "beast", w: 15, h: 15 }, gcity: { name: "Гоблинград", zone: "goblin", w: 15, h: 15 } };
+const RIFTS = { blood: { name: "Кровавая крепость", zone: "undead", w: 5, h: 15 }, ice: { name: "Ледяной грот", zone: "stone", w: 3, h: 15 }, sand: { name: "Зыбучие пески", zone: "beast", w: 15, h: 15 }, mine: { name: "Зелёная шахта", zone: "goblin", w: 5, h: 3 }, past: { name: "Чаща прошлого", zone: "beast", w: 15, h: 15 }, gcity: { name: "Гоблинград", zone: "goblin", w: 15, h: 15 }, gyard: { name: "Кладбище прошлого", zone: "undead", w: 15, h: 15 } };
 const riftF1Open = r => !!(r && r.floor === 1 && partyRank() <= RIFT_RANK && (r.day === 3 || (r.day === 4 && r.act <= 2)));
 function riftSync() {
   const r = state.run; if (r && r.floor === 2 && !r.rift) { pastSync(); return; }
@@ -2682,7 +2692,7 @@ function riftMarks(px, py, up) {
 }
 const riftButtons = () => { const r = state.run, t = r && !r.rift && riftAt(r.pos.x, r.pos.y); return t ? [{ id: "rift-enter", label: "Войти в разлом", sub: RIFTS[t.id].name }] : []; };
 // ----- карта разлома -----
-const riftCell = (R, x, y) => R.id === "blood" ? ((y >= 0 && y <= 4 && x >= 0 && x <= 4) || (y >= 5 && y <= 14 && x >= 1 && x <= 3)) : R.id === "ice" ? (x >= 0 && x <= 2 && y >= 0 && y <= 14) : R.id === "sand" ? (x >= 0 && x <= 14 && y >= 0 && y <= 14) : R.id === "mine" ? (x >= 0 && x < R.w && y >= 0 && y < R.h) : (R.id === "past" || R.id === "gcity") ? (x >= 0 && x < 15 && y >= 0 && y < 15) : false;
+const riftCell = (R, x, y) => R.id === "blood" ? ((y >= 0 && y <= 4 && x >= 0 && x <= 4) || (y >= 5 && y <= 14 && x >= 1 && x <= 3)) : R.id === "ice" ? (x >= 0 && x <= 2 && y >= 0 && y <= 14) : R.id === "sand" ? (x >= 0 && x <= 14 && y >= 0 && y <= 14) : R.id === "mine" ? (x >= 0 && x < R.w && y >= 0 && y < R.h) : (R.id === "past" || R.id === "gcity" || R.id === "gyard") ? (x >= 0 && x < 15 && y >= 0 && y < 15) : false;
 function riftBuild(id) {
   const D = RIFTS[id], R = { id, w: D.w, h: D.h, steps: 0, visited: [], cleared: {}, done: {} };
   if (id === "blood") {
@@ -2699,6 +2709,7 @@ function riftBuild(id) {
   if (id === "mine") { R.level = 1; mineLevel(R); return R; }
   if (id === "past") pastGen(R);
   if (id === "gcity") gcGen(R);
+  if (id === "gyard") gyGen(R);
   if (id === "sand") {          // пустыня 15 × 15 (спецификация автора): старт внизу по центру, 2 утопающих маяка, страж в центре (7,7) — после обоих маяков
     R.start = { x: 7, y: 14 }; R.boss = { x: 7, y: 7 }; R.minis = {};
     const ok = (x, y) => y <= 11 && !(x >= 6 && x <= 9 && y >= 6 && y <= 9);
@@ -2713,13 +2724,14 @@ function riftBuild(id) {
 function riftEnter() {
   const r = state.run, t = riftAt(r.pos.x, r.pos.y); if (!t) return;
   r.rift = riftBuild(t.id); r.rift.save = { day: r.day, act: r.act, key: tkey(r.pos.x, r.pos.y) };
+  if (t.id === "gyard") gyEnter();
   logRun(`Отряд входит в разлом «${RIFTS[t.id].name}». Время этажа остановилось.`);
-  dgUi.res = { title: RIFTS[t.id].name, roll: "", pic: "rift-enter", lines: t.id === "gcity" ? GC_INTRO : t.id === "past" ? PAST_INTRO : t.id === "mine" ? ["Портал схлопывается за спиной. Здесь время этажа не идёт; на выходе пройдёт 2 дня.", "Пять уровней штолен: спуск на каждом — в одном из дальних рядов. 4-й уровень тёмный — берите факелы. В конце — логово короля слизи.", "Жилы богаты камнями: здесь можно копать, если есть лопата."] : t.id === "sand" ? ["Портал схлопывается за спиной. Здесь время этажа не идёт; на выходе пройдёт 2 дня.", "Где-то в барханах тонут два древних маяка. Подойдёшь ближе — почувствуешь их зов. Раскачай маяк, и на зов явится его хозяин.", "Когда утонут оба маяка, в центре пустыни проснётся Кель. В бою берегитесь зыбучего песка."] : t.id === "ice" ? ["Портал схлопывается за спиной. Здесь время этажа не идёт; на выходе пройдёт 2 дня.", "Холод: каждый шаг без горящего факела — +1 к замерзанию (до 10). С факелом холод спадает на 2, но факел тут горит на 1 ход меньше. В боях на поле стоят имперские жаровни — их можно разжечь.", "Внизу пещеры — страж у огромной жаровни и сундук."] : ["Портал схлопывается за спиной. Здесь время этажа не идёт; на выходе пройдёт 2 дня.", "Ищите спуск в последнем ряду двора — он ведёт на 5 уровней вниз, в канализацию. В конце коридора — страж и сундук."] };
+  dgUi.res = { title: RIFTS[t.id].name, roll: "", pic: "rift-enter", lines: t.id === "gyard" ? ["Портал схлопывается за спиной. Здесь время этажа не идёт; на выходе пройдёт 2 дня.", "Тихая деревня у кладбища, каким был Могильник когда-то. Здесь нет привычных дней — только день и ночь по 10 действий."] : t.id === "gcity" ? GC_INTRO : t.id === "past" ? PAST_INTRO : t.id === "mine" ? ["Портал схлопывается за спиной. Здесь время этажа не идёт; на выходе пройдёт 2 дня.", "Пять уровней штолен: спуск на каждом — в одном из дальних рядов. 4-й уровень тёмный — берите факелы. В конце — логово короля слизи.", "Жилы богаты камнями: здесь можно копать, если есть лопата."] : t.id === "sand" ? ["Портал схлопывается за спиной. Здесь время этажа не идёт; на выходе пройдёт 2 дня.", "Где-то в барханах тонут два древних маяка. Подойдёшь ближе — почувствуешь их зов. Раскачай маяк, и на зов явится его хозяин.", "Когда утонут оба маяка, в центре пустыни проснётся Кель. В бою берегитесь зыбучего песка."] : t.id === "ice" ? ["Портал схлопывается за спиной. Здесь время этажа не идёт; на выходе пройдёт 2 дня.", "Холод: каждый шаг без горящего факела — +1 к замерзанию (до 10). С факелом холод спадает на 2, но факел тут горит на 1 ход меньше. В боях на поле стоят имперские жаровни — их можно разжечь.", "Внизу пещеры — страж у огромной жаровни и сундук."] : ["Портал схлопывается за спиной. Здесь время этажа не идёт; на выходе пройдёт 2 дня.", "Ищите спуск в последнем ряду двора — он ведёт на 5 уровней вниз, в канализацию. В конце коридора — страж и сундук."] };
 }
 function riftExit() {
   const r = state.run, R = r.rift; if (!R) return;
   const RF = r.floor === 2 ? r.riftsF2 : r.riftsF1, t = RF && RF.tiles[R.save.key]; if (t) t.done = true;
-  r.day = R.save.day + RIFT_EXIT_DAYS; r.act = R.save.act; r.rift = null;
+  r.day = R.save.day + RIFT_EXIT_DAYS; r.act = R.save.act; r.rift = null; for (const c of state.party) delete c.tmpHp;          // временные ОЗ таверны — только в разломе
   logRun(`Отряд вышел из разлома. Снаружи прошло ${RIFT_EXIT_DAYS} дня — сейчас день ${r.day}.`);
   if (r.day > FL().days) { r.day = FL().days; r.act = FL().acts; r.ending ||= "time"; }
   dgUi.res = { title: "Выход из разлома", roll: "", pic: "rift-enter", lines: [`Снаружи прошло ${RIFT_EXIT_DAYS} дня: день ${r.day}, действие ${r.act}.`] };
@@ -2797,6 +2809,7 @@ const RIFT_POOL = { yard: { 9: ["skeleton", "zombie", "skeleton-archer", "ghoul"
 function riftGroup(R, y, sev) {
   if (R.id === "past") return pastGroup(R, sev);
   if (R.id === "gcity") return gcGroup(R, sev);
+  if (R.id === "gyard") return gyGroup(R, sev);
   const P = RIFT_POOL[R.id === "mine" ? (R.level === 4 ? "mine4" : "mine") : R.id === "ice" || R.id === "sand" ? R.id : y <= 4 ? "yard" : "sewer"], pk = a => a[rnd(a.length)];
   if (sev === "easy") return [pk(P[9]), pk(P[9]), ...(Math.random() < .5 ? [pk(P[9])] : [])];
   if (sev === "mid") return [pk(P[8]), pk(P[9]), pk(P[9])];
@@ -2829,6 +2842,7 @@ function riftMove(x, y) {
   const r = state.run, R = r.rift; if (!R || dgUi.enc) return;
   if (R.id === "past") { pastMove(x, y); return; }
   if (R.id === "gcity") { gcMove(x, y); return; }
+  if (R.id === "gyard") { gyMove(x, y); return; }
   if (Math.abs(x - R.pos.x) + Math.abs(y - R.pos.y) !== 1 || !riftCell(R, x, y)) return;
   if (R.id === "blood" && y >= 5 && R.pos.y <= 4) return;          // во двор назад и вниз — только через спуск
   if (R.id === "blood" && y <= 4 && R.pos.y >= 5) return;
@@ -2879,7 +2893,8 @@ function riftRest() {
   if (R.id === "past") { const out = pastRestAfter(R, pk, lines); if (out) return; }
   if (R.id === "gcity") { if (R.pend) { toast("Сначала решите, что делать со встречей"); return; } const out = gcRestAfter(R, gcTile(R, R.pos.x, R.pos.y), lines); if (out) return; }
   if (R.cold) { riftColdStep(r.light ? -2 : 1); lines.push(r.light ? "Факел греет: холод −2." : "Без огня привал студит: холод +1."); }
-  if (R.id !== "past" && R.id !== "gcity" && rnd(6) === 0) { riftFight("Нападение на привале", riftGroup(R, R.pos.y, "mid")); return; }
+  if (R.id === "gyard") { gyAdvance(3); if (gyNight(R) && gyTile(R, R.pos.x, R.pos.y) === "grave" && rnd(3) === 0) { riftFight("Нападение на привале", gyGroup(R, "mid")); return; } }
+  if (R.id !== "past" && R.id !== "gcity" && R.id !== "gyard" && rnd(6) === 0) { riftFight("Нападение на привале", riftGroup(R, R.pos.y, "mid")); return; }
   dgUi.res = { title: "Привал в разломе", roll: "", lines };
 }
 function riftChest() {
@@ -2902,13 +2917,15 @@ function riftFightDone(e, killed) {
   if (R.cold && e.cold) for (const [k, v] of Object.entries(e.cold)) R.cold[k] = v;          // холод после боя
   if (R.id === "past") pastFightDone(R, e, ids);
   if (R.id === "gcity") gcFightDone(R, e, ids);
+  if (R.id === "gyard" && e) gyAdvance(1);
 }
 // Экран разлома (v115): заменяет карту этажа в рамке .stage — камера на отряде, как на обычной карте; полная схема — по кнопке «Карта».
-const riftCanStep = (R, x, y) => riftCell(R, x, y) && Math.abs(x - R.pos.x) + Math.abs(y - R.pos.y) === 1 && !(R.id === "past" && pastTile(R, x, y) === "roots") && !(R.id === "gcity" && (gcTile(R, x, y) === "palace" || R.pend)) && !(R.id === "blood" && ((y >= 5 && R.pos.y <= 4) || (y <= 4 && R.pos.y >= 5)));
+const riftCanStep = (R, x, y) => riftCell(R, x, y) && Math.abs(x - R.pos.x) + Math.abs(y - R.pos.y) === 1 && !(R.id === "past" && pastTile(R, x, y) === "roots") && !(R.id === "gcity" && (gcTile(R, x, y) === "palace" || R.pend)) && !(R.id === "gyard" && ["crypt", "cathedral"].includes(gyTile(R, x, y))) && !(R.id === "blood" && ((y >= 5 && R.pos.y <= 4) || (y <= 4 && R.pos.y >= 5)));
 function riftMarkOf(R, x, y, seen, near) {
   const k = tkey(x, y);
   if (R.id === "past") return pastMarkOf(R, x, y, seen, near);
   if (R.id === "gcity") return gcMarkOf(R, x, y, seen, near);
+  if (R.id === "gyard") return gyMarkOf(R, x, y, seen, near);
   if (R.id === "sand") { const bi = sandBeaconAt(R, x, y); if (bi >= 0 && (seen || near || R.beacons[bi].felt)) return R.beacons[bi].done ? "beaconDone" : "beacon";
     if (R.boss && x === R.boss.x && y === R.boss.y && !sandBossReady(R)) return seen || near ? "sandStir" : ""; }
   if (R.descent && x === R.descent.x && y === R.descent.y && (seen || near) && !mineDark(R)) return "descent";
@@ -2935,12 +2952,12 @@ function riftStage() {
   const sq = (x, y, attrs) => `<rect x="${(x - px) * T - T / 2 + 2}" y="${(y - py) * T - T / 2 + 2}" width="${T - 4}" height="${T - 4}" rx="${PX.ok ? 2 : 6}" ${attrs}/>`;
   const at = (x, y, inner) => `<g transform="translate(${(x - px) * T} ${(y - py) * T})">${inner}</g>`;
   const zoneSty = y => R.id === "blood" ? (y <= 4 ? "undead" : "crypt") : R.id === "ice" ? "mines" : R.id === "sand" ? "camp" : R.id === "mine" ? "cave" : "cave";
-  const fillOf = (x, y) => R.id === "gcity" ? GC_FILL[gcTile(R, x, y)] || "#4a3e30" : R.id === "past" ? PAST_FILL[pastTile(R, x, y)] || "#2f4a2a" : PX.ok ? PX.fill(zoneSty(y), tileHash(x, y + 50)) : R.id === "ice" ? "#3c4a58" : (y <= 4 ? "#494557" : "#4a2a30");
+  const fillOf = (x, y) => R.id === "gyard" ? GY_FILL[gyTile(R, x, y)] || "#3c4038" : R.id === "gcity" ? GC_FILL[gcTile(R, x, y)] || "#4a3e30" : R.id === "past" ? PAST_FILL[pastTile(R, x, y)] || "#2f4a2a" : PX.ok ? PX.fill(zoneSty(y), tileHash(x, y + 50)) : R.id === "ice" ? "#3c4a58" : (y <= 4 ? "#494557" : "#4a2a30");
   for (let y = 0; y < R.h; y++) for (let x = 0; x < R.w; x++) {
     if (!riftCell(R, x, y) || Math.abs(x - px) > 4 || Math.abs(y - py) > 4) continue;
     const k = tkey(x, y), cur = x === px && y === py, seen = R.visited.includes(k), near = Math.abs(x - px) + Math.abs(y - py) === 1, go = riftCanStep(R, x, y);
     if (cur) continue;
-    const pastSee = (R.id === "gcity" && (near || gcTile(R, x, y) === "palace" || gcTile(R, x, y) === "gate" || (gcTile(R, px, py) === "roof" && Math.max(Math.abs(x - px), Math.abs(y - py)) <= 2))) || R.id === "past" && (near || pastTile(R, x, y) === "roots" && Math.abs(x - px) + Math.abs(y - py) <= 2 || pastTile(R, x, y) === "keeper");
+    const pastSee = (R.id === "gyard" && (near || ["crypt", "cathedral", "tavern"].includes(gyTile(R, x, y)))) || (R.id === "gcity" && (near || gcTile(R, x, y) === "palace" || gcTile(R, x, y) === "gate" || (gcTile(R, px, py) === "roof" && Math.max(Math.abs(x - px), Math.abs(y - py)) <= 2))) || R.id === "past" && (near || pastTile(R, x, y) === "roots" && Math.abs(x - px) + Math.abs(y - py) <= 2 || pastTile(R, x, y) === "keeper");
     if (seen || pastSee) parts.push(sq(x, y, `fill="${fillOf(x, y)}" stroke="#6e5634" stroke-width="1.2"${seen ? "" : ` opacity=".7"`}`), R.id === "past" && pastTile(R, x, y) === "roots" ? at(x, y, RIFT_ICO.roots) : "", R.id === "blood" && y >= 5 ? sq(x, y, `fill="#6a0e18" opacity=".28" pointer-events="none"`) : "");
     else parts.push(sq(x, y, `fill="#120c10" stroke="#2c1a20" stroke-width="1.2"`));
     if (R.id === "ice" && seen) parts.push(sq(x, y, `fill="#bfe4ff" opacity=".14" pointer-events="none"`));
@@ -2962,7 +2979,7 @@ function riftStage() {
   parts.push(`<g transform="${here && here !== "descent" ? "translate(8 8) scale(.8)" : ""}">${ICON.party}</g>`);
   if (mineDark(R)) parts.push(`<rect x="${-T * 4}" y="${-T * 4}" width="${T * 8}" height="${T * 8}" fill="#000" opacity=".55" pointer-events="none"/>`);
   const half = T * 3.6, atStart = R.pos.x === R.start.x && R.pos.y === R.start.y && (R.id !== "mine" || R.level === 1), atBoss = R.boss && px === R.boss.x && py === R.boss.y;
-  const part = R.id === "gcity" ? `${GC_NAME[gcTile(R, px, py)]} · тревога ${R.alarm}/10 · плащи ${R.cloaks}${R.seal ? " · печать" : ""}${R.key ? " · ключ" : ""}${R.smuggler ? " · ключ контрабандиста" : ""}` : R.id === "past" ? `${PAST_NAME[pastTile(R, px, py)]} · след ${R.trail}/10 · ключ-карты ${R.keys}/3` : R.id === "mine" ? `Шахта · уровень ${R.level}/5${mineDark(R) ? " · тьма" : ""}` : R.id === "sand" ? `Пустыня · маяки ${R.beacons.filter(b => b.done).length}/2` : R.id === "blood" ? (py <= 4 ? "Двор крепости" : `Канализация · ряд ${py - 4} из ${R.h - 5}`) : R.id === "ice" ? `Пещера · ряд ${py + 1} из ${R.h}` : "";
+  const part = R.id === "gyard" ? `${GY_NAME[gyTile(R, px, py)]} · ${gyNight(R) ? "☾ ночь" : "☀ день"} ${R.pt}/10${R.graves.length ? ` · могилы ${R.graves.filter(g => g.dug).length}/${R.graves.length}` : ""}` : R.id === "gcity" ? `${GC_NAME[gcTile(R, px, py)]} · тревога ${R.alarm}/10 · плащи ${R.cloaks}${R.seal ? " · печать" : ""}${R.key ? " · ключ" : ""}${R.smuggler ? " · ключ контрабандиста" : ""}` : R.id === "past" ? `${PAST_NAME[pastTile(R, px, py)]} · след ${R.trail}/10 · ключ-карты ${R.keys}/3` : R.id === "mine" ? `Шахта · уровень ${R.level}/5${mineDark(R) ? " · тьма" : ""}` : R.id === "sand" ? `Пустыня · маяки ${R.beacons.filter(b => b.done).length}/2` : R.id === "blood" ? (py <= 4 ? "Двор крепости" : `Канализация · ряд ${py - 4} из ${R.h - 5}`) : R.id === "ice" ? `Пещера · ряд ${py + 1} из ${R.h}` : "";
   const coldRow = R.cold ? `<div class="rf-cold">${state.party.filter(c => !c.dead).map(c => { const v = R.cold[c.id] || 0; return `<span class="${v >= 8 ? "hi" : v >= 4 ? "mid" : ""}" title="Холод ${v}/10">❄ ${esc(c.name.split(" ")[0])} ${v}</span>`; }).join("")}</div>` : "";
   return `<svg viewBox="${-half} ${-half} ${half * 2} ${half * 2}" id="rf-svg" role="img" aria-label="${esc(D.name)}"><defs>${ICON_DEFS}</defs>${parts.join("")}</svg>
     <button class="fx-btn corner-btn l" data-rift="map" aria-label="Схема разлома">${ICO_MAP}Карта</button>
@@ -2971,8 +2988,9 @@ function riftStage() {
       ${R.id === "past" && R.signs[tkey(px, py)] ? `<button class="fx-btn primary" data-rift="sign">Прочитать табличку</button>` : ""}
       ${R.id === "past" ? pastBar(R, px, py) : ""}
       ${R.id === "gcity" ? gcBar(R, px, py) : ""}
+      ${R.id === "gyard" ? gyBar(R, px, py) : ""}
       ${brewButtons().map(b => `<button class="fx-btn" data-rift="${b.id}"${b.disabled ? " disabled" : ""}>${b.label}<small>${b.sub}</small></button>`).join("")}
-      ${(R.id === "past" && pastTile(R, px, py) === "lab" && !R.natDead) || (R.id === "gcity" && R.pend) ? "" : `<button class="fx-btn" data-rift="rest">${ICO_ACT.rest}${R.id === "gcity" ? ({ tavern: "Отдохнуть в таверне", den: "Залечь на дно" })[gcTile(R, px, py)] || "Привал" : R.id === "past" ? ({ stream: "Отдых у ручья", hollow: "Спрятаться в дупле", glade: "Отдохнуть на поляне", lab: "Отдохнуть" })[pastTile(R, px, py)] || "Привал" : "Привал"}</button>`}
+      ${(R.id === "past" && pastTile(R, px, py) === "lab" && !R.natDead) || (R.id === "gcity" && R.pend) || (R.id === "gyard" && gyTile(R, px, py) === "tavern") ? "" : `<button class="fx-btn" data-rift="rest">${ICO_ACT.rest}${R.id === "gcity" ? ({ tavern: "Отдохнуть в таверне", den: "Залечь на дно" })[gcTile(R, px, py)] || "Привал" : R.id === "past" ? ({ stream: "Отдых у ручья", hollow: "Спрятаться в дупле", glade: "Отдохнуть на поляне", lab: "Отдохнуть" })[pastTile(R, px, py)] || "Привал" : "Привал"}</button>`}
       ${r.light ? `<button class="fx-btn" data-dg="torch-off"><img src="${artPath("field/torch-on")}" alt="" width="18" height="18">Погасить факел</button>` : `<button class="fx-btn" data-dg="torch-on"${partyTorches() || r.torchLeft > 0 ? "" : " disabled"}><img src="${artPath("field/torch-off")}" alt="" width="18" height="18">Факел (${partyTorches()})</button>`}
       ${R.id === "mine" && !R.dug[R.level + ":" + tkey(px, py)] && shovelsOf().length ? `<button class="fx-btn" data-rift="dig">${ICO_ACT.dig}Копать</button>` : ""}
       ${R.id === "sand" && sandBeaconAt(R, px, py) >= 0 && !R.beacons[sandBeaconAt(R, px, py)].done ? `<button class="fx-btn primary" data-rift="beacon">Раскачать маяк</button>` : ""}
@@ -2984,16 +3002,16 @@ function riftMapOverlay() {
   const r = state.run, R = r.rift, D = RIFTS[R.id];
   let cells = "";
   for (let y = 0; y < R.h; y++) for (let x = 0; x < R.w; x++) {
-    if (!riftCell(R, x, y) || (R.id === "past" && pastTile(R, x, y) === "roots") || (R.id === "gcity" && gcTile(R, x, y) === "palace")) { cells += `<span class="rf-c rf-wall"></span>`; continue; }
+    if (!riftCell(R, x, y) || (R.id === "past" && pastTile(R, x, y) === "roots") || (R.id === "gcity" && gcTile(R, x, y) === "palace") || (R.id === "gyard" && ["crypt", "cathedral"].includes(gyTile(R, x, y)) && !(x === 1 && y === 1) && !(x === 13 && y === 1))) { cells += `<span class="rf-c rf-wall"></span>`; continue; }
     const k = tkey(x, y), cur = R.pos.x === x && R.pos.y === y, seen = R.visited.includes(k), near = Math.abs(x - R.pos.x) + Math.abs(y - R.pos.y) === 1;
-    const m = riftMarkOf(R, x, y, seen, near), mark = cur ? "●" : { descent: "▼", mini: "☠", boss: "♛", chest: "◆", open: "✓", exit: "◎", beacon: "♜", beaconDone: "·", sandStir: "≈", keeperGlow: "✶", lab: "⌂", sign: "▭", gcGate: "♜", gcOil: "▣", gcOilLit: "♨", gc_tavern: "⌂", gc_den: "☾", gc_market: "$" }[m] || "";
-    cells += `<span class="rf-c${cur ? " rf-cur" : seen ? " rf-seen" : ""}"${R.id === "gcity" && seen && !cur ? ` style="background:${GC_FILL[gcTile(R, x, y)]}"` : R.id === "past" && seen && !cur ? ` style="background:${PAST_FILL[pastTile(R, x, y)]}"` : m === "keeperGlow" ? ` style="color:#c4ff6a"` : ""}>${mark}</span>`;
+    const m = riftMarkOf(R, x, y, seen, near), mark = cur ? "●" : { descent: "▼", mini: "☠", boss: "♛", chest: "◆", open: "✓", exit: "◎", beacon: "♜", beaconDone: "·", sandStir: "≈", keeperGlow: "✶", lab: "⌂", sign: "▭", gcGate: "♜", gcOil: "▣", gcOilLit: "♨", gc_tavern: "⌂", gc_den: "☾", gc_market: "$", gy_tavern: "⌂", gy_crypt: "▥", gy_cathedral: "✝", gy_grave: "✧" }[m] || "";
+    cells += `<span class="rf-c${cur ? " rf-cur" : seen ? " rf-seen" : ""}"${R.id === "gyard" && (seen || ["tavern"].includes(gyTile(R, x, y))) && !cur ? ` style="background:${GY_FILL[gyTile(R, x, y)]}"` : R.id === "gcity" && seen && !cur ? ` style="background:${GC_FILL[gcTile(R, x, y)]}"` : R.id === "past" && seen && !cur ? ` style="background:${PAST_FILL[pastTile(R, x, y)]}"` : m === "keeperGlow" ? ` style="color:#c4ff6a"` : ""}>${mark}</span>`;
   }
   return `<div class="mapov" role="dialog" aria-modal="true" aria-label="Схема: ${esc(D.name)}">
     <div class="panel fx-frame enc-panel">
       <div class="ph-head"><h3>${esc(D.name)}</h3><button class="fx-btn" data-rift="map" aria-label="Закрыть схему" style="width:42px;height:42px;padding:0;display:grid;place-items:center">${ICO_X}</button></div>
       <div class="rf-grid" style="grid-template-columns:repeat(${R.w},1fr)">${cells}</div>
-      <p class="rf-legend">● отряд · ${R.id === "gcity" ? "♜ ворота дворца · $ рынок · ⌂ таверна · ☾ притон · ▣ склад масла · " : R.id === "past" ? "✶ хранитель · ⌂ лаборатория · ▭ табличка · ▒ корни · " : R.id === "ice" ? "" : R.id === "sand" ? "♜ маяк · " : "▼ спуск · "} ☠ минибосс · ♛ страж · ◆ сундук · ◎ выход</p>
+      <p class="rf-legend">● отряд · ${R.id === "gyard" ? "⌂ таверна · ▥ склеп · ✝ собор · ✧ светящаяся могила · " : R.id === "gcity" ? "♜ ворота дворца · $ рынок · ⌂ таверна · ☾ притон · ▣ склад масла · " : R.id === "past" ? "✶ хранитель · ⌂ лаборатория · ▭ табличка · ▒ корни · " : R.id === "ice" ? "" : R.id === "sand" ? "♜ маяк · " : "▼ спуск · "} ☠ минибосс · ♛ страж · ◆ сундук · ◎ выход</p>
     </div></div>`;
 }
 // ===== Разлом 2 этажа «Чаща прошлого» (звери; спецификация автора 08.11) =====
@@ -3052,8 +3070,9 @@ function pastGen(R) {
   R.map = m; R.start = { ...PAST_START }; R.boss = { ...PAST_LAB }; R.minis = {}; R.trail = 0; R.keys = 0; R.explore = 0; R.signs = { [tkey(PAST_START.x, PAST_START.y)]: "start", [tkey(PAST_LAB.x, PAST_LAB.y)]: "lab" }; R.signTypes = {}; R.washed = {};
 }
 function pastSync() {          // порталы разлома на 2 этаже (Волчья чаща): то же окно, что на 1 этаже — 3-й день и до 2-го действия 4-го
-  const r = state.run; if (!r || r.floor !== 2 || r.rift || !["beast", "goblin"].includes(r.variant)) return;
-  const rid = r.variant === "goblin" ? "gcity" : "past", where = r.variant === "goblin" ? "Лесу гоблинов" : "Волчьей чаще";
+  const r = state.run; if (!r || r.floor !== 2 || r.rift || !["beast", "goblin", "undead"].includes(r.variant)) return;
+  if (r.variant === "undead" && !(typeof masterOn === "function" && masterOn())) return;          // «Кладбище прошлого» в работе — пока только в режиме мастера
+  const rid = r.variant === "goblin" ? "gcity" : r.variant === "undead" ? "gyard" : "past", where = r.variant === "goblin" ? "Лесу гоблинов" : r.variant === "undead" ? "Могильнике белой пыли" : "Волчьей чаще";
   const open = partyRank() <= RIFT_RANK && (r.day === 10 || (r.day === 11 && r.act <= 2)), R = r.riftsF2;          // 2 этаж: 10-й день – 2-е действие 11-го (автор 09.11)
   if (open && !R) {
     const V = FL().variant, free = [];
@@ -3297,6 +3316,109 @@ Object.assign(RIFT_ICO, {
   gc_den: `<circle r="14" fill="#3a2430" stroke="#c45c8a" stroke-width="2"/><path d="M-6 -2 Q0 -8 6 -2 M-5 5 Q0 9 5 5" stroke="#c45c8a" stroke-width="2" fill="none"/>`,
   gc_market: `<path d="M-14 -4 H14 L10 -12 H-10 Z" fill="#c9a35a" stroke="#2a1a0a" stroke-width="2"/><rect x="-12" y="-4" width="24" height="14" fill="#8a6a2a" stroke="#2a1a0a" stroke-width="2"/>`,
 });
+// ===== Разлом 2 этажа «Кладбище прошлого» (Могильник в прошлом; автор 09.11, часть 1) =====
+// 15×15: поселение 4×4 в левом нижнем углу (портал (0,14) = таверна), дальше по диагонали 3 полосы полей, остальное — кладбище;
+// склеп 4×4 в левом верхнем углу и собор 3×3 в правом верхнем — пока закрыты. Вместо дней — фазы: день и ночь по 10 действий.
+// День: в поселении и полях встреч нет и кубик не бросается; на кладбище встречи редкие, монстры не выше 8 класса.
+// Ночь: на кладбище встречи чаще, с обычными наградами и 7 классом; светящиеся могилы (до 3, имена; последнее — имя старосты).
+const GY_ELDER = { name: "Староста Освальд Тисс", face: "assets/npc/elder.webp" };
+const GY_GRAVES = ["Марта Холл", "Брам Тисс", "Освальд Тисс"];
+const GY_NAME = { village: "Поселение", tavern: "Таверна", field: "Пшеничное поле", grave: "Кладбище", crypt: "Склеп", cathedral: "Собор" };
+const GY_FILL = { village: "#5a4a32", tavern: "#7a5226", field: "#8a7a3a", grave: "#3c4038", crypt: "#2a2630", cathedral: "#32283c" };
+const GY_POOL = { 9: ["zombie", "skeleton", "skeleton-archer", "ghoul", "dust-crawler", "bone-hound", "grey-shade", "morok"], 8: ["skeleton-warrior", "gravedigger", "plague-fat", "whisperer", "mirror-dead"], 7: ["bone-knight", "corpse-eater", "ash-wraith"] };
+const gyPick = cls => { const a = (GY_POOL[cls] || []).filter(id => MONSTERS.some(m => m.id === id)); return a[rnd(a.length)]; };
+const gyTile = (R, x, y) => R.map[tkey(x, y)];
+const gyNight = R => R.phase === "night";
+function gyGen(R) {
+  const N = 15, m = {};
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+    const s = x + (N - 1 - y);          // «диагональ» от левого нижнего угла
+    m[tkey(x, y)] = x <= 3 && y >= 11 ? "village" : x <= 3 && y <= 3 ? "crypt" : x >= 12 && y <= 2 ? "cathedral" : s <= 9 ? "field" : "grave";
+  }
+  m[tkey(0, 14)] = "tavern";
+  R.map = m; R.start = { x: 0, y: 14 }; R.boss = null; R.minis = {}; R.phase = "day"; R.pt = 0; R.graves = []; R.metElder = false;
+}
+function gyAdvance(n) {          // фазы: день и ночь по 10 действий
+  const R = state.run.rift; R.pt += n;
+  while (R.pt >= 10) { R.pt -= 10; R.phase = gyNight(R) ? "day" : "night"; logRun(gyNight(R) ? "Солнце садится. Над кладбищем сгущается ночь…" : "Рассвет. Ночь отступает от кладбища."); toast(gyNight(R) ? "Наступила ночь" : "Наступил день"); }
+}
+function gyGroup(R, sev) {
+  const night = gyNight(R), c7 = () => (night ? gyPick(7) : gyPick(8));
+  if (sev === "easy") return [gyPick(9), gyPick(9), ...(Math.random() < .5 ? [gyPick(9)] : [])];
+  if (sev === "mid") return [gyPick(8), gyPick(9), gyPick(9)];
+  return night && Math.random() < .4 ? [c7(), gyPick(9)] : [gyPick(8), gyPick(8), gyPick(9)];
+}
+function gyEnter() {          // первое появление — староста
+  const R = state.run.rift; if (R.metElder) return; R.metElder = true;
+  setTimeout(() => vnShow([{ ...GY_ELDER, text: "О, путники? Давно вас не было видно в наших краях, уже и не припомню когда." }, { ...GY_ELDER, text: "У нас скромная деревня, но путникам мы очень рады. Оставайтесь отдыхать сколько вам нужно." }]), 200);
+}
+function gyMove(x, y) {
+  const r = state.run, R = r.rift;
+  if (Math.abs(x - R.pos.x) + Math.abs(y - R.pos.y) !== 1 || !riftCell(R, x, y)) return;
+  const t = gyTile(R, x, y);
+  if (t === "crypt" || t === "cathedral") { dgUi.res = { title: GY_NAME[t], roll: "", lines: [t === "crypt" ? "Тяжёлые двери склепа заперты." : "Двери собора заперты."] }; return; }
+  riftTick(); gyAdvance(1); R.prev = { ...R.pos }; R.pos = { x, y }; const k = tkey(x, y), fresh = !R.visited.includes(k); if (fresh) R.visited.push(k);
+  if (t !== "grave") return;          // поселение и поля — без встреч и кубика (днём; ночь в поселении — позже)
+  const night = gyNight(R);
+  if (night && fresh && R.graves.length < 3 && !R.graves.some(g => !g.dug) && Math.random() < .18) {          // светящаяся могила
+    R.graves.push({ x, y, name: GY_GRAVES[R.graves.length], read: false, dug: false }); logRun("Одна из могил светится бледным светом."); dgUi.res = { title: "Светящаяся могила", roll: "", lines: ["Среди надгробий одно светится бледным светом. На камне можно разобрать надпись…"] }; return;
+  }
+  if (!fresh || R.cleared[k]) return;
+  const d = 1 + rnd(20), roll1 = `к20 = ${d}`;
+  const sev = night ? (d <= 7 ? "hard" : d <= 12 ? "mid" : d <= 16 ? "easy" : null) : (d <= 3 ? "mid" : d <= 7 ? "easy" : null);
+  if (sev) { R.cleared[k] = true; riftFight(`${night ? "Ночная" : "Дневная"} встреча: ${sev === "hard" ? "тяжёлая" : sev === "mid" ? "средняя" : "лёгкая"} (${roll1})`, gyGroup(R, sev), night && d <= 2 ? { ambush: true } : {}); return; }
+  if (!night) { logRun(`Кладбище: тихо (${roll1}).`); return; }
+  if (d <= 18) { const s2 = riftSupplies(); logRun(`Разлом: припасы (${roll1}; к20 = ${s2.d}) — ${s2.lines.join("; ")}`); dgUi.res = { title: "Брошенные припасы", roll: `${roll1} · припасы к20 = ${s2.d}`, pic: "find", lines: s2.lines }; return; }
+  const line = giveParty({ t: "g", id: Math.random() < .5 ? "stone-9" : "stone-8", qty: 1 + rnd(2) }); logRun(`Разлом: находка (${roll1}) — ${line}`); dgUi.res = { title: "Находка", roll: roll1, pic: "find", lines: [line] };
+}
+const gyGraveHere = R => R.graves.find(g => g.x === R.pos.x && g.y === R.pos.y && !g.dug);
+function gyRead() { const R = state.run.rift, g = gyGraveHere(R); if (!g) return; g.read = true; gyAdvance(1); logRun(`Светящаяся могила: «${g.name}».`); dgUi.res = { title: "Светящаяся могила", roll: "", lines: [`На надгробии выбито имя: «${g.name}».`] }; }
+function gyDig() {
+  const r = state.run, R = r.rift, g = gyGraveHere(R); if (!g) return;
+  const dg = typeof pickShovel === "function" ? pickShovel() : null; if (!dg) { toast("Нужна лопата"); return; }
+  g.dug = true; riftTick(); gyAdvance(1); const lines = [];
+  if (digShouldWear()) { dg.e.uses--; if (dg.e.uses <= 0) { dg.c.bag.splice(dg.i, 1); lines.push(`${GEAR[dg.e.id].name} (${dg.c.name}) сломалась.`); } }
+  lines.push(giveParty({ t: "g", id: "stone-9", qty: 4 + rnd(3) }), giveParty({ t: "g", id: "stone-8", qty: 2 + rnd(2) }), ...giveSupplies(2));
+  if (Math.random() < .1) { const id = treasurePick(9) || "once-more"; if (TREASURES[id]) { giveTreasure(id); lines.push("Сокровище 9 класса: неопознанный артефакт (определите его в Башне магов)"); } else lines.push(`${giveParty({ t: "g", id, qty: 1 })}`.replace(/^[^—]*/, `Артефакт ${ARTIFACTS[id].cls} класса (неопознан) `)); }
+  logRun(`Раскопана могила «${g.name}»: ${lines.join("; ")}. Из земли поднимается мертвец!`);
+  riftFight(`Из могилы «${g.name}» поднимается мертвец!`, [gyPick(7), gyPick(9)]); dgUi.enc.gyGrave = true; dgUi.enc.gyLoot = lines;
+}
+function gyTavern() {          // таверна: 2 действия; ОЗ и мана полностью, усталость 0, сытость полная, +5 временных ОЗ
+  const r = state.run, R = r.rift; if (gyTile(R, R.pos.x, R.pos.y) !== "tavern") return;
+  riftTick(); riftTick(); gyAdvance(2); r.canBrew = true; if (typeof shamanPrayer === "function") shamanPrayer();
+  for (const c of state.party) { if (c.dead) continue; const st = r.status[c.id]; c.hp = maxHp(c); c.mp = maxMp(c); c.tmpHp = 5; st.fat = 0; st.awake = 0; st.sat = 9; st.starve = 0; }
+  logRun("Таверна: отряд отдохнул — ОЗ и мана полностью, усталость снята, все сыты, +5 временных ОЗ.");
+  dgUi.res = { title: "Отдых в таверне", roll: "", lines: ["ОЗ и мана восстановлены полностью, усталость снята, все сыты.", "Каждый герой получает 5 временных ОЗ сверх предела."] };
+}
+function gyBar(R, px, py) {
+  const t = gyTile(R, px, py), g = gyGraveHere(R), out = [];
+  if (t === "tavern") out.push(`<button class="fx-btn primary" data-rift="gy-tavern">${ICO_ACT.rest}Таверна<small>2 действия: полный отдых и +5 врем. ОЗ</small></button>`);
+  if (g) { out.push(`<button class="fx-btn" data-rift="gy-read">Исследовать могилу<small>${g.read ? `«${esc(g.name)}»` : "прочесть имя"}</small></button>`); out.push(`<button class="fx-btn primary" data-rift="gy-dig"${shovelsOf().length ? "" : " disabled"}>Копать<small>${shovelsOf().length ? "много камней, но проснётся мертвец" : "нужна лопата"}</small></button>`); }
+  return out.join("");
+}
+function gyMarkOf(R, x, y, seen, near) {
+  const t = gyTile(R, x, y);
+  if (t === "tavern") return "gy_tavern";
+  if (t === "crypt" && x === 1 && y === 1) return "gy_crypt";
+  if (t === "cathedral" && x === 13 && y === 1) return "gy_cathedral";
+  const g = R.graves.find(q => q.x === x && q.y === y); if (g && (seen || near)) return g.dug ? "open" : "gy_grave";
+  return "";
+}
+Object.assign(RIFT_ICO, {
+  gy_tavern: RIFT_ICO.gc_tavern,
+  gy_crypt: `<rect x="-16" y="-10" width="32" height="24" fill="#2a2630" stroke="#9a8ac0" stroke-width="2"/><path d="M-18 -10 L0 -20 L18 -10" fill="#3a3448" stroke="#9a8ac0" stroke-width="2"/><rect x="-5" y="2" width="10" height="12" fill="#120e18"/>`,
+  gy_cathedral: `<rect x="-14" y="-6" width="28" height="20" fill="#32283c" stroke="#c9a35a" stroke-width="2"/><path d="M0 -22 V-6 M-6 -14 H6" stroke="#c9a35a" stroke-width="2.5"/><path d="M-4 14 V4 A4 4 0 0 1 4 4 V14" fill="#120e18"/>`,
+  gy_grave: `<circle r="18" fill="#bfe8ff" opacity=".28"/><path d="M-9 14 V-4 A9 9 0 0 1 9 -4 V14 Z" fill="#9aa4a8" stroke="#dff4ff" stroke-width="2"/><path d="M-4 0 H4 M0 -5 V6" stroke="#2a3038" stroke-width="1.6"/>`,
+});
+// Диалог как в новеллах на карте и в бою (09.11): vnShow([{ name, face, text }], onDone) — по одной реплике, касание — дальше.
+const VN_Q = [];
+function vnShow(items, done) { VN_Q.push(...items.map(x => ({ ...x }))); if (done) VN_Q.push({ done }); vnNext(); }
+function vnNext() {
+  if (document.getElementById("vn-dlg")) return; const d = VN_Q.shift(); if (!d) return; if (d.done) { try { d.done(); } catch (e) {} vnNext(); return; }
+  const el = document.createElement("div"); el.id = "vn-dlg"; el.className = "vn-dlg"; el.setAttribute("role", "dialog"); el.setAttribute("aria-label", d.name || "");
+  el.innerHTML = `<div class="vn-wrap">${d.name ? `<div class="vn-name">${esc(d.name)}</div>` : ""}<div class="vn-box">${d.face ? `<img class="vn-face" src="${d.face}" alt="" onerror="this.src='assets/monsters/ph-humanoid-face.svg'">` : ""}<div class="vn-txt"><p>${esc(d.text)}</p><small>коснитесь экрана, чтобы продолжить</small></div></div></div>`;
+  el.addEventListener("click", e => { e.stopPropagation(); e.preventDefault(); el.remove(); setTimeout(vnNext, 120); }, true); document.body.appendChild(el);
+}
 if (typeof document !== "undefined") document.addEventListener("click", e => {
   const b = e.target.closest && e.target.closest("[data-rift]"); if (!b || !state.run || !state.run.rift) return;
   const a = b.dataset.rift;
@@ -3312,6 +3434,9 @@ if (typeof document !== "undefined") document.addEventListener("click", e => {
   if (a === "gc-bribe") gcBribe();
   if (a === "gc-ignite") gcIgnite();
   if (a === "gc-palace") gcPalace();
+  if (a === "gy-tavern") gyTavern();
+  if (a === "gy-read") gyRead();
+  if (a === "gy-dig") gyDig();
   if (a === "brew2" || a === "brew4") brewPotion(a === "brew4" ? 4 : 2);
   if (a === "lab-down") pastLabDown();
   if (a === "lab-explore") pastExplore();
@@ -4210,7 +4335,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 122;
+const BATTLE_REV = 123;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }

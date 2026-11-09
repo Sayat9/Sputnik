@@ -7,7 +7,7 @@ const { chromium } = require('playwright');
   const r = await p.evaluate(() => {
     const o = {};
     state.party = [Object.assign(clone(state.example), { id: 'p0', example: false, level: 5, rank: 7 })]; newRun(); const run = state.run;
-    run.floor = 2; run.variant = 'undead'; run.day = 10; run.act = 1; run.pos = { x: 5, y: 5 }; riftSync(); o.noGoblin = !run.riftsF2;
+    run.floor = 2; run.variant = 'stone'; run.day = 10; run.act = 1; run.pos = { x: 5, y: 5 }; riftSync(); o.noGoblin = !run.riftsF2;
     run.variant = 'beast'; riftSync(); const tiles = Object.keys((run.riftsF2 || {}).tiles || {}); o.n = tiles.length; o.pop = dgUi.res && dgUi.res.pic; dgUi.res = null;
     const [tx, ty] = tiles[0].split(',').map(Number); run.pos = { x: tx, y: ty }; o.btn = spButtons().map(x => x.id).includes('rift-enter');
     spDo('rift-enter'); const R = run.rift; o.inRift = R && R.id === 'past'; o.intro = dgUi.res && dgUi.res.title; dgUi.res = null;
@@ -49,7 +49,7 @@ const { chromium } = require('playwright');
     return o;
   });
   let n = 0, bad = 0; const ok = (t, c) => { n++; if (!c) bad++; console.log(`  ${c ? '✓' : '✗'} ${t}${c ? '' : ' — ' + JSON.stringify(r)}`); };
-  ok('в Могильнике (пока) разлома нет', r.noGoblin);
+  ok('в Кристальном разломе (пока) разлома нет', r.noGoblin);
   ok('в Волчьей чаще на 7 ранге — 2 портала и оповещение', r.n === 2 && r.pop === 'rift-open');
   ok('вход в «Чащу прошлого», старт в левом нижнем углу', r.btn && r.inRift && r.start && r.intro === 'Чаща прошлого');
   ok('лаборатория справа вверху, хранитель в центре, корни по диагонали', r.lab && r.keeper && r.roots);

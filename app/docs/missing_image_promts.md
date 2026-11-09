@@ -204,6 +204,10 @@
 
 > `a crude but majestic goblin crown of iron and gold with trophy fangs, on dark wood, hand-painted dark fantasy item icon, painterly, square, no text`
 
+### Староста Освальд Тисс — `npc/elder` (Кладбище прошлого, 09.11)
+
+> `bust portrait of a kind elderly village elder with a grey beard, simple wool clothes and a walking staff, warm tavern light, a quiet village with a cemetery behind, hand-painted dark fantasy portrait, painterly, square 1:1, no text`
+
 ### Раб крови — `monsters/blood-slave-full`
 
 > `full-body an emaciated pale undead slave in chains with drained grey skin and hollow red eyes, blood-soaked gothic fortress and dark sewers with red torchlight, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`

@@ -198,6 +198,7 @@
     u.insp = c.insp ?? inspMax(c);                                                  // переброс: у каждого по одному, пока не потрачен (восстанавливает только сон)
     if (u.hp <= 0) { u.hp = 0; u.down = true; u.conds.push(mkStatus("unconscious", { k: Infinity }), mkStatus("prone", { k: Infinity })); }
     if (c.dead) { u.dead = true; u.alive = false; u.down = true; }
+    if (c.tmpHp > 0) u.temp = Math.max(u.temp || 0, c.tmpHp);          // временные ОЗ таверны «Кладбища прошлого»
     return u;
   }
   // Строки «иное» эссенций, которые важны в бою: сопротивления, уязвимости, чувства, дальность броска, страх света и огня.

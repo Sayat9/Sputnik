@@ -3035,10 +3035,7 @@
   const DLG_START = { "nat-start": "ВЫ ПРИШЛИ ПОМЕШАТЬ МОЕМУ ШЕДЕВРУ!?", "king-start": "ГРАКХ ПОСТРОИЛ ЭТОТ ГОРОД НА ВАШИХ КОСТЯХ!" };
   B.say = (who, text) => { const S = B.S; if (!S) return; S.dlgKey ||= Math.random().toString(36).slice(2, 8); (S.dialogs ||= []).push({ n: S.dialogs.length + 1, who, text }); B.showDialogs(); };
   const dlgSeen = new Set(), dlgQ = [];
-  const dlgOpen = () => { if (document.getElementById("vn-dlg") || !dlgQ.length) return; const d = dlgQ.shift(), m = (typeof MONSTERS !== "undefined" && MONSTERS.find(x => x.id === d.who)) || { name: d.who };
-    const el = document.createElement("div"); el.id = "vn-dlg"; el.className = "vn-dlg"; el.setAttribute("role", "dialog"); el.setAttribute("aria-label", m.name);
-    el.innerHTML = `<div class="vn-box"><img class="vn-face" src="${typeof ART !== "undefined" ? ART.monsterFace(d.who) : ""}" alt=""><div class="vn-txt"><b>${m.name}</b><p>${d.text}</p><small>коснитесь экрана, чтобы продолжить</small></div></div>`;
-    el.addEventListener("click", e => { e.stopPropagation(); e.preventDefault(); el.remove(); setTimeout(dlgOpen, 120); }, true); document.body.appendChild(el); };
+  const dlgOpen = () => { if (!dlgQ.length) return; if (typeof vnShow === "function") { const items = dlgQ.splice(0).map(d => { const m = (typeof MONSTERS !== "undefined" && MONSTERS.find(x => x.id === d.who)) || { name: d.who }; return { name: m.name, face: typeof ART !== "undefined" ? ART.monsterFace(d.who) : "", text: d.text }; }); vnShow(items); } };
   B.showDialogs = () => { const S = B.S; if (!S || !S.dialogs) return; for (const d of S.dialogs) { const k = `${S.dlgKey}:${d.n}`; if (dlgSeen.has(k)) continue; dlgSeen.add(k); dlgQ.push(d); } dlgOpen(); };
   if (typeof setInterval === "function" && typeof document !== "undefined") setInterval(() => { const S = B.S; if (!S || !B.running) return;
     if (S.phase === "fight" && S.ev && S.ev.dialog && !S.dlgStarted && !(B.Net && B.Net.mirroring)) { S.dlgStarted = true; B.say(S.ev.dialog.who, DLG_START[S.ev.dialog.start] || ""); }

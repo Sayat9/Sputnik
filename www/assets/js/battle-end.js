@@ -52,7 +52,7 @@
       const c = u.hero; if (!c) continue;
       c.hp = u.dead ? 0 : Math.max(outcome === "defeat" || u.down ? 1 : 0, Math.min(u.hp, maxHp(c)));
       if (u.down && !u.dead) c.hp = Math.max(1, c.hp);
-      c.mp = Math.max(0, Math.min(u.mp, maxMp(c))); c.insp = u.insp ?? inspMax(c); c.dead = !!u.dead;
+      c.mp = Math.max(0, Math.min(u.mp, maxMp(c))); if (c.tmpHp != null) c.tmpHp = Math.max(0, u.temp || 0); c.insp = u.insp ?? inspMax(c); c.dead = !!u.dead;
       if (c.dead) c.hp = 0;
       if (S.ev && S.ev.arena) { c.dead = false; c.hp = Math.max(1, c.hp); }          // на арене не умирают: упавших поднимают администраторы с 1 ОЗ
     }
