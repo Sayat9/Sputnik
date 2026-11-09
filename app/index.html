@@ -2636,7 +2636,7 @@ for (const [id, cls, name, size, ph, ac, hp, speed, abil, senses, traits] of GC_
   areas: ["Разлом: Гоблинград"], ac, hp, speed, cr: String(10 - cls), abil, senses, traits, loot: `Камень ${cls}-го класса.${id === "goblin-merchant" ? " Кошель: 2–5 монет." : ""}`, essence: id, ph, statDraft: true });
 const GC_ESS = {
   "goblin-merchant": ["Эссенция гоблина-торговца", { cha: 2, dex: 1, str: -1 }, [], ["Торгаш", "В магазине всё на 10 % дешевле, а продажа на 10 % дороже."], ["Монетой в глаз", 2, "доп. действие", "Враг в 4 клетках — спасбросок Ловкости (Сл 8 + мод. Лов), провал: следующая его атака с помехой. Перезарядка 3 раунда."]],
-  "goblin-lamplighter": ["Эссенция фонарщика", { con: 2, wis: 1, cha: -1 }, [], ["Фонарщик", "Факел на карте горит на 2 хода дольше; в бою зажечь факел — доп. действие."], ["Масло на мостовую", 3, "действие", "Полоса из 3 клеток рядом с тобой вспыхивает на 2 раунда: 1к6 огнём тем, кто в ней стоит или входит. Перезарядка 4 раунда."]],
+  "goblin-lamplighter": ["Эссенция фонарщика", { con: 2, wis: 1, cha: -1 }, [], ["Фонарщик", "Факел на карте горит на 2 хода дольше; в бою факел зажигаешь бесплатно, не тратя действий."], ["Масло на мостовую", 3, "действие", "Полоса из 3 клеток рядом с тобой вспыхивает на 2 раунда: 1к6 огнём тем, кто в ней стоит или входит. Перезарядка 4 раунда."]],
   "city-hyena": ["Эссенция сторожевой гиены", { dex: 2, con: 1, int: -1 }, [], ["Добить упавшего", "Атаки по сбитым с ног и опутанным наносят +1к6 урона."], ["Хватка", 2, "действие", "Укус врага рядом: при попадании — спасбросок Силы (Сл 8 + мод. Лов), провал: схвачен, не может уйти от тебя до конца своего хода. Перезарядка 3 раунда."]],
   "goblin-pickpocket": ["Эссенция карманника", { dex: 2, int: 1, con: -1 }, [], ["Ловкие пальцы", "При обыске и раскопках — ещё одна находка (камень 9 класса) с шансом 50 %."], ["Обчистить", 2, "действие", "Враг рядом — спасбросок Ловкости (Сл 8 + мод. Лов), провал: в свой следующий ход у него нет доп. действия. Перезарядка 3 раунда."]],
   "goblin-arsonist": ["Эссенция гоблина-поджигателя", { dex: 2, con: 1, wis: -1 }, [], ["Огнелюб", "Сопротивление урону огнём: огонь (в том числе от горящих клеток) наносит тебе половину урона."], ["Бутылка с маслом", 3, "действие", "Бросок в клетку в 4 клетках: 1к8 огнём цели там, клетка горит 2 раунда. Перезарядка 3 раунда."]],
@@ -3054,15 +3054,15 @@ function pastGen(R) {
 function pastSync() {          // порталы разлома на 2 этаже (Волчья чаща): то же окно, что на 1 этаже — 3-й день и до 2-го действия 4-го
   const r = state.run; if (!r || r.floor !== 2 || r.rift || !["beast", "goblin"].includes(r.variant)) return;
   const rid = r.variant === "goblin" ? "gcity" : "past", where = r.variant === "goblin" ? "Лесу гоблинов" : "Волчьей чаще";
-  const open = partyRank() <= RIFT_RANK && (r.day === 3 || (r.day === 4 && r.act <= 2)), R = r.riftsF2;
+  const open = partyRank() <= RIFT_RANK && (r.day === 10 || (r.day === 11 && r.act <= 2)), R = r.riftsF2;          // 2 этаж: 10-й день – 2-е действие 11-го (автор 09.11)
   if (open && !R) {
     const V = FL().variant, free = [];
     for (let y = 0; y < FL().size; y++) for (let x = 0; x < FL().size; x++) { const pl = V.placeAt ? V.placeAt(x, y) : null; if (tileType(x, y) === "floor" && (!pl || pl.name === SP2[r.variant].plain) && !(x === r.pos.x && y === r.pos.y)) free.push(tkey(x, y)); }
     const tiles = {}; for (let i = 0; i < 2 && free.length; i++) tiles[free.splice(rnd(free.length), 1)[0]] = { id: rid };
     r.riftsF2 = { tiles };
-    logRun(`В ${where} открылись разломы: два портала в прошлое, до середины 4-го дня.`);
-    dgUi.res = { title: "Разломы открылись", roll: "", pic: "rift-open", lines: [`В ${where} открылись два портала разлома — в прошлое этих мест.`, "Они закроются после 2-го действия 4-го дня."] };
-  } else if (R && !R.closed && (r.day > 4 || (r.day === 4 && r.act > 2))) { R.closed = true; logRun(`Разломы в ${where} закрылись.`); }
+    logRun(`В ${where} открылись разломы: два портала в прошлое, до середины 11-го дня.`);
+    dgUi.res = { title: "Разломы открылись", roll: "", pic: "rift-open", lines: [`В ${where} открылись два портала разлома — в прошлое этих мест.`, "Они закроются после 2-го действия 11-го дня."] };
+  } else if (R && !R.closed && (r.day > 11 || (r.day === 11 && r.act > 2))) { R.closed = true; logRun(`Разломы в ${where} закрылись.`); }
 }
 function pastGroup(R, sev) {
   const lab = pastNearLab(R.pos.x, R.pos.y), c9 = () => pastPick(9), c8 = () => pastPick(8), c7 = () => (lab && Math.random() < .5 && pastHas("lab-direwolf") ? "lab-direwolf" : pastPick(7));
@@ -4210,7 +4210,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 121;
+const BATTLE_REV = 122;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }

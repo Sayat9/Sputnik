@@ -1,5 +1,5 @@
 {
- "version": 1794168652,
+ "version": 1794232012,
  "files": [
   "assets/buildings/academy.webp",
   "assets/buildings/arena.webp",
@@ -694,7 +694,7 @@
   "assets/items/weak-salt.webp": "4d8f47cfa81553a09e087c1c96447df3",
   "assets/items/whetstone.webp": "34c780a688f1cd426b20322a42967447",
   "assets/items/wind.webp": "a6d6f642a096cf8956003b06c1f69e63",
-  "assets/js/battle-act.js": "0c207c4f77bd81f10f6a13b084c5ddb7",
+  "assets/js/battle-act.js": "909c5eb148dbfb32738830db90d02d12",
   "assets/js/battle-ai.js": "75273a2ffefc6cf36ee597ee213bbafe",
   "assets/js/battle-core.js": "7a9b6d2d9555fd5e3fe855347c31f306",
   "assets/js/battle-data.js": "57590a6e6743456a27bea91fd293905a",
@@ -1046,6 +1046,6 @@
   "fonts/f8.woff2": "6cc1ee17091d59eb93821c3594e8f38f",
   "fonts/f9.woff2": "070433480b7b645f69b543f284e386ce",
   "fonts/fonts.css": "1585a72a8d157b26cb424ab433fd4e19",
-  "index.html": "84c5eb30d082e1ccae99608e4999d7b3"
+  "index.html": "2f660742d133b811a34c4cebb37065a2"
  }
 }
