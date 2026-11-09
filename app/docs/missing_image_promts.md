@@ -8,14 +8,6 @@
 
 ### Разломы и новые монстры (07.11)
 
-### Псевдокактус — `monsters/pseudo-cactus-full`
-
-> `full-body a monstrous cactus creature with thorny arms and a hidden mouth among the spines, half disguised as a normal cactus, desert of quicksand and sinking ancient beacons, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
-
-### Миражный скорпион — `monsters/mirage-scorpion-full`
-
-> `full-body a large translucent scorpion shimmering like a heat mirage, with ghostly duplicate silhouettes around it, desert of quicksand and sinking ancient beacons, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
-
 ### Кислотная слизь — `monsters/acid-slime-full`
 
 > `full-body a bubbling yellow-green acid slime melting the rails beneath it, fumes rising, green-lit abandoned mine with rails and crystals, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
@@ -326,41 +318,9 @@
 
 ### Монстры Звона и Храма изваяний (3 этаж, 03.11)
 
-### Звонкий жучок — `monsters/toll-beetle-full`
-
-> `full-body a small bronze-shelled beetle with bell-shaped ridged carapace, faint ripples of sound around it, cracked bell tower floor, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
-
-### Эхо-шакал — `monsters/echo-jackal-full`
-
-> `full-body a lean grey jackal with oversized ears, translucent afterimages trailing behind it like echoes, ruined bell hall, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
-
-### Колокольная крыса — `monsters/toll-rat-full`
-
-> `full-body a scrawny rat with a tiny cracked bell tied to its tail, long whiskers, crouching on a broken bell rope, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
-
-### Гулкий страж — `monsters/toll-guard-full`
-
-> `full-body an undead guard in rusted chainmail with a dented round shield that vibrates, heavy mace, hollow glowing eyes, bell tower stairs, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
-
-### Визгун-голос — `monsters/shrieker-full`
-
-> `full-body a gaunt pale creature with an enormous open mouth and stretched throat, screaming, sound waves distorting the air, dark belfry, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
-
-### Бронзовый бык — `monsters/toll-bull-full`
-
-> `full-body a massive bull with bronze metal hide like a cast bell, steaming nostrils, lowered horns, charging pose, stone courtyard, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
-
-### Звонарь — `monsters/bell-ringer-full`
-
-> `full-body an undead bell ringer in tattered robes holding a bell hammer, two ghostly translucent copies of himself beside him, huge bronze bell above, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
-
 ### Охотник за звоном — `monsters/toll-hunter-full`
 
 > `full-body a silent hunter in muffled dark leathers with wrapped boots, glaive in hand, finger to lips, mist around the feet, dim bell hall, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
-
-### Хор мёртвых — `monsters/choir-dead-full`
-
-> `full-body four gaunt undead choristers in ragged choir robes standing shoulder to shoulder, mouths open in a mournful chant, pale light, hand-painted dark fantasy creature art, painterly, full figure, portrait 2:3, no text`
 
 ### Каменный служка — `monsters/stone-acolyte-full`
 
