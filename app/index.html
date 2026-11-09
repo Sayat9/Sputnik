@@ -1344,11 +1344,11 @@ const ACADEMY = [
   { id: "mon8", grp: "monsters", name: "Опознание монстров: 8 класс", price: 500, cls: 8, rank: 8, text: "То же для монстров 8 класса." },
   { id: "mon7", grp: "monsters", name: "Опознание монстров: 7 класс", price: 1000, cls: 7, rank: 7, text: "То же для монстров 7 класса." },
   { id: "aid", grp: "medicine", name: "Первая помощь", price: 250, text: "С набором первой помощи герой лечит заметно лучше: +2 и модификатор Мудрости к лечению, перевязка без броска." },
-  { id: "nav1", grp: "nav", name: "Навигатор: 1 этаж", price: 400, nav: 1, rank: 9, text: "На 1 этаже карта показывает направление к ближайшему порталу на следующий этаж." },
+  { id: "nav1", grp: "nav", name: "Навигатор: 1 этаж", price: 400, nav: 1, rank: 9, text: "" },
   { id: "rep1", grp: "repair", name: "Ученик ремонта", price: 800, text: "Герой чинит лучше: +3 к починке (дварфам +5) — ремонтные наборы и артефакты восстанавливают больше прочности." },
   { id: "rep2", grp: "repair", name: "Мастер ремонта", price: 3500, rank: 8, need: "rep1", text: "Мастер: +9 к починке (дварфам +15) вместо ученика. Нужен курс «Ученик ремонта» — обучение с основ." },
-  { id: "nav2", grp: "nav", name: "Навигатор: 2 этаж", price: 800, nav: 2, rank: 8, need: "nav1", text: "То же на 2 этаже. Нужен курс «Навигатор: 1 этаж» — обучение с основ." },          // тайный бонус: не теряется в «Чаще прошлого» (решение автора — не писать)
-  { id: "nav3", grp: "nav", name: "Навигатор: 3 этаж", price: 1500, nav: 3, rank: 7, need: "nav2", text: "То же на 3 этаже. Нужен курс «Навигатор: 2 этаж» — обучение с основ." },          // тайный бонус: в Ведьмином лесу половина сбитых шагов идёт куда нужно
+  { id: "nav2", grp: "nav", name: "Навигатор: 2 этаж", price: 800, nav: 2, rank: 8, need: "nav1", text: "" },          // тайный бонус: не теряется в «Чаще прошлого» (решение автора — не писать)
+  { id: "nav3", grp: "nav", name: "Навигатор: 3 этаж", price: 1500, nav: 3, rank: 7, need: "nav2", text: "" },          // тайный бонус: в Ведьмином лесу половина сбитых шагов идёт куда нужно
   // Тайм-менеджмент (решение автора 03.11): действует, если курс знает кто-то из живых героев; уровни не складываются — берётся лучший.
   // Ранг для каждого уровня — моё предложение: I — 9, II — 8, III — 7, IV — 6 + особое условие (автор пришлёт позже; пока курс IV закрыт).
   { id: "tm1", grp: "time", name: "Тайм-менеджмент I", price: 200, rank: 9, text: "В городе 6 действий до открытия врат (вместо 5)." },
@@ -1362,6 +1362,7 @@ const townGateWait = () => 5 + Math.min(2, tmLevel());          // скольк�
 const eduHas = (c, id) => !!(c && c.edu && c.edu[id]);
 const eduKnows = (c, id) => { const k = ACADEMY.find(x => x.id === id); return !!k && (k.lore ? (c.lore || []).includes(k.lore) : eduHas(c, id)); };
 const eduLearn = (c, id) => { const k = ACADEMY.find(x => x.id === id); if (!k) return; (c.edu ||= {})[id] = true; if (k.lore) { c.lore ||= []; if (!c.lore.includes(k.lore)) c.lore.push(k.lore); } };
+const eduPrice = k => k.grp === "nav" && k.rank && partyRank() < k.rank ? Math.round(k.price * 0.8) : k.price;          // 09.11 (автор): навигатор прошлого ранга −20 % (один раз, не накапливается)
 const partyEdu = id => (state.party || []).some(c => !c.dead && eduKnows(c, id));
 const monCourse = cls => partyEdu("mon" + cls);                                   // кто-то из живых героев знает монстров этого класса
 const navActive = () => !!(state.run && partyEdu("nav" + curFloor()));
@@ -4343,7 +4344,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 135;
+const BATTLE_REV = 136;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }
@@ -4492,7 +4493,7 @@ function loadNet() {
   return netLoad;
 }
 /* ----- здания города (assets/js/town.js грузится при первом входе в здание) ----- */
-const TOWN_REV = 32, TOWN_FILES = ["assets/css/town.css", "assets/js/town.js"];
+const TOWN_REV = 33, TOWN_FILES = ["assets/css/town.css", "assets/js/town.js"];
 let townLoad = null;
 function loadTown() {
   if (window.Town && window.Town.ready) return Promise.resolve(true);

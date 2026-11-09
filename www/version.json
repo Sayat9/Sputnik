@@ -1,5 +1,5 @@
 {
- "version": 1794262603,
+ "version": 1794263177,
  "files": [
   "assets/buildings/academy.webp",
   "assets/buildings/arena.webp",
@@ -716,7 +716,7 @@
   "assets/items/wind.webp": "a6d6f642a096cf8956003b06c1f69e63",
   "assets/js/battle-act.js": "909c5eb148dbfb32738830db90d02d12",
   "assets/js/battle-ai.js": "a128ea80831f06d865ab9f387e169c1f",
-  "assets/js/battle-core.js": "590381cf6a36d5a5dea4d677566c7715",
+  "assets/js/battle-core.js": "532e90c64c3e2348c51ddb6e1411289e",
   "assets/js/battle-data.js": "0ba48ccd5ad90d6bd6488d7746a3ca52",
   "assets/js/battle-dice.js": "17fdcb05e4189dd60b9ce24d0382f5cf",
   "assets/js/battle-end.js": "f0092809ea45d5ac3f792316c841c29d",
@@ -732,7 +732,7 @@
   "assets/js/battle.js": "adb047f6c19b8ca8e21fdb322f898c7d",
   "assets/js/net.js": "2e8be9ea96e5cf1bd44c120e636e4520",
   "assets/js/netglue.js": "cd2a2ac21038a45a163757b71d2ff05c",
-  "assets/js/town.js": "bf27caefb1b4017aff99b1a4fd5d6861",
+  "assets/js/town.js": "b2745ced65401a39f87e1fd3529f9fe7",
   "assets/logo-admin.png": "aa45354a89500a24e2f481f6d7d3ee4a",
   "assets/logo.png": "2eea126130fb32be9d28f407acbc25bb",
   "assets/monsters/ash-executioner-face.webp": "33dc54f77c9133ac5b135632756e14ac",
@@ -1086,6 +1086,6 @@
   "fonts/f8.woff2": "6cc1ee17091d59eb93821c3594e8f38f",
   "fonts/f9.woff2": "070433480b7b645f69b543f284e386ce",
   "fonts/fonts.css": "1585a72a8d157b26cb424ab433fd4e19",
-  "index.html": "016ab2b70e085788f29e73119ff77de8"
+  "index.html": "bcbb6800fc1628f136a54509407c8725"
  }
 }

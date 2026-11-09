@@ -681,7 +681,7 @@
     if (k.need && !eduKnows(c, k.need)) { ui.msg = `Сначала нужен курс «${ACADEMY.find(x => x.id === k.need).name}».`; return; }
     if (k.rank && partyRank() > k.rank) { ui.msg = `Курс открывается с ${k.rank} ранга отряда.`; return; }
     if (k.cond && !k.cond()) { ui.msg = `Нужно ${k.condText || "особое условие"}.`; return; }
-    if (!payGold(c, k.price)) { ui.msg = "Не хватает монет."; return; }
+    if (!payGold(c, eduPrice(k))) { ui.msg = "Не хватает монет."; return; }
     eduLearn(c, id); visit(); ui.msg = `${c.name} прошёл курс «${k.name}».`; saveChar();
   }
   // Ранг (03.11): повышение в Академии, бесплатно, если условие выполнено (условия — RANK_REQ в index.html).
@@ -712,9 +712,9 @@
       const tab = ui.tab && ACADEMY_GROUPS.some(g => g[0] === ui.tab) ? ui.tab : "gather";
       const tabs = `<div class="tw-tabs" role="tablist">${ACADEMY_GROUPS.map(([id, label]) => `<button class="fx-btn" role="tab" aria-selected="${tab === id}" data-t="atab" data-k="${id}">${label}${ACADEMY.filter(k => k.grp === id && eduKnows(c, k.id)).length ? " ✓" : ""}</button>`).join("")}</div>`;
       const rows = tab === "rank" ? rankRows(c) : tab === "maps" ? mapRows() : ACADEMY.filter(k => k.grp === tab).map(k => {
-        const known = eduKnows(c, k.id), locked = k.need && !eduKnows(c, k.need), rankLock = k.rank && partyRank() > k.rank, condLock = k.cond && !k.cond(), can = !known && !locked && !rankLock && !condLock && partyGold() >= k.price;
-        return `<div class="tw-row"><div class="tw-who"><div><b>${esc(k.name)}</b><small>${esc(k.text)}${locked ? " · сначала «" + esc(ACADEMY.find(x => x.id === k.need).name) + "»" : ""}${k.rank ? ` · с ${k.rank} ранга` : ""}${condLock ? " · " + esc(k.condText || "особое условие") : ""}</small></div></div>
-          ${known ? `<span class="tw-done">${ICO_CHECK}</span>` : `<button class="fx-btn primary" data-t="learn" data-id="${k.id}"${can ? "" : " disabled"}>${rankLock ? k.rank + " ранг" : k.price}</button>`}</div>`; }).join("");
+        const known = eduKnows(c, k.id), locked = k.need && !eduKnows(c, k.need), rankLock = k.rank && partyRank() > k.rank, condLock = k.cond && !k.cond(), can = !known && !locked && !rankLock && !condLock && partyGold() >= eduPrice(k);
+        return `<div class="tw-row"><div class="tw-who"><div><b>${esc(k.name)}</b><small>${k.text ? esc(k.text) : ""}${locked ? " · сначала «" + esc(ACADEMY.find(x => x.id === k.need).name) + "»" : ""}${k.rank ? ` · с ${k.rank} ранга` : ""}${condLock ? " · " + esc(k.condText || "особое условие") : ""}</small></div></div>
+          ${known ? `<span class="tw-done">${ICO_CHECK}</span>` : `<button class="fx-btn primary" data-t="learn" data-id="${k.id}"${can ? "" : " disabled"}>${rankLock ? k.rank + " ранг" : eduPrice(k) < k.price ? `<s style="opacity:.6">${k.price}</s> ${eduPrice(k)}` : k.price}</button>`}</div>`; }).join("");
       return frame("Академия", "Рафдония", `<div class="tw-npc framed">${img("assets/npc/academy.webp", "Наставник Академии")}<span>Знание — лучшее оружие в лабиринте. Чему желаете научиться?</span></div><button class="fx-btn primary" data-t="recruit" style="width:100%">Завербовать героя</button><p class="tw-hint" style="margin:0">Новый наёмник создаётся как обычный герой и вступает в отряд.</p>${heroStrip()}${tabs}${tab === "rank" || tab === "maps" ? "" : `<p class="tw-lead">Выбери героя и оплати курс. Знания остаются за ним одним — у остальных курсов нет.</p>`}<div class="tw-rows">${rows}</div>${msgLine()}`);
     },
   };

@@ -1,0 +1,22 @@
+// 09.11: навигатор — −20 % на курс прошлого ранга (один раз), +1 клетка скорости в бою на своём этаже, без описания.
+const L = require('./bui_lib.js');
+(async () => { const { b, p } = await L.launch(400, 860); let n = 0, bad = 0; const errs = []; p.on('pageerror', e => errs.push(e.message));
+  const ok = (t, c, d) => { n++; if (!c) bad++; console.log(`  ${c ? '✓' : '✗'} ${t}${c ? '' : ' — ' + JSON.stringify(d)}`); };
+  await L.setup(p, { heroes: ['barb2', 'archer'] });
+  const R = await p.evaluate(async () => { const k = id => ACADEMY.find(x => x.id === id), r = {}; 
+    const at = rk => { state.party.forEach(c => c.rank = rk); return [eduPrice(k('nav1')), eduPrice(k('nav2')), eduPrice(k('nav3'))]; };
+    r.r9 = at(9); r.r8 = at(8); r.r7 = at(7); r.r6 = at(6); state.party.forEach(c => c.rank = 9); r.text = ['nav1', 'nav2', 'nav3'].map(i => k(i).text);
+    await loadBattle(); const B = Battle; const c = state.party[0];
+    const sp = () => { const S = B.newBattle({ kind: 'hard', title: 't', list: ['goblin'], zone: 'goblin', floor: 1, key: 'n', killed: [], tactical: true }); const u = S.units.find(x => x.hero === c); return B.speedOf(u); };
+    const s0 = sp(); eduLearn(c, 'nav1'); const s1 = sp();
+    const S2 = B.newBattle({ kind: 'hard', title: 't', list: ['goblin'], zone: 'beast', floor: 2, key: 'n2', killed: [], tactical: true }); const s2 = B.speedOf(S2.units.find(x => x.hero === c));
+    r.speed = [s0, s1, s2]; return r; });
+  ok('9 ранг: полная цена', R.r9.join() === '400,800,1500', R);
+  ok('8 ранг: навигатор 1 этажа −20 %', R.r8.join() === '320,800,1500', R);
+  ok('7 ранг: 1 этаж всё ещё −20 % (не −40 %), 2 этаж −20 %', R.r7.join() === '320,640,1500', R);
+  ok('6 ранг: все три −20 %', R.r6.join() === '320,640,1200', R);
+  ok('описания нет', R.text.every(t => !t), R);
+  ok('+1 к скорости на своём этаже, на чужом — нет', R.speed[1] === R.speed[0] + 1 && R.speed[2] === R.speed[0], R);
+  ok('errs: нет', !errs.length, errs);
+  console.log(`проверок: ${n}, не прошли: ${bad}`); await b.close(); process.exit(bad ? 1 : 0);
+})();
