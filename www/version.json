@@ -1,5 +1,5 @@
 {
- "version": 1794250464,
+ "version": 1794250569,
  "files": [
   "assets/buildings/academy.webp",
   "assets/buildings/arena.webp",
@@ -724,7 +724,7 @@
   "assets/js/battle-ess.js": "cb315186ca700e31b2675cbb16f9a68d",
   "assets/js/battle-ess2.js": "2dcc738b7d9cb5a3b2c754a779530888",
   "assets/js/battle-ext.js": "9537dc61e0be9892da70beb794fddaee",
-  "assets/js/battle-menu.js": "9ef1a09aff801ecb86a42089683c4501",
+  "assets/js/battle-menu.js": "bc0ffeb073425536db5755d1a30e4379",
   "assets/js/battle-net.js": "f8172bd74527ba982fd73ea9ac71dbf3",
   "assets/js/battle-rules.js": "2e98056d9784af3da9d97308cd58d590",
   "assets/js/battle-ui.js": "8f21e0f78d31691e49121682dbf78a23",
@@ -1086,6 +1086,6 @@
   "fonts/f8.woff2": "6cc1ee17091d59eb93821c3594e8f38f",
   "fonts/f9.woff2": "070433480b7b645f69b543f284e386ce",
   "fonts/fonts.css": "1585a72a8d157b26cb424ab433fd4e19",
-  "index.html": "1d45f3c8d0b405eb72f4662179c17310"
+  "index.html": "88e48ed2c0643e449f449a3c8055865d"
  }
 }
