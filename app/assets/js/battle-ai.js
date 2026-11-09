@@ -105,7 +105,10 @@
       if (!abilityReady(u, id)) continue;
       const A = B.A[id]; if (A.time !== "action") continue;
       if (blindTurn && !A.blindOK) continue;          // без видимых целей — только способности с пометкой blindOK (звонарь: двойники заранее)
-      const r = A.ai && A.ai(u); if (!r) continue;
+      const snap = {}; for (const k of Object.keys(u)) { const v = u[k]; if (v == null || typeof v !== "object") snap[k] = v; }
+      const r = A.ai && A.ai(u);
+      const aiSet = {}; for (const k of Object.keys(u)) { const v = u[k]; if ((v == null || typeof v !== "object") && snap[k] !== v) { aiSet[k] = v; if (k in snap) u[k] = snap[k]; else delete u[k]; } }          // 09.11: ai() некоторых способностей ставит пометку «уже применял» (u.calls, u.howled…); bestAction считается для каждой клетки плана — пометка ставится только при настоящем применении
+      if (!r) continue;
       if (u.spareDown) { if (r.unit && r.unit.down) continue; if (r.targets) { r.targets = r.targets.filter(t => !t.down); if (!r.targets.length) continue; } }
       let sc, picks = {};
       if (r.attackAbility) {
@@ -113,7 +116,12 @@
         if (!bt) continue; sc = bt.s + (r.bonus || 3); picks = { unit: bt.t };
       } else { sc = r.score; picks = { unit: r.unit, units: r.units, cell: r.cell }; }
       if (u.side === "hero") sc -= 1.5;                                                     // героям мана дорога: способность только если заметно лучше
-      if (!best || sc > best.score) best = { kind: "ability", id, picks, score: sc };
+      if (u.seq && u.side === "mon" && !r.attackAbility) sc *= u.seq.length;
+      if (u.side === "mon" && !u.summon && !r.attackAbility && !A.noPrio) {          // 09.11: ИИ способности согласен (ситуация подходящая) — монстр применяет её в первый раз за бой и всякий раз после перезарядки, а не только когда она «дороже» удара
+        const cdN = (B.D && B.D.essCd && B.D.essCd[id]) || 0, usedN = (u.abUsed && u.abUsed[id]) || 0;
+        if (!usedN || cdN > 0) sc = Math.max(sc, (best && best.kind === "attack" ? best.score : 0) + 0.5, 12);
+      }          // 09.11: способность заменяет всё действие — сравниваем с полной серией атак (у удара тоже × число атак), иначе многоатакующие монстры её не применяли
+      if (!best || sc > best.score) best = { kind: "ability", id, picks, score: sc, aiSet };
     }
     return best;
   }
@@ -222,6 +230,8 @@
     }
     if (act.kind === "ability") {
       if (act.picks.unit) faceToward(u, act.picks.unit);
+      if (act.aiSet) Object.assign(u, act.aiSet);
+      u.abUsed = u.abUsed || {}; u.abUsed[act.id] = (u.abUsed[act.id] || 0) + 1;
       return B.useActive(u, act.id, act.picks);
     }
     return false;
@@ -256,6 +266,15 @@
   }
   AI.wantsOpportunity = (e, mover) => { const pr = profileOf(e); if (pr.still && pr.role === "ranged") return true; return true; };
 
+  // 09.11: крот-исполин уходит под землю (действие): когда ранен и окружён, или когда за ход так и не ударил
+  function moleDig(u, pre) {
+    if (u.side !== "mon" || !u.pass.includes("giant-mole") || has(u, "underground") || !canAct(u) || speedOf(u) <= 0 || has(u, "grappled") || has(u, "restrained")) return false;
+    const adj = enemiesOf(u).filter(e => alive(e) && !e.down && dist(u, e) <= 1).length;
+    if (pre && !(u.hp < u.maxHp * 0.5 && adj >= 2 && B.S.round - (u.dugAt ?? -9) >= 3)) return false;
+    if (!pre && B.S.round - (u.dugAt ?? -9) < 2) return false;
+    B.spendTime(u, "action"); u.dugAt = B.S.round; B.addStatus(u, "underground", { k: Infinity });
+    log(`${u.name} зарывается в землю.`, "skill"); ui() && ui().fxText(u, "под землёй", "good"); ui() && ui().refresh(); return true;
+  }
   AI.takeTurn = async function (u) {
     const S = B.S, pr = profileOf(u);
     if (!alive(u) || u.down || !canAct(u) || has(u, "underground")) return;
@@ -309,7 +328,9 @@
     if (best.cell.x !== u.x || best.cell.y !== u.y) { const r = await doMoveTo(u, best.cell, map); if (!alive(u) || u.down || r.interrupted && (u.x !== best.cell.x || u.y !== best.cell.y)) { if (!alive(u) || u.down) return; } }
     if (!alive(u) || u.down) return;
     // действие в итоговой позиции (пересчитываем: что-то могло измениться по пути)
+    if (B.timeOK(u, "action") && moleDig(u, true)) return;
     if (B.timeOK(u, "action")) { const act = bestAction(u, pr); if (act) await performAction(u, act, pr); else if (stuck) await AI.tryEscape(u); }
+    if (B.timeOK(u, "action") && alive(u) && !u.down && moleDig(u, false)) return;
     if (!alive(u) || u.down) return;
     // отход после удара
     if (pr.hitRun && u.t.move > 0 && speedOf(u) > 0 && (pr.int ?? 1) >= 1 && !u.flags.noRetreat) {

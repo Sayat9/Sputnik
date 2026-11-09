@@ -640,7 +640,10 @@
 
   /* ----- Крот-исполин (7): «Чует шаги», «Сотрясение» ----- */
   // Чувство вибрации 18 м, плохое зрение (3 м) и страх яркого света — через essenceTraits (battle-core.js) и attackCtx.
-  P["giant-mole"] = { noSurprise(u) { return enemiesOf(u).some(e => !B.isFlying(e)); } };          // существо на земле в 18 м (всё поле) не застанет врасплох: засада не отнимает у крота первый ход
+  P["giant-mole"] = { noSurprise(u) { return enemiesOf(u).some(e => !B.isFlying(e)); },
+    // 09.11: «Под землёй» (особенность вида) — закапывается действием (ИИ: battle-ai.js, moleDig), в начале своего хода выныривает в 4,5 м, первая атака с преимуществом
+    attackMods(att, ctx) { if (has(att, "emerged")) { ctx.adv.push("вынырнул из-под земли"); ctx.consume.push([att, "emerged"]); } },
+    async turnStartAsync(u) { if (has(u, "underground") && P.burrower) await P.burrower.turnStartAsync(u); } };          // существо на земле в 18 м (всё поле) не застанет врасплох: засада не отнимает у крота первый ход
   A["giant-mole"] = saveArea({ name: "Сотрясение", radius: 3, side: "all", ground: true, abil: "str", save: "dex", dmg: "3к6", dt: "bludgeon", half: true, anim: "blunt", tags: ["prone"],
     onFail: async (t, u) => { B.knock(t, u); addStatus(t, "slowed", { k: 1, when: "end", data: { mult: 0.5 } }); fx(t, "сбит с ног", "bad"); } });
 
@@ -980,7 +983,7 @@
     },
   };
   const SWORDS = ["sword", "greatsword", "shortsword", "longsword"];
-  A["bone-knight"] = charge({ name: "Рывок мертвеца", dt: null, need: "нужен меч", noProvoke: true, pred: a => SWORDS.includes(a.w ? a.w.id : a.id), extra: { n: 2, s: 6, label: "Рывок мертвеца" }, abil: "str", save: "str", tags: ["prone"],
+  A["bone-knight"] = charge({ name: "Рывок мертвеца", dt: null, need: "нужен меч", noProvoke: true, pred: (a, u) => (u && u.side === "mon" && !u.hero) || SWORDS.includes(a.w ? a.w.id : a.id), extra: { n: 2, s: 6, label: "Рывок мертвеца" }, abil: "str", save: "str", tags: ["prone"],
     onFail: async (t, u) => { if (alive(t) || t.down) { await B.push(t, u.x, u.y, 2); B.knock(t, u); log(`${t.name} отброшен и сбит с ног.`, "skill"); fx(t, "отброшен", "bad"); } } });
 
   /* ----- Трупоед (7): «Пожиратель», «Парализующий укус» ----- */
@@ -2587,7 +2590,7 @@
   A["dead-vulture"] = {
     time: "bonus", tgt() { return { type: "none" }; }, can(u) { return has(u, "hookreach") ? "уже действует" : true; },
     async run(u, pk, ctl) { ctl.commit(); addStatus(u, "hookreach", { k: Infinity, data: { endAtEndOf: u.id, endTurnNo: u.turnsTaken } }); fx(u, "когти-крючья", "good"); log(`${u.name}: до конца хода досягаемость +1, задетого издалека притянет.`, "skill"); return true; },
-    ai(u) { return !has(u, "hookreach") && !within(u, 1).length && foesIn(u, 2).length ? { score: 10 } : null; },
+    ai(u) { return !has(u, "hookreach") && !within(u, 1).length && foesIn(u, 6).length ? { score: 10 } : null; },          // 09.11: враг в пределах рывка (раньше — ровно в 3 м до движения, почти не срабатывало)
   };
   const prevAttacksOfSand = B.attacksOf;
   B.attacksOf = u => { const list = prevAttacksOfSand(u); return has(u, "hookreach") ? list.map(a => a.kind === "melee" ? { ...a, reach: (a.reach || 1) + 1 } : a) : list; };
