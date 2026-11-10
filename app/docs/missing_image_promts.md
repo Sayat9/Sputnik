@@ -176,26 +176,6 @@
 
 > `full-body a disciplined hobgoblin sergeant in scale armor with a longsword and shield, shouting orders, a bustling ancient goblin city of crooked wooden houses, lanterns and narrow streets, a palace on a hill, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
 
-### Тролегоблин-носильщик — `monsters/trollgob-porter-full`
-
-> `full-body a huge troll-goblin hybrid porter carrying a massive gate bar as a club, a bustling ancient goblin city of crooked wooden houses, lanterns and narrow streets, a palace on a hill, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
-
-### Безумный берсерк — `monsters/mad-berserker-full`
-
-> `full-body a frenzied goblin berserker with a big axe, foaming, covered in war paint, a bustling ancient goblin city of crooked wooden houses, lanterns and narrow streets, a palace on a hill, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
-
-### Капитан городской стражи — `monsters/city-captain-full`
-
-> `full-body a goblin city guard captain in plate armor with a tower shield and flail, red plume, a bustling ancient goblin city of crooked wooden houses, lanterns and narrow streets, a palace on a hill, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
-
-### Главный инженер — `monsters/chief-engineer-full`
-
-> `full-body a goblin chief engineer piloting a small steam-powered walker machine with a claw arm, a bustling ancient goblin city of crooked wooden houses, lanterns and narrow streets, a palace on a hill, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
-
-### Безумный пиромант — `monsters/mad-pyromancer-full`
-
-> `full-body a mad goblin pyromancer engulfed in his own flames, laughing, holding a fuse, burning slums, a bustling ancient goblin city of crooked wooden houses, lanterns and narrow streets, a palace on a hill, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
-
 ### Вождь Гракх Основатель — `monsters/gob-founder-full`
 
 > `full-body a mighty goblin warlord founder king in trophy plate armor with a great axe and a war banner, throne room, a bustling ancient goblin city of crooked wooden houses, lanterns and narrow streets, a palace on a hill, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
@@ -207,18 +187,6 @@
 ### Староста Освальд Тисс — `npc/elder` (Кладбище прошлого, 09.11)
 
 > `bust portrait of a kind elderly village elder with a grey beard, simple wool clothes and a walking staff, warm tavern light, a quiet village with a cemetery behind, hand-painted dark fantasy portrait, square 1:1, no text`
-
-### Раб крови — `monsters/blood-slave-full`
-
-> `full-body an emaciated pale undead slave in chains with drained grey skin and hollow red eyes, blood-soaked gothic fortress and dark sewers with red torchlight, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
-
-### Летучая мышь-кровосос — `monsters/blood-bat-full`
-
-> `full-body a large red-eyed vampire bat with torn leathery wings, fangs dripping blood, blood-soaked gothic fortress and dark sewers with red torchlight, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
-
-### Кровавый гуль — `monsters/blood-ghoul-full`
-
-> `full-body a hunched ghoul with long paralysing claws, blood-smeared mouth, crouching to pounce, blood-soaked gothic fortress and dark sewers with red torchlight, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
 
 ### Слуга вампиров — `monsters/vampire-servant-full`
 
@@ -258,15 +226,7 @@
 
 > `full-body a sleek black cat with glowing green eyes and a crooked tail, half melting into shadow, mischievous grin, misty dark witch forest with crooked trees and pale fog, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
 
-### Фонарщик тумана — `monsters/fog-lantern-full`
-
-> `full-body a towering hooded spirit warden carrying many glowing lanterns on a long chain flail, fog swirling around, misty dark witch forest with crooked trees and pale fog, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
-
 ### Охотничьи угодья и гоблины под Угрозу (03.11)
-
-### Вожак гончих — `monsters/pack-leader-full`
-
-> `full-body a big scarred hound leader with a torn ear, howling, other hounds in the mist behind, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
 
 ### Монстры Звона и Храма изваяний (3 этаж, 03.11)
 
