@@ -4420,9 +4420,9 @@ function questsBeforeRun() {
   return dead.length;
 }
 /* ----- сумка для камней (решение автора): общая, вес не учитывается; камни учитываются по монстрам, найденные без монстра — отдельной строкой по классу ----- */
-const STONE_PRICE_CLS = { 9: 1, 8: 5, 7: 20 };                                                       // решение автора
+const STONE_PRICE_CLS = { 9: 1, 8: 5, 7: 20, 6: 50, 5: 250, 4: 1000, 3: 5000, 2: 25000, 1: 200000 };          // 10.11 (автор): цены 6–1 класса; 5 класс и выше пока нигде не показываются (нет монстров)                                                       // решение автора
 const gemHorns = () => (state.party || []).some(c => !c.dead && hasEssence(c, "ice-deer"));          // «Рога-самоцветы» Сребророга (07.11)
-const stonePrice = cls => STONE_PRICE_CLS[Math.max(7, Math.min(9, cls || 9))];
+const stonePrice = cls => STONE_PRICE_CLS[Math.max(1, Math.min(9, cls || 9))];
 const stoneMult = () => gemHorns() ? 1.1 : 1;          // лавочник платит за камни +10 % (итог округляется)
 function sackAddRaw(s, mon, cls, n) { const k = mon ? "m:" + mon : "c:" + cls; const it = (s.items[k] ||= { mon: mon || null, cls, qty: 0 }); it.qty += n; }
 function sack() {
@@ -7258,7 +7258,8 @@ const artState = () => (state.artifacts ||= { seen: {}, known: {} });
 const artSeen = id => { if (ARTIFACTS[id]) artState().seen[id] = true; };                                         // получен: попадает в библиотеку артефактов
 // Цена артефактов растёт с классом (решение автора 28.10); «Удача новичка» — на уровне 7 класса. Кузница и Башня магов скупают артефакты;
 // «своя» лавка (Башня — аксессуары, Кузница — броня и оружие) платит на 10 % больше. Надбавку нигде не показываем.
-const ART_PRICE = { 9: 150, 8: 450, 7: 1500, 6: 5000 }, ART_PRICE_OVER = { "beginners-luck": 1500 }, ART_CAT = { boots: "armor", whetstone: "armor", "daedalus-hammer": "armor" };
+const ART_PRICE = { 9: 300, 8: 700, 7: 1500, 6: 4000, 5: 10000, 4: 25000, 3: 100000, 2: 250000, 1: 1000000 },          // 10.11 (автор)
+      ART_PRICE_OVER = { "beginners-luck": 1500 }, ART_CAT = { boots: "armor", whetstone: "armor", "daedalus-hammer": "armor" };
 const artValue = id => ART_PRICE_OVER[id] ?? ART_PRICE[ARTIFACTS[id].cls] ?? 100;
 const artBuyerMult = (id, b) => ((ART_CAT[id] || (typeof ART_WEAPONS !== "undefined" && (ART_WEAPONS[id] || ART_ARMORS[id]) ? "armor" : "acc")) === "acc") === (b === "tower") ? 1.1 : 1;
 for (const id of Object.keys(ARTIFACTS)) ARTIFACTS[id].price = artValue(id);

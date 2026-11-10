@@ -130,7 +130,7 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
   ok('Порез теней: атака на 3 клетки, на 4 клетки не достаёт', o2.cut && o2.cut[0] === 'melee' && o2.cut[1] === 3 && o2.cutRange[0] === true && o2.cutFar === 0, [o2.cut, o2.cutRange, o2.cutFar]);
   ok('пика: со щитом не двуручная блокировка, с пустой рукой — двуручная, с мечом — неудобный хват', o2.pike.two === false && o2.pikeAlone === true && o2.pikeSword === true, o2);
   ok('пика со щитом: скорость на клетку меньше, досягаемость 1 (решение автора 28.10)', o2.pikeSpeed[0] === o2.pikeSpeed[1] - 1 && o2.pikeReach === 1, [o2.pikeSpeed, o2.pikeReach]);
-  ok('цены артефактного оружия: класс 6, кузница платит больше башни', o2.price[0] === 5000 && o2.price[1] === 1.1 && o2.price[2] === 1, o2.price);
+  ok('цены артефактного оружия: класс 6, кузница платит больше башни', o2.price[0] === 4000 && o2.price[1] === 1.1 && o2.price[2] === 1, o2.price);
   const o3 = await p.evaluate(async () => {
     const B = Battle, out = {};
     const hero0 = state.party[0]; hero0.equip = {}; hero0.bag = [];
