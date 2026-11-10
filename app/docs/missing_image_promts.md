@@ -462,4 +462,6 @@
 
 ## Здания города
 
-Все 14 зданий нарисованы.
+Все 14 прежних зданий нарисованы. Новое:
+
+- **Аукцион** (`assets/buildings/auction.webp`, как остальные здания): «Fantasy town building illustration, a grand auction house of dark stone and carved oak, tall arched doors with brass fittings, a hanging sign with a gavel and coin, lanterns, banners, crowd silhouettes at the steps, warm evening light, painterly style matching the other town buildings, no text».

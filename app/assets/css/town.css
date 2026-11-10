@@ -196,3 +196,4 @@
 .tw-sel .tw-btns { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 8px; width: min(100%, 300px); margin: 0 auto; }
 .tw-sel .tw-btns .fx-btn { width: 100%; }
 .tw-qtabs { margin: 6px 12px 0; }
+.tw-lot.locked { opacity: .5; }          /* 10.11: закрытые лоты аукциона */

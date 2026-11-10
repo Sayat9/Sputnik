@@ -444,7 +444,9 @@ body.forge-open, body.bt-active, body:has(.mapov:not([hidden])), body:has(.bt-ro
 .fx-eyebrow { font: 700 14px/1 var(--f-fancy); letter-spacing: .22em; color: var(--fx-gold); text-transform: uppercase; }
 
 .fx-home { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 16px; padding-block: 24px 8px; }
-.fx-home > .fx-btn { width: min(300px, 100%); justify-content: center; }          /* 10.11: кнопки главного экрана одной ширины */
+.fx-home > .fx-btn { width: min(300px, 100%); justify-content: center; }
+.gate-alert { margin: 6px auto 0; max-width: 420px; padding: 8px 12px; border: 1px solid var(--fx-gold-hi, #f4d48e); border-radius: 8px; background: rgb(214 166 76 / .16); color: var(--fx-gold-hi, #f4d48e); font-weight: 600; box-shadow: 0 0 14px rgb(214 166 76 / .35); animation: gatePulse 1.6s ease-in-out infinite; }
+@keyframes gatePulse { 50% { box-shadow: 0 0 22px rgb(244 212 142 / .6); } }          /* 10.11: кнопки главного экрана одной ширины */
 .fx-home .crest .logo-px { width: 132px; height: 132px; display: block; image-rendering: pixelated; filter: drop-shadow(0 0 18px rgb(240 180 67 / .25)); }
 .fx-home .crest svg { width: 132px; height: 132px; display: block; filter: drop-shadow(0 0 18px rgb(240 180 67 / .25)); }
 .fx-title { margin: 0; font: 400 38px/1.05 var(--f-display); color: var(--fx-text); text-wrap: balance; text-shadow: 0 0 22px rgb(240 180 67 / .25); }
@@ -4442,7 +4444,30 @@ function questTurnIn(q) {
   live.forEach((c, i) => addGold(c, Math.floor(q.reward / k) + (i < q.reward % k ? 1 : 0)));
   const b = questBoard(); b.list = b.list.filter(x => x !== q);
 }
-function questsAfterRun() { const b = questBoard(); for (const q of b.list) if (q.taken) q.runs++; postQuests(); }
+function questsAfterRun() { const b = questBoard(); for (const q of b.list) if (q.taken) q.runs++; postQuests(); auctionRoll(); }
+// ===== Аукцион (10.11, автор) =====
+// Товары определяются раз в выход из подземелья; открыто слотов = 10 − ранг отряда (9 ранг — 1, …, 1 ранг — 9), слот N класса — товар этого класса.
+// Слот класса, равного рангу (новый): эссенция обычного (80 %) или редкого (20 %) монстра этого класса, не из разлома, по полной цене.
+// Слоты младших классов: 10 % — артефакт этого класса, 10 % — эссенция монстра разлома этого класса, иначе как новый слот.
+function auctionEss(cls, rift) {
+  const ok = id => { const e = ESSENCES[id], m = e && MONSTERS.find(x => x.id === essSource(id)); return m && e.cls === cls && !m.dyn && !m.draft && !!m.rift === !!rift && (rift || ["normal", "rare"].includes(rankOf(m))); };
+  const all = Object.keys(ESSENCES).filter(ok); if (!all.length) return null;
+  if (rift) return pickOne(all);
+  const rare = all.filter(id => rankOf(MONSTERS.find(x => x.id === essSource(id))) === "rare"), norm = all.filter(id => !rare.includes(id));
+  return (rare.length && (!norm.length || Math.random() < 0.2)) ? pickOne(rare) : pickOne(norm);
+}
+function auctionSlot(cls, older) {
+  const r = Math.random();
+  if (older && r < 0.1) { const pool = (TREASURE_POOL[cls] || []).filter(id => id === "once-more" || !treasureOwned(id)); if (pool.length) { const id = pickOne(pool); return { cls, kind: "art", id, price: artValue(id) }; } }
+  if (older && r < 0.2) { const id = auctionEss(cls, true); if (id) return { cls, kind: "ess", id, price: essPrice(id), rift: true }; }
+  const id = auctionEss(cls, false); return id ? { cls, kind: "ess", id, price: essPrice(id) } : { cls, kind: "none" };
+}
+function auctionRoll() {
+  const rank = partyRank(), slots = [];
+  for (let cls = 9; cls >= rank; cls--) slots.push(auctionSlot(cls, cls > rank));
+  state.auction = { slots, rank };
+}
+const auctionState = () => { if (!state.auction) auctionRoll(); return state.auction; };
 function questsBeforeRun() {
   const b = questBoard(), dead = b.list.filter(q => q.taken && q.runs >= QUEST_RUNS);
   b.list = b.list.filter(q => !dead.includes(q));
@@ -4536,7 +4561,7 @@ function loadNet() {
   return netLoad;
 }
 /* ----- здания города (assets/js/town.js грузится при первом входе в здание) ----- */
-const TOWN_REV = 36, TOWN_FILES = ["assets/css/town.css", "assets/js/town.js"];
+const TOWN_REV = 38, TOWN_FILES = ["assets/css/town.css", "assets/js/town.js"];
 let townLoad = null;
 function loadTown() {
   if (window.Town && window.Town.ready) return Promise.resolve(true);
@@ -5236,6 +5261,7 @@ const TOWN = [
   { id: "forge",   name: "Кузница",              shape: "smithy" },
   { id: "arena",   name: "Арена",                shape: "arena" },
   { id: "academy", name: "Академия",             shape: "academy" },
+  { id: "auction", name: "Аукцион",              shape: "bank" },          // 10.11 (автор): товары раз в выход из подземелья, слотов = 10 − ранг (картинка — пока банка)
   { id: "bank",    name: "Банк",                 shape: "bank", soon: true },
   { id: "storage", name: "Склад",                shape: "warehouse", soon: true },
   { id: "hall",    name: "Ратуша и налоги",      shape: "house", soon: true },
@@ -5280,6 +5306,7 @@ function renderTown() {
       <h2>Город</h2>
       <div class="fx-rule"><span></span></div>
       <p>${open ? "Город живёт добычей лабиринта. Куда направится отряд?" : "Отряд стоит на Площади измерений. Врата лабиринта открыты."}</p>
+      ${open && gateInfo().open ? `<div class="gate-alert" role="status">Портал лабиринта открыт! Врата закроются после следующего городского действия.</div>` : ""}
       <button class="fx-btn" data-action="library" style="display:flex;align-items:center;gap:6px;margin-top:4px">${ICO_BOOK.replace('class="icon"', 'width="18" height="18"')}Библиотека</button>
     </div>
     <div class="town-map">${TOWN.map(b => {

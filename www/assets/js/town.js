@@ -67,7 +67,7 @@
     const free = tmLevel() >= 3 && ["shop", "board", "storage"].includes(ui.b);          // тайм-менеджмент III: доска, магазин, склад — без действия
     const n = free ? 0 : ui.cost; host.hidden = true; host.innerHTML = ""; ui = null;
     document.body.classList.remove("forge-open");
-    if (n > 0) { const c = townClock(); c.t += n; chaliceTick(n); saveChar(); const gi = gateInfo(); toast(`Прошло городских действий: ${n}. Врата ${gi.open ? "открыты сейчас" : "закрыты ещё " + gi.left + " д."}.`); }
+    if (n > 0) { const was = gateInfo().open, c = townClock(); c.t += n; chaliceTick(n); saveChar(); const gi = gateInfo(); toast(`Прошло городских действий: ${n}. Врата ${gi.open ? "открыты сейчас" : "закрыты ещё " + gi.left + " д."}.`); if (gi.open && !was && window.askYesNo) setTimeout(() => askYesNo({ title: "Портал открылся!", text: "Врата лабиринта открыты — на одно городское действие. Можно спускаться.", yes: "Понятно", no: "Закрыть" }), 300); }          // 10.11 (автор): предупреждение
     rerender();
   };
   T.state = () => ui;
@@ -81,7 +81,7 @@
   // 09.11: после арены ночлег закрыт, только если до открытия врат осталось 2 действия или меньше («врата через 3» и больше — спать можно).
   const sleepLocked = () => { if (!state.arenaLock) return false; const g = gateInfo(); return g.open || g.left <= 2; };
   // Списать городские действия сразу (часы меняются, не дожидаясь выхода из здания).
-  const spendNow = n => { const c = townClock(); c.t += n; chaliceTick(n); saveChar(); const gi = gateInfo(); toast(`Прошло городских действий: ${n}. Врата ${gi.open ? "открыты сейчас" : "закрыты ещё " + gi.left + " д."}.`); };
+  const spendNow = n => { const was = gateInfo().open; setTimeout(() => { if (gateInfo().open && !was && window.askYesNo) askYesNo({ title: "Портал открылся!", text: "Врата лабиринта открыты — на одно городское действие. Можно спускаться.", yes: "Понятно", no: "Закрыть" }); }, 300); const c = townClock(); c.t += n; chaliceTick(n); saveChar(); const gi = gateInfo(); toast(`Прошло городских действий: ${n}. Врата ${gi.open ? "открыты сейчас" : "закрыты ещё " + gi.left + " д."}.`); };
   const visit = () => { if (!ui.paid) ui.cost = Math.max(ui.cost, 1); };          // ui.paid — посещение уже оплачено (возврат на арену после боя, 09.11)
 
   function render() {
@@ -733,6 +733,20 @@
      ===================================================================== */
   B_church();
   function B_church() {
+    // ===== Аукцион (10.11, автор): auctionState/auctionRoll в index.html =====
+    B.auction = {
+      render() {
+        const c = hero(); if (!c) return frame("Аукцион", "Рафдония", noParty());
+        const A = auctionState(), rank = partyRank();
+        const cells = [9, 8, 7, 6, 5, 4, 3, 2, 1].map(cls => {
+          const i = A.slots.findIndex(x => x.cls === cls), sl = i >= 0 ? A.slots[i] : null;
+          if (!sl) return `<div class="tw-row tw-lot locked"><div class="tw-who"><div><b>Лот ${cls} класса</b><small>закрыт · откроется с ${cls} ранга${cls >= rank ? " — после следующего похода" : ""}</small></div></div></div>`;
+          if (sl.kind === "none") return `<div class="tw-row tw-lot"><div class="tw-who"><div><b>Лот ${cls} класса</b><small>торгов нет: таких товаров пока нет</small></div></div></div>`;
+          const nm = sl.kind === "art" ? `Артефакт ${cls} класса: ${esc(artName(sl.id))}` : esc(ESSENCES[sl.id].name), sub = sl.kind === "art" ? "свойства — после определения в Башне магов" : `эссенция ${cls} класса${sl.rift ? " · из разлома" : ""}${(() => { const m = MONSTERS.find(x => x.id === essSource(sl.id)); return m && rankOf(m) === "rare" ? " · редкий монстр" : ""; })()} · уйдёт в запас эссенций отряда`;
+          return `<div class="tw-row tw-lot"><div class="tw-who"><div><b>${nm}</b><small>${sub}</small></div></div>${sl.sold ? `<span class="tw-done">${ICO_CHECK}</span>` : `<button class="fx-btn primary" data-t="lot-buy" data-i="${i}"${partyGold() >= sl.price ? "" : " disabled"}>${sl.price}</button>`}</div>`; }).join("");
+        return frame("Аукцион", "Рафдония", `${heroStrip()}<p class="tw-lead">Лоты меняются после каждого похода в лабиринт. Чем выше ранг отряда, тем больше лотов: сейчас открыто ${A.slots.length} из 9.</p><div class="tw-rows">${cells}</div>${msgLine()}`);
+      },
+    };
     B.church = {
       render() {
         const c = hero(); if (!c) return frame("Церковь", "Рафдония", noParty());
@@ -937,6 +951,13 @@
       case "atab": ui.tab = ds.k; break;
       case "ttab": ui.tab = ds.k; break;
       case "flask-buy": buyFlask(ds.id); break;
+      case "lot-buy": {          // аукцион: эссенция — в запас отряда (впитать в «Навыках»), артефакт — сокровище или в рюкзак покупателя
+        const A = auctionState(), sl = A.slots[+ds.i], c = hero(); if (!sl || sl.sold || sl.kind === "none" || !c) break;
+        if (sl.kind === "art" && !TREASURES[sl.id] && addToBag(c, { t: "g", id: sl.id, qty: 1 }) > 0) { ui.msg = `У ${c.name} нет места в рюкзаке.`; break; }
+        if (!payGold(c, sl.price)) { if (sl.kind === "art" && !TREASURES[sl.id]) takeGear(c, sl.id, 1); ui.msg = "Не хватает монет."; break; }
+        if (sl.kind === "ess") { essStash().push(sl.id); markEssNamed(sl.id); } else if (TREASURES[sl.id]) giveTreasure(sl.id); else artSeen(sl.id);
+        sl.sold = true; visit(); ui.msg = sl.kind === "ess" ? `Куплена ${ESSENCES[sl.id].name} — она в запасе эссенций отряда (вкладка «Навыки» героя).` : `Куплен артефакт ${sl.cls} класса — определите его в Башне магов.`; saveChar(); break;
+      }
       case "essflask-sell": sellEssFlask(+ds.i); break;
       case "aid": identify(ds.id); break;
       case "artsell": artSell(ds.key, ds.b); break;
