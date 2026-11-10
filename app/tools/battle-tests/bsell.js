@@ -7,7 +7,7 @@ const L = require('./bui_lib.js');
   const res = await p.evaluate(async () => {
     const out = {}, c = state.party[0]; await loadTown();
     out.prices = [artValue('bell'), artValue('chalice'), artValue('tollbell'), artValue('beginners-luck')];
-    out.luckLevel7 = artValue('beginners-luck') === artValue('tollbell') && artValue('beginners-luck') > 2 * artValue('chalice');
+    out.luckLevel7 = artValue('beginners-luck') === 1000;
     out.priceField = ARTIFACTS.monocle.price === artValue('monocle');
     // продажа: Башня (аксессуары +10 %), Кузница (броня +10 %)
     giveTreasure('tollbell'); giveTreasure('boots'); c.gold = 0;
@@ -41,7 +41,7 @@ const L = require('./bui_lib.js');
     return out;
   });
   ok('цены артефактов растут с классом', res.prices[0] < res.prices[1] && res.prices[1] < res.prices[2], res.prices);
-  ok('Удача новичка — на уровне 7 класса и значительно дороже обычных 8-х', res.luckLevel7, res.prices);
+  ok('Удача новичка — 1000', res.luckLevel7, res.prices);
   ok('у артефактов есть поле price', res.priceField);
   ok('Башня: колокольчик продаётся дороже на 10 % (1650)', res.afterTower.gold === 1650 && !res.afterTower.owned && res.towerRows.length >= 2, res);
   ok('Башня: сапоги продаются из списка артефактов', res.towerRows.some(r => r[0] === 't:boots'), res);

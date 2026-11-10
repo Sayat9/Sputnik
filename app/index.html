@@ -3953,6 +3953,13 @@ const SLOTS = {
 const GEAR = {
   clothes: { short: "Одежда", name: "Простая одежда", weight: 1.5, stack: 1, slot: "body", note: "Рубаха, штаны, плащ. Бонусов не даёт: КД 10 + Ловкость." },
   ration:  { short: "Паёк", name: "Паёк", weight: 1, stack: 10, use: "eat", note: "Еда и вода на сутки. 1 паёк = сыт 3 действия." },
+  // 10.11 (автор): колбы для эссенций (Башня магов) — одноразовые, очень лёгкие; сохраняют выпавшую эссенцию в рюкзаке (FLASKS)
+  "flask-low":    { short: "Колба", name: "Низкокачественная колба", weight: 0.1, stack: 5, note: "Сохраняет выпавшую эссенцию 9–8 класса; 7 класса — при броске к20 14+. Одноразовая." },
+  "flask-weak":   { short: "Колба+", name: "Слабая колба", weight: 0.1, stack: 5, note: "Сохраняет выпавшую эссенцию 9–6 класса; 5 класса — при броске к20 14+. Одноразовая." },
+  "flask-good":   { short: "Колба++", name: "Хорошая колба", weight: 0.1, stack: 5, note: "Сохраняет выпавшую эссенцию 9–4 класса; 3 класса — при броске к20 14+. Одноразовая." },
+  "flask-great":  { short: "Колба★", name: "Великолепная колба", weight: 0.1, stack: 5, note: "Сохраняет выпавшую эссенцию 9–2 класса; 1 класса — при броске к20 14+. Одноразовая." },
+  "flask-legend": { short: "Колба✦", name: "Легендарная колба", weight: 0.1, stack: 5, note: "Сохраняет выпавшую эссенцию любого класса; при броске к20 18+ не ломается." },
+  "ess-flask":    { short: "Эссенция", name: "Эссенция в колбе", weight: 0.1, stack: 1, use: "essflask", note: "Колбу можно разбить и впитать эссенцию или продать в магазине и Башне магов." },
   potion:  { short: "Зелье", name: "Слабое зелье лечения", weight: 0.25, stack: 5, use: "drink", heal: "1к4 + 2", note: "Восстанавливает 1к4 + 2 ОЗ (3–6, в среднем 4,5): около трети ОЗ героя 1-го уровня." },
   torch:   { short: "Факел", name: "Факел", weight: 0.5, stack: 5, note: "Горит около часа, яркий свет 6 м." },
   firstaid: { short: "Аптечка", name: "Набор первой помощи", weight: 0.5, stack: 3, note: "Набор на 3 заряда: каждое применение тратит один. Бинты, мазь и иглы. В бою — действие «Первая помощь»: останавливает кровотечение, лечит 1к4 ОЗ и поднимает павшего союзника. Научившись на курсе первой помощи в Академии, герой лечит заметно лучше." },
@@ -4147,6 +4154,8 @@ function itemOf(v, holder) {
       return known ? { ...g, id: v.id, kindOf: "gear", icon: ic, art: ART.gear(v.id) || undefined, known }
         : { ...g, id: v.id, kindOf: "gear", icon: ic, art: g.find === "mush" ? artPath("items/unknown-mushroom") : g.find === "herb" ? artPath("items/unknown-herb") : g.find === "sstone" ? artPath("items/unknown-stone") : undefined, known, name: g.alias, short: "?", use: g.use && "find", note: `Эффект неизвестен: нужен навык (${FIND_KIND[g.find].skills.map(k => Object.keys(SKILL_KEYS).find(n => SKILL_KEYS[n] === k)).join(" или ")}) или знания. Одноразовый.` };
     }
+    if (g && v.id === "ess-flask" && v.ess) { const e = ESSENCES[v.ess] || {}; return { ...g, id: v.id, kindOf: "gear", icon: GEAR_ICON.custom, art: typeof essFace === "function" ? essFace(v.ess) : undefined,
+      name: `Колба: ${typeof essTitle === "function" ? essTitle(v.ess) : e.name || v.ess}`, note: `Эссенция ${e.cls || "?"} класса${v.from ? " — " + v.from : ""}. ${g.note}` }; }
     if (g && v.id === "chalice") { const st = chaliceSt(v); return artMask({ ...g, id: v.id, kindOf: "gear", art: ART.gear("chalice") || undefined, icon: GEAR_ICON.chalice, name: st === "potion" ? "Чаша здоровья (зелье)" : st === "water" ? "Чаша здоровья (вода)" : "Чаша здоровья (пустая)",
       note: g.note + (st === "water" ? ` Вода настаивается: осталось ${v.wait} действ. из 6.` : st === "potion" ? " Внутри улучшенное зелье лечения: выпейте." : " Сейчас пуста.") }, v.id); }
     if (g && ARTIFACTS[v.id]) return artMask({ ...g, id: v.id, kindOf: "gear", art: ART.gear(v.id) || undefined, icon: GEAR_ICON[v.id] }, v.id);
@@ -4269,7 +4278,7 @@ function addToBag(c, e) {
   while (left > 0 && c.bag.length < bagSize(c)) {
     const n = Math.min(left, stackMax(e, c));
     const uses = e.t === "g" && GEAR[e.id].uses ? { uses: e.uses ?? GEAR[e.id].uses } : {};
-    c.bag.push(e.t === "c" ? { t: "c", name: e.name, qty: 1 } : { t: e.t, id: e.id, qty: n, ...uses, ...durKeep(e), ...(e.used != null ? { used: e.used } : {}) });
+    c.bag.push(e.t === "c" ? { t: "c", name: e.name, qty: 1 } : { t: e.t, id: e.id, qty: n, ...uses, ...durKeep(e), ...(e.used != null ? { used: e.used } : {}), ...(e.ess ? { ess: e.ess, from: e.from || "" } : {}) });
     left -= n;
   }
   return left;                                   // сколько не поместилось
@@ -4358,7 +4367,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 137;
+const BATTLE_REV = 138;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }
@@ -4384,9 +4393,23 @@ function loadBattle() {
 }
 /* ----- цены эссенций (решение автора: 9 класс — 50 монет; остальные по отношению цен камней 1 : 5 : 20; наценка за редких и особых — черновик) ----- */
 const ESS_BASE = { 9: 50, 8: 250, 7: 1000 };
-const ESS_RANK_MULT = { normal: 1, rare: 2, special: 3, guardian: 4, lord: 5 };
+// 10.11 (автор): надбавки к цене эссенции складываются: редкий +10 %, монстр разлома +20 %, страж +30 % (особый — как редкий, лорд — как страж: моё допущение)
+const ESS_RANK_ADD = { normal: 0, rare: 0.1, special: 0.1, guardian: 0.3, lord: 0.3 }, ESS_RIFT_ADD = 0.2;
+const essMods = id => { const m = MONSTERS.find(x => x.id === essSource(id)); if (!m) return 0; return (ESS_RANK_ADD[rankOf(m)] || 0) + (m.rift ? ESS_RIFT_ADD : 0); };
 const essBasePrice = id => ESS_BASE[(ESSENCES[id] || {}).cls] || 50;
-function essPrice(id) { const m = MONSTERS.find(x => x.id === essSource(id)); return essBasePrice(id) * (m ? ESS_RANK_MULT[rankOf(m)] || 1 : 1); }
+// Колбы: auto — сохраняет класс ≥ auto без броска; roll — этот класс при к20 ≥ need; keep — легендарная не ломается при к20 ≥ keep. rank — с какого ранга видна в Башне.
+const FLASKS = [
+  { id: "flask-low", price: 200, rank: 9, auto: 8, roll: 7, need: 14 },
+  { id: "flask-weak", price: 1000, rank: 7, auto: 6, roll: 5, need: 14 },
+  { id: "flask-good", price: 5000, rank: 5, auto: 4, roll: 3, need: 14 },
+  { id: "flask-great", price: 100000, rank: 3, auto: 2, roll: 1, need: 14 },
+  { id: "flask-legend", price: 1500000, rank: 1, auto: 1, roll: null, keep: 18 },
+];
+const flaskMode = (f, cls) => cls >= f.auto ? "auto" : f.roll && cls === f.roll ? "roll" : null;
+const flaskHolders = id => state.party.filter(c => !c.dead && countGear(c, id) > 0);
+// Цена эссенции в колбе при продаже: с надбавками −20 %; лавочник (магазин) берёт ещё на 20 % дешевле
+const essFlaskPrice = (id, shop) => Math.max(1, Math.round(essPrice(id) * 0.8 * (shop ? 0.8 : 1)));
+function essPrice(id) { return Math.round(essBasePrice(id) * (1 + essMods(id))); }          // церковь (удаление), будущий аукцион, арена, башня
 /* ----- доска объявлений: охота на монстров (черновик, drafts.md → «Доска, арена…») ----- */
 // Каждое возвращение из лабиринта на доске появляются 2 задания. Принятое держится 2 захода (runs), после 2-го — последний шанс сдать в городе; при следующем спуске сгорает.
 const QUEST_RUNS = 2;
@@ -4507,7 +4530,7 @@ function loadNet() {
   return netLoad;
 }
 /* ----- здания города (assets/js/town.js грузится при первом входе в здание) ----- */
-const TOWN_REV = 34, TOWN_FILES = ["assets/css/town.css", "assets/js/town.js"];
+const TOWN_REV = 35, TOWN_FILES = ["assets/css/town.css", "assets/js/town.js"];
 let townLoad = null;
 function loadTown() {
   if (window.Town && window.Town.ready) return Promise.resolve(true);
@@ -7259,7 +7282,7 @@ const artSeen = id => { if (ARTIFACTS[id]) artState().seen[id] = true; };       
 // Цена артефактов растёт с классом (решение автора 28.10); «Удача новичка» — на уровне 7 класса. Кузница и Башня магов скупают артефакты;
 // «своя» лавка (Башня — аксессуары, Кузница — броня и оружие) платит на 10 % больше. Надбавку нигде не показываем.
 const ART_PRICE = { 9: 300, 8: 700, 7: 1500, 6: 4000, 5: 10000, 4: 25000, 3: 100000, 2: 250000, 1: 1000000 },          // 10.11 (автор)
-      ART_PRICE_OVER = { "beginners-luck": 1500 }, ART_CAT = { boots: "armor", whetstone: "armor", "daedalus-hammer": "armor" };
+      ART_PRICE_OVER = { "beginners-luck": 1000 }, ART_CAT = { boots: "armor", whetstone: "armor", "daedalus-hammer": "armor" };
 const artValue = id => ART_PRICE_OVER[id] ?? ART_PRICE[ARTIFACTS[id].cls] ?? 100;
 const artBuyerMult = (id, b) => ((ART_CAT[id] || (typeof ART_WEAPONS !== "undefined" && (ART_WEAPONS[id] || ART_ARMORS[id]) ? "armor" : "acc")) === "acc") === (b === "tower") ? 1.1 : 1;
 for (const id of Object.keys(ARTIFACTS)) ARTIFACTS[id].price = artValue(id);
@@ -8633,6 +8656,7 @@ function selPanel(c) {
   const btns = [];
   if (it.use === "eat") btns.push(`<button class="fx-btn primary" data-hx="eat">Съесть 1</button>`);
   if (it.use === "drink") btns.push(`<button class="fx-btn primary" data-hx="drink">Выпить</button>`);
+  if (it.use === "essflask" && e.ess) btns.push(`<button class="fx-btn primary" data-hx="essflask">Разбить и впитать</button>`);
   if (it.use === "salt") btns.push(`<button class="fx-btn primary" data-hx="salt-toggle" aria-expanded="${!!heroUi.salt}">Посыпать оружие</button>`);
   if (e.id === "chalice") {
     const st = chaliceSt(e);
@@ -8907,6 +8931,16 @@ $hero.addEventListener("click", e => {
       if (!entry || chaliceSt(entry) !== "empty" || !canFillWater()) return;
       chaliceFill(entry); if (state.run) logRun(`${c.name} наполняет чашу здоровья водой: через 2 дня будет зелье.`);
       heroAfterChange("Чаша наполнена водой: через 2 дня станет зельем"); return;
+    }
+    case "essflask": {          // 10.11: разбить колбу — эссенция впитывается этим героем
+      const id = entry && entry.ess, mine = (c.essences ||= []); if (!id) return;
+      if (mine.length >= c.level) { toast("Нет свободного слота эссенций"); return; }
+      if (mine.includes(id)) { toast("У героя уже есть такая эссенция"); return; }
+      askYesNo({ title: "Разбить колбу?", text: `${c.name} разобьёт колбу и впитает «${essTitle(id)}». Колба пропадёт.`, yes: "Разбить и впитать" }).then(ok => {
+        if (!ok) return; const i = c.bag.indexOf(entry); if (i < 0 || mine.length >= c.level) return;
+        c.bag.splice(i, 1); heroUi.sel = null; const hp0 = hpOf(c), mx0 = maxHp(c); mine.push(id); markEssNamed(id); c.hp = Math.min(maxHp(c), hp0 + Math.max(0, maxHp(c) - mx0)); c.mp = Math.min(maxMp(c), mpOf(c));
+        heroAfterChange(`${c.name} разбил колбу и впитал: ${ESSENCES[id].name}`);
+      }); return;
     }
     case "drink": {
       entry.qty--; if (!entry.qty) { c.bag.splice(heroUi.sel, 1); heroUi.sel = null; }

@@ -61,7 +61,7 @@
   function rewardsPlan(S, outcome) {
     const ev = S.ev, killed = [...new Set(S.killed)].filter(i => i >= 0 && ev.list[i]), species = killed.map(i => ev.list[i]);
     const fresh = [...new Set(species.map(xpKeyOf))].filter(id => !/^tcls-/.test(id) && !(journal().known[id] && journal().known[id].xpDone));          // путники опыта не дают (решение автора 01.11)          // путники — опыт каждый раз          // путники: опыт по классу (trav-9/8/7), а не за каждого
-    const guardXp = ev.arena ? 0 : 2 * species.filter(id => (MONSTERS.find(m => m.id === id) || {}).rank === "guardian").length;          // страж: +2 опыта за каждую победу, даже повторную (решение автора 08.11)
+    const guardXp = ev.arena ? 0 : 5 * species.filter(id => (MONSTERS.find(m => m.id === id) || {}).rank === "guardian").length;          // страж: +5 опыта за каждую победу, даже повторную (10.11; решение автора 08.11)
     const xp = fresh.reduce((a, id) => a + monXp(xpInfo(id)), 0) + guardXp;
     const stones = {};                                                                  // камни по видам монстров: id → { cls, n }, они идут в сумку для камней
     if (!ev.arena) for (const id of species) {
@@ -134,6 +134,8 @@
   };
 
   const TITLE = { win: ["Победа!", "win"], retreat: ["Монстры бежали", "win"], flee: ["Отряд отступил", "flee"], defeat: ["Поражение", "lose"] };
+  // 10.11: колбы, подходящие для эссенции e (по классу), и сколько их в отряде
+  const flaskOpts = e => (typeof FLASKS === "undefined" || !e) ? [] : FLASKS.map(f => ({ f, mode: flaskMode(f, e.cls), n: flaskHolders(f.id).reduce((a, c) => a + countGear(c, f.id), 0) })).filter(o => o.mode && o.n > 0);
   async function showScreens(S, outcome, plan, gotLines) {
     const UI = B.UI, root = UI.root(), modal = root.querySelector(".bt-modal");
     UI.mode = "result"; UI.setHl(new Map()); UI.refreshNow();
@@ -218,15 +220,40 @@
       } else if (ok) {
         const g = modal.querySelector(".bt-essgot"); g.hidden = false;
         g.innerHTML = plan.wins.map((w, i) => { const e = ESSENCES[w.id]; const pas = essSeen(w.id, "ess-passive"), act = essActiveLevel(w.id) > 0; return `<div class="bt-ess" data-i="${i}"><img src="${essFace(w.id)}" alt=""><div><b>${esc(e ? essTitle(w.id) : w.id)}</b><small>${e ? e.cls + " класс · " + (pas ? esc(e.passive.name) : "??") + " (П), " + (act ? esc(e.active.name) : "??") + " (А)" : ""}</small>
-          <div class="bt-esschoice"><button class="fx-btn primary" data-ec="absorb">Впитать</button><button class="fx-btn" data-ec="keep" disabled title="Скоро">Сохранить</button><button class="fx-btn" data-ec="leave">Оставить</button></div><div class="bt-esspick" hidden></div></div></div>`; }).join("");
+          <div class="bt-esschoice"><button class="fx-btn primary" data-ec="absorb">Впитать</button><button class="fx-btn" data-ec="keep"${flaskOpts(e).length ? "" : ` disabled title="Нужна подходящая колба"`}>Сохранить</button><button class="fx-btn" data-ec="leave">Оставить</button></div><div class="bt-esspick" hidden></div></div></div>`; }).join("");
         await new Promise(resolve => {
           let left = plan.wins.length;
           const decide = (box, text) => { box.querySelector(".bt-esschoice").hidden = true; const pk = box.querySelector(".bt-esspick"); pk.hidden = false; pk.innerHTML = `<small class="muted">${esc(text)}</small>`; if (--left <= 0) resolve(); };
           g.onclick = async ev => {
-            const btn = ev.target.closest("[data-ec],[data-eh]"); if (!btn || btn.disabled) return;
+            const btn = ev.target.closest("[data-ec],[data-eh],[data-ef]"); if (!btn || btn.disabled) return;
             const box = btn.closest(".bt-ess"), w = plan.wins[+box.dataset.i], e = ESSENCES[w.id];
             if (btn.dataset.eh) { const c = state.party.find(x => x.id === btn.dataset.eh); if (!c) return; if (window.askYesNo) { btn.disabled = true; const yes = await askYesNo({ title: "Впитать эссенцию?", text: `${c.name} впитает «${typeof essTitle === "function" ? essTitle(w.id) : e.name}». Это нельзя отменить.`, yes: "Впитать" }); btn.disabled = false; if (!yes) return; } const hp0 = hpOf(c), mx0 = maxHp(c); (c.essences ||= []).push(w.id); markEssNamed(w.id); c.hp = Math.min(maxHp(c), hp0 + Math.max(0, maxHp(c) - mx0)); c.mp = Math.min(maxMp(c), mpOf(c)); saveChar(); decide(box, `${c.name} впитал эссенцию.`); return; }
             if (btn.dataset.ec === "leave") { decide(box, "Эссенцию оставили."); return; }
+            if (btn.dataset.ec === "keep") {          // 10.11: выбор колбы, «Отмена», подтверждение
+              const pk = box.querySelector(".bt-esspick"); box.querySelector(".bt-esschoice").hidden = true; pk.hidden = false;
+              pk.innerHTML = `<small>Какой колбой сохранить?</small><div class="bt-esschoice bt-flasks">${flaskOpts(e).map(o => `<button class="fx-btn" data-ef="${o.f.id}">${esc(GEAR[o.f.id].name)}<small>${o.mode === "auto" ? (o.f.keep ? `сохранит; к20 ${o.f.keep}+ — колба цела` : "сохранит") : `бросок к20 ${o.f.need}+`} · есть ${o.n}</small></button>`).join("")}<button class="fx-btn" data-eb="1">Отмена</button></div>`;
+              pk.querySelector("[data-eb]").onclick = e2 => { e2.stopPropagation(); pk.hidden = true; box.querySelector(".bt-esschoice").hidden = false; };
+              return;
+            }
+            if (btn.dataset.ef) {
+              const f = FLASKS.find(x => x.id === btn.dataset.ef), o = flaskOpts(e).find(x => x.f.id === btn.dataset.ef); if (!f || !o) return;
+              const fname = GEAR[f.id].name, pk = box.querySelector(".bt-esspick");
+              const yes = window.askYesNo ? await askYesNo({ title: "Использовать колбу?", text: `Вы собираетесь использовать: ${fname}. Вы уверены?`, yes: "Использовать" }) : true;
+              if (!yes) return;
+              const holder = flaskHolders(f.id)[0]; if (!holder) return;
+              takeGear(holder, f.id, 1);
+              const d20 = o.mode === "roll" || f.keep ? 1 + B.rnd(20) : null;
+              if (o.mode === "roll" && d20 < f.need) {
+                saveChar(); pk.innerHTML = `<small class="muted">${esc(fname)}: к20 = ${d20} (нужно ${f.need}+) — колба треснула, эссенция не удержалась.</small><div class="bt-esschoice"><button class="fx-btn primary" data-eb="1">Назад</button></div>`;
+                pk.querySelector("[data-eb]").onclick = e2 => { e2.stopPropagation(); pk.hidden = true; box.querySelector(".bt-esschoice").hidden = false; const kb = box.querySelector('[data-ec="keep"]'); if (kb && !flaskOpts(e).length) kb.disabled = true; };
+                return;
+              }
+              const src = MONSTERS.find(m => m.id === essSource(w.id)), item = { t: "g", id: "ess-flask", qty: 1, ess: w.id, from: src ? src.name : "" };
+              let to = null; for (const c of [holder, ...state.party.filter(x => !x.dead && x !== holder)]) { if (addToBag(c, item) === 0) { to = c; break; } }
+              if (!to) { addToBag(holder, { t: "g", id: f.id, qty: 1 }); saveChar(); if (window.toast) toast("Нет места в рюкзаках для колбы с эссенцией"); return; }
+              const kept = f.keep && d20 >= f.keep; if (kept) addToBag(holder, { t: "g", id: f.id, qty: 1 });
+              saveChar(); decide(box, `Эссенция в колбе — у ${to.name}${d20 != null ? ` (к20 = ${d20}${kept ? ", колба цела" : ""})` : ""}.`); return;
+            }
             if (btn.dataset.ec === "absorb") {
               const pk = box.querySelector(".bt-esspick"); box.querySelector(".bt-esschoice").hidden = true; pk.hidden = false;
               pk.innerHTML = `<small>Кому впитать?</small><div class="bt-esschoice">${state.party.filter(c => !c.dead).map(c => { const has = (c.essences || []).includes(w.id), full = (c.essences || []).length >= c.level; return `<button class="fx-btn" data-eh="${c.id}"${has || full ? " disabled" : ""} title="${has ? "уже есть такая эссенция" : full ? "нет свободного слота" : ""}">${esc(c.name)}${has ? " (есть)" : full ? " (слотов нет)" : ""}</button>`; }).join("")}<button class="fx-btn" data-eb="1">Назад</button></div>`;

@@ -3569,8 +3569,8 @@ const DISTRICTS = [
 
 // Готовые рисованные картинки (webp) заменяют векторные заглушки.
 // Дата сборки для телефона: build.sh вписывает её сюда, в веб-версии строка пустая.
-const APP_BUILD = "10.11.2026 12:16";
-const APP_VERSION = 1794295000;                 // номер сборки, тоже вписывает build.sh
+const APP_BUILD = "10.11.2026 12:35";
+const APP_VERSION = 1794296141;                 // номер сборки, тоже вписывает build.sh
 const UPDATE_URL = "https://raw.githubusercontent.com/Sayat9/Sputnik/main/www/";
 const RASTER = new Set(["items/steel-pike", "items/calm-flute", "items/dice", "items/art-falling-star", "items/art-echo-blade", "items/art-discharge-staff", "items/weak-salt", "items/silver-salt", "items/tollbell", "items/director-quiver", "items/flame", "items/herb-poison", "items/herb-food", "items/herb-rest", "items/repair-charm", "items/durable-charm", "items/regen-charm", "items/herb-heal", "items/herb-mana", "items/boots", "items/wind", "items/whetstone", "items/daedalus-hammer", "items/unbreakable-charm", "items/pike", "items/bell", "items/flask", "items/monocle", "buildings/arena", "buildings/academy", "buildings/bank", "buildings/storage", "races/dragon-f", "races/fairy-f", "races/gnome-f", "races/darkfairy-f", "events/to-labyrinth", "races/human-f", "races/barbarian-f", "races/dwarf-f", "races/beastkin-f", "events/to-town", "events/ambush", "events/monsters", "events/nothing", "events/travelers", "events/treasure", "items/mace", "items/warhammer", "items/armor-leather", "items/armor-hide", "items/armor-chainmail", "items/steel-dagger", "items/steel-sword", "items/steel-greatsword", "items/steel-shield", "items/steel-tower-shield", "items/shortbow", "items/longbow", "items/rapier", "items/shield", "items/tower-shield", "items/unknown-mushroom", "items/stone-9", "items/stone-8", "items/stone-7", "items/ration", "items/potion", "items/torch", "items/arrows", "items/clothes", "items/shovel", "items/shovel-good", "items/shovel-best", "items/dagger", "items/sword", "items/greatsword", "items/spear", "monsters/goblin-king-face", "monsters/goblin-king-full", "monsters/goblin-bomber-face", "monsters/goblin-bomber-full", "monsters/hobgoblin-shield-face", "monsters/hobgoblin-shield-full", "races/barbarian", "races/human", "races/dwarf", "races/beastkin", "races/fairy", "races/dragon", "monsters/goblin-face", "monsters/goblin-full", "monsters/goblin-archer-face", "monsters/goblin-archer-full", "monsters/goblin-sword-face", "monsters/goblin-sword-full", "monsters/goblin-spear-face", "monsters/goblin-spear-full", "monsters/wolf-face", "monsters/wolf-full", "monsters/fox-face", "monsters/fox-full", "monsters/mouse-face", "monsters/mouse-full", "monsters/bat-face", "monsters/bat-full", "monsters/hobgoblin-face", "monsters/hobgoblin-full", "monsters/zombie-face", "monsters/zombie-full", "monsters/skeleton-face", "monsters/skeleton-full", "monsters/skeleton-archer-face", "monsters/skeleton-archer-full", "monsters/ghoul-face", "monsters/ghoul-full", "monsters/dark-bear-face", "monsters/dark-bear-full", "monsters/skeleton-warrior-face", "monsters/skeleton-warrior-full", "monsters/living-stone-face", "monsters/living-stone-full", "monsters/wisp-face", "monsters/wisp-full", "monsters/pixie-face", "monsters/pixie-full", "monsters/green-boulder-face", "monsters/green-boulder-full", "monsters/stone-guardian-face", "monsters/stone-guardian-full", "monsters/spider-queen-face", "monsters/spider-queen-full", "monsters/ash-wraith-face", "monsters/ash-wraith-full", "monsters/ash-spirit-face", "monsters/ash-spirit-full", "monsters/plague-fat-face", "monsters/plague-fat-full", "monsters/bone-hound-face", "monsters/bone-hound-full", "monsters/dust-crawler-face", "monsters/dust-crawler-full", "monsters/faceless-ringer-face", "monsters/faceless-ringer-full", "monsters/mirror-dead-face", "monsters/mirror-dead-full", "monsters/whisperer-face", "monsters/whisperer-full", "monsters/morok-face", "monsters/morok-full", "monsters/grey-shade-face", "monsters/grey-shade-full", "monsters/blackwing-face", "monsters/blackwing-full", "monsters/swamp-fang-face", "monsters/swamp-fang-full", "monsters/web-spider-face", "monsters/web-spider-full", "monsters/goblin-shaman-face", "monsters/goblin-shaman-full", "monsters/goblin-assassin-face", "monsters/goblin-assassin-full", "monsters/goblin-trapper-face", "monsters/goblin-trapper-full", "monsters/goblin-elder-face", "monsters/goblin-elder-full", "monsters/hobgoblin-brute-face", "monsters/hobgoblin-brute-full", "monsters/hobgoblin-thrower-face", "monsters/hobgoblin-thrower-full", "monsters/hobgoblin-driver-face", "monsters/hobgoblin-driver-full", "monsters/goblin-thief-face", "monsters/goblin-thief-full", "monsters/horned-hare-face", "monsters/horned-hare-full", "monsters/swamp-toad-face", "monsters/swamp-toad-full", "monsters/burrower-face", "monsters/burrower-full", "monsters/crow-face", "monsters/crow-full", "monsters/dire-wolf-face", "monsters/dire-wolf-full", "monsters/werewolf-face", "monsters/werewolf-full", "monsters/giant-mole-face", "monsters/giant-mole-full", "monsters/bone-knight-face", "monsters/bone-knight-full", "monsters/gravedigger-face", "monsters/gravedigger-full", "monsters/corpse-eater-face", "monsters/corpse-eater-full", "monsters/drop-face", "monsters/drop-full", "monsters/dust-whirl-face", "monsters/dust-whirl-full", "monsters/magma-hound-face", "monsters/magma-hound-full", "monsters/crystalloid-face", "monsters/crystalloid-full", "monsters/lake-spirit-face", "monsters/lake-spirit-full", "monsters/magma-golem-face", "monsters/magma-golem-full", "monsters/deep-serpent-face", "monsters/deep-serpent-full", "monsters/crystal-colossus-face", "monsters/crystal-colossus-full", "monsters/storm-spirit-face", "monsters/storm-spirit-full", "monsters/rift-heart-face", "monsters/rift-heart-full", "items/compass", "items/steel-mace", "items/steel-rapier", "items/unknown-herb", "items/twin-daggers", "items/unknown-stone", "items/steel-twin-daggers", "items/potion-good", "items/coins", "items/steel-spear", "items/steel-warhammer", "items/steel-shortbow", "items/steel-longbow", "items/steel-armor-leather", "items/steel-armor-hide", "items/steel-armor-chainmail", "items/gloves", "items/staff", "items/axe", "items/greataxe", "items/firstaid", "items/flute", "items/chalice", "items/once-more", "items/guard", "items/beginners-luck", "buildings/tower", "buildings/guild", "buildings/church", "buildings/library", "buildings/gate", "buildings/tavern", "buildings/shop", "buildings/forge", "buildings/board", "buildings/hall", "races/gnome", "races/darkfairy", "monsters/rat-face", "monsters/rat-full", "monsters/rat-king-face", "monsters/rat-king-full", "monsters/rat-catcher-face", "monsters/rat-catcher-full", "monsters/silence-keeper-face", "monsters/silence-keeper-full", "monsters/orc-wolf-face", "monsters/orc-wolf-full", "monsters/orc-thrower-face", "monsters/orc-thrower-full", "monsters/orc-spear-face", "monsters/orc-spear-full", "monsters/orc-scout-face", "monsters/orc-scout-full", "monsters/orc-falcon-face", "monsters/orc-falcon-full", "monsters/mimic-face", "monsters/mimic-full", "monsters/orc-chief-face", "monsters/orc-chief-full", "items/repair-kit", "items/repair-kit-pro", "monsters/orc-executioner-face", "monsters/orc-executioner-full", "monsters/orc-shaman-face", "monsters/orc-shaman-full", "monsters/orc-guard-face", "monsters/orc-guard-full", "items/brotherhood-ring", "items/hearth", "items/mana-charm", "items/fatigue-charm", "items/hunger-charm", "items/steel-greataxe", "items/steel-axe", "items/steel-gloves", "items/steel-staff", "items/art-shadow-fang", "items/art-flurry-rapier", "items/art-reaper-axe", "items/art-ricochet-bow", "items/art-rift-hammer", "items/art-bastion-shield", "items/art-mirage-armor", "items/art-magnet-mail", "monsters/grey-vulture-face", "monsters/grey-vulture-full", "monsters/thorn-hound-face", "monsters/thorn-hound-full", "monsters/bone-ranger-face", "monsters/bone-ranger-full", "monsters/forge-smith-face", "monsters/forge-smith-full", "monsters/magma-wyrm-face", "monsters/magma-wyrm-full", "monsters/stone-elk-face", "monsters/stone-elk-full", "monsters/trap-master-face", "monsters/trap-master-full", "monsters/trap-queen-face", "monsters/trap-queen-full", "monsters/boulder-beetle-face", "monsters/boulder-beetle-full", "monsters/trap-crab-face", "monsters/trap-crab-full", "monsters/wire-spider-face", "monsters/wire-spider-full", "monsters/bolt-golem-face", "monsters/bolt-golem-full", "monsters/coal-beetle-face", "monsters/coal-beetle-full", "monsters/ember-salamander-face", "monsters/ember-salamander-full", "monsters/ash-executioner-face", "monsters/ash-executioner-full", "monsters/brazier-golem-face", "monsters/brazier-golem-full", "monsters/ember-reaper-face", "monsters/ember-reaper-full", "monsters/goblin-blaster-face", "monsters/goblin-blaster-full", "monsters/frost-beetle-face", "monsters/frost-beetle-full", "monsters/dead-vulture-face", "monsters/dead-vulture-full", "monsters/half-troll-face", "monsters/half-troll-full", "monsters/kobold-guard-face", "monsters/kobold-guard-full", "monsters/kobold-face", "monsters/kobold-full", "monsters/sand-vulture-face", "monsters/sand-vulture-full", "monsters/sand-worm-face", "monsters/sand-worm-full", "monsters/snow-hunter-face", "monsters/snow-hunter-full", "monsters/sand-scorpion-face", "monsters/sand-scorpion-full", "monsters/big-stinger-face", "monsters/big-stinger-full", "monsters/ice-spirit-face", "monsters/ice-spirit-full", "monsters/goblin-miner-face", "monsters/goblin-miner-full", "monsters/kel-worm-face", "monsters/kel-worm-full", "monsters/ice-deer-face", "monsters/ice-deer-full", "monsters/mammoth-calf-face", "monsters/mammoth-calf-full", "monsters/slime-face", "monsters/slime-full", "monsters/worm-larva-face", "monsters/worm-larva-full", "monsters/ice-imp-face", "monsters/ice-imp-full", "events/dig", "events/rift-open", "events/rift-enter", "events/floor-change", "monsters/mirage-scorpion-face", "monsters/mirage-scorpion-full", "monsters/toll-beetle-face", "monsters/toll-beetle-full", "monsters/echo-jackal-face", "monsters/echo-jackal-full", "monsters/pseudo-cactus-face", "monsters/pseudo-cactus-full", "monsters/toll-bull-face", "monsters/toll-bull-full", "monsters/shrieker-face", "monsters/shrieker-full", "monsters/toll-rat-face", "monsters/toll-rat-full", "monsters/choir-dead-face", "monsters/choir-dead-full", "monsters/bell-ringer-face", "monsters/bell-ringer-full", "monsters/toll-guard-face", "monsters/toll-guard-full"]);
 const artPath = p => `assets/${p}.${RASTER.has(p) ? "webp" : "svg"}`;
@@ -3958,6 +3958,13 @@ const SLOTS = {
 const GEAR = {
   clothes: { short: "Одежда", name: "Простая одежда", weight: 1.5, stack: 1, slot: "body", note: "Рубаха, штаны, плащ. Бонусов не даёт: КД 10 + Ловкость." },
   ration:  { short: "Паёк", name: "Паёк", weight: 1, stack: 10, use: "eat", note: "Еда и вода на сутки. 1 паёк = сыт 3 действия." },
+  // 10.11 (автор): колбы для эссенций (Башня магов) — одноразовые, очень лёгкие; сохраняют выпавшую эссенцию в рюкзаке (FLASKS)
+  "flask-low":    { short: "Колба", name: "Низкокачественная колба", weight: 0.1, stack: 5, note: "Сохраняет выпавшую эссенцию 9–8 класса; 7 класса — при броске к20 14+. Одноразовая." },
+  "flask-weak":   { short: "Колба+", name: "Слабая колба", weight: 0.1, stack: 5, note: "Сохраняет выпавшую эссенцию 9–6 класса; 5 класса — при броске к20 14+. Одноразовая." },
+  "flask-good":   { short: "Колба++", name: "Хорошая колба", weight: 0.1, stack: 5, note: "Сохраняет выпавшую эссенцию 9–4 класса; 3 класса — при броске к20 14+. Одноразовая." },
+  "flask-great":  { short: "Колба★", name: "Великолепная колба", weight: 0.1, stack: 5, note: "Сохраняет выпавшую эссенцию 9–2 класса; 1 класса — при броске к20 14+. Одноразовая." },
+  "flask-legend": { short: "Колба✦", name: "Легендарная колба", weight: 0.1, stack: 5, note: "Сохраняет выпавшую эссенцию любого класса; при броске к20 18+ не ломается." },
+  "ess-flask":    { short: "Эссенция", name: "Эссенция в колбе", weight: 0.1, stack: 1, use: "essflask", note: "Колбу можно разбить и впитать эссенцию или продать в магазине и Башне магов." },
   potion:  { short: "Зелье", name: "Слабое зелье лечения", weight: 0.25, stack: 5, use: "drink", heal: "1к4 + 2", note: "Восстанавливает 1к4 + 2 ОЗ (3–6, в среднем 4,5): около трети ОЗ героя 1-го уровня." },
   torch:   { short: "Факел", name: "Факел", weight: 0.5, stack: 5, note: "Горит около часа, яркий свет 6 м." },
   firstaid: { short: "Аптечка", name: "Набор первой помощи", weight: 0.5, stack: 3, note: "Набор на 3 заряда: каждое применение тратит один. Бинты, мазь и иглы. В бою — действие «Первая помощь»: останавливает кровотечение, лечит 1к4 ОЗ и поднимает павшего союзника. Научившись на курсе первой помощи в Академии, герой лечит заметно лучше." },
@@ -4152,6 +4159,8 @@ function itemOf(v, holder) {
       return known ? { ...g, id: v.id, kindOf: "gear", icon: ic, art: ART.gear(v.id) || undefined, known }
         : { ...g, id: v.id, kindOf: "gear", icon: ic, art: g.find === "mush" ? artPath("items/unknown-mushroom") : g.find === "herb" ? artPath("items/unknown-herb") : g.find === "sstone" ? artPath("items/unknown-stone") : undefined, known, name: g.alias, short: "?", use: g.use && "find", note: `Эффект неизвестен: нужен навык (${FIND_KIND[g.find].skills.map(k => Object.keys(SKILL_KEYS).find(n => SKILL_KEYS[n] === k)).join(" или ")}) или знания. Одноразовый.` };
     }
+    if (g && v.id === "ess-flask" && v.ess) { const e = ESSENCES[v.ess] || {}; return { ...g, id: v.id, kindOf: "gear", icon: GEAR_ICON.custom, art: typeof essFace === "function" ? essFace(v.ess) : undefined,
+      name: `Колба: ${typeof essTitle === "function" ? essTitle(v.ess) : e.name || v.ess}`, note: `Эссенция ${e.cls || "?"} класса${v.from ? " — " + v.from : ""}. ${g.note}` }; }
     if (g && v.id === "chalice") { const st = chaliceSt(v); return artMask({ ...g, id: v.id, kindOf: "gear", art: ART.gear("chalice") || undefined, icon: GEAR_ICON.chalice, name: st === "potion" ? "Чаша здоровья (зелье)" : st === "water" ? "Чаша здоровья (вода)" : "Чаша здоровья (пустая)",
       note: g.note + (st === "water" ? ` Вода настаивается: осталось ${v.wait} действ. из 6.` : st === "potion" ? " Внутри улучшенное зелье лечения: выпейте." : " Сейчас пуста.") }, v.id); }
     if (g && ARTIFACTS[v.id]) return artMask({ ...g, id: v.id, kindOf: "gear", art: ART.gear(v.id) || undefined, icon: GEAR_ICON[v.id] }, v.id);
@@ -4274,7 +4283,7 @@ function addToBag(c, e) {
   while (left > 0 && c.bag.length < bagSize(c)) {
     const n = Math.min(left, stackMax(e, c));
     const uses = e.t === "g" && GEAR[e.id].uses ? { uses: e.uses ?? GEAR[e.id].uses } : {};
-    c.bag.push(e.t === "c" ? { t: "c", name: e.name, qty: 1 } : { t: e.t, id: e.id, qty: n, ...uses, ...durKeep(e), ...(e.used != null ? { used: e.used } : {}) });
+    c.bag.push(e.t === "c" ? { t: "c", name: e.name, qty: 1 } : { t: e.t, id: e.id, qty: n, ...uses, ...durKeep(e), ...(e.used != null ? { used: e.used } : {}), ...(e.ess ? { ess: e.ess, from: e.from || "" } : {}) });
     left -= n;
   }
   return left;                                   // сколько не поместилось
@@ -4363,7 +4372,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 137;
+const BATTLE_REV = 138;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }
@@ -4389,9 +4398,23 @@ function loadBattle() {
 }
 /* ----- цены эссенций (решение автора: 9 класс — 50 монет; остальные по отношению цен камней 1 : 5 : 20; наценка за редких и особых — черновик) ----- */
 const ESS_BASE = { 9: 50, 8: 250, 7: 1000 };
-const ESS_RANK_MULT = { normal: 1, rare: 2, special: 3, guardian: 4, lord: 5 };
+// 10.11 (автор): надбавки к цене эссенции складываются: редкий +10 %, монстр разлома +20 %, страж +30 % (особый — как редкий, лорд — как страж: моё допущение)
+const ESS_RANK_ADD = { normal: 0, rare: 0.1, special: 0.1, guardian: 0.3, lord: 0.3 }, ESS_RIFT_ADD = 0.2;
+const essMods = id => { const m = MONSTERS.find(x => x.id === essSource(id)); if (!m) return 0; return (ESS_RANK_ADD[rankOf(m)] || 0) + (m.rift ? ESS_RIFT_ADD : 0); };
 const essBasePrice = id => ESS_BASE[(ESSENCES[id] || {}).cls] || 50;
-function essPrice(id) { const m = MONSTERS.find(x => x.id === essSource(id)); return essBasePrice(id) * (m ? ESS_RANK_MULT[rankOf(m)] || 1 : 1); }
+// Колбы: auto — сохраняет класс ≥ auto без броска; roll — этот класс при к20 ≥ need; keep — легендарная не ломается при к20 ≥ keep. rank — с какого ранга видна в Башне.
+const FLASKS = [
+  { id: "flask-low", price: 200, rank: 9, auto: 8, roll: 7, need: 14 },
+  { id: "flask-weak", price: 1000, rank: 7, auto: 6, roll: 5, need: 14 },
+  { id: "flask-good", price: 5000, rank: 5, auto: 4, roll: 3, need: 14 },
+  { id: "flask-great", price: 100000, rank: 3, auto: 2, roll: 1, need: 14 },
+  { id: "flask-legend", price: 1500000, rank: 1, auto: 1, roll: null, keep: 18 },
+];
+const flaskMode = (f, cls) => cls >= f.auto ? "auto" : f.roll && cls === f.roll ? "roll" : null;
+const flaskHolders = id => state.party.filter(c => !c.dead && countGear(c, id) > 0);
+// Цена эссенции в колбе при продаже: с надбавками −20 %; лавочник (магазин) берёт ещё на 20 % дешевле
+const essFlaskPrice = (id, shop) => Math.max(1, Math.round(essPrice(id) * 0.8 * (shop ? 0.8 : 1)));
+function essPrice(id) { return Math.round(essBasePrice(id) * (1 + essMods(id))); }          // церковь (удаление), будущий аукцион, арена, башня
 /* ----- доска объявлений: охота на монстров (черновик, drafts.md → «Доска, арена…») ----- */
 // Каждое возвращение из лабиринта на доске появляются 2 задания. Принятое держится 2 захода (runs), после 2-го — последний шанс сдать в городе; при следующем спуске сгорает.
 const QUEST_RUNS = 2;
@@ -4512,7 +4535,7 @@ function loadNet() {
   return netLoad;
 }
 /* ----- здания города (assets/js/town.js грузится при первом входе в здание) ----- */
-const TOWN_REV = 34, TOWN_FILES = ["assets/css/town.css", "assets/js/town.js"];
+const TOWN_REV = 35, TOWN_FILES = ["assets/css/town.css", "assets/js/town.js"];
 let townLoad = null;
 function loadTown() {
   if (window.Town && window.Town.ready) return Promise.resolve(true);
@@ -7264,7 +7287,7 @@ const artSeen = id => { if (ARTIFACTS[id]) artState().seen[id] = true; };       
 // Цена артефактов растёт с классом (решение автора 28.10); «Удача новичка» — на уровне 7 класса. Кузница и Башня магов скупают артефакты;
 // «своя» лавка (Башня — аксессуары, Кузница — броня и оружие) платит на 10 % больше. Надбавку нигде не показываем.
 const ART_PRICE = { 9: 300, 8: 700, 7: 1500, 6: 4000, 5: 10000, 4: 25000, 3: 100000, 2: 250000, 1: 1000000 },          // 10.11 (автор)
-      ART_PRICE_OVER = { "beginners-luck": 1500 }, ART_CAT = { boots: "armor", whetstone: "armor", "daedalus-hammer": "armor" };
+      ART_PRICE_OVER = { "beginners-luck": 1000 }, ART_CAT = { boots: "armor", whetstone: "armor", "daedalus-hammer": "armor" };
 const artValue = id => ART_PRICE_OVER[id] ?? ART_PRICE[ARTIFACTS[id].cls] ?? 100;
 const artBuyerMult = (id, b) => ((ART_CAT[id] || (typeof ART_WEAPONS !== "undefined" && (ART_WEAPONS[id] || ART_ARMORS[id]) ? "armor" : "acc")) === "acc") === (b === "tower") ? 1.1 : 1;
 for (const id of Object.keys(ARTIFACTS)) ARTIFACTS[id].price = artValue(id);
@@ -8638,6 +8661,7 @@ function selPanel(c) {
   const btns = [];
   if (it.use === "eat") btns.push(`<button class="fx-btn primary" data-hx="eat">Съесть 1</button>`);
   if (it.use === "drink") btns.push(`<button class="fx-btn primary" data-hx="drink">Выпить</button>`);
+  if (it.use === "essflask" && e.ess) btns.push(`<button class="fx-btn primary" data-hx="essflask">Разбить и впитать</button>`);
   if (it.use === "salt") btns.push(`<button class="fx-btn primary" data-hx="salt-toggle" aria-expanded="${!!heroUi.salt}">Посыпать оружие</button>`);
   if (e.id === "chalice") {
     const st = chaliceSt(e);
@@ -8912,6 +8936,16 @@ $hero.addEventListener("click", e => {
       if (!entry || chaliceSt(entry) !== "empty" || !canFillWater()) return;
       chaliceFill(entry); if (state.run) logRun(`${c.name} наполняет чашу здоровья водой: через 2 дня будет зелье.`);
       heroAfterChange("Чаша наполнена водой: через 2 дня станет зельем"); return;
+    }
+    case "essflask": {          // 10.11: разбить колбу — эссенция впитывается этим героем
+      const id = entry && entry.ess, mine = (c.essences ||= []); if (!id) return;
+      if (mine.length >= c.level) { toast("Нет свободного слота эссенций"); return; }
+      if (mine.includes(id)) { toast("У героя уже есть такая эссенция"); return; }
+      askYesNo({ title: "Разбить колбу?", text: `${c.name} разобьёт колбу и впитает «${essTitle(id)}». Колба пропадёт.`, yes: "Разбить и впитать" }).then(ok => {
+        if (!ok) return; const i = c.bag.indexOf(entry); if (i < 0 || mine.length >= c.level) return;
+        c.bag.splice(i, 1); heroUi.sel = null; const hp0 = hpOf(c), mx0 = maxHp(c); mine.push(id); markEssNamed(id); c.hp = Math.min(maxHp(c), hp0 + Math.max(0, maxHp(c) - mx0)); c.mp = Math.min(maxMp(c), mpOf(c));
+        heroAfterChange(`${c.name} разбил колбу и впитал: ${ESSENCES[id].name}`);
+      }); return;
     }
     case "drink": {
       entry.qty--; if (!entry.qty) { c.bag.splice(heroUi.sel, 1); heroUi.sel = null; }

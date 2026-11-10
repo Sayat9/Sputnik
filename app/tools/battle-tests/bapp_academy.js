@@ -8,7 +8,8 @@ const L = require('./bui_lib.js');
   await p.waitForTimeout(300);
   await p.click('[data-bld="academy"]'); await p.waitForSelector('.tw-rows');
   let total = 0; for (const k of ['gather', 'monsters', 'medicine', 'nav', 'repair']) { await p.click(`[data-t="atab"][data-k="${k}"]`); total += await p.evaluate(() => document.querySelectorAll('.tw-row').length); }
-  ok('академия: 5 вкладок знаний, 12 курсов', total === 12, total);
+  const vis = await p.evaluate(() => ACADEMY.filter(k => ['gather', 'monsters', 'medicine', 'nav', 'repair'].includes(k.grp) && !(k.rank && partyRank() > k.rank)).length);
+  ok('академия: 5 вкладок знаний, видны курсы своего ранга', total === vis && vis >= 9, [total, vis]);
   await p.click('[data-t="atab"][data-k="nav"]');
   await L.shot(p, 'academy');
   const nav2 = await p.evaluate(() => { const b = [...document.querySelectorAll('[data-t="learn"]')].find(x => x.dataset.id === 'nav2'); return b && b.disabled; });

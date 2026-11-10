@@ -39,7 +39,7 @@
   // Ранг (03.11): анализ эссенции N класса — с N-го ранга; цена текущего ранга +10 %, прошлых рангов — на 10 % меньше неё.
   const towerOpen = id => (ESSENCES[id] || {}).cls >= partyRank();
   const towerPrice = id => { const cls = (ESSENCES[id] || {}).cls || 9, m = 1.1 * (cls > partyRank() ? 0.9 : 1); return Math.max(1, Math.round(essPrice(id) / 3 * m)); };                            // детали эссенции в башне — треть её цены, только для впитанной (решение автора)
-  const churchPrice = id => essBasePrice(id);                                                    // удаление — полная цена обычной эссенции того же ранга (решение автора)
+  const churchPrice = id => essPrice(id);          // 10.11 (автор): удаление — цена эссенции с надбавками (редкий +10 %, разлом +20 %, страж +30 %)                                                    // удаление — полная цена обычной эссенции того же ранга (решение автора)
   const INFO_PRICE = { type: 5, portrait: 8, spawn: 10, body: 10, stats: 15, area: 30, "ess-stats": 45, "ess-passive": 60, "ess-active": 80 };          // сведения дорогие: места обитания — особенно, детали эссенций — ещё дороже
   const CLS_MULT = { 9: 1, 8: 5, 7: 20 };                                                         // как цена камня
   const INFO_SELL = 0.25;                                                                          // доля цены, которую платит гильдия за изученного монстра
@@ -176,6 +176,7 @@
       const e = (c.bag || [])[sel.i], it = e && itemOf(e, c); if (!it) return "";
       if (e.art && ARTIFACTS[e.art] && (ui.b === "forge" || ui.b === "shop")) { const row = artRows().find(r => r.key === `b:${c.id}:${sel.i}`); if (row) return `<b>${esc(artName(e.art))}</b><span class="tw-btns"><button class="fx-btn primary" data-t="artsell" data-key="${row.key}" data-b="forge">Продать · +${artPay(row, "forge")}</button></span><span class="tw-hint">Артефакты скупает кузнец.</span>`; }
       if ((ui.b === "shop" || ui.b === "forge") && gearMarket(e)) return `<b>${esc(it.name)}</b><span class="tw-btns"><button class="fx-btn primary" data-t="sellall" data-i="${sel.i}">Продать · +${gearPay(e)}</button></span><span class="tw-hint">${ui.b === "forge" ? "Кузнец берёт на 10 % ниже рыночной цены" : "Магазин берёт на 20 % ниже рыночной цены"}${e.broken ? "; сломанное — пятая часть" : ""}. Надетое сначала снимите во вкладке героя.</span>`;
+      if (e.id === "ess-flask" && e.ess && (ui.b === "shop" || ui.b === "tower")) { const pr = essFlaskPrice(e.ess, ui.b === "shop"); return `<b>${esc(it.name)}</b><span class="tw-btns"><button class="fx-btn primary" data-t="essflask-sell" data-i="${sel.i}">Продать · +${pr}</button></span><span class="tw-hint">${ui.b === "shop" ? "Лавочник берёт эссенции дешевле Башни магов" : "Башня платит цену эссенции −20 %"}</span>`; }
       if (ui.b === "shop" && unitPrice(e) > 0) { const q = e.qty || 1, one = sellValue(e, 1), all = sellValue(e, q); return `<b>${esc(it.name)}${q > 1 ? " × " + q : ""}</b><span class="tw-btns">${one ? `<button class="fx-btn" data-t="sell1" data-i="${sel.i}">Продать 1 · +${one}</button>` : ""}<button class="fx-btn primary" data-t="sellall" data-i="${sel.i}"${all ? "" : " disabled"}>Продать${q > 1 ? " все" : ""} · +${all}</button></span><span class="tw-hint">Стандартная цена: за штуку ${(Math.round(unitPrice(e) * 100) / 100)} монет.</span>`; }
       return `<b>${esc(it.name)}${e.qty > 1 ? " × " + e.qty : ""}</b><span class="tw-hint">${sellsStones() ? "Магазин скупает камни (из сумки) и расходники: пайки, зелья, факелы, стрелы, лопаты, аптечки." : "Кузнец ничего не скупает."}</span>`;
     }
@@ -206,7 +207,7 @@
     const c = hero(), forge = ui.b === "forge", title = forge ? "Кузница" : "Магазин";
     if (!c) return frame(title, "Рафдония", noParty());
     const left = `<aside class="tw-bagcol">${heroStrip()}<div class="gold-row">${COIN_SVG}<b>${goldOf(c)}</b><small>монет у героя</small></div>${bagGrid(c, ui.sel && ui.sel.side === "bag" ? ui.sel.i : null)}${forge ? "" : sackTile()}</aside>`;
-    const tabs = forge ? `<div class="tw-tabs"><button class="fx-btn" role="tab" aria-selected="${(ui.tab || "base") === "base"}" data-t="ftab" data-k="base">Обычное</button><button class="fx-btn" role="tab" aria-selected="${ui.tab === "steel"}" data-t="ftab" data-k="steel"${steelOpen() ? "" : " disabled"}>${steelOpen() ? "Улучшенное" : "Улучшенное · 8 ранг"}</button><button class="fx-btn" role="tab" aria-selected="${ui.tab === "fix"}" data-t="ftab" data-k="fix">Починка</button></div>` : "";
+    const tabs = forge ? `<div class="tw-tabs"><button class="fx-btn" role="tab" aria-selected="${(ui.tab || "base") === "base"}" data-t="ftab" data-k="base">Обычное</button>${steelOpen() ? `<button class="fx-btn" role="tab" aria-selected="${ui.tab === "steel"}" data-t="ftab" data-k="steel">Улучшенное</button>` : ""}<button class="fx-btn" role="tab" aria-selected="${ui.tab === "fix"}" data-t="ftab" data-k="fix">Починка</button></div>` : "";
     if (forge && ui.tab === "fix") {
       const right0 = `<section class="tw-shopcol"><div class="tw-keeper">${img("assets/npc/smith.webp", "Кузнец")}<div class="tw-bubble">${ui.tab === "fix" ? "Что сломалось — несите, всё починю." : "Редкие вещи беру за хорошие деньги."}</div></div><div class="tw-sheet"><div class="tw-rod"></div><div class="tw-sheet-in">${tabs}${ui.tab === "fix" ? fixHtml(c) : artSellHtml("forge")}</div></div></section>`;
       return `<div class="tw-panel fx-frame">${head(title, "Рафдония")}<div class="tw-shop">${left}${right0}</div><footer class="tw-foot">${msgLine()}</footer></div>`;
@@ -651,8 +652,15 @@
     B.tower = {
       render() {
         const c = hero(); if (!c) return frame("Башня магов", "Рафдония", noParty());
-        const tab = ui.tab === "art" ? "art" : "ess";
-        const tabs = `<div class="tw-tabs"><button class="fx-btn" role="tab" aria-selected="${tab === "ess"}" data-t="ttab" data-k="ess">Эссенции</button><button class="fx-btn" role="tab" aria-selected="${tab === "art"}" data-t="ttab" data-k="art">Артефакты</button></div>`;
+        const tab = ui.tab === "art" ? "art" : ui.tab === "flask" ? "flask" : "ess";
+        const tabs = `<div class="tw-tabs"><button class="fx-btn" role="tab" aria-selected="${tab === "ess"}" data-t="ttab" data-k="ess">Эссенции</button><button class="fx-btn" role="tab" aria-selected="${tab === "art"}" data-t="ttab" data-k="art">Артефакты</button><button class="fx-btn" role="tab" aria-selected="${tab === "flask"}" data-t="ttab" data-k="flask">Колбы</button></div>`;
+        if (tab === "flask") {          // 10.11 (автор): колбы для эссенций — видны с нужного ранга; продажа эссенций в колбах
+          const buyRows = FLASKS.filter(f => partyRank() <= f.rank).map(f => `<div class="tw-row"><div class="tw-who"><div><b>${esc(GEAR[f.id].name)}</b><small>${esc(GEAR[f.id].note)} Есть у ${esc(c.name)}: ${countGear(c, f.id)}.</small></div></div><button class="fx-btn primary" data-t="flask-buy" data-id="${f.id}"${partyGold() >= f.price ? "" : " disabled"}>${f.price}</button></div>`).join("");
+          const own = (c.bag || []).map((e, i) => ({ e, i })).filter(x => x.e.id === "ess-flask" && x.e.ess);
+          const sellRows = own.map(({ e, i }) => `<div class="tw-row"><div class="tw-who"><div><b>${esc(itemOf(e, c).name)}</b><small>${ESSENCES[e.ess] ? ESSENCES[e.ess].cls + " класс" : ""}${e.from ? " · " + esc(e.from) : ""}</small></div></div><button class="fx-btn" data-t="essflask-sell" data-i="${i}">Продать · +${essFlaskPrice(e.ess, false)}</button></div>`).join("");
+          return frame("Башня магов", "Рафдония", `<div class="tw-npc framed">${img("assets/npc/mage.webp", "Маг башни")}<span>Колбы удержат эссенцию, пока вы не решите, что с ней делать.</span></div>${heroStrip()}${tabs}<p class="tw-lead">Колба сохраняет выпавшую эссенцию в рюкзаке. Разбить колбу и впитать эссенцию можно в любой момент (меню героя).</p>
+            <div class="tw-rows">${buyRows}</div>${own.length ? `<p class="tw-lead">Эссенции в колбах у ${esc(c.name)}</p><div class="tw-rows">${sellRows}</div>` : ""}${msgLine()}`);
+        }
         if (tab === "art") {
           artSync();
           const ids = Object.keys(ARTIFACTS).filter(id => artState().seen[id]);
@@ -698,7 +706,7 @@
   const mapPrice = m => Math.max(1, Math.round(m.price * (m.cls > partyRank() ? 0.9 : 1)));
   const mapOwned = m => !!(inventory().maps || {})[m.key]?.owned;
   function mapRows() {
-    return MAP_SHOP().map(m => { const open = m.cls >= partyRank(), own = mapOwned(m), pr = mapPrice(m);
+    return MAP_SHOP().filter(m => m.cls >= partyRank()).map(m => {          /* 10.11: карты старших рангов скрыты */ const open = m.cls >= partyRank(), own = mapOwned(m), pr = mapPrice(m);
       return `<div class="tw-row"><div class="tw-who"><div><b>${esc(m.name)}</b><small>${own ? "уже есть у отряда" : open ? "весь этаж севером вверх, без позиции отряда" : `нужен ${m.cls} ранг`}</small></div></div>
         ${own ? `<span class="tw-done">${ICO_CHECK}</span>` : `<button class="fx-btn primary" data-t="buymap" data-k="${m.key}"${open && partyGold() >= pr ? "" : " disabled"}>${open ? pr : m.cls + " ранг"}</button>`}</div>`; }).join("");
   }
@@ -712,7 +720,7 @@
       const c = hero(); if (!c) return frame("Академия", "Рафдония", noParty());
       const tab = ui.tab && ACADEMY_GROUPS.some(g => g[0] === ui.tab) ? ui.tab : "gather";
       const tabs = `<div class="tw-tabs" role="tablist">${ACADEMY_GROUPS.map(([id, label]) => `<button class="fx-btn" role="tab" aria-selected="${tab === id}" data-t="atab" data-k="${id}">${label}${ACADEMY.filter(k => k.grp === id && eduKnows(c, k.id)).length ? " ✓" : ""}</button>`).join("")}</div>`;
-      const rows = tab === "rank" ? rankRows(c) : tab === "maps" ? mapRows() : ACADEMY.filter(k => k.grp === tab).map(k => {
+      const rows = tab === "rank" ? rankRows(c) : tab === "maps" ? mapRows() : ACADEMY.filter(k => k.grp === tab && !(k.rank && partyRank() > k.rank)).map(k => {          /* 10.11 (автор): курсы старших рангов не видны до ранга */
         const known = eduKnows(c, k.id), locked = k.need && !eduKnows(c, k.need), rankLock = k.rank && partyRank() > k.rank, condLock = k.cond && !k.cond(), can = !known && !locked && !rankLock && !condLock && partyGold() >= eduPrice(k);
         return `<div class="tw-row"><div class="tw-who"><div><b>${esc(k.name)}</b><small>${k.text ? esc(k.text) : ""}${locked ? " · сначала «" + esc(ACADEMY.find(x => x.id === k.need).name) + "»" : ""}${k.rank ? ` · с ${k.rank} ранга` : ""}${condLock ? " · " + esc(k.condText || "особое условие") : ""}</small></div></div>
           ${known ? `<span class="tw-done">${ICO_CHECK}</span>` : `<button class="fx-btn primary" data-t="learn" data-id="${k.id}"${can ? "" : " disabled"}>${rankLock ? k.rank + " ранг" : eduPrice(k) < k.price ? `<s style="opacity:.6">${k.price}</s> ${eduPrice(k)}` : k.price}</button>`}</div>`; }).join("");
@@ -746,6 +754,17 @@
   const gearPay = e => Math.max(1, Math.round(gearMarket(e) * (ui && ui.b === "forge" ? 0.9 : 0.8)));
   const unitPrice = e => { const g = GOODS.find(x => x.e && x.e.t === "g" && e && e.t === "g" && x.e.id === e.id); return g ? g.base / g.e.qty * (partyHas("goblin-merchant") ? 1.1 : 1) : 0; };          // продажа — от базовой цены (ранг на неё не влияет)
   const sellValue = (e, n) => Math.floor(unitPrice(e) * n + 1e-9);
+  // 10.11: эссенция в колбе — продажа (Башня: цена эссенции с надбавками −20 %, магазин — ещё −20 %)
+  function sellEssFlask(i, c0) {
+    const c = c0 || hero(), e = (c.bag || [])[i]; if (!e || e.id !== "ess-flask" || !e.ess) return;
+    const g = essFlaskPrice(e.ess, ui.b === "shop"), name = itemOf(e, c).name; c.bag.splice(i, 1); addGold(c, g); visit(); ui.sel = null; ui.msg = `Продано: ${name} за ${g} монет — ${c.name}.`; saveChar();
+  }
+  function buyFlask(id) {
+    const c = hero(), f = FLASKS.find(x => x.id === id); if (!c || !f || partyRank() > f.rank) return;
+    if (partyGold() < f.price) { ui.msg = "Не хватает монет."; return; }
+    if (addToBag(c, { t: "g", id, qty: 1 }) > 0) { ui.msg = `У ${c.name} нет места в рюкзаке.`; return; }
+    payGold(c, f.price); visit(); ui.msg = `Куплена: ${GEAR[id].name} — ${c.name}.`; saveChar();
+  }
   function sellItem(i, all) {
     const c = hero(), e = (c.bag || [])[i]; if (!e || (ui.b !== "shop" && !(ui.b === "forge" && gearMarket(e)))) return;
     const have = e.qty || 1, n = all ? have : 1, g = gearMarket(e) ? gearPay(e) * n : sellValue(e, n);
@@ -753,7 +772,7 @@
     const it = itemOf(e, c); if (gearMarket(e)) { c.bag.splice(i, 1); } else if (!takeGear(c, e.id, n)) { ui.msg = "Не получилось забрать предмет."; return; }
     addGold(c, g); visit(); ui.sel = null; ui.talk = talk(); ui.msg = `Продано: ${it.name}${n > 1 ? " × " + n : ""} за ${g} монет — ${c.name}.`; saveChar();
   }
-  function offer(i) { if (ui.b === "shop" || ui.b === "forge") { const e = ((hero().bag || [])[i]); if (e && (gearMarket(e) || (ui.b === "shop" && unitPrice(e) > 0))) { sellItem(i, true); return; } } ui.msg = sellsStones() ? "Магазин скупает камни (из сумки) и расходники." : "Кузнец ничего не скупает."; }
+  function offer(i) { if (ui.b === "shop") { const e0 = (hero().bag || [])[i]; if (e0 && e0.id === "ess-flask" && e0.ess) { sellEssFlask(i); return; } } if (ui.b === "shop" || ui.b === "forge") { const e = ((hero().bag || [])[i]); if (e && (gearMarket(e) || (ui.b === "shop" && unitPrice(e) > 0))) { sellItem(i, true); return; } } ui.msg = sellsStones() ? "Магазин скупает камни (из сумки) и расходники." : "Кузнец ничего не скупает."; }
   function buy(n) {
     const c = hero(), g = goodByKey(ui.sel.key); if (!g || owned(g)) return;
     const cost = g.price * n;
@@ -916,6 +935,8 @@
         if (up.length) { ui.msg = up.map(h => `${h.name} теперь ${h.rank} ранга!`).join(" "); visit(); saveChar(); } break; }
       case "atab": ui.tab = ds.k; break;
       case "ttab": ui.tab = ds.k; break;
+      case "flask-buy": buyFlask(ds.id); break;
+      case "essflask-sell": sellEssFlask(+ds.i); break;
       case "aid": identify(ds.id); break;
       case "artsell": artSell(ds.key, ds.b); break;
       case "purge": purge(ds.id); break;
