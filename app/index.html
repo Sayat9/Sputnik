@@ -1232,7 +1232,9 @@ const WEAPONS = [
 const W_FLAVOR = { pike: "Длинное древко с узким гранёным наконечником — укороченное копьё всадника.", spear: "Ясеневое древко с кованым наконечником.", mace: "Железное навершие на окованной рукояти.", warhammer: "Тяжёлый молот дварфийской работы.", sword: "Прямой железный клинок.", dagger: "Короткий клинок с широкой крестовиной.", rapier: "Тонкий и лёгкий клинок.", greatsword: "Длинный тяжёлый меч для двух рук.", shortbow: "Лёгкий лук из дерева и жилы.", longbow: "Тисовый лук в рост человека.", gloves: "Кожаные перчатки с железными накладками.", staff: "Ясеневая жердь с железным оголовьем.", axe: "Одноручный топор с острым лезвием.", greataxe: "Тяжёлая двуручная секира.", arrows: "Стрелы с железными наконечниками.", shield: "Дубовые доски с железной оковкой.", "tower-shield": "Высокая стена из досок с железными полосами." };
 const A_FLAVOR = { leather: "Варёная кожа, пропитанная жиром.", hide: "Толстые шкуры и мех.", chainmail: "Кольчуга с подкольчужником." };
 const kgTxt = n => String(n).replace(".", ",") + " кг";
-const weaponStats = w => `${w.group === "shield" ? w.dmg : `Урон ${w.dmg}${w.type ? " " + w.type : ""}`}${w.props && w.props.length ? " · " + w.props.join(", ") : ""} · ${kgTxt(w.weight)}.`;
+// 10.11 (автор): от какой характеристики считаются атака и урон оружия (как в бою: atkFrom, battle-act.js)
+const weaponAbilText = w => !w || w.group === "shield" ? "" : w.group === "ranged" ? "Ловкость" : (w.props || []).some(x => /Фехтовальное/.test(x)) ? "Сила или Ловкость (что выше)" : "Сила";
+const weaponStats = w => `${w.group === "shield" ? w.dmg : `Урон ${w.dmg}${w.type ? " " + w.type : ""}`}${w.props && w.props.length ? " · " + w.props.join(", ") : ""}${weaponAbilText(w) ? " · атака и урон: " + weaponAbilText(w) : ""} · ${kgTxt(w.weight)}.`;
 const DEF_ARMOR = { clothes: { prot: 1, dodge: 0 }, light: { prot: 2, dodge: 1 }, medium: { prot: 3, dodge: 2 }, heavy: { prot: 4, dodge: 3 } };
 const DEF_SHIELD = { shield: { prot: 2, dodge: 1 }, "tower-shield": { prot: 4, dodge: 2 } };
 const OVERLOAD = { ok: { dodge: 0, speed: 0 }, light: { dodge: 1, speed: 1.5 }, medium: { dodge: 2, speed: 3 }, max: { dodge: 3, speed: 6 } };
@@ -7765,7 +7767,7 @@ function restOverlay() {
       <p>Караульный не спит и не получает бонусов отдыха. Спящие снимают 2 уровня Усталости (1, если голодны) и восстанавливают ОЗ: доля от максимума по Усталости (0 → 50%, 1 → 40%, 2 → 30%, 3 → 20%, 4 → 10%) плюс мод. ТЕЛ; голодным вдвое меньше. Справа — сколько пайков съест герой.</p>
       ${treasure("guard").owned ? `<button class="fx-btn guard" data-dg="ng-toggle" aria-pressed="${!!rs.ng}"${ngCharges() > 0 || rs.ng ? "" : " disabled"} style="display:flex;align-items:center;gap:8px;justify-content:center;width:100%;margin:2px 0 8px"><span style="width:22px;height:22px;display:inline-flex">${ICO_GUARD}</span>${artKnown("guard") ? "Ночной страж · заряды " + ngCharges() : "Артефакт ??"}${rs.ng ? " (сторожит эту ночь)" : ""}</button>` : ""}
       ${treasure("hearth").owned ? `<button class="fx-btn guard" data-dg="hearth-toggle" aria-pressed="${!!rs.hearth}"${r.hearthUsed ? " disabled" : ""} style="display:flex;align-items:center;gap:8px;justify-content:center;width:100%;margin:2px 0 8px"><span style="width:22px;height:22px;display:inline-flex">${ICO_HEARTH}</span>${artKnown("hearth") ? "Вечный очаг" : "Артефакт ??"} · ${r.hearthUsed ? "использован в этом заходе" : rs.hearth ? "применится после сна" : "готов (раз за заход)"}</button>` : ""}
-      ${fluteHeroes().length ? `<button class="fx-btn guard flute-btn${rs.flute ? " on" : ""}" data-dg="flute-toggle" aria-pressed="${!!rs.flute}">${rs.flute ? "✓ " : ""}Сыграть на флейте (${esc(fluteHeroes()[0].name)})<small>${fluteItemOf(fluteHeroes()[0]).id === "calm-flute" ? "Флейта успокоения" : "Флейта"}: +1 действие, к20 + Лов или Инт — может снять Усталость отряда (фальшивая нота добавит)</small></button>` : ""}
+      ${fluteHeroes().length ? `<button class="fx-btn guard flute-btn${rs.flute ? " on" : ""}" data-dg="flute-toggle" aria-pressed="${!!rs.flute}">${rs.flute ? "✓ " : ""}Сыграть на флейте (${esc(fluteHeroes()[0].name)})</button>` : ""}
       ${treasure("flask").owned ? `<button class="fx-btn guard" data-dg="flask-toggle" aria-pressed="${!!rs.flask}"${trReady("flask") ? "" : " disabled"} style="display:flex;align-items:center;gap:8px;justify-content:center;width:100%;margin:2px 0 8px"><span style="width:22px;height:22px;display:inline-flex">${ICO_FLASK}</span>${artKnown("flask") ? "Фляга странника" : "Артефакт ??"} · ${rs.flask ? "один паёк не тратится" : cdText("flask")}</button>` : ""}
       ${repairHtml(rs)}
       ${rs.together ? `<p style="color:var(--fx-gold-hi)">Путники делят с вами костёр: караул не нужен, ночной встречи не будет, бонусы отдыха работают как обычно.</p>` : ""}
@@ -8486,6 +8488,7 @@ function itemInfoText(it) {
   const base = it.note || it.desc || "";
   if (base) parts.push(esc(base));
   if (it.kindOf === "weapon" && it.dmg) parts.push(`${it.kind || ""}${it.kind ? ", " : ""}${it.dmg} ${it.type || ""}${it.props && it.props.length ? " · " + it.props.join(", ") : ""}`);
+  if (it.kindOf === "weapon" && it.dmg && weaponAbilText(it) && !/атака и урон/i.test(base)) parts.push(`Атака и урон: <b>${weaponAbilText(it)}</b>`);
   if (it.kindOf === "armor") parts.push(armorDef(it));
   return parts.map(t => `<p>${t}</p>`).join("");
 }
