@@ -4403,12 +4403,13 @@ const ESS_RANK_ADD = { normal: 0, rare: 0.1, special: 0.1, guardian: 0.3, lord: 
 const essMods = id => { const m = MONSTERS.find(x => x.id === essSource(id)); if (!m) return 0; return (ESS_RANK_ADD[rankOf(m)] || 0) + (m.rift ? ESS_RIFT_ADD : 0); };
 const essBasePrice = id => ESS_BASE[(ESSENCES[id] || {}).cls] || 50;
 // Колбы: auto — сохраняет класс ≥ auto без броска; roll — этот класс при к20 ≥ need; keep — легендарная не ломается при к20 ≥ keep. rank — с какого ранга видна в Башне.
+// 10.11 (автор): цена колбы = базовая цена эссенции старшего класса, который она сохраняет без броска (ESS_BASE[auto])
 const FLASKS = [
-  { id: "flask-low", price: 200, rank: 9, auto: 8, roll: 7, need: 14 },
-  { id: "flask-weak", price: 1000, rank: 7, auto: 6, roll: 5, need: 14 },
-  { id: "flask-good", price: 5000, rank: 5, auto: 4, roll: 3, need: 14 },
-  { id: "flask-great", price: 100000, rank: 3, auto: 2, roll: 1, need: 14 },
-  { id: "flask-legend", price: 1500000, rank: 1, auto: 1, roll: null, keep: 18 },
+  { id: "flask-low", price: 250, rank: 9, auto: 8, roll: 7, need: 14 },
+  { id: "flask-weak", price: 2500, rank: 7, auto: 6, roll: 5, need: 14 },
+  { id: "flask-good", price: 50000, rank: 5, auto: 4, roll: 3, need: 14 },
+  { id: "flask-great", price: 1250000, rank: 3, auto: 2, roll: 1, need: 14 },
+  { id: "flask-legend", price: 10000000, rank: 1, auto: 1, roll: null, keep: 18 },
 ];
 const flaskMode = (f, cls) => cls >= f.auto ? "auto" : f.roll && cls === f.roll ? "roll" : null;
 const flaskHolders = id => state.party.filter(c => !c.dead && countGear(c, id) > 0);
