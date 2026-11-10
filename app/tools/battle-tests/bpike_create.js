@@ -1,0 +1,25 @@
+// 10.11: создание героя — пика + ростовой щит в любом порядке выбора; в карточке оружия — «атака и урон: …».
+const L = require('./bui_lib.js');
+(async () => { const { b, p } = await L.launch(400, 860); let n = 0, bad = 0; const errs = []; p.on('pageerror', e => errs.push(e.message));
+  const ok = (t, c, d) => { n++; if (!c) bad++; console.log(`  ${c ? '✓' : '✗'} ${t}${c ? '' : ' — ' + JSON.stringify(d)}`); };
+  await L.setup(p, { heroes: ['barb2'], autoEnd: false });
+  const R = await p.evaluate(() => { const o = {};
+    const make = (race, first, second, name) => { openForge('race', 'more'); forge.draft = newDraft(); forge.draft.race = race; forge.draft.gender = 'm'; forge.step = 'weapon'; renderForge();
+      document.querySelector(`[data-fx-weapon="${first}"]`).click();
+      const cand = document.querySelector(`[data-fx-weapon="${second}"]`).classList.contains('cand');
+      document.querySelector(`[data-fx-weapon="${second}"]`).click(); const offW = forge.draft.offW;
+      const d = forge.draft; d.name = name; d.base = { str: '13', dex: '12', con: '12', int: '10', wis: '10', cha: '10' }; d.rolls = null; forge.step = 'identity'; finishDraft();
+      const c = state.party.find(x => x.name === name), fe = (forge.errors || []).map(e => e.m); if (typeof closeForge === 'function') closeForge();
+      return { cand, offW, errs: fe, main: c && c.equip.main && c.equip.main.id, off: c && c.equip.off && c.equip.off.id, gg: c && c.giantGrip };
+    };
+    o.a = make('human', 'pike', 'tower-shield', 'ПикаЩит'); o.b = make('human', 'tower-shield', 'pike', 'ЩитПика'); o.c = make('barbarian', 'pike', 'tower-shield', 'ВарПика');
+    openForge('race', 'more'); forge.draft = newDraft(); forge.draft.race = 'human'; forge.step = 'weapon'; renderForge();
+    o.txt = ['rapier', 'longbow', 'greataxe'].map(id => (document.querySelector(`[data-fx-weapon="${id}"] .st`) || {}).textContent);
+    return o; });
+  ok('пика → ростовой щит подсвечен и берётся', R.a.cand && R.a.offW === 'tower-shield', R.a);
+  ok('герой: пика в правой, ростовой щит в левой', R.a.main === 'pike' && R.a.off === 'tower-shield', R.a);
+  ok('щит → пика: тоже, пика в правую', R.b.cand && R.b.main === 'pike' && R.b.off === 'tower-shield', R.b);
+  ok('варвар: без «Великана»', R.c.main === 'pike' && R.c.off === 'tower-shield' && !R.c.gg, R.c);
+  ok('карточки: атака и урон', /Сила или Ловкость/.test(R.txt[0]) && /Ловкость/.test(R.txt[1]) && /: Сила/.test(R.txt[2]), R.txt);
+  ok('errs: нет', !errs.length, errs);
+  console.log(`проверок: ${n}, не прошли: ${bad}`); await b.close(); process.exit(bad ? 1 : 0); })();

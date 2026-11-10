@@ -4896,6 +4896,7 @@ const canTwinWeapon = (w, race) => !!w && ((w.props || []).includes("Лёгко�
 // варвар — любое оружие ближнего боя, в том числе двуручное и ростовой щит («Великан» держит его одной рукой); остальные — лёгкое к лёгкому, кинжал к перчатке.
 function offCandidate(w, x, race) {
   if (!w || !x || x.id === w.id || w.group === "ranged" || x.group !== "melee") return false;
+  if (pikeShield(w, x) || pikeShield(x, w)) return true;          // 10.11: пика + ростовой щит — в любом порядке выбора (пика пойдёт в правую руку)
   if (race === "barbarian") return true;
   if (w.id === "gloves") return false;          // к одной перчатке кинжал — отдельной карточкой «Кинжал»
   return canTwinWeapon(w, race) && canTwinWeapon(x, race) && !isTwoHandedWeapon(w) && !isTwoHandedWeapon(x);
@@ -4912,7 +4913,7 @@ function forgeWeapon() {
     <p class="fx-p">Выбери стартовое оружие. Оно сразу окажется в руке героя.</p>
     <p class="fx-p wpn-tip">${d.weapon ? "Подсвечено то, что можно взять во вторую руку, — нажми, чтобы взять (ещё раз — убрать). " : ""}Нажми ещё раз на выбранное лёгкое оружие или перчатки — возьмёшь пару (×2).</p>
     <div class="wpn-grid${d.weapon && d.knife ? " twin-on" : ""}">${START_WEAPONS().map(x => { const on = d.weapon === x.id, twin = on && d.knife && canTwinWeapon(x, d.race), cand = !!w && !d.knife && offCandidate(w, x, d.race), left = cand && d.offW === x.id, off = d.weapon && !on && !cand;          // подсвечено: можно во вторую руку; остальное затемнено
-      const st = left ? `левая рука · ${x.dmg} ${x.type}` : twin ? (x.id === "gloves" ? "пара: 2к4 · Защита +3 · Уворот −1" : x.id === "sword" ? "два меча: одна атака −2, урон +30 % · Уворот −1" : isTwoHandedWeapon(x) ? `пара: ${x.dmg} ×2 · −6 к Ловкости` : `пара: ${x.dmg} ×2 одной атакой (каждый удар ×0,6)`) : `${x.dmg} ${x.type} · ${kgf(x.weight)} кг`;
+      const st = left ? `левая рука · ${x.dmg} ${x.type}` : twin ? (x.id === "gloves" ? "пара: 2к4 · Защита +3 · Уворот −1" : x.id === "sword" ? "два меча: одна атака −2, урон +30 % · Уворот −1" : isTwoHandedWeapon(x) ? `пара: ${x.dmg} ×2 · −6 к Ловкости` : `пара: ${x.dmg} ×2 одной атакой (каждый удар ×0,6)`) : `${x.dmg} ${x.type} · ${kgf(x.weight)} кг${weaponAbilText(x) ? ` · <span class="wpn-ab">атака и урон: ${weaponAbilText(x)}</span>` : ""}`;
       return `
       <button class="race-card fx-frame${on ? " picked" : ""}${twin ? " twin" : ""}${off ? " off" : ""}${cand ? " cand" : ""}${left ? " left" : ""}" data-fx-weapon="${x.id}" aria-pressed="${on || left}">
         <div class="wpn-art">${img(ART.weapon(x.id), x.name)}${on ? `<span class="tick">${TICK}</span>` : ""}${twin ? `<span class="x2">×2</span>` : ""}${left ? `<span class="x2 lh">Л</span>` : ""}</div>
@@ -5086,9 +5087,12 @@ function finishDraft() {
   if (d.knife && wpn.group === "ranged") c.equip.off = { t: "w", id: "dagger" };          // лук и кинжал в левой руке
   else if (d.knife && canTwinWeapon(wpn, d.race)) c.equip.off = { t: "w", id: wpn.id };                                   // два клинка вместо щита
   else if (d.dag && wpn.id === "gloves") c.equip.off = { t: "w", id: "dagger" };
-  else if (d.offW && offCandidate(wpn, WEAPONS.find(x => x.id === d.offW), d.race)) { c.equip.off = { t: "w", id: d.offW }; if (c.race === "barbarian" && (isTwoHandedWeapon(wpn) || isTwoHandedWeapon(WEAPONS.find(x => x.id === d.offW)))) c.giantGrip = true; }          // второе оружие во вторую руку                                            // перчатка и кинжал
+  else if (d.offW && offCandidate(wpn, WEAPONS.find(x => x.id === d.offW), d.race)) { const ow = WEAPONS.find(x => x.id === d.offW);
+    if (pikeShield(ow, wpn)) { c.equip.main = { t: "w", id: ow.id }; c.equip.off = { t: "w", id: wpn.id }; }          // выбрали щит, потом пику — пика в правую, щит в левую
+    else c.equip.off = { t: "w", id: d.offW };
+    if (c.race === "barbarian" && !pikeShield(wpn, ow) && !pikeShield(ow, wpn) && (isTwoHandedWeapon(wpn) || isTwoHandedWeapon(ow))) c.giantGrip = true; }          // второе оружие во вторую руку                                            // перчатка и кинжал
   else if (d.shield && (d.race === "barbarian" || !(isTwoHandedWeapon(wpn) || wpn.group === "ranged"))) c.equip.off = { t: "w", id: "shield" };
-  if (d.race === "barbarian" && isTwoHandedWeapon(wpn) && c.equip.off) c.giantGrip = true;          // «Великан»: двуручное в одной руке, вторая рука держит щит (−2 к Ловкости за каждое)
+  if (d.race === "barbarian" && isTwoHandedWeapon(wpn) && c.equip.off && !pikeShield(itemOf(c.equip.main), itemOf(c.equip.off))) c.giantGrip = true;          // «Великан»: двуручное в одной руке, вторая рука держит щит (−2 к Ловкости за каждое)
   addToBag(c, { t: "g", id: "ration", qty: 7 });
   addToBag(c, { t: "g", id: "potion", qty: 2 });
   if (WEAPONS.find(x => x.id === d.weapon).group === "ranged") addToBag(c, { t: "g", id: "arrow", qty: QUIVER });          // колчан: 40 обычных стрел
