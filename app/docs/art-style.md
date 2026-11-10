@@ -20,12 +20,12 @@
 **Генерация нейросетью — решение автора (17.10.2026):**
 
 - **Не слишком темно.** Фон — ниша лабиринта, но хорошо освещённая: тёплый свет, предмет читается сразу.
-- **Не слишком реалистично.** Рисованный стиль фэнтези-игры (painterly, как иконки предметов в RPG), а не фото.
+- **Не слишком реалистично.** Рисованный стиль фэнтези-игры (как иконки предметов в RPG), а не фото.
 - **Оружие стоит на подставке**, а не парит: вертикально или чуть наклонно, опирается на деревянную или каменную стойку для оружия.
 - Износ сохраняется: царапины, зазубрины, лёгкая ржавчина.
 
 **Промпт:**
-> `a worn battle-used <предмет> standing upright, resting against a simple wooden weapon display stand, scratches and nicks on the blade, light rust, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, painterly, clean readable silhouette, centered, square, no text`
+> `a worn battle-used <предмет> standing upright, resting against a simple wooden weapon display stand, scratches and nicks on the blade, light rust, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, clean readable silhouette, centered, square, no text`
 
 Для брони: `... worn, battle-used <доспех> on a wooden mannequin stand in the same softly lit stone alcove ...`
 
@@ -41,7 +41,7 @@
 Расы: человек `human`, варвар `barbarian`, дварф `dwarf`, зверолюд `beastkin`, фея `fairy` (в мире кампании — аналог эльфа), дракон `dragon` (драконид).
 
 **Промпт:**
-> `bust portrait of a <race description>, fantasy, dark background with warm amber rim light from the upper right, realistic painterly style, looking at viewer, 4:5, no text`
+> `bust portrait of a <race description>, fantasy, dark background with warm amber rim light from the upper right, realistic style, looking at viewer, 4:5, no text`
 
 ## 3. Монстр — иконка лица и полный рост
 
@@ -55,9 +55,9 @@
 Фон тот же, что у портретов. Монстр держит своё оружие из статблока (гоблин — ржавый нож).
 
 **Промпты:**
-> Иконка: `close-up head of a <monster>, fantasy creature, dark background with warm amber rim light, centered, square, realistic painterly, no text`
+> Иконка: `close-up head of a <monster>, fantasy creature, dark background with warm amber rim light, centered, square, realistic no text`
 >
-> Полный рост: `full body <monster> standing on a dark stone dungeon floor, holding <weapon>, dark background with warm amber rim light, 2:3, realistic painterly, no text`
+> Полный рост: `full body <monster> standing on a dark stone dungeon floor, holding <weapon>, dark background with warm amber rim light, 2:3, realistic no text`
 
 ## Как добавить новую картинку
 
@@ -78,3 +78,5 @@
 ## Фон по силе снаряжения (решение автора 25.10.2026)
 
 Обычное снаряжение — потёртое, на пьедестале в простой каменной нише. Стальное — «новое блестящее», на резной подставке, ниша-арсенал (знамёна, доспехи у стен). Более сильное снаряжение в будущем получает ещё более богатый фон: чем сильнее предмет, тем лучше окружение. Образец промпта — в `docs/missing_image_promts.md`, раздел «Предметы, оружие и броня».
+
+- **Правило автора (10.11):** не писать в промтах «painterly» — портит качество картинок.
