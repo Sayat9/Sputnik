@@ -800,6 +800,14 @@ img.art-pic { width: 100%; height: 100%; object-fit: cover; display: block; bord
 .luck-row { display: flex; align-items: center; justify-content: space-between; }
 .mbox .hint-type { display: block; color: var(--fx-muted); font-size: 12px; }
 .dg-menu .fx-btn small { font: 400 12.5px/1.2 var(--f-body); color: var(--fx-muted); letter-spacing: 0; }
+.dg-over { justify-content: safe center; overflow-y: auto; overscroll-behavior: contain; }          /* 10.11: много кнопок — прокрутка, а не обрезка */
+.dg-menu.many { gap: 6px; }
+.dg-menu.many .fx-btn { display: grid; grid-template-columns: 24px minmax(0, 1fr); column-gap: 8px; row-gap: 2px; align-items: center; justify-items: start; text-align: left; padding: 8px 9px !important; font-size: 14.5px; line-height: 1.15; overflow-wrap: anywhere; }
+.dg-menu.many .fx-btn svg { grid-row: 1 / span 2; width: 24px; height: 24px; }
+.dg-menu.many .fx-btn small { grid-column: 2; font-size: 11px; margin: 0; }
+.dg-menu.many .dig-btn { grid-template-columns: 24px auto auto; justify-content: center; }
+.dg-menu.many .dig-btn svg { grid-row: auto; }
+.dg-menu.many .dig-btn small { grid-column: auto; }
 .dg-panel { width: 100%; max-height: 100%; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
 .dg-panel h3 { margin: 0; font: 400 22px/1.1 var(--f-display); text-align: center; color: var(--fx-gold-hi); }
 .dg-panel p { margin: 0; color: var(--fx-muted); font-size: 14px; text-align: center; }
@@ -3970,7 +3978,7 @@ const GEAR = {
   "founder-crown": { short: "Корона", name: "Корона основателя", weight: 0, stack: 1, slot: "charm", cls: 8, treasure: true, note: "Эксклюзив сундука дворца (Гоблинград). Когда носитель бьёт врага, которого в этот раунд уже ударил союзник, +1к4 урона." },
   "frost-amulet": { short: "Амулет", name: "Амулет инея", weight: 0, stack: 1, slot: "charm", cls: 9, treasure: true, note: "Уникальный амулет 9 класса (сундук стража Ледяного грота). Когда носитель наносит урон холодом, +1к4." },
   "hunger-charm": { short: "Амулет", name: "Амулет голода", weight: 0, stack: 1, slot: "charm", cls: 6, treasure: true, note: "Амулет 6 класса. В конце дня голод носителя утоляется, как после пайка." },
-  "potion-good": { short: "Зелье+", name: "Зелье лечения", weight: 0.25, stack: 5, use: "drink", heal: "2к4 + 4", note: "Восстанавливает 2к4 + 4 ОЗ (6–12, в среднем 9). Черновик." },
+  "potion-good": { short: "Зелье+", name: "Зелье лечения", weight: 0.25, stack: 5, use: "drink", heal: "2к4 + 4", note: "Восстанавливает 2к4 + 4 ОЗ (6–12, в среднем 9)." },
   chalice: { short: "Чаша", name: "Чаша здоровья", weight: 0.5, stack: 1, cls: 8, treasure: true, note: "Сокровище 8 класса. Наполните водой (бесплатно в городе, у воды в лабиринте и в бою, или за паёк на Отдыхе): через 2 дня вода станет улучшенным зельем лечения (2к4 + 4). После питья чаша остаётся." },
   "beginners-luck": { short: "Удача", name: "Удача новичка", weight: 0, stack: 1, slot: "charm", cls: 8, treasure: true, note: "Талисман. Когда носитель сам (или его призванное существо) добивает монстра вида, который он ещё не убивал, к броску на эссенцию +5. Один раз на вид для каждого героя; действует и на арене." },
   "once-more": { short: "Ещё раз", name: "«Ещё раз»", weight: 0.1, stack: 5, cls: 9, treasure: true, note: "Одноразовый. После неудачного броска на эссенцию позволяет перебросить его." },
@@ -4344,7 +4352,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 136;
+const BATTLE_REV = 137;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }
@@ -4493,7 +4501,7 @@ function loadNet() {
   return netLoad;
 }
 /* ----- здания города (assets/js/town.js грузится при первом входе в здание) ----- */
-const TOWN_REV = 33, TOWN_FILES = ["assets/css/town.css", "assets/js/town.js"];
+const TOWN_REV = 34, TOWN_FILES = ["assets/css/town.css", "assets/js/town.js"];
 let townLoad = null;
 function loadTown() {
   if (window.Town && window.Town.ready) return Promise.resolve(true);
@@ -7274,7 +7282,9 @@ const tollReady = () => !!(state.run && treasure("tollbell").owned && state.run.
 const bootsReady = () => !!(state.run && treasure("boots").owned && state.run.bootsDay !== state.run.day);
 const bootsOn = () => !!(state.run && state.run.boots && bootsReady() && !voidHere() && !state.run.tier);
 const windOn = () => !!(state.run && state.run.wind && treasure("wind").owned && (treasure("wind").charges || 0) > 0);
-const pathNeed = phase => (phase === "move" ? (bootsOn() ? 2 : 1) : (bootsOn() ? 3 : 2));
+// 10.11 (автор): «Навигатор» своего этажа (кто-то из отряда) — +1 квадрат к Движению и Бегу на карте этажа (не в разломе, не в ярусе, не в Ведьмином лесу)
+const navStep = () => { const r = state.run; return r && !r.rift && !r.tier && !voidHere() && partyEdu("nav" + curFloor()) ? 1 : 0; };
+const pathNeed = phase => (phase === "move" ? 1 : 2) + (bootsOn() ? 1 : 0) + navStep();
 const ngInfo = () => trInfo("guard");
 // Строка сокровища в Инвентаре лабиринта: название и состояние видны только у определённых.
 function trDropdown() {
@@ -7714,24 +7724,28 @@ function charBars(c) {
 }
 
 /* ----- экран ----- */
+// 10.11: меню действий не вылезает за рамку карты — при 5+ кнопках (особое место, портал, алтарь) они компактные (значок слева), при нехватке места меню прокручивается
+function dgMenuWrap(dark, bar, btns) {
+  const n = (btns.match(/<button /g) || []).length - (btns.includes("dig-btn") ? 1 : 0);
+  return `<div class="dg-over${dark ? " dark" : ""}${bar ? " has-bar" : ""}">${bar}<div class="dg-menu${n >= 5 || (n >= 4 && bar) ? " many" : ""}">${btns}</div></div>`;
+}
+/* ----- экран ----- */
 function stageOverlay() {
   const r = state.run;
   const dark = isDark(r.pos.x, r.pos.y);
   const torchBar = dark || r.light ? `<div class="dark-bar">${r.light
       ? `<span><img src="${artPath("field/torch-on")}" alt="" width="18" height="18" style="vertical-align:-3px;margin-right:4px">Горит факел: ещё ${r.torchLeft} д.</span><button class="fx-btn" data-dg="torch-off">Погасить</button>`
       : `<span><img src="${artPath("field/torch-off")}" alt="" width="18" height="18" style="vertical-align:-3px;margin-right:4px">Тьма: помехи, −2 к броску${r.torchLeft > 0 ? ` · факела хватит на ${r.torchLeft} д.` : ""}</span><button class="fx-btn primary" data-dg="torch-on"${partyTorches() || r.torchLeft > 0 ? "" : " disabled"}>${r.torchLeft > 0 ? "Зажечь снова" : `Зажечь факел (${partyTorches()})`}</button>`}</div>` : "";
-  if (dgUi.phase === "menu") return `
-    <div class="dg-over${dark && !r.light ? " dark" : ""}">${torchBar}<div class="dg-menu">
+  if (dgUi.phase === "menu") return dgMenuWrap(dark && !r.light, torchBar, `
       ${spBtnHtml()}
-      <button class="fx-btn" data-act="move"${r.tier ? " disabled" : ""}>${ICO_ACT.move}Движение<small>${r.tier ? "в ярусе нельзя" : "1 квадрат"}</small></button>
+      <button class="fx-btn" data-act="move"${r.tier ? " disabled" : ""}>${ICO_ACT.move}Движение<small>${r.tier ? "в ярусе нельзя" : navStep() ? "до 2 квадратов" : "1 квадрат"}</small></button>
       ${(() => { const heavy = state.party.filter(c => load(c).noRun).map(c => c.name);
-        return `<button class="fx-btn" data-act="run"${heavy.length || r.tier || voidHere() ? " disabled" : ""}>${ICO_ACT.run}Бег<small>${voidHere() ? "в Ведьмином лесу нельзя" : heavy.length ? "перегруз: " + heavy.map(esc).join(", ") : "2 квадрата, +1 Усталость"}</small></button>`; })()}
+        return `<button class="fx-btn" data-act="run"${heavy.length || r.tier || voidHere() ? " disabled" : ""}>${ICO_ACT.run}Бег<small>${voidHere() ? "в Ведьмином лесу нельзя" : heavy.length ? "перегруз: " + heavy.map(esc).join(", ") : (navStep() ? "3" : "2") + " квадрата, +1 Усталость"}</small></button>`; })()}
       <button class="fx-btn" data-act="rest">${ICO_ACT.rest}Отдых<small>сон, караул, еда</small></button>
       <button class="fx-btn" data-act="explore"${r.tier ? " disabled" : ""}>${ICO_ACT.explore}Исследовать<small>этот фрагмент, к20</small></button>
       ${tileType(r.pos.x, r.pos.y) === "portal" ? `<button class="fx-btn portal-btn" data-act="portal">${ICO_ACT.run}Войти в портал<small>${portalName(r.pos.x, r.pos.y)}</small></button>` : ""}
       ${(() => { const sh = shovelsOf(); return `<button class="fx-btn dig-btn" data-act="dig"${sh.length ? "" : " disabled"}>${ICO_ACT.dig}Копать<small>${sh.length ? `лопат: ${sh.length}, к20` : "нужна лопата"}</small></button>`; })()}
-      ${typeof atAltar === "function" && atAltar() ? `<button class="fx-btn altar-btn${altarOpen() ? " lit" : ""}" data-dg="altar"${altarOpen() ? "" : " disabled"}>${ICO_ACT.explore}Взаимодействовать<small>${altarOpen() ? "алтарь отзывается" : "алтарь молчит"}</small></button>` : ""}
-    </div></div>`;
+      ${typeof atAltar === "function" && atAltar() ? `<button class="fx-btn altar-btn${altarOpen() ? " lit" : ""}" data-dg="altar"${altarOpen() ? "" : " disabled"}>${ICO_ACT.explore}Алтарь<small>${altarOpen() ? "отзывается" : "молчит"}</small></button>` : ""}`);
   return "";
 }
 
@@ -7868,8 +7882,8 @@ function renderDungeon() {
   const actionPips = Array.from({ length: FL().acts }, (_, i) => `<i class="${i < r.act ? "on" : ""}"></i>`).join("");
   const moving = dgUi.phase === "move" || dgUi.phase === "run";
   const menu = dgUi.phase === "menu";
-  const pill = dgUi.phase === "move" ? (pathNeed("move") > 1 ? `Движение в сапогах: шаг ${dgUi.path.length + 1} из ${pathNeed("move")}` : "Движение: выбери квадрат")
-    : dgUi.phase === "run" ? `Бег: шаг ${dgUi.path.length + 1} из ${pathNeed("run")}${windOn() ? " · ветер" : ""}` : "";
+  const pill = dgUi.phase === "move" ? (pathNeed("move") > 1 ? `Движение${bootsOn() ? " в сапогах" : ""}: шаг ${dgUi.path.length + 1} из ${pathNeed("move")}${dgUi.path.length ? " · ещё раз — стоп" : ""}` : "Движение: выбери квадрат")
+    : dgUi.phase === "run" ? `Бег: шаг ${dgUi.path.length + 1} из ${pathNeed("run")}${windOn() ? " · ветер" : ""}${dgUi.path.length >= 2 ? " · ещё раз — стоп" : ""}` : "";
   return `
   <div class="dg">
     <div class="dg-top">
@@ -8027,8 +8041,9 @@ function act(kind) {
   if (kind === "move") {
     if (r.flame && r.flame.left > 0) r.flame.left--;
     let t = dgUi.target; const wasVoid = voidHere();
-    const boots = !wasVoid && bootsOn() && dgUi.path.length >= 2;          // сапоги скороходы: пройти сразу 2 клетки шагом (промежуточная — без события)
-    if (boots) { const m = dgUi.path[0]; visit(m.x, m.y); if (r.floor === 3) f3Step(m.x, m.y); r.bootsDay = r.day; r.boots = false; }
+    const far = !wasVoid && dgUi.path.length >= 2, boots = far && bootsOn() && dgUi.path.length > 1 + navStep();          // сапоги скороходы и навигатор: несколько клеток шагом (промежуточные — без события)
+    if (far) for (const m of dgUi.path.slice(0, -1)) { visit(m.x, m.y); if (r.floor === 3) f3Step(m.x, m.y); }
+    if (boots) { r.bootsDay = r.day; r.boots = false; }
     const trailEss = state.party.some(c => !c.dead && (c.essences || []).includes("lost-trail")), F3w = r.floor === 3 ? f3() : {};
     const nav3 = r.floor === 3 && partyEdu("nav3");          // «Навигатор: 3 этаж» — половина сбитых шагов идёт куда нужно (08.11)
     const lostStep = !wasVoid && witchBand(r.pos.x, r.pos.y) && !F3w.trailDead && Math.random() < .3 && !(trailEss && Math.random() < .5) && !(nav3 && Math.random() < .5);          // потерявшийся след: 30 % шаг уходит не туда
@@ -8041,7 +8056,7 @@ function act(kind) {
     r.pos = { x: t.x, y: t.y }; visit(t.x, t.y);
     r.stay = { k: tkey(t.x, t.y), since: absAct(r) + 1 };
     tick();
-    logRun((wasVoid ? "Ведьмин лес: шаг в неизвестную сторону." : boots ? "Сапоги скороходы: Движение на 2 квадрата." : "Движение на 1 квадрат.") + tileNote(t.x, t.y));
+    logRun((wasVoid ? "Ведьмин лес: шаг в неизвестную сторону." : far ? `${boots ? "Сапоги скороходы" : "Навигатор"}: Движение на ${dgUi.path.length} квадрата.` : "Движение на 1 квадрат.") + tileNote(t.x, t.y));
     const nearVoid = !voidHere() && [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]].some(([dx, dy]) => inVoid(r.pos.x + dx, r.pos.y + dy));
     if (nearVoid) { logRun("Впереди неприглядный туман."); toast("Впереди неприглядный туман"); }
     if (!wasVoid && voidHere()) logRun("Ведьмин лес: пропало чувство направления. Что слева, что справа — уже не понять; пройденное не запоминается.");
@@ -8051,7 +8066,7 @@ function act(kind) {
   } else if (kind === "run") {
     const tired = state.party.filter(c => r.status[c.id].fat >= 3).map(c => c.name);
     if (r.flame && r.flame.left > 0) r.flame.left--;
-    const t = dgUi.path[dgUi.path.length - 1], n = dgUi.path.length, boots = n === 3 && bootsOn(); r.pos = { x: t.x, y: t.y };
+    const t = dgUi.path[dgUi.path.length - 1], n = dgUi.path.length, boots = n > 2 + navStep() && bootsOn(); r.pos = { x: t.x, y: t.y };
     windUsed = windOn();                       // экстракт попутного ветра: этот Бег — без Усталости, минусов и проверок
     if (windUsed) { const w = treasure("wind"); w.charges--; r.wind = false; if (w.charges <= 0) { w.owned = false; w.charges = 0; } }
     if (boots) { r.bootsDay = r.day; r.boots = false; }
@@ -8264,7 +8279,9 @@ function mountDungeon() {
     if (!hit) return;
     const t = { x: +hit.dataset.tx, y: +hit.dataset.ty };
     if (!inBounds(t.x, t.y)) return;                       // стена: ничего не происходит
-    if (dgUi.phase === "move") { dgUi.path.push(t); if (dgUi.path.length >= pathNeed("move")) { dgUi.target = t; act("move"); } else rerender(); return; }
+    const last = dgUi.path[dgUi.path.length - 1], again = last && last.x === t.x && last.y === t.y;          // 10.11: повторное нажатие на последний квадрат — остановиться (навигатор/сапоги: можно пройти меньше)
+    if (dgUi.phase === "move") { if (again) { dgUi.target = t; act("move"); return; } dgUi.path.push(t); if (dgUi.path.length >= pathNeed("move")) { dgUi.target = t; act("move"); } else rerender(); return; }
+    if (again && dgUi.path.length >= 2) { act("run"); return; }
     dgUi.path.push(t);
     if (dgUi.path.length >= pathNeed("run")) act("run"); else rerender();
   };

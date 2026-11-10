@@ -284,7 +284,6 @@
   /* ===== скорость и движение ===== */
   function speedOf(u) {
     let sp = Math.max(u.speedC, u.flyC) + hookSum(u, "speedBonus", {});
-    if (u.hero && B.S && typeof eduKnows === "function" && eduKnows(u.hero, "nav" + (B.S.floor || 1))) sp += 1;          // 09.11 (автор): «Навигатор» своего этажа — +1 клетка скорости в бою на этом этаже
     if (B.S && B.S.units) for (const e of enemiesOf(u)) sp -= hookSum(e, "slowAura", { u });          // «Тяжёлые цепи» палача: враги рядом теряют скорость                       // бонус к скорости («Лёгкие ноги») — до замедления, как строка статов
     for (const c of u.conds) {
       if (["grappled", "restrained", "pinned", "trapped", "spearstop", "bastion", "unconscious", "stable", "buried", "paralyzed", "underground", "mired", "encased", "sunk"].includes(c.id)) return 0;

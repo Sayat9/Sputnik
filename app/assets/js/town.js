@@ -492,7 +492,7 @@
       <p class="tw-qnote">${status}</p>${act}</article>`;
   }
   B.board = {
-    init: () => ({ cost: 1 }),                                                  // решение автора: поход к доске заданий — одно городское действие
+    // 10.11 (автор): просто посмотреть доску — бесплатно; действие тратится, если взять или сдать задание
     render() {
       const cls = [9, 8, 7].filter(c => c === 9 || partyRank() <= c), tab = cls.includes(ui.btab) ? ui.btab : 9;          // вкладки 8 и 7 класса — с 8 и 7 ранга (решение автора 08.11)
       const list = questBoard().list.filter(q => (q.cls || 9) === tab);
@@ -505,7 +505,7 @@
           <p class="tw-msg">${ui.msg || ""}</p></div></div>`;
     },
   };
-  function questAccept(id) { const q = questBoard().list.find(x => x.id === +id); if (!q || q.taken) return; if (questBoard().list.filter(x => x.taken).length >= 4) { ui.msg = "Больше 4 заданий одновременно не взять: сдайте или дождитесь срока."; return; } q.taken = true; q.runs = 0; ui.msg = `Задание принято всем отрядом: ${questMon(q).name}, ${q.need} камней (уже лежащие в сумке считаются).`; saveChar(); }
+  function questAccept(id) { const q = questBoard().list.find(x => x.id === +id); if (!q || q.taken) return; if (questBoard().list.filter(x => x.taken).length >= 4) { ui.msg = "Больше 4 заданий одновременно не взять: сдайте или дождитесь срока."; return; } q.taken = true; q.runs = 0; visit(); ui.msg = `Задание принято всем отрядом: ${questMon(q).name}, ${q.need} камней (уже лежащие в сумке считаются).`; saveChar(); }
   function questDone(id) {
     const q = questBoard().list.find(x => x.id === +id); if (!q || !q.taken || questStones(q) < q.need) return;
     const name = questMon(q).name, reward = q.reward; questTurnIn(q); visit(); ui.msg = `Задание выполнено: «${name}». Награда ${reward} монет поделена на отряд.`; saveChar();
@@ -688,9 +688,10 @@
   function rankRows(c) {
     const to = rankNext(c), q = to && RANK_REQ[to], pr = to && rankProgress(c, to), ok = to && rankReady(c, to);
     const mark = v => v ? `<b style="color:#8fd18f">✓</b>` : `<b style="color:#d98b6b">✗</b>`;
+    const readyN = state.party.filter(h => !h.dead && rankNext(h) && rankReady(h, rankNext(h))).length;
     return `<div class="tw-row"><div class="tw-who">${rankBadge(heroRank(c), 40)}<div><b>${esc(c.name)}: ${heroRank(c)} ранг · ${esc(RANK_NAME[heroRank(c)] || "")}</b><small>Ранг отряда — ${partyRank()} (лучший среди героев).</small></div></div></div>
       ${to ? `<div class="tw-row"><div class="tw-who">${rankBadge(to, 40)}<div><b>${to} ранг · ${esc(RANK_NAME[to] || "")}</b><small>${esc(q.text)}.<br>${mark(pr.floor)} спуск на ${q.floor} этаж · ${mark(pr.kill)} монстр ${q.cls} класса</small></div></div>
-        <button class="fx-btn primary" data-t="rankup"${ok ? "" : " disabled"}>Повысить</button></div>` : `<p class="tw-msg">Следующий ранг пока не открыт.</p>`}`;
+        <button class="fx-btn primary" data-t="rankup"${readyN ? "" : " disabled"}>${readyN > 1 ? `Повысить всех (${readyN})` : "Повысить"}</button></div>` : `<p class="tw-msg">Следующий ранг пока не открыт.</p>`}`;
   }
   // Карты этажей в Академии (решение автора 03.11): 1 этаж — 50 (9 ранг), каждая из 4 частей 2 этажа — 200 (8 ранг), 3 этаж — 700 (7 ранг); карта прошлого ранга −10 %.
   const MAP_SHOP = () => [{ key: "1", cls: 9, price: 50, name: "Карта 1 этажа" }, ...["goblin", "beast", "undead", "stone"].map(v => ({ key: "2:" + v, cls: 8, price: 200, name: `Карта 2 этажа: ${FLOOR_NAME[v]}` })), { key: "3", cls: 7, price: 700, name: "Карта 3 этажа" }];
@@ -911,7 +912,8 @@
       case "analyze": analyze(ds.id); break;
       case "learn": learn(ds.id); break;
       case "buymap": buyMap(ds.k); break;
-      case "rankup": { const c = hero(); if (c && rankUp(c)) { ui.msg = `${c.name} теперь ${c.rank} ранга!`; visit(); saveChar(); } break; }
+      case "rankup": { const up = state.party.filter(h => !h.dead && rankUp(h));          // 10.11 (автор): повышаются сразу все герои, кто выполнил условия
+        if (up.length) { ui.msg = up.map(h => `${h.name} теперь ${h.rank} ранга!`).join(" "); visit(); saveChar(); } break; }
       case "atab": ui.tab = ds.k; break;
       case "ttab": ui.tab = ds.k; break;
       case "aid": identify(ds.id); break;

@@ -15,7 +15,7 @@ const L = require('./bui_lib.js');
   ok('навигатор 2 этажа закрыт без 1-го', nav2 === true);
   await p.click('[data-t="learn"][data-id="nav1"]');
   ok('навигатор 1 куплен', await p.evaluate(() => eduKnows(state.party[0], 'nav1') && !eduKnows(state.party[1], 'nav1')));
-  ok('деньги списаны', await p.evaluate(() => goldOf(state.party[0]) + goldOf(state.party[1]) === 4000 - 400), await p.evaluate(() => goldOf(state.party[0]) + goldOf(state.party[1])));
+  ok('деньги списаны', await p.evaluate(() => goldOf(state.party[0]) + goldOf(state.party[1]) === 4000 - eduPrice(ACADEMY.find(x => x.id === 'nav1'))), await p.evaluate(() => goldOf(state.party[0]) + goldOf(state.party[1])));
   ok('навигатор 2 открылся', await p.evaluate(() => { const b = document.querySelector('[data-t="learn"][data-id="nav2"]'); return b && !b.disabled; }));
   await p.click('[data-t="atab"][data-k="gather"]'); await p.click('[data-t="learn"][data-id="herb"]');
   ok('курс трав у героя', await p.evaluate(() => findKnown(state.party[0], 'herb-heal') && !findKnown(state.party[1], 'herb-heal')));

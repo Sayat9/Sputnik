@@ -1,4 +1,4 @@
-// 09.11: навигатор — −20 % на курс прошлого ранга (один раз), +1 клетка скорости в бою на своём этаже, без описания.
+// 09.11: навигатор — −20 % на курс прошлого ранга (один раз), +1 квадрат на карте своего этажа (bmenu_fit.js), без описания.
 const L = require('./bui_lib.js');
 (async () => { const { b, p } = await L.launch(400, 860); let n = 0, bad = 0; const errs = []; p.on('pageerror', e => errs.push(e.message));
   const ok = (t, c, d) => { n++; if (!c) bad++; console.log(`  ${c ? '✓' : '✗'} ${t}${c ? '' : ' — ' + JSON.stringify(d)}`); };
@@ -16,7 +16,7 @@ const L = require('./bui_lib.js');
   ok('7 ранг: 1 этаж всё ещё −20 % (не −40 %), 2 этаж −20 %', R.r7.join() === '320,640,1500', R);
   ok('6 ранг: все три −20 %', R.r6.join() === '320,640,1200', R);
   ok('описания нет', R.text.every(t => !t), R);
-  ok('+1 к скорости на своём этаже, на чужом — нет', R.speed[1] === R.speed[0] + 1 && R.speed[2] === R.speed[0], R);
+  ok('в бою скорость не меняется (бонус — на карте этажа)', R.speed[1] === R.speed[0] && R.speed[2] === R.speed[0], R);
   ok('errs: нет', !errs.length, errs);
   console.log(`проверок: ${n}, не прошли: ${bad}`); await b.close(); process.exit(bad ? 1 : 0);
 })();

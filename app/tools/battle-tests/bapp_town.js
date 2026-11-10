@@ -79,7 +79,7 @@ const L = require('./bui_lib.js');
   await p.click('[data-t="close"]');
   // --- доска
   await p.click('[data-bld="board"]'); ok('доска: лист событий и крест в углу', await p.evaluate(() => /тихо/.test(document.querySelector('.tw-wall').innerText) && !!document.querySelector('.tw-xc')));
-  const c0 = await p.evaluate(() => townClock().t); await p.click('[data-t="close"]'); ok('поход к доске — 1 городское действие', await p.evaluate(c0 => townClock().t === c0 + 1, c0));
+  const c0 = await p.evaluate(() => townClock().t); await p.click('[data-t="close"]'); ok('просто посмотреть доску — без городского действия', await p.evaluate(c0 => townClock().t === c0, c0));
   // --- гильдия
   await p.evaluate(() => { state.party[0].gold = 500; state.party[1].gold = 0; }); await p.click('[data-bld="guild"]'); await p.waitForSelector('.mon-grid');
   await p.click('.mon-grid .mbox'); await p.waitForSelector('.tw-rows');
