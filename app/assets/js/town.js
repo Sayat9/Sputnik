@@ -670,10 +670,10 @@
           return frame("Башня магов", "Рафдония", `<div class="tw-npc framed">${img("assets/npc/mage.webp", "Маг башни")}<span>Артефакты, эссенции, тайны крови — всё имеет цену. Что принесли?</span></div>${heroStrip()}${tabs}<p class="tw-lead">Маг определит артефакт за деньги: откроются название и свойства, сведения попадут в библиотеку артефактов.</p>
             ${ids.length ? `<div class="tw-rows">${rows}</div>` : `<p class="tw-msg">Артефактов пока нет: они появляются, когда отряд находит сокровища.</p>`}${msgLine()}`);
         }
-        const ess = c.essences || [];
-        const rows = ess.map(id => { const e = ESSENCES[id], n = essLvl(id), price = towerPrice(id);
-          return `<div class="tw-row"><div class="tw-who"><div><b>${esc(essTitle(id))}</b><small>${e.cls} класс · изучено ${n} из 3</small></div></div>
-            ${n === 3 ? `<span class="tw-done">${ICO_CHECK}</span>` : !towerOpen(id) ? `<button class="fx-btn" disabled>${e.cls} ранг</button>` : `<button class="fx-btn primary" data-t="analyze" data-id="${id}"${partyGold() >= price ? "" : " disabled"}>${price}</button>`}</div>`; }).join("");
+        const ess = (c.essences || []).map(id => [id, false]).concat(flaskEssIds(c).map(id => [id, true]));
+        const rows = ess.map(([id, fl]) => { const e = ESSENCES[id], n = essLvl(id), price = fl ? Math.max(1, Math.round(towerPrice(id) * 0.8)) : towerPrice(id);
+          return `<div class="tw-row"><div class="tw-who"><div><b>${esc(essTitle(id))}</b><small>${e.cls} класс · изучено ${n} из 3${fl ? " · в колбе, скидка 20 %" : ""}</small></div></div>
+            ${n === 3 ? `<span class="tw-done">${ICO_CHECK}</span>` : !towerOpen(id) ? `<button class="fx-btn" disabled>${e.cls} ранг</button>` : `<button class="fx-btn primary" data-t="analyze" data-id="${id}"${fl ? ` data-fl="1"` : ""}${partyGold() >= price ? "" : " disabled"}>${price}</button>`}</div>`; }).join("");
         return frame("Башня магов", "Рафдония", `<div class="tw-npc framed">${img("assets/npc/mage.webp", "Маг башни")}<span>Артефакты, эссенции, тайны крови — всё имеет цену. Что принесли?</span></div>${heroStrip()}${tabs}<p class="tw-lead">Маг заглянет в героя и расскажет всё о впитанных им эссенциях: статы, пассивную и активную способности. Цена — треть цены эссенции.</p>
           ${ess.length ? `<div class="tw-rows">${rows}</div>` : `<p class="tw-msg">У ${esc(c.name)} нет эссенций.</p>`}${msgLine()}`);
       },
@@ -752,7 +752,7 @@
   // Оружие и броня: рыночная цена — как в кузнице (обычное 10/15, стальное 25/40); кузнец берёт −10 %, магазин −20 %; сломанное — пятая часть. Продаётся только из рюкзака.
   const gearMarket = e => { if (!e || (e.t !== "w" && e.t !== "a") || e.art) return 0; const base = e.t === "w" ? (e.steel ? FORGE_PRICE.steelWeapon : FORGE_PRICE.weapon) : (e.steel ? FORGE_PRICE.steelArmor : FORGE_PRICE.armor); return e.broken ? Math.max(1, Math.round(base * 0.2)) : base; };
   const gearPay = e => Math.max(1, Math.round(gearMarket(e) * (ui && ui.b === "forge" ? 0.9 : 0.8)));
-  const unitPrice = e => { const g = GOODS.find(x => x.e && x.e.t === "g" && e && e.t === "g" && x.e.id === e.id); return g ? g.base / g.e.qty * (partyHas("goblin-merchant") ? 1.1 : 1) : 0; };          // продажа — от базовой цены (ранг на неё не влияет)
+  const unitPrice = e => { const g = GOODS.find(x => x.e && x.e.t === "g" && e && e.t === "g" && x.e.id === e.id); return g ? Math.min(g.price / g.e.qty, g.base / g.e.qty * (partyHas("goblin-merchant") ? 1.1 : 1)) : 0; };          // 10.11 (автор): продать дороже цены магазина нельзя ни с какими эффектами          // продажа — от базовой цены (ранг на неё не влияет)
   const sellValue = (e, n) => Math.floor(unitPrice(e) * n + 1e-9);
   // 10.11: эссенция в колбе — продажа (Башня: цена эссенции с надбавками −20 %, магазин — ещё −20 %)
   function sellEssFlask(i, c0) {
@@ -801,8 +801,9 @@
     if (tmLevel() < 4) ui.cost = Math.max(ui.cost, 1);          // тайм-менеджмент IV: отдых в таверне без действия; сон в таверне — 1 городское действие (решение автора 31.10) ui.sleep = {}; ui.food = {};          // ночь в таверне — ровно 3 городских действия (раньше прибавлялось к посещению: выходило 4)
     ui.msg = `Оплачено ${total}: спали ${slept}, поели ${ate}.`; saveChar();
   }
-  function analyze(id) {
-    const e = ESSENCES[id], price = towerPrice(id);
+  const flaskEssIds = c => [...new Set((c.bag || []).filter(x => x.id === "ess-flask" && x.ess && !(c.essences || []).includes(x.ess)).map(x => x.ess))];
+  function analyze(id, flask) {
+    const e = ESSENCES[id], price = flask ? Math.max(1, Math.round(towerPrice(id) * 0.8)) : towerPrice(id);          // 10.11: эссенция в колбе — анализ со скидкой 20 %
     if (!towerOpen(id)) { ui.msg = `Эссенции ${e.cls} класса маг разбирает только для отряда ${e.cls} ранга.`; return; }
     if (!payGold(hero(), price)) { ui.msg = "Не хватает монет."; return; }
     seenKeys(essSource(id), ["ess-stats", "ess-passive", "ess-active"]); markEssNamed(id);          // сведения попадают в библиотеку, и наоборот: прочитанное там открыто при получении
@@ -928,7 +929,7 @@
       case "gback": ui.mon = null; break;
       case "gbuy": guildBuy(ds.k); break;
       case "gsell": guildSell(ds.id); break;
-      case "analyze": analyze(ds.id); break;
+      case "analyze": analyze(ds.id, ds.fl === "1"); break;
       case "learn": learn(ds.id); break;
       case "buymap": buyMap(ds.k); break;
       case "rankup": { const up = state.party.filter(h => !h.dead && rankUp(h));          // 10.11 (автор): повышаются сразу все герои, кто выполнил условия

@@ -1,5 +1,5 @@
 {
- "version": 1794296141,
+ "version": 1794298827,
  "files": [
   "assets/buildings/academy.webp",
   "assets/buildings/arena.webp",
@@ -732,7 +732,7 @@
   "assets/js/battle.js": "adb047f6c19b8ca8e21fdb322f898c7d",
   "assets/js/net.js": "2e8be9ea96e5cf1bd44c120e636e4520",
   "assets/js/netglue.js": "cd2a2ac21038a45a163757b71d2ff05c",
-  "assets/js/town.js": "21e88031e8ece9d06ef621fb8f85b171",
+  "assets/js/town.js": "a8d85285e580ae766dbe490eb980297f",
   "assets/logo-admin.png": "aa45354a89500a24e2f481f6d7d3ee4a",
   "assets/logo.png": "2eea126130fb32be9d28f407acbc25bb",
   "assets/monsters/ash-executioner-face.webp": "33dc54f77c9133ac5b135632756e14ac",
@@ -1086,6 +1086,6 @@
   "fonts/f8.woff2": "6cc1ee17091d59eb93821c3594e8f38f",
   "fonts/f9.woff2": "070433480b7b645f69b543f284e386ce",
   "fonts/fonts.css": "1585a72a8d157b26cb424ab433fd4e19",
-  "index.html": "3a631be51a872ca940ad17375b0abe27"
+  "index.html": "10b37f04ea14018d885b28b4735fa688"
  }
 }

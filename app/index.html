@@ -2904,6 +2904,7 @@ function riftSupplies() {
   else if (d <= 18) lines.push(g("stone-9", 2 + rnd(2)));
   else if (d === 19) lines.push(g("potion", 1), g("ration", 1));
   else lines.push(g("potion", 2), g("torch", 1));
+  { const mp = riftMapFind(state.run && state.run.rift); if (mp) lines.push(mp); }
   return { d, lines };
 }
 function riftRest() {
@@ -3021,12 +3022,15 @@ function riftStage() {
       ${atStart || R.bossDead ? `<button class="fx-btn${R.bossDead ? " primary" : ""}" data-rift="exit">Выйти из разлома</button>` : ""}
     </div>`;
 }
+// 10.11 (автор): карта разлома — находится только в этом разломе (брошенные припасы, 10 %); с ней на схеме виден весь разлом
+const riftMapOwned = id => !!((inventory().riftMaps || {})[id]);
+function riftMapFind(R) { if (!R || riftMapOwned(R.id) || Math.random() >= 0.1) return ""; (inventory().riftMaps ||= {})[R.id] = true; return `Найдена карта: ${RIFTS[R.id].name}. На схеме теперь виден весь разлом.`; }
 function riftMapOverlay() {
-  const r = state.run, R = r.rift, D = RIFTS[R.id];
+  const r = state.run, R = r.rift, D = RIFTS[R.id], full = riftMapOwned(R.id);
   let cells = "";
   for (let y = 0; y < R.h; y++) for (let x = 0; x < R.w; x++) {
     if (!riftCell(R, x, y) || (R.id === "past" && pastTile(R, x, y) === "roots") || (R.id === "gcity" && gcTile(R, x, y) === "palace") || (R.id === "gyard" && ["crypt", "cathedral"].includes(gyTile(R, x, y)) && !(x === 1 && y === 1) && !(x === 13 && y === 1))) { cells += `<span class="rf-c rf-wall"></span>`; continue; }
-    const k = tkey(x, y), cur = R.pos.x === x && R.pos.y === y, seen = R.visited.includes(k), near = Math.abs(x - R.pos.x) + Math.abs(y - R.pos.y) === 1;
+    const k = tkey(x, y), cur = R.pos.x === x && R.pos.y === y, seen = full || R.visited.includes(k), near = Math.abs(x - R.pos.x) + Math.abs(y - R.pos.y) === 1;
     const m = riftMarkOf(R, x, y, seen, near), mark = cur ? "●" : { descent: "▼", mini: "☠", boss: "♛", chest: "◆", open: "✓", exit: "◎", beacon: "♜", beaconDone: "·", sandStir: "≈", keeperGlow: "✶", lab: "⌂", sign: "▭", gcGate: "♜", gcOil: "▣", gcOilLit: "♨", gc_tavern: "⌂", gc_den: "☾", gc_market: "$", gy_tavern: "⌂", gy_crypt: "▥", gy_cathedral: "✝", gy_grave: "✧" }[m] || "";
     cells += `<span class="rf-c${cur ? " rf-cur" : seen ? " rf-seen" : ""}"${R.id === "gyard" && (seen || ["tavern"].includes(gyTile(R, x, y))) && !cur ? ` style="background:${GY_FILL[gyTile(R, x, y)]}"` : R.id === "gcity" && seen && !cur ? ` style="background:${GC_FILL[gcTile(R, x, y)]}"` : R.id === "past" && seen && !cur ? ` style="background:${PAST_FILL[pastTile(R, x, y)]}"` : m === "keeperGlow" ? ` style="color:#c4ff6a"` : ""}>${mark}</span>`;
   }
@@ -4394,7 +4398,8 @@ function loadBattle() {
 /* ----- цены эссенций (решение автора: 9 класс — 50 монет; остальные по отношению цен камней 1 : 5 : 20; наценка за редких и особых — черновик) ----- */
 const ESS_BASE = { 9: 50, 8: 250, 7: 1000 };
 // 10.11 (автор): надбавки к цене эссенции складываются: редкий +10 %, монстр разлома +20 %, страж +30 % (особый — как редкий, лорд — как страж: моё допущение)
-const ESS_RANK_ADD = { normal: 0, rare: 0.1, special: 0.1, guardian: 0.3, lord: 0.3 }, ESS_RIFT_ADD = 0.2;
+const ESS_RANK_ADD = { normal: 0, rare: 0.1, special: 0.1, guardian: 0.3, lord: 5 }          // 10.11: лорд +500 % (автор)
+, ESS_RIFT_ADD = 0.2;
 const essMods = id => { const m = MONSTERS.find(x => x.id === essSource(id)); if (!m) return 0; return (ESS_RANK_ADD[rankOf(m)] || 0) + (m.rift ? ESS_RIFT_ADD : 0); };
 const essBasePrice = id => ESS_BASE[(ESSENCES[id] || {}).cls] || 50;
 // Колбы: auto — сохраняет класс ≥ auto без броска; roll — этот класс при к20 ≥ need; keep — легендарная не ломается при к20 ≥ keep. rank — с какого ранга видна в Башне.
@@ -4530,7 +4535,7 @@ function loadNet() {
   return netLoad;
 }
 /* ----- здания города (assets/js/town.js грузится при первом входе в здание) ----- */
-const TOWN_REV = 35, TOWN_FILES = ["assets/css/town.css", "assets/js/town.js"];
+const TOWN_REV = 36, TOWN_FILES = ["assets/css/town.css", "assets/js/town.js"];
 let townLoad = null;
 function loadTown() {
   if (window.Town && window.Town.ready) return Promise.resolve(true);
@@ -7043,8 +7048,9 @@ function awardXp(ids) {
 // Ранг героя (решение автора 03.11): у всех по умолчанию 9-й; ранг отряда — лучший ранг среди героев (меньшее число).
 // Повышение — в Академии (вкладка «Ранг»), если выполнено условие: 8-й — спуститься на 2 этаж и убить монстра 8 класса; 7-й — на 3 этаж и убить монстра 7 класса.
 // Убийство засчитывается всем живым героям отряда (кто был в бою), спуск — всем героям, кто был в отряде на этаже. Что даёт ранг — автор распишет позже.
-const RANK_REQ = { 8: { floor: 2, cls: 8, text: "Спуститься на 2 этаж и убить монстра 8 класса" }, 7: { floor: 3, cls: 7, text: "Спуститься на 3 этаж и убить монстра 7 класса" } };
-const RANK_NAME = { 9: "Новичок", 8: "Следопыт", 7: "Ветеран", 6: "Мастер", 5: "Герой" };
+const RANK_REQ = Object.fromEntries([8, 7, 6, 5, 4, 3, 2, 1].map(r => [r, { floor: 10 - r, cls: r, text: `Спуститься на ${10 - r} этаж и убить монстра ${r} класса` }]));          // 10.11 (автор): ранги 6–1 — пока по тому же правилу
+
+const RANK_NAME = { 9: "Новичок", 8: "Следопыт", 7: "Ветеран", 6: "Мастер", 5: "Герой", 4: "Чемпион", 3: "Легенда", 2: "Хранитель глубин", 1: "Покоритель лабиринта" };          // 4–1 — моё предложение
 const heroRank = c => (c && c.rank) || 9;
 const partyRank = () => { const l = (state.party || []).filter(c => !c.dead); return l.length ? Math.min(...l.map(heroRank)) : 9; };
 const rankNext = c => RANK_REQ[heroRank(c) - 1] ? heroRank(c) - 1 : null;
