@@ -142,12 +142,13 @@
   }
   function renderTokens(S) {
     const layer = root.querySelector(".bt-tokens"), seen = new Set();
+    root.classList.toggle("noanim", !animOn());          // настройка «Анимации»: без неё эффекты состояний на фишках не показываются
     for (const u of S.units) {
       seen.add(u.id);
       let el = tokenEls.get(u.id);
       if (!el) {
         el = document.createElement("div"); el.className = "bt-token"; el.dataset.id = u.id;
-        el.innerHTML = `<div class="bt-bars"><i class="hp"><b></b><b class="tmp"></b></i><i class="mp"><b></b></i></div><div class="bt-face"><img alt="" draggable="false"></div><div class="bt-name"></div><div class="bt-sts"></div><div class="bt-wound" hidden>${ico("heart")}</div>`;
+        el.innerHTML = `<div class="bt-bars"><i class="hp"><b></b><b class="tmp"></b></i><i class="mp"><b></b></i></div><div class="bt-face"><img alt="" draggable="false"></div><div class="bt-stfx" aria-hidden="true"></div><div class="bt-name"></div><div class="bt-sts"></div><div class="bt-wound" hidden>${ico("heart")}</div>`;
         el.querySelector("img").src = u.face || ""; layer.appendChild(el); tokenEls.set(u.id, el);
         el.style.left = u.x * cell + "px"; el.style.top = u.y * cell + "px";
       }
@@ -156,7 +157,7 @@
       const fw = (u.w || u.size) * cell, fh = (u.h || u.size) * cell;
       el.style.width = fw + "px"; el.style.height = fh + "px"; el.style.left = u.x * cell + "px"; el.style.top = u.y * cell + "px";
       const cur = S.order[S.turn] === u.id && S.phase === "fight";
-      el.className = `bt-token ${u.side}${u.size > 1 ? " big" : ""}${(u.w || u.size) !== (u.h || u.size) ? " wide" : ""}${cur ? " cur" : ""}${u.down ? " down" : ""}${u.dead ? " dead" : ""}${has(u, "hidden") ? " hidden-st" : ""}${has(u, "underground") ? " under" : ""}${u.summon ? " summon k-" + u.kind : ""}${u.spectral ? " ghost" : ""}${UI.targetIds && UI.targetIds.has(u.id) ? " target" : ""}${UI.selIds && UI.selIds.has(u.id) ? " sel" : ""}`;
+      el.className = `bt-token ${u.side}${u.size > 1 ? " big" : ""}${(u.w || u.size) !== (u.h || u.size) ? " wide" : ""}${cur ? " cur" : ""}${u.down ? " down" : ""}${u.dead ? " dead" : ""}${has(u, "hidden") ? " hidden-st" : ""}${has(u, "underground") ? " under" : ""}${u.summon ? " summon k-" + u.kind : ""}${u.spectral ? " ghost" : ""}${UI.targetIds && UI.targetIds.has(u.id) ? " target" : ""}${UI.selIds && UI.selIds.has(u.id) ? " sel" : ""}${stfxSync(el, u)}${el.classList.contains("shake") ? " shake" : ""}${el.classList.contains("lunge") ? " lunge" : ""}${el.classList.contains("dying") && !u.alive ? " dying" : ""}`;          // идущие анимации удара, выпада и гибели перерисовка не обрывает
       const showHp = u.side === "hero" || S.opts.showMonHp;
       const bars = el.querySelector(".bt-bars"); bars.hidden = !showHp;
       if (showHp) {
@@ -316,21 +317,30 @@
 
   /* ===== эффекты ===== */
   const centerOf = u => ({ x: (u.x + (u.w || u.size) / 2) * cell, y: (u.y + (u.h || u.size) / 2) * cell });
+  // 12.11 (автор): настройки «Анимации атак» и «Числа над бойцами» (включены, пока не выключили).
+  const setOf = () => ((typeof state !== "undefined" && state && state.settings) || {});
+  const animOn = () => setOf().anim !== false, numsOn = () => setOf().dmgNums !== false;
+  UI.animOn = animOn; UI.numsOn = numsOn;
+  const floatSlots = new Map();          // несколько надписей над одним бойцом подряд не накладываются: каждая следующая — выше
   function floatText(u, text, cls, big) {
     if (!UI.active || !root) return;
     const fx = root.querySelector(".bt-fx"), c = centerOf(u), el = document.createElement("span");
     el.className = "bt-float " + (cls || "") + (big ? " big" : ""); el.textContent = text;
-    el.style.left = c.x + (Math.random() * 16 - 8) + "px"; el.style.top = c.y - (u.h || u.size) * cell * 0.35 + "px";
-    fx.appendChild(el); setTimeout(() => el.remove(), 1300);
+    const now = Date.now(), k = u.id || (u.x + "," + u.y), sl = floatSlots.get(k), n = sl && now - sl.t < 700 ? sl.n + 1 : 0; floatSlots.set(k, { t: now, n });
+    const fw = fx.clientWidth || B.W * cell, x = Math.max(26, Math.min(fw - 26, c.x + (n ? (n % 2 ? 14 : -14) : 0)));          // у края поля надпись не уходит за границу
+    el.style.left = x + "px"; el.style.top = Math.max(4, c.y - (u.h || u.size) * cell * (/\bnum\b/.test(cls || "") ? 0.5 : 0.35) - n * (/\bnum\b/.test(cls || "") ? 22 : 17)) + "px";
+    fx.appendChild(el); setTimeout(() => el.remove(), 1500);
   }
   const defer = fn => { if (B.Dice && B.Dice.isOpen && B.Dice.isOpen()) UI.pendingFx.push(fn); else fn(); };
-  UI.flushFx = () => { const l = UI.pendingFx.splice(0); l.forEach(f => { try { f(); } catch (e) {} }); };
+  // Отложенные эффекты (копились, пока было открыто окно броска): если эффект вернул число — это пауза в мс до следующих (анимация удара идёт раньше числа урона).
+  UI.flushFx = () => { const l = UI.pendingFx.splice(0); let wait = 0; l.forEach(f => { const run = () => { try { return f(); } catch (e) {} }; if (wait) setTimeout(run, wait); else { const r = run(); if (typeof r === "number") wait += r; } }); };
   UI.fxHit = (u, n, dt, crit) => defer(() => {
-    floatText(u, "−" + n, "dmg dt-" + dt, crit);
+    if (numsOn()) floatText(u, "−" + n, "num dmg dt-" + dt, crit);
     const el = tokenEls.get(u.id); if (el) { el.classList.remove("shake"); void el.offsetWidth; el.classList.add("shake"); setTimeout(() => el.classList.remove("shake"), 420); }
     UI.refresh();
   });
-  UI.fxHeal = (u, n) => defer(() => { floatText(u, "+" + n, "heal"); UI.refresh(); });
+  UI.fxHeal = (u, n) => defer(() => { if (numsOn()) floatText(u, "+" + n, "num heal"); UI.refresh(); });
+  UI.fxMana = (u, n) => defer(() => { if (numsOn() && n) floatText(u, (n > 0 ? "+" : "−") + Math.abs(n), "num mana" + (n < 0 ? " spent" : "")); UI.refresh(); });          // мана: синие числа
   UI.fxText = (u, text, cls) => defer(() => floatText(u, text, cls || ""));
   UI.fxDeath = u => defer(() => { const el = tokenEls.get(u.id); if (el) el.classList.add("dying"); floatText(u, u.side === "mon" ? "повержен" : "погиб", "dmg", true); setTimeout(() => UI.refresh(), 450); });
   UI.fxEscape = u => defer(() => { floatText(u, "уходит", "good"); UI.refresh(); });
@@ -358,18 +368,125 @@
     if (!UI.active || B.cfg.fast) return;
     UI.refreshNow(); await sleep(150);
   };
+  /* ===== анимации состояний на фишке (13.11, автор) =====
+     Частые состояния видны на самой фишке: отравление — зелёные вспышки и потёки, кровотечение — капли крови, горение — язычки огня, оглушение — звёзды над головой,
+     сбит с ног — фишка лежит на боку, страх — дрожь, холод — иней, хватка и путы — кольцо цепи, промок — капли, слепота — повязка, сон — «z», слабость — тёмная дымка.
+     У каждого вида свой слой и своя область фишки, вспышки разнесены по времени — несколько состояний сразу не мешают друг другу. */
+  const STFX = { poisoned: "poison", bleeding: "bleed", burning: "burn", prone: "prone", stunned: "stun", shaken: "stun", quaked: "stun", paralyzed: "stun", frightened: "fear",
+    slowed: "cold", iced: "cold", chilled: "cold", frostbite: "cold", grappled: "held", restrained: "held", pinned: "held", trapped: "held", chained: "held", sunk: "held", mired: "held", spearstop: "held", coiled: "held",
+    wet: "wet", blinded: "blind", dazzled: "blind", buried: "blind", sleepy: "sleep", unconscious: "sleep", stable: "sleep", weakened: "weak", cursed: "weak", noheal: "weak" };
+  const STFX_ORDER = ["weak", "cold", "wet", "poison", "bleed", "burn", "blind", "held", "stun", "sleep"];          // порядок слоёв снизу вверх
+  const STFX_HTML = {
+    poison: `<i class="sf sf-poison"><u></u><b class="d1"></b><b class="d2"></b><b class="d3"></b></i>`,
+    bleed: `<i class="sf sf-bleed"><u></u><b class="d1"></b><b class="d2"></b><b class="d3"></b></i>`,
+    burn: `<i class="sf sf-burn"><u></u><b class="d1"></b><b class="d2"></b><b class="d3"></b></i>`,
+    cold: `<i class="sf sf-cold"><u></u><b class="d1"></b><b class="d2"></b></i>`,
+    wet: `<i class="sf sf-wet"><b class="d1"></b><b class="d2"></b><b class="d3"></b></i>`,
+    weak: `<i class="sf sf-weak"><u></u></i>`,
+    blind: `<i class="sf sf-blind"><u></u></i>`,
+    held: `<i class="sf sf-held"><u></u></i>`,
+    stun: `<i class="sf sf-stun"><b class="d1">✦</b><b class="d2">✦</b><b class="d3">✦</b></i>`,
+    sleep: `<i class="sf sf-sleep"><b class="d1">z</b><b class="d2">z</b></i>`,
+  };
+  UI.statusFxKinds = u => { const ks = new Set(); for (const c of u.conds || []) { const k = STFX[c.id]; if (k) ks.add(k); } return ks; };
+  // Обновляет слой эффектов фишки (только когда набор состояний изменился — чтобы анимации не начинались заново при каждой перерисовке) и возвращает классы для самой фишки.
+  function stfxSync(el, u) {
+    const lay = el.querySelector(".bt-stfx"); if (!lay) return "";
+    const ks = u.alive && !u.dead ? UI.statusFxKinds(u) : new Set(), list = STFX_ORDER.filter(k => ks.has(k)), sig = list.join(",");
+    if (lay.dataset.sig !== sig) { lay.dataset.sig = sig; lay.innerHTML = list.map(k => STFX_HTML[k]).join(""); }
+    return (ks.has("prone") && !u.down ? " sfx-prone" : "") + (ks.has("fear") ? " sfx-fear" : "") + (ks.has("sleep") && !u.down ? " sfx-sleep" : "");
+  }
+
+  /* ===== анимации атак (12.11, автор): короткая вспышка на поле — своя для вида оружия и для монстров (клыки, когти, замах), взрыв, магия ===== */
+  const W_STYLE = { sword: "slash", greatsword: "sweep", axe: "chop", greataxe: "chop", dagger: "stab", rapier: "thrust", spear: "thrust", pike: "thrust", mace: "blunt", warhammer: "blunt", staff: "blunt", wand: "blunt",
+    gloves: "punch", "tower-shield": "blunt", shield: "blunt", morningstar: "chain", flail: "chain" };
+  const EL_DT = ["fire", "cold", "poison", "lightning", "thunder", "necrotic", "radiant", "psychic", "acid", "earth"];
+  function strikeStyle(att, atk) {
+    if (!atk) return "blunt";
+    if (atk.magic || atk.dt === "arcane") return "magic";
+    if (atk.kind === "ranged") return EL_DT.includes(atk.dt) ? "el-" + atk.dt : atk.tdagger || (atk.thrown && atk.w && atk.w.id === "dagger") ? "knife" : "arrow";
+    if (EL_DT.includes(atk.dt) && !(atk.w && W_STYLE[atk.w.id])) return "el-" + atk.dt;
+    if (atk.id === "fist") return "punch";
+    if (atk.id === "torchhit") return "el-fire";
+    if (atk.w && W_STYLE[atk.w.id]) return W_STYLE[atk.w.id];
+    const n = String(atk.n || "").toLowerCase();
+    if (/укус|клык|челюст|жвал|пасть|зуб|грыз/.test(n)) return "bite";
+    if (/когт|лап|цап|рва/.test(n)) return "claws";
+    if (/жал|рог|бод|клюв|игл|шип|копь|пик|укол|рапир|кинжал|нож|стрел/.test(n)) return "thrust";
+    if (/цеп|кнут|хлёст|хлыст|хвост/.test(n)) return "chain";
+    if (/топор|секир|алебард|коса|серп|тесак/.test(n)) return "chop";
+    if (/меч|сабл|клин|ятаган|лезв/.test(n)) return "slash";
+    if (/дубин|молот|кулак|таран|булав|щит|камн|удар|топот|лоб/.test(n)) return "blunt";
+    const beast = att && att.mon && typeof monCat === "function" && ["beast", "monster"].includes(monCat(att.mon));
+    return atk.dt === "slash" ? (beast ? "claws" : "slash") : atk.dt === "pierce" ? (beast ? "bite" : "thrust") : "blunt";
+  }
+  UI.strikeStyle = strikeStyle;
+  const P = (d, cls) => `<path class="${cls || "d"}" pathLength="100" d="${d}"/>`;
+  const STRIKE_SVG = {
+    slash: P("M14 80 Q46 4 88 28"),
+    sweep: P("M4 62 Q50 -6 96 62", "d w"),
+    chop: P("M74 6 Q18 38 38 94", "d w"),
+    stab: P("M6 44 L58 44") + P("M14 60 L66 60", "d d2"),
+    thrust: P("M-18 50 L56 50", "d w") + `<path class="tip" d="M52 38 L78 50 L52 62 Z"/>`,
+    blunt: `<circle class="ring" cx="50" cy="50" r="18"/>` + [0, 45, 90, 135, 180, 225, 270, 315].map(a => `<path class="ray" pathLength="100" d="M50 50 L50 14" transform="rotate(${a} 50 50)"/>`).join(""),
+    punch: `<circle class="ring" cx="50" cy="50" r="13"/>` + [20, 110, 200, 290].map(a => `<path class="ray" pathLength="100" d="M50 50 L50 22" transform="rotate(${a} 50 50)"/>`).join(""),
+    chain: `<path class="links" pathLength="100" d="M-30 50 L44 50"/><circle class="ball" cx="56" cy="50" r="13"/>` + [0, 60, 120, 180, 240, 300].map(a => `<path class="spike" d="M56 33 L52 39 L60 39 Z" transform="rotate(${a} 56 50)"/>`).join(""),
+    claws: P("M26 12 Q40 50 22 88") + P("M50 8 Q64 50 46 92", "d d2") + P("M74 12 Q88 50 70 88", "d d3"),
+    bite: `<g class="jaw up"><path d="M12 6 L22 44 L32 10 L42 48 L52 10 L62 48 L72 10 L82 44 L90 6 Z"/></g><g class="jaw dn"><path d="M12 94 L22 56 L32 90 L42 52 L52 90 L62 52 L72 90 L82 56 L90 94 Z"/></g>`,
+    magic: `<circle class="ring" cx="50" cy="50" r="16"/><path class="star" d="M50 14 L57 43 L86 50 L57 57 L50 86 L43 57 L14 50 L43 43 Z"/>`,
+    el: `<circle class="ring" cx="50" cy="50" r="18"/><circle class="core" cx="50" cy="50" r="14"/>`,
+    hit: `<circle class="ring" cx="50" cy="50" r="10"/>`,
+  };
+  const DIRECTED = ["stab", "thrust", "chain"];          // рисуются вдоль линии удара
+  // Вспышка удара на цели. Возвращает, через сколько миллисекунд удар «достигает» цели (тогда и показывать число урона).
+  function strike(att, tgt, atk) {
+    if (!UI.active || !root || !animOn() || !tgt) return 0;
+    const fx = root.querySelector(".bt-fx"); if (!fx) return 0;
+    const style = strikeStyle(att, atk), a = att ? centerOf(att) : null, t = centerOf(tgt), ranged = !!(atk && atk.kind === "ranged" && a);
+    const ang = a ? Math.atan2(t.y - a.y, t.x - a.x) : 0, far = a ? Math.hypot(t.x - a.x, t.y - a.y) : 0;
+    let lead = 0;
+    if (ranged || (style === "chain" && far > cell * 1.6)) {          // снаряд или цепь летит от атакующего к цели
+      const p = document.createElement("div"), k = style === "magic" ? "magic" : style.startsWith("el-") ? style.slice(3) : style === "knife" ? "knife" : style === "chain" ? "chainp" : "arrow";
+      p.className = "bt-proj k-" + k; p.style.left = a.x + "px"; p.style.top = a.y + "px"; fx.appendChild(p);
+      lead = Math.max(160, Math.min(320, far * 1.6)); p.style.transitionDuration = lead + "ms";
+      void p.offsetWidth; p.style.transform = `translate(${t.x - a.x}px, ${t.y - a.y}px) rotate(${ang}rad)`; setTimeout(() => p.remove(), lead + 20);
+    }
+    const kind = ranged ? (style === "magic" ? "magic" : style.startsWith("el-") ? "el" : "hit") : style.startsWith("el-") ? "el" : style;
+    const el = document.createElement("div"), sz = Math.max(cell * 1.5, (tgt.w || tgt.size || 1) * cell * 1.15);
+    el.className = "bt-strike s-" + kind + (style.startsWith("el-") ? " c-" + style.slice(3) : "") + (atk && atk.dt ? " dt-" + atk.dt : "");
+    el.style.cssText = `left:${t.x}px;top:${t.y}px;width:${sz}px;height:${sz}px;--rot:${DIRECTED.includes(kind) ? ang * 180 / Math.PI : 0}deg`;
+    el.innerHTML = `<svg viewBox="0 0 100 100">${STRIKE_SVG[kind] || STRIKE_SVG.blunt}</svg>`;
+    const show = () => { fx.appendChild(el); setTimeout(() => el.remove(), 950); };
+    if (lead) setTimeout(show, lead - 30); else show();
+    return lead + 260;
+  }
+  UI.fxStrike = (att, tgt, atk) => strike(att, tgt, atk);
+  // Взрыв: вспышка, огненный шар и кольцо на r клеток вокруг центра.
+  UI.fxBoom = (cx, cy, r = 1) => defer(() => {
+    if (!UI.active || !root || !animOn()) return 0;
+    const fx = root.querySelector(".bt-fx"); if (!fx) return 0;
+    const el = document.createElement("div"), sz = (2 * r + 1) * cell * 1.1; el.className = "bt-boom";
+    el.style.cssText = `left:${(cx + 0.5) * cell}px;top:${(cy + 0.5) * cell}px;width:${sz}px;height:${sz}px`;
+    el.innerHTML = `<i class="flash"></i><i class="ball"></i><i class="ring"></i>` + [0, 40, 85, 130, 170, 215, 260, 305].map((a, i) => `<i class="shard" style="--a:${a}deg;--d:${0.38 + (i % 3) * 0.06}"></i>`).join("");
+    fx.appendChild(el); setTimeout(() => el.remove(), 800);
+    if (board) { board.classList.remove("quake"); void board.offsetWidth; board.classList.add("quake"); setTimeout(() => board.classList.remove("quake"), 380); }
+    return 240;
+  });
+  UI.fxCross = (cx, cy) => defer(() => {          // «Крест» посоха: подсветка пяти клеток
+    if (!UI.active || !root || !animOn()) return; const fx = root.querySelector(".bt-fx"); if (!fx) return;
+    for (const [dx, dy] of [[0, 0], [0, -1], [0, 1], [-1, 0], [1, 0]]) { const x = cx + dx, y = cy + dy; if (!B.inB(x, y)) continue; const el = document.createElement("div"); el.className = "bt-crosscell"; el.style.cssText = `left:${x * cell}px;top:${y * cell}px;width:${cell}px;height:${cell}px`; fx.appendChild(el); setTimeout(() => el.remove(), 700); }
+  });
+  function lungeTok(att, tgt) {
+    const ea = tokenEls.get(att.id); if (!ea) return;
+    const a = centerOf(att), t = centerOf(tgt), dx = t.x - a.x, dy = t.y - a.y, d = Math.hypot(dx, dy) || 1;
+    ea.style.setProperty("--lx", (dx / d) * cell * 0.38 + "px"); ea.style.setProperty("--ly", (dy / d) * cell * 0.38 + "px");
+    ea.classList.remove("lunge"); void ea.offsetWidth; ea.classList.add("lunge"); setTimeout(() => ea.classList.remove("lunge"), 240);
+  }
   UI.animAttack = async function (att, tgt, atk, kind) {
     if (!UI.active || B.cfg.fast) return;
-    if (B.Dice && B.Dice.isOpen && B.Dice.isOpen()) return;                           // у окна броска своя анимация
-    const ea = tokenEls.get(att.id); const a = centerOf(att), t = centerOf(tgt);
-    if (atk && atk.kind === "ranged") {
-      const fx = root.querySelector(".bt-fx"), p = document.createElement("div"); p.className = "bt-proj k-" + kind; p.style.left = a.x + "px"; p.style.top = a.y + "px"; fx.appendChild(p);
-      void p.offsetWidth; p.style.transform = `translate(${t.x - a.x}px, ${t.y - a.y}px) rotate(${Math.atan2(t.y - a.y, t.x - a.x)}rad)`; await sleep(260); p.remove();
-    } else if (ea) {
-      const dx = t.x - a.x, dy = t.y - a.y, d = Math.hypot(dx, dy) || 1;
-      ea.style.setProperty("--lx", (dx / d) * cell * 0.38 + "px"); ea.style.setProperty("--ly", (dy / d) * cell * 0.38 + "px");
-      ea.classList.remove("lunge"); void ea.offsetWidth; ea.classList.add("lunge"); await sleep(230); ea.classList.remove("lunge");
-    }
+    const play = () => { if (!animOn()) return 0; const melee = !(atk && atk.kind === "ranged"); if (melee) lungeTok(att, tgt); return strike(att, tgt, atk); };
+    if (B.Dice && B.Dice.isOpen && B.Dice.isOpen()) { UI.pendingFx.push(play); return; }          // окно броска закрывает поле: вспышка сыграет сразу после него, перед числом урона
+    const ms = play(); if (ms) await sleep(Math.min(ms, 520));
   };
   UI.focusUnit = function (u) { UI.refresh(); };
   UI.onLog = function (text, cls) { if (UI.renderLogTicker) UI.renderLogTicker(); };

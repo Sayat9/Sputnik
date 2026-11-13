@@ -25,14 +25,16 @@
   // Кузница: на 9 ранге обычное оружие и броня +10 %, улучшенное (стальное) открывается с 8-го ранга, на 7-м на него −10 %.
   const forgeRank = (p, steel) => Math.max(1, Math.round(p * (steel ? (partyRank() <= 7 ? 0.9 : 1) : (partyRank() >= 9 ? 1.1 : 1))));
   const steelOpen = () => partyRank() <= 8;
-  const FORGE_W = ["dagger", "spear", "pike", "mace", "warhammer", "sword", "rapier", "greatsword", "gloves", "staff", "axe", "greataxe", "shortbow", "longbow", "shield", "tower-shield"];
+  const FORGE_W = ["dagger", "spear", "pike", "mace", "warhammer", "sword", "rapier", "greatsword", "gloves", "morningstar", "flail", "wand", "staff", "axe", "greataxe", "shortbow", "longbow", "shield", "tower-shield"];
   const FORGE_A = ["leather", "hide", "chainmail"];
   const forgeDisc = p => ((state.party || []).some(c => c.race === "dwarf" && !c.dead) ? Math.max(1, Math.round(p * 0.9)) : p);          // дварф в отряде: скидка 10% в кузнице
   const FORGE_PRICE = { weapon: 10, armor: 15, steelWeapon: 25, steelArmor: 40 };               // решение автора
   const FORGE = {
     base: [...FORGE_W.map(id => ({ key: "w:" + id, e: { t: "w", id, qty: 1 }, get price() { return forgeDisc(forgeRank(FORGE_PRICE.weapon)); } })), ...FORGE_A.map(id => ({ key: "a:" + id, e: { t: "a", id, qty: 1 }, get price() { return forgeDisc(forgeRank(FORGE_PRICE.armor)); } })),
+      { key: "arrow20f", e: { t: "g", id: "arrow", qty: 20 }, price: AMMO_PACK.arrow[0], label: "Стрелы ×20" }, { key: "tdag10", e: { t: "g", id: "throw-dagger", qty: 10 }, price: AMMO_PACK["throw-dagger"][0], label: "Метательные кинжалы ×10" },
       { key: "repair5", e: { t: "g", id: "repair-kit", qty: 5 }, price: 10, label: "Ремонтный набор ×5" }, { key: "repairpro5", e: { t: "g", id: "repair-kit-pro", qty: 5 }, price: 50, label: "Продвинутый ремонтный набор ×5" }],
-    steel: [...FORGE_W.map(id => ({ key: "sw:" + id, e: { t: "w", id, qty: 1, steel: true }, get price() { return forgeDisc(forgeRank(FORGE_PRICE.steelWeapon, true)); } })), ...FORGE_A.map(id => ({ key: "sa:" + id, e: { t: "a", id, qty: 1, steel: true }, get price() { return forgeDisc(forgeRank(FORGE_PRICE.steelArmor, true)); } }))],
+    steel: [...FORGE_W.map(id => ({ key: "sw:" + id, e: { t: "w", id, qty: 1, steel: true }, get price() { return forgeDisc(forgeRank(FORGE_PRICE.steelWeapon, true)); } })), ...FORGE_A.map(id => ({ key: "sa:" + id, e: { t: "a", id, qty: 1, steel: true }, get price() { return forgeDisc(forgeRank(FORGE_PRICE.steelArmor, true)); } })),
+      { key: "sarrow20", e: { t: "g", id: "arrow-steel", qty: 20 }, price: AMMO_PACK["arrow-steel"][0], label: "Стальные стрелы ×20" }, { key: "stdag10", e: { t: "g", id: "throw-dagger-steel", qty: 10 }, price: AMMO_PACK["throw-dagger-steel"][0], label: "Стальные метательные кинжалы ×10" }],
   };
   const COMPASS_INFO = () => ({ name: "Компас", icon: ICO_COMPASS, note: "Стрелка показывает север при любом повороте карты. Включается удержанием в инвентаре лабиринта.", weight: 0 });
   const TAVERN = { sleep: 3, food: 1 };                                                           // за героя
@@ -766,8 +768,8 @@
   // Оружие и броня: рыночная цена — как в кузнице (обычное 10/15, стальное 25/40); кузнец берёт −10 %, магазин −20 %; сломанное — пятая часть. Продаётся только из рюкзака.
   const gearMarket = e => { if (!e || (e.t !== "w" && e.t !== "a") || e.art) return 0; const base = e.t === "w" ? (e.steel ? FORGE_PRICE.steelWeapon : FORGE_PRICE.weapon) : (e.steel ? FORGE_PRICE.steelArmor : FORGE_PRICE.armor); return e.broken ? Math.max(1, Math.round(base * 0.2)) : base; };
   const gearPay = e => Math.max(1, Math.round(gearMarket(e) * (ui && ui.b === "forge" ? 0.9 : 0.8)));
-  const unitPrice = e => { const g = GOODS.find(x => x.e && x.e.t === "g" && e && e.t === "g" && x.e.id === e.id); return g ? Math.min(g.price / g.e.qty, g.base / g.e.qty * (partyHas("goblin-merchant") ? 1.1 : 1)) : 0; };          // 10.11 (автор): продать дороже цены магазина нельзя ни с какими эффектами          // продажа — от базовой цены (ранг на неё не влияет)
-  const sellValue = (e, n) => Math.floor(unitPrice(e) * n + 1e-9);
+  const unitPrice = e => { if (e && e.t === "g" && AMMO_PACK[e.id] && e.id !== "arrow") return AMMO_PACK[e.id][0] / AMMO_PACK[e.id][1]; const g = GOODS.find(x => x.e && x.e.t === "g" && e && e.t === "g" && x.e.id === e.id); return g ? Math.min(g.price / g.e.qty, g.base / g.e.qty * (partyHas("goblin-merchant") ? 1.1 : 1)) : 0; };          // 10.11 (автор): продать дороже цены магазина нельзя ни с какими эффектами          // продажа — от базовой цены (ранг на неё не влияет)
+  const sellValue = (e, n) => { const v = Math.floor(unitPrice(e) * n + 1e-9); return v < 1 && n > 1 && unitPrice(e) > 0 && e && AMMO_PACK[e.id] ? 1 : v; };          // 12.11 (автор): неполную стопку стрел и кинжалов можно продать по доле цены (не меньше 1 монеты за остаток из 2+ штук)
   // 10.11: эссенция в колбе — продажа (Башня: цена эссенции с надбавками −20 %, магазин — ещё −20 %)
   function sellEssFlask(i, c0) {
     const c = c0 || hero(), e = (c.bag || [])[i]; if (!e || e.id !== "ess-flask" || !e.ess) return;

@@ -224,6 +224,37 @@ def staff():
     return place(g, y=88, rot=40, s=.7)
 
 
+def wand():
+    g = """
+<rect x="-2.6" y="-46" width="5.2" height="96" rx="2.5" fill="url(#wood)" stroke="#2a1a0e"/>
+<rect x="-3.6" y="22" width="7.2" height="26" fill="url(#leather)"/>""" + wrap_lines(0, 23, 47, 7) + """
+<path d="M-5 -46 L0 -64 L5 -46 L0 -40Z" fill="url(#amber)" stroke="#5a3a0a"/>
+<circle cx="0" cy="52" r="3.5" fill="url(#iron)" stroke="#1c1f21"/>"""
+    return place(g, y=92, rot=32, s=1.15)
+
+
+def morningstar():
+    g = """
+<rect x="-3.5" y="0" width="7" height="78" rx="2" fill="url(#wood)" stroke="#2a1a0e"/>
+<rect x="-4.5" y="44" width="9" height="32" fill="url(#leather)"/>""" + wrap_lines(0, 45, 75, 9) + """
+<rect x="-5" y="-4" width="10" height="8" rx="2" fill="url(#iron)" stroke="#1c1f21"/>
+<path d="M0 -4 C10 -14 -8 -22 4 -34" fill="none" stroke="#8a8f93" stroke-width="3.2" stroke-dasharray="5 3"/>
+<circle cx="8" cy="-48" r="15" fill="url(#iron)" stroke="#1c1f21"/>
+<path d="M8 -70 L4 -62 H12Z M8 -26 L4 -34 H12Z M-14 -48 L-6 -52 V-44Z M30 -48 L22 -52 V-44Z M-8 -64 L-1 -60 L-5 -55Z M24 -64 L17 -60 L21 -55Z M-8 -32 L-1 -36 L-5 -41Z M24 -32 L17 -36 L21 -41Z" fill="url(#steel)" stroke="#2f3538"/>"""
+    return place(g, y=100, rot=18, s=1.1)
+
+
+def flail():
+    g = """
+<rect x="-3.5" y="10" width="7" height="70" rx="2" fill="url(#wood)" stroke="#2a1a0e"/>
+<rect x="-4.5" y="46" width="9" height="32" fill="url(#leather)"/>""" + wrap_lines(0, 47, 77, 9) + """
+<rect x="-5" y="6" width="10" height="8" rx="2" fill="url(#iron)" stroke="#1c1f21"/>
+<path d="M0 6 C-26 -6 -30 -34 -8 -40 C16 -46 30 -30 22 -14 C16 -2 2 -8 8 -22" fill="none" stroke="#8a8f93" stroke-width="3" stroke-dasharray="5 3"/>
+<rect x="2" y="-36" width="12" height="16" rx="3" fill="url(#iron)" stroke="#1c1f21"/>
+<path d="M8 -36 C8 -48 22 -48 20 -38" fill="none" stroke="url(#steel)" stroke-width="3.2" stroke-linecap="round"/>"""
+    return place(g, y=100, rot=14, s=1.1)
+
+
 def axe_body(big):
     k = 1.5 if big else 1.0
     return f"""
@@ -693,7 +724,7 @@ def ph_full(kind):
 
 ITEMS = {
     "spear": spear, "mace": mace, "warhammer": warhammer, "sword": sword, "rapier": rapier, "dagger": dagger, "twin-daggers": twin_daggers,
-    "greatsword": greatsword, "gloves": gloves, "staff": staff, "axe": axe, "greataxe": greataxe, "shortbow": shortbow, "longbow": longbow, "arrows": arrows, "shield": shield, "tower-shield": tower_shield,
+    "greatsword": greatsword, "gloves": gloves, "staff": staff, "wand": wand, "morningstar": morningstar, "flail": flail, "axe": axe, "greataxe": greataxe, "shortbow": shortbow, "longbow": longbow, "arrows": arrows, "shield": shield, "tower-shield": tower_shield,
 }
 ARMOR = ["leather", "hide", "chainmail"]  # базовая броня каждой группы
 RACES = {"human": human, "barbarian": barbarian, "dwarf": dwarf, "beastkin": beastkin, "fairy": fairy, "dragon": dragon}

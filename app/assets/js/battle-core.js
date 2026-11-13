@@ -192,7 +192,7 @@
       speedC: cellsOfM(dv.speed), initB: eb.init + (c.race === "beastkin" ? 2 : 0), skills: eb.skills, saveB: eb.saves, ctl: "ui", fat: st.fat || 0, face: (typeof raceFace === "function" ? raceFace(c.race, c.gender) : ART.race(c.race)), dv: D.race[c.race] && D.race[c.race].dv });
     for (const k of ABIL) u.abil[k] = t[k].total;
     u.ess = (c.essences || []).filter(id => ESSENCES[id]);
-    u.pass = [...u.ess, "race:" + c.race, "weap"];
+    u.pass = [...u.ess, "race:" + c.race, "weap", "weap2"];
     if (u.ess.some(id => (ESSENCES[id].other || []).some(o => /^Тёмное зрение/.test(o)))) u.dv = true;
     essenceTraits(u);
     u.insp = c.insp ?? inspMax(c);                                                  // переброс: у каждого по одному, пока не потрачен (восстанавливает только сон)
@@ -286,7 +286,7 @@
     let sp = Math.max(u.speedC, u.flyC) + hookSum(u, "speedBonus", {});
     if (B.S && B.S.units) for (const e of enemiesOf(u)) sp -= hookSum(e, "slowAura", { u });          // «Тяжёлые цепи» палача: враги рядом теряют скорость                       // бонус к скорости («Лёгкие ноги») — до замедления, как строка статов
     for (const c of u.conds) {
-      if (["grappled", "restrained", "pinned", "trapped", "spearstop", "bastion", "unconscious", "stable", "buried", "paralyzed", "underground", "mired", "encased", "sunk"].includes(c.id)) return 0;
+      if (["grappled", "restrained", "pinned", "trapped", "spearstop", "bastion", "unconscious", "stable", "buried", "paralyzed", "underground", "mired", "encased", "sunk", "chained"].includes(c.id)) return 0;
     }
     for (const c of u.conds) if (c.id === "packhowl") sp += 1;
     for (const c of u.conds) if (c.id === "iced") sp -= 2;          // обледенение (дубина Грольфа)          // «Загонный вой» вожака гончих (03.11)

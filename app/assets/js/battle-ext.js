@@ -263,6 +263,7 @@
   /* ===== перемещение без провоцирования: притянуть, телепорт ===== */
   B.pullAdjacent = async function (t, to) {
     let moved = 0;
+    if (t.mon && B.forceVs && B.forceVs(t).immune) { B.log(`${t.name}: ${B.forceVs(t).why} — не притянуть.`); return 0; }          // вес и размер (12.11)
     for (let i = 0; i < 6 && dist(t, to) > 1; i++) {
       const dx = Math.sign(to.x - t.x), dy = Math.sign(to.y - t.y), cands = [[dx, dy], [dx, 0], [0, dy]].filter(([a, b]) => a || b);
       let done = false;

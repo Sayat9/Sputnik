@@ -58,7 +58,7 @@ const L = require('./bui_lib.js');
   await p.evaluate(() => { location.hash = 'town'; newRun(); }); ok('новый спуск снимает запрет', await p.evaluate(() => !state.arenaLock));
   // --- цены эссенций
   const P = await p.evaluate(() => ({ g: essPrice('goblin'), base9: essBasePrice('goblin'), base8: essBasePrice('dark-bear'), base7: essBasePrice('goblin-king'), rare: essPrice('goblin-archer'), tower: Math.round(essPrice('goblin') / 3) }));
-  ok('цена эссенции 9 класса — 50, у редких вдвое', P.g === 50 && P.base9 === 50 && P.rare === 100, JSON.stringify(P)); ok('8 и 7 класс по отношению цен камней (250, 1000)', P.base8 === 250 && P.base7 === 1000, JSON.stringify(P));
+  ok('цена эссенции 9 класса — 50, у редких +10 %', P.g === 50 && P.base9 === 50 && P.rare === 55, JSON.stringify(P)); ok('8 и 7 класс по отношению цен камней (250, 1000)', P.base8 === 250 && P.base7 === 1000, JSON.stringify(P));
   await p.evaluate(() => { state.run = null; location.hash = 'town'; const c = state.party[0]; c.essences = ['goblin']; c.level = 3; c.gold = 200; c.purged = 0; state.journal.known = {}; state.journal.essNamed = {}; rerender(); });
   await p.click('[data-bld="tower"]'); await p.waitForSelector('[data-t="analyze"]');
   ok('анализ в башне — треть цены эссенции (17)', await p.evaluate(() => document.querySelector('[data-t="analyze"]').innerText.trim() === '17'));

@@ -92,6 +92,7 @@
     for (const atk of attacks) {
       if (atk.offhand || (atk.thrown && !(pr.throwWhenBroken && alliesOf(u).length === 0))) continue;
       if (atk.ammo && u.hero && B.arrowsLeft(u) < 1) continue;
+      if (atk.mana && u.mp < atk.mana) continue;
       if (u.side === "hero" && atk.id === "torchhit") continue;
       for (const t of ts) {
         if (!B.inAttackRange(u, t, atk)) continue;

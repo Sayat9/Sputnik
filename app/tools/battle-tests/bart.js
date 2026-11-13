@@ -124,7 +124,7 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
     return out;
   });
   ok('перчатки: действие «Притянуть» в меню, путь 2 клетки', o2.acts.includes('magnet') && o2.path === 2, [o2.acts, o2.path]);
-  ok('Сл притяжения: 12, крупным 9, металлическим +3; огромных нельзя', o2.dc.join() === '12,9,15' || o2.dc.join() === '12,9,12', o2.dc);
+  ok('Сл притяжения (12.11, вес и размер): гоблин лёгкий и маленький — 12 − 4 = 8, металлическим +3', o2.dc.join() === '8,8,11', o2.dc);
   ok('огромного притянуть нельзя, препятствие на пути — нельзя', o2.huge === null && o2.blocked === null, [o2.huge, o2.blocked]);
   ok('притяжение выполняется: цель встаёт вплотную', o2.pulled.ok1 && o2.pulled.y === 8, o2.pulled);
   ok('Порез теней: атака на 3 клетки, на 4 клетки не достаёт', o2.cut && o2.cut[0] === 'melee' && o2.cut[1] === 3 && o2.cutRange[0] === true && o2.cutFar === 0, [o2.cut, o2.cutRange, o2.cutFar]);

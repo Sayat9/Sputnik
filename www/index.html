@@ -397,7 +397,17 @@ nav.tabs {
   background: var(--surface); border-top: 1px solid var(--line);
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
-nav.tabs .wrap { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; padding-block: 6px; }
+nav.tabs .wrap { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; padding-block: 6px; }
+/* 12.11: шестерёнка настроек и окно «Меню» (как у игроков) */
+.gear-btn { position: absolute; top: 10px; right: 10px; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; padding: 0; border: 1px solid var(--fx-line, #6e5634); background: rgba(20, 15, 9, .7); color: var(--fx-gold-hi, #f4d48e); cursor: pointer; z-index: 2; }
+.gear-btn svg { width: 24px; height: 24px; }
+.fx-home { position: relative; }
+#menuov .panel { position: relative; width: min(420px, calc(100vw - 32px)); box-sizing: border-box; max-height: calc(100vh - 32px); overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 16px; }
+#menuov .panel h3 { margin: 0 52px 4px 0; }
+#menuov .panel .fx-btn { width: 100%; box-sizing: border-box; white-space: normal; height: auto; }
+#setov .set-sec { font: 600 11px/1 var(--f-data, inherit); letter-spacing: .1em; text-transform: uppercase; opacity: .65; margin: 6px 0 -2px; }
+/* режим разработчика выключен: особые функции ведущего скрыты */
+body.dev-off [data-dg="gm"], body.dev-off [data-hx="revive"], body.dev-off [data-hx="ess-add-toggle"], body.dev-off [data-hx="add-toggle"], body.dev-off [data-hx="hp"], body.dev-off [data-hx="mp"], body.dev-off [data-hx="insp"], body.dev-off [data-hx="luck"], body.dev-off [data-m="gm"], body.dev-off [data-hx="ess-drop"], body.dev-off .dev-only { display: none !important; }
 nav.tabs button {
   border: 0; background: none; cursor: pointer; border-radius: 10px;
   display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 2px;
@@ -633,8 +643,8 @@ body.forge-open, body.bt-active, body:has(.mapov:not([hidden])), body:has(.bt-ro
 .phase-pill { position: absolute; top: 60px; left: 50%; transform: translateX(-50%); z-index: 3; background: rgb(18 14 9 / .85);
   border: 1px solid var(--fx-gold); border-radius: 999px; padding: 6px 14px; font: 700 13px/1.1 var(--f-fancy); letter-spacing: .06em; color: var(--fx-gold-hi); white-space: nowrap; }
 .dd { position: absolute; top: 58px; z-index: 5; padding: 10px; display: flex; gap: 10px; }
-.dd.l { left: 8px; } .dd.r { right: 8px; flex-direction: column; align-items: stretch; min-width: 210px; }
-.dd.r .fx-btn { font-size: 14px; padding: 8px 10px; }
+.dd.l { left: 8px; } .dd.r { right: 8px; flex-direction: column; align-items: stretch; min-width: 210px; max-width: calc(100% - 16px); box-sizing: border-box; overflow-x: hidden; }
+.dd.r .fx-btn { font-size: 14px; padding: 8px 10px; white-space: normal; height: auto; overflow-wrap: anywhere; }
 .inv-item { position: relative; width: 70px; height: 78px; border-radius: 6px; border: 1px solid var(--fx-line); background: #120E09; color: var(--fx-gold-hi);
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer; padding: 0;
   touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
@@ -1146,23 +1156,19 @@ dl.kv { margin: 0; }
   <div class="wrap">
     <button data-tab="">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 21V10l8-6 8 6v11z"/><path d="M9.5 21v-5a2.5 2.5 0 0 1 5 0v5"/><path d="M12 4V2"/></svg>
-      Главная
+      Игра
+    </button>
+    <button data-action="heroes" id="tab-heroes">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c.8-3.4 3.2-5 6-5s5.2 1.6 6 5"/><circle cx="17" cy="9" r="2.4"/><path d="M15.5 14.6c2.6-.4 4.7 1 5.5 4.4"/></svg>
+      Герои
     </button>
     <button data-tab="ref">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5"/></svg>
       Справочник
     </button>
-    <button data-tab="bestiary" id="tab-bestiary">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 10c0-5 3.5-7 8-7s8 2 8 7c0 4-2 6-3 7v3H7v-3c-1-1-3-3-3-7z"/><circle cx="9" cy="11" r="1.6" fill="currentColor"/><circle cx="15" cy="11" r="1.6" fill="currentColor"/><path d="M10 20v-2M14 20v-2"/></svg>
-      Монстры
-    </button>
-    <button data-tab="character" id="tab-character">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>
-      Персонаж
-    </button>
-    <button data-action="heroes" id="tab-heroes">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c.8-3.4 3.2-5 6-5s5.2 1.6 6 5"/><circle cx="17" cy="9" r="2.4"/><path d="M15.5 14.6c2.6-.4 4.7 1 5.5 4.4"/></svg>
-      Герои
+    <button data-action="menu" id="tab-menu" aria-label="Меню">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6.5h16M4 12h16M4 17.5h16"/></svg>
+      Меню
     </button>
   </div>
 </nav>
@@ -1216,9 +1222,22 @@ const WEAPONS = [
   { id: "gloves", name: "Перчатки", group: "melee", kind: "Простое", dmg: "1к4", type: "дробящий", weight: 1, price: 10,
     props: ["Кастет", "Одна: +1 Защиты и «Блок кулаками»", "Две: +3 Защиты, −1 Уворота и урон 2к4"],
     note: "Кожа с железными накладками на костяшках. Одна перчатка — оружие и действие «Блок кулаками»; вторая рука свободна под щит или кинжал: до начала следующего хода урон ближних атак по вам снижается на 1к4 + Ловкость. В обеих руках — +2 КД, а удар кулаками наносит 2к4." },
-  { id: "staff", name: "Посох", group: "melee", kind: "Простое", dmg: "1к4", type: "дробящий", weight: 2, price: 6, dmgPlus: 1,          // +1 к урону (автор 03.11)
-    props: ["Двуручное", "+1 к урону", "Досягаемость 3 м (на 2-й клетке −2 к атаке)", "+1 к мане"],
-    note: "Ясеневая жердь с железным оголовьем. Слабее копья, но на второй клетке бьёт с меньшим штрафом (−2 вместо помехи). Владельцу даёт +1 к максимуму маны." },
+  // 12.11 (автор): палочка и посох — первое оружие от Интеллекта: магический снаряд за ману (правила лука: помеха, когда враг вплотную), плюс слабый удар вблизи. Числа — черновик.
+  { id: "wand", name: "Палочка", group: "melee", kind: "Магическое", dmg: "1к4", type: "магический", weight: 0.3, price: 20, offOnly: true, noOff: true,
+    magic: { mana: 1, range: 6, melee: { ab: "dex", flat: 1, n: "Тычок палочкой" } },
+    props: ["Магический снаряд (9 м, 1 мана)", "Одноручное", "Во вторую руку: щит, перчатка или кинжал", "Удар вблизи: 1 + Ловкость"],
+    note: "Тонкий жезл с кристаллом в навершии. Выстрел — сгусток чистой магии: попадание и урон от Интеллекта, каждый выстрел стоит 1 ману. Слабее лука, зато ранит призраков. Когда враг вплотную, стрелять трудно — как из лука. Вблизи палочкой можно ткнуть: попадание и урон от Ловкости, урон небольшой." },
+  { id: "staff", name: "Посох", group: "melee", kind: "Магическое", dmg: "2к4", type: "магический", weight: 2, price: 35, noOff: true,
+    magic: { mana: 1, range: 8, lines: true, plus: true, melee: { ab: "str", dmg: "1к4", n: "Удар посохом" } },
+    props: ["Двуручное", "Магический снаряд (12 м, 1 мана)", "Только по прямой", "Крест (2 маны)", "Удар вблизи: 1к4 + Сила"],
+    note: "Резной посох с навершием-накопителем. Выстрел — луч магии: попадание и урон от Интеллекта, 1 мана. Бьёт только по вертикали или горизонтали — по диагонали цель не достать. «Крест» за 2 маны: цель получает обычный урон, а все на четырёх соседних клетках (сверху, снизу, слева, справа) — на 20 % меньше. Когда враг вплотную, стрелять трудно — как из лука. Вблизи посохом бьют как дубиной: попадание и урон от Силы." },
+  // Цепное оружие (12.11, автор): моргенштерн и цеп. Числа — черновик.
+  { id: "morningstar", name: "Моргенштерн", group: "melee", kind: "Воинское", dmg: "1к8", type: "дробящий", weight: 2, price: 28, offOnly: true, noOff: true, hitAb: "dex", dmgAb: "str",
+    props: ["Цепное", "Одноручное", "Во вторую руку: щит, перчатка или кинжал", "Замах"],
+    note: "Шипастый шар на цепи. Попасть им — дело ловкости, а бьёт он силой. «Замах»: раскрутив цепь, можно достать врага на клетку дальше — урон на 2 выше, но бросок атаки с −3." },
+  { id: "flail", name: "Цеп", group: "melee", kind: "Воинское", dmg: "1к4", type: "дробящий", weight: 1.5, price: 24, offOnly: true, noOff: true, hitAb: "dex", dmgAb: "dex",
+    props: ["Цепное", "Одноручное", "Во вторую руку: щит, перчатка или кинжал", "Досягаемость: 4 клетки по прямой, 3 по диагонали", "Притянуться"],
+    note: "Длинная цепь с грузом и крюком. Попадание и урон от Ловкости, урон небольшой. Достаёт на 4 клетки по вертикали и горизонтали и на 3 по диагонали — «цветком». При очень низком броске груз задевает того, кто стоит на пути, — как стрела. Цепом и оружием второй руки одновременно не бьют: нужно выбирать. «Притянуться»: зацепившись за крепкий предмет (камень, дерево, частокол), герой подтягивается к нему — проверка Силы решает, на сколько клеток; врезавшись в кого-то на пути, герой останавливается, и оба получают удар." },
   { id: "axe", name: "Топор", group: "melee", kind: "Воинское", dmg: "1к6", type: "рубящий", weight: 1, price: 18,
     props: ["Метательное (4/12 м)", "Против щитов (+2 урона)"],
     note: "Одноручный топор: можно держать в обеих руках и бросать оба. Против носителей щитов бьёт на 2 урона сильнее." },
@@ -1238,12 +1257,18 @@ const WEAPONS = [
 ];
 
 // Описания (решение автора 28.10): короткая фраза о предмете и только то, что видно по самому предмету — без правил особых способностей и скрытых взаимодействий.
-const W_FLAVOR = { pike: "Длинное древко с узким гранёным наконечником — укороченное копьё всадника.", spear: "Ясеневое древко с кованым наконечником.", mace: "Железное навершие на окованной рукояти.", warhammer: "Тяжёлый молот дварфийской работы.", sword: "Прямой железный клинок.", dagger: "Короткий клинок с широкой крестовиной.", rapier: "Тонкий и лёгкий клинок.", greatsword: "Длинный тяжёлый меч для двух рук.", shortbow: "Лёгкий лук из дерева и жилы.", longbow: "Тисовый лук в рост человека.", gloves: "Кожаные перчатки с железными накладками.", staff: "Ясеневая жердь с железным оголовьем.", axe: "Одноручный топор с острым лезвием.", greataxe: "Тяжёлая двуручная секира.", arrows: "Стрелы с железными наконечниками.", shield: "Дубовые доски с железной оковкой.", "tower-shield": "Высокая стена из досок с железными полосами." };
+const W_FLAVOR = { pike: "Длинное древко с узким гранёным наконечником — укороченное копьё всадника.", spear: "Ясеневое древко с кованым наконечником.", mace: "Железное навершие на окованной рукояти.", warhammer: "Тяжёлый молот дварфийской работы.", sword: "Прямой железный клинок.", dagger: "Короткий клинок с широкой крестовиной.", rapier: "Тонкий и лёгкий клинок.", greatsword: "Длинный тяжёлый меч для двух рук.", shortbow: "Лёгкий лук из дерева и жилы.", longbow: "Тисовый лук в рост человека.", gloves: "Кожаные перчатки с железными накладками.", staff: "Резной посох с навершием-накопителем.", wand: "Тонкий жезл с кристаллом в навершии.", morningstar: "Шипастый шар на цепи.", flail: "Длинная цепь с грузом и крюком.", axe: "Одноручный топор с острым лезвием.", greataxe: "Тяжёлая двуручная секира.", arrows: "Стрелы с железными наконечниками.", shield: "Дубовые доски с железной оковкой.", "tower-shield": "Высокая стена из досок с железными полосами." };
 const A_FLAVOR = { leather: "Варёная кожа, пропитанная жиром.", hide: "Толстые шкуры и мех.", chainmail: "Кольчуга с подкольчужником." };
 const kgTxt = n => String(n).replace(".", ",") + " кг";
 // 10.11 (автор): от какой характеристики считаются атака и урон оружия (как в бою: atkFrom, battle-act.js)
-const weaponAbilText = w => !w || w.group === "shield" ? "" : w.group === "ranged" ? "Ловкость" : (w.props || []).some(x => /Фехтовальное/.test(x)) ? "Сила или Ловкость (что выше)" : "Сила";
-const weaponStats = w => `${w.group === "shield" ? w.dmg : `Урон ${w.dmg}${w.type ? " " + w.type : ""}`}${w.props && w.props.length ? " · " + w.props.join(", ") : ""}${weaponAbilText(w) ? " · атака и урон: " + weaponAbilText(w) : ""} · ${kgTxt(w.weight)}.`;
+const AB_NAME = { str: "Сила", dex: "Ловкость", int: "Интеллект" };
+// Тяжёлое оружие ближнего боя (двуручный меч, секира): попадание от Ловкости, урон от Силы (автор 12.11). Цепное — по своим полям hitAb/dmgAb.
+const heavyMelee = w => !!w && w.group === "melee" && w.kind !== "Щит" && (w.props || []).includes("Тяжёлое");
+const weaponAbs = w => !w || w.group === "shield" ? null : w.magic ? { hit: "int", dmg: "int" } : w.group === "ranged" ? { hit: "dex", dmg: "dex" } : w.hitAb ? { hit: w.hitAb, dmg: w.dmgAb || w.hitAb } : heavyMelee(w) ? { hit: "dex", dmg: "str" } : null;
+const weaponAbilText = w => { if (!w || w.group === "shield") return ""; const a = weaponAbs(w); if (a) return a.hit === a.dmg ? AB_NAME[a.hit] : `попадание — ${AB_NAME[a.hit]}, урон — ${AB_NAME[a.dmg]}`; return (w.props || []).some(x => /Фехтовальное/.test(x)) ? "Сила или Ловкость (что выше)" : "Сила"; };
+const weaponAbilLine = w => { const t = weaponAbilText(w); return !t ? "" : /—/.test(t) ? t : "атака и урон: " + t; };
+const offLimited = w => !!(w && w.offOnly), offAllowed = (main, x) => !offLimited(main) || (!!x && ["shield", "gloves", "dagger"].includes(x.id));          // палочка, моргенштерн, цеп: во второй руке только щит, перчатка или кинжал
+const weaponStats = w => `${w.group === "shield" ? w.dmg : `Урон ${w.dmg}${w.type ? " " + w.type : ""}`}${w.props && w.props.length ? " · " + w.props.join(", ") : ""}${weaponAbilLine(w) ? " · " + weaponAbilLine(w) : ""} · ${kgTxt(w.weight)}.`;
 const DEF_ARMOR = { clothes: { prot: 1, dodge: 0 }, light: { prot: 2, dodge: 1 }, medium: { prot: 3, dodge: 2 }, heavy: { prot: 4, dodge: 3 } };
 const DEF_SHIELD = { shield: { prot: 2, dodge: 1 }, "tower-shield": { prot: 4, dodge: 2 } };
 const OVERLOAD = { ok: { dodge: 0, speed: 0 }, light: { dodge: 1, speed: 1.5 }, medium: { dodge: 2, speed: 3 }, max: { dodge: 3, speed: 6 } };
@@ -1276,7 +1301,17 @@ const ARMOR_FLAT = ARMOR.flatMap(c => c.items.map(a => ({ ...a, cat: c.cat, catL
 const PROPS = [
   ["Универсальное", "Можно бить одной или двумя руками. В скобках урон двумя руками."],
   ["Фехтовальное", "Для атаки и урона можно использовать Ловкость вместо Силы."],
-  ["Тяжёлое", "Маленькие существа совершают атаки с помехой."],
+  ["Тяжёлое", "Маленькие существа совершают атаки с помехой. Тяжёлое оружие ближнего боя (двуручный меч, секира): попадание от Ловкости, урон от Силы."],
+  ["Магический снаряд", "Выстрел чистой магией: попадание и урон от Интеллекта, каждый выстрел тратит ману. В скобках дальность и цена. Когда враг вплотную — помеха, как у лука. Магический урон ранит призраков."],
+  ["Только по прямой", "Посох бьёт лучом только по вертикали или горизонтали. Если цель стоит по диагонали или в стороне от линии — выстрелить нельзя."],
+  ["Крест", "Особая атака посоха за двойную ману: цель в центре получает обычный урон, все на четырёх соседних клетках (сверху, снизу, слева, справа) — на 20 % меньше. Задевает и своих."],
+  ["Удар вблизи", "Палочкой и посохом можно ударить и в ближнем бою, без маны: палочка — от Ловкости, посох — от Силы. Урон небольшой."],
+  ["Цепное", "Оружие на цепи: попасть им — дело Ловкости. Во второй руке — только щит, перчатка или кинжал."],
+  ["Одноручное", "Держится одной рукой: вторая свободна."],
+  ["Во вторую руку", "Вместе с этим оружием во второй руке можно держать только щит, перчатку или кинжал."],
+  ["Замах", "Особая атака моргенштерна: достаёт на клетку дальше, урон +2, но бросок атаки −3."],
+  ["Досягаемость: 4 клетки", "Цеп бьёт на 4 клетки по вертикали и горизонтали и на 3 по диагонали — «цветком». При натуральном броске 1–10 и промахе груз задевает первого, кто стоит на пути (и союзника). Цепом и оружием второй руки одновременно не бьют."],
+  ["Притянуться", "Особая атака цепа: зацепиться за крепкий предмет на линии удара (камень, дерево, частокол, надгробие) и подтянуться к нему. Проверка Силы: 8+ — 1 клетка, 12+ — 2, 16+ — 3. Если на пути кто-то стоит, герой врезается в него: оба получают 1к4 + Сила дробящего, герой останавливается перед ним."],
   ["Двуручное", "Нужны обе руки. Исключение: «Великан» у варвара (одной рукой: −2 к Ловкости)."],
   ["Метательное", "Можно метнуть. В скобках нормальная и максимальная дальность; дальше нормальной — помеха."],
   ["Кровоточащее", "Попадание может вызвать кровотечение (спасбросок Телосложения, Сл 10 + Ловкость): 1 урона в начале хода, 3 хода."],
@@ -1300,8 +1335,8 @@ const STAT_INFO = {
   str: { short: "мышцы, переноска", long: "Рукопашные атаки и урон обычным оружием, Атлетика, выбить дверь, удержать. В приложении задаёт грузоподъёмность: Сил × 7,5 кг, нагружен с Сил × 2,5 кг." },
   dex: { short: "ловкость, реакция", long: "Атаки луком и фехтовальным оружием, КД в лёгкой и средней броне, инициатива, Акробатика, Скрытность, обезвредить ловушку." },
   con: { short: "здоровье, выносливость", long: "Добавляется к ОЗ на каждом уровне и к лечению во время Отдыха, спасброски против обморока от Усталости и бега при Усталости 3+, концентрация." },
-  int: { short: "знания, логика", long: "Расследование (поиск тайников и ловушек), История, Магия, Природа. Помогает разбираться в рунах, механизмах и записях." },
-  wis: { short: "внимание, чутьё", long: "Восприятие и пассивное Восприятие (замечать ловушки и засады, караул), Выживание (Охота, выслеживание), Медицина (перевязка), Проницательность." },
+  int: { short: "знания, мана", long: "Запас маны (Интеллект + 2 за уровень), попадание и урон палочки и посоха. Расследование (поиск тайников и ловушек), История, Магия, Природа. Помогает разбираться в рунах, механизмах и записях." },
+  wis: { short: "внимание, чутьё", long: "Сколько маны возвращает Отдых (60 % + 10 % за пункт модификатора). Восприятие и пассивное Восприятие (замечать ловушки и засады, караул), Выживание (Охота, выслеживание), Медицина (перевязка), Проницательность." },
   cha: { short: "обаяние, воля", long: "Убеждение, Обман, Запугивание, Выступление. Торговля со скупкой, разговоры с NPC и другими исследователями." },
 };
 const STAT_NAME = { str: "Сила", dex: "Ловкость", con: "Телосложение", int: "Интеллект", wis: "Мудрость", cha: "Харизма" };
@@ -1725,16 +1760,57 @@ const ESSENCES = {
 };
 
 // Общие категории монстров (решение автора 31.10): по виду существа, а не по зоне. monCat(m) берёт их из поля type.
-const KIND_RU = { humanoid: "Гуманоиды", beast: "Звери", vermin: "Насекомые и пауки", undead: "Нежить", spirit: "Духи и призраки", elemental: "Элементали", construct: "Механизмы и конструкты", ooze: "Слизи", monster: "Чудовища и мутанты" };          // 09.11 (автор): больше видов; пугало — механизм/конструкт, а не нежить
-// Вид по id там, где поле type не говорит главного (жуки и скорпионы записаны «Зверь», слизи и химеры — «Тварь» и т. п.).
+// 12.11 (автор): большие группы монстров и подгруппы. Большие — гуманоиды, звери, нежить, элементали (остальные — пока как были); подгруппы — ниже.
+const KIND_RU = { humanoid: "Гуманоиды", beast: "Звери", undead: "Нежить", elemental: "Элементали", construct: "Механизмы и конструкты", ooze: "Слизи", monster: "Чудовища и мутанты" };
+const SUB_RU = { goblin: "Гоблины", orc: "Орки", kobold: "Кобольды", human: "Люди", troll: "Тролли и полукровки", bird: "Птицы", land: "Сухопутные", sea: "Водные", dragon: "Драконоподобные", bug: "Насекомые и пауки",
+  spirit: "Духи", fairy: "Феи", elem: "Элементали", ghost: "Призраки", dead: "Ходячие мертвецы" };
+const SUB_GROUP = { goblin: "humanoid", orc: "humanoid", kobold: "humanoid", human: "humanoid", troll: "humanoid", bird: "beast", land: "beast", sea: "beast", dragon: "beast", bug: "beast", spirit: "elemental", fairy: "elemental", elem: "elemental", ghost: "undead", dead: "undead" };
+// Подгруппа по id там, где её не вывести из названия и статблока.
+const MON_SUB = {
+  goblin: ["city-guard", "roof-archer", "temple-shaman", "slum-thug", "mad-berserker", "city-captain", "chief-engineer", "mad-pyromancer", "rat-catcher", "gob-founder", "hob-sergeant"],
+  troll: ["half-troll", "trollgob-porter"],
+  bird: ["crow", "blackwing", "orc-falcon", "grey-vulture", "keen-raven", "ash-owl", "witch-owl", "sand-vulture", "dead-vulture"],
+  sea: ["swamp-toad", "swamp-fang"],
+  dragon: ["ember-salamander", "magma-wyrm"],
+  bug: ["web-spider", "spider-queen", "coal-beetle", "boulder-beetle", "frost-beetle", "sand-scorpion", "big-stinger", "mirage-scorpion", "firefly-swarm", "swarm-mother", "toll-beetle", "trap-crab", "wire-spider"],
+  fairy: ["pixie", "wisp", "ice-imp"],
+  spirit: ["lake-spirit", "storm-spirit", "ice-spirit", "lost-trail", "fog-lantern", "silence-keeper", "mine-ghost"],          // рудничный призрак пока дух: призраком он стал бы неуязвим для обычного оружия (на утверждении автора)
+  ghost: ["mourner", "lost-wanderer", "maid-shade"],
+};
+// Вид по id там, где поле type не говорит главного (слизи и химеры записаны «Тварь» и т. п.).
 const MON_KIND = {
-  vermin: ["web-spider", "spider-queen", "coal-beetle", "boulder-beetle", "frost-beetle", "sand-scorpion", "big-stinger", "mirage-scorpion", "firefly-swarm", "swarm-mother", "toll-beetle", "trap-crab", "wire-spider"],
-  elemental: ["ice-imp", "ice-spirit"],
   ooze: ["slime", "acid-slime", "stone-slime", "split-slime", "rimuru", "blood-puddle"],
   monster: ["chimera-hound", "lab-direwolf", "mutant-boar", "fled-chimera", "luna"],
 };
+const MON_SUB_BY_ID = Object.fromEntries(Object.entries(MON_SUB).flatMap(([k, ids]) => ids.map(id => [id, k])));
 const MON_KIND_BY_ID = Object.fromEntries(Object.entries(MON_KIND).flatMap(([k, ids]) => ids.map(id => [id, k])));
-const monCat = m => { if (m && MON_KIND_BY_ID[m.id]) return MON_KIND_BY_ID[m.id]; const t = String((m && m.type) || "").toLowerCase(); return /нежить/.test(t) ? "undead" : /конструкт/.test(t) ? "construct" : /элементал/.test(t) ? "elemental" : /призрак|дух/.test(t) ? "spirit" : /зверь|животн/.test(t) ? "beast" : /гуманоид/.test(t) ? "humanoid" : "monster"; };
+const monCat = m => { if (m && MON_KIND_BY_ID[m.id]) return MON_KIND_BY_ID[m.id]; if (m && MON_SUB_BY_ID[m.id]) return SUB_GROUP[MON_SUB_BY_ID[m.id]]; const t = String((m && m.type) || "").toLowerCase(); return /нежить|призрак/.test(t) ? "undead" : /конструкт/.test(t) ? "construct" : /элементал|дух/.test(t) ? "elemental" : /зверь|животн/.test(t) ? "beast" : /гуманоид/.test(t) ? "humanoid" : "monster"; };
+const monSub = m => { if (!m) return null; if (MON_SUB_BY_ID[m.id]) return MON_SUB_BY_ID[m.id]; const g = monCat(m), nm = `${m.id} ${m.name || ""}`.toLowerCase(), t = String(m.type || "").toLowerCase();
+  if (g === "humanoid") return /гоблин|goblin|^hob/.test(nm) ? "goblin" : /^orc-|орк/.test(nm) ? "orc" : /кобольд|kobold/.test(nm) ? "kobold" : "human";
+  if (g === "beast") return /полёт/.test(m.speed || "") && !/летуч/.test(nm) ? "bird" : "land";
+  if (g === "undead") return m.spectral || /призрак/.test(t) ? "ghost" : "dead";
+  if (g === "elemental") return /дух/.test(t) || /дух/.test(nm) ? "spirit" : "elem";
+  return null; };
+const monGroupText = m => { const g = KIND_RU[monCat(m)] || "", sb = monSub(m); return sb && SUB_RU[sb] && SUB_RU[sb] !== g ? `${g} · ${SUB_RU[sb].toLowerCase()}` : g; };
+const monIsGhost = m => !!m && (m.spectral || monSub(m) === "ghost");
+const monNoBlood = m => !!m && ["undead", "elemental", "construct"].includes(monCat(m));          // нежить и элементали (и конструкты) не кровоточат: в них нет живой крови
+// Вес и размер (12.11, автор): по 5 ступеней. Размер — из статблока; вес — от размера с поправкой на природу существа, плюс точечные правки. Числа и раскладка — черновик.
+const SZ_NAME = ["", "крошечный", "маленький", "средний", "большой", "гигантский"], WT_NAME = ["", "очень лёгкий", "лёгкий", "средний", "тяжёлый", "очень тяжёлый"];
+const SZ_NUM = { "крошечный": 1, "малый": 2, "маленький": 2, "средний": 3, "большой": 4, "огромный": 5, "гигантский": 5 };
+const WT_HEAVY = ["crystalloid", "magma-golem", "crystal-colossus", "stone-guardian", "living-stone", "green-boulder", "rift-heart", "stone-slime", "toll-bull", "stone-elk", "boulder-beetle", "bone-knight", "death-knight", "iron-fox", "mammoth-calf", "dark-bear", "giant-mole", "abomination", "plague-fat", "forge-smith", "orc-chief", "half-troll", "trollgob-porter", "cart-mimic", "mimic", "toll-guard", "faceless-ringer", "sand-worm"];
+const WT_LIGHT = ["dust-whirl", "wisp", "firefly-swarm", "unfinished-blade", "dust-cherub", "scarecrow", "bat", "blood-bat", "skeleton", "skeleton-archer", "bone-hound", "bone-ranger", "drop", "horned-hare", "witch-cat", "grey-shade", "morok", "ash-spirit"];
+const MON_MASS = {};          // точечные правки автора: id → { wt, sz }
+function monMass(m) {
+  if (!m) return { wt: 3, sz: 3 };
+  if (MON_MASS[m.id]) return MON_MASS[m.id];
+  const sz = SZ_NUM[m.sz] || SZ_NUM[String(m.size || "").split(" ")[0].toLowerCase().replace(/ая$/, "ый").replace("малый", "малый")] || 3;
+  const g = monCat(m), sb = monSub(m); let wt = sz;
+  if (WT_HEAVY.includes(m.id) || (g === "construct" && !WT_LIGHT.includes(m.id))) wt++;
+  if (WT_LIGHT.includes(m.id) || ["ghost", "fairy", "spirit", "bird"].includes(sb)) wt--;
+  return { wt: Math.max(1, Math.min(5, wt)), sz };
+}
+const heroMass = c => { const small = ["gnome", "fairy", "darkfairy"].includes(c.race); return { sz: small ? 2 : 3, wt: c.race === "fairy" || c.race === "darkfairy" ? 1 : small ? 2 : c.race === "barbarian" ? 4 : 3 }; };
+const massText = k => `размер: ${SZ_NAME[k.sz]}, вес: ${WT_NAME[k.wt]}`;
 const RANKS = { normal: "Обычный", rare: "Редкий", special: "Особый", guardian: "Страж", lord: "Лорд этажа", boss: "Босс" };          // boss — Хранитель Тишины, Мимик (03.11: раньше в бестиарии было «undefined»)
 const rankOf = m => m.rank === "normal" && m.rare ? "rare" : m.rank;
 const MONSTERS = [
@@ -2920,7 +2996,7 @@ function riftRest() {
   const lines = [], pk = R.id === "past" ? pastTile(R, R.pos.x, R.pos.y) : "", pmul = pk === "stream" ? 2 : 1;          // ручей — отдых вдвое сильнее
   if (pk === "lab" && !R.natDead) { toast("Сначала откройте лабораторию"); return; }
   for (const c of state.party) { if (c.dead) continue; const st = r.status[c.id]; const got = eatRations(c, 1); if (got) { st.sat = Math.min(9, st.sat + 3); st.starve = 0; } st.fat = Math.max(0, st.fat - 2); st.awake = 0;
-    const h = Math.max(1, Math.round(maxHp(c) * 0.3 * pmul + maxHp(c) * restBonusPct())); c.hp = Math.min(maxHp(c), hpOf(c) + h); c.mp = Math.min(maxMp(c), (c.mp ?? 0) + (pmul > 1 ? maxMp(c) : Math.ceil(maxMp(c) / 2))); if (pmul > 1) st.fat = Math.max(0, st.fat - 2); lines.push(`${c.name}: +${h} ОЗ${got ? "" : " (без еды)"}`); }
+    const h = Math.max(1, Math.round(maxHp(c) * 0.3 * pmul + maxHp(c) * restBonusPct())); c.hp = Math.min(maxHp(c), hpOf(c) + h); restMana(c, pmul > 1 ? 1 : 0.5); if (pmul > 1) st.fat = Math.max(0, st.fat - 2); lines.push(`${c.name}: +${h} ОЗ${got ? "" : " (без еды)"}`); }
   R.steps += 3; r.canBrew = true; shamanPrayer(); logRun("Разлом: привал. " + lines.join("; "));
   if (R.id === "past") { const out = pastRestAfter(R, pk, lines); if (out) return; }
   if (R.id === "gcity") { if (R.pend) { toast("Сначала решите, что делать со встречей"); return; } const out = gcRestAfter(R, gcTile(R, R.pos.x, R.pos.y), lines); if (out) return; }
@@ -3576,15 +3652,15 @@ const DISTRICTS = [
 
 // Готовые рисованные картинки (webp) заменяют векторные заглушки.
 // Дата сборки для телефона: build.sh вписывает её сюда, в веб-версии строка пустая.
-const APP_BUILD = "11.11.2026 01:43";
-const APP_VERSION = 1794343408;                 // номер сборки, тоже вписывает build.sh
+const APP_BUILD = "13.11.2026 17:57";
+const APP_VERSION = 1794574679;                 // номер сборки, тоже вписывает build.sh
 const UPDATE_URL = "https://raw.githubusercontent.com/Sayat9/Sputnik/main/www/";
 const RASTER = new Set(["monsters/mad-berserker-face", "monsters/mad-berserker-full", "monsters/trollgob-porter-face", "monsters/trollgob-porter-full", "monsters/fog-lantern-face", "monsters/fog-lantern-full", "monsters/mad-pyromancer-face", "monsters/mad-pyromancer-full", "monsters/blood-ghoul-face", "monsters/blood-ghoul-full", "monsters/chief-engineer-face", "monsters/chief-engineer-full", "monsters/pack-leader-face", "monsters/pack-leader-full", "monsters/city-captain-face", "monsters/city-captain-full", "monsters/blood-bat-face", "monsters/blood-bat-full", "monsters/blood-slave-face", "monsters/blood-slave-full", "monsters/dust-cherub-face", "monsters/dust-cherub-full", "monsters/lost-trail-face", "monsters/lost-trail-full", "monsters/mourner-face", "monsters/mourner-full", "monsters/marble-halberdier-face", "monsters/marble-halberdier-full", "monsters/faceless-sculptor-face", "monsters/faceless-sculptor-full", "monsters/maid-shade-face", "monsters/maid-shade-full", "monsters/lost-wanderer-face", "monsters/lost-wanderer-full", "monsters/goblin-provoker-face", "monsters/goblin-provoker-full", "monsters/keen-raven-face", "monsters/keen-raven-full", "monsters/iron-fox-face", "monsters/iron-fox-full", "monsters/nasty-goblin-face", "monsters/nasty-goblin-full", "monsters/tracker-hunter-face", "monsters/tracker-hunter-full", "monsters/glen-warden-face", "monsters/glen-warden-full", "monsters/silent-predator-face", "monsters/silent-predator-full", "monsters/caryatid-face", "monsters/caryatid-full", "monsters/scarecrow-face", "monsters/scarecrow-full", "monsters/marble-guardian-face", "monsters/marble-guardian-full", "monsters/marble-saint-face", "monsters/marble-saint-full", "monsters/witch-owl-face", "monsters/witch-owl-full", "monsters/toll-hunter-face", "monsters/toll-hunter-full", "items/steel-pike", "items/calm-flute", "items/dice", "items/art-falling-star", "items/art-echo-blade", "items/art-discharge-staff", "items/weak-salt", "items/silver-salt", "items/tollbell", "items/director-quiver", "items/flame", "items/herb-poison", "items/herb-food", "items/herb-rest", "items/repair-charm", "items/durable-charm", "items/regen-charm", "items/herb-heal", "items/herb-mana", "items/boots", "items/wind", "items/whetstone", "items/daedalus-hammer", "items/unbreakable-charm", "items/pike", "items/bell", "items/flask", "items/monocle", "buildings/arena", "buildings/academy", "buildings/bank", "buildings/storage", "races/dragon-f", "races/fairy-f", "races/gnome-f", "races/darkfairy-f", "events/to-labyrinth", "races/human-f", "races/barbarian-f", "races/dwarf-f", "races/beastkin-f", "events/to-town", "events/ambush", "events/monsters", "events/nothing", "events/travelers", "events/treasure", "items/mace", "items/warhammer", "items/armor-leather", "items/armor-hide", "items/armor-chainmail", "items/steel-dagger", "items/steel-sword", "items/steel-greatsword", "items/steel-shield", "items/steel-tower-shield", "items/shortbow", "items/longbow", "items/rapier", "items/shield", "items/tower-shield", "items/unknown-mushroom", "items/stone-9", "items/stone-8", "items/stone-7", "items/ration", "items/potion", "items/torch", "items/arrows", "items/clothes", "items/shovel", "items/shovel-good", "items/shovel-best", "items/dagger", "items/sword", "items/greatsword", "items/spear", "monsters/goblin-king-face", "monsters/goblin-king-full", "monsters/goblin-bomber-face", "monsters/goblin-bomber-full", "monsters/hobgoblin-shield-face", "monsters/hobgoblin-shield-full", "races/barbarian", "races/human", "races/dwarf", "races/beastkin", "races/fairy", "races/dragon", "monsters/goblin-face", "monsters/goblin-full", "monsters/goblin-archer-face", "monsters/goblin-archer-full", "monsters/goblin-sword-face", "monsters/goblin-sword-full", "monsters/goblin-spear-face", "monsters/goblin-spear-full", "monsters/wolf-face", "monsters/wolf-full", "monsters/fox-face", "monsters/fox-full", "monsters/mouse-face", "monsters/mouse-full", "monsters/bat-face", "monsters/bat-full", "monsters/hobgoblin-face", "monsters/hobgoblin-full", "monsters/zombie-face", "monsters/zombie-full", "monsters/skeleton-face", "monsters/skeleton-full", "monsters/skeleton-archer-face", "monsters/skeleton-archer-full", "monsters/ghoul-face", "monsters/ghoul-full", "monsters/dark-bear-face", "monsters/dark-bear-full", "monsters/skeleton-warrior-face", "monsters/skeleton-warrior-full", "monsters/living-stone-face", "monsters/living-stone-full", "monsters/wisp-face", "monsters/wisp-full", "monsters/pixie-face", "monsters/pixie-full", "monsters/green-boulder-face", "monsters/green-boulder-full", "monsters/stone-guardian-face", "monsters/stone-guardian-full", "monsters/spider-queen-face", "monsters/spider-queen-full", "monsters/ash-wraith-face", "monsters/ash-wraith-full", "monsters/ash-spirit-face", "monsters/ash-spirit-full", "monsters/plague-fat-face", "monsters/plague-fat-full", "monsters/bone-hound-face", "monsters/bone-hound-full", "monsters/dust-crawler-face", "monsters/dust-crawler-full", "monsters/faceless-ringer-face", "monsters/faceless-ringer-full", "monsters/mirror-dead-face", "monsters/mirror-dead-full", "monsters/whisperer-face", "monsters/whisperer-full", "monsters/morok-face", "monsters/morok-full", "monsters/grey-shade-face", "monsters/grey-shade-full", "monsters/blackwing-face", "monsters/blackwing-full", "monsters/swamp-fang-face", "monsters/swamp-fang-full", "monsters/web-spider-face", "monsters/web-spider-full", "monsters/goblin-shaman-face", "monsters/goblin-shaman-full", "monsters/goblin-assassin-face", "monsters/goblin-assassin-full", "monsters/goblin-trapper-face", "monsters/goblin-trapper-full", "monsters/goblin-elder-face", "monsters/goblin-elder-full", "monsters/hobgoblin-brute-face", "monsters/hobgoblin-brute-full", "monsters/hobgoblin-thrower-face", "monsters/hobgoblin-thrower-full", "monsters/hobgoblin-driver-face", "monsters/hobgoblin-driver-full", "monsters/goblin-thief-face", "monsters/goblin-thief-full", "monsters/horned-hare-face", "monsters/horned-hare-full", "monsters/swamp-toad-face", "monsters/swamp-toad-full", "monsters/burrower-face", "monsters/burrower-full", "monsters/crow-face", "monsters/crow-full", "monsters/dire-wolf-face", "monsters/dire-wolf-full", "monsters/werewolf-face", "monsters/werewolf-full", "monsters/giant-mole-face", "monsters/giant-mole-full", "monsters/bone-knight-face", "monsters/bone-knight-full", "monsters/gravedigger-face", "monsters/gravedigger-full", "monsters/corpse-eater-face", "monsters/corpse-eater-full", "monsters/drop-face", "monsters/drop-full", "monsters/dust-whirl-face", "monsters/dust-whirl-full", "monsters/magma-hound-face", "monsters/magma-hound-full", "monsters/crystalloid-face", "monsters/crystalloid-full", "monsters/lake-spirit-face", "monsters/lake-spirit-full", "monsters/magma-golem-face", "monsters/magma-golem-full", "monsters/deep-serpent-face", "monsters/deep-serpent-full", "monsters/crystal-colossus-face", "monsters/crystal-colossus-full", "monsters/storm-spirit-face", "monsters/storm-spirit-full", "monsters/rift-heart-face", "monsters/rift-heart-full", "items/compass", "items/steel-mace", "items/steel-rapier", "items/unknown-herb", "items/twin-daggers", "items/unknown-stone", "items/steel-twin-daggers", "items/potion-good", "items/coins", "items/steel-spear", "items/steel-warhammer", "items/steel-shortbow", "items/steel-longbow", "items/steel-armor-leather", "items/steel-armor-hide", "items/steel-armor-chainmail", "items/gloves", "items/staff", "items/axe", "items/greataxe", "items/firstaid", "items/flute", "items/chalice", "items/once-more", "items/guard", "items/beginners-luck", "buildings/tower", "buildings/guild", "buildings/church", "buildings/library", "buildings/gate", "buildings/tavern", "buildings/shop", "buildings/forge", "buildings/board", "buildings/hall", "races/gnome", "races/darkfairy", "monsters/rat-face", "monsters/rat-full", "monsters/rat-king-face", "monsters/rat-king-full", "monsters/rat-catcher-face", "monsters/rat-catcher-full", "monsters/silence-keeper-face", "monsters/silence-keeper-full", "monsters/orc-wolf-face", "monsters/orc-wolf-full", "monsters/orc-thrower-face", "monsters/orc-thrower-full", "monsters/orc-spear-face", "monsters/orc-spear-full", "monsters/orc-scout-face", "monsters/orc-scout-full", "monsters/orc-falcon-face", "monsters/orc-falcon-full", "monsters/mimic-face", "monsters/mimic-full", "monsters/orc-chief-face", "monsters/orc-chief-full", "items/repair-kit", "items/repair-kit-pro", "monsters/orc-executioner-face", "monsters/orc-executioner-full", "monsters/orc-shaman-face", "monsters/orc-shaman-full", "monsters/orc-guard-face", "monsters/orc-guard-full", "items/brotherhood-ring", "items/hearth", "items/mana-charm", "items/fatigue-charm", "items/hunger-charm", "items/steel-greataxe", "items/steel-axe", "items/steel-gloves", "items/steel-staff", "items/art-shadow-fang", "items/art-flurry-rapier", "items/art-reaper-axe", "items/art-ricochet-bow", "items/art-rift-hammer", "items/art-bastion-shield", "items/art-mirage-armor", "items/art-magnet-mail", "monsters/grey-vulture-face", "monsters/grey-vulture-full", "monsters/thorn-hound-face", "monsters/thorn-hound-full", "monsters/bone-ranger-face", "monsters/bone-ranger-full", "monsters/forge-smith-face", "monsters/forge-smith-full", "monsters/magma-wyrm-face", "monsters/magma-wyrm-full", "monsters/stone-elk-face", "monsters/stone-elk-full", "monsters/trap-master-face", "monsters/trap-master-full", "monsters/trap-queen-face", "monsters/trap-queen-full", "monsters/boulder-beetle-face", "monsters/boulder-beetle-full", "monsters/trap-crab-face", "monsters/trap-crab-full", "monsters/wire-spider-face", "monsters/wire-spider-full", "monsters/bolt-golem-face", "monsters/bolt-golem-full", "monsters/coal-beetle-face", "monsters/coal-beetle-full", "monsters/ember-salamander-face", "monsters/ember-salamander-full", "monsters/ash-executioner-face", "monsters/ash-executioner-full", "monsters/brazier-golem-face", "monsters/brazier-golem-full", "monsters/ember-reaper-face", "monsters/ember-reaper-full", "monsters/goblin-blaster-face", "monsters/goblin-blaster-full", "monsters/frost-beetle-face", "monsters/frost-beetle-full", "monsters/dead-vulture-face", "monsters/dead-vulture-full", "monsters/half-troll-face", "monsters/half-troll-full", "monsters/kobold-guard-face", "monsters/kobold-guard-full", "monsters/kobold-face", "monsters/kobold-full", "monsters/sand-vulture-face", "monsters/sand-vulture-full", "monsters/sand-worm-face", "monsters/sand-worm-full", "monsters/snow-hunter-face", "monsters/snow-hunter-full", "monsters/sand-scorpion-face", "monsters/sand-scorpion-full", "monsters/big-stinger-face", "monsters/big-stinger-full", "monsters/ice-spirit-face", "monsters/ice-spirit-full", "monsters/goblin-miner-face", "monsters/goblin-miner-full", "monsters/kel-worm-face", "monsters/kel-worm-full", "monsters/ice-deer-face", "monsters/ice-deer-full", "monsters/mammoth-calf-face", "monsters/mammoth-calf-full", "monsters/slime-face", "monsters/slime-full", "monsters/worm-larva-face", "monsters/worm-larva-full", "monsters/ice-imp-face", "monsters/ice-imp-full", "events/dig", "events/rift-open", "events/rift-enter", "events/floor-change", "monsters/mirage-scorpion-face", "monsters/mirage-scorpion-full", "monsters/toll-beetle-face", "monsters/toll-beetle-full", "monsters/echo-jackal-face", "monsters/echo-jackal-full", "monsters/pseudo-cactus-face", "monsters/pseudo-cactus-full", "monsters/toll-bull-face", "monsters/toll-bull-full", "monsters/shrieker-face", "monsters/shrieker-full", "monsters/toll-rat-face", "monsters/toll-rat-full", "monsters/choir-dead-face", "monsters/choir-dead-full", "monsters/bell-ringer-face", "monsters/bell-ringer-full", "monsters/toll-guard-face", "monsters/toll-guard-full"]);
 // 10.11: веб-версия (предел файлов артефакта) — часть картинок приходит «пачкой» data:-URI (window.IMG_PACK из assets/packs/*.js); в APK пачки нет, берутся обычные файлы
 const artPath = p => (window.IMG_PACK && window.IMG_PACK[p]) || `assets/${p}.${RASTER.has(p) ? "webp" : "svg"}`;
 const ART = {
   weapon: id => artPath(`items/${id}`),
-  gear: id => { const k = id === "arrow" ? "arrows" : id === "calm-flute" && !RASTER.has("items/calm-flute") ? "flute" : id; return RASTER.has(`items/${k}`) ? artPath(`items/${k}`) : null; },
+  gear: id => { const k = id === "arrow" || id === "arrow-steel" ? "arrows" : /^throw-dagger/.test(id) ? "dagger" : id === "calm-flute" && !RASTER.has("items/calm-flute") ? "flute" : id; return RASTER.has(`items/${k}`) ? artPath(`items/${k}`) : null; },
   armor: id => artPath(`items/armor-${id}`),
   race: id => artPath(`races/${id}`),
   // Монстр без своей картинки (ph: "beast" | "undead" | "elemental") получает силуэт-заглушку по типу.
@@ -3868,13 +3944,16 @@ function renderBestiary() {
     (mf.floor === "all" || m.floors.includes(+mf.floor)) &&
     (mf.cls === "all" || m.cls === +mf.cls) &&
     (mf.rank === "all" || rankOf(m) === mf.rank) &&
-    (mf.kind === "all" || monCat(m) === mf.kind));
+    (mf.kind === "all" || monCat(m) === mf.kind) &&
+    (mf.kind === "all" || !mf.sub || mf.sub === "all" || monSub(m) === mf.sub));
+  const subs = mf.kind === "all" ? [] : Object.keys(SUB_RU).filter(k => SUB_GROUP[k] === mf.kind);
   const changed = JSON.stringify(mf) !== JSON.stringify(MF_DEFAULT);
   return `
     <div class="filters" data-scope="m">
       ${chipRow("Этаж", "floor", [["all", "Все"], ...floors.map(f => [f, f + " этаж"])], mf.floor)}
       ${chipRow("Класс", "cls", [["all", "Все"], ...classes.map(c => [c, c + " класс"])], mf.cls)}
-      ${chipRow("Вид", "kind", [["all", "Все"], ...Object.entries(KIND_RU)], mf.kind)}
+      ${chipRow("Группа", "kind", [["all", "Все"], ...Object.entries(KIND_RU)], mf.kind)}
+      ${subs.length ? chipRow("Подгруппа", "sub", [["all", "Все"], ...subs.map(k => [k, SUB_RU[k]])], mf.sub || "all") : ""}
       ${chipRow("Тип", "rank", [["all", "Все"], ...Object.entries(RANKS)], mf.rank)}
       <div class="fmeta"><small>Показано ${list.length} из ${MONSTERS.length}${changed ? ` · <button class="linkbtn" data-reset="m">Сбросить</button>` : ""}</small></div>
     </div>
@@ -3978,7 +4057,10 @@ const GEAR = {
   firstaid: { short: "Аптечка", name: "Набор первой помощи", weight: 0.5, stack: 3, note: "Набор на 3 заряда: каждое применение тратит один. Бинты, мазь и иглы. В бою — действие «Первая помощь»: останавливает кровотечение, лечит 1к4 ОЗ и поднимает павшего союзника. Научившись на курсе первой помощи в Академии, герой лечит заметно лучше." },
   flute:   { short: "Флейта", name: "Флейта", weight: 0.25, stack: 1, note: "Музыкальный инструмент. Играть на привале: проверка к20 + Ловкость или Интеллект (лучшее). Без навыка: ниже 10 — +1 Усталость отряду, 10–15 — ничего, 16+ снимает 1 Усталость. С навыком (эссенция гоблина-крысолова): Сл 5, 6–15 снимает 1, 16+ снимает 2. Игра занимает действие." },
   "calm-flute": { short: "Флейта+", name: "Флейта успокоения", weight: 0.25, stack: 1, cls: 9, treasure: true, note: "Артефакт 9 класса. Играть на привале: наказания за провал нет, Усталость снимается гарантированно (минимум 1). В бою: действие — всему отряду +2 клетки скорости до конца боя; раз в день." },
-  arrow:   { short: "Стрелы", name: "Стрелы", weight: 0.025, stack: 40, note: "Боеприпасы для луков, колчан на 40. В бою стрела может сломаться; целые остаются на поле и подбираются после боя, если отряд не бежал." },
+  "arrow-steel": { short: "Сталь. стрелы", name: "Стальные стрелы", weight: 0.03, stack: 40, ammo: "bow", note: "Стрелы с калёными стальными наконечниками: +1 к урону, ломаются реже обычных. Целые остаются на поле и подбираются после боя, если отряд не бежал." },
+  "throw-dagger": { short: "Мет. кинжалы", name: "Метательные кинжалы", weight: 0.1, stack: 10, ammo: "throw", note: "Связка лёгких кинжалов без гарды. Пока они в рюкзаке, в бою есть атака «Бросок кинжала»: дальность 3 клетки и ещё +1 за каждые 8 Силы, попадание от Ловкости, урон 1к6+1. Высокий бросок вызывает кровотечение. На 1–3 кинжал ломается; целые подбираются после боя." },
+  "throw-dagger-steel": { short: "Сталь. кинжалы", name: "Стальные метательные кинжалы", weight: 0.1, stack: 10, ammo: "throw", note: "Метательные кинжалы из хорошей стали: +1 к урону, ломаются только на 1–2." },
+  arrow:   { short: "Стрелы", name: "Стрелы", weight: 0.025, stack: 40, ammo: "bow", note: "Боеприпасы для луков, колчан на 40. В бою стрела может сломаться; целые остаются на поле и подбираются после боя, если отряд не бежал." },
   shovel:      { short: "Лопата", name: "Лопата", weight: 2.5, stack: 1, uses: 3, note: "Для действия «Копать». Ломается после 3 раскопок." },
   "shovel-good": { short: "Лопата+", name: "Хорошая лопата", weight: 2.5, stack: 1, uses: 5, note: "Для действия «Копать». Ломается после 5 раскопок." },
   "shovel-best": { short: "Лопата++", name: "Отличная лопата", weight: 2, stack: 1, uses: 10, note: "Для действия «Копать». Ломается после 10 раскопок." },
@@ -4106,7 +4188,7 @@ function findKnown(c, id) {
 }
 
 /* ----- улучшенное (стальное) снаряжение: метка steel у предмета в рюкзаке/руке, id тот же (черновик, drafts.md → «Кузница») ----- */
-const STEEL_W = { gloves: "Стальные перчатки", staff: "Окованный посох", axe: "Стальной топор", greataxe: "Стальная секира", spear: "Стальное копьё", mace: "Стальная булава", warhammer: "Стальной боевой молот", sword: "Стальной меч", dagger: "Стальной кинжал", rapier: "Стальная рапира",
+const STEEL_W = { gloves: "Стальные перчатки", staff: "Окованный посох", wand: "Палочка с серебряной оплёткой", morningstar: "Стальной моргенштерн", flail: "Стальной цеп", axe: "Стальной топор", greataxe: "Стальная секира", spear: "Стальное копьё", mace: "Стальная булава", warhammer: "Стальной боевой молот", sword: "Стальной меч", dagger: "Стальной кинжал", rapier: "Стальная рапира",
   pike: "Стальная пика", greatsword: "Стальной двуручный меч", shortbow: "Улучшенный короткий лук", longbow: "Улучшенный длинный лук", shield: "Стальной щит", "tower-shield": "Стальной ростовой щит" };
 const STEEL_A = { leather: "Клёпаный кожаный доспех", hide: "Усиленный шкурный доспех", chainmail: "Стальная кольчуга" };
 const isShieldW = w => w.group === "shield" || w.id === "tower-shield";
@@ -4132,6 +4214,10 @@ const ART_WEAPONS = {
   "flurry-rapier": { base: "rapier", name: "Рапира «Шквал»", cls: 7 },
   "rift-hammer": { base: "warhammer", name: "Молот «Разлом»", cls: 6 },
   "bastion-shield": { base: "tower-shield", name: "Крепостной щит", cls: 6 },
+  // 12.11 (автор): артефакты нового оружия — все три по описаниям автора; числа (мана, урон, Сл) — черновик.
+  "meteor-staff": { base: "staff", name: "Посох метеора", cls: 6 },
+  "chain-wand": { base: "wand", name: "Палочка цепной молнии", cls: 7 },
+  "binder-flail": { base: "flail", name: "Цеп-ловец", cls: 7 },
 };
 // Артефактная броня: запись {t:"a", id:<база>, art:<id>}; статы как у усиленной стали (+1 КД). Эффекты общие, не привязаны к одной зоне или механике (решение автора 29.10).
 const ART_ARMORS = {
@@ -4266,7 +4352,7 @@ function derived(t, c = char) {
   if (c.equip && c.equip.back && c.equip.back.id === "hide-cloak" && !c.equip.back.broken) add(1, "плащ толстой шкуры");
   prot = Math.max(0, prot);
   const acSrc = `10 + Лов ${dex >= 0 ? "+" : "−"}${Math.abs(dex)}${dodgeSrc.length ? " " + dodgeSrc.join(", ") : ""}`, protTxt = protSrc.join(", ") || "без брони";
-  const mana = 10 + 2 * c.level + eb.mp + (main && main.id === "staff" ? 1 : 0);          // посох: +1 к мане
+  const mana = Math.max(1, t.int.total + MANA_PER_LVL * (c.level - 1) + eb.mp);          // 12.11 (автор): мана от Интеллекта + бонус за уровень (меньше, чем ОЗ); числа — черновик
   return { ac, acSrc, prot, protSrc: protTxt, pb, mana, speed: heroSpeedM(c, t, ld), weight: ld.w, cap: ld.cap, ld, warnings };
 }
 
@@ -4276,6 +4362,11 @@ function derived(t, c = char) {
 // больше Сил × 5 — «тяжело нагружен» (−6 м и помеха). Варвар «Великан» считается Большим: всё ×2.
 // По rules.md бежать нельзя, если груз больше половины грузоподъёмности.
 const bagSize = c => (c.race === "barbarian" ? 15 : 10) + ((c.essences || []).includes("mimic") ? 5 : 0) + ((c.essences || []).includes("cart-mimic") ? 3 : 0);          // «Двойное дно» вагонетки-мимика: +3          // «Бездонная пасть» мимика: +5 ячеек
+// 12.11 (автор): расходники кузницы — цена за пачку и размер пачки (числа — черновик). Продаются поштучно по доле цены.
+const AMMO_PACK = { arrow: [5, 20], "arrow-steel": [10, 20], "throw-dagger": [15, 10], "throw-dagger-steel": [30, 10] };
+const ammoKind = id => (GEAR[id] && GEAR[id].ammo) || null;
+// Какими стрелами стреляет герой: выбранные в инвентаре, а если их нет — те, что есть.
+function ammoFor(c, kind) { const ids = kind === "throw" ? ["throw-dagger", "throw-dagger-steel"] : ["arrow", "arrow-steel"], pref = (c.ammoPref || {})[kind]; const order = pref && ids.includes(pref) ? [pref, ...ids.filter(x => x !== pref)] : ids; return order.find(id => countGear(c, id) > 0) || null; }
 const QUIVER = 40;                                   // колчан лучника в начале: 40 обычных стрел (одна ячейка рюкзака)
 const stackMax = (e, c) => e.t === "g" ? (GEAR[e.id].find && !findKnown(c, e.id) ? 1 : GEAR[e.id].stack) : 1;
 function addToBag(c, e) {
@@ -4380,12 +4471,18 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 138;
+const BATTLE_REV = 139;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
-  "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
-function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster()) st.tactical = true; return st; }
+  "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-weap2.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
+function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster() || st.dev === false) st.tactical = true; return st; }
 // Режим мастера (решение автора): без него приложение не показывает монстров и эссенции, которых отряд ещё не узнал (в поиске и в разделе «Монстры»: вместо них библиотека).
-const masterOn = () => isMaster() && !!settings().master;
+const masterOn = () => isMaster() && devOn() && !!settings().master;
+// Режим разработчика (12.11, автор): включён — работают особые функции ведущего (меню «⋯» в лабиринте, выдача предметов и эссенций, правка ОЗ и маны, воскрешение, полный бестиарий, переключатель боя);
+// выключен — приложение ведёт себя как у игроков. По умолчанию включён, чтобы у ведущего ничего не пропало без предупреждения.
+const devOn = () => isMaster() && (state.settings || {}).dev !== false;
+const DEV_HX = ["revive", "ess-add-toggle", "add-toggle", "hp", "mp", "insp", "luck", "ess-add", "add-item"];
+function devSync() { try { document.body.classList.toggle("dev-off", isMaster() && !devOn()); } catch (e) {} }
+const ICO_GEAR = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5l1.3 2.6 2.8-.6.9 2.7 2.7.9-.6 2.8 2.6 1.3-2.6 1.3.6 2.8-2.7.9-.9 2.7-2.8-.6L12 21.5l-1.3-2.6-2.8.6-.9-2.7-2.7-.9.6-2.8L2.3 12l2.6-1.3-.6-2.8 2.7-.9.9-2.7 2.8.6z"/></svg>`;
 let battleLoad = null;
 function loadBattle() {
   if (window.Battle && window.Battle.ready) return Promise.resolve(true);
@@ -4557,7 +4654,7 @@ function openKills(c) {
 }
 function openSack() { const $i = document.getElementById("iteminfo"); $i.innerHTML = sackViewHtml(); $i.hidden = false; }
 /* ----- онлайн (assets/js/net.js — связь, netglue.js — ведущий и игрок) ----- */
-const NET_REV = 7, NET_FILES = ["assets/js/net.js", "assets/js/netglue.js"];
+const NET_REV = 8, NET_FILES = ["assets/js/net.js", "assets/js/netglue.js"];
 let netLoad = null;
 function loadNet() {
   if (window.NetGlue && window.NetGlue.ready) return Promise.resolve(true);
@@ -4568,7 +4665,7 @@ function loadNet() {
   return netLoad;
 }
 /* ----- здания города (assets/js/town.js грузится при первом входе в здание) ----- */
-const TOWN_REV = 38, TOWN_FILES = ["assets/css/town.css", "assets/js/town.js"];
+const TOWN_REV = 39, TOWN_FILES = ["assets/css/town.css", "assets/js/town.js"];
 let townLoad = null;
 function loadTown() {
   if (window.Town && window.Town.ready) return Promise.resolve(true);
@@ -4632,6 +4729,10 @@ function battleDone(ev, res) {
 const conMod = c => mod(totals(c).con.total);
 // ОЗ (решение автора 02.11: рост от Тел и от уровня ×1,5): 10 + 1,5 × мод. Тел на 1-м уровне, +9 + 1,5 × мод. Тел за каждый следующий (дробь — вниз к нулю).
 const hpCon = c => Math.trunc(1.5 * conMod(c));
+const MANA_PER_LVL = 2;          // мана за уровень после первого (черновик 12.11); ОЗ — 5
+// Восстановление маны на отдыхе зависит от Мудрости (автор 12.11): доля максимума 60 % + 10 % за каждый пункт модификатора (от 30 до 100 %); числа — черновик.
+const manaRestPct = c => Math.max(0.3, Math.min(1, 0.6 + 0.1 * mod(totals(c).wis.total)));
+function restMana(c, part = 1) { const mx = maxMp(c), b = mpOf(c), add = Math.max(1, Math.ceil(mx * manaRestPct(c) * part)); c.mp = Math.min(mx, b + add); return c.mp - b; }
 const HP_PER_LVL = 5;          // за уровень: было 9 (слишком быстрый рост, автор 02.11)
 const maxHp = c => Math.max(1, 10 + hpCon(c)) + (c.level - 1) * Math.max(1, HP_PER_LVL + hpCon(c)) + essBonus(c).hp;
 const hpOf = c => (c.hp == null ? maxHp(c) : Math.max(0, Math.min(c.hp, maxHp(c))));
@@ -4711,7 +4812,7 @@ function renderCharacter() {
             <div class="tags" style="margin-top:6px"><span class="badge ${race.tax}">${race.tax === "low" ? "Базовый налог" : "Повышенный налог"}</span></div></div>
         </div>
         ${char.height || char.weight ? `<p>Рост ${char.height ? char.height + " см" : "—"} · вес ${char.weight ? char.weight + " кг" : "—"}</p>` : ""}
-        <p>Уворот ${d.ac}: ${d.acSrc}. Защита ${d.prot}: ${d.protSrc}. Мана — рабочая формула 10 + 2 × уровень.</p>
+        <p>Уворот ${d.ac}: ${d.acSrc}. Защита ${d.prot}: ${d.protSrc}. Мана: Интеллект + ${MANA_PER_LVL} за уровень после первого; на отдыхе возвращается ${Math.round(manaRestPct(char) * 100)} % (от Мудрости).</p>
       </article>
     </section>
 
@@ -4764,7 +4865,7 @@ function slotOptions(id) {
   if (id === "main") return WEAPONS.filter(w => w.group !== "shield" && w.kind !== "Боеприпасы").map(w => ({ t: "w", it: w, art: ART.weapon(w.id) }));
   if (id === "off") {
     const m = mainItem(), bow = m && m.group === "ranged";
-    return WEAPONS.filter(w => bow ? lightMelee(w) : (w.group === "shield" || (w.group === "melee" && (!isTwoHandedWeapon(w) || isBigGrip(char))))).map(w => ({ t: "w", it: w, art: ART.weapon(w.id) }));
+    return WEAPONS.filter(w => !w.noOff && offAllowed(m, w) && (bow ? lightMelee(w) : (w.group === "shield" || (w.group === "melee" && (!isTwoHandedWeapon(w) || isBigGrip(char)))))).map(w => ({ t: "w", it: w, art: ART.weapon(w.id) }));
   }
   if (id === "body") return ARMOR_FLAT.map(a => ({ t: "a", it: a, art: ART.armor(a.id) })).concat([{ t: "g", it: { ...GEAR.clothes, id: "clothes", ac: "10 + Лов", catLabel: "одежда", price: 1 }, art: "" }]);
   return [];
@@ -4894,8 +4995,8 @@ function renderMain() {
       <p class="fx-sub">Раз в месяц открываются врата лабиринта. Собери отряд, спустись за камнями и вернись живым.</p>
       ${isMaster() ? `<button class="fx-btn primary big" data-action="${hasSave ? "continue" : "start-adventure"}">${hasSave ? "Продолжить" : "Начать приключение"}</button>
       <button class="fx-btn" data-save="open">Сохранения</button>
-      <button class="fx-btn" data-net="open">Онлайн: игра с друзьями</button>
-      <button class="fx-btn" data-action="settings">Настройки</button>` : ""}
+      <button class="fx-btn" data-net="open">Онлайн: игра с друзьями</button>` : ""}
+      <button class="gear-btn" data-action="settings" aria-label="Настройки">${ICO_GEAR}</button>
       ${hasSave ? "" : `<p class="fx-hint">${isMaster() ? "В первый раз приложение попросит создать героев отряда." : "Ждём, когда ведущий начнёт партию."}</p>`}
       ${APP_BUILD ? `<div class="upd-box"><p class="fx-hint" style="opacity:.6;font-size:12px">Версия от ${APP_BUILD}</p>
         <button class="fx-btn upd-btn" data-upd="${updUi.state === "downloaded" ? "apply" : updUi.state === "available" ? "ask" : "check"}"${updUi.state === "checking" ? " disabled" : ""}>${UPD_LABEL[updUi.state]}</button>
@@ -4958,6 +5059,8 @@ const canTwinWeapon = (w, race) => !!w && ((w.props || []).includes("Лёгко�
 // варвар — любое оружие ближнего боя, в том числе двуручное и ростовой щит («Великан» держит его одной рукой); остальные — лёгкое к лёгкому, кинжал к перчатке.
 function offCandidate(w, x, race) {
   if (!w || !x || x.id === w.id || w.group === "ranged" || x.group !== "melee") return false;
+  if (x.noOff) return false;                                                    /* палочку, посох и цепное оружие во вторую руку не берут (12.11) */
+  if (offLimited(w)) return x.id === "dagger" || x.id === "gloves";              /* к палочке, моргенштерну и цепу: кинжал или перчатка (щит — отдельной карточкой) */
   if (pikeShield(w, x) || pikeShield(x, w)) return true;          // 10.11: пика + ростовой щит — в любом порядке выбора (пика пойдёт в правую руку)
   if (race === "barbarian") return true;
   if (w.id === "gloves") return false;          // к одной перчатке кинжал — отдельной карточкой «Кинжал»
@@ -4975,7 +5078,7 @@ function forgeWeapon() {
     <p class="fx-p">Выбери стартовое оружие. Оно сразу окажется в руке героя.</p>
     <p class="fx-p wpn-tip">${d.weapon ? "Подсвечено то, что можно взять во вторую руку, — нажми, чтобы взять (ещё раз — убрать). " : ""}Нажми ещё раз на выбранное лёгкое оружие или перчатки — возьмёшь пару (×2).</p>
     <div class="wpn-grid${d.weapon && d.knife ? " twin-on" : ""}">${START_WEAPONS().map(x => { const on = d.weapon === x.id, twin = on && d.knife && canTwinWeapon(x, d.race), cand = !!w && !d.knife && offCandidate(w, x, d.race), left = cand && d.offW === x.id, off = d.weapon && !on && !cand;          // подсвечено: можно во вторую руку; остальное затемнено
-      const st = left ? `левая рука · ${x.dmg} ${x.type}` : twin ? (x.id === "gloves" ? "пара: 2к4 · Защита +3 · Уворот −1" : x.id === "sword" ? "два меча: одна атака −2, урон +30 % · Уворот −1" : isTwoHandedWeapon(x) ? `пара: ${x.dmg} ×2 · −6 к Ловкости` : `пара: ${x.dmg} ×2 одной атакой (каждый удар ×0,6)`) : `${x.dmg} ${x.type} · ${kgf(x.weight)} кг${weaponAbilText(x) ? ` · <span class="wpn-ab">атака и урон: ${weaponAbilText(x)}</span>` : ""}`;
+      const st = left ? `левая рука · ${x.dmg} ${x.type}` : twin ? (x.id === "gloves" ? "пара: 2к4 · Защита +3 · Уворот −1" : x.id === "sword" ? "два меча: одна атака −2, урон +30 % · Уворот −1" : isTwoHandedWeapon(x) ? `пара: ${x.dmg} ×2 · −6 к Ловкости` : `пара: ${x.dmg} ×2 одной атакой (каждый удар ×0,6)`) : `${x.dmg} ${x.type} · ${kgf(x.weight)} кг${weaponAbilLine(x) ? ` · <span class="wpn-ab">${weaponAbilLine(x)}</span>` : ""}`;
       return `
       <button class="race-card fx-frame${on ? " picked" : ""}${twin ? " twin" : ""}${off ? " off" : ""}${cand ? " cand" : ""}${left ? " left" : ""}" data-fx-weapon="${x.id}" aria-pressed="${on || left}">
         <div class="wpn-art">${img(ART.weapon(x.id), x.name)}${on ? `<span class="tick">${TICK}</span>` : ""}${twin ? `<span class="x2">×2</span>` : ""}${left ? `<span class="x2 lh">Л</span>` : ""}</div>
@@ -6075,7 +6178,7 @@ const TRAV_NAMES = {
   m: ["Орлан", "Гаррет", "Мирон", "Торвин", "Бейл", "Касс", "Ивар", "Дорн", "Ульф", "Рэйн", "Эван", "Тибо", "Гром", "Лукас"],
   f: ["Мирра", "Ясна", "Эльса", "Бригитта", "Кайра", "Лина", "Сольвейг", "Тана", "Ория", "Веста", "Нэя", "Ирма", "Хельга", "Дара"],
 };
-const TRAV_W = ["spear", "pike", "mace", "warhammer", "sword", "dagger", "rapier", "greatsword", "shortbow", "longbow", "staff", "axe", "greataxe"];
+const TRAV_W = ["spear", "pike", "mace", "warhammer", "sword", "dagger", "rapier", "greatsword", "shortbow", "longbow", "staff", "wand", "morningstar", "axe", "greataxe"];
 const TRAV_A = ["leather", "hide", "chainmail"];
 const TRAV_DT = { "колющий": "колющего", "рубящий": "рубящего", "дробящий": "дробящего" };
 const TRAV_CLS = { 1: 9, 2: 8, 3: 7 };
@@ -6125,7 +6228,7 @@ function travCarry(f) {
 function travLootItems(ids) {
   const sum = { arrow: 0, ration: 0, potion: 0, torch: 0 }, items = [], lines = []; let compass = false, map = false;
   for (const id of ids) { const sp = travOf(id); if (!sp || !sp.carry || sp.carry.looted) continue; const c = sp.carry; c.looted = true;
-    sum.arrow += c.arrows || 0; sum.ration += c.ration; sum.potion += c.potion; sum.torch += c.torch;
+    sum.arrow += c.arrows || 0; if (travBow(sp.weapon) && (sp.floor || 1) >= 3 && Math.random() < 0.15) sum["arrow-steel"] = (sum["arrow-steel"] || 0) + 2 + rnd(5);          /* 12.11: у лучников с 3 этажа изредка 3–7 стальных стрел */ sum.ration += c.ration; sum.potion += c.potion; sum.torch += c.torch;
     if (c.weapon) items.push({ t: "w", id: sp.weapon, qty: 1 }); if (sp.armor && Math.random() < .5) items.push({ t: "a", id: sp.armor, qty: 1 }); compass ||= c.compass; map ||= c.map; }
   const sup = Object.entries(sum).filter(([, n]) => n > 0).map(([id, n]) => ({ t: "g", id, qty: n }));
   const inv = inventory();
@@ -6142,10 +6245,10 @@ function travMon(sp) {
   const race = raceById(sp.race), w = WEAPONS.find(x => x.id === sp.weapon), ar = sp.armor && ARMOR_FLAT.find(a => a.id === sp.armor);
   const ab = {}; STAT_KEYS.forEach(k => { ab[k] = sp.base[k] + (race.mods[k] || 0) + sp.ess.reduce((s, e) => s + (((ESSENCES[e] || {}).stats || {})[k] || 0), 0); });
   const sm = mod(ab.str), dm = mod(ab.dex), cm = mod(ab.con);
-  const fin = (w.props || []).some(x => /Фехтовальное/.test(x)), ranged = w.group === "ranged", am = ranged ? dm : fin ? Math.max(sm, dm) : sm;
-  const dice = w.dmg + (am ? (am > 0 ? "+" : "−") + Math.abs(am) : ""), hit = (am >= 0 ? "+" : "−") + Math.abs(am), dt = TRAV_DT[w.type] || "дробящего";
+  const fin = (w.props || []).some(x => /Фехтовальное/.test(x)), ranged = w.group === "ranged" || !!w.magic, wab = weaponAbs(w), hm = w.magic ? mod(ab.int) : ranged ? dm : wab ? mod(ab[wab.hit]) : fin ? Math.max(sm, dm) : sm, am = w.magic ? mod(ab.int) : ranged ? dm : wab ? mod(ab[wab.dmg]) : fin ? Math.max(sm, dm) : sm;
+  const dice = w.dmg + (am ? (am > 0 ? "+" : "−") + Math.abs(am) : ""), hit = (hm >= 0 ? "+" : "−") + Math.abs(hm), dt = w.magic ? "магией" : TRAV_DT[w.type] || "дробящего";
   const prop = re => { for (const x of w.props || []) { const m = re.exec(x); if (m) return m; } return null; };
-  const rg = prop(/\((\d+)\/(\d+) м\)/), th = prop(/Метательное \((\d+)\/(\d+) м\)/), reach = prop(/Досягаемость 3 м/);
+  const rg = w.magic ? [0, w.magic.range * 1.5, w.magic.range * 1.5] : prop(/\((\d+)\/(\d+) м\)/), th = prop(/Метательное \((\d+)\/(\d+) м\)/), reach = prop(/Досягаемость 3 м/);
   const atk = ranged && rg ? `${hit} к попаданию, ${rg[1]}/${rg[2]} м, ${dice} ${dt}.` : `${hit} к попаданию, ${reach ? "досягаемость 3 м, " : ""}${dice} ${dt}${th ? `; метнуть ${th[1]}/${th[2]} м` : ""}.`;
   // путники — люди: Уворот и Защита как у героев (одежда/доспех, +0,5 за уровень), ОЗ по формуле героев (02.11)
   const dA = ar ? DEF_ARMOR[ar.cat] || DEF_ARMOR.light : DEF_ARMOR.clothes;
@@ -6695,7 +6798,7 @@ const TOLL_MSG = "Звон серебряного колокольчика во�
 const NOISE_MAX = 20, NOISE_BY_CLS = { 9: 1, 8: 2, 7: 4, 6: 7 }, TOLL_DC = 8, TOLL_STEP_NOISE = 1, TOLL_STEP_BAD = 2, TOLL_CALM = 1;
 const isToll = (x, y) => curFloor() === 3 && ["Звон", "Сердце этажа"].includes(FLOOR3.zoneName(x, y)) && tileType(x, y) === "floor";
 const HEART_ALTAR = "15,14";          // алтарь Сердца этажа (автор 07.11): пока ничего не делает, рядом — сундук Звона
-const TOLL_CHEST = "15,15", FIRE_CHEST = "4,5", FIRE_BOOST = 10, ART_DROPS = ["thunder-spear", "magnet-gloves", "shadow-daggers", "falling-star", "echo-blade", "discharge-staff", "mirror-shield", "moon-sword", "storm-axe", "meteor-mace", "rampart-pike", "ricochet-bow", "shadow-fang", "reaper-axe", "flurry-rapier", "rift-hammer", "bastion-shield", "mirage-armor", "magnet-mail"];          // сундук Пылающих земель: артефакт гарантирован
+const TOLL_CHEST = "15,15", FIRE_CHEST = "4,5", FIRE_BOOST = 10, ART_DROPS = ["thunder-spear", "magnet-gloves", "shadow-daggers", "falling-star", "echo-blade", "discharge-staff", "mirror-shield", "moon-sword", "storm-axe", "meteor-mace", "rampart-pike", "ricochet-bow", "shadow-fang", "reaper-axe", "flurry-rapier", "rift-hammer", "bastion-shield", "mirage-armor", "magnet-mail", "binder-flail", "meteor-staff", "chain-wand"];          // сундук Пылающих земель: артефакт гарантирован
 function f3Noise(n, why) {
   const r = state.run; if (!r || r.floor !== 3 || !(n > 0)) return;
   const F = f3(); F.noise = (F.noise || 0) + n;
@@ -6746,7 +6849,7 @@ async function witchHouse() {
     const healed = [];
     for (const c of state.party) if (!c.dead) {
       const st = r.status[c.id], before = hpOf(c);
-      c.hp = Math.min(maxHp(c), before + restHeal(c, st.fat, false)); c.mp = maxMp(c); c.flags = {};
+      c.hp = Math.min(maxHp(c), before + restHeal(c, st.fat, false)); restMana(c); c.flags = {};
       if (n === 1) c.insp = Math.min(inspMax(c), (c.insp ?? inspMax(c)) + 1);
       st.fat = Math.max(0, st.fat - 2); st.awake = 0;
       if (c.hp > before) healed.push(`${c.name} +${c.hp - before}`);
@@ -7283,7 +7386,7 @@ const ARTIFACTS = {
   dice: { cls: 9, name: "Игральные кубики", ico: () => ICO_DICE, text: "Любой бросок мастера на карте (событие, пробежка, стоянка, Исследование, Раскопки, бросок удачи) можно перебросить до последствий: результат виден до подтверждения. Откат 6 действий (2 дня)." },
   bell: { cls: 9, name: "Бубенец-предвестник", ico: () => ICO_BELL, text: "Предупреждает об опасности: засада вместо неё становится обычной встречей. Откат 6 действий (2 дня)." },
   "thunder-spear": { cls: 6, name: "Копьё-громоотвод", ico: () => ICO_BOLT, text: "Как стальное копьё. За 2 маны (доп. действие) копьё заряжается: следующий удар или бросок — электрический, +1к6. Брошенное в монстра, застревает в нём; в начале вашего следующего хода в цель бьёт молния, слабее — по всем рядом; вода проводит молнию дальше. Можно воткнуть в клетку: копьё становится препятствием с 1 ОЗ и тоже бьёт молнией; сбитое лежит на земле." },
-  "magnet-gloves": { cls: 7, name: "Магнитные перчатки", ico: () => ICO_MAGNET, text: "Как стальные перчатки. Действие «Притянуть»: проверка Телосложения — цель до 3 клеток притягивается к вам, если на пути нет препятствий. Тяжёлым врагам притянуться легче, самых тяжёлых притянуть нельзя, в металлических врагов вцепиться труднее." },
+  "magnet-gloves": { cls: 7, name: "Магнитные перчатки", ico: () => ICO_MAGNET, text: "Как стальные перчатки. Действие «Притянуть»: проверка Телосложения — цель до 3 клеток притягивается к вам, если на пути нет препятствий. Лёгких и маленьких притянуть проще, тяжёлых и больших — труднее, очень тяжёлых и гигантских притянуть нельзя; в металлических врагов вцепиться труднее." },
   "shadow-daggers": { cls: 7, name: "Парные тени", ico: () => ICO_DAGGER, text: "Как стальной кинжал. Атака «Порез теней»: полноценная атака кинжалом по цели на расстоянии до 3 клеток." },
   "falling-star": { cls: 6, name: "Лук «Падающая звезда»", ico: () => ICO_STAR, text: "Как стальной длинный лук. Атака «Падающая звезда»: 1 мана и стрела, раз в 3 хода — стрела падает в выбранную точку (линия обзора не нужна), радиус 1, радиантное 2к6. Задетые подсвечены: атаки по ним с преимуществом и невидимость спадает до начала вашего следующего хода." },
   "echo-blade": { cls: 7, name: "Эхо-клинок", ico: () => ICO_ECHO, text: "Как стальной меч. Попадание оставляет на цели эхо: следующая атака по ней, попадёт она или нет, повторяется эхом без броска на половину прежнего удара." },
@@ -7300,6 +7403,9 @@ const ARTIFACTS = {
   "flurry-rapier": { cls: 7, name: "Рапира «Шквал»", ico: () => ICO_DAGGER, text: "Как стальная рапира. «Шквал выпадов» (2 маны, действие, откат 3 хода): три быстрых укола 1к4 + модификатор. «Серия» — все по одной цели, при трёх попаданиях ещё один, 1к8. «Веер» — по врагам в 2 клетках, каждый укол можно направить в любого из них." },
   "rift-hammer": { cls: 6, name: "Молот «Разлом»", ico: () => ICO_METEOR, text: "Как стальной боевой молот. «Раскол» (1 мана, действие, откат 3 хода): удар в землю открывает трещину по прямой на 3 клетки. Стоящие на ней (и свои) — Ловкость, иначе падают и получают 2к6; клетки трещины труднопроходны. Слабые рядом с трещиной (Сила ниже 12) — Телосложение, иначе теряют доп. действие. «Ударная волна»: толчок на клетку и 1к8 всем вокруг вас, и своим." },
   "bastion-shield": { cls: 6, name: "Крепостной щит", ico: () => ICO_MIRROR, text: "Как стальной ростовой щит. «Бастион» (1 мана, действие): до начала вашего хода вы стоите насмерть — скорость 0, вас не сбить с ног и не сдвинуть, +2 КД; союзники прямо за вами укрыты от дальних атак; враги в 4 клетках, видящие вас, атакуют других с помехой." },
+  "meteor-staff": { cls: 6, name: "Посох метеора", ico: () => ICO_METEOR, text: "Как стальной посох. «Метеор» (5 маны, действие, откат 6 ходов): метеор падает в любую точку поля и взрывается крестом — центр и четыре клетки вокруг (сверху, снизу, слева, справа). Все в области получают 3к6 огнём (Ловкость — половина; задевает и своих), провалившие спасбросок загораются; мелкие препятствия уничтожаются, горючее загорается." },
+  "chain-wand": { cls: 7, name: "Палочка цепной молнии", ico: () => ICO_BOLT, text: "Как стальная палочка. «Цепная молния» (3 маны, раз в 2 хода): бросок атаки по цели, 2к6 + Интеллект молнией. Попав, молния перескакивает на ближайшего врага в 2 клетках от предыдущей цели — каждый скачок на 20 % слабее предыдущего; по одному врагу дважды не бьёт и гаснет, когда урон доходит до нуля." },
+  "binder-flail": { cls: 7, name: "Цеп-ловец", ico: () => ICO_PIKE, text: "Как стальной цеп. Атака «Сковать»: бьёт как обычная, но вместо урона цепь обвивает цель. Скованный в начале каждого своего хода проверяет Силу (Сл 10 + ваша Сила; вес и размер цели учитываются): провал — получает урон цепа и не может двигаться, но бьёт вокруг себя; успех — освобождается. Очень тяжёлых и гигантских не сковать. Цепь держит одну цель; ударив цепом снова, вы её отпускаете." },
   "mirage-armor": { cls: 7, name: "Доспех-мираж", ico: () => ICO_STAR, text: "Как усиленный кожаный доспех. Когда по вам попадает ближняя атака — доп. проверка: к20 19+ и вы уклоняетесь. Дальняя атака с шансом 10 % не попадает. От области вокруг цели, где вы не главная цель (удар молотом вокруг точки), 30 % уклониться от урона. Критические попадания не уклоняются; молния, бьющая в точку и расходящаяся, тоже." },
   "magnet-mail": { cls: 7, name: "Магнитная кольчуга", ico: () => ICO_MAGNET, text: "Как усиленная кольчуга. Дальние атаки по союзникам в 2 клетках от вас с шансом 50 % притягиваются к вам." },
   "silver-salt": { cls: 9, name: "Серебряная соль", ico: () => GEAR_ICON.potion, text: GEAR["silver-salt"].note },
@@ -7963,7 +8069,7 @@ function renderDungeon() {
   <div class="dg">
     <div class="dg-top">
       <div class="dg-clock"><span>День</span><b>${r.day}<small>/${FL().days}</small></b></div>
-      <div class="dg-floor">${r.rift ? `<span class="rf-title">${esc(RIFTS[r.rift.id].name)}</span><small class="rf-sub">время этажа стоит · шагов ${r.rift.steps}</small>` : `${FL().n} этаж`}${isMaster() ? `<button class="fx-btn" data-dg="gm" aria-label="Меню мастера" aria-expanded="${dgUi.gm}">${ICO_DOTS}</button>` : ""}</div>
+      <div class="dg-floor">${r.rift ? `<span class="rf-title">${esc(RIFTS[r.rift.id].name)}</span><small class="rf-sub">время этажа стоит · шагов ${r.rift.steps}</small>` : `${FL().n} этаж`}${devOn() ? `<button class="fx-btn" data-dg="gm" aria-label="Меню мастера" aria-expanded="${dgUi.gm}">${ICO_DOTS}</button>` : ""}</div>
       <div class="dg-clock r"><span>Действие</span><b>${r.act}<small>/${FL().acts}</small></b><div class="pips" aria-hidden="true">${actionPips}</div></div>
     </div>
     <div class="stage" id="stage">
@@ -7984,7 +8090,7 @@ function renderDungeon() {
         <button class="fx-btn" data-dg="sack" style="display:flex;align-items:center;gap:8px;justify-content:center"><span style="width:22px;height:22px;display:inline-flex">${ICO_SACK}</span>Сумка для камней · ${sackTotal()}</button>
         <small style="color:var(--fx-muted);font-size:12px;max-width:220px">Лежит в рюкзаках героев. Удерживай карточку героя внизу, чтобы открыть его инвентарь.</small>
       </div>` : ""}
-      ${dgUi.gm && isMaster() ? `<div class="dd r fx-frame" style="top:8px;max-height:84vh;overflow-y:auto">
+      ${dgUi.gm && devOn() ? `<div class="dd r fx-frame" style="top:8px;max-height:84vh;overflow-y:auto">
         <span class="fx-eyebrow" style="font-size:11px">Мастер</span>
         ${Object.keys(TREASURES).map(id => `<button class="fx-btn" data-dg="give-tr" data-id="${id}"${treasure(id).owned ? " disabled" : ""}>Выдать сокровище: ${TREASURES[id].name}</button>`).join("")}
         <button class="fx-btn" data-dg="give-compass"${inv.compass.owned ? " disabled" : ""}>Выдать компас</button>
@@ -8189,7 +8295,7 @@ function act(kind) {
     for (const c of state.party) if (sleepers.has(c.id) && !c.dead) {            // погибший не лечится: его возвращает только мастер
       const st = r.status[c.id], before = hpOf(c);
       c.hp = Math.min(maxHp(c), before + restHeal(c, st.fat, st.starve >= 3) + Math.round(maxHp(c) * restBonusPct()));          // «Корни земли» хранителя: +15 %
-      c.mp = maxMp(c); c.flags = {};                       // длинный отдых: мана и дневные способности
+      restMana(c); c.flags = {};                       // длинный отдых: мана по Мудрости (12.11) и дневные способности
       c.insp = Math.min(inspMax(c), (c.insp ?? inspMax(c)) + 1);          // переброс возвращает только сон: по одному за ночь, гном хранит два
       if (c.hp > before) healed.push(`${c.name} +${c.hp - before}`);
       const fu = (rs.fixFat || {})[c.id] | 0;          // дварф тратит усталость на починку: 1 — не снимает усталость за сон, дальше +1 за каждую
@@ -8558,7 +8664,7 @@ function itemInfoText(it) {
   const base = it.note || it.desc || "";
   if (base) parts.push(esc(base));
   if (it.kindOf === "weapon" && it.dmg) parts.push(`${it.kind || ""}${it.kind ? ", " : ""}${it.dmg} ${it.type || ""}${it.props && it.props.length ? " · " + it.props.join(", ") : ""}`);
-  if (it.kindOf === "weapon" && it.dmg && weaponAbilText(it) && !/атака и урон/i.test(base)) parts.push(`Атака и урон: <b>${weaponAbilText(it)}</b>`);
+  if (it.kindOf === "weapon" && it.dmg && weaponAbilText(it) && !/атака и урон/i.test(base)) parts.push(/—/.test(weaponAbilText(it)) ? `<b>${weaponAbilText(it)[0].toUpperCase() + weaponAbilText(it).slice(1)}</b>` : `Атака и урон: <b>${weaponAbilText(it)}</b>`);
   if (it.kindOf === "armor") parts.push(armorDef(it));
   return parts.map(t => `<p>${t}</p>`).join("");
 }
@@ -8608,7 +8714,7 @@ function heroStats(c) {
       <div class="lrow"><span>Мана</span><b>${mpOf(c)} / ${maxMp(c)}</b></div>
       <div class="lbar"><i class="mp" style="width:${Math.round(mpOf(c) / Math.max(1, maxMp(c)) * 100)}%"></i></div>
       <div class="btn-row" style="justify-content:center">${[-5, -1, 1, 5].map(dlt => `<button class="fx-btn" data-hx="mp" data-d="${dlt}" aria-label="Мана ${dlt > 0 ? "+" : "−"}${Math.abs(dlt)}">${dlt > 0 ? "+" : "−"}${Math.abs(dlt)}</button>`).join("")}</div>
-      <p class="trait" style="margin:0;text-align:center">Мана 10 + 2 × уровень и бонусы эссенций. Тратится на активные навыки в бою, полностью восстанавливается на Отдыхе.</p>
+      <p class="trait" style="margin:0;text-align:center">Мана: Интеллект + ${MANA_PER_LVL} за уровень после первого и бонусы эссенций. Тратится на навыки и выстрелы палочки и посоха; на Отдыхе возвращается ${Math.round(manaRestPct(c) * 100)} % (от Мудрости), в городе — вся.</p>
     </div>
     <dl class="kv"><div><dt>Уворот</dt><dd>${d.ac}</dd></div><div><dt>Защита</dt><dd>${d.prot}</dd></div><div><dt>Мана</dt><dd>${d.mana}</dd></div></dl>
     <div class="lrow luck-row"><span>Переброс <b style="color:var(--fx-gold-hi)">${c.insp ?? inspMax(c)}</b><small style="display:block;opacity:.7">${inspMax(c) > 1 ? "до двух" : "1 на героя"}; не при тяжёлой усталости; возвращает только сон</small></span>
@@ -8695,6 +8801,7 @@ function selPanel(c) {
   const e = c.bag[heroUi.sel], it = itemOf(e, c);
   if (!it) return "";
   const btns = [];
+  if (it.ammo) { const cur = ammoFor(c, it.ammo) === e.id, set = (c.ammoPref || {})[it.ammo] === e.id; btns.push(`<button class="fx-btn${cur ? "" : " primary"}" data-hx="ammo-pref"${set ? " disabled" : ""}>${set ? "Выбраны по умолчанию" : it.ammo === "bow" ? "Стрелять этими" : "Метать эти"}</button>`); }
   if (it.use === "eat") btns.push(`<button class="fx-btn primary" data-hx="eat">Съесть 1</button>`);
   if (it.use === "drink") btns.push(`<button class="fx-btn primary" data-hx="drink">Выпить</button>`);
   if (it.use === "essflask" && e.ess) btns.push(`<button class="fx-btn primary" data-hx="essflask">Разбить и впитать</button>`);
@@ -8710,7 +8817,7 @@ function selPanel(c) {
   if (it.slot === "back") btns.push(`<button class="fx-btn" data-hx="equip" data-slot-to="back">Надеть на спину</button>`);
   if (it.use === "find") btns.push(`<button class="fx-btn primary" data-hx="usefind">${it.find === "mush" ? "Съесть" : "Применить"}</button>`);
   if (it.kindOf === "weapon" && it.group !== "shield" && it.kind !== "Боеприпасы") btns.push(`<button class="fx-btn" data-hx="equip" data-slot-to="main">В правую руку</button>`);
-  if (it.kindOf === "weapon" && (it.group === "shield" || (it.id === "tower-shield" && pikeShield(mainItem(c), it)) || ((it.props || []).includes("Можно со щитом") && ["shield", "tower-shield"].includes((mainItem(c) || {}).id)) || (it.group === "melee" && (!isTwoHandedWeapon(it) || isBigGrip(c) || c.race === "barbarian")))) {          /* ростовой щит к пике — любому герою (09.11) */ const mi = mainItem(c), bowBlock = mi && mi.group === "ranged" && !lightMelee(it); btns.push(`<button class="fx-btn" data-hx="equip" data-slot-to="off"${bowBlock ? " disabled" : ""}>В левую руку</button>`); }          // к двуручному можно взять вещь во вторую руку — со штрафом неудобного хвата (03.11)
+  if (it.kindOf === "weapon" && (it.group === "shield" || (it.id === "tower-shield" && pikeShield(mainItem(c), it)) || ((it.props || []).includes("Можно со щитом") && ["shield", "tower-shield"].includes((mainItem(c) || {}).id)) || (it.group === "melee" && (!isTwoHandedWeapon(it) || isBigGrip(c) || c.race === "barbarian")))) {          /* ростовой щит к пике — любому герою (09.11) */ const mi = mainItem(c), bowBlock = (mi && mi.group === "ranged" && !lightMelee(it)) || !!it.noOff || !offAllowed(mi, it); btns.push(`<button class="fx-btn" data-hx="equip" data-slot-to="off"${bowBlock ? " disabled" : ""}>В левую руку</button>`); }          // к двуручному можно взять вещь во вторую руку — со штрафом неудобного хвата (03.11)
   if (it.kindOf === "armor" || it.slot === "body") btns.push(`<button class="fx-btn" data-hx="equip" data-slot-to="body">Надеть</button>`);
   const others = state.party.filter(o => o.id !== c.id);
   if (others.length) btns.push(`<button class="fx-btn" data-hx="give-toggle" aria-expanded="${heroUi.give}">Передать</button>`);
@@ -8886,6 +8993,7 @@ $hero.addEventListener("click", e => {
   const el = e.target.closest("[data-hx],[data-hbag],[data-hslot],[data-hadd]");
   if (!el) return;
   const ds = el.dataset, c = heroById(heroUi.id);
+  if (isMaster() && !devOn() && (ds.hadd || DEV_HX.includes(ds.hx))) return;          // режим разработчика выключен: особые функции не работают
   if (ds.hbag !== undefined) { const i = +ds.hbag; heroUi.sel = heroUi.sel === i ? null : i; heroUi.slot = null; heroUi.give = false; renderHero(); const sp = heroUi.sel != null && $hero.querySelector(".sel-panel"); if (sp) sp.scrollIntoView({ block: "nearest", behavior: "smooth" }); return; }          // панель действий — под рюкзаком: прокрутить к ней
   if (ds.hslot) { heroUi.slot = heroUi.slot === ds.hslot ? null : ds.hslot; heroUi.sel = null; heroUi.give = false; renderHero(); return; }
   if (ds.hadd) {
@@ -8902,6 +9010,7 @@ $hero.addEventListener("click", e => {
     case "hp": c.hp = Math.max(0, Math.min(maxHp(c), hpOf(c) + Number(ds.d))); heroAfterChange(); return;
     case "luck": c.luck = luckOf(c) + Number(ds.d); heroAfterChange(); return;
     case "threat": c.threat = Math.max(0, Math.min(5, (c.threat ?? 1) + Number(ds.d))); heroAfterChange(); return;
+    case "ammo-pref": { const e3 = c.bag[heroUi.sel], g3 = e3 && GEAR[e3.id]; if (g3 && g3.ammo) { (c.ammoPref ||= {})[g3.ammo] = e3.id; heroAfterChange(`${g3.name}: теперь по умолчанию`); } return; }
     case "mp": c.mp = Math.max(0, Math.min(maxMp(c), mpOf(c) + Number(ds.d))); heroAfterChange(); return;
     case "insp": c.insp = Math.max(0, Math.min(inspMax(c) + 2, (c.insp ?? inspMax(c)) + Number(ds.d))); heroAfterChange(); return;
     case "revive": c.dead = false; c.hp = Math.max(1, hpOf(c)); heroAfterChange(`${c.name} воскрешён (1 ОЗ)`); return;
@@ -9003,7 +9112,7 @@ $hero.addEventListener("click", e => {
       if (slot === "off" && it && (it.props || []).includes("Можно со щитом") && shieldLike(itemOf(c.equip.main))) { const t0 = c.equip.main; c.equip.main = c.equip.off; c.equip.off = t0; }          // пика «в левую руку» при щите в правой — меняем местами: пика в правую, щит в левую
       if (slot === "off" && isTwoHandedWeapon(it) && it.group !== "ranged" && c.race === "barbarian" && !pikeShield(itemOf(c.equip.main), itemOf(c.equip.off))) c.giantGrip = true;
       if (c.race === "barbarian" && c.equip.main && c.equip.off) { const mi2 = itemOf(c.equip.main), oi2 = itemOf(c.equip.off); if (!pikeShield(mi2, oi2) && ((isTwoHandedWeapon(mi2) && mi2.group !== "ranged") || (isTwoHandedWeapon(oi2) && oi2.group !== "ranged"))) c.giantGrip = true; }          // варвару можно двуручное (пика, ростовой щит) и вторую руку: «Великан», штраф к Ловкости в предупреждениях          // второе двуручное в левую руку: «Великан» с большим штрафом
-      if (slot === "main" && isTwoHandedWeapon(it) && it.group === "ranged" && c.equip.off && !lightMelee(itemOf(c.equip.off))) {
+      if (slot === "main" && c.equip.off && ((isTwoHandedWeapon(it) && it.group === "ranged" && !lightMelee(itemOf(c.equip.off))) || !offAllowed(it, itemOf(c.equip.off)))) {
         if (addToBag(c, { ...c.equip.off, qty: 1 })) { toast("Нет места для предмета из левой руки"); c.equip.main = prev; c.bag.push(entry); if (prev) takeLast(c, prev); saveChar(); renderHero(); return; }
         delete c.equip.off;
       }
@@ -9088,7 +9197,7 @@ function monSections(m, rec = journal().known[m.id]) {
   const byCat = cat => m.traits.filter(t => t[2] === cat);
   const secs = [
     (() => { const pl = visiblePlaces(m, rec, "area"), lst = pl.length ? pl : (m.areas || [m.floor + " этаж"]).filter(a => !placeSecret(a) || (rec && (rec.places || []).includes(a))); return { k: "area", label: "Места обитания", partial: pl.length > 0, html: lst.length > 1 ? `<ul>${lst.map(a => `<li>${a}</li>`).join("")}</ul>` : lst[0] || "—" }; })(),
-    { k: "type", label: "Тип", html: `${m.type || "—"}, ${m.sz || m.size.toLowerCase()}` },
+    { k: "type", label: "Тип", html: `${m.type || "—"}<br><span style="opacity:.85">Группа: ${monGroupText(m)}</span><br><span style="opacity:.85">${massText(monMass(m))[0].toUpperCase() + massText(monMass(m)).slice(1)}</span>` },
     ...(m.spawn ? [(() => { const pl = visiblePlaces(m, rec, "spawn"), ls = spawnLines(m, pl.length ? pl : (m.areas || [m.floor + " этаж"]).filter(a => !placeSecret(a))); return { k: "spawn", label: "Условия появления", partial: pl.length > 0, html: ls.length > 1 ? `<ul>${ls.map(a => `<li>${a}</li>`).join("")}</ul>` : ls[0] || m.spawn }; })()] : []),
     ...(byCat("body").length ? [{ k: "body", label: "Особенность тела", html: list(byCat("body")) }] : []),
     { k: "stats", label: "Характеристики", html: `Уворот ${m.dodge ?? m.ac} · Защита ${m.prot ?? 0}${m.armor != null ? ` (${MON_ARMOR_NAME[m.armor]})` : ""} · ОЗ ${m.hp} · скорость ${m.speed} · опасность ${m.cr}
@@ -9142,9 +9251,10 @@ function libMonstersTab() {
   const j = journal();
   if (!j.unlocked) return `<div class="lib-empty">${ICO_BOOK}<b style="color:var(--fx-gold-hi);font:400 20px var(--f-display)">Пока пусто</b>
     <span>Записи о монстрах появятся после первого спуска в лабиринт.</span></div>`;
-  const kindSel = libUi.kind || "all", all = libMonsters().filter(m => kindSel === "all" || monCat(m) === kindSel), known = all.filter(m => j.known[m.id]), unknown = all.filter(m => !j.known[m.id]);
+  const kindSel = libUi.kind || "all", subSel = kindSel === "all" ? "all" : libUi.sub || "all", libSubs = kindSel === "all" ? [] : Object.keys(SUB_RU).filter(k => SUB_GROUP[k] === kindSel), all = libMonsters().filter(m => (kindSel === "all" || monCat(m) === kindSel) && (subSel === "all" || monSub(m) === subSel)), known = all.filter(m => j.known[m.id]), unknown = all.filter(m => !j.known[m.id]);
   return `
     <div class="lib-kinds" style="display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px">${[["all", "Все"], ...Object.entries(KIND_RU)].map(([v, l]) => `<button class="chip" data-lx="kind" data-v="${v}" aria-pressed="${kindSel === v}">${l}</button>`).join("")}</div>
+    ${libSubs.length ? `<div class="lib-kinds" style="display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px">${[["all", "Все"], ...libSubs.map(k => [k, SUB_RU[k]])].map(([v, l]) => `<button class="chip" data-lx="sub" data-v="${v}" aria-pressed="${subSel === v}">${l}</button>`).join("")}</div>` : ""}
     ${known.length ? `<div class="lib-sec">Известные · ${known.length}</div>
     <div class="mon-grid">${known.map(m => `<button class="mbox fx-frame${libUi.fresh === m.id ? " new" : ""}" data-lx="open" data-id="${m.id}">
       <div class="art">${img(monArt(m), m.name)}</div><b>${m.name}</b></button>`).join("")}</div>` : ""}
@@ -9231,7 +9341,8 @@ $lib.addEventListener("click", e => {
     case "close": closeLibrary(); return;
     case "tab": libUi.tab = ds.tab; libUi.card = null; libUi.adding = false; break;
     case "art": artInfo(ds.id, ARTIFACTS[ds.id].cls ? "" : ""); return;
-    case "kind": libUi.kind = ds.v; libUi.card = null; break;
+    case "kind": libUi.kind = ds.v; libUi.sub = "all"; libUi.card = null; break;
+    case "sub": libUi.sub = ds.v; libUi.card = null; break;
     case "add": libUi.adding = true; libUi.q = ""; libUi.pick = null; break;
     case "cancel-add": libUi.adding = false; break;
     case "pick": {
@@ -9390,7 +9501,7 @@ function route(keepScroll) {
   window.scrollTo(0, keepScroll === true ? y : 0);
   if (key === "labyrinth") mountDungeon();
 }
-const rerender = () => route(true);
+const rerender = () => { devSync(); route(true); };
 
 /* ===================== ОБНОВЛЕНИЕ ===================== */
 // В APK кнопка просит Android (window.SputnikApp) проверить и скачать обновление, «Применить» перезагружает страницу на новой версии.
@@ -9667,7 +9778,7 @@ document.addEventListener("click", e => {
   if (ds.f) {
     const scope = el.closest("[data-scope]").dataset.scope;
     const st = scope === "w" ? wf : scope === "a" ? af : mf;
-    st[ds.f] = ds.v;
+    st[ds.f] = ds.v; if (ds.f === "kind" && st === mf) delete mf.sub;          /* сменили группу — подгруппа сбрасывается */
     rerender(); return;
   }
   if (ds.reset) {
@@ -9788,24 +9899,57 @@ function openSettings() {
     ov.addEventListener("click", e => {
       if (e.target === ov || e.target.closest("[data-setx='close']")) { ov.hidden = true; return; }
       const m = e.target.closest("[data-setm]");
-      if (m) { if (m.dataset.setm === "tactical") setTactical(!settings().tactical); else { settings().master = !settings().master; saveChar(); toast(settings().master ? "Режим мастера: виден весь бестиарий" : "Режим мастера выключен"); rerender(); } setTimeout(openSettings, 50); return; }
+      if (m) {
+        if (m.dataset.setm === "tactical") setTactical(!settings().tactical);
+        else if (m.dataset.setm === "dev") { const st = settings(); st.dev = st.dev === false; saveChar(); devSync(); dgUi.gm = false; toast(st.dev ? "Режим разработчика включён" : "Режим разработчика выключен: особые функции скрыты"); rerender(); }
+        else { settings().master = !settings().master; saveChar(); toast(settings().master ? "Режим мастера: виден весь бестиарий" : "Режим мастера выключен"); rerender(); }
+        setTimeout(openSettings, 50); return; }
       const t = e.target.closest("[data-setk]"); if (!t) return;
-      const st = state.settings ||= {}, k = t.dataset.setk; st[k] = !(k === "sound" ? st.sound !== false : st[k]); saveChar(); openSettings(); if (k === "sound" && st.sound) { try { Sfx.tick(); } catch (e) {} }
+      const st = state.settings ||= {}, k = t.dataset.setk, defOn = SET_DEF_ON.includes(k); st[k] = !(defOn ? st[k] !== false : st[k]); saveChar(); openSettings(); if (k === "sound" && st.sound) { try { Sfx.tick(); } catch (e) {} }
     }); }
   const st = settings(), W = "width:100%;box-sizing:border-box;text-align:left;white-space:normal;overflow-wrap:anywhere;height:auto;line-height:1.25;padding:10px 12px";
-  const row = (k, name, hint) => { const on = k === "sound" ? st.sound !== false : !!st[k]; return `<button class="fx-btn" data-setk="${k}" aria-pressed="${on}" style="${W}"><b>${name}: ${on ? "вкл" : "выкл"}</b><br><small style="opacity:.75">${hint}</small></button>`; };
+  const row = (k, name, hint) => { const on = SET_DEF_ON.includes(k) ? st[k] !== false : !!st[k]; return `<button class="fx-btn" data-setk="${k}" aria-pressed="${on}" style="${W}"><b>${name}: ${on ? "вкл" : "выкл"}</b><br><small style="opacity:.75">${hint}</small></button>`; };
   ov.innerHTML = `<div class="panel fx-frame" style="width:min(420px,calc(100vw - 32px));box-sizing:border-box;max-height:calc(100vh - 32px);overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding:16px"><h3 style="margin:0">Настройки</h3>
     ${row("sound", "Звук", "фон пещеры, музыка боя, звуки единицы и двадцатки")}
-    ${isMaster() ? `<button class="fx-btn" data-setm="tactical" aria-pressed="${!!st.tactical}" style="${W}"><b>Тактический бой (тест): ${st.tactical ? "вкл" : "выкл"}</b></button>
-    <button class="fx-btn" data-setm="master" aria-pressed="${masterOn()}" style="${W}"><b>Режим мастера (весь бестиарий): ${masterOn() ? "вкл" : "выкл"}</b></button>` : ""}
+    <div class="set-sec">Бой</div>
+    ${row("anim", "Анимации", "удары (взмах, выпад, когти, клыки), взрывы и состояния на фишках: яд, кровь, огонь, оглушение…")}
+    ${row("dmgNums", "Числа над бойцами", "урон — красным, лечение — зелёным, мана — синим")}
     ${row("skipDice", "Пропускать броски кубиков", "без анимации: сразу итог, переброс остаётся")}
+    ${isMaster() ? `<div class="set-sec">Ведущий</div>
+    <button class="fx-btn" data-setm="dev" aria-pressed="${devOn()}" style="${W}"><b>Режим разработчика: ${devOn() ? "вкл" : "выкл"}</b><br><small style="opacity:.75">${devOn() ? "особые функции ведущего работают" : "все особые функции отключены и скрыты"}</small></button>
+    ${devOn() ? `<button class="fx-btn" data-setm="tactical" aria-pressed="${!!st.tactical}" style="${W}"><b>Тактический бой (тест): ${st.tactical ? "вкл" : "выкл"}</b></button>
+    <button class="fx-btn" data-setm="master" aria-pressed="${masterOn()}" style="${W}"><b>Режим мастера (весь бестиарий): ${masterOn() ? "вкл" : "выкл"}</b></button>` : ""}` : ""}
     <button class="fx-btn primary" data-setx="close">Закрыть</button></div>`;
   ov.hidden = false;
 }
+const SET_DEF_ON = ["sound", "anim", "dmgNums"];          // включены, пока не выключили
+// Окно «Меню» нижней панели (12.11): как у игроков — всё редкое собрано здесь, настройки — шестерёнкой.
+function openMenu() {
+  let ov = document.getElementById("menuov");
+  if (!ov) { ov = document.createElement("div"); ov.id = "menuov"; ov.className = "mapov"; ov.setAttribute("role", "dialog"); ov.setAttribute("aria-modal", "true"); ov.setAttribute("aria-label", "Меню"); document.body.appendChild(ov);
+    ov.addEventListener("click", e => {
+      if (e.target === ov || e.target.closest("[data-mx='close']")) { ov.hidden = true; return; }
+      const b = e.target.closest("[data-mx]"); if (b && b.dataset.mx === "lib") { ov.hidden = true; openLibrary(); return; }
+      if (e.target.closest("[data-tab],[data-save],[data-net],[data-action]")) ov.hidden = true;          // пункт выбран — меню закрывается, действие выполняет общий обработчик
+    }); }
+  const inGame = !!(state.party || []).length;
+  ov.innerHTML = `<div class="panel fx-frame"><h3>Меню</h3>
+    <button class="gear-btn" data-action="settings" aria-label="Настройки">${ICO_GEAR}</button>
+    ${inGame ? `<button class="fx-btn" data-mx="lib">Библиотека</button>` : ""}
+    ${inGame ? `<button class="fx-btn" data-tab="character" id="tab-character">Лист персонажа</button>` : ""}
+    ${masterOn() ? `<button class="fx-btn" data-tab="bestiary" id="tab-bestiary">Монстры (бестиарий)</button>` : ""}
+    <button class="fx-btn" data-save="open">Сохранения</button>
+    <button class="fx-btn" data-net="open">Онлайн: игра с друзьями</button>
+    ${APP_BUILD ? `<button class="fx-btn upd-btn" data-upd="${updUi.state === "downloaded" ? "apply" : updUi.state === "available" ? "ask" : "check"}"${updUi.state === "checking" ? " disabled" : ""}>${UPD_LABEL[updUi.state]}</button><small style="opacity:.6;text-align:center">Версия от ${APP_BUILD}</small>` : ""}
+    <button class="fx-btn primary" data-mx="close">Закрыть</button></div>`;
+  ov.hidden = false;
+}
+document.addEventListener("click", e => { if (e.target.closest('[data-action="menu"]')) openMenu(); });
 document.addEventListener("click", e => { if (e.target.closest('[data-action="settings"]')) openSettings(); });
 // 09.11: кнопка «Герои» в нижнем меню (вместо «Заход · скоро») — окно героя: данные, инвентарь (надеть/снять), навыки; свайп листает героев отряда.
 document.addEventListener("click", e => { if (!e.target.closest('[data-action="heroes"]')) return; const c = (state.party || []).find(x => !x.dead) || (state.party || [])[0]; if (!c) { toast("В отряде пока нет героев"); return; } openHero(c.id); });
 setTimeout(() => { try { gameOverCheck(); } catch (e) {} }, 400);
+devSync();
 try { rankMigrate(); } catch (e) {}          // ранги для старых партий: кто уже был на 2 этаже и убил монстра 8 класса — сразу 8-й          // отряд погиб целиком до перезапуска — снова «Игра окончена»
 if (settings().tactical) loadBattle().then(ok => { if (ok && state.fightSnap) resumeFight(); else if (ok && state.encSnap && state.run && isMaster() && !dgUi.enc) { dgUi.enc = { ...state.encSnap, battleStarted: false }; location.hash = "labyrinth"; rerender(); } }); else { state.fightSnap = null; state.encSnap = null; } state.encSnap = null;
 if (!isMaster()) { state.fightSnap = null; state.encSnap = null; loadNet().then(ok => { if (ok) NetGlue.initPlayer(); else toast("Не загрузился онлайн-модуль"); }); }

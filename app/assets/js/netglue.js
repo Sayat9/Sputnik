@@ -446,11 +446,10 @@
   }
   function openMore() {
     const ov = mkOv("netheroes"), cr = lsGet(PLAYER_KEY) || {};
-    ov.innerHTML = `<div class="net-panel fx-frame"><h3>Связь</h3><p>Комната: <b>${esc(cr.code || "—")}</b> · ${esc(STATUS_RU[N.status] || N.status)}</p>
+    ov.innerHTML = `<div class="net-panel fx-frame" style="position:relative"><h3 style="margin-right:52px">Меню</h3><button class="gear-btn" data-action="settings" data-nb="closeov" aria-label="Настройки">${typeof ICO_GEAR === "string" ? ICO_GEAR : "⚙"}</button><p>Комната: <b>${esc(cr.code || "—")}</b> · ${esc(STATUS_RU[N.status] || N.status)}</p>
       ${APP_BUILD ? `<p class="net-ro-note">Версия от ${esc(APP_BUILD)}</p>` : ""}
       <button class="fx-btn" data-nb="map">Карта этажа</button>
       <button class="fx-btn" data-nb="lib">Библиотека</button>
-      <button class="fx-btn" data-action="settings" data-nb="closeov">Настройки</button>
       ${N.status !== "online" ? `<button class="fx-btn primary" data-nb="join">Подключиться к комнате</button>` : ""}
       <button class="fx-btn upd-btn" data-upd="${updUi.state === "downloaded" ? "apply" : updUi.state === "available" ? "ask" : "check"}">${UPD_LABEL[updUi.state]}</button>
       <button class="fx-btn danger" data-nb="leave">Выйти из комнаты</button><button class="fx-btn" data-nb="closeov">Закрыть</button></div>`;

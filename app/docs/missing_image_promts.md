@@ -242,6 +242,54 @@
 
 Обычное — потёртое, на простом пьедестале; стальное — новое и блестящее, на резной подставке в арсенале (образец выше). Файлы `assets/items/<id>.webp`, стальные — `assets/items/steel-<id>.webp`. Остальное оружие и броня уже нарисованы.
 
+### Новое оружие и расходники (12.11)
+
+Пока картинки нет, палочка, моргенштерн и цеп показываются без картинки (значок-заглушка), посох — прежней картинкой.
+
+### Палочка — `items/wand`
+
+> `a worn battle-used slender wooden magic wand with a small cloudy crystal at the tip and leather grip wrap, standing upright, resting against a simple wooden weapon display stand, scratches and nicks, light wear, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, clean readable silhouette, centered, square 1:1, no text`
+
+### Посох (магический, вместо прежней жерди) — `items/staff`
+
+> `a worn battle-used carved wooden mage staff with a dull crystal focus held in a forked top, standing upright, resting against a simple wooden weapon display stand, scratches and nicks, light wear, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, clean readable silhouette, centered, square 1:1, no text`
+
+### Моргенштерн — `items/morningstar`
+
+> `a worn battle-used morning star: a spiked iron ball on a short chain attached to a wooden handle, standing upright, resting against a simple wooden weapon display stand, scratches and nicks, light wear, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, clean readable silhouette, centered, square 1:1, no text`
+
+### Цеп — `items/flail`
+
+> `a worn battle-used long chain flail with a small iron weight and a hook at the end, coiled chain, wooden handle, standing upright, resting against a simple wooden weapon display stand, scratches and nicks, light wear, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, clean readable silhouette, centered, square 1:1, no text`
+
+### Палочка с серебряной оплёткой (стальная) — `items/steel-wand`
+
+> `a new shiny magic wand of dark polished wood with silver wire wrapping and a clear bright crystal at the tip, resting against a decorated wooden display stand, on a small stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit arsenal alcove, warm light, hand-painted fantasy RPG item art, stylized, clean readable silhouette, centered, square 1:1, no text`
+
+### Окованный посох (стальной; перерисовать под магический) — `items/steel-staff`
+
+> `a new shiny mage staff bound with polished steel bands, a bright crystal focus in a steel claw setting at the top, resting against a decorated wooden display stand, on a small stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit arsenal alcove, warm light, hand-painted fantasy RPG item art, stylized, clean readable silhouette, centered, square 1:1, no text`
+
+### Стальной моргенштерн — `items/steel-morningstar`
+
+> `a new shiny steel morning star: a polished spiked steel ball on a steel chain with a hardwood handle, resting against a decorated wooden display stand, on a small stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit arsenal alcove, warm light, hand-painted fantasy RPG item art, stylized, clean readable silhouette, centered, square 1:1, no text`
+
+### Стальной цеп — `items/steel-flail`
+
+> `a new shiny steel chain flail with a polished steel weight and a sharp hook, neatly coiled steel chain, resting against a decorated wooden display stand, on a small stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit arsenal alcove, warm light, hand-painted fantasy RPG item art, stylized, clean readable silhouette, centered, square 1:1, no text`
+
+### Стальные стрелы — `items/arrow-steel`
+
+> `a bundle of new arrows with shiny tempered steel arrowheads and grey fletching in a leather quiver, resting against a decorated wooden display stand, on a small stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit arsenal alcove, warm light, hand-painted fantasy RPG item art, stylized, clean readable silhouette, centered, square 1:1, no text`
+
+### Метательные кинжалы — `items/throw-dagger`
+
+> `a worn leather bandolier holding ten small plain throwing knives without guards, standing upright, resting against a simple wooden weapon display stand, scratches and nicks, light wear, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, clean readable silhouette, centered, square 1:1, no text`
+
+### Стальные метательные кинжалы — `items/throw-dagger-steel`
+
+> `a new leather bandolier holding ten shiny polished steel throwing knives, resting against a decorated wooden display stand, on a small stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit arsenal alcove, warm light, hand-painted fantasy RPG item art, stylized, clean readable silhouette, centered, square 1:1, no text`
+
 ## Артефактное оружие и броня
 
 Файлы `assets/items/art-<id>.webp` (приложение берёт их само, как только путь `items/art-<id>` добавлен в `RASTER`; пока картинки нет — показывается картинка обычного оружия). Фон — резной пьедестал с фиолетовым камнем в сокровищнице.
@@ -277,6 +325,20 @@
 ### Пика Заставы — `items/art-rampart-pike`
 
 > `a long steel pike with a banner-like notch below the head and glowing runic rings on the shaft, sturdy knightly look, on an ornate carved stone pedestal with a glowing violet magic stone set into its front, inside a softly lit treasure vault alcove with faint arcane runes on the walls, hand-painted fantasy RPG item art, stylized, clean readable silhouette, centered, square 1:1, no text`
+
+### Артефакты нового оружия (12.11, по описаниям автора)
+
+### Посох метеора — `items/art-meteor-staff`
+
+> `a carved dark mage staff topped with a jagged burning meteorite shard held in iron claws, glowing orange cracks and small embers drifting, on an ornate carved stone pedestal with a glowing violet magic stone set into its front, inside a softly lit treasure vault alcove with faint arcane runes on the walls, hand-painted fantasy RPG item art, stylized, clean readable silhouette, centered, square 1:1, no text`
+
+### Палочка цепной молнии — `items/art-chain-wand`
+
+> `a slender silver-bound magic wand with a forked crystal tip, bright blue-white chain lightning arcing between the prongs, on an ornate carved stone pedestal with a glowing violet magic stone set into its front, inside a softly lit treasure vault alcove with faint arcane runes on the walls, hand-painted fantasy RPG item art, stylized, clean readable silhouette, centered, square 1:1, no text`
+
+### Цеп-ловец — `items/art-binder-flail`
+
+> `an ornate long chain flail with shackle-like links and a clawed catching hook at the end, faint violet glow on the links, on an ornate carved stone pedestal with a glowing violet magic stone set into its front, inside a softly lit treasure vault alcove with faint arcane runes on the walls, hand-painted fantasy RPG item art, stylized, clean readable silhouette, centered, square 1:1, no text`
 
 ## Сокровища и артефакты
 

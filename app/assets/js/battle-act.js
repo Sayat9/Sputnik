@@ -23,14 +23,25 @@
   function atkFrom(u, w, mode, entry, slot) {
     const c = u.hero, f = wprops(w), eq = c.equip || {}, eb = essBonus(c);
     const ranged = w.group === "ranged", strM = amod(u.abil.str), dexM = amod(u.abil.dex);
-    const ab = ranged ? "dex" : (mode === "thrown" ? (f.finesse && dexM > strM ? "dex" : "str") : (f.finesse && dexM > strM ? "dex" : "str"));
-    const am = amod(u.abil[ab]);
-    const dice = parseDice(f.versatile && !eq.off && mode === "hand" ? f.versatile : w.dmg);
-    const atk = { id: mode + ":" + w.id, w, n: w.name, hit: am + u.pb + (w.bonus || 0), parts: [{ l: ABIL_RU[ab], v: am }, ...(u.pb ? [{ l: "Бонус мастерства", v: u.pb }] : []), ...(w.bonus ? [{ l: "Сталь", v: w.bonus }] : [])], dmg: { ...dice, b: dice.b + am + (w.bonus || 0) }, dt: DT[w.type] || "bludgeon", tags: [], mode, time: "action" };
+    // От чего считается оружие (12.11, автор): палочка и посох — Интеллект (удар вблизи: Ловкость / Сила); тяжёлое ближнего боя — попадание от Ловкости, урон от Силы; цепное — по своим полям.
+    const wa = typeof weaponAbs === "function" ? weaponAbs(w) : null, mg = w.magic || null, fin = f.finesse && dexM > strM ? "dex" : "str";
+    const ab = mode === "butt" ? mg.melee.ab : mg && mode === "hand" ? "int" : ranged ? "dex" : wa && !mg ? wa.hit : fin;
+    const dab = mode === "butt" ? mg.melee.ab : mg && mode === "hand" ? "int" : ranged ? "dex" : wa && !mg ? wa.dmg : fin;
+    const hm = amod(u.abil[ab]), am = amod(u.abil[dab]);
+    const dice = mode === "butt" ? (mg.melee.dmg ? parseDice(mg.melee.dmg) : { n: 0, s: 0, b: mg.melee.flat || 1 }) : parseDice(f.versatile && !eq.off && mode === "hand" ? f.versatile : w.dmg);
+    const atk = { id: mode + ":" + w.id, w, n: w.name, hit: hm + u.pb + (w.bonus || 0), parts: [{ l: ABIL_RU[ab], v: hm }, ...(u.pb ? [{ l: "Бонус мастерства", v: u.pb }] : []), ...(w.bonus ? [{ l: "Сталь", v: w.bonus }] : [])], dmg: { ...dice, b: dice.b + am + (w.bonus || 0) }, dt: mode === "butt" ? "bludgeon" : mg && mode === "hand" ? "arcane" : (DT[w.type] || "bludgeon"), tags: [], mode, time: "action" };
+    if (mode === "butt") { atk.kind = "melee"; atk.reach = 1; atk.n = mg.melee.n; atk.butt = true; if (!dice.n) atk.dmg.b = Math.max(1, atk.dmg.b); atk.sub = "ближний бой, без маны"; if (w.artId && B.artTweak) B.artTweak(u, w, mode, atk); return atk; }
+    if (mg && mode === "hand") {          // магический снаряд: дальняя атака за ману; посох — только по вертикали и горизонтали
+      atk.kind = "ranged"; atk.magic = true; atk.mana = mg.mana; atk.range = [mg.range, mg.range]; if (mg.lines) atk.lines = true;
+      atk.n = w.id === "wand" ? "Магический снаряд" : "Луч посоха"; atk.sub = `магия · ${atk.mana} ${atk.mana === 1 ? "мана" : "маны"}${mg.lines ? " · только по прямой" : ""}`;
+      if (c && typeof awkward2h === "function" && awkward2h(c)) { atk.hit -= AWK.hit; atk.parts.push({ l: "Неудобный хват", v: -AWK.hit }); }
+      if (w.artId && B.artTweak) B.artTweak(u, w, mode, atk); return atk;
+    }
     if (w.dmgPlus) { atk.dmg.b += w.dmgPlus; }          // копьё, посох: +1 к урону
     if (c && typeof awkward2h === "function" && awkward2h(c) && (mode === "hand" || mode === "off")) { atk.hit -= AWK.hit; atk.parts.push({ l: "Неудобный хват", v: -AWK.hit }); }          // двуручное + вещь во второй руке (03.11)
-    if (mode === "hand" && !ranged) { atk.kind = "melee"; atk.reach = w.id === "spear" || w.id === "staff" ? 2 : w.id === "pike" ? (w.artId ? 2 : 1) : 1 + longArm(u, w); if (w.id === "spear" && !u.pass.includes("goblin-spear")) atk.stretch = true; if (w.id === "staff") { atk.stretch = true; atk.stretchPen = -2; }
-      if (w.id === "mace") { atk.acIgnore = 1; } atk.sub = atk.reach > 1 ? `досягаемость ${atk.reach * 1.5} м`.replace(".", ",") : "ближний бой"; }
+    if (mode === "hand" && !ranged) { atk.kind = "melee"; atk.reach = w.id === "spear" ? 2 : w.id === "pike" ? (w.artId ? 2 : 1) : 1 + longArm(u, w); if (w.id === "spear" && !u.pass.includes("goblin-spear")) atk.stretch = true;
+      if (w.id === "flail") { const la = longArm(u, w) ? 1 : 0; atk.flower = [4 + la, 3 + la]; atk.reach = atk.flower[0]; atk.chain = true; }          // цеп: «цветок» — 4 клетки по прямой, 3 по диагонали; груз может задеть стоящего на пути
+      if (w.id === "mace") { atk.acIgnore = 1; } atk.sub = atk.flower ? `цепь: ${atk.flower[0]} кл. по прямой, ${atk.flower[1]} по диагонали` : atk.reach > 1 ? `досягаемость ${atk.reach * 1.5} м`.replace(".", ",") : "ближний бой"; }
     else if (mode === "hand" && ranged) {
       atk.kind = "ranged"; atk.ammo = "arrow";
       const r = f.ammoR || [24, 96]; if (w.id === "shortbow" && f.ammoR && f.ammoR[1] > f.ammoR[0]) r[1] = f.ammoR[0]; const fr = c.race === "fairy" ? 3 : 0; atk.range = [Math.floor((r[0] + eb.range + fr) / 1.5), Math.floor((r[1] + eb.range + fr) / 1.5)]; atk.sub = "дальний бой, стрела";
@@ -95,6 +106,7 @@
     const main = B.mainOf(u), off = B.offOf(u);
     if (main && main.kindOf === "weapon" && main.kind !== "Боеприпасы") {
       out.push(atkFrom(u, main, "hand"));
+      if (main.magic) out.push(atkFrom(u, main, "butt"));          // палочка и посох: удар вблизи без маны
       const f = wprops(main);
       if (f.thrown) out.push(atkFrom(u, main, "thrown"));
       if (main.artId && B.artAttacksOf) out.push(...B.artAttacksOf(u, main));          // «Порез теней» и другие особые атаки артефактов
@@ -103,7 +115,7 @@
     for (const e of bagThrowEntries(u)) { const k = e.id; if (seenBag.has(k)) { seenBag.get(k).count++; continue; } const a = atkFrom(u, itemOf(e), "thrown", e); a.count = 1; seenBag.set(k, a); out.push(a); }
     for (const a of seenBag.values()) if (a.count > 1) a.n += ` ×${a.count}`;
     if (off && off.kindOf === "weapon" && off.group === "melee" && wprops(off).thrown && u.t && u.t.attacked) out.push(atkFrom(u, off, "thrown", null, "off"));          // два топора: второй тоже можно метнуть (доп. действие)
-    if (off && off.kindOf === "weapon" && off.group === "melee" && off.id !== "tower-shield" && main && main.group === "melee" && !wprops(main).two && !(main.id === "gloves" && off.id === "gloves")) {
+    if (off && off.kindOf === "weapon" && off.group === "melee" && off.id !== "tower-shield" && main && main.group === "melee" && !main.magic && main.id !== "flail" && !wprops(main).two && !(main.id === "gloves" && off.id === "gloves")) {
       // Парные клинки (решение автора): отдельной атаки доп. действием нет — один парный удар: обе атаки по одной цели, каждая с уроном −40 %
       const hand = out.find(x => x.id === "hand:" + main.id);
       if (hand && !hand.thrown && main.id === "sword" && off.id === "sword") {          // два меча (решение автора 02.11): один удар, −2 к попаданию, урон +30 %; парирование легче
@@ -111,10 +123,13 @@
       } else if (hand && !hand.thrown) { hand.twin = true; hand.twinOff = atkFrom(u, off, "off"); hand.twinOff.dmgMult = 0.8; hand.twinOff.pairArmor = true; if (hand.twinOff.dmg && hand.dmg && hand.twinOff.dmg.b < hand.dmg.b) hand.twinOff.dmg = { ...hand.twinOff.dmg, b: hand.dmg.b };          // парный удар: вторая рука с тем же модификатором (иначе пара слабее одного клинка, 02.11)          // Защита цели режет парный удар один раз (второй клинок её не учитывает, 02.11)
         hand.dmgMult = 0.8; hand.sub = (hand.sub ? hand.sub + " · " : "") + "парный удар: две атаки по цели, урон −20 %"; }
     }
-    if (main && main.group === "ranged" && off && off.kindOf === "weapon" && off.group === "melee" && off.id !== "tower-shield") out.push(atkFrom(u, off, "hand"));          // лучник с ножом в другой руке: ближний бой этим оружием
+    if (main && (main.group === "ranged" || main.magic || main.id === "flail") && off && off.kindOf === "weapon" && off.group === "melee" && off.id !== "tower-shield") out.push(atkFrom(u, off, "hand"));          // лук, палочка, цеп: оружием второй руки бьют отдельно          // лучник с ножом в другой руке: ближний бой этим оружием
     const strM = amod(u.abil.str);
     if (B.weapSpecials) out.push(...B.weapSpecials(u, main, off));
     out.push({ id: "fist", n: "Кулак", kind: "melee", reach: 1, hit: strM + u.pb, parts: [{ l: "Сила", v: strM }, ...(u.pb ? [{ l: "Бонус мастерства", v: u.pb }] : [])], dmg: { n: 0, s: 0, b: Math.max(1, 1 + strM) }, dt: "bludgeon", tags: [], time: "action", sub: "атака рукой: 1 + Сила" });
+    { const td = u.hero && typeof ammoFor === "function" ? ammoFor(u.hero, "throw") : null;          // метательные кинжалы (12.11): атака есть, пока они в рюкзаке
+      if (td) { const T = D.TDAGGER || { range: 3, perStr: 8, dmg: [1, 6, 1] }, steel = /steel/.test(td), r = T.range + Math.floor(u.abil.str / T.perStr), dm = amod(u.abil.dex);
+        out.push({ id: "tdagger", n: steel ? "Бросок стального кинжала" : "Бросок кинжала", kind: "ranged", tdagger: true, range: [r, r], hit: dm + u.pb, parts: [{ l: "Ловкость", v: dm }, ...(u.pb ? [{ l: "Бонус мастерства", v: u.pb }] : [])], dmg: { n: T.dmg[0], s: T.dmg[1], b: T.dmg[2] + dm + (steel ? 1 : 0) }, dt: "pierce", tags: [], time: "action", sub: "метательный кинжал из рюкзака" }); } }
     if (u.hero && countGear(u.hero, "torch") > 0) out.push({ id: "torchhit", n: "Факел", kind: "melee", reach: 1, hit: strM + u.pb, parts: [{ l: "Сила", v: strM }, ...(u.pb ? [{ l: "Бонус мастерства", v: u.pb }] : [])], dmg: { n: 0, s: 0, b: 1 }, dt: "fire", tags: [], time: "action", sub: "1 урона огнём" });
     return out;
   }
@@ -125,15 +140,26 @@
     const list = B.attacksOf(u).filter(a => a.kind === "melee" && !a.offhand && !a.thrown && !a.special);
     return list.sort((a, b) => B.avgDice(b.dmg) - B.avgDice(a.dmg))[0] || null;
   };
+  // Форма досягаемости: посох — только вертикаль и горизонталь; цеп — «цветок» (прямые и диагонали разной длины).
+  const shapeCell = (u, x, y, atk) => {
+    const dx = Math.abs(x - u.x), dy = Math.abs(y - u.y), d = Math.max(dx, dy);
+    if (atk.lines) return (dx === 0 || dy === 0) && d >= 1;
+    if (atk.flower) return d >= 1 && ((dx === 0 || dy === 0) ? d <= atk.flower[0] : dx === dy && d <= atk.flower[1]);
+    return true;
+  };
+  B.atkShapeCell = shapeCell;
+  B.atkShapeOK = (u, t, atk) => !(atk.lines || atk.flower) || (t.isObj ? shapeCell(u, t.x, t.y, atk) : B.footprint(t).some(([x, y]) => shapeCell(u, x, y, atk)));
   B.inAttackRange = (u, t, atk) => {
     const dd = dist(u, t);
-    if (atk.kind === "melee") return dd <= (atk.reach || 1) && !(atk.stretch && dd > 1 && B.lineBlocked(u, t));          // копьё через клетку: между ними не должно быть полного укрытия
+    if (!B.atkShapeOK(u, t, atk)) return false;
+    if (atk.flower) return dd <= atk.reach && !(dd > 1 && B.lineBlocked(u, t));
+    if (atk.kind === "melee") return dd <= (atk.reach || 1) && !((atk.stretch || atk.lineCheck) && dd > 1 && B.lineBlocked(u, t));          // копьё через клетку: между ними не должно быть полного укрытия
     return dd <= atk.range[1] && !B.lineBlocked(u, t);
   };
   B.attackTargets = (u, atk) => enemiesOf(u).filter(t => !has(t, "underground") && B.visibleTo(u, t) && B.inAttackRange(u, t, atk));          // «Нырок под землю»: закопавшегося атаковать нельзя
   function rangeCells(u, atk) {
     const r = atk.kind === "melee" ? (atk.reach || 1) : atk.range[1], out = [];
-    for (let y = 0; y < B.H; y++) for (let x = 0; x < B.W; x++) if (distCell(u, x, y) <= r && distCell(u, x, y) > 0) out.push([x, y]);
+    for (let y = 0; y < B.H; y++) for (let x = 0; x < B.W; x++) if (distCell(u, x, y) <= r && distCell(u, x, y) > 0 && shapeCell(u, x, y, atk)) out.push([x, y]);
     return out;
   }
   B.rangeCells = rangeCells;
@@ -147,17 +173,20 @@
   // tgt — цель атаки: туда падает брошенное оружие. o.free — атака входит в способность, отдельного времени не тратит («Двойной бросок»).
   // Колчан режиссёра (артефакт 7 класса): 10 обычных стрел, которые стреляют первыми; на каждый бой пополняются.
   B.dqLeft = u => { if (!u.hero) return 0; if (u.dq === undefined) u.dq = (u.hero.bag || []).some(e => e && e.id === "director-quiver") ? 10 : 0; return u.dq; };
-  B.arrowsLeft = u => B.dqLeft(u) + countGear(u.hero, "arrow");
+  B.arrowsLeft = u => B.dqLeft(u) + countGear(u.hero, "arrow") + countGear(u.hero, "arrow-steel");
+  B.tdaggersLeft = u => (u.hero ? countGear(u.hero, "throw-dagger") + countGear(u.hero, "throw-dagger-steel") : 0);
   function commitAttack(u, atk, tgt, o = {}) {
     if (!o.free) spendTime(u, atk.time || "action");
     if (atk.alsoBonus) spendTime(u, "bonus");                                                    // «Крушащий удар»: действие и доп. действие
     if (!atk.offhand && !(atk.thrown && atk.slot === "off")) u.t.attacked = true;
+    if (atk.mana && u.hero && !o.noMana) B.setMp(u, u.mp - atk.mana);                             // палочка и посох: каждый выстрел тратит ману
     if (atk.charged) u.charged = false;                                                          // заряд копья-громоотвода потрачен
     if (atk.ammo && u.hero) {
       const L = B.arrowLog(u.hero.id);
-      if (B.dqLeft(u) > 0) { u.dq--; u.dqShot = true; L.dq = (L.dq || 0) + 1; }          // колчан режиссёра: стрелы не ломаются и возвращаются сами
-      else { u.dqShot = false; takeGear(u.hero, "arrow", 1); L.shot++; }
+      if (B.dqLeft(u) > 0) { u.dq--; u.dqShot = true; u.ammoUsed = "dq"; L.dq = (L.dq || 0) + 1; }          // колчан режиссёра: стрелы не ломаются и возвращаются сами
+      else { u.dqShot = false; const id = (typeof ammoFor === "function" && ammoFor(u.hero, "bow")) || "arrow"; u.ammoUsed = id; takeGear(u.hero, id, 1); L.shot++; }          // 12.11: стрелы по умолчанию — выбранные в инвентаре
     }
+    if (atk.tdagger && u.hero) { const L = B.arrowLog(u.hero.id), id = (typeof ammoFor === "function" && ammoFor(u.hero, "throw")) || "throw-dagger"; u.dqShot = false; u.ammoUsed = id; takeGear(u.hero, id, 1); L.thrown = (L.thrown || 0) + 1; }
     if (atk.thrown && u.hero) {
       const c = u.hero, S = B.S, x = tgt ? tgt.x : u.x, y = tgt ? tgt.y : u.y;
       if (atk.bagEntry) {                                                                         // из рюкзака: запись остаётся в рюкзаке до итога боя, как и оружие из руки
@@ -301,22 +330,22 @@
   const bestDef = u => (u.skills.acrobatics || 0) + amod(u.abil.dex) > (u.skills.athletics || 0) + amod(u.abil.str) ? "acrobatics" : "athletics";
   B.bestDef = bestDef;
   async function doGrapple(u) {
-    const near = enemiesOf(u).filter(e => dist(u, e) <= 1 && e.size <= u.size + 1 && canAct(e) || (dist(u, e) <= 1 && has(e, "prone")));
-    if (!near.length) { UI().toast("Захват: нужен враг рядом"); return false; }
+    const near = enemiesOf(u).filter(e => !B.forceVs(e).immune && (dist(u, e) <= 1 && e.size <= u.size + 1 && canAct(e) || (dist(u, e) <= 1 && has(e, "prone"))));
+    if (!near.length) { UI().toast(enemiesOf(u).some(e => dist(u, e) <= 1 && B.forceVs(e).immune) ? "Захват: враг слишком тяжёл или велик" : "Захват: нужен враг рядом"); return false; }
     const t = await UI().pickUnit({ prompt: "Захват: выберите цель", units: near.map(e => e.id), cells: [], kind: "attack" });
     if (!t) return false;
-    const r = await B.contest(u, "athletics", t, bestDef(t), { title: "Захват", cancel: true, onCommit: () => spendTime(u, "action"), advB: has(t, "wet") ? ["промок: скользкий"] : [], labelA: `захват: ${t.name}`, tagsB: ["grapple"] });
+    const r = await B.contest(u, "athletics", t, bestDef(t), { title: "Захват", cancel: true, onCommit: () => spendTime(u, "action"), advB: has(t, "wet") ? ["промок: скользкий"] : [], labelA: `захват: ${t.name}`, tagsB: ["grapple"], modsA: B.forceVs(t).mods });
     if (!r) return false;
     if (r.win) { addStatus(t, "grappled", { k: Infinity, data: { by: u.id } }); log(`${u.name} хватает ${t.name}.`); UI().fxText(t, "схвачен", "bad"); }
     else { UI().fxText(t, "вырвался", ""); }
     return true;
   }
   async function doShove(u, time = "action") {
-    const near = enemiesOf(u).filter(e => dist(u, e) <= 1 && e.size <= u.size + 1);
-    if (!near.length) { UI().toast("Толчок: нужен враг рядом"); return false; }
+    const near = enemiesOf(u).filter(e => dist(u, e) <= 1 && e.size <= u.size + 1 && !B.forceVs(e).immune);
+    if (!near.length) { UI().toast(enemiesOf(u).some(e => dist(u, e) <= 1 && B.forceVs(e).immune) ? "Толчок: враг слишком тяжёл или велик" : "Толчок: нужен враг рядом"); return false; }
     const t = await UI().pickUnit({ prompt: "Толчок: выберите цель", units: near.map(e => e.id), cells: [], kind: "attack" });
     if (!t) return false;
-    const r = await B.contest(u, "athletics", t, bestDef(t), { title: "Толчок", cancel: true, onCommit: () => spendTime(u, time), labelA: `толчок: ${t.name}`, disB: [], advB: [], tagsB: ["shove"] });
+    const r = await B.contest(u, "athletics", t, bestDef(t), { title: "Толчок", cancel: true, onCommit: () => spendTime(u, time), labelA: `толчок: ${t.name}`, disB: [], advB: [], tagsB: ["shove"], modsA: B.forceVs(t).mods });
     if (!r) return false;
     if (!r.win) { UI().fxText(t, "устоял", ""); return true; }
     const ch = await UI().choose({ title: "Толчок удался", options: [{ id: "push", label: "Оттолкнуть на 1 клетку" }, { id: "prone", label: "Сбить с ног" }] });
@@ -611,9 +640,9 @@
     const t = u.t;
     // атаки
     for (const atk of heroAttacks(u)) {
-      const why = timeWhy(u, atk.time) || (atk.alsoBonus && timeWhy(u, "bonus") ? "нужно ещё и доп. действие" : null) || (atk.needTarget ? atk.needTarget(u) : (atk.ammo && B.arrowsLeft(u) < 1 ? "нет стрел" : ((B.attackTargets(u, atk).length || (B.objectTargets && B.objectTargets(u, atk).length)) ? null : "нет целей рядом")));
-      opts.push({ id: "atk:" + atk.id, cat: "attack", label: atk.n, ico: atk.ammo ? "bow" : atk.thrown ? "throwing" : atk.id === "fist" ? "fist" : atk.id === "torchhit" ? "torch" : "attack",
-        sub: `${atkWith(atk)} · ${atk.kind === "melee" ? "до " + (atk.reach || 1) + " кл." : atk.range[0] >= B.W - 1 ? "дальний · всё поле" : `дальний · ${atk.range[0]} кл., до ${Math.min(atk.range[1], 12)} с помехой`} · ${atk.dmg.n ? fmtDice(atk.dmg) : atk.dmg.b} ${D.DT[atk.dt]}${atk.penalty ? " · " + atk.penaltyLabel : ""}${atk.spin ? " · вращающийся удар" : ""}${atk.ammo ? " · стрел: " + B.arrowsLeft(u) : ""}`,
+      const why = timeWhy(u, atk.time) || (atk.alsoBonus && timeWhy(u, "bonus") ? "нужно ещё и доп. действие" : null) || (atk.mana && u.mp < atk.mana ? "не хватает маны" : null) || (atk.needTarget ? atk.needTarget(u) : (atk.ammo && B.arrowsLeft(u) < 1 ? "нет стрел" : ((B.attackTargets(u, atk).length || (B.objectTargets && B.objectTargets(u, atk).length)) ? null : "нет целей рядом")));
+      opts.push({ id: "atk:" + atk.id, cat: "attack", label: atk.n, ico: atk.ammo ? "bow" : atk.thrown || atk.tdagger ? "throwing" : atk.id === "fist" ? "fist" : atk.id === "torchhit" ? "torch" : "attack",
+        sub: `${atkWith(atk)} · ${atk.kind === "melee" ? "до " + (atk.reach || 1) + " кл." : atk.magic ? `магия · ${atk.range[1]} кл.${atk.lines ? " по прямой" : ""} · маны: ${atk.mana} (есть ${u.mp})` : atk.range[0] >= B.W - 1 ? "дальний · всё поле" : `дальний · ${atk.range[0]} кл., до ${Math.min(atk.range[1], 12)} с помехой`} · ${atk.dmg.n ? fmtDice(atk.dmg) : atk.dmg.b} ${D.DT[atk.dt]}${atk.penalty ? " · " + atk.penaltyLabel : ""}${atk.spin ? " · вращающийся удар" : ""}${atk.ammo ? " · стрел: " + B.arrowsLeft(u) : ""}${atk.tdagger ? " · кинжалов: " + B.tdaggersLeft(u) : ""}`,
         time: atk.time, enabled: !why, why, atk, run: () => (atk.special && B.runSpecial ? B.runSpecial(u, atk) : runAttack(u, atk)) });
     }
     if (B.weapActions) opts.push(...B.weapActions(u));

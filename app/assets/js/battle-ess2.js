@@ -421,6 +421,7 @@
   // Взрыв: cx, cy — центр, inHands — взорвалась в руках подрывника (он получает полный урон без спасброска).
   async function bombBlast(u, cx, cy, inHands) {
     const g = ui(); if (g) g.banner(inHands ? `${u.name}: бомба рвётся в руках!` : `${u.name}: бомба!`);
+    { const gb = ui(); if (gb && gb.fxBoom) gb.fxBoom(cx, cy, 2); }
     log(inHands ? `${u.name}: бомба взрывается в руках!` : `Самодельная бомба взрывается в клетке ${cx + 1}:${cy + 1}.`, "skill");
     const total = await bombRoll(u, "Самодельная бомба"), dc = dcOf(u, "dex");
     const cells = []; for (let y = 0; y < B.H; y++) for (let x = 0; x < B.W; x++) if (Math.max(Math.abs(x - cx), Math.abs(y - cy)) <= BOMB_R) cells.push([x, y]);
@@ -2766,7 +2767,7 @@
       (B.S.dust ||= []).push({ cells, until: B.S.round + 2 }); log(`${u.name} поднимает вихрь пепла.`, "skill"); const g = ui(); if (g) g.refresh(); return true; },
     ai(u) { return enemiesOf(u).some(e => alive(e) && !e.down && dist(u, e) <= 4) && !(B.S.dust || []).some(d => d.until >= B.S.round) ? { score: 7 } : null; },
   };
-  const orangeBoom = async (u, dice, label) => { if (u.boomed) return; u.boomed = true; const g = ui(); if (g) g.banner(label); log(`${u.name} взрывается!`, "bad");
+  const orangeBoom = async (u, dice, label) => { if (u.boomed) return; u.boomed = true; const g = ui(); if (g) { g.banner(label); if (g.fxBoom) g.fxBoom(u.x, u.y, 1); } log(`${u.name} взрывается!`, "bad");
     for (const o of live().filter(o => o !== u && dist(u, o) <= 1)) if (alive(o)) await saveDmg(u, o, "dex", dcOf(u, "dex"), dice, "fire", label); };
   P["clockwork-orange"] = { initBonus() { return 2; }, speedBonus(u) { return B.S && B.S.round === 1 ? 2 : 0; } };
   P["body:clockwork-orange"] = {

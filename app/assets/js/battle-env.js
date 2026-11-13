@@ -42,6 +42,7 @@
     for (let y = 0; y < B.H; y++) for (let x = 0; x < B.W; x++) {
       const o = objAt(x, y); if (!o) continue;
       const dd = distCell(u, x, y); if (dd < 1 || dd > reach) continue;
+      if (B.atkShapeCell && !B.atkShapeCell(u, x, y, atk)) continue;          // посох — по прямой, цеп — «цветком»
       if (atk.kind !== "melee" && B.lineCells(u, { x, y, size: 1, id: "o" }).some(([cx, cy]) => B.sightBlockAt(cx, cy) || (B.obstacleAt(cx, cy) && !(cx === x && cy === y)))) continue;       // стрела не летит сквозь другой камень
       out.push(o);
     }
@@ -58,7 +59,7 @@
     const g = ui(); if (g) { g.fxText({ x, y, size: 1, id: "obj" }, "разрушено", "dmg"); g.refresh(); }
     if (t === "stash") { stashBreak(x, y, src); return; }
     if (t === "spearstuck") { if (B.artSpearDown) B.artSpearDown(x, y, src); return; }
-    if (t === "dynamite") { log("Ящик динамита взрывается!", "bad"); const g2 = ui(); if (g2) g2.banner("Взрыв!"); B.queue(async () => { for (const o of B.live().filter(o => B.footprint(o).some(([fx, fy]) => Math.max(Math.abs(fx - x), Math.abs(fy - y)) <= 1))) { const sv = await B.ess.save(o, "dex", 13, "Взрыв динамита", [], null); await B.applyDamage(src && !src.isObj ? src : null, o, [{ v: (() => { const n = roll(2, 6).total; return sv.ok ? Math.floor(n / 2) : n; })(), dt: "fire", label: "Взрыв динамита" }], { splash: true, noAbilParts: true }); } for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) if ((dx || dy) && B.inB(x + dx, y + dy) && B.terrain(x + dx, y + dy) === "dynamite") destroyObject(x + dx, y + dy, null); }); return; }
+    if (t === "dynamite") { log("Ящик динамита взрывается!", "bad"); const g2 = ui(); if (g2) { g2.banner("Взрыв!"); if (g2.fxBoom) g2.fxBoom(x, y, 1); } B.queue(async () => { for (const o of B.live().filter(o => B.footprint(o).some(([fx, fy]) => Math.max(Math.abs(fx - x), Math.abs(fy - y)) <= 1))) { const sv = await B.ess.save(o, "dex", 13, "Взрыв динамита", [], null); await B.applyDamage(src && !src.isObj ? src : null, o, [{ v: (() => { const n = roll(2, 6).total; return sv.ok ? Math.floor(n / 2) : n; })(), dt: "fire", label: "Взрыв динамита" }], { splash: true, noAbilParts: true }); } for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) if ((dx || dy) && B.inB(x + dx, y + dy) && B.terrain(x + dx, y + dy) === "dynamite") destroyObject(x + dx, y + dy, null); }); return; }
     if (t === "torchstand") { if (rnd(100) < 20) { (S.found ||= []).push({ t: "g", id: "torch", qty: 1 }); log("В обломках стойки уцелел факел.", "good"); } else log("Факел на стойке рассыпался в труху."); return; }
     const [p9, p8] = stoneChance(t);
     if (p9 && rnd(1000) < p9 * 1000) { (S.found ||= []).push({ t: "g", id: "stone-9", qty: 1 }); log(`Среди обломков блестит магический камень (9-й класс).`, "good"); }
@@ -148,7 +149,7 @@
   // снаряд, пролетая, задевает первого на линии: существо — если результат броска достигает его КД, объект — урон, неразрушаемый — упирается.
   D.intercept = { maxNat: 10 };
   async function interceptShot(att, tgt, atk, res, ses) {
-    if (!atk || atk.kind === "melee" || res.nat > D.intercept.maxNat) return null;
+    if (!atk || (atk.kind === "melee" && !(atk.chain && B.dist(att, tgt) > 1)) || res.nat > D.intercept.maxNat) return null;          // цеп на расстоянии — как стрела
     for (const [x, y] of B.lineCells(att, tgt)) {
       const u = B.occupant(x, y, att);
       if (u && u.id !== tgt.id && alive(u)) {

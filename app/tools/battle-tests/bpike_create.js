@@ -20,6 +20,6 @@ const L = require('./bui_lib.js');
   ok('герой: пика в правой, ростовой щит в левой', R.a.main === 'pike' && R.a.off === 'tower-shield', R.a);
   ok('щит → пика: тоже, пика в правую', R.b.cand && R.b.main === 'pike' && R.b.off === 'tower-shield', R.b);
   ok('варвар: без «Великана»', R.c.main === 'pike' && R.c.off === 'tower-shield' && !R.c.gg, R.c);
-  ok('карточки: атака и урон', /Сила или Ловкость/.test(R.txt[0]) && /Ловкость/.test(R.txt[1]) && /: Сила/.test(R.txt[2]), R.txt);
+  ok('карточки: атака и урон', /Сила или Ловкость/.test(R.txt[0]) && /Ловкость/.test(R.txt[1]) && /попадание — Ловкость, урон — Сила/.test(R.txt[2]), R.txt);
   ok('errs: нет', !errs.length, errs);
   console.log(`проверок: ${n}, не прошли: ${bad}`); await b.close(); process.exit(bad ? 1 : 0); })();

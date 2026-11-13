@@ -31,9 +31,12 @@
         }
       }
       u.disarmed = false; u.disarmedOff = false; u.bagThrown = [];
-      const lg = S.arrowLog[c.id], lying = S.drops.filter(d => d.kind === "arrow" && d.hero === c.id).length;
+      const mine = S.drops.filter(d => d.kind === "arrow" && d.hero === c.id), bow = mine.filter(d => !/dagger/.test(d.ammo || "")), lg = S.arrowLog[c.id], lying = bow.length;
+      const putBack = list => { let ok = 0; const by = {}; for (const d of list) by[d.ammo || "arrow"] = (by[d.ammo || "arrow"] || 0) + 1; for (const [id, n] of Object.entries(by)) ok += n - addToBag(c, { t: "g", id, qty: n }); return ok; };          // каждая стрела и кинжал возвращаются в свою стопку
+      if (lg && lg.thrown) { const dl = mine.filter(d => /dagger/.test(d.ammo || "")), back = keeps && dl.length ? putBack(dl) : 0;
+        S.gear.push(keeps ? { ok: back >= dl.length, t: `${c.name}: брошено кинжалов ${lg.thrown}, подобрано ${back}${lg.tbroken ? `, сломано ${lg.tbroken}` : ""}` } : { ok: false, t: `${c.name}: брошено кинжалов ${lg.thrown}, ${dl.length ? `${dl.length} осталось на поле` : "все сломаны"}` }); }
       if (lg && lg.shot) {
-        const back = keeps && lying ? lying - addToBag(c, { t: "g", id: "arrow", qty: lying }) : 0;
+        const back = keeps && lying ? putBack(bow) : 0;
         const brk = lg.broken ? `, сломано ${lg.broken}` : "";
         S.gear.push(keeps ? { ok: back >= lying, t: `${c.name}: выпущено стрел ${lg.shot}, подобрано ${back}${brk}${back < lying ? `, не влезло в рюкзак ${lying - back}` : ""}` }
           : { ok: false, t: `${c.name}: выпущено стрел ${lg.shot}, ${lying ? `${lying} осталось на поле` : "все сломаны"}${brk}` });

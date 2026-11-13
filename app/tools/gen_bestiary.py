@@ -90,6 +90,13 @@ if os.path.exists(DRAFTS):                      # черновики автор�
 STATN = {"str": "Сила", "dex": "Ловкость", "con": "Телосложение", "int": "Интеллект", "wis": "Мудрость", "cha": "Харизма"}
 RAW = {x["id"]: x for x in DATA["MONSTERS"]}
 ABN = ["СИЛ", "ЛОВ", "ТЕЛ", "ИНТ", "МДР", "ХАР"]
+def group_html(m):
+    """12.11: группа и подгруппа, размер и вес (из данных игры)."""
+    x = RAW.get(m["id"]) or {}
+    bits = [v for v in (x.get("groupText") and "Группа: " + x["groupText"], x.get("massText")) if v]
+    return f'<p class="grp"><i>{inline("; ".join(bits))}</i></p>' if bits else ""
+
+
 def stat_html(m, body):
     """09.11: статы, особенности и добыча из данных игры, если в записи (rules.md) их нет."""
     if "Опасность" in body or "Статы" in body: return ""
@@ -143,7 +150,7 @@ for zid, zname, zdesc in ZONES:
   <header><div class="pics"><img class="face" src="{face(m)}" alt="Иконка: {m["name"]}" loading="lazy"><img class="full" src="{full(m)}" alt="{m["name"]} в полный рост" loading="lazy"></div>
     <div class="hd"><h3>{m["name"]}</h3><div class="tags">{"".join(tags)}</div>
     <p class="habit">{inline(habit)}</p></div></header>
-  {spawn}<div class="body">{md(body)}{stat_html(m, body)}{ess_html(m, body)}</div>
+  {spawn}<div class="body">{group_html(m)}{md(body)}{stat_html(m, body)}{ess_html(m, body)}</div>
 </article>''')
 
 def frow(label, key, opts):

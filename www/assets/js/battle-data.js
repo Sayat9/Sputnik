@@ -6,10 +6,10 @@
 
   /* ---------- типы урона ---------- */
   D.DT = { earth: "земля", pierce: "колющий", slash: "рубящий", bludgeon: "дробящий", fire: "огонь", cold: "холод", poison: "яд", thunder: "звук",
-    lightning: "молния", necrotic: "некротический", psychic: "психический", radiant: "излучение", force: "силовой", acid: "кислота" };
+    lightning: "молния", necrotic: "некротический", psychic: "психический", radiant: "излучение", force: "силовой", acid: "кислота", arcane: "магический" };
   D.DT_FROM_RU = { "колющий": "pierce", "рубящий": "slash", "дробящий": "bludgeon", "огонь": "fire", "огнём": "fire", "холодом": "cold", "холод": "cold",
-    "ядом": "poison", "звуком": "thunder", "молнией": "lightning", "некротический": "necrotic", "психический": "psychic" };
-  D.DT_ICON = { pierce: "➶", slash: "⚔", bludgeon: "🔨", fire: "🔥", cold: "❄", poison: "☠", thunder: "♫", lightning: "ϟ", necrotic: "☾", psychic: "✺" };
+    "ядом": "poison", "звуком": "thunder", "молнией": "lightning", "некротический": "necrotic", "психический": "psychic", "магический": "arcane" };
+  D.DT_ICON = { pierce: "➶", slash: "⚔", bludgeon: "🔨", fire: "🔥", cold: "❄", poison: "☠", thunder: "♫", lightning: "ϟ", necrotic: "☾", psychic: "✺", arcane: "✦" };
 
   /* ---------- местность ---------- */
   // Рисунки клеток (viewBox 0 0 100 100). obstacle — непроходима и даёт укрытие линиям, проходящим через неё.
@@ -288,7 +288,7 @@
   D.bgImages = { goblin: 0, beast: 0, undead: 0, stone: 0 };
   D.cdShift = 0;
   // Боевая запись монстра 2 этажа по его статблоку (traits с видом «attacks»: «+5 к попаданию, 1к4+3 колющего; 6/18 м»). Особые способности монстров — их эссенции.
-  const DT_RU = { "колющего": "pierce", "рубящего": "slash", "дробящего": "bludgeon", "огнём": "fire", "ядом": "poison", "холодом": "cold", "некротическим": "necrotic", "психическим": "psychic", "молнией": "lightning", "звуком": "thunder", "излучением": "radiant" };
+  const DT_RU = { "колющего": "pierce", "рубящего": "slash", "дробящего": "bludgeon", "огнём": "fire", "ядом": "poison", "холодом": "cold", "некротическим": "necrotic", "психическим": "psychic", "молнией": "lightning", "звуком": "thunder", "излучением": "radiant", "магией": "arcane" };
   // Поведение монстров Кристального разлома (поверх выведенного из статблока).
   D.monTune = {
     rat: { role: "swarm", circle: true, focus: ["wounded", "weak"], fleeHp: 0.5 },

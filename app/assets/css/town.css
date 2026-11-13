@@ -197,3 +197,10 @@
 .tw-sel .tw-btns .fx-btn { width: 100%; }
 .tw-qtabs { margin: 6px 12px 0; }
 .tw-lot.locked { opacity: .5; }          /* 10.11: закрытые лоты аукциона */
+
+/* 12.11: на узком телефоне часы города уходят отдельной строкой под заголовок — раньше название здания наезжало на них */
+@media (max-width: 440px) {
+  .tw-head { flex-wrap: wrap; row-gap: 4px; }
+  .tw-head h3 { overflow-wrap: anywhere; }
+  .tw-clock { order: 9; flex: 1 0 100%; display: flex; gap: 8px; align-items: baseline; text-align: left; margin: 0; }
+}

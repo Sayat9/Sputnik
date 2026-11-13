@@ -11,7 +11,7 @@
   const P = B.P;
 
   // Кому кровотечение не страшно (нет крови): нежить, конструкты, элементали.
-  const noBlood = t => !!(t.mon && (t.mon.noBlood || t.mon.spectral || /нежить|конструкт|элементаль|механизм/i.test(`${t.mon.type || ""} ${t.mon.group || ""} ${t.mon.size || ""}`) || ["undead", "elemental"].includes(t.mon.ph) || ["undead", "stone"].includes(t.mon.zone)));          // решение автора 27.10: нежить, элементали, конструкты и механизмы — без крови и без отравления (все монстры 1 и 2 этажа зон нежити и камня)
+  const noBlood = t => !!(t.mon && (t.mon.noBlood || t.mon.spectral || (typeof monNoBlood === "function" && monNoBlood(t.mon)) || /нежить|конструкт|элементаль|механизм/i.test(`${t.mon.type || ""} ${t.mon.group || ""} ${t.mon.size || ""}`) || ["undead", "elemental"].includes(t.mon.ph) || ["undead", "stone"].includes(t.mon.zone)));          // решение автора 27.10: нежить, элементали, конструкты и механизмы — без крови и без отравления (все монстры 1 и 2 этажа зон нежити и камня)
   B.noBlood = noBlood;
 
   /* ===== особые атаки героя ===== */
@@ -194,7 +194,7 @@
   const isElemental = t => !!(t && t.mon && (t.mon.ph === "elemental" || /Элементаль/i.test(t.mon.type || "")));
   // Спектральные существа (призраки и подобные; решение автора 27.10): обычным (физическим) уроном не ранятся — только элементальным и прочим нефизическим; драконы бьют их обычными атаками.
   const PHYS = ["pierce", "slash", "bludgeon"];
-  B.isSpectral = t => !!(t && t.mon && (t.mon.spectral || (t.cb && t.cb.spectral)));
+  B.isSpectral = t => !!(t && t.mon && (t.mon.spectral || (t.cb && t.cb.spectral) || (typeof monIsGhost === "function" && monIsGhost(t.mon))));          // подгруппа «Призраки» (12.11)
   B.isElem = t => isElemental(t) || !!(t && t.mon && (t.mon.zone === "stone" || /Элементаль/i.test(t.mon.size || "")));
   B.physBlocked = (src, tgt, dt, atk) => B.isSpectral(tgt) && PHYS.includes(dt) && !(src && src.race === "dragon") && !(atk && atk.w && atk.w.salt);          // обычные атаки дракона и оружие в серебряной соли ранят спектральных
   P["race:beastkin"] = Object.assign(P["race:beastkin"] || {}, {
@@ -306,9 +306,9 @@
   async function axePull(u, tgt) {
     const dcBase = 8 + (u.pb || 0) + Math.max(0, amod(u.abil.str));
     for (const e of enemiesOf(u)) {
-      if (e === tgt || !alive(e) || e.down || e.size >= 2) continue;
+      if (e === tgt || !alive(e) || e.down || B.forceVs(e).immune) continue;
       const d = B.dist(e, tgt); if (d <= 1 || d > 2) continue;
-      const sv = await B.doSave(e, "con", dcBase, { label: `стяжка топора (${u.name})`, from: u });
+      const sv = await B.doSave(e, "con", dcBase + B.forceVs(e).mod, { label: `стяжка топора (${u.name})`, from: u });
       if (sv.ok) continue;
       const cell = (B.freeCellsNear(tgt, 1, e) || [])[0]; if (!cell) continue;
       const from = [e.x, e.y]; e.x = cell[0]; e.y = cell[1]; const g = ui(); if (g) await g.animMove(e, from, cell);
@@ -385,10 +385,10 @@
   // «Притянуть»: перчатки тянут цель по прямой, путь должен быть свободен.
   const METAL = /металл|желез|стал|латн|бронз|медн|голем|доспех|рыцар|конструкт/i;
   const isMetal = t => !!(t.mon && (t.mon.metal || METAL.test(`${t.mon.name || ""} ${t.mon.type || ""} ${t.mon.size || ""} ${t.mon.group || ""}`)));
-  const pullDc = t => PULL_DC + (t.size >= 2 ? PULL_LARGE : 0) + (isMetal(t) ? PULL_METAL : 0);
+  const pullDc = t => PULL_DC - B.forceVs(t).mod + (isMetal(t) ? PULL_METAL : 0);          // 12.11: вес и размер цели вместо прежней поправки «большой»
   function pullPath(u, t) {
     const dx = t.x - u.x, dy = t.y - u.y, d = Math.max(Math.abs(dx), Math.abs(dy));
-    if (d < 2 || d - 1 > PULL_MAX + 0 || t.size >= 3 || (dx && dy && Math.abs(dx) !== Math.abs(dy))) return null;
+    if (d < 2 || d - 1 > PULL_MAX + 0 || B.forceVs(t).immune || (dx && dy && Math.abs(dx) !== Math.abs(dy))) return null;
     const sx = Math.sign(dx), sy = Math.sign(dy), cells = [], me = { ...t };
     let cx = t.x, cy = t.y;
     for (let i = 0; i < d - 1; i++) {

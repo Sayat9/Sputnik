@@ -42,7 +42,8 @@
 
   /* ===== здоровье ===== */
   function setHp(u, v) { u.hp = clamp(Math.round(v), 0, u.maxHp); if (u.hero) u.hero.hp = u.hp; }
-  function setMp(u, v) { const old = u.mp; u.mp = clamp(Math.round(v), 0, u.maxMp); if (u.hero) u.hero.mp = u.mp; if (u.hero && u.mp < old && B.staffCharge) B.staffCharge(u, old - u.mp); }          // посох разрядов копит потраченную ману
+  function setMp(u, v) { const old = u.mp; u.mp = clamp(Math.round(v), 0, u.maxMp); if (u.hero) u.hero.mp = u.mp; if (u.mp !== old && B.S && B.S.phase === "fight") { const g = ui(); if (g && g.fxMana) g.fxMana(u, u.mp - old); }          // синее число над бойцом (12.11)
+    if (u.hero && u.mp < old && B.staffCharge) B.staffCharge(u, old - u.mp); }          // посох разрядов копит потраченную ману
   const canAct = u => alive(u) && !u.down && !has(u, "unconscious") && !has(u, "stable") && !has(u, "paralyzed") && !has(u, "encased") && !has(u, "underground");          // закопавшийся землекоп не действует и не реагирует
   function revive(u) {
     removeStatus(u, "unconscious"); removeStatus(u, "stable"); removeStatus(u, "prone"); u.down = false; u.deathSaves = { ok: 0, fail: 0 };          // вылечили — сразу на ногах (автор 03.11)
@@ -145,6 +146,7 @@
       if (wetBonus) { v += wetBonus; notes.push(`промок +${wetBonus}`); }
       if (p.dt === "fire" && B.fireOn) B.fireOn(tgt);                                    // любой огонь по рою паучат уничтожает его
       if (tgt.vuln.includes(p.dt) || hookAny(tgt, "vulnerable", { dt: p.dt }) || (tgt.hero && D.race[tgt.race] && (D.race[tgt.race].vuln || []).includes(p.dt))) { v *= 2; notes.push("уязвим"); }
+      else if (p.dt === "radiant" && tgt.mon && typeof monCat === "function" && monCat(tgt.mon) === "undead") { v = Math.ceil(v * 1.5); notes.push("нежить: свет жжёт"); }          // 12.11 (автор): нежить получает повышенный урон от света (×1,5 — черновик)
       if (tgt.resist.includes(p.dt) || hookAny(tgt, "resist", { dt: p.dt }) || (has(tgt, "faithwall") && PHYS_DT.includes(p.dt))) {          // «Стена веры» мраморного стража (03.11)
       v = Math.floor(v / 2); notes.push("сопротивление"); }
       const exd = tgt.extraTaken && tgt.extraTaken[p.dt]; if (exd) { const xd = B.parseDice(exd), xr = roll(xd.n, xd.s).total; v += xr; notes.push(`чувствительность +${xr}`); }       // «Боится огня», «Холод жжёт»
@@ -321,11 +323,18 @@
   function arrowFate(att, tgt, f) {
     const L = B.arrowLog(att.hero.id), margin = f.total - f.ac;
     if (att.dqShot) return { broken: false, note: f.hit ? "" : "стрела режиссёра вернётся" };          // колчан режиссёра: не ломается, на поле не остаётся
+    const id = att.ammoUsed || "arrow", steel = /steel/.test(id);
     let broken = false, note = "";
+    if (f.atk && f.atk.tdagger) {          // метательный кинжал: ломается на 1–3 (стальной — на 1–2), иначе лежит на поле
+      const T = D.TDAGGER || { breakNat: 3, breakNatSteel: 2 };
+      if (f.nat <= (steel ? T.breakNatSteel : T.breakNat)) { broken = true; note = "кинжал сломался"; } else if (!f.hit) note = "кинжал упал на поле";
+      if (broken) L.tbroken = (L.tbroken || 0) + 1; else B.S.drops.push({ kind: "arrow", ammo: id, hero: att.hero.id, x: tgt.x, y: tgt.y });
+      return { broken, note };
+    }
     if (f.nat === 1) { broken = true; note = "стрела сломалась"; }
     else if (!f.hit) note = "стрела упала на поле";
-    else if (!f.crit && margin <= D.arrow.breakMargin) { broken = true; note = "стрела сломалась"; }
-    if (broken) L.broken++; else B.S.drops.push({ kind: "arrow", hero: att.hero.id, x: tgt.x, y: tgt.y });
+    else if (!f.crit && margin <= D.arrow.breakMargin - (steel ? 1 : 0)) { broken = true; note = "стрела сломалась"; }          // стальная ломается реже: только при попадании ровно в Уворот
+    if (broken) L.broken++; else B.S.drops.push({ kind: "arrow", ammo: id, hero: att.hero.id, x: tgt.x, y: tgt.y });
     return { broken, note };
   }
   B.arrowFate = arrowFate;
@@ -368,7 +377,8 @@
       // реакции цели до урона (парирование щитом и т. п.)
       for (const id of tgt.pass) { const P = B.P && B.P[id]; if (P && P.reactHit && canAct(tgt) && !res.parried) { const rr = await P.reactHit(tgt, { ...ctx, res, total }); if (rr) { res.parried = true; res.hit = false; if (rr === "swap") res.swapped = true; } } }
     }
-    const ar = atk.ammo && att.side === "hero" && att.hero ? arrowFate(att, tgt, { nat, total, ac: ctx.ac, hit: res.hit, crit }) : atk.ammo && att.arrows != null ? monArrowFate(att, tgt, { nat, total, ac: ctx.ac, hit: res.hit, crit }) : null;
+    if (atk.ammo && att.hero && att.ammoUsed === "arrow-steel") { ctx.dmgPlus = (ctx.dmgPlus || 0) + 1; ctx.notes.push("стальная стрела +1"); }
+    const ar = (atk.ammo || atk.tdagger) && att.side === "hero" && att.hero ? arrowFate(att, tgt, { nat, total, ac: ctx.ac, hit: res.hit, crit, atk }) : atk.ammo && att.arrows != null ? monArrowFate(att, tgt, { nat, total, ac: ctx.ac, hit: res.hit, crit }) : null;
     res.arrow = ar;
     if (!res.hit) {
       hookAll(att, "onMiss", { ...ctx, res });
@@ -502,7 +512,7 @@
   }
   // Состязание: u1 бросает первым (с окном, если герой), затем u2.
   async function contest(a, skillA, b, skillB, o = {}) {
-    const ra = await doCheck(a, skillA, { title: o.title, label: o.labelA || `против ${b.name}`, adv: o.advA, dis: o.disA, cancel: o.cancel, onCommit: o.onCommit, tags: o.tagsA });
+    const ra = await doCheck(a, skillA, { title: o.title, label: o.labelA || `против ${b.name}`, adv: o.advA, dis: o.disA, cancel: o.cancel, onCommit: o.onCommit, tags: o.tagsA, mods: o.modsA });
     if (!ra) return null;
     const rb = await doCheck(b, skillB, { title: o.titleB || o.title, label: o.labelB || `против ${a.name}`, adv: o.advB, dis: o.disB, tags: o.tagsB });
     const win = ra.total > rb.total;                      // при ничьей выигрывает защитник
@@ -593,8 +603,21 @@
     return { spent, interrupted };
   }
   // Принудительное перемещение на n клеток от точки (без провоцированных атак).
+  /* ===== вес и размер (12.11, автор) =====
+     Проверки притягивания, сдерживания, захвата и толчка: по очень лёгким и крошечным +4, по лёгким и маленьким +2, по тяжёлым и большим −3;
+     очень тяжёлых и гигантских не сдвинуть и не удержать вовсе — даже если по другой шкале они крошечные или лёгкие. Числа — черновик. */
+  const MASS_MOD = [0, 4, 2, 0, -3, 0];
+  B.massOf = u => (u.hero && typeof heroMass === "function" ? heroMass(u.hero) : u.mon && typeof monMass === "function" ? monMass(u.mon) : { wt: u.size >= 3 ? 5 : u.size >= 2 ? 4 : 3, sz: u.size >= 3 ? 5 : u.size >= 2 ? 4 : 3 });
+  B.forceVs = t => {
+    const m = B.massOf(t);
+    if (m.wt >= 5 || m.sz >= 5) return { immune: true, mod: 0, why: m.wt >= 5 ? "очень тяжёлый" : "гигантский" };
+    const mod = MASS_MOD[m.wt] + MASS_MOD[m.sz], bits = [];
+    if (MASS_MOD[m.wt]) bits.push(WT_NAME[m.wt]); if (MASS_MOD[m.sz]) bits.push(SZ_NAME[m.sz]);
+    return { immune: false, mod, why: bits.join(", "), mods: mod ? [{ l: "Цель: " + bits.join(", "), v: mod }] : [] };
+  };
   async function push(u, fromX, fromY, n) {
     let moved = 0; if (has(u, "bastion")) return 0;          // бастион: не сдвинуть
+    if (u.mon && B.forceVs(u).immune) { log(`${u.name}: ${B.forceVs(u).why} — не сдвинуть.`); const g0 = ui(); if (g0) g0.fxText(u, "не сдвинуть", ""); return 0; }
     if (u.pass && u.pass.includes("toll-guard")) { const d = Math.max(roll(1, 20).total, roll(1, 20).total) + amod(u.abil.str); if (d >= 12) { log(`${u.name}: тяжёлая стойка — не сдвинуть (${d}).`, "skill"); return 0; } }          // «Тяжёлая стойка»: против сдвига — спасбросок Силы Сл 12 с преимуществом
     for (let i = 0; i < n; i++) {
       const dx = Math.sign(u.x - fromX) || 0, dy = Math.sign(u.y - fromY) || 0; if (!dx && !dy) break;
