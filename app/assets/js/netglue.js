@@ -79,6 +79,7 @@
     // 09.11: компас и карта в углу экрана лабиринта — игрок открывает сам, у себя (у ведущего ничего не меняется)
     if (e.type === "click" && e.target.closest("[data-dg='compass']")) { const inv = inventory(); if (!inv.compass || !inv.compass.owned) return; G.compassLocal = !(inv.compass.active && inv.compassOn); localCompass(); dgUi.kickCompass = G.compassLocal; try { rerender(); } catch (err) {} return; }
     if (e.type === "click" && e.target.closest("[data-dg='floormap']")) { openMap(); return; }
+    if (e.type === "click" && e.target.closest("[data-rift='map']") && state.run && state.run.rift) { G.riftMap = !dgUi.riftMap; dgUi.riftMap = G.riftMap; try { rerender(); } catch (err) {} return; }          // 13.11: схема разлома — у игрока своя
   };
   for (const t of ["click", "dblclick", "contextmenu", "pointerdown", "pointerup", "mousedown", "mouseup", "change", "input", "keydown"]) window.addEventListener(t, followBlock, true);
   const nbh = () => { const b = document.getElementById("netbar"); if (b && b.offsetHeight) document.documentElement.style.setProperty("--nbh", b.offsetHeight + "px"); };
@@ -368,6 +369,7 @@
     for (const k of Object.keys(V)) if (k.startsWith("s:")) ns[k.slice(2)] = V[k];
     state = ns; char = curChar();
     if (V.dgUi) dgUi = V.dgUi;
+    if (state.run && state.run.rift) { if (G.riftMap != null) dgUi.riftMap = G.riftMap; } else G.riftMap = null;
     G.hostCam = state.run ? { spin: state.run.spin, zoom: dgUi.zoom } : null; lookApply();
     localCompass();
     if (V.bat !== undefined && window.Battle && Battle.Net) Battle.Net.mirror(V.bat);

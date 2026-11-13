@@ -8,7 +8,7 @@ const { chromium } = require('playwright');
     const o = {}; const clr = () => { dgUi.enc = null; dgUi.res = null; };
     state.party = [Object.assign(clone(state.example), { id: 'p0', example: false, level: 5, rank: 7 })]; newRun(); const run = state.run;
     run.floor = 2; run.variant = 'undead'; run.day = 10; run.act = 1; run.pos = { x: 5, y: 5 }; riftSync(); const tiles = Object.keys((run.riftsF2 || {}).tiles || {}); o.n = tiles.length; o.id = tiles.length && run.riftsF2.tiles[tiles[0]].id; clr();
-    const [tx, ty] = tiles[0].split(',').map(Number); run.pos = { x: tx, y: ty }; spDo('rift-enter'); const R = run.rift; o.inRift = R && R.id === 'gyard';
+    const [tx, ty] = tiles[0].split(',').map(Number); run.pos = { x: tx, y: ty }; riftEnter(); const R = run.rift; o.inRift = R && R.id === 'gyard';
     await new Promise(r => setTimeout(r, 400)); const d1 = document.getElementById('vn-dlg'); o.elder1 = !!d1 && /Староста Азик Эггерс/.test(d1.innerText) && /путники/.test(d1.innerText); if (d1) d1.click(); await new Promise(r => setTimeout(r, 250));
     const d2 = document.getElementById('vn-dlg'); o.elder2 = !!d2 && /скромная деревня/.test(d2.innerText); if (d2) d2.click(); await new Promise(r => setTimeout(r, 250)); clr();
     o.layout = R.map['0,14'] === 'tavern' && R.map['3,11'] === 'village' && R.map['0,0'] === 'crypt' && R.map['14,0'] === 'cathedral' && R.map['5,13'] === 'field' && R.map['10,4'] === 'grave' && R.pos.x === 0 && R.pos.y === 14;

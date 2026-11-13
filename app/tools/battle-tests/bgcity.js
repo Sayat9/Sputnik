@@ -8,7 +8,7 @@ const { chromium } = require('playwright');
     const o = {}; const clr = () => { dgUi.enc = null; dgUi.res = null; };
     state.party = [Object.assign(clone(state.example), { id: 'p0', example: false, level: 5, rank: 7, gold: 100 })]; newRun(); const run = state.run;
     run.floor = 2; run.variant = 'goblin'; run.day = 10; run.act = 1; run.pos = { x: 5, y: 5 }; riftSync(); const tiles = Object.keys((run.riftsF2 || {}).tiles || {}); o.n = tiles.length; o.id = tiles.length && run.riftsF2.tiles[tiles[0]].id; clr();
-    const [tx, ty] = tiles[0].split(',').map(Number); run.pos = { x: tx, y: ty }; spDo('rift-enter'); const R = run.rift; o.inRift = R && R.id === 'gcity'; o.intro = dgUi.res && dgUi.res.title; clr();
+    const [tx, ty] = tiles[0].split(',').map(Number); run.pos = { x: tx, y: ty }; riftEnter(); const R = run.rift; o.inRift = R && R.id === 'gcity'; o.intro = dgUi.res && dgUi.res.title; clr();
     o.layout = R.map['7,3'] === 'gate' && R.map['7,0'] === 'palace' && R.map['7,6'] === 'market' && R.map['4,6'] === 'tavern' && Object.values(R.map).filter(t => t === 'oil').length === 3 && Object.values(R.map).includes('den');
     o.minis = Object.values(R.minis).sort().join();
     // тревога: улица +1, казармы +2, крыша −1, трущобы 0

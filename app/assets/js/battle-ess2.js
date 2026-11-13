@@ -2690,7 +2690,7 @@
   };
   /* Делящаяся слизь (8): эссенция «Второе тело»; монстр делится от удара 8+ */
   P["split-slime"] = { beforeZero(u) { if (u.side !== "hero" || u.secondBody) return false; u.secondBody = true; log(`${u.name}: второе тело — встаёт с 5 ОЗ!`, "good"); fx(u, "второе тело", "good"); return 5; } };
-  P["body:split-slime"] = { onDamaged(u, { total }) { if (total < 8 || !alive(u) || (u.splits || 0) >= 2) return; u.splits = (u.splits || 0) + 1; B.queue(async () => { if (!alive(u)) return; const m = B.monUnit("slime", -1), c = B.freeCellsNear(u, 1, m)[0]; if (!c) return; m.x = c[0]; m.y = c[1]; m.noReward = true; B.addUnit(m, B.S.order[B.S.turn]); log(`От ${u.name} отделяется малая слизь.`, "bad"); }); } };
+  P["body:split-slime"] = { onDamaged(u, { total }) { if (total < 8 || !alive(u) || (u.splits || 0) >= 2) return; u.splits = (u.splits || 0) + 1; B.queue(async () => { if (!alive(u)) return; const m = B.monUnit("slime", -1), c = B.freeCellsNear(u, 1, m)[0]; if (!c) return; m.x = c[0]; m.y = c[1]; if (u.side === "hero") m.noReward = true; B.addUnit(m, B.S.order[B.S.turn]); log(`От ${u.name} отделяется малая слизь.`, "bad"); }); } };
   A["split-slime"] = {
     time: "action", tgt() { return { type: "none" }; }, can(u) { return B.freeCellsNear(u, 1, { size: 1, side: u.side, id: "x" }).length ? true : "нет места рядом"; },
     async run(u, pk, ctl) { ctl.commit(); const m = B.monUnit("slime", -1), c = B.freeCellsNear(u, 1, m)[0]; if (!c) return true; m.x = c[0]; m.y = c[1]; m.noReward = true;
@@ -2729,7 +2729,7 @@
   A["goblin-foreman"] = {
     time: "action", tgt() { return { type: "none" }; }, can(u) { return B.freeCellsNear(u, 2, { size: 1, side: u.side, id: "x" }).length ? true : "нет места рядом"; },
     async run(u, pk, ctl) { ctl.commit(); log(`${u.name}: «Свистать всех!»`, "skill"); const g = ui(); if (g) g.banner("Свистать всех!");
-      if (u.side !== "hero") { const got = B.spawnFoes(["goblin-miner", "goblin-miner"], u); got.forEach(m => { m.noReward = true; }); return true; }
+      if (u.side !== "hero") { const got = B.spawnFoes(["goblin-miner", "goblin-miner"], u);  return true; }
       const m = B.monUnit("goblin-miner", -1), c = B.freeCellsNear(u, 1, m)[0]; if (!c) return true; m.x = c[0]; m.y = c[1]; m.side = "hero"; m.summon = true; m.auto = true; m.kind = "miner"; m.noReward = true; m.name = "Шахтёр-помощник"; B.addUnit(m, B.S.order[B.S.turn]); m.side = "hero"; if (g) g.refresh(); return true; },
     ai(u) { return (u.calls || 0) < 1 ? (u.calls = 1, { score: 14 }) : null; },
   };
@@ -2935,7 +2935,7 @@
   A["swarm-mother"] = {
     time: "action", tgt() { return { type: "none" }; }, can(u) { return B.freeCellsNear(u, 2, { size: 1, side: u.side, id: "x" }).length ? true : "нет места рядом"; },
     async run(u, pk, ctl) { ctl.commit(); const g = ui(); if (g) g.banner("Призыв роя"); log(`${u.name} выпускает рой светлячков.`, "skill");
-      if (u.side !== "hero") { const got = B.spawnFoes(["firefly-swarm", "firefly-swarm"], u); got.forEach(m => { m.noReward = true; m.dieAt = B.S.round + 3; m.pass.push("past-timed"); }); return true; }
+      if (u.side !== "hero") { const got = B.spawnFoes(["firefly-swarm", "firefly-swarm"], u); got.forEach(m => { m.dieAt = B.S.round + 3; m.pass.push("past-timed"); }); return true; }
       for (let i = 0; i < 2; i++) { const m = B.monUnit("firefly-swarm", -1), c = B.freeCellsNear(u, 1, m)[0]; if (!c) break; m.x = c[0]; m.y = c[1]; m.side = "hero"; m.summon = true; m.auto = true; m.noReward = true; m.name = "Рой-помощник"; m.dieAt = B.S.round + 3; m.pass.push("past-timed"); B.addUnit(m, B.S.order[B.S.turn]); m.side = "hero"; }
       if (g) g.refresh(); return true; },
     ai(u) { return (u.calls || 0) < 2 && B.S.round % 2 === 1 ? (u.calls = (u.calls || 0) + 1, { score: 11 }) : null; },
@@ -3154,7 +3154,7 @@
     ai(u) { const ts = enemiesOf(u).filter(t => alive(t) && !t.down && dist(u, t) >= 2 && dist(u, t) <= 4); return ts.length ? { unit: ts.sort((a, b) => a.hp - b.hp)[0], score: 11 } : null; } };
   /* Капитан городской стражи (6, страж) */
   P["city-captain"] = {};
-  P["body:city-captain"] = { turnStart(u) { if (B.S.round === 2 && !u.called) { u.called = true; const got = B.spawnFoes(["city-guard"], u); got.forEach(m => { m.noReward = true; }); log(`${u.name} зовёт стражника!`, "bad"); }
+  P["body:city-captain"] = { turnStart(u) { if (B.S.round === 2 && !u.called) { u.called = true; const got = B.spawnFoes(["city-guard"], u);  log(`${u.name} зовёт стражника!`, "bad"); }
     if (!u.stand && u.hp < u.maxHp / 2) { u.stand = true; addStatus(u, "gcstand", { k: Infinity, data: { prot: 2 } }); fx(u, "последний рубеж", "bad"); log(`${u.name} уходит в глухую оборону: +2 Защиты.`, "bad"); } } };
   A["city-captain"] = { time: "action", tgt() { return { type: "none" }; }, can(u) { return u.side === "hero" ? true : false; },
     async run(u, pk, ctl) { ctl.commit(); addStatus(u, "gcstand", { k: 1, when: "start", data: { prot: 3 } }); addStatus(u, "threatup", { k: 1, when: "start" }); fx(u, "последний рубеж", "good"); log(`${u.name}: последний рубеж!`, "skill"); return true; },
@@ -3162,7 +3162,7 @@
   /* Главный инженер (6, страж): шагоход = временные ОЗ */
   P["chief-engineer"] = {};
   P["body:chief-engineer"] = { turnStart(u) { if (!u.walker) { u.walker = true; u.temp = Math.max(u.temp || 0, 20); fx(u, "шагоход 20", "bad"); log(`${u.name} сидит в шагоходе: 20 временных ОЗ.`, "bad"); }
-    if (B.S.round === 3 && !u.called) { u.called = true; const got = B.spawnFoes(["clockwork-hound"], u); got.forEach(m => { m.noReward = true; }); log(`${u.name} выпускает механического пса!`, "bad"); } } };
+    if (B.S.round === 3 && !u.called) { u.called = true; const got = B.spawnFoes(["clockwork-hound"], u);  log(`${u.name} выпускает механического пса!`, "bad"); } } };
   A["chief-engineer"] = { time: "action", tgt(u) { return { type: "cell", prompt: "Залп шагохода: центр 3×3", cells: B.cellsWithin(u, 6), kind: "attack" }; }, can() { return true; },
     async run(u, pk, ctl) { const c = pk.cell; if (!c) return false; ctl.commit(); const cells = vialArea(c), g = ui(); if (g) g.banner("Залп шагохода"); for (const o of live().filter(o => alive(o) && o.side !== u.side && inArea(o, cells))) await saveDmg(u, o, "dex", dcOf(u, "int"), [2, 6], "fire", "Залп шагохода"); return true; },
     ai(u) { return vialAI(u, 6); } };
@@ -3181,7 +3181,7 @@
   P["gob-founder"] = { attackMods(u, ctx) { if (ctx.tgt && ctx.extra && hitByAlly(u, ctx.tgt)) ctx.extra.push({ n: 1, s: 8, b: 0, dt: ctx.atk && ctx.atk.dt || "slash", label: "Кровь основателя" }); } };
   P["gc-clich"] = { attackMods(u, ctx) { if (tmpOn(u, "gc-clich")) { ctx.mods.push({ l: "Клич Гракха", v: 1 }); ctx.dmgPlus = (ctx.dmgPlus || 0) + 2; } } };
   P["body:gob-founder"] = { attackAura(a, { att, ctx }) { if (att !== a && ctx && alive(a)) ctx.dmgPlus = (ctx.dmgPlus || 0) + 1; },
-    turnStart(u) { if (!u.guard && u.hp < u.maxHp / 2) { u.guard = true; const got = B.spawnFoes(["hobgoblin-shield"], u); got.forEach(m => { m.noReward = true; }); log(`${u.name} зовёт личную гвардию!`, "bad"); } },
+    turnStart(u) { if (!u.guard && u.hp < u.maxHp / 2) { u.guard = true; const got = B.spawnFoes(["hobgoblin-shield"], u);  log(`${u.name} зовёт личную гвардию!`, "bad"); } },
     onDeath(u) { if (B.say) B.say("gob-founder", "город… будет… помнить…"); } };
   A["gob-founder"] = { time: "bonus", tgt() { return { type: "none" }; }, can() { return true; },
     async run(u, pk, ctl) { ctl.commit(); const g = ui(); if (g) g.banner("Клич Гракха"); log(`${u.name}: клич Гракха!`, "skill"); for (const o of alliesOf(u).filter(o => alive(o) && !o.down && dist(u, o) <= 3)) { B.tmpPass(o, "gc-clich", 2); fx(o, "клич", "good"); } return true; },

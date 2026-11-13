@@ -1,5 +1,5 @@
 {
- "version": 1794590349,
+ "version": 1794596622,
  "files": [
   "assets/buildings/academy.webp",
   "assets/buildings/arena.webp",
@@ -647,7 +647,7 @@
   "assets/buildings/storage.webp": "73feb5b8b9f83341de80a87645f171ba",
   "assets/buildings/tavern.webp": "812c88667997f640e80c34b331e547b2",
   "assets/buildings/tower.webp": "a8d571c86cb743cdbcdfe7d63aaed744",
-  "assets/css/battle.css": "8109cd38fec29b082774f67ce76c6922",
+  "assets/css/battle.css": "5f338dcd67d3541d51898f89a32f3f34",
   "assets/css/town.css": "4b56b12f8b8b42a16b913bf28715898b",
   "assets/events/ambush.svg": "cc4762918cfd926e70eaa40ce53b322c",
   "assets/events/ambush.webp": "5fcd1fb31bf6c99e7ec0ac72e84aee85",
@@ -834,18 +834,18 @@
   "assets/js/battle-end.js": "17c223e0218203dcf0c97fea5a930ab5",
   "assets/js/battle-env.js": "07beba0d1dfab72aab280c7b8a3eced0",
   "assets/js/battle-ess.js": "cb315186ca700e31b2675cbb16f9a68d",
-  "assets/js/battle-ess2.js": "0adf7956e91aa87ef93b09ebd240c1b7",
-  "assets/js/battle-ext.js": "9e13681b0f858c34f69c2f1567e8370f",
+  "assets/js/battle-ess2.js": "999f33dad705ca977e089054f7d9a449",
+  "assets/js/battle-ext.js": "1b3becd0a8b7e151826400b02626930a",
   "assets/js/battle-menu.js": "ae57a07f6827cb990c566a0b55fc303d",
   "assets/js/battle-net.js": "f8172bd74527ba982fd73ea9ac71dbf3",
   "assets/js/battle-rules.js": "4848828decf8ee1c09b613233a395bf3",
-  "assets/js/battle-ui.js": "19e8196cca1872eed93c68269e1cf56e",
+  "assets/js/battle-ui.js": "d3fe4e33971a3e3e8ea7127c1a6f9f63",
   "assets/js/battle-weap.js": "dca79d9e289486c1995936a8dcad7d62",
   "assets/js/battle-weap2.js": "5c776b2e7d3292df523ec5a037a0392d",
   "assets/js/battle.js": "adb047f6c19b8ca8e21fdb322f898c7d",
   "assets/js/net.js": "2e8be9ea96e5cf1bd44c120e636e4520",
-  "assets/js/netglue.js": "8ee2f09a62702ce86199d03969f156ce",
-  "assets/js/town.js": "d58a460368951e4e3034dd1cd9df56b2",
+  "assets/js/netglue.js": "859dd6b7df91e9c5996fae0597aa7bb7",
+  "assets/js/town.js": "654039edd4ec48bfd1ecad05b8efa7cb",
   "assets/logo-admin.png": "aa45354a89500a24e2f481f6d7d3ee4a",
   "assets/logo.png": "2eea126130fb32be9d28f407acbc25bb",
   "assets/monsters/ash-executioner-face.webp": "33dc54f77c9133ac5b135632756e14ac",
@@ -1260,6 +1260,6 @@
   "fonts/f8.woff2": "6cc1ee17091d59eb93821c3594e8f38f",
   "fonts/f9.woff2": "070433480b7b645f69b543f284e386ce",
   "fonts/fonts.css": "1585a72a8d157b26cb424ab433fd4e19",
-  "index.html": "d61c5d430b92cb20098c75ab0e1f49d3"
+  "index.html": "bf25361d1b0ea5a9097a6d286d70aee4"
  }
 }

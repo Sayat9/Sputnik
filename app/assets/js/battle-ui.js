@@ -452,8 +452,14 @@
     if (ranged || (style === "chain" && far > cell * 1.6)) {          // снаряд или цепь летит от атакующего к цели
       const p = document.createElement("div"), k = style === "magic" ? "magic" : style.startsWith("el-") ? style.slice(3) : style === "knife" ? "knife" : style === "chain" ? "chainp" : "arrow";
       p.className = "bt-proj k-" + k; p.style.left = a.x + "px"; p.style.top = a.y + "px"; fx.appendChild(p);
-      lead = Math.max(160, Math.min(320, far * 1.6)); p.style.transitionDuration = lead + "ms";
+      lead = Math.max(260, Math.min(620, far * 2.4)); p.style.transitionDuration = lead + "ms";
+      p.style.transform = `rotate(${ang}rad)`;          // снаряд сразу смотрит на цель и летит по прямой
       void p.offsetWidth; p.style.transform = `translate(${t.x - a.x}px, ${t.y - a.y}px) rotate(${ang}rad)`; setTimeout(() => p.remove(), lead + 20);
+      if (k === "magic") setTimeout(() => {          // магический снаряд посоха/палочки взрывается на цели
+        const b = document.createElement("div"), sz = cell * 1.9; b.className = "bt-boom arc"; b.style.cssText = `left:${t.x}px;top:${t.y}px;width:${sz}px;height:${sz}px`;
+        b.innerHTML = `<i class="flash"></i><i class="ball"></i><i class="ring"></i>` + [0, 60, 120, 180, 240, 300].map((g, i) => `<i class="shard" style="--a:${g}deg;--d:${0.34 + (i % 3) * 0.06}"></i>`).join("");
+        fx.appendChild(b); setTimeout(() => b.remove(), 800);
+      }, lead - 20);
     }
     const kind = ranged ? (style === "magic" ? "magic" : style.startsWith("el-") ? "el" : "hit") : style.startsWith("el-") ? "el" : style;
     const el = document.createElement("div"), sz = Math.max(cell * 1.5, (tgt.w || tgt.size || 1) * cell * 1.15);

@@ -25,7 +25,7 @@
   };
   // Отложенные действия: эффекты, которые нельзя выполнить посреди броска (отдача, потеря концентрации).
   B.queue = fn => { const S = B.S; if (S) (S.q ||= []).push(fn); };
-  B.flushQueue = async function () { const S = B.S; while (S && S.q && S.q.length) { const f = S.q.shift(); await f(); } };
+  B.flushQueue = async function () { const S = B.S; while (S && S.q && S.q.length) { const f = S.q.shift(); if (typeof f === "function") await f(); } };          // после сохранения/пересылки боя в очереди остаются пустышки вместо функций
   const isShieldHolder = u => !!(u.hero && ((u.hero.equip.off && itemOf(u.hero.equip.off) && itemOf(u.hero.equip.off).id === "shield") || (B.mainOf(u) && B.mainOf(u).id === "tower-shield")));
   B.isShieldBearer = u => (u.side === "mon" ? !!u.shield : isShieldHolder(u));
   const hasTowerShield = u => !!(u.hero && B.mainOf(u) && B.mainOf(u).id === "tower-shield") || (u.side === "mon" && !!u.shield && u.towerShield);

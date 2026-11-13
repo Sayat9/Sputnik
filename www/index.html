@@ -1187,7 +1187,7 @@ const SHARE_PER_RUN = 30;
 // Стиль картинок: всё снаряжение потёртое, со следами боёв (см. docs/art-style.md).
 
 const WEAPONS = [
-  { id: "spear", name: "Копьё", group: "melee", kind: "Простое", dmg: "1к8", type: "колющий", weight: 1.5, price: 12, dmgPlus: 1,          // двуручное, 1к8 +1 урона (автор 02.11; было одноручное 1к6 / 1к8)
+  { id: "spear", name: "Копьё", group: "melee", kind: "Простое", dmg: "1к8", type: "колющий", weight: 1.5, price: 12, dmgPlus: 1, hitAb: "dex", dmgAb: "str",          // двуручное, 1к8 +1 урона (автор 02.11; было одноручное 1к6 / 1к8)
     props: ["Метательное (6/18 м)", "Двуручное", "+1 к урону", "Досягаемость 3 м (на 2-й клетке с помехой)", "Слабое место"],
     note: "Самое дешёвое железо в оружейной. Держится двумя руками, удар +1 к урону. Древко ясеневое из Гномьего Древа, наконечник кованый. «Слабое место»: проверка Внимательности перед ударом — чем выше, тем больше урона (10–14: +1, 15–19: +1к4, 20+: +1к6); ниже 8 — помеха на атаку. Остриё ищет щель в броне: удар игнорирует 1 Защиты цели." },
   // Пика — укороченное копьё всадника для рук: двуручная, длинная, но с малым щитом носится со штрафом (−2 к Ловкости от щита и −1 клетка скорости). Особенность — на утверждении автора (drafts.md).
@@ -2798,7 +2798,7 @@ function riftMarks(px, py, up) {
     out.push(up((x - px) * T, (y - py) * T, `<ellipse rx="13" ry="17" fill="#2a0a2e" stroke="#c45cff" stroke-width="2.5"/><ellipse rx="7" ry="11" fill="#c45cff" opacity=".55"/>`)); }
   return out;
 }
-const riftButtons = () => { const r = state.run, t = r && !r.rift && riftAt(r.pos.x, r.pos.y); return t ? [{ id: "rift-enter", label: "Войти в разлом", sub: RIFTS[t.id].name }] : []; };
+const riftButtons = () => { const r = state.run, t = r && !r.rift && riftAt(r.pos.x, r.pos.y); return t ? [{ id: "rift-enter", label: "Войти в разлом", sub: "что внутри — неизвестно" }] : []; };
 // ----- карта разлома -----
 const riftCell = (R, x, y) => R.id === "blood" ? ((y >= 0 && y <= 4 && x >= 0 && x <= 4) || (y >= 5 && y <= 14 && x >= 1 && x <= 3)) : R.id === "ice" ? (x >= 0 && x <= 2 && y >= 0 && y <= 14) : R.id === "sand" ? (x >= 0 && x <= 14 && y >= 0 && y <= 14) : R.id === "mine" ? (x >= 0 && x < R.w && y >= 0 && y < R.h) : (R.id === "past" || R.id === "gcity" || R.id === "gyard") ? (x >= 0 && x < 15 && y >= 0 && y < 15) : false;
 function riftBuild(id) {
@@ -2834,11 +2834,12 @@ function riftEnter() {
   r.rift = riftBuild(t.id); r.rift.save = { day: r.day, act: r.act, key: tkey(r.pos.x, r.pos.y) };
   if (t.id === "gyard") gyEnter();
   logRun(`Отряд входит в разлом «${RIFTS[t.id].name}». Время этажа остановилось.`);
-  dgUi.res = { title: RIFTS[t.id].name, roll: "", pic: "rift-enter", lines: t.id === "gyard" ? ["Портал схлопывается за спиной. Здесь время этажа не идёт; на выходе пройдёт 2 дня.", "Тихая деревня у кладбища, каким был Могильник когда-то. Здесь нет привычных дней — только день и ночь по 10 действий."] : t.id === "gcity" ? GC_INTRO : t.id === "past" ? PAST_INTRO : t.id === "mine" ? ["Портал схлопывается за спиной. Здесь время этажа не идёт; на выходе пройдёт 2 дня.", "Пять уровней штолен: спуск на каждом — в одном из дальних рядов. 4-й уровень тёмный — берите факелы. В конце — логово короля слизи.", "Жилы богаты камнями: здесь можно копать, если есть лопата."] : t.id === "sand" ? ["Портал схлопывается за спиной. Здесь время этажа не идёт; на выходе пройдёт 2 дня.", "Где-то в барханах тонут два древних маяка. Подойдёшь ближе — почувствуешь их зов. Раскачай маяк, и на зов явится его хозяин.", "Когда утонут оба маяка, в центре пустыни проснётся Кель. В бою берегитесь зыбучего песка."] : t.id === "ice" ? ["Портал схлопывается за спиной. Здесь время этажа не идёт; на выходе пройдёт 2 дня.", "Холод: каждый шаг без горящего факела — +1 к замерзанию (до 10). С факелом холод спадает на 2, но факел тут горит на 1 ход меньше. В боях на поле стоят имперские жаровни — их можно разжечь.", "Внизу пещеры — страж у огромной жаровни и сундук."] : ["Портал схлопывается за спиной. Здесь время этажа не идёт; на выходе пройдёт 2 дня.", "Ищите спуск в последнем ряду двора — он ведёт на 5 уровней вниз, в канализацию. В конце коридора — страж и сундук."] };
+  dgUi.res = { title: RIFTS[t.id].name, roll: "", pic: "rift-enter", lines: ["Портал схлопывается за спиной. Здесь время этажа не идёт; на выходе пройдёт " + RIFT_EXIT_DAYS + " дня."] };          // 13.11: без описания того, что внутри
 }
 function riftExit() {
   const r = state.run, R = r.rift; if (!R) return;
   const RF = r.floor === 2 ? r.riftsF2 : r.riftsF1, t = RF && RF.tiles[R.save.key]; if (t) t.done = true;
+  if (R.bossDead || R.chestOpen) { (journal().riftsDone ||= {})[R.id] = true; logRun("Разлом пройден: записи о его обитателях появятся в библиотеке."); }
   r.day = R.save.day + RIFT_EXIT_DAYS; r.act = R.save.act; r.rift = null; for (const c of state.party) delete c.tmpHp;          // временные ОЗ таверны — только в разломе
   logRun(`Отряд вышел из разлома. Снаружи прошло ${RIFT_EXIT_DAYS} дня — сейчас день ${r.day}.`);
   if (r.day > FL().days) { r.day = FL().days; r.act = FL().acts; r.ending ||= "time"; }
@@ -2946,6 +2947,27 @@ function riftColdStep(d0) {
     if (now === 10 && was < 10) { c.hp = Math.max(1, hpOf(c) - 1); logRun(`${c.name} коченеет: −1 ОЗ от холода.`); } }
 }
 function riftFight(title, list, o = {}) { const R = state.run.rift; startSpecial(title, { zone: RIFTS[R.id].zone, place: RIFTS[R.id].name, list, ...(R.id === "ice" ? { cold: R.cold, big10: true, bigBrazier: list[0] === "half-troll" } : R.id === "sand" ? { big10: true } : R.id === "mine" ? { mineLevel: R.level, dark: mineDark(R) } : R.id === "past" ? { dark: pastDark(R), big10: ["fallen-keeper", "naturalist", "luna"].includes(list[0]) } : {}) }, o); dgUi.enc.riftKey = tkey(R.pos.x, R.pos.y); }
+// Бросок события в разломе показывается, как на этаже: ~1,5 с крутится кубик, ~1,2 с виден итог, потом открывается встреча или находка (видят и игроки — dgUi уходит по сети).
+let RIFT_D = null, RIFT_ROLL_LIVE = false; const riftD = v => (RIFT_D = v);
+function riftRollStart() {
+  if (RIFT_D == null || !isMaster()) return; const e = dgUi.enc, res = dgUi.res;
+  const kind = e ? (e.ambush ? "ambush" : "hard") : res ? "find" : "empty", title = e ? String(e.title || "Встреча").replace(/\s*\(.*$/, "") : res ? res.title : "Тихо";
+  const rr = dgUi.rroll = { pick: RIFT_D, kind, title, shown: false }; RIFT_D = null; RIFT_ROLL_LIVE = true;
+  const live = () => dgUi.rroll === rr;
+  const flick = setInterval(() => { const el = document.getElementById("evnum"); if (!live() || rr.shown) { clearInterval(flick); return; } if (el) el.textContent = 1 + rnd(20); }, 70);
+  setTimeout(() => { clearInterval(flick); if (!live()) return; rr.shown = true; saveChar(); rerender(); }, ROLL_SPIN_MS);
+  setTimeout(() => { RIFT_ROLL_LIVE = false; if (!live()) return; dgUi.rroll = null; saveChar(); rerender(); }, ROLL_SPIN_MS + ROLL_SHOW_MS);
+}
+function riftRollOverlay() {
+  const rr = dgUi.rroll;
+  return `<div class="mapov ev-roll" role="dialog" aria-modal="true" aria-label="Бросок события"><div class="panel fx-frame enc-panel ev-panel">
+      <div class="ev-stage${rr.shown ? " shown" : ""}">${rr.shown ? evPic(rr.kind) : ""}<div class="ev-die${rr.shown ? " done" : ""}">${ICO_D20}<b id="evnum">${rr.shown ? rr.pick : "?"}</b></div></div>
+      <div class="ev-cap"><h3>${rr.shown ? esc(rr.title) : "Бросок к20…"}</h3><p>${rr.shown ? `к20 = ${rr.pick}` : "Что впереди?"}</p></div></div></div>`;
+}
+function mineDescend() {
+  const R = state.run && state.run.rift; if (!R || R.id !== "mine" || !R.descent || R.pos.x !== R.descent.x || R.pos.y !== R.descent.y) return;
+  R.level++; mineLevel(R); logRun(R.level === 5 ? "Спуск: отряд выходит в узкий коридор — впереди логово короля слизи." : R.level === 4 ? "Спуск на 4-й уровень: здесь кромешная тьма, без факела не видно ни зги." : `Спуск на ${R.level}-й уровень шахты.`); toast(`Шахта: уровень ${R.level}`);
+}
 function riftMove(x, y) {
   const r = state.run, R = r.rift; if (!R || dgUi.enc) return;
   if (R.id === "past") { pastMove(x, y); return; }
@@ -2961,9 +2983,6 @@ function riftMove(x, y) {
   }
   const fresh = !R.visited.includes(k); if (fresh) R.visited.push(k);
   if (R.minis[k] && !R.done[k]) { riftFight(MONSTERS.find(m => m.id === R.minis[k]).name, [R.minis[k], R.id === "blood" ? "blood-slave" : R.id === "ice" ? "ice-imp" : R.minis[k] === "kobold-captain" ? "kobold-guard" : R.minis[k] === "goblin-foreman" ? "goblin-miner" : R.minis[k]]); return; }
-  if (R.id === "mine" && R.descent && x === R.descent.x && y === R.descent.y) {
-    R.level++; mineLevel(R); logRun(R.level === 5 ? "Спуск: отряд выходит в узкий коридор — впереди логово короля слизи." : R.level === 4 ? "Спуск на 4-й уровень: здесь кромешная тьма, без факела не видно ни зги." : `Спуск на ${R.level}-й уровень шахты.`); toast(`Шахта: уровень ${R.level}`); return;
-  }
   if (R.id === "mine" && R.boss && x === R.boss.x && y === R.boss.y && !R.bossDead) { riftFight("Страж разлома: Римуру, король слизи", ["rimuru", "slime"]); return; }
   if (R.id === "sand") {          // маяки: в зоне 5×5 — «далёкий зов»; центр — только после обоих маяков
     for (const b of R.beacons) if (!b.done && !b.felt && Math.max(Math.abs(b.x - R.pos.x), Math.abs(b.y - R.pos.y)) <= 2) { b.felt = true; logRun("Вы чувствуете далёкий зов…"); toast("Вы чувствуете далёкий зов"); }
@@ -2972,7 +2991,7 @@ function riftMove(x, y) {
   }
   if (R.boss && R.pos.x === R.boss.x && R.pos.y === R.boss.y && !R.bossDead) { if (R.id === "ice") riftFight("Страж разлома: Грольф", ["half-troll", "ice-imp"]); else riftFight("Страж разлома: Мордрейн", ["death-knight", "vampire-servant"]); return; }
   if (!fresh || R.cleared[k]) return;
-  const d = Math.max(1, 1 + rnd(20) - (mineDark(R) ? 3 : 0)), sev = d <= 6 ? "hard" : d <= 10 ? "mid" : d <= 15 ? "easy" : null;          // 15 — монстры вместо путников (08.11)
+  const d = riftD(Math.max(1, 1 + rnd(20) - (mineDark(R) ? 3 : 0))), sev = d <= 6 ? "hard" : d <= 10 ? "mid" : d <= 15 ? "easy" : null;          // 15 — монстры вместо путников (08.11)
   if (sev) { R.cleared[k] = true; riftFight(`${d <= 2 ? "Засада" : sev === "hard" ? "Тяжёлая встреча" : sev === "mid" ? "Средняя встреча" : "Лёгкая встреча"} (к20 = ${d})`, riftGroup(R, R.pos.y, sev), d <= 2 ? { ambush: true } : {}); return; }
   if (R.id === "mine" && d >= 17) { const line = giveParty({ t: "g", id: R.level <= 2 ? "stone-9" : "stone-8", qty: R.level <= 2 ? 2 + rnd(2) : 1 + rnd(2) }); logRun(`Шахта: жила (к20 = ${d}) — ${line}`); dgUi.res = { title: "Рудная жила", roll: `к20 = ${d}`, pic: "find", lines: [line] }; return; }
   if (d <= 18 && !(R.id === "mine" && d >= 17)) { const x = riftSupplies(); logRun(`Разлом: припасы (к20 = ${d}; к20 = ${x.d}) — ${x.lines.join("; ")}`); dgUi.res = { title: "Брошенные припасы", roll: `к20 = ${d} · припасы к20 = ${x.d}`, pic: "find", lines: x.lines }; return; }          // 16–18 — припасы вместо путников (08.11)
@@ -3037,8 +3056,8 @@ function riftMarkOf(R, x, y, seen, near) {
   if (R.id === "gyard") return gyMarkOf(R, x, y, seen, near);
   if (R.id === "sand") { const bi = sandBeaconAt(R, x, y); if (bi >= 0 && (seen || near || R.beacons[bi].felt)) return R.beacons[bi].done ? "beaconDone" : "beacon";
     if (R.boss && x === R.boss.x && y === R.boss.y && !sandBossReady(R)) return seen || near ? "sandStir" : ""; }
-  if (R.descent && x === R.descent.x && y === R.descent.y && (seen || near) && !mineDark(R)) return "descent";
-  if (R.minis[k] && !R.done[k] && (seen || near)) return "mini";
+  if (R.descent && x === R.descent.x && y === R.descent.y && (seen || near) && (!mineDark(R) || R.visited.includes(k))) return "descent";
+  if (R.minis[k] && !R.done[k] && (R.visited.includes(k) || near)) return "mini";          // карта разлома минибоссов не показывает
   if (R.boss && x === R.boss.x && y === R.boss.y && (R.id !== "sand" || sandBossReady(R))) return R.bossDead ? (R.chestOpen ? "open" : "chest") : (seen || near || y === R.h - 1) ? "boss" : "";
   if (R.start && x === R.start.x && y === R.start.y && seen) return "exit";
   return "";
@@ -3103,6 +3122,7 @@ function riftStage() {
       ${r.light ? `<button class="fx-btn" data-dg="torch-off"><img src="${artPath("field/torch-on")}" alt="" width="18" height="18">Погасить факел</button>` : `<button class="fx-btn" data-dg="torch-on"${partyTorches() || r.torchLeft > 0 ? "" : " disabled"}><img src="${artPath("field/torch-off")}" alt="" width="18" height="18">Факел (${partyTorches()})</button>`}
       ${R.id === "mine" && !R.dug[R.level + ":" + tkey(px, py)] && shovelsOf().length ? `<button class="fx-btn" data-rift="dig">${ICO_ACT.dig}Копать</button>` : ""}
       ${R.id === "sand" && sandBeaconAt(R, px, py) >= 0 && !R.beacons[sandBeaconAt(R, px, py)].done ? `<button class="fx-btn primary" data-rift="beacon">Раскачать маяк</button>` : ""}
+      ${R.id === "mine" && R.descent && px === R.descent.x && py === R.descent.y ? `<button class="fx-btn primary" data-rift="descend">Спуститься ниже<small>назад пути не будет</small></button>` : ""}
       ${atBoss && R.bossDead && !R.chestOpen ? `<button class="fx-btn primary" data-rift="chest">Открыть сундук</button>` : ""}
       ${atStart || R.bossDead ? `<button class="fx-btn${R.bossDead ? " primary" : ""}" data-rift="exit">Выйти из разлома</button>` : ""}
     </div>`;
@@ -3231,7 +3251,7 @@ function pastMove(x, y) {
   if (t === "keeper" && !R.keeperDead) { riftFight("Страж разлома: Падший хранитель чащи", pastHas("fallen-keeper") ? ["fallen-keeper", pastPick(9)] : [pastPick(8), pastPick(8)]); dgUi.enc.pastKeeper = true; return; }
   if (R.trail >= 10) { const list = [pastHas("lab-direwolf") ? "lab-direwolf" : pastPick(7), pastPick(9), ...(Math.random() < .5 ? [pastPick(9)] : [])]; R.trail = 0; pastBirds(); logRun("След привёл его к вам!"); riftFight("Он нашёл вас!", list, { ambush: false }); dgUi.enc.pastChase = true; return; }
   if (t === "lab" || !fresh || R.cleared[k]) return;
-  const dark = t === "dense" && !r.light && !partyGlow(), d = Math.max(1, 1 + rnd(20) - (dark ? 2 : 0)), roll = `к20 = ${d}${dark ? " (тьма −2)" : ""}`;
+  const dark = t === "dense" && !r.light && !partyGlow(), d = riftD(Math.max(1, 1 + rnd(20) - (dark ? 2 : 0))), roll = `к20 = ${d}${dark ? " (тьма −2)" : ""}`;
   const sev = t === "glade" ? (d <= 8 ? "hard" : d <= 14 ? "mid" : null) : d <= 6 ? "hard" : d <= 10 ? "mid" : d <= 15 ? "easy" : null;
   if (sev) { R.cleared[k] = true; riftFight(`${d <= 2 && t !== "glade" ? "Засада" : sev === "hard" ? "Тяжёлая встреча" : sev === "mid" ? "Средняя встреча" : "Лёгкая встреча"} (${roll})`, riftGroup(R, y, sev), d <= 2 ? { ambush: true } : {}); return; }
   if (t === "glade") { logRun(`Поляна: тихо (${roll}). Здесь можно отдохнуть… но стоит ли?`); return; }
@@ -3369,7 +3389,7 @@ function gcMove(x, y) {
   if (t === "workshop" && fresh && !R.trapped[k]) { R.trapped[k] = true; const wis = Math.max(...state.party.filter(c => !c.dead).map(c => mod((totals(c).wis || {}).total || 10))), d = 1 + rnd(20);
     if (d + wis < 12 && !partyHas("chief-engineer")) { const v = state.party.filter(c => !c.dead), c = v[rnd(v.length)], dmg = roll(1, 6).total; c.hp = Math.max(1, hpOf(c) - dmg); logRun(`Механическая ловушка! ${c.name}: −${dmg} ОЗ (Мудрость ${d} ${wis >= 0 ? "+" : "−"} ${Math.abs(wis)} < 12).`); toast("Ловушка!"); } }
   if (["gate", "tavern", "den", "market", "oil"].includes(t) || !fresh || R.cleared[k]) return;
-  const d = 1 + rnd(20), roll1 = `к20 = ${d}`, alley = t === "alley";
+  const d = riftD(1 + rnd(20)), roll1 = `к20 = ${d}`, alley = t === "alley";
   const sev = d <= 6 ? "hard" : d <= 10 ? "mid" : d <= (alley ? 13 : 15) ? "easy" : null;
   if (sev) { R.cleared[k] = true; gcEncounter(R, `${(alley ? d <= 4 : d <= 2) ? "Засада" : sev === "hard" ? "Тяжёлая встреча" : sev === "mid" ? "Средняя встреча" : "Лёгкая встреча"} (${roll1})`, gcGroup(R, sev), (alley ? d <= 4 : d <= 2) ? { ambush: true, noDisguise: true } : {}); return; }
   if (d <= 18) { const s2 = riftSupplies(); logRun(`Разлом: припасы (${roll1}; к20 = ${s2.d}) — ${s2.lines.join("; ")}`); dgUi.res = { title: "Брошенные припасы", roll: `${roll1} · припасы к20 = ${s2.d}`, pic: "find", lines: s2.lines }; return; }
@@ -3476,7 +3496,7 @@ function gyMove(x, y) {
     R.graves.push({ x, y, name: GY_GRAVES[R.graves.length], read: false, dug: false }); logRun("Одна из могил светится бледным светом."); dgUi.res = { title: "Светящаяся могила", roll: "", lines: ["Среди надгробий одно светится бледным светом. На камне можно разобрать надпись…"] }; return;
   }
   if (!fresh || R.cleared[k]) return;
-  const d = 1 + rnd(20), roll1 = `к20 = ${d}`;
+  const d = riftD(1 + rnd(20)), roll1 = `к20 = ${d}`;
   const sev = night ? (d <= 7 ? "hard" : d <= 12 ? "mid" : d <= 16 ? "easy" : null) : (d <= 3 ? "mid" : d <= 7 ? "easy" : null);
   if (sev) { R.cleared[k] = true; riftFight(`${night ? "Ночная" : "Дневная"} встреча: ${sev === "hard" ? "тяжёлая" : sev === "mid" ? "средняя" : "лёгкая"} (${roll1})`, gyGroup(R, sev), night && d <= 2 ? { ambush: true } : {}); return; }
   if (!night) { logRun(`Кладбище: тихо (${roll1}).`); return; }
@@ -3552,8 +3572,10 @@ if (typeof document !== "undefined") document.addEventListener("click", e => {
   if (a === "brew2" || a === "brew4") brewPotion(a === "brew4" ? 4 : 2);
   if (a === "lab-down") pastLabDown();
   if (a === "lab-explore") pastExplore();
+  RIFT_D = null;
+  if (a === "descend") mineDescend();
   if (a === "move") riftMove(+b.dataset.x, +b.dataset.y); else if (a === "rest") riftRest(); else if (a === "chest") riftChest(); else if (a === "exit") riftExit();
-  saveChar(); rerender();
+  riftRollStart(); saveChar(); rerender();
 });
 /*RIFT-END*/
 // Картинка перехода между этажами (07.11): после смены этажа — окно с заставкой.
@@ -3653,8 +3675,8 @@ const DISTRICTS = [
 
 // Готовые рисованные картинки (webp) заменяют векторные заглушки.
 // Дата сборки для телефона: build.sh вписывает её сюда, в веб-версии строка пустая.
-const APP_BUILD = "13.11.2026 22:19";
-const APP_VERSION = 1794590349;                 // номер сборки, тоже вписывает build.sh
+const APP_BUILD = "14.11.2026 00:03";
+const APP_VERSION = 1794596622;                 // номер сборки, тоже вписывает build.sh
 const UPDATE_URL = "https://raw.githubusercontent.com/Sayat9/Sputnik/main/www/";
 const RASTER = new Set(["items/mush-rest", "items/art-rampart-pike", "items/mush-light", "items/art-mirror-shield", "items/frost-amulet", "items/mush-heal", "items/mush-poison", "items/art-storm-axe", "items/art-shadow-daggers", "items/sstone-para", "items/mush-food", "items/sstone-freeze", "items/art-thunder-spear", "items/hide-cloak", "items/frost-gloves", "items/sstone-boom", "items/mush-boom", "items/art-moon-sword", "items/mush-mana", "items/art-meteor-mace", "items/art-magnet-gloves", "buildings/auction", "monsters/mad-berserker-face", "monsters/mad-berserker-full", "monsters/trollgob-porter-face", "monsters/trollgob-porter-full", "monsters/fog-lantern-face", "monsters/fog-lantern-full", "monsters/mad-pyromancer-face", "monsters/mad-pyromancer-full", "monsters/blood-ghoul-face", "monsters/blood-ghoul-full", "monsters/chief-engineer-face", "monsters/chief-engineer-full", "monsters/pack-leader-face", "monsters/pack-leader-full", "monsters/city-captain-face", "monsters/city-captain-full", "monsters/blood-bat-face", "monsters/blood-bat-full", "monsters/blood-slave-face", "monsters/blood-slave-full", "monsters/dust-cherub-face", "monsters/dust-cherub-full", "monsters/lost-trail-face", "monsters/lost-trail-full", "monsters/mourner-face", "monsters/mourner-full", "monsters/marble-halberdier-face", "monsters/marble-halberdier-full", "monsters/faceless-sculptor-face", "monsters/faceless-sculptor-full", "monsters/maid-shade-face", "monsters/maid-shade-full", "monsters/lost-wanderer-face", "monsters/lost-wanderer-full", "monsters/goblin-provoker-face", "monsters/goblin-provoker-full", "monsters/keen-raven-face", "monsters/keen-raven-full", "monsters/iron-fox-face", "monsters/iron-fox-full", "monsters/nasty-goblin-face", "monsters/nasty-goblin-full", "monsters/tracker-hunter-face", "monsters/tracker-hunter-full", "monsters/glen-warden-face", "monsters/glen-warden-full", "monsters/silent-predator-face", "monsters/silent-predator-full", "monsters/caryatid-face", "monsters/caryatid-full", "monsters/scarecrow-face", "monsters/scarecrow-full", "monsters/marble-guardian-face", "monsters/marble-guardian-full", "monsters/marble-saint-face", "monsters/marble-saint-full", "monsters/witch-owl-face", "monsters/witch-owl-full", "monsters/toll-hunter-face", "monsters/toll-hunter-full", "items/steel-pike", "items/calm-flute", "items/dice", "items/art-falling-star", "items/art-echo-blade", "items/art-discharge-staff", "items/weak-salt", "items/silver-salt", "items/tollbell", "items/director-quiver", "items/flame", "items/herb-poison", "items/herb-food", "items/herb-rest", "items/repair-charm", "items/durable-charm", "items/regen-charm", "items/herb-heal", "items/herb-mana", "items/boots", "items/wind", "items/whetstone", "items/daedalus-hammer", "items/unbreakable-charm", "items/pike", "items/bell", "items/flask", "items/monocle", "buildings/arena", "buildings/academy", "buildings/bank", "buildings/storage", "races/dragon-f", "races/fairy-f", "races/gnome-f", "races/darkfairy-f", "events/to-labyrinth", "races/human-f", "races/barbarian-f", "races/dwarf-f", "races/beastkin-f", "events/to-town", "events/ambush", "events/monsters", "events/nothing", "events/travelers", "events/treasure", "items/mace", "items/warhammer", "items/armor-leather", "items/armor-hide", "items/armor-chainmail", "items/steel-dagger", "items/steel-sword", "items/steel-greatsword", "items/steel-shield", "items/steel-tower-shield", "items/shortbow", "items/longbow", "items/rapier", "items/shield", "items/tower-shield", "items/unknown-mushroom", "items/stone-9", "items/stone-8", "items/stone-7", "items/ration", "items/potion", "items/torch", "items/arrows", "items/clothes", "items/shovel", "items/shovel-good", "items/shovel-best", "items/dagger", "items/sword", "items/greatsword", "items/spear", "monsters/goblin-king-face", "monsters/goblin-king-full", "monsters/goblin-bomber-face", "monsters/goblin-bomber-full", "monsters/hobgoblin-shield-face", "monsters/hobgoblin-shield-full", "races/barbarian", "races/human", "races/dwarf", "races/beastkin", "races/fairy", "races/dragon", "monsters/goblin-face", "monsters/goblin-full", "monsters/goblin-archer-face", "monsters/goblin-archer-full", "monsters/goblin-sword-face", "monsters/goblin-sword-full", "monsters/goblin-spear-face", "monsters/goblin-spear-full", "monsters/wolf-face", "monsters/wolf-full", "monsters/fox-face", "monsters/fox-full", "monsters/mouse-face", "monsters/mouse-full", "monsters/bat-face", "monsters/bat-full", "monsters/hobgoblin-face", "monsters/hobgoblin-full", "monsters/zombie-face", "monsters/zombie-full", "monsters/skeleton-face", "monsters/skeleton-full", "monsters/skeleton-archer-face", "monsters/skeleton-archer-full", "monsters/ghoul-face", "monsters/ghoul-full", "monsters/dark-bear-face", "monsters/dark-bear-full", "monsters/skeleton-warrior-face", "monsters/skeleton-warrior-full", "monsters/living-stone-face", "monsters/living-stone-full", "monsters/wisp-face", "monsters/wisp-full", "monsters/pixie-face", "monsters/pixie-full", "monsters/green-boulder-face", "monsters/green-boulder-full", "monsters/stone-guardian-face", "monsters/stone-guardian-full", "monsters/spider-queen-face", "monsters/spider-queen-full", "monsters/ash-wraith-face", "monsters/ash-wraith-full", "monsters/ash-spirit-face", "monsters/ash-spirit-full", "monsters/plague-fat-face", "monsters/plague-fat-full", "monsters/bone-hound-face", "monsters/bone-hound-full", "monsters/dust-crawler-face", "monsters/dust-crawler-full", "monsters/faceless-ringer-face", "monsters/faceless-ringer-full", "monsters/mirror-dead-face", "monsters/mirror-dead-full", "monsters/whisperer-face", "monsters/whisperer-full", "monsters/morok-face", "monsters/morok-full", "monsters/grey-shade-face", "monsters/grey-shade-full", "monsters/blackwing-face", "monsters/blackwing-full", "monsters/swamp-fang-face", "monsters/swamp-fang-full", "monsters/web-spider-face", "monsters/web-spider-full", "monsters/goblin-shaman-face", "monsters/goblin-shaman-full", "monsters/goblin-assassin-face", "monsters/goblin-assassin-full", "monsters/goblin-trapper-face", "monsters/goblin-trapper-full", "monsters/goblin-elder-face", "monsters/goblin-elder-full", "monsters/hobgoblin-brute-face", "monsters/hobgoblin-brute-full", "monsters/hobgoblin-thrower-face", "monsters/hobgoblin-thrower-full", "monsters/hobgoblin-driver-face", "monsters/hobgoblin-driver-full", "monsters/goblin-thief-face", "monsters/goblin-thief-full", "monsters/horned-hare-face", "monsters/horned-hare-full", "monsters/swamp-toad-face", "monsters/swamp-toad-full", "monsters/burrower-face", "monsters/burrower-full", "monsters/crow-face", "monsters/crow-full", "monsters/dire-wolf-face", "monsters/dire-wolf-full", "monsters/werewolf-face", "monsters/werewolf-full", "monsters/giant-mole-face", "monsters/giant-mole-full", "monsters/bone-knight-face", "monsters/bone-knight-full", "monsters/gravedigger-face", "monsters/gravedigger-full", "monsters/corpse-eater-face", "monsters/corpse-eater-full", "monsters/drop-face", "monsters/drop-full", "monsters/dust-whirl-face", "monsters/dust-whirl-full", "monsters/magma-hound-face", "monsters/magma-hound-full", "monsters/crystalloid-face", "monsters/crystalloid-full", "monsters/lake-spirit-face", "monsters/lake-spirit-full", "monsters/magma-golem-face", "monsters/magma-golem-full", "monsters/deep-serpent-face", "monsters/deep-serpent-full", "monsters/crystal-colossus-face", "monsters/crystal-colossus-full", "monsters/storm-spirit-face", "monsters/storm-spirit-full", "monsters/rift-heart-face", "monsters/rift-heart-full", "items/compass", "items/steel-mace", "items/steel-rapier", "items/unknown-herb", "items/twin-daggers", "items/unknown-stone", "items/steel-twin-daggers", "items/potion-good", "items/coins", "items/steel-spear", "items/steel-warhammer", "items/steel-shortbow", "items/steel-longbow", "items/steel-armor-leather", "items/steel-armor-hide", "items/steel-armor-chainmail", "items/gloves", "items/staff", "items/axe", "items/greataxe", "items/firstaid", "items/flute", "items/chalice", "items/once-more", "items/guard", "items/beginners-luck", "buildings/tower", "buildings/guild", "buildings/church", "buildings/library", "buildings/gate", "buildings/tavern", "buildings/shop", "buildings/forge", "buildings/board", "buildings/hall", "races/gnome", "races/darkfairy", "monsters/rat-face", "monsters/rat-full", "monsters/rat-king-face", "monsters/rat-king-full", "monsters/rat-catcher-face", "monsters/rat-catcher-full", "monsters/silence-keeper-face", "monsters/silence-keeper-full", "monsters/orc-wolf-face", "monsters/orc-wolf-full", "monsters/orc-thrower-face", "monsters/orc-thrower-full", "monsters/orc-spear-face", "monsters/orc-spear-full", "monsters/orc-scout-face", "monsters/orc-scout-full", "monsters/orc-falcon-face", "monsters/orc-falcon-full", "monsters/mimic-face", "monsters/mimic-full", "monsters/orc-chief-face", "monsters/orc-chief-full", "items/repair-kit", "items/repair-kit-pro", "monsters/orc-executioner-face", "monsters/orc-executioner-full", "monsters/orc-shaman-face", "monsters/orc-shaman-full", "monsters/orc-guard-face", "monsters/orc-guard-full", "items/brotherhood-ring", "items/hearth", "items/mana-charm", "items/fatigue-charm", "items/hunger-charm", "items/steel-greataxe", "items/steel-axe", "items/steel-gloves", "items/steel-staff", "items/art-shadow-fang", "items/art-flurry-rapier", "items/art-reaper-axe", "items/art-ricochet-bow", "items/art-rift-hammer", "items/art-bastion-shield", "items/art-mirage-armor", "items/art-magnet-mail", "monsters/grey-vulture-face", "monsters/grey-vulture-full", "monsters/thorn-hound-face", "monsters/thorn-hound-full", "monsters/bone-ranger-face", "monsters/bone-ranger-full", "monsters/forge-smith-face", "monsters/forge-smith-full", "monsters/magma-wyrm-face", "monsters/magma-wyrm-full", "monsters/stone-elk-face", "monsters/stone-elk-full", "monsters/trap-master-face", "monsters/trap-master-full", "monsters/trap-queen-face", "monsters/trap-queen-full", "monsters/boulder-beetle-face", "monsters/boulder-beetle-full", "monsters/trap-crab-face", "monsters/trap-crab-full", "monsters/wire-spider-face", "monsters/wire-spider-full", "monsters/bolt-golem-face", "monsters/bolt-golem-full", "monsters/coal-beetle-face", "monsters/coal-beetle-full", "monsters/ember-salamander-face", "monsters/ember-salamander-full", "monsters/ash-executioner-face", "monsters/ash-executioner-full", "monsters/brazier-golem-face", "monsters/brazier-golem-full", "monsters/ember-reaper-face", "monsters/ember-reaper-full", "monsters/goblin-blaster-face", "monsters/goblin-blaster-full", "monsters/frost-beetle-face", "monsters/frost-beetle-full", "monsters/dead-vulture-face", "monsters/dead-vulture-full", "monsters/half-troll-face", "monsters/half-troll-full", "monsters/kobold-guard-face", "monsters/kobold-guard-full", "monsters/kobold-face", "monsters/kobold-full", "monsters/sand-vulture-face", "monsters/sand-vulture-full", "monsters/sand-worm-face", "monsters/sand-worm-full", "monsters/snow-hunter-face", "monsters/snow-hunter-full", "monsters/sand-scorpion-face", "monsters/sand-scorpion-full", "monsters/big-stinger-face", "monsters/big-stinger-full", "monsters/ice-spirit-face", "monsters/ice-spirit-full", "monsters/goblin-miner-face", "monsters/goblin-miner-full", "monsters/kel-worm-face", "monsters/kel-worm-full", "monsters/ice-deer-face", "monsters/ice-deer-full", "monsters/mammoth-calf-face", "monsters/mammoth-calf-full", "monsters/slime-face", "monsters/slime-full", "monsters/worm-larva-face", "monsters/worm-larva-full", "monsters/ice-imp-face", "monsters/ice-imp-full", "events/dig", "events/rift-open", "events/rift-enter", "events/floor-change", "monsters/mirage-scorpion-face", "monsters/mirage-scorpion-full", "monsters/toll-beetle-face", "monsters/toll-beetle-full", "monsters/echo-jackal-face", "monsters/echo-jackal-full", "monsters/pseudo-cactus-face", "monsters/pseudo-cactus-full", "monsters/toll-bull-face", "monsters/toll-bull-full", "monsters/shrieker-face", "monsters/shrieker-full", "monsters/toll-rat-face", "monsters/toll-rat-full", "monsters/choir-dead-face", "monsters/choir-dead-full", "monsters/bell-ringer-face", "monsters/bell-ringer-full", "monsters/toll-guard-face", "monsters/toll-guard-full"]);
 // 10.11: веб-версия (предел файлов артефакта) — часть картинок приходит «пачкой» data:-URI (window.IMG_PACK из assets/packs/*.js); в APK пачки нет, берутся обычные файлы
@@ -4473,7 +4495,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 142;
+const BATTLE_REV = 143;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-weap2.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster() || st.dev === false) st.tactical = true; return st; }
@@ -4656,7 +4678,7 @@ function openKills(c) {
 }
 function openSack() { const $i = document.getElementById("iteminfo"); $i.innerHTML = sackViewHtml(); $i.hidden = false; }
 /* ----- онлайн (assets/js/net.js — связь, netglue.js — ведущий и игрок) ----- */
-const NET_REV = 10, NET_FILES = ["assets/js/net.js", "assets/js/netglue.js"];
+const NET_REV = 11, NET_FILES = ["assets/js/net.js", "assets/js/netglue.js"];
 let netLoad = null;
 function loadNet() {
   if (window.NetGlue && window.NetGlue.ready) return Promise.resolve(true);
@@ -4667,7 +4689,7 @@ function loadNet() {
   return netLoad;
 }
 /* ----- здания города (assets/js/town.js грузится при первом входе в здание) ----- */
-const TOWN_REV = 40, TOWN_FILES = ["assets/css/town.css", "assets/js/town.js"];
+const TOWN_REV = 41, TOWN_FILES = ["assets/css/town.css", "assets/js/town.js"];
 let townLoad = null;
 function loadTown() {
   if (window.Town && window.Town.ready) return Promise.resolve(true);
@@ -5942,7 +5964,7 @@ function spEnterTier() {
 }
 // Одно особое действие; время (tick) уже потрачено в act().
 function spDo(id) {
-  if (id === "rift-enter") { riftEnter(); return; }
+  if (id === "rift-enter") { askYesNo({ title: "Войти в разлом?", text: "Что внутри — неизвестно. Портал закроется за спиной: выйти можно только там, где вошли, или победив стража разлома. Снаружи пройдёт " + RIFT_EXIT_DAYS + " дня.", yes: "Войти", no: "Остаться" }).then(ok => { if (!ok || !state.run || state.run.rift) return; riftEnter(); saveChar(); rerender(); }); return; }
   if (id === "brew2" || id === "brew4") { brewPotion(id === "brew4" ? 4 : 2); return; }          // «Мастер зелий» старшего алхимика          // разлом (07.11)
   if (state.run && state.run.floor === 3) { f3Do(id); return; }
   const r = state.run, sp = spOf(); if (!sp) return;
@@ -8123,9 +8145,10 @@ function renderDungeon() {
   ${dgUi.phase === "explore" || dgUi.phase === "dig" ? searchOverlay() : ""}
   ${dgUi.phase === "portal" ? portalOverlay() : ""}
   ${huntAnimOverlay()}
-  ${dgUi.res ? resultOverlay() : ""}
+  ${dgUi.rroll && isMaster() && !RIFT_ROLL_LIVE ? ((dgUi.rroll = null), "") : ""}${dgUi.rroll ? riftRollOverlay() : ""}
+  ${dgUi.res && !dgUi.rroll ? resultOverlay() : ""}
   ${r.pending && !dgUi.enc && !dgUi.res ? rollOverlay() : ""}
-  ${dgUi.enc ? encounterOverlay() : ""}
+  ${dgUi.enc && !dgUi.rroll ? encounterOverlay() : ""}
   ${!dgUi.enc && !dgUi.res && !r.pending && (r.ending || r.arrive) ? travelOverlay(r.ending ? "out" : "in") : ""}`;
 }
 // Заставка перемещения: в лабиринт (вход через врата) и в город (время вышло или отряд ушёл сам). Картинки — assets/events/to-labyrinth, to-town.
@@ -9203,7 +9226,7 @@ function unlockJournal(cls) {
   const j = journal();
   if (!j.unlocked || !j.tiers.includes(cls)) { j.unlocked = true; if (!j.tiers.includes(cls)) j.tiers.push(cls); }
 }
-const libMonsters = () => MONSTERS.filter(m => !m.dyn && (journal().known[m.id] || (!m.draft && !m.rift && journal().tiers.includes(m.cls))));          /* 09.11: открытый класс показывает всех своих монстров со всех этажей; монстры разломов — секрет, только после встречи */          // монстры 2 этажа появляются «?» после первого спуска на 2 этаж          // монстры любого этажа попадают в библиотеку, как только записаны (встреча, поиск, гильдия); неизвестные «?» показываются только для открытых классов 1 этажа
+const libMonsters = () => MONSTERS.filter(m => !m.dyn && (journal().known[m.id] || (!m.draft && (!m.rift || (journal().riftsDone || {})[m.rift]) && journal().tiers.includes(m.cls))));          /* 09.11: открытый класс показывает всех своих монстров со всех этажей; монстры разломов — секрет, только после встречи */          // монстры 2 этажа появляются «?» после первого спуска на 2 этаж          // монстры любого этажа попадают в библиотеку, как только записаны (встреча, поиск, гильдия); неизвестные «?» показываются только для открытых классов 1 этажа
 const MON_PH = `<svg viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" fill="#120e09"/><circle cx="50" cy="42" r="18" fill="#2a2016" stroke="#6e5634"/><path d="M18 100 C22 74 36 66 50 66 C64 66 78 74 82 100Z" fill="#2a2016" stroke="#6e5634"/></svg>`;
 const monArt = (m, full) => (full ? ART.monsterFull(m.id) : ART.monsterFace(m.id));
 

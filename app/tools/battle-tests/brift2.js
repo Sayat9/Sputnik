@@ -9,7 +9,7 @@ const { chromium } = require('playwright');
     riftSync(); const noRank = !run.riftsF1;
     state.party[0].rank = 7; riftSync(); Object.values(run.riftsF1.tiles).forEach(t => t.id = 'blood'); const tiles = Object.keys(run.riftsF1.tiles); const pop = dgUi.res && dgUi.res.pic; dgUi.res = null;
     const [tx, ty] = tiles[0].split(',').map(Number); run.pos = { x: tx, y: ty }; const btn = spButtons().map(x => x.id);
-    spDo('rift-enter'); const R = run.rift; const inRift = !!R; dgUi.res = null;
+    riftEnter(); const R = run.rift; const inRift = !!R; dgUi.res = null;
     // дойти до спуска: двигаемся по двору (бои закрываем)
     let guard = 0; const go = (x, y) => { riftMove(x, y); dgUi.enc = null; dgUi.res = null; };
     while (R.pos.y < 4 && guard++ < 20) go(R.pos.x, R.pos.y + 1);
@@ -34,7 +34,7 @@ const { chromium } = require('playwright');
   // экран разлома на месте карты (v115)
   const u = await p.evaluate(() => {
     state.party = [Object.assign(clone(state.example), { id: 'p0', example: false, level: 4, rank: 7 })]; newRun(); const run = state.run; run.floor = 1; run.day = 3; run.act = 1; run.arrive = false;
-    riftSync(); dgUi.res = null; Object.values(run.riftsF1.tiles).forEach(t => t.id = 'ice'); const k = Object.keys(run.riftsF1.tiles)[0].split(',').map(Number); run.pos = { x: k[0], y: k[1] }; spDo('rift-enter'); dgUi.res = null;
+    riftSync(); dgUi.res = null; Object.values(run.riftsF1.tiles).forEach(t => t.id = 'ice'); const k = Object.keys(run.riftsF1.tiles)[0].split(',').map(Number); run.pos = { x: k[0], y: k[1] }; riftEnter(); dgUi.res = null;
     location.hash = 'labyrinth'; dgUi.phase = 'menu'; route(); return { x: run.rift.pos.x, y: run.rift.pos.y };
   });
   await p.waitForTimeout(300);

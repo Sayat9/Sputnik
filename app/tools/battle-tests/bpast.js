@@ -10,7 +10,7 @@ const { chromium } = require('playwright');
     run.floor = 2; run.variant = 'stone'; run.day = 10; run.act = 1; run.pos = { x: 5, y: 5 }; riftSync(); o.noGoblin = !run.riftsF2;
     run.variant = 'beast'; riftSync(); const tiles = Object.keys((run.riftsF2 || {}).tiles || {}); o.n = tiles.length; o.pop = dgUi.res && dgUi.res.pic; dgUi.res = null;
     const [tx, ty] = tiles[0].split(',').map(Number); run.pos = { x: tx, y: ty }; o.btn = spButtons().map(x => x.id).includes('rift-enter');
-    spDo('rift-enter'); const R = run.rift; o.inRift = R && R.id === 'past'; o.intro = dgUi.res && dgUi.res.title; dgUi.res = null;
+    riftEnter(); const R = run.rift; o.inRift = R && R.id === 'past'; o.intro = dgUi.res && dgUi.res.title; dgUi.res = null;
     o.start = R.pos.x === 0 && R.pos.y === 14; o.lab = R.map['14,0'] === 'lab'; o.keeper = R.map['7,7'] === 'keeper';
     o.roots = [...Array(15).keys()].every(i => i === 7 || R.map[i + ',' + i] === 'roots');
     o.types = [...new Set(Object.values(R.map))].sort().join();

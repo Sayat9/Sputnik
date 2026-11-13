@@ -8,7 +8,7 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
   let n = 0, bad = 0; const ok = (t, c, x) => { n++; if (!c) bad++; console.log(`  ${c ? '✓' : '✗'} ${t}${c ? '' : ' — ' + JSON.stringify(x)}`); };
   const r = await p.evaluate(() => {
     state.party = [Object.assign(clone(state.example), { id: 'p0', example: false, level: 5, rank: 7 })]; newRun(); const run = state.run; run.floor = 1; run.day = 3; run.act = 1;
-    riftSync(); dgUi.res = null; const k = Object.keys(run.riftsF1.tiles)[0]; run.riftsF1.tiles[k].id = 'ice'; const [x, y] = k.split(',').map(Number); run.pos = { x, y }; spDo('rift-enter'); dgUi.res = null;
+    riftSync(); dgUi.res = null; const k = Object.keys(run.riftsF1.tiles)[0]; run.riftsF1.tiles[k].id = 'ice'; const [x, y] = k.split(',').map(Number); run.pos = { x, y }; riftEnter(); dgUi.res = null;
     const R = run.rift, o = { id: R.id, w: R.w, h: R.h, braz: R.braziers ? Object.keys(R.braziers).length : 0, minis: Object.values(R.minis).sort().join(), cold0: R.cold.p0 };
     run.light = false; const go = (x, y) => { riftMove(x, y); dgUi.enc = null; dgUi.res = null; };
     R.minis = {}; go(1, 1); go(1, 2); o.coldDark = R.cold.p0;

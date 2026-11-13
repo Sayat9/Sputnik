@@ -8,9 +8,9 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
   let n = 0, bad = 0; const ok = (t, c, x) => { n++; if (!c) bad++; console.log(`  ${c ? '✓' : '✗'} ${t}${c ? '' : ' — ' + JSON.stringify(x)}`); };
   const r = await p.evaluate(() => {
     state.party = [Object.assign(clone(state.example), { id: 'p0', example: false, level: 5, rank: 7 })]; newRun(); const run = state.run; run.floor = 1; run.day = 3; run.act = 1; run.light = false;
-    riftSync(); dgUi.res = null; Object.values(run.riftsF1.tiles).forEach(t => t.id = 'mine'); const k = Object.keys(run.riftsF1.tiles)[0].split(',').map(Number); run.pos = { x: k[0], y: k[1] }; spDo('rift-enter'); dgUi.res = null;
+    riftSync(); dgUi.res = null; Object.values(run.riftsF1.tiles).forEach(t => t.id = 'mine'); const k = Object.keys(run.riftsF1.tiles)[0].split(',').map(Number); run.pos = { x: k[0], y: k[1] }; riftEnter(); dgUi.res = null;
     const R = run.rift, o = { l1: [R.level, R.w, R.h, R.start.x, R.start.y], d1: R.descent.y <= 1 };
-    const goDesc = () => { const d = R.descent; R.pos = { x: d.x, y: d.y + 1 < R.h ? d.y + 1 : d.y - 1 }; R.cleared = {}; riftMove(d.x, d.y); dgUi.enc = null; dgUi.res = null; };
+    const goDesc = () => { const d = R.descent; R.pos = { x: d.x, y: d.y + 1 < R.h ? d.y + 1 : d.y - 1 }; R.cleared = {}; riftMove(d.x, d.y); mineDescend(); dgUi.enc = null; dgUi.res = null; };
     goDesc(); o.l2 = R.level; o.mini2 = Object.values(R.minis)[0];
     goDesc(); o.l3 = R.level; o.mini3 = Object.values(R.minis)[0];
     goDesc(); o.l4 = [R.level, R.w, R.h, R.descent.y]; o.dark = mineDark(R); o.descHidden = riftMarkOf(R, R.descent.x, R.descent.y, true, true) !== 'descent';

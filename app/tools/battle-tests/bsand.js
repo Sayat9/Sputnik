@@ -8,7 +8,7 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
   let n = 0, bad = 0; const ok = (t, c, x) => { n++; if (!c) bad++; console.log(`  ${c ? '✓' : '✗'} ${t}${c ? '' : ' — ' + JSON.stringify(x)}`); };
   const r = await p.evaluate(() => {
     state.party = [Object.assign(clone(state.example), { id: 'p0', example: false, level: 5, rank: 7 })]; newRun(); const run = state.run; run.floor = 1; run.day = 3; run.act = 1;
-    riftSync(); dgUi.res = null; Object.values(run.riftsF1.tiles).forEach(t => t.id = 'sand'); const k = Object.keys(run.riftsF1.tiles)[0].split(',').map(Number); run.pos = { x: k[0], y: k[1] }; spDo('rift-enter'); dgUi.res = null;
+    riftSync(); dgUi.res = null; Object.values(run.riftsF1.tiles).forEach(t => t.id = 'sand'); const k = Object.keys(run.riftsF1.tiles)[0].split(',').map(Number); run.pos = { x: k[0], y: k[1] }; riftEnter(); dgUi.res = null;
     const R = run.rift, [a, c] = R.beacons, o = { w: R.w, h: R.h, start: R.start, bOk: R.beacons.every(b => b.y <= 11 && !(b.x >= 6 && b.x <= 9 && b.y >= 6 && b.y <= 9)), bDist: Math.abs(a.x - c.x) + Math.abs(a.y - c.y), minis: R.beacons.map(b => b.mini).sort().join() };
     R.pos = { x: 7, y: 8 }; riftMove(7, 7); o.bossEarly = !dgUi.enc; dgUi.enc = null; dgUi.res = null;
     R.pos = { x: a.x, y: a.y + (a.y < 14 ? 1 : -1) }; R.visited = []; o.felt0 = a.felt; riftMove(a.x, a.y); o.felt = a.felt; o.noAutoFight = !dgUi.enc; dgUi.res = null;
