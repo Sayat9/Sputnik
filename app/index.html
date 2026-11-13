@@ -9430,7 +9430,20 @@ function renderResults() {
 
 /* ===================== РАЗДЕЛЫ И НАВИГАЦИЯ ===================== */
 
+// Принятые задания доски (справочник): только просмотр — сдают по-прежнему на Доске объявлений.
+function renderQuests() {
+  const list = questBoard().list.filter(q => q.taken);
+  if (!list.length) return `<div class="group"><div class="item"><p>Принятых заданий нет. Задания берут в городе на Доске объявлений — не больше 4 одновременно.</p></div></div>`;
+  return `<div class="group"><h3 class="sec-title">Принятые задания: ${list.length} из 4</h3>${list.map(q => {
+    const m = MONSTERS.find(x => x.id === q.mon) || { name: "?", cls: q.cls || 9 }, have = questStones(q), ok = have >= q.need, left = QUEST_RUNS - q.runs;
+    return `<div class="item quest-row" style="display:flex;flex-direction:row;gap:12px;align-items:center;text-align:left"><span style="flex:0 0 56px;width:56px;height:56px;border-radius:8px;overflow:hidden;display:block">${m.id ? `<img src="${monArt(m)}" alt="" style="width:100%;height:100%;object-fit:cover">` : ""}</span>
+      <div style="min-width:0"><b>Охота: ${esc(m.name)}</b>${q.rare ? " · редкие" : ""} <small>(${m.cls} класс)</small>
+      <p style="margin:4px 0 0">Камней в сумке: <b>${Math.min(have, q.need)} / ${q.need}</b>${ok ? " — можно сдавать" : ""} · награда <b>${q.reward}</b> монет</p>
+      <p style="margin:2px 0 0"><small>${left > 0 ? `Заходов осталось: ${left} из ${QUEST_RUNS}.` : "Последний шанс: после следующего спуска задание сгорит."}</small></p></div></div>`; }).join("")}
+    <div class="note">Сдать задание можно в городе на Доске объявлений.</div></div>`;
+}
 const SECTIONS = {
+  quests:   { group: "Отряд", title: "Задания", sub: "Принятые на Доске объявлений", count: () => questBoard().list.filter(q => q.taken).length + " из 4", render: renderQuests },
   weapons:  { group: "Снаряжение", title: "Оружие", sub: "Базовое железное оружие и щит", count: () => WEAPONS.length + " позиций", render: renderWeapons },
   armor:    { group: "Снаряжение", title: "Броня", sub: "Лёгкая, средняя, тяжёлая", count: () => ARMOR_FLAT.length + " доспехов", render: renderArmor },
   races:    { group: "Мир", title: "Расы", sub: "Бонусы, минусы, налог", count: () => RACES.length + " рас", render: renderRaces },
