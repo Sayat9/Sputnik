@@ -4651,7 +4651,7 @@ function openKills(c) {
 }
 function openSack() { const $i = document.getElementById("iteminfo"); $i.innerHTML = sackViewHtml(); $i.hidden = false; }
 /* ----- онлайн (assets/js/net.js — связь, netglue.js — ведущий и игрок) ----- */
-const NET_REV = 9, NET_FILES = ["assets/js/net.js", "assets/js/netglue.js"];
+const NET_REV = 10, NET_FILES = ["assets/js/net.js", "assets/js/netglue.js"];
 let netLoad = null;
 function loadNet() {
   if (window.NetGlue && window.NetGlue.ready) return Promise.resolve(true);
@@ -8061,7 +8061,7 @@ function renderDungeon() {
   const actionPips = Array.from({ length: FL().acts }, (_, i) => `<i class="${i < r.act ? "on" : ""}"></i>`).join("");
   const moving = dgUi.phase === "move" || dgUi.phase === "run";
   const menu = dgUi.phase === "menu";
-  const pill = dgUi.phase === "move" ? (pathNeed("move") > 1 ? `Движение${bootsOn() ? " в сапогах" : ""}: шаг ${dgUi.path.length + 1} из ${pathNeed("move")}${dgUi.path.length ? " · ещё раз — стоп" : ""}` : "Движение: выбери квадрат")
+  const pill = dgUi.lookSelf ? "Осмотр карты · ведёт отряд ведущий" : dgUi.phase === "move" ? (pathNeed("move") > 1 ? `Движение${bootsOn() ? " в сапогах" : ""}: шаг ${dgUi.path.length + 1} из ${pathNeed("move")}${dgUi.path.length ? " · ещё раз — стоп" : ""}` : "Движение: выбери квадрат")
     : dgUi.phase === "run" ? `Бег: шаг ${dgUi.path.length + 1} из ${pathNeed("run")}${windOn() ? " · ветер" : ""}${dgUi.path.length >= 2 ? " · ещё раз — стоп" : ""}` : "";
   return `
   <div class="dg">
@@ -8074,7 +8074,7 @@ function renderDungeon() {
       ${r.rift ? riftStage() : `${stageSvg()}
       ${stageOverlay()}
       ${menu ? `<button class="fx-btn corner-btn r" data-dg="sup" aria-expanded="${dgUi.sup}">${ICO_PACK}Снаряжение</button>` : ""}
-      ${moving ? `<button class="fx-btn corner-btn r" data-dg="cancel" aria-label="Отменить действие">${ICO_X}Отмена</button>
+      ${moving ? `<button class="fx-btn corner-btn r" data-dg="cancel" aria-label="Отменить действие">${ICO_X}${dgUi.lookSelf ? "Закрыть" : "Отмена"}</button>
         <div class="phase-pill">${pill}</div>
         <div class="zoom"><button class="fx-btn" data-dg="zoom-in" aria-label="Приблизить">+</button><button class="fx-btn" data-dg="zoom-out" aria-label="Отдалить">−</button></div>` : ""}
       ${menu && dgUi.inv ? `<div class="dd l fx-frame">${invItemHtml("compass", "Компас", ICO_COMPASS)}${invItemHtml("map", `Карта ${curFloor()} эт.`, ICO_MAP)}${invItem("mmap").owned ? invItemHtml("mmap", "Магич. карта", ICO_MAP) : ""}
@@ -8454,6 +8454,7 @@ function mountDungeon() {
     const wasDrag = drag.moved; drag = null;
     if (wasDrag) { saveChar(); return; }
     if (dgUi.phase !== "move" && dgUi.phase !== "run") return;
+    if (dgUi.look) return;                                  // игрок онлайн только осматривает карту
     const hit = document.elementFromPoint(e.clientX, e.clientY)?.closest("[data-tx]");
     if (!hit) return;
     const t = { x: +hit.dataset.tx, y: +hit.dataset.ty };

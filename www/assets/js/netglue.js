@@ -58,10 +58,24 @@
   // Режим «смотрю экран ведущего»: экран листается пальцем, но нажатия по нему не срабатывают (кроме удержания карточек героев — меню героя).
   // Свой компас игрока: выбор «показать/убрать» хранится у игрока и накладывается поверх состояния ведущего.
   const localCompass = () => { if (G.compassLocal == null || !state.inventory || !state.inventory.compass || !state.inventory.compass.owned) return; state.inventory.compass.active = true; state.inventory.compassOn = G.compassLocal; };
+  // Осмотр карты: поверх состояния ведущего. Ведущий в меню — у игрока своя «фаза движения» без выбора; ведущий сам выбирает путь — игрок может вращать карту.
+  const lookApply = () => {
+    if (!state.run || state.run.rift || typeof dgUi === "undefined") return;
+    G.hostCam = G.hostCam || { spin: state.run.spin, zoom: dgUi.zoom };
+    if (G.look && dgUi.phase === "menu") { dgUi.phase = "move"; dgUi.path = []; dgUi.look = dgUi.lookSelf = true; dgUi.gm = dgUi.inv = dgUi.sup = false; }
+    else if (dgUi.phase === "move" || dgUi.phase === "run") dgUi.look = true;
+    if (dgUi.look && G.cam) { state.run.spin = G.cam.spin; dgUi.zoom = G.cam.zoom; }
+  };
   const followBlock = e => {
     if (!document.body.classList.contains("net-follow")) return;
     const v = e.target && e.target.closest && e.target.closest("#view"); if (!v || e.target.closest("[data-hero]")) return;
+    // 13.11: осмотр карты игроком — «Движение» открывает карту у него одного (вращать, приближать), квадраты не выбираются; двигает отряд только ведущий
+    const look = typeof dgUi !== "undefined" && dgUi.look && location.hash === "#labyrinth";
+    if (look && e.type !== "click" && e.type !== "dblclick" && e.type !== "contextmenu" && e.target.closest("#dg-svg")) return;          // жесты по карте
     e.stopPropagation(); if (e.type === "click" || e.type === "contextmenu" || e.type === "dblclick") e.preventDefault();
+    if (look && e.type === "click") { const zb = e.target.closest("[data-dg='zoom-in'],[data-dg='zoom-out']"); if (zb) { dgUi.zoom = clampZoom(dgUi.zoom * (zb.dataset.dg === "zoom-in" ? 1.25 : 0.8)); try { applyRotation(); } catch (err) {} return; } }
+    if (e.type === "click" && e.target.closest("[data-act='move']") && state.run && !state.run.rift && dgUi.phase === "menu") { G.look = true; lookApply(); try { rerender(); } catch (err) {} return; }
+    if (e.type === "click" && G.look && dgUi.lookSelf && e.target.closest("[data-dg='cancel']")) { G.look = false; G.cam = null; dgUi.look = dgUi.lookSelf = false; dgUi.phase = "menu"; if (G.hostCam && state.run) { state.run.spin = G.hostCam.spin; dgUi.zoom = G.hostCam.zoom; } try { rerender(); } catch (err) {} return; }
     // 09.11: компас и карта в углу экрана лабиринта — игрок открывает сам, у себя (у ведущего ничего не меняется)
     if (e.type === "click" && e.target.closest("[data-dg='compass']")) { const inv = inventory(); if (!inv.compass || !inv.compass.owned) return; G.compassLocal = !(inv.compass.active && inv.compassOn); localCompass(); dgUi.kickCompass = G.compassLocal; try { rerender(); } catch (err) {} return; }
     if (e.type === "click" && e.target.closest("[data-dg='floormap']")) { openMap(); return; }
@@ -340,6 +354,7 @@
   }
   G.applyPatch = applyPatch;
   function applyView() {
+    try { G.cam = typeof dgUi !== "undefined" && dgUi.look && state.run ? { spin: state.run.spin, zoom: dgUi.zoom } : null; } catch (e) {}          // камера осмотра карты — своя
     const V = G.view, pid = myPid(), old = new Map((state.party || []).map(c => [c.id, c]));
     const party = [];
     for (const id of V.ids || []) {
@@ -353,6 +368,7 @@
     for (const k of Object.keys(V)) if (k.startsWith("s:")) ns[k.slice(2)] = V[k];
     state = ns; char = curChar();
     if (V.dgUi) dgUi = V.dgUi;
+    G.hostCam = state.run ? { spin: state.run.spin, zoom: dgUi.zoom } : null; lookApply();
     localCompass();
     if (V.bat !== undefined && window.Battle && Battle.Net) Battle.Net.mirror(V.bat);
     else if (V.bat !== undefined && V.bat) loadBattle().then(ok => { if (ok && Battle.Net) Battle.Net.mirror(G.view.bat); });
