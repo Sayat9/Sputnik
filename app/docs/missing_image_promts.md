@@ -300,6 +300,10 @@
 
 > `a carved dark mage staff topped with a jagged burning meteorite shard held in iron claws, glowing orange cracks and small embers drifting, on an ornate carved stone pedestal with a glowing violet magic stone set into its front, inside a softly lit treasure vault alcove with faint arcane runes on the walls, hand-painted fantasy RPG item art, stylized, clean readable silhouette, centered, square 1:1, no text`
 
+### Утренняя звезда — `items/art-dawn-star`
+
+> `an ornate morning star whose spiked ball glows with warm golden sunrise light, radiant rays between the spikes, gilded chain and handle, on an ornate carved stone pedestal with a glowing violet magic stone set into its front, inside a softly lit treasure vault alcove with faint arcane runes on the walls, hand-painted fantasy RPG item art, stylized, clean readable silhouette, centered, square 1:1, no text`
+
 ### Палочка цепной молнии — `items/art-chain-wand`
 
 > `a slender silver-bound magic wand with a forked crystal tip, bright blue-white chain lightning arcing between the prongs, on an ornate carved stone pedestal with a glowing violet magic stone set into its front, inside a softly lit treasure vault alcove with faint arcane runes on the walls, hand-painted fantasy RPG item art, stylized, clean readable silhouette, centered, square 1:1, no text`

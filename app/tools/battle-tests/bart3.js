@@ -29,7 +29,7 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
     const realRV = crypto.getRandomValues.bind(crypto), force = nat => { crypto.getRandomValues = a => { a[0] = nat - 1; return a; }; }, unforce = () => { crypto.getRandomValues = realRV; };
     const hit = async (u, t, a, nat = 15, o = {}) => { force(nat); try { return await Battle.doAttack(u, t, a, o); } finally { unforce(); } };
     const main = u => Battle.heroAttacks(u)[0];
-    T('артефакты нового оружия — только три авторских: цеп-ловец, посох метеора, палочка цепной молнии', ['binder-flail', 'meteor-staff', 'chain-wand'].every(k => ART_WEAPONS[k] && ART_DROPS.includes(k)) && Object.keys(ART_WEAPONS).length === 17 + 3 && !Object.values(ART_WEAPONS).some(a => a.draft), Object.keys(ART_WEAPONS));
+    T('артефакты нового оружия — только три авторских: цеп-ловец, посох метеора, палочка цепной молнии', ['binder-flail', 'meteor-staff', 'chain-wand'].every(k => ART_WEAPONS[k] && ART_DROPS.includes(k)) && Object.keys(ART_WEAPONS).length === 17 + 4 && !Object.values(ART_WEAPONS).some(a => a.draft), Object.keys(ART_WEAPONS));
     T('у каждого артефактного оружия есть описание', Object.keys(ART_WEAPONS).every(k => ARTIFACTS[k] && ARTIFACTS[k].text), Object.keys(ART_WEAPONS).filter(k => !ARTIFACTS[k]));
     { const { u, ms, m } = await setup('binder-flail', null, ['goblin', 'crystal-colossus']); at(m, 3, 3); at(ms[1], 0, 0); const bd = Battle.heroAttacks(u).find(x => x.special === 'bind'); T('цеп-ловец: атака «Сковать» есть', !!bd);
       const h0 = m.hp; force(15); await Battle.runSpecial(u, bd); unforce(); T('сковать: без урона, цель скована, скорость 0', m.hp === h0 && !!Battle.has(m, 'chained') && Battle.speedOf(m) === 0, [h0, m.hp, m.conds.map(c => c.id)]);
@@ -56,6 +56,12 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
       await Battle.startTurn(u); T('через ход снова готова', !Battle.heroAttacks(u).find(x => x.special === 'chain').needTarget(u));
       at(ms[1], 0, 6); at(ms[2], 0, 5); ms.forEach(x => { x.hp = 400; }); const h2 = ms.map(x => x.hp); u.t.action = 1; force(15); await Battle.runSpecial(u, Battle.heroAttacks(u).find(x => x.special === 'chain')); unforce();
       const d2 = ms.map((x, i) => h2[i] - x.hp); T('цепная молния: рядом никого — бьёт только первую цель', d2[0] > 0 && d2[1] === 0 && d2[2] === 0, d2); Battle.S = null; }
+    { const { u, ms } = await setup('dawn-star', null, ['mourner', 'goblin', 'goblin']); at(ms[0], 3, 5); at(ms[1], 4, 4); at(ms[2], 0, 0); ms[0].hp = ms[0].maxHp = 400;
+      const dw = Battle.heroAttacks(u).find(x => x.special === 'dawn'); T('утренняя звезда: «Вспышка зари», 2 маны, свет', dw && dw.mana === 2 && dw.dt === 'radiant' && !dw.needTarget(u), dw && [dw.mana, dw.dt]);
+      const mp0 = u.mp, h0 = ms[0].hp; force(15); await Battle.runSpecial(u, dw); unforce();
+      T('свет ранит призрака; сосед цели ослеплён, далёкий — нет', ms[0].hp < h0 && !!Battle.has(ms[1], 'dazzled') && !Battle.has(ms[2], 'dazzled') && !Battle.has(ms[0], 'dazzled'), [h0 - ms[0].hp, ms.map(x => x.conds.map(c => c.id))]);
+      T('мана −2, откат 3 хода', u.mp === mp0 - 2 && u.wcd.dawn === 3 && /откат/.test(Battle.heroAttacks(u).find(x => x.special === 'dawn').needTarget(u)), [u.mp, u.wcd]);
+      const ctx = Battle.attackCtx(ms[1], u, ms[1].atk[0]); T('ослеплённый бьёт с помехой', ctx.dis.includes('ослеплён вспышкой'), ctx.dis); Battle.S = null; }
     return out;
   });
   console.log(rep.ok.map(x => '  ✓ ' + x).join('\n')); if (rep.fail.length) console.log(rep.fail.map(x => '  ✗ ' + x).join('\n'));

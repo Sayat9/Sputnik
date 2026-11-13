@@ -18,6 +18,7 @@
   D.METEOR = { mana: 5, cd: 6, dmg: [3, 6], dcBase: 10, smallHp: 15, burn: 3 };          // «Посох метеора» (автор: большой расход маны, откат 6; числа — черновик)
   D.CHAIN = { mana: 3, cd: 2, dmg: [2, 6], jump: 2, fade: 0.8 };          // «Палочка цепной молнии» (автор: средний расход, раз в 2 хода, скачок в 2 клетках, −20 % за скачок)
   const wcd = (u, k) => (u.wcd && u.wcd[k]) || 0, setWcd = (u, k, n) => { (u.wcd ||= {})[k] = n; };          // откаты особых атак оружия: счёт — в начале своих ходов
+  D.DAWN = { mana: 2, cd: 3 };          // «Утренняя звезда» (вариант выбран автором 13.11; числа — черновик)
   D.TDAGGER = { range: 3, perStr: 8, dmg: [1, 6, 1], breakNat: 3, breakNatSteel: 2, bleedNat: 17 };
 
   /* ===== особые атаки ===== */
@@ -33,6 +34,11 @@
     if (main.id === "morningstar") {
       const base = B.atkFrom(u, main, "hand"), pen = -3;
       out.push({ ...base, id: "swing:morningstar", n: "Замах", special: "swing", reach: 2, lineCheck: true, penalty: pen, penaltyLabel: `замах ${pen}`, dmgBonus: (base.dmgBonus || 0) + 2, sub: `на клетку дальше · урон +2 · бросок ${pen}` });
+    }
+    if (main.artId === "dawn-star") {
+      const base = B.atkFrom(u, main, "hand"), W = D.DAWN;
+      out.push({ ...base, id: "dawn:morningstar", n: "Вспышка зари", special: "dawn", mana: W.mana, dt: "radiant", sub: `${W.mana} маны, раз в ${W.cd} хода: урон светом, враги рядом с целью ослеплены`,
+        needTarget: v => (wcd(v, "dawn") > 0 ? `откат: ещё ${wcd(v, "dawn")} х.` : B.attackTargets(v, base).length ? null : "нет целей рядом") });
     }
     if (main.artId === "meteor-staff") {
       const base = B.atkFrom(u, main, "hand"), M = D.METEOR;
@@ -137,6 +143,19 @@
     if (B.flushQueue) await B.flushQueue();
     return true;
   }
+  // «Вспышка зари» моргенштерна: удар светом; попав, слепит врагов рядом с целью.
+  async function dawn(u, atk) {
+    if (wcd(u, "dawn") > 0) { toast(`Вспышка зари в откате: ещё ${wcd(u, "dawn")} х.`); return false; }
+    const targets = B.attackTargets(u, atk); if (!targets.length) { toast("Нет целей рядом"); return false; }
+    const tgt = await UI().pickUnit({ prompt: "Вспышка зари: выберите цель", units: targets.map(t => t.id), cells: B.rangeCells(u, atk), kind: "attack" });
+    if (!tgt || tgt.isObj) return false;
+    const r = await B.doAttack(u, tgt, atk, { onCommit: () => { B.commitAttack(u, atk, tgt); setWcd(u, "dawn", D.DAWN.cd); } });
+    if (r.cancelled) return false;
+    if (!r.hit) return true;
+    const g = ui(); if (g && g.fxBoom) g.fxBoom(tgt.x, tgt.y, 1);
+    for (const e of enemiesOf(u)) if (e !== tgt && alive(e) && !e.down && dist(e, tgt) <= 1) { addStatus(e, "dazzled", { k: 1, when: "end" }); fx(e, "ослеплён", "bad"); log(`${e.name} ослеплён вспышкой.`, "skill"); }
+    return true;
+  }
   // «Цепная молния» палочки (автор): бросок по первой цели; дальше молния сама скачет на ближайшего ещё не задетого врага в 2 клетках, каждый раз на 20 % слабее.
   async function chain(u, atk) {
     const C = D.CHAIN; if (wcd(u, "chain") > 0) { toast(`Цепная молния в откате: ещё ${wcd(u, "chain")} х.`); return false; }
@@ -183,7 +202,7 @@
     return true;
   }
   const rs = B.runSpecial;
-  B.runSpecial = (u, atk) => (atk.special === "plus" ? plus(u, atk) : atk.special === "skyfall" ? skyfall(u, atk) : atk.special === "chain" ? chain(u, atk) : atk.special === "yank" ? yank(u, atk) : atk.special === "bind" ? bind(u, atk) : rs(u, atk));
+  B.runSpecial = (u, atk) => (atk.special === "plus" ? plus(u, atk) : atk.special === "skyfall" ? skyfall(u, atk) : atk.special === "dawn" ? dawn(u, atk) : atk.special === "chain" ? chain(u, atk) : atk.special === "yank" ? yank(u, atk) : atk.special === "bind" ? bind(u, atk) : rs(u, atk));
 
   // начало хода скованного: проверка Силы
   const ats = B.artTurnStart;
