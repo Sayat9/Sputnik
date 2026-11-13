@@ -192,13 +192,17 @@
     if (!r) { ses.close(); return false; }
     B.commitAttack(u, atk, tgt);
     for (const [w, id] of ctx.consume) if (id !== "fooled:atk") removeStatus(w, id);
-    const hit = r.nat === 20 || (r.nat !== 1 && r.total >= ctx.ac);
+    const hit = r.nat === 20 || (r.nat !== 1 && r.total >= ctx.ac); let done = false;
     if (hit) {
       for (const o of B.units()) { const c = has(o, "chained"); if (c && c.data.by === u.id) removeStatus(o, "chained"); }          // цепь держит одну цель
-      addStatus(tgt, "chained", { k: Infinity, data: { by: u.id, dc: bindDc(u, tgt) } });
-      log(`${u.name} сковывает ${tgt.name} цепью (${r.total} против КД ${ctx.ac}): Сл проверки Силы ${bindDc(u, tgt)}.`, "skill"); fx(tgt, "скован", "bad");
+      await ses.finish({ text: "Попадание: проверка Силы", anim: "blunt", tgt }); done = true;
+      // 13.11 (автор): попав, герой сам бросает Силу — его результат и есть сложность, которую цель должна перебить, чтобы вырваться (вес и размер цели — поправкой к броску героя)
+      const ck = await B.doCheck(u, "strCheck", { title: "Сковать", label: `удержать ${tgt.name}`, mods: B.forceVs(tgt).mods });
+      const dc = ck ? ck.total : bindDc(u, tgt);
+      addStatus(tgt, "chained", { k: Infinity, data: { by: u.id, dc } });
+      log(`${u.name} сковывает ${tgt.name} цепью (${r.total} против КД ${ctx.ac}): чтобы вырваться, нужна Сила ${dc}+.`, "skill"); fx(tgt, "скован", "bad");
     } else { log(`${u.name}: цепь проходит мимо ${tgt.name} (${r.total} против КД ${ctx.ac}).`, "miss"); fx(tgt, "промах", "miss"); }
-    await ses.finish({ text: hit ? "Цель скована" : "Промах", miss: !hit, anim: "blunt", tgt });
+    if (!done) await ses.finish({ text: "Промах", miss: true, anim: "blunt", tgt });
     return true;
   }
   const rs = B.runSpecial;

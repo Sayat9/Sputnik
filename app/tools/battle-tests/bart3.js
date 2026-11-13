@@ -33,8 +33,9 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
     T('у каждого артефактного оружия есть описание', Object.keys(ART_WEAPONS).every(k => ARTIFACTS[k] && ARTIFACTS[k].text), Object.keys(ART_WEAPONS).filter(k => !ARTIFACTS[k]));
     { const { u, ms, m } = await setup('binder-flail', null, ['goblin', 'crystal-colossus']); at(m, 3, 3); at(ms[1], 0, 0); const bd = Battle.heroAttacks(u).find(x => x.special === 'bind'); T('цеп-ловец: атака «Сковать» есть', !!bd);
       const h0 = m.hp; force(15); await Battle.runSpecial(u, bd); unforce(); T('сковать: без урона, цель скована, скорость 0', m.hp === h0 && !!Battle.has(m, 'chained') && Battle.speedOf(m) === 0, [h0, m.hp, m.conds.map(c => c.id)]);
+      { const dc = Battle.has(m, 'chained').data.dc, f = Battle.forceVs(m).mod; T('сложность — бросок Силы героя (15 + Сила + поправка веса/размера)', dc === 15 + Math.floor((u.abil.str - 10) / 2) + f, [dc, f]); }
       force(2); await Battle.startTurn(m); unforce(); T('скованный провалил Силу: урон и остаётся в цепи', m.hp < h0 && !!Battle.has(m, 'chained'), [h0, m.hp]);
-      force(20); await Battle.startTurn(m); unforce(); T('скованный прошёл проверку: свободен', !Battle.has(m, 'chained'));
+      Battle.has(m, 'chained').data.dc = 12; force(20); await Battle.startTurn(m); unforce(); T('скованный прошёл проверку: свободен', !Battle.has(m, 'chained'));
       at(ms[1], 3, 3); at(m, 0, 0); u.t.action = 1; const bd2 = Battle.heroAttacks(u).find(x => x.special === 'bind'); let said = ''; Battle.UI.toast = t => { said = t; }; const ok = await Battle.runSpecial(u, bd2); T('очень тяжёлого сковать нельзя', ok === false && !Battle.has(ms[1], 'chained'), [ok, said]); Battle.UI.toast = () => {}; Battle.S = null; }
     // ---- посох метеора
     { const { u, ms, S, c } = await setup('meteor-staff', null, ['goblin', 'goblin', 'goblin']); at(ms[0], 3, 2); at(ms[1], 3, 1); at(ms[2], 5, 2); S.cells[2][2] = 'crate'; S.cells[3][3] = 'rock';
@@ -62,6 +63,8 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
       T('свет ранит призрака; сосед цели ослеплён, далёкий — нет', ms[0].hp < h0 && !!Battle.has(ms[1], 'dazzled') && !Battle.has(ms[2], 'dazzled') && !Battle.has(ms[0], 'dazzled'), [h0 - ms[0].hp, ms.map(x => x.conds.map(c => c.id))]);
       T('мана −2, откат 3 хода', u.mp === mp0 - 2 && u.wcd.dawn === 3 && /откат/.test(Battle.heroAttacks(u).find(x => x.special === 'dawn').needTarget(u)), [u.mp, u.wcd]);
       const ctx = Battle.attackCtx(ms[1], u, ms[1].atk[0]); T('ослеплённый бьёт с помехой', ctx.dis.includes('ослеплён вспышкой'), ctx.dis); Battle.S = null; }
+    { const M = MONSTERS.find(x => x.id === 'mine-ghost'), g = id => MONSTERS.find(x => x.id === id); T('рудничный призрак — призрак; серая тень, морок, шептун, пепельник — нет', monIsGhost(M) && monSub(M) === 'ghost' && !['grey-shade', 'morok', 'whisperer', 'ash-wraith'].some(id => monIsGhost(g(id))));
+      const { u, ms } = await setup('sword', null, ['mine-ghost']); ms[0].hp = ms[0].maxHp = 100; const a1 = await Battle.applyDamage(u, ms[0], [{ v: 10, dt: 'slash' }], {}), a2 = await Battle.applyDamage(u, ms[0], [{ v: 10, dt: 'arcane' }], {}); T('рудничного призрака обычное оружие не ранит, магия — ранит', a1.total === 0 && a2.total > 0, [a1.total, a2.total]); Battle.S = null; }
     return out;
   });
   console.log(rep.ok.map(x => '  ✓ ' + x).join('\n')); if (rep.fail.length) console.log(rep.fail.map(x => '  ✗ ' + x).join('\n'));
