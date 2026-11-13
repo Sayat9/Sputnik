@@ -11,10 +11,10 @@ const L = require('./bui_lib.js');
   const n0 = await p.evaluate(() => document.querySelectorAll('[data-t="rost-out"]').length);
   ok('вкладка «Отряд и запас»: у каждого героя ведущего «В запас»', n0 === 2, n0);
   const id = await p.evaluate(() => state.party[1].id);
-  await p.click(`[data-t="rost-out"][data-id="${id}"]`); await p.waitForTimeout(200);
+  await p.click(`[data-t="rost-out"][data-id="${id}"]`); await p.click('#rost-ask [data-ra="keep"]'); await p.waitForTimeout(200);
   const a = await p.evaluate(id => ({ party: state.party.length, res: JSON.parse(localStorage.getItem('sputnik.account.v1')).heroes.map(h => h.id), btnIn: !!document.querySelector(`[data-t="rost-in"][data-id="${id}"]`) }), id);
   ok('герой ушёл в запас (хранится на аккаунте)', a.party === 1 && a.res.includes(id) && a.btnIn, a);
-  const last = await p.evaluate(() => state.party[0].id); await p.click(`[data-t="rost-out"][data-id="${last}"]`); await p.waitForTimeout(200);
+  const last = await p.evaluate(() => state.party[0].id); await p.click(`[data-t="rost-out"][data-id="${last}"]`); await p.click('#rost-ask [data-ra="keep"]'); await p.waitForTimeout(200);
   ok('последнего героя убрать нельзя', await p.evaluate(() => state.party.length === 1 && /хотя бы один/.test(document.querySelector('.tw-msg') ? document.querySelector('.tw-msg').innerText : document.body.innerText)));
   // новая партия — запас остаётся
   const keep = await p.evaluate(() => { const before = reserveHeroes().length; const saved = JSON.stringify(state.party); state.party = []; const after = reserveHeroes().length; state.party = JSON.parse(saved); return before === 1 && after === 1; });

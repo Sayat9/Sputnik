@@ -165,14 +165,14 @@
     N.handle("rosterOut", (d, link, p) => {
       if (!p) return { ok: false }; if (battleOn() || state.run) return { ok: false, why: "только в городе" };
       const c = (state.party || []).find(x => x.id === (d && d.id)); if (!c || c.owner !== p.pid || c.dead) return { ok: false, why: "это не твой герой" };
-      state.party = state.party.filter(x => x !== c); saveChar(); schedule(); renderHostPanel(); try { Town && Town.refresh && Town.refresh(); } catch (e) {} toast(`Игрок ${p.name} убрал «${c.name}» в запас`);
+      state.party = state.party.filter(x => x !== c); if (d.strip) heroStrip(c); (state.netGone ||= []).push(c.id); saveChar(); schedule(); renderHostPanel(); try { Town && Town.refresh && Town.refresh(); } catch (e) {} toast(`Игрок ${p.name} убрал «${c.name}» в запас${d.strip ? " (вещи оставил отряду)" : ""}`);
       return { ok: true, hero: c };
     });
     N.handle("rosterIn", (d, link, p) => {
       const c = d && d.hero; if (!p || !c || !c.id || !c.name || !raceById(c.race) || !c.base) return { ok: false, why: "неверные данные" };
       if (battleOn() || state.run) return { ok: false, why: "только в городе" };
       if ((state.party || []).some(x => x.id === c.id)) return { ok: false, why: "этот герой уже в отряде" };
-      c.owner = p.pid; c.dead = false; state.party.push(c); saveChar(); schedule(); renderHostPanel(); try { Town && Town.refresh && Town.refresh(); } catch (e) {} toast(`Игрок ${p.name} взял в отряд «${c.name}»`);
+      c.owner = p.pid; c.dead = false; state.netGone = (state.netGone || []).filter(x => x !== c.id); state.party.push(c); saveChar(); schedule(); renderHostPanel(); try { Town && Town.refresh && Town.refresh(); } catch (e) {} toast(`Игрок ${p.name} взял в отряд «${c.name}»`);
       return { ok: true };
     });
     // Игрок передаёт предмет герою, который ему не принадлежит (герой ведущего или другого игрока): ведущий кладёт предмет в рюкзак получателя.
@@ -281,7 +281,7 @@
   const myPid = () => N.pid();
   const ownHeroes = () => (state.party || []).filter(c => c.owner && c.owner === myPid());
   G.giveGoldTo = async (toId, n) => { try { return await N.callHost("giveGold", { to: toId, n }, 8000); } catch (e) { return { ok: false, why: String(e && e.message || e) }; } };
-  G.rosterOut = async id => { try { const r = await N.callHost("rosterOut", { id }, 8000); if (r && r.ok && r.hero) { const h = { ...r.hero }; delete h.owner; reservePut(h); } return r || { ok: false }; } catch (e) { return { ok: false, why: "нет связи с ведущим" }; } };
+  G.rosterOut = async (id, strip) => { try { const r = await N.callHost("rosterOut", { id, strip: !!strip }, 8000); if (r && r.ok && r.hero) { const h = { ...r.hero }; delete h.owner; reservePut(h); } return r || { ok: false }; } catch (e) { return { ok: false, why: "нет связи с ведущим" }; } };
   G.rosterIn = async id => { const h = reserveHeroes().find(x => x.id === id); if (!h) return { ok: false, why: "нет в запасе" }; try { const r = await N.callHost("rosterIn", { hero: h }, 8000); if (r && r.ok) reserveTake(id); return r || { ok: false }; } catch (e) { return { ok: false, why: "нет связи с ведущим" }; } };
   G.giveTo = async (toId, entry) => { try { return await N.callHost("giveItem", { to: toId, entry }, 8000); } catch (e) { return { ok: false, why: String(e && e.message || e) }; } };
   G.isMine = c => !!(c && c.owner && c.owner === myPid());

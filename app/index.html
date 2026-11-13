@@ -4651,7 +4651,7 @@ function openKills(c) {
 }
 function openSack() { const $i = document.getElementById("iteminfo"); $i.innerHTML = sackViewHtml(); $i.hidden = false; }
 /* ----- онлайн (assets/js/net.js — связь, netglue.js — ведущий и игрок) ----- */
-const NET_REV = 8, NET_FILES = ["assets/js/net.js", "assets/js/netglue.js"];
+const NET_REV = 9, NET_FILES = ["assets/js/net.js", "assets/js/netglue.js"];
 let netLoad = null;
 function loadNet() {
   if (window.NetGlue && window.NetGlue.ready) return Promise.resolve(true);
@@ -4662,7 +4662,7 @@ function loadNet() {
   return netLoad;
 }
 /* ----- здания города (assets/js/town.js грузится при первом входе в здание) ----- */
-const TOWN_REV = 39, TOWN_FILES = ["assets/css/town.css", "assets/js/town.js"];
+const TOWN_REV = 40, TOWN_FILES = ["assets/css/town.css", "assets/js/town.js"];
 let townLoad = null;
 function loadTown() {
   if (window.Town && window.Town.ready) return Promise.resolve(true);
@@ -8634,11 +8634,25 @@ const reserveHeroes = () => accLoad().heroes;
 function reservePut(c) { const a = accLoad(); a.heroes = a.heroes.filter(x => x.id !== c.id); a.heroes.push(JSON.parse(JSON.stringify(c))); accStore(a); }
 function reserveTake(id) { const a = accLoad(), c = a.heroes.find(x => x.id === id); a.heroes = a.heroes.filter(x => x.id !== id); accStore(a); return c || null; }
 const rosterLocked = () => !!(state.run || (typeof Battle !== "undefined" && Battle.S && Battle.running));
-function heroToReserve(id) {          // ведущий: свой герой (без владельца) — в запас аккаунта
+function heroToReserve(id, strip) {          // ведущий: свой герой (без владельца) — в запас аккаунта
   if (rosterLocked()) return "только в городе";
   const c = (state.party || []).find(x => x.id === id); if (!c || c.dead) return "нет такого героя";
   if (state.party.filter(x => !x.dead).length <= 1) return "в отряде должен остаться хотя бы один герой";
-  state.party = state.party.filter(x => x !== c); const pl = { ...c }; delete pl.owner; reservePut(pl); saveChar(); return "";
+  state.party = state.party.filter(x => x !== c); if (strip) heroStrip(c); const pl = { ...c }; delete pl.owner; reservePut(pl); saveChar(); return "";
+}
+// Герой уходит в запас «налегке»: надетое (кроме простой одежды), рюкзак и монеты переходят оставшимся в отряде. Что не влезло — остаётся на герое.
+// Звать ПОСЛЕ того, как героя убрали из state.party. Возвращает { moved, kept } — сколько вещей ушло отряду и сколько осталось на герое.
+function heroStrip(c) {
+  const alive = state.party.filter(x => !x.dead); if (!alive.length) return { moved: 0, kept: 0 };
+  let moved = 0, kept = 0;
+  const give = e => { let left = e.qty || 1; const q = left;
+    if (e.t === "g" && /^stone-\d$/.test(e.id)) { giveParty({ ...e, noGem: true }); moved++; return null; }
+    for (const a of alive.slice().sort((x, y) => (bagSize(y) - (y.bag || []).length) - (bagSize(x) - (x.bag || []).length))) { if (left <= 0) break; left = addToBag(a, { ...e, qty: left }); }
+    if (left < q) moved++; if (left > 0) { kept++; return e.qty != null || left > 1 ? { ...e, qty: left } : e; } return null; };
+  for (const k of Object.keys(c.equip || {})) { const e = c.equip[k]; if (!e || (e.t === "g" && e.id === "clothes")) continue; const r = give(e); if (r) c.equip[k] = r; else delete c.equip[k]; }
+  c.bag = (c.bag || []).map(e => (e ? give(e) : null)).filter(Boolean);
+  if (goldOf(c) > 0) { const g = goldOf(c), n = alive.length; alive.forEach((a, i) => addGold(a, Math.floor(g / n) + (i < g % n ? 1 : 0))); c.gold = 0; }
+  return { moved, kept };
 }
 function heroFromReserve(id) {
   if (rosterLocked()) return "только в городе";

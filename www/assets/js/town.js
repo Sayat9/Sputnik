@@ -332,9 +332,24 @@
     return `<p class="tw-lead">Пересобрать отряд можно бесплатно — городское действие не тратится. ${player ? "Ты распоряжаешься только своими героями." : "Герои игроков убирают и возвращают сами игроки."}</p>
       <div class="fx-section">В отряде</div><div class="tw-rows">${pRows}</div><div class="fx-section">Запас</div><div class="tw-rows">${rRows}</div>${msgLine()}`;
   }
+  const outMsg = strip => (strip ? "Герой ушёл в запас. Его вещи и монеты переданы отряду (что не влезло — осталось на нём)." : "Герой ушёл в запас со своими вещами — вернётся с ними.");
+  function rosterAsk(c) {
+    return new Promise(resolve => {
+      const ov = document.createElement("div"); ov.className = "mapov"; ov.id = "rost-ask"; ov.style.zIndex = 9500; ov.setAttribute("role", "dialog");
+      ov.innerHTML = `<div class="panel fx-frame" style="max-width:380px;display:flex;flex-direction:column;gap:10px;padding:16px"><h3 style="margin:0">«${esc(c.name)}» уходит в запас</h3><p style="margin:0">Что сделать с вещами и монетами героя?</p>
+        <button class="fx-btn primary" data-ra="keep">Оставить на герое<br><small>вернётся в отряд с ними</small></button><button class="fx-btn" data-ra="take">Забрать в отряд<br><small>вещи — по рюкзакам, монеты — поровну</small></button><button class="fx-btn" data-ra="x">Отмена</button></div>`;
+      ov.addEventListener("click", e => { const b = e.target.closest("[data-ra]"); if (!b && e.target !== ov) return; ov.remove(); resolve(b && b.dataset.ra !== "x" ? b.dataset.ra : null); });
+      document.body.appendChild(ov);
+    });
+  }
   async function rosterAct(kind, id) {
-    if (ui.mirror) { const r = await (kind === "out" ? NetGlue.rosterOut(id) : NetGlue.rosterIn(id)); ui.msg = r && r.ok ? (kind === "out" ? "Герой ушёл в запас." : "Герой вернулся в отряд.") : `Не вышло: ${(r && r.why) || "ведущий отказал"}`; render(); return; }
-    const why = kind === "out" ? heroToReserve(id) : heroFromReserve(id); ui.msg = why ? `Не вышло: ${why}` : kind === "out" ? "Герой ушёл в запас." : "Герой вернулся в отряд."; render(); if (typeof rerender === "function") try { rerender(); } catch (e) {}
+    let strip = false;
+    if (kind === "out") {          // выбор: вещи остаются на герое (вернётся с ними) или переходят отряду
+      const c = (state.party || []).find(x => x.id === id), has = c && ([...Object.values(c.equip || {}), ...(c.bag || [])].some(e => e && !(e.t === "g" && e.id === "clothes")) || (c.gold || 0) > 0);
+      if (has) { const a = await rosterAsk(c); if (a == null) return; strip = a === "take"; }
+    }
+    if (ui.mirror) { const r = await (kind === "out" ? NetGlue.rosterOut(id, strip) : NetGlue.rosterIn(id)); ui.msg = r && r.ok ? (kind === "out" ? outMsg(strip) : "Герой вернулся в отряд.") : `Не вышло: ${(r && r.why) || "ведущий отказал"}`; render(); return; }
+    const why = kind === "out" ? heroToReserve(id, strip) : heroFromReserve(id); ui.msg = why ? `Не вышло: ${why}` : kind === "out" ? outMsg(strip) : "Герой вернулся в отряд."; render(); if (typeof rerender === "function") try { rerender(); } catch (e) {}
   }
 
   /* =====================================================================
