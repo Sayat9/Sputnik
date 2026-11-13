@@ -4468,7 +4468,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 140;
+const BATTLE_REV = 141;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-weap2.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster() || st.dev === false) st.tactical = true; return st; }
@@ -9901,7 +9901,7 @@ function openSettings() {
         if (m.dataset.setm === "tactical") setTactical(!settings().tactical);
         else if (m.dataset.setm === "dev") { const st = settings(); st.dev = st.dev === false; saveChar(); devSync(); dgUi.gm = false; toast(st.dev ? "Режим разработчика включён" : "Режим разработчика выключен: особые функции скрыты"); rerender(); }
         else { settings().master = !settings().master; saveChar(); toast(settings().master ? "Режим мастера: виден весь бестиарий" : "Режим мастера выключен"); rerender(); }
-        setTimeout(openSettings, 50); return; }
+        setTimeout(() => { if (!document.body.classList.contains("bt-active") || document.body.classList.contains("bt-peek")) openSettings(); }, 50); return; }
       const t = e.target.closest("[data-setk]"); if (!t) return;
       const st = state.settings ||= {}, k = t.dataset.setk, defOn = SET_DEF_ON.includes(k); st[k] = !(defOn ? st[k] !== false : st[k]); saveChar(); openSettings(); if (k === "sound" && st.sound) { try { Sfx.tick(); } catch (e) {} }
     }); }

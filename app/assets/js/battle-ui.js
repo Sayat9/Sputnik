@@ -19,7 +19,10 @@
     btn.hidden = false;
     if (location.hash.slice(1) !== hash) location.hash = hash; else if (typeof rerender === "function") rerender();
   };
+  // Окна «Меню» и «Настройки» приложения не должны оставаться поверх боя (13.11: «обезьяна» находила два окна сразу).
+  const closeAppMenus = () => { for (const id of ["setov", "menuov"]) { const el = document.getElementById(id); if (el) el.hidden = true; } };
   UI.unpeek = function () {
+    closeAppMenus();
     document.body.classList.remove("bt-peek"); const btn = document.getElementById("bt-back"); if (btn) btn.hidden = true;
     if (window.NetGlue && typeof isMaster === "function" && !isMaster()) NetGlue.follow = true;          // игрок снова следит за экраном ведущего
     const back = UI.peekBack; UI.peekBack = null; if (back != null && location.hash.slice(1) !== back) location.hash = back;
@@ -60,6 +63,7 @@
       <div class="bt-boardwrap"><div class="bt-board"><div class="bt-bg"></div><div class="bt-cells"></div><div class="bt-zonelay"></div><div class="bt-objs"></div><canvas class="bt-shadow" aria-hidden="true"></canvas><div class="bt-tokens"></div><div class="bt-marks"></div><svg class="bt-pathsvg" aria-hidden="true"></svg><div class="bt-fx"></div></div>
         <div class="bt-zone"></div><div class="bt-toast" hidden></div></div>
       <div class="bt-panel"></div><div class="bt-modal" hidden></div>`;
+    closeAppMenus();
     document.body.appendChild(root); document.body.classList.add("forge-open", "bt-active"); if (window.Sfx) Sfx.setMusic("battle");
     board = root.querySelector(".bt-board");
     UI.active = true; UI.mode = "idle"; UI.hl = new Map(); UI.pick = null; UI.busy = false; UI.turnUnit = null; UI.built = false; UI.cat = null;
