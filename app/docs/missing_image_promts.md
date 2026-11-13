@@ -294,38 +294,6 @@
 
 Файлы `assets/items/art-<id>.webp` (приложение берёт их само, как только путь `items/art-<id>` добавлен в `RASTER`; пока картинки нет — показывается картинка обычного оружия). Фон — резной пьедестал с фиолетовым камнем в сокровищнице.
 
-### Копьё-громоотвод — `items/art-thunder-spear`
-
-> `an ornate steel spear with crackling blue lightning coiled around the blade and copper rings on the haft, on an ornate carved stone pedestal with a glowing violet magic stone set into its front, inside a softly lit treasure vault alcove with faint arcane runes on the walls, hand-painted fantasy RPG item art, stylized, clean readable silhouette, centered, square 1:1, no text`
-
-### Магнитные перчатки — `items/art-magnet-gloves`
-
-> `a pair of heavy steel gauntlets with horseshoe magnets on the knuckles and faint blue magnetic field lines between them, on an ornate carved stone pedestal with a glowing violet magic stone set into its front, inside a softly lit treasure vault alcove with faint arcane runes on the walls, hand-painted fantasy RPG item art, stylized, clean readable silhouette, centered, square 1:1, no text`
-
-### Парные тени — `items/art-shadow-daggers`
-
-> `a pair of black elegant daggers whose blades dissolve into smoky shadow at the edges, violet glow in the engravings, on an ornate carved stone pedestal with a glowing violet magic stone set into its front, inside a softly lit treasure vault alcove with faint arcane runes on the walls, hand-painted fantasy RPG item art, stylized, clean readable silhouette, centered, square 1:1, no text`
-
-### Зеркальный щит — `items/art-mirror-shield`
-
-> `a round polished mirror-faced shield with a dark iron rim and a bright streak of reflected light, on an ornate carved stone pedestal with a glowing violet magic stone set into its front, inside a softly lit treasure vault alcove with faint arcane runes on the walls, hand-painted fantasy RPG item art, stylized, clean readable silhouette, centered, square 1:1, no text`
-
-### Меч полумесяца — `items/art-moon-sword`
-
-> `a huge two-handed sword with a crescent-moon shaped crossguard and a pale silver blade with faint moon-phase engravings, on an ornate carved stone pedestal with a glowing violet magic stone set into its front, inside a softly lit treasure vault alcove with faint arcane runes on the walls, hand-painted fantasy RPG item art, stylized, clean readable silhouette, centered, square 1:1, no text`
-
-### Топор бури — `items/art-storm-axe`
-
-> `a compact throwing axe with wind swirls etched in the blade and a crackling pale-blue edge, on an ornate carved stone pedestal with a glowing violet magic stone set into its front, inside a softly lit treasure vault alcove with faint arcane runes on the walls, hand-painted fantasy RPG item art, stylized, clean readable silhouette, centered, square 1:1, no text`
-
-### Булава «Метеор» — `items/art-meteor-mace`
-
-> `a heavy mace whose head is a glowing cracked meteorite with orange fissures and trailing sparks, on an ornate carved stone pedestal with a glowing violet magic stone set into its front, inside a softly lit treasure vault alcove with faint arcane runes on the walls, hand-painted fantasy RPG item art, stylized, clean readable silhouette, centered, square 1:1, no text`
-
-### Пика Заставы — `items/art-rampart-pike`
-
-> `a long steel pike with a banner-like notch below the head and glowing runic rings on the shaft, sturdy knightly look, on an ornate carved stone pedestal with a glowing violet magic stone set into its front, inside a softly lit treasure vault alcove with faint arcane runes on the walls, hand-painted fantasy RPG item art, stylized, clean readable silhouette, centered, square 1:1, no text`
-
 ### Артефакты нового оружия (12.11, по описаниям автора)
 
 ### Посох метеора — `items/art-meteor-staff`
@@ -342,68 +310,11 @@
 
 ## Сокровища и артефакты
 
-### Рукавицы северянина — `items/frost-gloves`
-
-> `a pair of worn thick fur-lined leather mittens with frost-blue stitching and a faint icy glow, on a stone pedestal in a labyrinth niche, hand-painted dark fantasy item art, square 1:1, no text`
-
-### Плащ толстой шкуры — `items/hide-cloak`
-
-> `a heavy worn cloak of thick shaggy beast hide with a bone clasp, frost on the fur, draped over a stone pedestal in a labyrinth niche, hand-painted dark fantasy item art, square 1:1, no text`
-
-### Амулет инея — `items/frost-amulet`
-
-> `a worn silver amulet with a pale blue ice crystal that breathes frost mist, on a leather cord, on a stone pedestal in a labyrinth niche, hand-painted dark fantasy item art, square 1:1, no text`
-
 ## Находки (после определения)
 
-### Живой гриб — `mush-heal`
-
-> `красный гриб с белыми крапинками, мягко светится, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, clean readable silhouette, centered, square 1:1, no text`
-
-### Синяя шляпка — `mush-mana`
-
-> `синий гриб с голубоватым свечением по краю шляпки, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, clean readable silhouette, centered, square 1:1, no text`
-
-### Бледная поганка — `mush-poison`
-
-> `бледный болезненный гриб с юбочкой на ножке, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, clean readable silhouette, centered, square 1:1, no text`
-
-### Сытный боровик — `mush-food`
-
-> `крепкий бурый гриб-боровик с толстой ножкой, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, clean readable silhouette, centered, square 1:1, no text`
-
-### Бодрый груздь — `mush-rest`
-
-> `жёлтый плотный гриб с влажной воронковидной шляпкой, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, clean readable silhouette, centered, square 1:1, no text`
-
-### Светляк — `mush-light`
-
-> `зеленоватый гриб, излучающий мягкий мятный свет, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, clean readable silhouette, centered, square 1:1, no text`
-
-### Пороховик — `mush-boom`
-
-> `серый шарообразный гриб с трещинками, из которых сочится дымок, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, clean readable silhouette, centered, square 1:1, no text`
-
-### Вспыхивающий камень — `sstone-boom`
-
-> `рыжий неровный камень, внутри тлеет огонь, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, clean readable silhouette, centered, square 1:1, no text`
-
-### Оцепеняющий камень — `sstone-para`
-
-> `фиолетовый гладкий камень с тусклым узором паутинки, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, clean readable silhouette, centered, square 1:1, no text`
-
-### Морозный камень — `sstone-freeze`
-
-> `голубой камень, покрытый инеем и ледяными иглами, on a small worn stone pedestal with a faintly glowing amber magic stone set into its front, inside a softly lit stone dungeon alcove, warm light, hand-painted fantasy RPG item art, stylized, clean readable silhouette, centered, square 1:1, no text`
-
 ## NPC и интерфейсы
-
-### Кладовщик — `npc-storage`
-
-> `a broad bald warehouse keeper with a lantern on a hook-hand strap and a leather apron, tallying crates on a wooden board, stacked barrels and ropes behind him, warm lantern light, hand-painted fantasy RPG character art, stylized, dark fantasy tone, bust portrait, wide 16:9 composition with empty space at the bottom for text, no text`
 
 ## Здания города
 
 Все 14 прежних зданий нарисованы. Новое:
 
-- **Аукцион** (`assets/buildings/auction.webp`, как остальные здания): «Fantasy town building illustration, a grand auction house of dark stone and carved oak, tall arched doors with brass fittings, a hanging sign with a gavel and coin, lanterns, banners, crowd silhouettes at the steps, warm evening light, matching the other town buildings, no text».
