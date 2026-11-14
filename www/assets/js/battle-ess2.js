@@ -3186,5 +3186,63 @@
   A["gob-founder"] = { time: "bonus", tgt() { return { type: "none" }; }, can() { return true; },
     async run(u, pk, ctl) { ctl.commit(); const g = ui(); if (g) g.banner("Клич Гракха"); log(`${u.name}: клич Гракха!`, "skill"); for (const o of alliesOf(u).filter(o => alive(o) && !o.down && dist(u, o) <= 3)) { B.tmpPass(o, "gc-clich", 2); fx(o, "клич", "good"); } return true; },
     ai(u) { return !u.cried && alliesOf(u).some(o => alive(o) && dist(u, o) <= 3) ? (u.cried = true, { score: 10 }) : null; } };
+  /* ===== Кладбище прошлого, часть 2 (13.11): склеп, церковь, дух смерти, Азик. Числа — черновик ===== */
+  Object.assign(D.essCd, { "candle-acolyte": 3, "penitent-dead": 2, "dead-templar": 4, "buried-priest": 4, "lesser-death": 3, "night-abbot": 4 });
+  Object.assign(D.monTune, {
+    "candle-acolyte": { role: "skirmish", focus: ["weak", "nearest"], noFlee: true }, "penitent-dead": { role: "brute", focus: ["nearest"], noFlee: true }, "dead-templar": { role: "brute", focus: ["nearest"], noFlee: true },
+    "buried-priest": { role: "brute", focus: ["cluster", "nearest"], noFlee: true }, "lesser-death": { role: "skirmish", focus: ["weak", "nearest"], noFlee: true }, "night-abbot": { role: "brute", focus: ["weak", "nearest"], noFlee: true }, "azik-lich": { role: "ranged", keep: 2, focus: ["weak", "nearest"], noFlee: true },
+  });
+  Object.assign(DLG_START, { "azik-start": "Ох, зря вы сюда полезли…" });
+  const gyUndead = t => !!(t && t.mon && typeof monCat === "function" && ["undead", "spirit"].includes(monCat(t.mon)));
+  const gyDarkFight = () => !!(B.S && B.S.dark && !B.S.torch);
+  /* Свечной служка (9) */
+  P["candle-acolyte"] = { attackMods(u, ctx) { if (gyDarkFight()) { ctx.mods.push({ l: "Огонёк во тьме", v: 1 }); ctx.dmgPlus = (ctx.dmgPlus || 0) + 1; } } };
+  P["body:candle-acolyte"] = { onDeath(u) { if (B.inB(u.x, u.y)) { fireAt(u.x, u.y, 2); log(`${u.name} роняет свечу — пол загорается.`, "bad"); } } };
+  A["candle-acolyte"] = { time: "bonus", tgt(u) { return specUnit(u, "Горячий воск: в кого?", foesIn(u, 2), B.cellsWithin(u, 2), "attack"); }, can(u) { return foesIn(u, 2).length ? true : "нет цели в 2 клетках"; },
+    async run(u, pk, ctl) { const t = pk.unit; if (!t) return false; ctl.commit(); log(`${u.name} плещет горячим воском в ${t.name}.`, "skill"); await B.applyDamage(u, t, [{ v: roll(1, 4).total, dt: "fire", label: "Горячий воск" }], { src: u }); if (alive(t) && !t.down) { const sv = await save(t, "dex", dcOf(u, "dex"), "Горячий воск", [], u); if (!sv.ok) { addStatus(t, "fumbled", { k: 2, when: "end" }); fx(t, "воск в глаза", "bad"); } } return true; },
+    ai(u) { const ts = foesIn(u, 2).filter(t => !has(t, "fumbled")); return ts.length ? { unit: ts[0], score: 6 } : null; } };
+  /* Кающийся мертвец (8) */
+  P["penitent-dead"] = { attackMods(u, ctx) { if (u.hp < u.maxHp / 2 && ctx.atk && ctx.atk.kind !== "ranged") ctx.dmgPlus = (ctx.dmgPlus || 0) + 2; if (u.scourge === B.S.round && ctx.extra) { ctx.extra.push({ n: 1, s: 8, b: 0, dt: ctx.atk && ctx.atk.dt || "slash", label: "Бичевание" }); u.scourge = -1; } } };
+  A["penitent-dead"] = { time: "bonus", tgt() { return { type: "self" }; }, can(u) { return u.hp > 3 ? true : "слишком мало ОЗ"; },
+    async run(u, pk, ctl) { ctl.commit(); await B.applyDamage(null, u, [{ v: 3, dt: "slash", label: "Бичевание" }], { noAbilParts: true, self: true }); if (alive(u) && !u.down) { u.scourge = B.S.round; fx(u, "бичевание", "skill"); } return true; },
+    ai(u) { return u.hp > 8 && foesIn(u, 1).length && u.scourge !== B.S.round ? { score: 7 } : null; } };
+  /* Мёртвый храмовник (7) */
+  P["dead-templar"] = { attackMods(u, ctx) { if (ctx.tgt && ctx.extra && ctx.atk && u.hero && gyUndead(ctx.tgt)) ctx.extra.push({ n: 1, s: 6, b: 0, dt: "radiant", label: "Освящённая сталь" }); } };
+  A["dead-templar"] = { time: "bonus", tgt(u) { return specUnit(u, "Вызов на поединок: кого?", foesIn(u, 4), B.cellsWithin(u, 4), "attack"); }, can(u) { return foesIn(u, 4).length ? true : "нет цели в 4 клетках"; },
+    async run(u, pk, ctl) { const t = pk.unit; if (!t) return false; ctl.commit(); log(`${u.name} вызывает ${t.name} на поединок!`, "skill"); const sv = await save(t, "wis", dcOf(u, "str"), "Вызов на поединок", ["charm"], u); if (!sv.ok && alive(t)) { addStatus(t, "taunted", { k: 2, when: "end", data: { by: u.id } }); fx(t, "вызов", "bad"); } else fx(t, "устоял", ""); return true; },
+    ai(u) { const ts = foesIn(u, 4).filter(t => !has(t, "taunted")).sort((a, b) => b.maxHp - a.maxHp); return ts.length ? { unit: ts[0], score: 8 } : null; } };
+  /* Погребённый священник (6, склеп) */
+  const gyKnell = async (u, r, dice, dt, label, fear) => { const g = ui(); if (g) g.banner(label); log(`${u.name}: ${label}!`, "skill");
+    for (const o of enemiesOf(u).filter(o => alive(o) && !o.down && dist(u, o) <= r)) { const sv = await saveDmg(u, o, "wis", dcOf(u, "wis"), dice, dt, label, ["fear"]); if (fear && !sv.ok && alive(o) && !o.down) { addStatus(o, "frightened", { k: 1, when: "end", data: { by: u.id } }); fx(o, "испуг", "bad"); } } };
+  P["buried-priest"] = {};
+  P["body:buried-priest"] = { async turnStartAsync(u) { if (!alive(u) || u.down) return; const near = enemiesOf(u).filter(o => alive(o) && !o.down && dist(u, o) <= 1); if (!near.length) return; log(`Кадило ${u.name} чадит могильным дымом.`, "bad"); for (const o of near) await B.applyDamage(u, o, [{ v: roll(1, 6).total, dt: "necrotic", label: "Кадило" }], { src: u, noAbilParts: true }); } };
+  A["buried-priest"] = { time: "action", tgt() { return { type: "none" }; }, can(u) { return enemiesOf(u).some(o => alive(o) && !o.down && dist(u, o) <= 3) ? true : "нет врагов в 3 клетках"; },
+    async run(u, pk, ctl) { ctl.commit(); await gyKnell(u, 3, [3, 6], u.hero ? "radiant" : "necrotic", "Заупокойная", true); return true; },
+    ai(u) { const n = enemiesOf(u).filter(o => alive(o) && !o.down && dist(u, o) <= 3).length; return n >= 2 ? { score: 9 + n * 2 } : null; } };
+  /* Младший дух смерти (6, свет на кладбище) */
+  P["lesser-death"] = { attackMods(u, ctx) { const t = ctx.tgt; if (t && ctx.extra && t.hp < t.maxHp / 2) ctx.extra.push({ n: 1, s: 8, b: 0, dt: "necrotic", label: "Последний вздох" }); if (u.beyond === B.S.round && ctx.adv) { ctx.adv.push("Шаг за грань"); u.beyond = -1; } } };
+  P["body:lesser-death"] = { resist(u, { dt }) { return ["pierce", "slash", "bludgeon"].includes(dt); },
+    async turnStartAsync(u) { if (!alive(u) || u.down || enemiesOf(u).some(o => alive(o) && !o.down && dist(u, o) <= 1)) return; const t = enemiesOf(u).filter(o => alive(o) && !o.down).sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp)[0]; if (!t) return; const c = B.freeCellsNear(t, 1, u)[0]; if (c) { log(`${u.name} скользит сквозь тьму к ${t.name}.`, "bad"); await B.teleport(u, c[0], c[1]); } } };
+  A["lesser-death"] = { time: "bonus", tgt(u) { return specUnit(u, "Шаг за грань: к кому?", foesIn(u, 4).filter(t => B.freeCellsNear(t, 1, u).length), B.cellsWithin(u, 4), "attack"); }, can(u) { return u.side === "hero" && foesIn(u, 4).some(t => B.freeCellsNear(t, 1, u).length) ? true : "нет цели в 4 клетках"; },
+    async run(u, pk, ctl) { const t = pk.unit; if (!t) return false; const c = dist(u, t) <= 1 ? [u.x, u.y] : B.freeCellsNear(t, 1, u)[0]; if (!c) return false; ctl.commit(); if (c[0] !== u.x || c[1] !== u.y) await B.teleport(u, c[0], c[1]); u.beyond = B.S.round; fx(u, "шаг за грань", "skill"); return true; },
+    ai() { return null; } };
+  /* Настоятель Вечной ночи (6, страж разлома) */
+  P["night-abbot"] = { turnStart(u) { if (!alive(u) || u.down || !B.S || B.S.phase !== "fight") return; const t = [u, ...alliesOf(u)].filter(o => alive(o) && !o.down && dist(u, o) <= 3 && o.hp < o.maxHp && !has(o, "noheal")).sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp)[0]; if (t) { B.heal(t, roll(1, 4).total + 1, u); fx(t, "служба", "good"); } } };
+  P["body:night-abbot"] = { turnStart(u) { if (!u.flock && u.hp < u.maxHp / 2) { u.flock = true; B.spawnFoes(["candle-acolyte", "candle-acolyte"], u); log(`${u.name} поднимает свою паству!`, "bad"); const g = ui(); if (g) g.banner("Паства"); } } };
+  A["night-abbot"] = { time: "action", tgt(u) { return specUnit(u, "Анафема: на кого?", foesIn(u, 5), B.cellsWithin(u, 5), "attack"); }, can(u) { return foesIn(u, 5).length ? true : "нет цели в 5 клетках"; },
+    async run(u, pk, ctl) { const t = pk.unit; if (!t) return false; ctl.commit(); const g = ui(); if (g) g.banner("Анафема"); const sv = await saveDmg(u, t, "wis", dcOf(u, "wis"), [3, 8], "necrotic", "Анафема", ["curse"]); if (!sv.ok && alive(t) && !t.down) { addStatus(t, "noheal", { k: 2, when: "end" }); fx(t, "анафема", "bad"); } return true; },
+    ai(u) { const ts = foesIn(u, 5).filter(t => !has(t, "noheal")).sort((a, b) => b.hp - a.hp); return ts.length ? { unit: ts[0], score: 12 } : null; } };
+  /* Азик, низший владыка мёртвых (6, секретный босс; эссенции нет) */
+  P["body:azik-lich"] = { turnStart(u) { if (!alive(u) || u.down) return; const S = B.S; if (S.round >= 2 && S.round % 3 === 2 && u.raised !== S.round) { u.raised = S.round; if (enemiesOf(u).length && alliesOf(u).filter(o => alive(o)).length < 4) { B.spawnFoes(["skeleton", "zombie"], u); log(`${u.name} поднимает мертвецов из земли!`, "bad"); const g = ui(); if (g) g.banner("Владыка мёртвых"); } } },
+    async turnStartAsync(u) { const S = B.S; if (!alive(u) || u.down || S.round % 3 !== 1 || u.grasp === S.round) return; const t = foesIn(u, 5).filter(o => !has(o, "restrained")).sort((a, b) => dist(u, b) - dist(u, a))[0]; if (!t) return; u.grasp = S.round;          // «Хватка могилы»: у Азика нет эссенции, поэтому способность — особенность тела
+      const g = ui(); if (g) g.banner("Хватка могилы"); log(`${u.name}: Хватка могилы — ${t.name}!`, "bad"); const sv = await saveDmg(u, t, "con", 8 + (u.pb || 3) + amod(u.abil.int), [2, 8], "necrotic", "Хватка могилы", []); if (!sv.ok && alive(t) && !t.down) { addStatus(t, "restrained", { k: 1, when: "end" }); fx(t, "хватка", "bad"); } },
+    onDeath(u) { if (B.say) B.say("azik-lich", "вечность… была… так близко…"); } };
+  // «Отпевание» и «Последний вздох»: гибель врага рядом с носителем эссенции / добивание
+  { const prevReg = B.regKill; B.regKill = function (u, by) {
+      try { if (u && u.side === "mon" && B.S && B.S.phase === "fight") {
+        for (const p of live().filter(h => h.side === "hero" && alive(h) && !h.down && (h.pass || []).includes("buried-priest") && dist(h, u) <= 3)) { for (const o of [p, ...alliesOf(p)].filter(o => alive(o) && !o.down && dist(p, o) <= 3)) B.heal(o, roll(1, 6).total, p); log(`Отпевание: ${p.name} и союзники рядом переводят дух.`, "good"); }
+        const k = by && by.summon && by.owner ? B.byId(by.owner) : by; if (k && k.side === "hero" && alive(k) && (k.pass || []).includes("lesser-death") && k.maxMp) { B.setMp(k, k.mp + 2); fx(k, "+2 маны", "good"); }
+      } } catch (e) { console.error("gy kill hook:", e); }
+      return prevReg.apply(this, arguments); }; }
   B.fillActiveTimes();
 })();

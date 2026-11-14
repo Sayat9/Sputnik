@@ -25,7 +25,7 @@ const URL = 'http://localhost:8765/index.html';
   const btn = await h.evaluate(() => { const b = document.querySelector('[data-sp="rift-enter"]'); return b ? b.innerText : null; });
   ok('кнопка «Войти в разлом» без названия разлома', btn && /Войти в разлом/.test(btn) && !/шахт/i.test(btn), btn);
   await h.click('[data-sp="rift-enter"]'); await h.waitForTimeout(300);
-  ok('перед входом — подтверждение с предупреждением', await h.evaluate(() => !state.run.rift && /выйти можно только/.test(document.body.innerText)));
+  ok('перед входом — подтверждение с предупреждением', await h.evaluate(() => !state.run.rift && /назад пути не будет/.test(document.body.innerText)));
   await h.click('[data-yn="1"]'); await h.waitForTimeout(400);
   const intro = await h.evaluate(() => ({ in: !!state.run.rift, lines: dgUi.res && dgUi.res.lines }));
   ok('вошли; в окне нет описания того, что внутри', intro.in && intro.lines.length === 1 && !/слиз|уровн|штол/i.test(intro.lines.join(' ')), intro);

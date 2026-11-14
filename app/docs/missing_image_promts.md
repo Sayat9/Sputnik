@@ -56,6 +56,40 @@
 
 > `full-body a mechanical wooden-and-iron mannequin with swinging pendulum blades for arms, standing in a narrow trapped corridor, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
 
+### Кладбище прошлого, часть 2 (13.11)
+
+### Свечной служка — `monsters/candle-acolyte-full`
+
+> `full-body a small hunched undead altar boy in a ragged cassock carrying a tall burning candle on a brass candlestick, wax dripping over bony fingers, old village church interior at night, candlelight and deep shadows, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
+### Кающийся мертвец — `monsters/penitent-dead-full`
+
+> `full-body a gaunt undead penitent in a torn sackcloth robe, whipping himself with a hooked chain, old scars and iron shackles, old village church interior at night, candlelight and deep shadows, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
+### Мёртвый храмовник — `monsters/dead-templar-full`
+
+> `full-body an undead templar knight in dented plate armor with a faded tabard, holding a bastard sword and a shield, pale blue light in the helmet slit, old village church interior at night, candlelight and deep shadows, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
+### Погребённый священник — `monsters/buried-priest-full`
+
+> `full-body an undead priest rising from a stone coffin, rotten vestments, a staff with a smoking censer, an iron key on a chain around his neck, dark stone crypt, cobwebs, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
+### Младший дух смерти — `monsters/lesser-death-full`
+
+> `full-body a small hooded spectre of death with a long scythe, tattered grey shroud, pale glowing light inside the hood, floating above old gravestones at night, mist, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
+### Настоятель Вечной ночи — `monsters/night-abbot-full`
+
+> `full-body a tall undead abbot in black and gold vestments with a mitre, holding a heavy ceremonial staff, extinguished candles around him, standing at a church altar at night, old village church interior at night, candlelight and deep shadows, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
+### Азик, низший владыка мёртвых — `monsters/azik-lich-full`
+
+> `full-body a distorted elderly village elder turned into a lesser lich, grey beard, glowing green eyes, simple wool clothes under a ragged dark mantle, a bone staff, skeletal hands rising from the ground around him, night village street, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
+### Тайны вечной жизни — `items/eternal-secrets`
+
+> `an ancient black leather book with bone clasps and a faintly glowing green rune on the cover, worn and used, lying on a stone pedestal in a labyrinth niche, hand-painted dark fantasy item art, square 1:1, no text`
+
 ### Чаща прошлого (разлом 2 этажа, 08.11)
 
 ### Мшистый ёж — `monsters/moss-hedgehog-full`
@@ -184,7 +218,7 @@
 
 > `a crude but majestic goblin crown of iron and gold with trophy fangs, on dark wood, hand-painted dark fantasy item icon, square, no text`
 
-### Староста Освальд Тисс — `npc/elder` (Кладбище прошлого, 09.11)
+### Староста Азик Эггерс — `npc/elder` (Кладбище прошлого, 09.11)
 
 > `bust portrait of a kind elderly village elder with a grey beard, simple wool clothes and a walking staff, warm tavern light, a quiet village with a cemetery behind, hand-painted dark fantasy portrait, square 1:1, no text`
 
