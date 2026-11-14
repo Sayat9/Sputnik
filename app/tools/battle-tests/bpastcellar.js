@@ -32,7 +32,7 @@ const { chromium } = require('playwright');
   const r2 = await p.evaluate(s0 => { const c = state.party[0], o = { serumUsed: totals(c).str.total === s0 + 2 && !c.bag.some(e => e.id === 'strength-serum') && c.flagsPerm.serum };
     addToBag(c, { t: 'g', id: 'strength-serum', qty: 1 }); heroUi.sel = c.bag.findIndex(e => e.id === 'strength-serum'); renderHero(); o.serumOnce = !!document.querySelector('[data-hx="eternal"][disabled]');
     closeHero(); const R = state.run.rift; R.bossDead = true; riftExit(); o.vanish = !c.bag.some(e => ['family-photo', 'cellar-key'].includes(e.id)) && c.bag.some(e => e.id === 'strength-serum'); return o; }, r.s0);
-  const all = { ...r.o, verb: btnTxt === 'Вколоть', ...r2 }; let bad = 0, n = 0;
+  const all = { ...r.o, verb: btnTxt === 'Вколоть себе', ...r2 }; let bad = 0, n = 0;
   for (const [k, v] of Object.entries(all)) { n++; if (!v) { bad++; console.log('  ✗', k); } else console.log('  ✓', k); }
   if (errs.length) { console.log('ошибки:', errs.slice(0, 5)); bad++; }
   console.log(`проверок: ${n}, не прошли: ${bad}`); await b.close(); process.exit(bad ? 1 : 0);

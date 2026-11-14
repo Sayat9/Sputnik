@@ -1115,6 +1115,8 @@ dl.kv { margin: 0; }
 .vn-txt p { margin: 0; font-size: 17px; line-height: 1.35; }
 .vn-txt small { margin-top: auto; opacity: .6; font-size: 12px; }
 @keyframes vnIn { from { transform: translateY(16px); opacity: 0; } to { transform: none; opacity: 1; } }
+#rf-svg.rf-quake, .rf-grid.rf-quake { animation: rfQuake .3s 6; }
+@keyframes rfQuake { 0%, 100% { transform: translate(0); } 20% { transform: translate(-5px, 3px); } 45% { transform: translate(5px, -3px); } 70% { transform: translate(-3px, -2px); } }
 </style>
 
 <header class="top">
@@ -2709,8 +2711,8 @@ const PAST_MON = [
     [["Кислотная струя", "Раз в 2 раунда моет пол кислотой: линия 3 клетки, 1к8 кислотой (Ловкость — половина).", "behavior"], ["Швабра", "+4 к попаданию, 1к6+2 дробящего.", "attacks"]]],
   ["half-mech", 8, "Недоделанный экземпляр", "Средний конструкт", "humanoid", "15 (стальные пластины)", "34 (5к8+12)", "9 м", [17, 10, 16, 6, 8, 4], "Тёмное зрение 18 м.",
     [["Сбой", "В начале хода с шансом 1 из 4 искрит: 1к6 молнией себе и всем вплотную.", "behavior"], ["Поршневой кулак", "+5 к попаданию, 1к8+3 дробящего; при попадании толкает на 1 клетку.", "attacks"]]],
-  ["alpha01", 6, "Прототип Альфа-01", "Большой конструкт", "humanoid", "17 (броня)", "95 (10к10+40)", "9 м", [20, 12, 18, 10, 10, 6], "Тёмное зрение 36 м.",
-    [["Боевой протокол", "С половины ОЗ: +2 к урону и +1 Защиты.", "behavior"], ["Самовосстановление", "В начале хода 4 ОЗ; урон молнией сбивает восстановление на ход.", "behavior"], ["Ракетный кулак", "Раз в 3 раунда: цель в 4 клетках, 2к8 дробящего и отлёт на 2 клетки.", "behavior"], ["Сервокулаки", "+8 к попаданию, 2к8+4 дробящего.", "attacks"]]],
+  ["alpha01", 6, "Прототип Альфа-01", "Большой конструкт (био-голем)", "humanoid", "17 (плоть со стальными пластинами)", "95 (10к10+40)", "9 м", [20, 12, 18, 10, 10, 6], "Тёмное зрение 36 м.",
+    [["Био-голем", "Сшитое тело с вживлёнными поршнями и стальными пластинами.", "body"], ["Боевой протокол", "С половины ОЗ: +2 к урону и +1 Защиты.", "behavior"], ["Живая плоть", "В начале хода восстанавливает 4 ОЗ; урон молнией сбивает восстановление на ход.", "behavior"], ["Ракетный кулак", "Раз в 3 раунда: цель в 4 клетках, 2к8 дробящего и отлёт на 2 клетки.", "behavior"], ["Сервокулаки", "+8 к попаданию, 2к8+4 дробящего.", "attacks"]]],
   ["luna", 6, "Луна, искусственный ликантроп", "Средний гуманоид", "beast", "15", "70 (11к8+20)", "12 м", [18, 18, 17, 6, 14, 10], "Тёмное зрение 36 м, нюх.",
     [["Две формы", "Удачный образец: оборотень с когтями, а с половины ОЗ — огромный волк; меняет форму каждые 2 раунда.", "behavior"], ["Когти / укус", "+7 к попаданию, 2к6+4 рубящего.", "attacks"]]],
 ];
@@ -2722,7 +2724,7 @@ for (const [id, cls, name, size, ph, ac, hp, speed, abil, senses, traits] of PAS
 const PAST_ESS = {
   "lab-janitor": ["Эссенция голема-уборщика", { con: 2, int: 1, dex: -1 }, [], ["Санобработка", "В начале твоего хода с тебя снимается одно из: отравление, кровотечение, горение."], ["Кислотная струя", 2, "действие", "Линия 3 клетки: 1к8 кислотой (Ловкость — половина). Перезарядка 3 раунда."]],
   "half-mech": ["Эссенция недоделанного экземпляра", { str: 2, con: 2, wis: -1, cha: -1 }, [], ["Поршни", "Раз в ход твоя ближняя атака при попадании толкает цель на 1 клетку."], ["Перегрузка", 3, "доп. действие", "До конца хода +2 к попаданию и урону; в конце хода получаешь 1к6 урона молнией. Перезарядка 3 раунда."]],
-  "alpha01": ["Эссенция Прототипа Альфа-01", { str: 4, con: 3, dex: -1, int: -1, cha: -1 }, [], ["Боевой протокол", "Пока твои ОЗ ниже половины, +2 к урону и +1 Защиты."], ["Ракетный кулак", 4, "действие", "Цель в 4 клетках: атака Силой, 2к8 дробящего и отлёт на 2 клетки. Перезарядка 3 раунда."]],
+  "alpha01": ["Эссенция Прототипа Альфа-01", { str: 4, con: 3, dex: -1, int: -1, cha: -1 }, [], ["Боевой протокол", "Пока твои ОЗ ниже половины: +2 к урону, +1 Защиты и в начале хода +2 ОЗ — плоть затягивается вокруг стали."], ["Ракетный кулак", 4, "действие", "Цель в 4 клетках: атака Силой, 2к8 дробящего и отлёт на 2 клетки. Перезарядка 3 раунда."]],
   "moss-hedgehog": ["Эссенция мшистого ежа", { con: 2, wis: 1, dex: -1 }, [], ["Иглы", "Кто попал по тебе в ближнем бою, получает 1 колющего урона (3, если ты в обороне)."], ["Клубок", 2, "доп. действие", "До начала твоего следующего хода +3 Защиты и тебя нельзя сбить с ног, но скорость 0. Перезарядка 4 раунда."]],
   "firefly-swarm": ["Эссенция светлячкового роя", { dex: 2, wis: 1, str: -1 }, [], ["Живой свет", "Вокруг тебя тусклый свет: бой и броски встреч в темноте для отряда — как с факелом (факел не тратится, след не растёт)."], ["Слепящее мерцание", 3, "действие", "Враги в 2 клетках — спасбросок Телосложения (Сл 8 + мод. Лов), провал: ослеплены вспышкой до конца своего хода. Перезарядка 4 раунда."]],
   "branded-critter": ["Эссенция клеймёного зверька", { con: 2, dex: 1, cha: -1 }, [], ["Подопытный", "+2 к спасброскам от яда и кислоты; урон ядом и кислотой по тебе на 2 меньше."], ["Едкая слюна", 3, "действие", "Враг в 4 клетках — спасбросок Ловкости (Сл 8 + мод. Тел), провал: 1к8 кислотой и −1 Защиты на 2 раунда. Перезарядка 3 раунда."]],
@@ -2835,8 +2837,48 @@ const GY_ESS = {
 };
 for (const [id, [name, stats, other, [pn, pt], [an, mana, time, at]]] of Object.entries(GY_ESS)) ESSENCES[id] = { id, name, cls: MONSTERS.find(m => m.id === id).cls, source: id, stats, other, passive: { name: pn, text: pt }, active: { name: an, mana, time, text: at } };
 
+// ===== Разлом 2 этажа «Кристальный рудник прошлого» (Кристальный разлом; автор 14.11). Статы и эссенции — ЧЕРНОВИК =====
+const CR_MON = [
+  ["petrified-miner", 9, "Окаменевший рудокоп", "Средний гуманоид", "humanoid", "13 (кристальная корка)", "13 (2к8+4)", "6 м", [14, 9, 15, 6, 8, 5], "Тёмное зрение 18 м.", [["Кристальная корка", "Начинает бой с 3 временными ОЗ.", "body"], ["Кирка", "+4 к попаданию, 1к8+2 колющего.", "attacks"]]],
+  ["crystal-rat", 9, "Кристальная крыса", "Малый зверь", "beast", "13", "8 (2к6+1)", "9 м", [6, 16, 12, 2, 12, 4], "Тёмное зрение 18 м.", [["Искристые зубы", "Укус игнорирует 1 Защиты.", "behavior"], ["Укус", "+5 к попаданию, 1к4+3 колющего.", "attacks"]]],
+  ["mine-pony", 9, "Рудничный пони", "Средний зверь", "beast", "12", "15 (2к8+6)", "12 м", [15, 12, 16, 2, 10, 5], "Тёмное зрение 18 м.", [["Кристальный таран", "Раз в 3 раунда: рывок до 3 клеток, всем в области 3×3 вокруг точки остановки 1 урона.", "behavior"], ["Копыта", "+4 к попаданию, 1к6+2 дробящего.", "attacks"]]],
+  ["crystal-smith", 8, "Кристальный кузнец", "Средний гуманоид", "humanoid", "14 (кожаный фартук)", "32 (5к8+10)", "9 м", [17, 10, 14, 9, 10, 7], "Тёмное зрение 18 м.", [["Закалка", "Раз в 2 раунда закаляет оружие союзнику: +2 урона на 2 раунда.", "behavior"], ["Молот", "+5 к попаданию, 1к10+3 дробящего.", "attacks"]]],
+  ["rockfall", 8, "Обвальник", "Средний элементаль", "elemental", "15 (камень)", "34 (4к10+12)", "6 м", [18, 6, 16, 5, 10, 5], "Чувство вибраций 9 м.", [["Свод рушится", "Метит область 3×3, в начале своего следующего хода обрушивает её: 2к6 дробящего (Ловкость — половина).", "behavior"], ["Каменный кулак", "+5 к попаданию, 1к10+3 дробящего.", "attacks"]]],
+  ["crystal-innkeeper", 8, "Кристальная трактирщица", "Средний гуманоид", "humanoid", "12", "28 (5к8+5)", "9 м", [12, 14, 12, 10, 12, 14], "Тёмное зрение 18 м.", [["Последняя кружка", "Раз в 3 раунда бросает бутылку: своим в 2 клетках от себя +1к6 ОЗ, врагу 1к6.", "behavior"], ["Скалка", "+5 к попаданию, 1к6+2 дробящего.", "attacks"]]],
+  ["crystal-overseer", 7, "Кристальный надсмотрщик", "Средний гуманоид", "humanoid", "15 (кольчуга)", "48 (7к8+16)", "9 м", [16, 12, 14, 10, 12, 14], "Тёмное зрение 18 м.", [["Окрик", "Свои в 3 клетках получают +1 к попаданию.", "behavior"], ["Кнут", "+6 к попаданию, 1к8+3 рубящего.", "attacks"]]],
+  ["shard-hunter", 7, "Осколочный охотник", "Средний гуманоид", "humanoid", "14", "42 (6к8+15)", "9 м", [12, 17, 13, 10, 14, 8], "Тёмное зрение 18 м.", [["Осколочные наконечники", "Стрелы игнорируют 1 Защиты.", "behavior"], ["Осколочный лук", "+7 к попаданию, 1к8+4 колющего (дальность 24 м).", "attacks"]]],
+  ["foreman-gorn", 6, "Бригадир Горн", "Средний гуманоид", "humanoid", "17 (кристальная броня)", "80 (10к8+35)", "9 м", [20, 10, 18, 9, 12, 10], "Тёмное зрение 18 м.", [["Кристальный панцирь", "Каждый полученный удар даёт ему +1 Защиты до конца боя (до +3).", "behavior"], ["Раскол земли", "Раз в 3 раунда бьёт молотом в землю: враги в 2 клетках — спасбросок Ловкости, 2к8 (успех — половина), провал — сбиты с ног.", "behavior"], ["Кристальный молот", "+8 к попаданию, 2к8+5 дробящего.", "attacks"]]],
+  ["singing-crystal", 6, "Поющий кристалл", "Большой элементаль", "elemental", "16", "70 (10к10+15)", "0 м", [10, 8, 16, 12, 16, 18], "Чувство вибраций 18 м.", [["Песнь", "Каждые 2 раунда поёт: все враги — спасбросок Телосложения, 2к6 звуком (успех — половина), провал — оглушены.", "behavior"], ["Звенящий осколок", "+7 к попаданию, 2к6+3 звуком (дальность 24 м).", "attacks"]]],
+  ["primal-crystal", 6, "Первородный кристалл", "Большой элементаль", "elemental", "18", "90 (12к10+24)", "3 м", [18, 8, 18, 14, 16, 12], "Чувство вибраций 18 м.", [["Кристаллическая кожа", "Первый урон по нему за раунд вдвое меньше.", "body"], ["Осколки", "На половине ОЗ выпускает две кристальные крысы.", "behavior"], ["Кристаллизация", "Раз в 3 раунда: цель в 4 клетках — спасбросок Телосложения, 3к8 (успех — половина), провал — закристаллизована на ход.", "behavior"], ["Кристальный шип", "+8 к попаданию, 2к8+4 колющего.", "attacks"]]],
+  ["crystal-greed", 7, "Кристаллизованная жадность", "Средний конструкт", "elemental", "15", "55 (7к8+24)", "6 м", [16, 12, 16, 12, 12, 16], "Тёмное зрение 18 м.", [["Цена жизни", "Каждое попадание крадёт у героя монеты; убитая, отдаёт украденное вдвое.", "behavior"], ["Хватка прилавка", "+7 к попаданию, 1к10+4 дробящего.", "attacks"]]],
+  ["crystal-alchemist", 6, "Мастер-алхимик Дитрих Вейл", "Средний гуманоид", "humanoid", "15", "90 (12к8+36)", "9 м", [10, 14, 16, 18, 14, 12], "Тёмное зрение 18 м.", [["Склянки", "Раз в 3 раунда бросает кристальный раствор в область 3×3.", "behavior"], ["Кристальная форма", "С половины ОЗ кристалл покрывает тело: +2 Защиты.", "behavior"], ["Скальпель", "+7 к попаданию, 1к8+4 рубящего.", "attacks"]]],
+];
+const CR_RANK = { "foreman-gorn": "special", "singing-crystal": "special", "primal-crystal": "guardian", "crystal-greed": "special", "crystal-alchemist": "boss" };
+const CR_TYPE = { "crystal-rat": "Зверь", "mine-pony": "Зверь", "rockfall": "Элементаль", "singing-crystal": "Элементаль", "primal-crystal": "Элементаль", "crystal-greed": "Конструкт" };
+const CR_WHERE = { "petrified-miner": "Улицы и штольни", "crystal-rat": "Улицы и штольни", "mine-pony": "Улицы", "crystal-smith": "Улицы и штольни", "rockfall": "Штольни", "crystal-innkeeper": "Улицы", "crystal-overseer": "Улицы", "shard-hunter": "Штольни", "foreman-gorn": "Одна из краевых точек камертонов", "singing-crystal": "Центральная точка камертонов", "primal-crystal": "Сердце рудника", "crystal-greed": "Лагерь после резонанса, на месте торговца", "crystal-alchemist": "Секретный: палатка алхимика после резонанса" };
+for (const [id, cls, name, size, ph, ac, hp, speed, abil, senses, traits] of CR_MON) MONSTERS.push({ id, zone: "stone", rare: false, weight: 1, name, floor: 2, cls,
+  rank: CR_RANK[id] || "normal", size, type: CR_TYPE[id] || (/гуманоид/.test(size) ? "Гуманоид" : "Конструкт"), group: CR_WHERE[id] || "Группы по 2–3",
+  sz: /Малый/.test(size) ? "малый" : /Большой/.test(size) ? "большой" : "средний", rift: "crystal",
+  areas: ["Разлом: Кристальный рудник прошлого"], ac, hp, speed, cr: String(10 - cls), abil, senses, traits, loot: id === "crystal-alchemist" ? "Камень 6-го класса. «Каменное сердце»." : id === "singing-crystal" ? "Камень 6-го класса. Иногда — «Камертон резонанса»." : `Камень ${cls}-го класса.`, essence: id, ph, statDraft: true });
+const CR_ESS = {
+  "petrified-miner": ["Эссенция окаменевшего рудокопа", { con: 2, str: 1, dex: -1 }, [], ["Кристальная корка", "В начале боя у тебя 3 временных ОЗ."], ["Раскол киркой", 2, "действие", "Атака оружием; при попадании Защита цели −1 до конца боя (до −2). Перезарядка 3 раунда."]],
+  "crystal-rat": ["Эссенция кристальной крысы", { dex: 2, cha: -1 }, ["Восприятие +1"], ["Искристые зубы", "Лёгкое оружие и укусы игнорируют 1 Защиты цели."], ["Искрой в сторону", 2, "доп. действие", "Отскакиваешь на 2 клетки, не вызывая атак по возможности. Перезарядка 2 раунда."]],
+  "mine-pony": ["Эссенция рудничного пони", { str: 2, con: 1, int: -1 }, [], ["Вьючный", "Грузоподъёмность героя больше на 10 кг."], ["Кристальный таран", 2, "действие", "Рывок по прямой до 3 клеток; всем в области 3×3 вокруг точки остановки 1 урона. Перезарядка 3 раунда."]],
+  "crystal-smith": ["Эссенция кристального кузнеца", { str: 2, con: 1, int: 1, dex: -1, cha: -1 }, [], ["Закалка", "Твои атаки оружием наносят +1 урона."], ["Раскалённая наковальня", 3, "доп. действие", "Союзник в 2 клетках: 2 раунда его атаки наносят +1к6 огнём. Перезарядка 3 раунда."]],
+  "rockfall": ["Эссенция обвальника", { str: 3, con: 1, dex: -1, wis: -1 }, [], ["Каменная грудь", "Если ты не двигался в свой ход, до начала следующего хода +1 Защиты."], ["Свод рушится", 3, "действие", "Отмечаешь область 3×3 в 4 клетках; в начале твоего следующего хода там 2к6 дробящего (Ловкость — половина). Перезарядка 3 раунда."]],
+  "crystal-innkeeper": ["Эссенция кристальной трактирщицы", { cha: 2, con: 2, wis: -1, dex: -1 }, [], ["Хмельной кураж", "Зелья, которые ты пьёшь сам, лечат на 2 больше."], ["Бутылкой!", 2, "доп. действие", "Цель в 4 клетках: 1к6 дробящего; спасбросок Телосложения, провал — помеха на следующую атаку. Перезарядка 3 раунда."]],
+  "crystal-overseer": ["Эссенция кристального надсмотрщика", { cha: 2, str: 2, con: 1, wis: -1, dex: -1 }, [], ["Окрик", "Союзники в 3 клетках получают +1 к попаданию."], ["Подогнать", 3, "доп. действие", "Союзник в 3 клетках: +1 клетка движения и +2 урона до конца его следующего хода. Перезарядка 3 раунда."]],
+  "shard-hunter": ["Эссенция осколочного охотника", { dex: 3, wis: 2, str: -1, con: -1 }, [], ["Осколочные наконечники", "Дальние атаки наносят +1 урона и игнорируют 1 Защиты."], ["Сквозной выстрел", 3, "действие", "Линия 5 клеток: всем 2к6 колющего (Ловкость — половина). Перезарядка 3 раунда."]],
+  "foreman-gorn": ["Эссенция бригадира Горна", { str: 4, con: 3, dex: -1, int: -1, cha: -1 }, [], ["Кристальный панцирь", "Каждый полученный удар даёт +1 Защиты до конца боя (до +3)."], ["Раскол земли", 4, "действие", "Враги в 2 клетках — спасбросок Ловкости: 2к8 дробящего (успех — половина), провал — сбиты с ног. Перезарядка 4 раунда."]],
+  "singing-crystal": ["Эссенция поющего кристалла", { int: 3, wis: 2, cha: 2, str: -1, dex: -1, con: -1 }, [], ["Звенящая мана", "Потратив за раз 3 маны и больше (не чаще раза в ход), бьёшь волной область 4×4 вокруг себя: врагам 1к8 звуком — даже призракам и скрытым."], ["Высокая нота", 4, "действие", "Враги в 3 клетках — спасбросок Телосложения: 3к6 звуком (успех — половина), провал — оглушены до конца своего хода. Перезарядка 4 раунда."]],
+  "primal-crystal": ["Эссенция первородного кристалла", { con: 3, int: 2, wis: 2, str: -1, dex: -1, cha: -1 }, [], ["Кристаллическая кожа", "Первый урон по тебе за раунд уменьшается вдвое."], ["Кристаллизация", 5, "действие", "Цель в 4 клетках — спасбросок Телосложения: 3к8 (успех — половина), провал — закристаллизована: не ходит и не действует до конца своего хода. Перезарядка 4 раунда."]],
+  "crystal-greed": ["Эссенция кристаллизованной жадности", { cha: 3, dex: 2, str: -1, wis: -1 }, [], ["Чутьё торгаша", "В магазине всё на 5 % дешевле, продажа на 5 % дороже."], ["Звон монет", 2, "доп. действие", "Враг в 3 клетках — спасбросок Мудрости, провал: помеха на следующую атаку. Перезарядка 3 раунда."]],
+  "crystal-alchemist": ["Эссенция мастера-алхимика", { int: 4, con: 2, wis: 1, str: -1, dex: -1, cha: -1 }, [], ["Имперская эффективность", "Зелья, которые ты пьёшь сам, лечат ещё на 1к4+2."], ["Кристальный раствор", 4, "действие", "Склянка в область 3×3 до 5 клеток: 2к8 кислотой (Ловкость — половина), провал — −1 клетка движения на 2 раунда. Перезарядка 3 раунда."]],
+};
+for (const [id, [name, stats, other, [pn, pt], [an, mana, time, at]]] of Object.entries(CR_ESS)) ESSENCES[id] = { id, name, cls: MONSTERS.find(m => m.id === id).cls, source: id, stats, other, passive: { name: pn, text: pt }, active: { name: an, mana, time, text: at } };
+
 const RIFT_RANK = 7, RIFT_EXIT_DAYS = 2;
-const RIFTS = { blood: { name: "Кровавая крепость", zone: "undead", w: 5, h: 15 }, ice: { name: "Ледяной грот", zone: "stone", w: 3, h: 15 }, sand: { name: "Зыбучие пески", zone: "beast", w: 15, h: 15 }, mine: { name: "Зелёная шахта", zone: "goblin", w: 5, h: 3 }, past: { name: "Чаща прошлого", zone: "beast", w: 15, h: 15 }, gcity: { name: "Гоблинград", zone: "goblin", w: 15, h: 15 }, gyard: { name: "Кладбище прошлого", zone: "undead", w: 15, h: 15 } };
+const RIFTS = { blood: { name: "Кровавая крепость", zone: "undead", w: 5, h: 15 }, ice: { name: "Ледяной грот", zone: "stone", w: 3, h: 15 }, sand: { name: "Зыбучие пески", zone: "beast", w: 15, h: 15 }, mine: { name: "Зелёная шахта", zone: "goblin", w: 5, h: 3 }, past: { name: "Чаща прошлого", zone: "beast", w: 15, h: 15 }, gcity: { name: "Гоблинград", zone: "goblin", w: 15, h: 15 }, gyard: { name: "Кладбище прошлого", zone: "undead", w: 15, h: 15 }, crystal: { name: "Кристальный рудник прошлого", zone: "stone", w: 15, h: 15 } };
 const riftF1Open = r => !!(r && r.floor === 1 && partyRank() <= RIFT_RANK && (r.day === 3 || (r.day === 4 && r.act <= 2)));
 function riftSync() {
   const r = state.run; if (r && r.floor === 2 && !r.rift) { pastSync(); return; }
@@ -2860,7 +2902,7 @@ function riftMarks(px, py, up) {
 }
 const riftButtons = () => { const r = state.run, t = r && !r.rift && riftAt(r.pos.x, r.pos.y); return t ? [{ id: "rift-enter", label: "Войти в разлом", sub: "что внутри — неизвестно" }] : []; };
 // ----- карта разлома -----
-const riftCell = (R, x, y) => R.id === "blood" ? ((y >= 0 && y <= 4 && x >= 0 && x <= 4) || (y >= 5 && y <= 14 && x >= 1 && x <= 3)) : R.id === "ice" ? (x >= 0 && x <= 2 && y >= 0 && y <= 14) : R.id === "sand" ? (x >= 0 && x <= 14 && y >= 0 && y <= 14) : R.id === "mine" ? (x >= 0 && x < R.w && y >= 0 && y < R.h) : (R.id === "past" || R.id === "gcity") ? (x >= 0 && x < 15 && y >= 0 && y < 15) : R.id === "gyard" ? (x >= 0 && x < R.w && y >= 0 && y < R.h) : false;
+const riftCell = (R, x, y) => R.id === "blood" ? ((y >= 0 && y <= 4 && x >= 0 && x <= 4) || (y >= 5 && y <= 14 && x >= 1 && x <= 3)) : R.id === "ice" ? (x >= 0 && x <= 2 && y >= 0 && y <= 14) : R.id === "sand" ? (x >= 0 && x <= 14 && y >= 0 && y <= 14) : R.id === "mine" ? (x >= 0 && x < R.w && y >= 0 && y < R.h) : (R.id === "past" || R.id === "gcity" || R.id === "crystal") ? (x >= 0 && x < 15 && y >= 0 && y < 15) : R.id === "gyard" ? (x >= 0 && x < R.w && y >= 0 && y < R.h) : false;
 function riftBuild(id) {
   const D = RIFTS[id], R = { id, w: D.w, h: D.h, steps: 0, visited: [], cleared: {}, done: {} };
   if (id === "blood") {
@@ -2878,6 +2920,7 @@ function riftBuild(id) {
   if (id === "past") pastGen(R);
   if (id === "gcity") gcGen(R);
   if (id === "gyard") gyGen(R);
+  if (id === "crystal") crGen(R);
   if (id === "sand") {          // пустыня 15 × 15 (спецификация автора): старт внизу по центру, 2 утопающих маяка, страж в центре (7,7) — после обоих маяков
     R.start = { x: 7, y: 14 }; R.boss = { x: 7, y: 7 }; R.minis = {};
     const ok = (x, y) => y <= 11 && !(x >= 6 && x <= 9 && y >= 6 && y <= 9);
@@ -2893,6 +2936,7 @@ function riftEnter() {
   const r = state.run, t = riftAt(r.pos.x, r.pos.y); if (!t) return;
   r.rift = riftBuild(t.id); r.rift.save = { day: r.day, act: r.act, key: tkey(r.pos.x, r.pos.y) };
   if (t.id === "gyard") gyEnter();
+  if (t.id === "crystal") crEnter();
   logRun(`Отряд входит в разлом «${RIFTS[t.id].name}». Время этажа остановилось.`);
   dgUi.res = { title: RIFTS[t.id].name, roll: "", pic: "rift-enter", lines: ["Портал схлопывается за спиной. Здесь время этажа не идёт; на выходе пройдёт " + RIFT_EXIT_DAYS + " дня."] };          // 13.11: без описания того, что внутри
 }
@@ -2979,6 +3023,7 @@ function riftGroup(R, y, sev) {
   if (R.id === "past") return pastGroup(R, sev);
   if (R.id === "gcity") return gcGroup(R, sev);
   if (R.id === "gyard") return gyGroup(R, sev);
+  if (R.id === "crystal") return crGroup(R, sev);
   const P = RIFT_POOL[R.id === "mine" ? (R.level === 4 ? "mine4" : "mine") : R.id === "ice" || R.id === "sand" ? R.id : y <= 4 ? "yard" : "sewer"], pk = a => a[rnd(a.length)];
   if (sev === "easy") return [pk(P[9]), pk(P[9]), ...(Math.random() < .5 ? [pk(P[9])] : [])];
   if (sev === "mid") return [pk(P[8]), pk(P[9]), pk(P[9])];
@@ -3006,7 +3051,7 @@ function riftColdStep(d0) {
     const st = COLD_STEPS.find(([n]) => was < n && now >= n); if (st) logRun(`${c.name}: холод ${now}/10 — ${st[1]}.`);
     if (now === 10 && was < 10) { c.hp = Math.max(1, hpOf(c) - 1); logRun(`${c.name} коченеет: −1 ОЗ от холода.`); } }
 }
-function riftFight(title, list, o = {}) { const R = state.run.rift; startSpecial(title, { zone: RIFTS[R.id].zone, place: RIFTS[R.id].name, list, ...(R.id === "ice" ? { cold: R.cold, big10: true, bigBrazier: list[0] === "half-troll" } : R.id === "sand" ? { big10: true } : R.id === "mine" ? { mineLevel: R.level, dark: mineDark(R) } : R.id === "past" ? { dark: pastDark(R), big10: ["fallen-keeper", "naturalist", "luna"].includes(list[0]) } : R.id === "gyard" ? { dark: gyDark(R) || list[0] === "night-abbot", big10: ["night-abbot", "azik-lich"].includes(list[0]) } : {}) }, o); dgUi.enc.riftKey = tkey(R.pos.x, R.pos.y); }
+function riftFight(title, list, o = {}) { const R = state.run.rift; startSpecial(title, { zone: RIFTS[R.id].zone, place: RIFTS[R.id].name, list, ...(R.id === "ice" ? { cold: R.cold, big10: true, bigBrazier: list[0] === "half-troll" } : R.id === "sand" ? { big10: true } : R.id === "mine" ? { mineLevel: R.level, dark: mineDark(R) } : R.id === "past" ? { dark: pastDark(R), big10: ["fallen-keeper", "naturalist", "luna"].includes(list[0]) } : R.id === "gyard" ? { dark: gyDark(R) || list[0] === "night-abbot", big10: ["night-abbot", "azik-lich"].includes(list[0]) } : R.id === "crystal" ? { dark: crDark(R), big10: ["primal-crystal", "crystal-alchemist", "foreman-gorn", "crystal-greed"].includes(list[0]) } : {}) }, o); dgUi.enc.riftKey = tkey(R.pos.x, R.pos.y); }
 // Бросок события в разломе показывается, как на этаже: ~1,5 с крутится кубик, ~1,2 с виден итог, потом открывается встреча или находка (видят и игроки — dgUi уходит по сети).
 let RIFT_D = null, RIFT_ROLL_LIVE = false; const riftD = v => (RIFT_D = v);
 function riftRollStart() {
@@ -3033,6 +3078,7 @@ function riftMove(x, y) {
   if (R.id === "past") { pastMove(x, y); return; }
   if (R.id === "gcity") { gcMove(x, y); return; }
   if (R.id === "gyard") { gyMove(x, y); return; }
+  if (R.id === "crystal") { crMove(x, y); return; }
   if (Math.abs(x - R.pos.x) + Math.abs(y - R.pos.y) !== 1 || !riftCell(R, x, y)) return;
   if (R.id === "blood" && y >= 5 && R.pos.y <= 4) return;          // во двор назад и вниз — только через спуск
   if (R.id === "blood" && y <= 4 && R.pos.y >= 5) return;
@@ -3086,7 +3132,8 @@ function riftRest(guard) {
   if (R.id === "gcity") { if (R.pend) { toast("Сначала решите, что делать со встречей"); return; } const out = gcRestAfter(R, gcTile(R, R.pos.x, R.pos.y), lines); if (out) return; }
   if (R.cold) { riftColdStep(r.light ? -2 : 1); lines.push(r.light ? "Факел греет: холод −2." : "Без огня привал студит: холод +1."); }
   if (R.id === "gyard") { gyAdvance(3); if (gyRestAttack(R, !!gid)) { halfRest(); return; } }
-  if (R.id !== "past" && R.id !== "gcity" && R.id !== "gyard" && rnd(6) === 0) { riftFight("Нападение на привале", riftGroup(R, R.pos.y, "mid")); halfRest(); return; }
+  if (R.id === "crystal" && (R.res || !["camp", "tent", "shop"].includes(crTile(R, R.pos.x, R.pos.y))) && rnd(4) === 0) { riftFight("Нападение на привале", crGroup(R, "mid")); halfRest(); return; }
+  if (R.id !== "past" && R.id !== "gcity" && R.id !== "gyard" && R.id !== "crystal" && rnd(6) === 0) { riftFight("Нападение на привале", riftGroup(R, R.pos.y, "mid")); halfRest(); return; }
   dgUi.res = { title: "Привал в разломе", roll: "", lines };
 }
 function riftChest() {
@@ -3110,14 +3157,16 @@ function riftFightDone(e, killed) {
   if (R.id === "past") pastFightDone(R, e, ids);
   if (R.id === "gcity") gcFightDone(R, e, ids);
   if (R.id === "gyard" && e) gyFightDone(R, e, ids);
+  if (R.id === "crystal" && e) crFightDone(R, e, ids);
 }
 // Экран разлома (v115): заменяет карту этажа в рамке .stage — камера на отряде, как на обычной карте; полная схема — по кнопке «Карта».
-const riftCanStep = (R, x, y) => riftCell(R, x, y) && Math.abs(x - R.pos.x) + Math.abs(y - R.pos.y) === 1 && !(R.id === "past" && pastTile(R, x, y) === "roots") && !(R.id === "gcity" && (gcTile(R, x, y) === "palace" || R.pend)) && !(R.id === "gyard" && ["crypt", "cathedral"].includes(gyTile(R, x, y))) && !(R.id === "blood" && ((y >= 5 && R.pos.y <= 4) || (y <= 4 && R.pos.y >= 5)));
+const riftCanStep = (R, x, y) => riftCell(R, x, y) && Math.abs(x - R.pos.x) + Math.abs(y - R.pos.y) === 1 && !(R.id === "past" && pastTile(R, x, y) === "roots") && !(R.id === "gcity" && (gcTile(R, x, y) === "palace" || R.pend)) && !(R.id === "gyard" && ["crypt", "cathedral"].includes(gyTile(R, x, y))) && !(R.id === "crystal" && crTile(R, x, y) === "heart" && !R.res) && !(R.id === "blood" && ((y >= 5 && R.pos.y <= 4) || (y <= 4 && R.pos.y >= 5)));
 function riftMarkOf(R, x, y, seen, near) {
   const k = tkey(x, y);
   if (R.id === "past") return pastMarkOf(R, x, y, seen, near);
   if (R.id === "gcity") return gcMarkOf(R, x, y, seen, near);
   if (R.id === "gyard") return gyMarkOf(R, x, y, seen, near);
+  if (R.id === "crystal") return crMarkOf(R, x, y, seen, near);
   if (R.id === "sand") { const bi = sandBeaconAt(R, x, y); if (bi >= 0 && (seen || near || R.beacons[bi].felt)) return R.beacons[bi].done ? "beaconDone" : "beacon";
     if (R.boss && x === R.boss.x && y === R.boss.y && !sandBossReady(R)) return seen || near ? "sandStir" : ""; }
   if (R.descent && x === R.descent.x && y === R.descent.y && (seen || near) && (!mineDark(R) || R.visited.includes(k))) return "descent";
@@ -3144,12 +3193,12 @@ function riftStage() {
   const sq = (x, y, attrs) => `<rect x="${(x - px) * T - T / 2 + 2}" y="${(y - py) * T - T / 2 + 2}" width="${T - 4}" height="${T - 4}" rx="${PX.ok ? 2 : 6}" ${attrs}/>`;
   const at = (x, y, inner) => `<g transform="translate(${(x - px) * T} ${(y - py) * T})">${inner}</g>`;
   const zoneSty = y => R.id === "blood" ? (y <= 4 ? "undead" : "crypt") : R.id === "ice" ? "mines" : R.id === "sand" ? "camp" : R.id === "mine" ? "cave" : "cave";
-  const fillOf = (x, y) => R.id === "gyard" ? GY_FILL[gyTile(R, x, y)] || "#3c4038" : R.id === "gcity" ? GC_FILL[gcTile(R, x, y)] || "#4a3e30" : R.id === "past" ? PAST_FILL[pastTile(R, x, y)] || "#2f4a2a" : PX.ok ? PX.fill(zoneSty(y), tileHash(x, y + 50)) : R.id === "ice" ? "#3c4a58" : (y <= 4 ? "#494557" : "#4a2a30");
+  const fillOf = (x, y) => R.id === "crystal" ? CR_FILL[crTile(R, x, y)] || "#3a4652" : R.id === "gyard" ? GY_FILL[gyTile(R, x, y)] || "#3c4038" : R.id === "gcity" ? GC_FILL[gcTile(R, x, y)] || "#4a3e30" : R.id === "past" ? PAST_FILL[pastTile(R, x, y)] || "#2f4a2a" : PX.ok ? PX.fill(zoneSty(y), tileHash(x, y + 50)) : R.id === "ice" ? "#3c4a58" : (y <= 4 ? "#494557" : "#4a2a30");
   for (let y = 0; y < R.h; y++) for (let x = 0; x < R.w; x++) {
     if (!riftCell(R, x, y) || Math.abs(x - px) > 4 || Math.abs(y - py) > 4) continue;
     const k = tkey(x, y), cur = x === px && y === py, seen = R.visited.includes(k), near = Math.abs(x - px) + Math.abs(y - py) === 1, go = riftCanStep(R, x, y);
     if (cur) continue;
-    const pastSee = (R.id === "gyard" && (near || ["crypt", "cathedral", "tavern", "elder", "cdoor", "chdoor"].includes(gyTile(R, x, y)) || (R.glow && R.glow.x === x && R.glow.y === y))) || (R.id === "gcity" && (near || gcTile(R, x, y) === "palace" || gcTile(R, x, y) === "gate" || (gcTile(R, px, py) === "roof" && Math.max(Math.abs(x - px), Math.abs(y - py)) <= 2))) || R.id === "past" && (near || pastTile(R, x, y) === "roots" && Math.abs(x - px) + Math.abs(y - py) <= 2 || pastTile(R, x, y) === "keeper");
+    const pastSee = (R.id === "crystal" && (near || ["camp", "tent", "shop", "point", "heart"].includes(crTile(R, x, y)))) || (R.id === "gyard" && (near || ["crypt", "cathedral", "tavern", "elder", "cdoor", "chdoor"].includes(gyTile(R, x, y)) || (R.glow && R.glow.x === x && R.glow.y === y))) || (R.id === "gcity" && (near || gcTile(R, x, y) === "palace" || gcTile(R, x, y) === "gate" || (gcTile(R, px, py) === "roof" && Math.max(Math.abs(x - px), Math.abs(y - py)) <= 2))) || R.id === "past" && (near || pastTile(R, x, y) === "roots" && Math.abs(x - px) + Math.abs(y - py) <= 2 || pastTile(R, x, y) === "keeper");
     if (seen || pastSee) parts.push(sq(x, y, `fill="${fillOf(x, y)}" stroke="#6e5634" stroke-width="1.2"${seen ? "" : ` opacity=".7"`}`), R.id === "past" && pastTile(R, x, y) === "roots" ? at(x, y, RIFT_ICO.roots) : "", R.id === "blood" && y >= 5 ? sq(x, y, `fill="#6a0e18" opacity=".28" pointer-events="none"`) : "");
     else parts.push(sq(x, y, `fill="#120c10" stroke="#2c1a20" stroke-width="1.2"`));
     if (R.id === "ice" && seen) parts.push(sq(x, y, `fill="#bfe4ff" opacity=".14" pointer-events="none"`));
@@ -3171,18 +3220,18 @@ function riftStage() {
   parts.push(`<g transform="${here && here !== "descent" ? "translate(8 8) scale(.8)" : ""}">${ICON.party}</g>`);
   if (mineDark(R) || gyDark(R)) parts.push(`<rect x="${-T * 4}" y="${-T * 4}" width="${T * 8}" height="${T * 8}" fill="#000" opacity=".55" pointer-events="none"/>`);
   const half = T * 3.6, atStart = R.pos.x === R.start.x && R.pos.y === R.start.y && (R.id !== "mine" || R.level === 1), atBoss = R.boss && px === R.boss.x && py === R.boss.y;
-  const part = R.id === "gyard" ? `${GY_NAME[gyTile(R, px, py)]} · ${gyNight(R) ? "☾" : "☀"} ${R.pt}/10${R.graves.length ? ` · могилы ${R.graves.filter(g => g.dug).length}/${R.graves.length}` : ""}${R.churchKey ? " · ключ" : ""}${R.glow ? ` · свет ${R.glow.left}` : ""}` : R.id === "gcity" ? `${GC_NAME[gcTile(R, px, py)]} · тревога ${R.alarm}/10 · плащи ${R.cloaks}${R.seal ? " · печать" : ""}${R.key ? " · ключ" : ""}${R.smuggler ? " · ключ контрабандиста" : ""}` : R.id === "past" ? `${PAST_NAME[pastTile(R, px, py)]} · след ${R.trail}/10 · ключ-карты ${R.keys}/3` : R.id === "mine" ? `Шахта · уровень ${R.level}/5${mineDark(R) ? " · тьма" : ""}` : R.id === "sand" ? `Пустыня · маяки ${R.beacons.filter(b => b.done).length}/2` : R.id === "blood" ? (py <= 4 ? "Двор крепости" : `Канализация · ряд ${py - 4} из ${R.h - 5}`) : R.id === "ice" ? `Пещера · ряд ${py + 1} из ${R.h}` : "";
+  const part = R.id === "crystal" ? `${CR_NAME[crTile(R, px, py)]} · камертоны ${R.pts.filter(p => p.tuned).length}/3${R.res ? " · резонанс" : ""}${crDark(R) ? " · тьма" : ""}` : R.id === "gyard" ? `${GY_NAME[gyTile(R, px, py)]} · ${gyNight(R) ? "☾" : "☀"} ${R.pt}/10${R.graves.length ? ` · могилы ${R.graves.filter(g => g.dug).length}/${R.graves.length}` : ""}${R.churchKey ? " · ключ" : ""}${R.glow ? ` · свет ${R.glow.left}` : ""}` : R.id === "gcity" ? `${GC_NAME[gcTile(R, px, py)]} · тревога ${R.alarm}/10 · плащи ${R.cloaks}${R.seal ? " · печать" : ""}${R.key ? " · ключ" : ""}${R.smuggler ? " · ключ контрабандиста" : ""}` : R.id === "past" ? `${PAST_NAME[pastTile(R, px, py)]} · след ${R.trail}/10 · ключ-карты ${R.keys}/3` : R.id === "mine" ? `Шахта · уровень ${R.level}/5${mineDark(R) ? " · тьма" : ""}` : R.id === "sand" ? `Пустыня · маяки ${R.beacons.filter(b => b.done).length}/2` : R.id === "blood" ? (py <= 4 ? "Двор крепости" : `Канализация · ряд ${py - 4} из ${R.h - 5}`) : R.id === "ice" ? `Пещера · ряд ${py + 1} из ${R.h}` : "";
   const coldRow = R.cold ? `<div class="rf-cold">${state.party.filter(c => !c.dead).map(c => { const v = R.cold[c.id] || 0; return `<span class="${v >= 8 ? "hi" : v >= 4 ? "mid" : ""}" title="Холод ${v}/10">❄ ${esc(c.name.split(" ")[0])} ${v}</span>`; }).join("")}</div>` : "";
-  return `<svg viewBox="${-half} ${-half} ${half * 2} ${half * 2}" id="rf-svg" role="img" aria-label="${esc(D.name)}"><defs>${ICON_DEFS}</defs>${parts.join("")}</svg>
+  return `<svg viewBox="${-half} ${-half} ${half * 2} ${half * 2}" id="rf-svg"${(dgUi.shakeUntil || 0) > Date.now() ? ` class="rf-quake"` : ""} role="img" aria-label="${esc(D.name)}"><defs>${ICON_DEFS}</defs>${parts.join("")}</svg>
     <button class="fx-btn corner-btn l" data-rift="map" aria-label="Схема разлома">${ICO_MAP}Карта</button>
     <div class="phase-pill rf-pill" style="top:58px">${esc(part)}</div>${coldRow}
     <div class="rf-bar">
       ${R.id === "past" && R.signs[tkey(px, py)] ? `<button class="fx-btn primary" data-rift="sign">Прочитать табличку</button>` : ""}
       ${R.id === "past" ? pastBar(R, px, py) : ""}
       ${R.id === "gcity" ? gcBar(R, px, py) : ""}
-      ${R.id === "gyard" ? gyBar(R, px, py) : ""}
+      ${R.id === "gyard" ? gyBar(R, px, py) : ""}${R.id === "crystal" ? crBar(R, px, py) : ""}
       ${brewButtons().map(b => `<button class="fx-btn" data-rift="${b.id}"${b.disabled ? " disabled" : ""}>${b.label}<small>${b.sub}</small></button>`).join("")}
-      ${(R.id === "past" && pastTile(R, px, py) === "lab" && !R.natDead) || (R.id === "gcity" && R.pend) || (R.id === "gyard" && gyTile(R, px, py) === "tavern") ? "" : `<button class="fx-btn" data-rift="rest">${ICO_ACT.rest}${R.id === "gcity" ? ({ tavern: "Отдохнуть в таверне", den: "Залечь на дно" })[gcTile(R, px, py)] || "Привал" : R.id === "past" ? ({ stream: "Отдых у ручья", hollow: "Спрятаться в дупле", glade: "Отдохнуть на поляне", lab: "Отдохнуть" })[pastTile(R, px, py)] || "Привал" : "Привал"}</button>`}
+      ${(R.id === "past" && pastTile(R, px, py) === "lab" && !R.natDead) || (R.id === "gcity" && R.pend) || (R.id === "gyard" && gyTile(R, px, py) === "tavern") ? "" : `<button class="fx-btn" data-rift="rest">${ICO_ACT.rest}${R.id === "gcity" ? ({ tavern: "Отдохнуть в таверне", den: "Залечь на дно" })[gcTile(R, px, py)] || "Привал" : R.id === "past" ? ({ stream: "Отдых у ручья", hollow: "Спрятаться в дупле", glade: "Отдохнуть на поляне", lab: "Отдохнуть" })[pastTile(R, px, py)] || "Привал" : R.id === "crystal" && !R.res && ["camp", "tent", "shop"].includes(crTile(R, px, py)) ? "Отдохнуть в лагере" : "Привал"}</button>`}
       ${r.light ? `<button class="fx-btn" data-dg="torch-off"><img src="${artPath("field/torch-on")}" alt="" width="18" height="18">Погасить факел</button>` : `<button class="fx-btn" data-dg="torch-on"${partyTorches() || r.torchLeft > 0 ? "" : " disabled"}><img src="${artPath("field/torch-off")}" alt="" width="18" height="18">Факел (${partyTorches()})</button>`}
       ${R.id === "mine" && !R.dug[R.level + ":" + tkey(px, py)] && shovelsOf().length ? `<button class="fx-btn" data-rift="dig">${ICO_ACT.dig}Копать</button>` : ""}
       ${R.id === "sand" && sandBeaconAt(R, px, py) >= 0 && !R.beacons[sandBeaconAt(R, px, py)].done ? `<button class="fx-btn primary" data-rift="beacon">Раскачать маяк</button>` : ""}
@@ -3198,16 +3247,16 @@ function riftMapOverlay() {
   const r = state.run, R = r.rift, D = RIFTS[R.id], full = riftMapOwned(R.id);
   let cells = "";
   for (let y = 0; y < R.h; y++) for (let x = 0; x < R.w; x++) {
-    if (!riftCell(R, x, y) || (R.id === "past" && pastTile(R, x, y) === "roots") || (R.id === "gcity" && gcTile(R, x, y) === "palace") || (R.id === "gyard" && ["crypt", "cathedral"].includes(gyTile(R, x, y)) && !(x === 1 && y === 1) && !(x === 13 && y === 1))) { cells += `<span class="rf-c rf-wall"></span>`; continue; }
+    if (!riftCell(R, x, y) || (R.id === "past" && pastTile(R, x, y) === "roots") || (R.id === "gcity" && gcTile(R, x, y) === "palace") || (R.id === "gyard" && ["crypt", "cathedral"].includes(gyTile(R, x, y)) && !(x === 1 && y === 1) && !(x === 13 && y === 1)) || (R.id === "crystal" && crTile(R, x, y) === "heart" && !R.res)) { cells += `<span class="rf-c rf-wall"></span>`; continue; }
     const k = tkey(x, y), cur = R.pos.x === x && R.pos.y === y, seen = full || R.visited.includes(k), near = Math.abs(x - R.pos.x) + Math.abs(y - R.pos.y) === 1;
     const m = riftMarkOf(R, x, y, seen, near), mark = cur ? "●" : { descent: "▼", mini: "☠", boss: "♛", chest: "◆", open: "✓", exit: "◎", beacon: "♜", beaconDone: "·", sandStir: "≈", keeperGlow: "✶", lab: "⌂", sign: "▭", gcGate: "♜", gcOil: "▣", gcOilLit: "♨", gc_tavern: "⌂", gc_den: "☾", gc_market: "$", gy_tavern: "⌂", gy_crypt: "▥", gy_cathedral: "✝", gy_grave: "✧", gy_elder: "☗", gy_coffin: "▥", gy_glow: "✺" }[m] || "";
-    cells += `<span class="rf-c${cur ? " rf-cur" : seen ? " rf-seen" : ""}"${R.id === "gyard" && (seen || ["tavern", "elder"].includes(gyTile(R, x, y))) && !cur ? ` style="background:${GY_FILL[gyTile(R, x, y)]}"` : R.id === "gcity" && seen && !cur ? ` style="background:${GC_FILL[gcTile(R, x, y)]}"` : R.id === "past" && seen && !cur ? ` style="background:${PAST_FILL[pastTile(R, x, y)]}"` : m === "keeperGlow" ? ` style="color:#c4ff6a"` : ""}>${mark}</span>`;
+    cells += `<span class="rf-c${cur ? " rf-cur" : seen ? " rf-seen" : ""}"${R.id === "crystal" && (seen || ["camp", "tent", "shop", "point"].includes(crTile(R, x, y))) && !cur ? ` style="background:${CR_FILL[crTile(R, x, y)]}"` : R.id === "gyard" && (seen || ["tavern", "elder"].includes(gyTile(R, x, y))) && !cur ? ` style="background:${GY_FILL[gyTile(R, x, y)]}"` : R.id === "gcity" && seen && !cur ? ` style="background:${GC_FILL[gcTile(R, x, y)]}"` : R.id === "past" && seen && !cur ? ` style="background:${PAST_FILL[pastTile(R, x, y)]}"` : m === "keeperGlow" ? ` style="color:#c4ff6a"` : ""}>${mark}</span>`;
   }
   return `<div class="mapov" role="dialog" aria-modal="true" aria-label="Схема: ${esc(D.name)}">
     <div class="panel fx-frame enc-panel">
       <div class="ph-head"><h3>${esc(D.name)}</h3><button class="fx-btn" data-rift="map" aria-label="Закрыть схему" style="width:42px;height:42px;padding:0;display:grid;place-items:center">${ICO_X}</button></div>
-      <div class="rf-grid" style="grid-template-columns:repeat(${R.w},1fr)">${cells}</div>
-      <p class="rf-legend">● отряд · ${R.id === "gyard" ? "⌂ таверна · ☗ дом старосты · ▥ склеп · ✝ церковь · ✧ светящаяся могила · ✺ свет · " : R.id === "gcity" ? "♜ ворота дворца · $ рынок · ⌂ таверна · ☾ притон · ▣ склад масла · " : R.id === "past" ? "✶ хранитель · ⌂ лаборатория · ▭ табличка · ▒ корни · " : R.id === "ice" ? "" : R.id === "sand" ? "♜ маяк · " : "▼ спуск · "} ☠ минибосс · ♛ страж · ◆ сундук · ◎ выход</p>
+      <div class="rf-grid${(dgUi.shakeUntil || 0) > Date.now() ? " rf-quake" : ""}" style="grid-template-columns:repeat(${R.w},1fr)">${cells}</div>
+      <p class="rf-legend">● отряд · ${R.id === "crystal" ? "⌂ палатка алхимика · $ лавочник · ◇ точка камертона · ♪ камертон · " : R.id === "gyard" ? "⌂ таверна · ☗ дом старосты · ▥ склеп · ✝ церковь · ✧ светящаяся могила · ✺ свет · " : R.id === "gcity" ? "♜ ворота дворца · $ рынок · ⌂ таверна · ☾ притон · ▣ склад масла · " : R.id === "past" ? "✶ хранитель · ⌂ лаборатория · ▭ табличка · ▒ корни · " : R.id === "ice" ? "" : R.id === "sand" ? "♜ маяк · " : "▼ спуск · "} ☠ минибосс · ♛ страж · ◆ сундук · ◎ выход</p>
     </div></div>`;
 }
 // ===== Разлом 2 этажа «Чаща прошлого» (звери; спецификация автора 08.11) =====
@@ -3266,9 +3315,9 @@ function pastGen(R) {
   R.map = m; R.start = { ...PAST_START }; R.boss = { ...PAST_LAB }; R.minis = {}; R.trail = 0; R.keys = 0; R.explore = 0; R.signs = { [tkey(PAST_START.x, PAST_START.y)]: "start", [tkey(PAST_LAB.x, PAST_LAB.y)]: "lab" }; R.signTypes = {}; R.washed = {};
 }
 function pastSync() {          // порталы разлома на 2 этаже (Волчья чаща): то же окно, что на 1 этаже — 3-й день и до 2-го действия 4-го
-  const r = state.run; if (!r || r.floor !== 2 || r.rift || !["beast", "goblin", "undead"].includes(r.variant)) return;
-  if (r.variant === "undead" && !(typeof masterOn === "function" && masterOn())) return;          // «Кладбище прошлого» в работе — пока только в режиме мастера
-  const rid = r.variant === "goblin" ? "gcity" : r.variant === "undead" ? "gyard" : "past", where = r.variant === "goblin" ? "Лесу гоблинов" : r.variant === "undead" ? "Могильнике белой пыли" : "Волчьей чаще";
+  const r = state.run; if (!r || r.floor !== 2 || r.rift || !["beast", "goblin", "undead", "stone"].includes(r.variant)) return;
+  if (r.variant === "stone" && !(typeof masterOn === "function" && masterOn())) return;          // «Кристальный рудник прошлого» в работе — пока только в режиме мастера
+  const rid = r.variant === "goblin" ? "gcity" : r.variant === "undead" ? "gyard" : r.variant === "stone" ? "crystal" : "past", where = r.variant === "goblin" ? "Лесу гоблинов" : r.variant === "undead" ? "Могильнике белой пыли" : r.variant === "stone" ? "Кристальном разломе" : "Волчьей чаще";
   const open = partyRank() <= RIFT_RANK && (r.day === 10 || (r.day === 11 && r.act <= 2)), R = r.riftsF2;          // 2 этаж: 10-й день – 2-е действие 11-го (автор 09.11)
   if (open && !R) {
     const V = FL().variant, free = [];
@@ -3336,7 +3385,7 @@ function pastRestAfter(R, pk, lines) {          // особые привалы: 
 }
 function pastFightDone(R, e, ids) {
   if (e.pastCellar && e.outcome === "win") { R.cellar = Math.max(R.cellar || 0, e.pastCellar);
-    if (e.pastCellar === 3 && ids.includes("alpha01")) { const c = state.party.find(x => !x.dead); if (c) addToBag(c, { t: "g", id: "strength-serum", qty: 1 }); logRun("Прототип Альфа-01 повержен. В его капсуле — сыворотка силы."); dgUi.res = { title: "Прототип повержен", roll: "", pic: "find", lines: [`«Сыворотка силы» — у ${c ? esc(c.name) : "отряда"}. Вколоть её может только один герой.`] }; } }
+    if (e.pastCellar === 3 && ids.includes("alpha01")) { const c = state.party.find(x => !x.dead); if (c) addToBag(c, { t: "g", id: "strength-serum", qty: 1 }); logRun("Прототип Альфа-01 повержен. В его капсуле — сыворотка силы."); dgUi.res = { title: "Прототип повержен", roll: "", pic: "find", lines: [`«Сыворотка силы» — у ${c ? esc(c.name) : "отряда"}. Действует на того, кто вколет её себе.`] }; } }
   const ws = ids.filter(id => id === "lab-direwolf").length;
   if (ws && R.keys < 3) { const was = R.keys; R.keys = Math.min(3, R.keys + ws); logRun(`С ошейника лютоволка снята ключ-карта (${R.keys}/3).${R.keys >= 3 ? " Теперь дверь лаборатории откроется." : ""}`); if (R.keys > was) toast(`Ключ-карта ${R.keys}/3`); }
   if (e.pastKeeper) { if (ids.includes("fallen-keeper") || !pastHas("fallen-keeper")) { R.keeperDead = true; logRun("Падший хранитель повержен: корни увядают, путь к лаборатории открыт."); } else if (R.prev) R.pos = { ...R.prev }; }          // не победили — отряд отходит назад
@@ -3499,7 +3548,7 @@ function gcFightDone(R, e, ids) {
   if (ids.includes("city-captain") && !R.seal) { R.seal = true; logRun("С капитана снята Печать капитана."); }
   if (ids.includes("chief-engineer") && !R.key) { R.key = true; logRun("У инженера найден Ключ инженера."); }
   if (e.gcPyro && (ids.includes("mad-pyromancer") || !gcHas("mad-pyromancer"))) { R.pyroDone = true; R.smuggler = true; logRun("У пироманта — ключ контрабандиста: он открывает дворец и без других ключей.");
-    if (ids.includes("mad-pyromancer")) { const c = state.party.find(x => !x.dead); if (c) { addToBag(c, { t: "g", id: "thief-secrets", qty: 1 }); logRun(`В лохмотьях пироманта — книга «Секреты воровства» (у ${c.name}).`); dgUi.res = { title: "Пиромант повержен", roll: "", pic: "find", lines: ["Ключ контрабандиста открывает дворец и без других ключей.", `«Секреты воровства» — у ${esc(c.name)}. Прочесть её может только один герой.`] }; } } }
+    if (ids.includes("mad-pyromancer")) { const c = state.party.find(x => !x.dead); if (c) { addToBag(c, { t: "g", id: "thief-secrets", qty: 1 }); logRun(`В лохмотьях пироманта — книга «Секреты воровства» (у ${c.name}).`); dgUi.res = { title: "Пиромант повержен", roll: "", pic: "find", lines: ["Ключ контрабандиста открывает дворец и без других ключей.", `«Секреты воровства» — у ${esc(c.name)}. Действует на того, кто прочтёт её сам.`] }; } } }
   if (e.gcKing && (ids.includes("gob-founder") || !gcHas("gob-founder"))) { R.bossDead = true; logRun("Вождь Гракх повержен: сундук дворца открыт."); }
 }
 function gcBar(R, px, py) {
@@ -3538,7 +3587,7 @@ const GY_ELDER = { name: "Староста Азик Эггерс", face: "assets
 const GY_GRAVES = ["Марта Холл", "Брам Тисс", "Азик Эггерс"];
 const GY_SCYTHE_P = 0.25;
 // Книги-навсегда (автор 14.11): +2 к характеристике, у каждого героя по одной книге каждого вида за жизнь.
-const BOOKS = { "eternal-secrets": { stat: "wis", flag: "eternal" }, "thief-secrets": { stat: "dex", flag: "thief" }, "strength-serum": { stat: "str", flag: "serum", verb: "Вколоть" } };
+const BOOKS = { "eternal-secrets": { stat: "wis", flag: "eternal" }, "thief-secrets": { stat: "dex", flag: "thief" }, "strength-serum": { stat: "str", flag: "serum", verb: "Вколоть себе", inf: "вколоть", act: "вкалывает" }, "stone-heart": { stat: "con", flag: "stoneheart", verb: "Поглотить", inf: "поглотить", act: "поглощает" } };
 const STAT_NAME_RU = { str: "Сила", dex: "Ловкость", con: "Телосложение", int: "Интеллект", wis: "Мудрость", cha: "Харизма" };          // шанс «Косы последнего вздоха» с духа смерти (черновик)
 const GY_HINTS = ["Говорят, ночью могилы светятся.", "Я слышал, что ночью можно встретить свет на кладбище. Говорят, сама смерть ходит по нему.", "Ключ от церкви? Да, был такой. Священник хранил его в склепе. Странный был тип."];
 const GY_NAME = { village: "Поселение", tavern: "Таверна", elder: "Дом старосты", field: "Пшеничное поле", grave: "Кладбище", crypt: "Склеп", cathedral: "Церковь", cfloor: "Склеп", cdoor: "Склеп: выход", coffin: "Склеп: гроб", nave: "Церковь", chdoor: "Церковь: выход", altar: "Церковь: алтарь" };
@@ -3710,7 +3759,7 @@ function gyFightDone(R, e, ids) {
   if (e.gyBoss && ids.includes("night-abbot")) { R.bossDead = true; logRun("Настоятель Вечной ночи повержен: сундук церкви открыт для отряда."); }
   if (e.gyAzik && ids.includes("azik-lich")) {
     R.azikDead = true; const c = state.party.find(x => !x.dead); if (c) addToBag(c, { t: "g", id: "eternal-secrets", qty: 1 });
-    logRun("Азик повержен. В его руках осталась книга «Тайны вечной жизни»."); dgUi.res = { title: "Азик повержен", roll: "", pic: "find", lines: [`«Тайны вечной жизни» — у ${c ? esc(c.name) : "отряда"}.`, "Прочесть её может только один герой."] };
+    logRun("Азик повержен. В его руках осталась книга «Тайны вечной жизни»."); dgUi.res = { title: "Азик повержен", roll: "", pic: "find", lines: [`«Тайны вечной жизни» — у ${c ? esc(c.name) : "отряда"}.`, "Действует на того, кто прочтёт её сам: передайте нужному герою."] };
   }
 }
 // привал на кладбище: ночью нападают часто; с караульным — реже и не врасплох. Возвращает true, если начался бой.
@@ -3767,6 +3816,113 @@ function vnNext() {
   el.innerHTML = `<div class="vn-wrap">${d.name ? `<div class="vn-name">${esc(d.name)}</div>` : ""}<div class="vn-box">${d.face ? `<img class="vn-face" src="${d.face}" alt="" onerror="this.src='assets/monsters/ph-humanoid-face.svg'">` : ""}<div class="vn-txt"><p>${esc(d.text)}</p><small>коснитесь экрана, чтобы продолжить</small></div></div></div>`;
   el.addEventListener("click", e => { e.stopPropagation(); e.preventDefault(); el.remove(); setTimeout(vnNext, 120); }, true); document.body.appendChild(el);
 }
+// ===== Разлом 2 этажа «Кристальный рудник прошлого» (автор 14.11) =====
+// 15×15: внизу — имперский лагерь исследователей (палатка алхимика, лавочник), вокруг — закристаллизованный шахтёрский городок, сверху — штольни.
+// Три точки камертонов (две по краям, одна в центре): в одной краевой (случайно) — бригадир Горн, в центральной — Поющий кристалл. Зачистил точку — «Вставить камертон».
+// Три камертона — резонанс: грохот, открывается вход в Сердце рудника (страж — Первородный кристалл). Лагерь после резонанса тоже кристальный: враги, Кристаллизованная жадность на месте лавочника, секретный босс — алхимик.
+const CR_ALCH = { name: "Мастер-алхимик Дитрих Вейл", face: "assets/npc/alchemist.webp" };
+const CR_INTRO = ["А, вы, должно быть, имперская подмога, да?", "Вот ваши камертоны. Расставьте их в точках, которые я укажу, и активируйте резонанс.", "Тогда сможете разобраться с тем, что всё это вызвало."];
+const CR_TALK = ["Это место? Да обычная дыра. Меня сюда отправили наблюдать за разработкой шахты.", "Как выжил? Да раствором себя облил, так и выжил. Ногу не сохранил, правда.", "Безопасен ли мой метод? Вы точно зелёные ещё. Империя ценит эффективность, а не безопасность."];
+const CR_NAME = { camp: "Лагерь исследователей", tent: "Палатка алхимика", shop: "Лавочник", street: "Кристальный городок", mine: "Штольни", point: "Точка камертона", heart: "Сердце рудника" };
+const CR_FILL = { camp: "#4a4434", tent: "#6a5636", shop: "#5e5a3a", street: "#3a4652", mine: "#262c36", point: "#4c3a62", heart: "#5a2a6a" };
+const CR_POOL = { street: { 9: ["petrified-miner", "crystal-rat", "mine-pony"], 8: ["crystal-smith", "crystal-innkeeper"], 7: ["crystal-overseer"] }, mine: { 9: ["petrified-miner", "crystal-rat"], 8: ["rockfall", "crystal-smith"], 7: ["shard-hunter"] } };
+CR_POOL.camp = { 9: [...CR_POOL.street[9]], 8: [...CR_POOL.street[8], "rockfall"], 7: ["crystal-overseer", "shard-hunter"] };
+const CR_SHOP = [["ration", 1, "пайки ×7", 7], ["potion", 2, "слабое зелье лечения", 1], ["potion-good", 9, "зелье лечения", 1]];
+const CR_FORK_P = 0.3;          // шанс «Камертона резонанса» с Поющего кристалла (черновик), один за заход
+const crTile = (R, x, y) => R.map[tkey(x, y)];
+const crPick = (where, cls) => { const a = ((CR_POOL[where] || CR_POOL.street)[cls] || []).filter(id => MONSTERS.some(m => m.id === id)); return a[rnd(a.length)]; };
+const crDark = R => !!(R && R.id === "crystal" && crTile(R, R.pos.x, R.pos.y) === "mine" && !state.run.light && !(typeof partyGlow === "function" && partyGlow()));
+const crPointAt = (R, x, y) => R.pts.findIndex(p => p.x === x && p.y === y);
+function crGen(R) {
+  const N = 15, m = {};
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) m[tkey(x, y)] = x >= 5 && x <= 9 && y >= 12 ? "camp" : y <= 4 ? "mine" : "street";
+  m[tkey(7, 12)] = "tent"; m[tkey(5, 13)] = "shop"; m[tkey(7, 3)] = "heart";
+  const pts = [{ x: 1, y: 6 }, { x: 13, y: 6 }, { x: 7, y: 8 }]; for (const p of pts) m[tkey(p.x, p.y)] = "point";
+  const bossEdge = rnd(2);
+  Object.assign(R, { map: m, start: { x: 7, y: 14 }, boss: { x: 7, y: 3 }, minis: {}, met: false, talk: 0, res: false, campSeen: false, greedDead: false, alchDead: false, ncl: {},
+    pts: pts.map((p, i) => ({ ...p, kind: i === 2 ? "center" : "edge", boss: i === 2 ? "singing-crystal" : i === bossEdge ? "foreman-gorn" : null, clear: false, tuned: false })) });
+}
+function crEnter() {
+  const R = state.run.rift; if (R.met) return; R.met = true;
+  setTimeout(() => vnShow(CR_INTRO.map(text => ({ ...CR_ALCH, text })), () => { logRun("Алхимик отметил три точки для камертонов."); }), 200);
+}
+function crGroup(R, sev, where) {
+  where = where || crTile(R, R.pos.x, R.pos.y); const w = where === "mine" ? "mine" : ["camp", "tent", "shop"].includes(where) ? "camp" : "street", p = cls => crPick(w, cls);
+  if (sev === "easy") return [p(9), p(9), ...(Math.random() < .5 ? [p(9)] : [])];
+  if (sev === "mid") return [p(8), p(9), p(9)];
+  return Math.random() < .5 ? [p(7), p(8), p(9)] : [p(8), p(8), p(9)];
+}
+function crMove(x, y) {
+  const r = state.run, R = r.rift;
+  if (Math.abs(x - R.pos.x) + Math.abs(y - R.pos.y) !== 1 || !riftCell(R, x, y)) return;
+  const t = crTile(R, x, y);
+  if (t === "heart" && !R.res) return;          // стена, пока нет резонанса
+  riftTick(); R.prev = { ...R.pos }; R.pos = { x, y }; const k = tkey(x, y), fresh = !R.visited.includes(k); if (fresh) R.visited.push(k);
+  if (t === "heart") { if (!R.bossDead) { riftFight("Страж разлома: Первородный кристалл", ["primal-crystal"]); dgUi.enc.crBoss = true; } return; }
+  if (["camp", "tent", "shop"].includes(t)) {
+    if (!R.res) return;          // до резонанса в лагере спокойно
+    if (!R.campSeen) { R.campSeen = true; logRun("Лагерь тоже обратился в кристалл. Алхимик ошибся."); }
+    if (t === "shop" && !R.greedDead) { riftFight("Кристаллизованная жадность", ["crystal-greed"]); dgUi.enc.crGreed = true; return; }
+    if (t === "tent" && !R.alchDead) { crAlchemist(); return; }
+    if (R.cleared[k]) return; R.cleared[k] = true;
+    const d = riftD(1 + rnd(20)), roll1 = `к20 = ${d}`, sev = d <= 8 ? "hard" : d <= 14 ? "mid" : "easy";
+    riftFight(`Кристальный лагерь: ${sev === "hard" ? "тяжёлая" : sev === "mid" ? "средняя" : "лёгкая"} встреча (${roll1})`, crGroup(R, sev, "camp"), d <= 2 ? { ambush: true } : {}); return;
+  }
+  const pi = crPointAt(R, x, y);
+  if (pi >= 0) { const P = R.pts[pi]; if (P.clear) return;
+    const list = P.boss === "singing-crystal" ? ["singing-crystal", "crystal-rat", "crystal-rat"] : P.boss === "foreman-gorn" ? ["foreman-gorn", "petrified-miner", "petrified-miner"] : crGroup(R, "hard", "street");
+    logRun(P.boss ? "У точки камертона кто-то ждёт." : "Точку камертона стерегут."); riftFight(P.boss ? `Точка камертона: ${MONSTERS.find(m => m.id === P.boss).name}` : "Точка камертона", list); dgUi.enc.crPoint = pi; return; }
+  if (!fresh || R.cleared[k]) return;
+  const mine = t === "mine", dark = crDark(R), d = riftD(Math.max(1, 1 + rnd(20) - (dark ? 2 : 0))), roll1 = `к20 = ${d}${dark ? " (тьма −2)" : ""}`;
+  const sev = mine ? (d <= 7 ? "hard" : d <= 12 ? "mid" : d <= 16 ? "easy" : null) : (d <= 6 ? "hard" : d <= 10 ? "mid" : d <= 15 ? "easy" : null);
+  if (sev) { R.cleared[k] = true; riftFight(`${mine ? "Штольни" : "Городок"}: ${sev === "hard" ? "тяжёлая" : sev === "mid" ? "средняя" : "лёгкая"} встреча (${roll1})`, crGroup(R, sev, t), d <= 2 ? { ambush: true } : {}); return; }
+  if (!mine && d <= 18) { const s2 = riftSupplies(); logRun(`Разлом: припасы (${roll1}; к20 = ${s2.d}) — ${s2.lines.join("; ")}`); dgUi.res = { title: "Брошенные припасы", roll: `${roll1} · припасы к20 = ${s2.d}`, pic: "find", lines: s2.lines }; return; }
+  const line = giveParty({ t: "g", id: mine ? "stone-8" : Math.random() < .5 ? "stone-9" : "stone-8", qty: 1 + rnd(2) }); logRun(`Разлом: ${mine ? "кристальная жила" : "находка"} (${roll1}) — ${line}`); dgUi.res = { title: mine ? "Кристальная жила" : "Находка", roll: roll1, pic: "find", lines: [line] };
+}
+function crAlchemist() {
+  const R = state.run.rift; logRun("В палатке — алхимик. Кристалл прорастает сквозь его кожу.");
+  riftFight("Мастер-алхимик Дитрих Вейл", ["crystal-alchemist"]); dgUi.enc.crAlch = true; dgUi.enc.dialog = { start: "alch-start", who: "crystal-alchemist" };
+}
+function crTalk() {
+  const R = state.run.rift; if (R.res || crTile(R, R.pos.x, R.pos.y) !== "tent") return;
+  riftTick(); const text = CR_TALK[R.talk % CR_TALK.length]; R.talk++; logRun(`Алхимик: «${text}»`);
+  setTimeout(() => vnShow([{ ...CR_ALCH, text }]), 50);
+}
+function crBuy(id) {
+  const R = state.run.rift; if (R.res || crTile(R, R.pos.x, R.pos.y) !== "shop") return;
+  const it = CR_SHOP.find(x => x[0] === id); if (!it || !gcPay(it[1])) { toast("Не хватает монет"); return; }
+  const line = giveParty({ t: "g", id, qty: it[3] }); logRun(`Лавочник лагеря: ${it[2]} за ${it[1]} мон. — ${line}`); toast(`Куплено: ${it[2]}`);
+}
+function crTune() {
+  const R = state.run.rift, pi = crPointAt(R, R.pos.x, R.pos.y); if (pi < 0) return; const P = R.pts[pi]; if (!P.clear || P.tuned) return;
+  riftTick(); P.tuned = true; const n = R.pts.filter(p => p.tuned).length; logRun(`Камертон установлен (${n}/3).`);
+  if (n < 3) { dgUi.res = { title: "Камертон установлен", roll: "", lines: [`Камертон тонко звенит (${n}/3).`] }; return; }
+  R.res = true; dgUi.shakeUntil = Date.now() + 1800; logRun("Резонанс! Рудник содрогается — в центре открылся проход в Сердце.");
+  dgUi.res = { title: "Резонанс", roll: "", anim: "quake", lines: ["Три камертона звенят в унисон. По руднику прокатывается грохот, земля ходит ходуном.", "В центре рудника, где была глухая скала, открылся проход — Сердце рудника."] };
+}
+function crFightDone(R, e, ids) {
+  if (e.crPoint != null && e.outcome === "win") { const P = R.pts[e.crPoint]; P.clear = true; logRun("Точка камертона свободна — можно ставить камертон.");
+    if (P.boss === "singing-crystal" && ids.includes("singing-crystal") && !state.run.forkDrop && Math.random() < CR_FORK_P) { state.run.forkDrop = true; const line = giveParty({ t: "g", id: "resonance-fork", qty: 1 }); logRun(`Среди осколков — камертон: ${line}`); dgUi.res = { title: "Осколки кристалла", roll: "", pic: "find", lines: ["Среди осколков поющего кристалла лежит необычный камертон.", line] }; } }
+  if (e.crBoss && ids.includes("primal-crystal")) { R.bossDead = true; logRun("Первородный кристалл расколот: сундук Сердца открыт для отряда."); }
+  if (e.crGreed && ids.includes("crystal-greed")) { R.greedDead = true; const g = (e.greedGold || 0) * 2 + 10, c = state.party.find(x => !x.dead); if (c) addGold(c, g); logRun(`Жадность рассыпается — из неё сыплются монеты: ${g}.`); dgUi.res = { title: "Жадность рассыпалась", roll: "", pic: "find", lines: [`Из осколков сыплются монеты: ${g} (украденное — вдвое, и сверху).`] }; }
+  if (e.crAlch && ids.includes("crystal-alchemist")) { R.alchDead = true; const c = state.party.find(x => !x.dead); if (c) addToBag(c, { t: "g", id: "stone-heart", qty: 1 }); logRun("Алхимик рассыпался. В его груди — каменное сердце."); dgUi.res = { title: "Алхимик повержен", roll: "", pic: "find", lines: [`«Каменное сердце» — у ${c ? esc(c.name) : "отряда"}. Действует на того, кто поглотит его сам.`] }; }
+}
+function crBar(R, px, py) {
+  const t = crTile(R, px, py), out = [], B1 = (a, label, sub, pri, dis) => `<button class="fx-btn${pri ? " primary" : ""}" data-rift="${a}"${dis ? " disabled" : ""}>${label}<small>${sub}</small></button>`;
+  if (t === "tent" && !R.res) out.push(B1("cr-talk", "Поговорить с алхимиком", "1 действие", true));
+  if (t === "shop" && !R.res) for (const [id, pr, nm] of CR_SHOP) out.push(B1("cr-buy", `Купить: ${nm}`, `${pr} мон.`, false, partyGold() < pr).replace('data-rift="cr-buy"', `data-rift="cr-buy" data-id="${id}"`));
+  const pi = crPointAt(R, px, py); if (pi >= 0 && R.pts[pi].clear && !R.pts[pi].tuned) out.push(B1("cr-tune", "Вставить камертон", `установлено ${R.pts.filter(p => p.tuned).length}/3`, true));
+  return out.join("");
+}
+function crMarkOf(R, x, y, seen, near) {
+  const t = crTile(R, x, y);
+  if (t === "tent") return R.res && !R.alchDead ? "cr_danger" : "cr_tent";
+  if (t === "shop") return R.res && !R.greedDead ? "cr_danger" : "cr_shop";
+  if (t === "point") { const P = R.pts[crPointAt(R, x, y)]; return P.tuned ? "cr_fork" : "cr_point"; }
+  if (t === "heart") return R.res ? (R.bossDead ? (R.chestOpen ? "open" : "chest") : "boss") : "cr_rock";
+  if (R.start && x === R.start.x && y === R.start.y && seen) return "exit";
+  return "";
+}
 if (typeof document !== "undefined") document.addEventListener("click", e => {
   const b = e.target.closest && e.target.closest("[data-rift]"); if (!b || !state.run || !state.run.rift) return;
   const a = b.dataset.rift;
@@ -3783,6 +3939,9 @@ if (typeof document !== "undefined") document.addEventListener("click", e => {
   if (a === "gc-ignite") gcIgnite();
   if (a === "gc-palace") gcPalace();
   if (a === "gy-tavern") gyTavern();
+  if (a === "cr-talk") crTalk();
+  if (a === "cr-buy") crBuy(b.dataset.id);
+  if (a === "cr-tune") crTune();
   if (a === "gy-read") gyRead();
   if (a === "gy-dig") gyDig();
   if (a === "brew2" || a === "brew4") brewPotion(a === "brew4" ? 4 : 2);
@@ -3850,6 +4009,7 @@ Object.assign(MON_ARMOR, { "moss-hedgehog": 1, "firefly-swarm": 0, "branded-crit
 Object.assign(MON_ARMOR, { "unfinished-blade": 3, "ash-owl": 0, "clockwork-orange": 2, "pendulum-guard": 3, "goblin-miner": 1, kobold: 1, slime: 0, "kobold-guard": 2, "goblin-blaster": 1, "acid-slime": 0, "stone-slime": 3, "split-slime": 0, "mine-ghost": 0, "cart-mimic": 3, "kobold-captain": 3, "goblin-foreman": 2, rimuru: 1, "sand-vulture": 0, "sand-scorpion": 2, "worm-larva": 1, "sand-worm": 2, "big-stinger": 2, "pseudo-cactus": 2, "mirage-scorpion": 2, "dead-vulture": 1, "kel-worm": 3, "ice-imp": 0, "frost-beetle": 2, "snow-hunter": 1, "ice-spirit": 0, "mammoth-calf": 1, "ice-deer": 0, "half-troll": 2 });          // Ледяной грот
 Object.assign(MON_BOOST, { "flesh-golem": { hp: 1.15, dmg: 2, hit: 1 }, abomination: { hp: 1.5, dmg: 4, hit: 2 } });
 Object.assign(MON_BOOST, { "alpha01": { hp: 1.25, dmg: 2, hit: 1 }, "lesser-death": { hp: 0.85, dmg: -1 }, "night-abbot": { hp: 1.2, dmg: 1, hit: 1 }, "buried-priest": { dmg: 1 }, "azik-lich": { hp: 0.9 } });          // Кладбище прошлого (13.11, черновик): по прогонам отряда 5 ур. в стали          // Мордрейн (страж) — без правки: статблок = обычный 7 класс ×1,3 (v116)
+Object.assign(MON_BOOST, { "primal-crystal": { hp: 1.25, dmg: 2, hit: 1 }, "crystal-alchemist": { hp: 1.6, dmg: 4, hit: 2 }, "crystal-greed": { hp: 1.6, dmg: 4, hit: 2 }, "singing-crystal": { hp: 1.15, dmg: 1 } });          // Кристальный рудник прошлого (14.11, прогоны lab)
 Object.assign(MON_BOOST, { "mirage-scorpion": { hp: 1.5, dmg: 3, hit: 2 }, "dead-vulture": { hp: 1.5, dmg: 3, hit: 2 }, "kel-worm": { hp: 1.25, dmg: 2, hit: 1 }, "kobold-captain": { hp: 1.4, dmg: 3, hit: 1 }, "goblin-foreman": { hp: 1.4, dmg: 3, hit: 1 }, rimuru: { hp: 1.35, dmg: 3, hit: 1 }, "half-troll": { hp: 1.2, dmg: 2, hit: 1 }, "mammoth-calf": { hp: 1.4, dmg: 3, hit: 1 }, "ice-deer": { hp: 1.5, dmg: 3, hit: 2 } });          // минибоссы Ледяного грота (07.11, отряд в стали 5 ур.)
 MONSTERS.forEach(m => { if (m.floor === 3 && m.cls === 7 && !MON_BOOST[m.id] && !m.dyn) { const b = m.id in F3_C7_TIER ? F3_C7_TIER[m.id] : F3_C7_BOOST; if (b) MON_BOOST[m.id] = b; } });
 MONSTERS.forEach(m => { const b = MON_BOOST[m.id]; if (!b || m.boost) return; m.boost = b; if (b.dodge && m.dodge != null) m.dodge += b.dodge; if (b.prot && m.prot != null) m.prot = Math.max(0, m.prot + b.prot); if (b.hp && typeof m.hp === "string") m.hp = m.hp.replace(/^\d+/, n => String(Math.round(+n * b.hp))); });
@@ -4295,9 +4455,11 @@ const GEAR = {
   "flask-legend": { short: "Колба✦", name: "Легендарная колба", weight: 0.1, stack: 5, note: "Сохраняет выпавшую эссенцию любого класса; при броске к20 18+ не ломается." },
   "family-photo": { short: "Фото", name: "Старая фотография", weight: 0, stack: 1, use: "look", riftOnly: true, note: "Семейное фото. На обороте есть надпись.", look: "Фотография семьи, мужчина учёный, сын выглядит болезненно. Подпись на обратной стороне: «С днём рождения, мой мальчик»." },
   "cellar-key": { short: "Ключ", name: "Ключ от подвала", weight: 0, stack: 1, riftOnly: true, note: "Тяжёлый железный ключ." },
-  "strength-serum": { short: "Сыворотка", name: "Сыворотка силы", weight: 0.1, stack: 1, use: "eternal", note: "Красная сыворотка. Вколоть может один герой — одну такую за жизнь." },
-  "thief-secrets": { short: "Секреты", name: "Секреты воровства", weight: 0.5, stack: 1, use: "eternal", note: "Книга пироманта. Прочесть её может один герой — только одну такую за жизнь." },
-  "eternal-secrets": { short: "Тайны", name: "Тайны вечной жизни", weight: 0.5, stack: 1, use: "eternal", note: "Чёрная книга Азика. Прочесть её может один герой — и только одну такую за жизнь." },
+  "stone-heart": { short: "Сердце", name: "Каменное сердце", weight: 1, stack: 1, use: "eternal", note: "Тёплый кристалл из груди алхимика. Действует на того, кто поглотит его сам." },
+  "resonance-fork": { short: "Камертон", name: "Камертон резонанса", weight: 0.2, stack: 1, slot: "charm", cls: 7, treasure: true, note: "Артефакт 7 класса. Звенит в такт ударам звуком." },
+  "strength-serum": { short: "Сыворотка", name: "Сыворотка силы", weight: 0.1, stack: 1, use: "eternal", note: "Красная сыворотка. Действует на того, кто вколет её себе." },
+  "thief-secrets": { short: "Секреты", name: "Секреты воровства", weight: 0.5, stack: 1, use: "eternal", note: "Книга пироманта. Действует на того, кто прочтёт её сам." },
+  "eternal-secrets": { short: "Тайны", name: "Тайны вечной жизни", weight: 0.5, stack: 1, use: "eternal", note: "Чёрная книга Азика. Действует на того, кто прочтёт её сам." },
   "ess-flask":    { short: "Эссенция", name: "Эссенция в колбе", weight: 0.1, stack: 1, use: "essflask", note: "Колбу можно разбить и впитать эссенцию или продать в магазине и Башне магов." },
   potion:  { short: "Зелье", name: "Слабое зелье лечения", weight: 0.25, stack: 5, use: "drink", heal: "1к4 + 2", note: "Восстанавливает 1к4 + 2 ОЗ (3–6, в среднем 4,5): около трети ОЗ героя 1-го уровня." },
   torch:   { short: "Факел", name: "Факел", weight: 0.5, stack: 5, note: "Горит около часа, яркий свет 6 м." },
@@ -4389,6 +4551,8 @@ GEAR_ICON.whetstone = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor
 GEAR_ICON["daedalus-hammer"] = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><path d="M13 3l8 4-2 4-8-4z" fill="#f2c94c" opacity=".4"/><path d="M13 3l8 4-2 4-8-4z"/><path d="M13 9L5 21M4 20l2 2" /></svg>`;
 GEAR_ICON["unbreakable-charm"] = AMU("#9fb4c2"); GEAR_ICON["repair-charm"] = AMU("#d6a64c"); GEAR_ICON["durable-charm"] = AMU("#7ad0dc"); GEAR_ICON["regen-charm"] = AMU("#e0584a");
 GEAR_ICON["frost-amulet"] = AMU("#9ad0ff");
+GEAR_ICON["resonance-fork"] = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 3v8a3 3 0 0 0 6 0V3" stroke="#c9a8ff"/><path d="M12 14v7"/><path d="M5 6q-2 3 0 6M19 6q2 3 0 6" stroke-width="1.2" opacity=".7"/></svg>`;
+GEAR_ICON["stone-heart"] = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 20 4 11a4 4 0 0 1 8-5 4 4 0 0 1 8 5z" fill="#8a6ab0" opacity=".8"/><path d="M8 9l4 3 4-3M12 12v6" stroke-width="1"/></svg>`;
 GEAR_ICON["founder-crown"] = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M3 18h18l-1-10-4.5 4L12 5l-3.5 7L4 8z" fill="currentColor" opacity=".25"/><path d="M3 18h18l-1-10-4.5 4L12 5l-3.5 7L4 8zM4 21h16"/></svg>`;
 GEAR_ICON["thief-secrets"] = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h11a3 3 0 013 3v13H8a3 3 0 01-3-3z" fill="currentColor" opacity=".15"/><path d="M5 4h11a3 3 0 013 3v13H8a3 3 0 01-3-3zM5 17a3 3 0 013-3h11"/><path d="M10 8h5M10 11h3"/></svg>`;
 GEAR_ICON["eternal-secrets"] = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h11a3 3 0 013 3v13H8a3 3 0 01-3-3z" fill="currentColor" opacity=".15"/><path d="M5 4h11a3 3 0 013 3v13H8a3 3 0 01-3-3zM5 17a3 3 0 013-3h11"/><path d="M12 7v5M10 9h4"/></svg>`;
@@ -4689,7 +4853,7 @@ const CARRY_K = 3;
 function load(c, t = totals(c)) {
   const big = c.race === "barbarian" ? 2 : 1;
   const w = Object.values(c.equip || {}).reduce((a, v) => a + itemWeight(v), 0) + (c.bag || []).reduce((a, v) => a + itemWeight(v), 0);
-  const cap = (t.str.total + 0.5 * t.con.total) * CARRY_K * big, free = cap / 2, mid = cap * 0.75;
+  const cap = (t.str.total + 0.5 * t.con.total) * CARRY_K * big + (hasEssence(c, "mine-pony") ? 10 : 0), free = cap / 2, mid = cap * 0.75;          // «Вьючный» рудничного пони: +10 кг
   const level = w > cap ? "max" : w > mid ? "medium" : w > free ? "light" : "ok";
   return { w, free, mid, cap, enc: free, heavy: mid, runMax: mid, level, noRun: w > mid };
 }
@@ -4742,7 +4906,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 149;
+const BATTLE_REV = 150;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-weap2.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster() || st.dev === false) st.tactical = true; return st; }
@@ -4936,7 +5100,7 @@ function loadNet() {
   return netLoad;
 }
 /* ----- здания города (assets/js/town.js грузится при первом входе в здание) ----- */
-const TOWN_REV = 42, TOWN_FILES = ["assets/css/town.css", "assets/js/town.js"];
+const TOWN_REV = 43, TOWN_FILES = ["assets/css/town.css", "assets/js/town.js"];
 let townLoad = null;
 function loadTown() {
   if (window.Town && window.Town.ready) return Promise.resolve(true);
@@ -7691,6 +7855,7 @@ const ARTIFACTS = {
   chalice: { cls: 8, name: "Чаша здоровья", ico: () => GEAR_ICON.chalice, text: GEAR.chalice.note },
   "beginners-luck": { cls: 8, name: "Удача новичка", ico: () => GEAR_ICON["beginners-luck"], text: GEAR["beginners-luck"].note },
   ...Object.fromEntries(["whetstone", "daedalus-hammer", "unbreakable-charm", "repair-charm", "durable-charm", "regen-charm", "mana-charm", "fatigue-charm", "hunger-charm", "frost-gloves", "hide-cloak", "frost-amulet"].map(id => [id, { cls: GEAR[id].cls, name: GEAR[id].name, ico: () => GEAR_ICON[id], text: GEAR[id].note }])),
+  "resonance-fork": { cls: 7, name: "Камертон резонанса", ico: () => GEAR_ICON["resonance-fork"], text: "Каждый урон звуком от носителя оставляет на цели стак резонанса (n). Раз за бой — действие «Камертон» по одной цели: она получает n + n×1к4 урона звуком, стаки снимаются." },
   "calm-flute": { cls: 9, name: "Флейта успокоения", ico: () => GEAR_ICON.flute, text: GEAR["calm-flute"].note },
   tollbell: { cls: 7, name: "Серебряный колокольчик", ico: () => ICO_BELL, text: "Уникальный (сокровищница Звона). Раз в день: если монстр атаковал героя ментальной атакой или дебаффом и герой провалил проверку (Инт, Муд или Хар), колокольчик звенит сам — перебросок с преимуществом получает пострадавший и все остальные, кого задела та же способность. Можно взвести заранее из Инвентаря: тогда следующие ментальные проверки команды идут с преимуществом." },
   boots: { cls: 8, name: "Сапоги скороходы", ico: () => ICO_BOOTS, text: "Раз в день: Движение проходит сразу 2 клетки, а Бег — 3 клетки (одна из пробегаемых клеток — без проверки)." },
@@ -9097,7 +9262,7 @@ function selPanel(c) {
   if (it.ammo) { const cur = ammoFor(c, it.ammo) === e.id, set = (c.ammoPref || {})[it.ammo] === e.id; btns.push(`<button class="fx-btn${cur ? "" : " primary"}" data-hx="ammo-pref"${set ? " disabled" : ""}>${set ? "Выбраны по умолчанию" : it.ammo === "bow" ? "Стрелять этими" : "Метать эти"}</button>`); }
   if (it.use === "eat") btns.push(`<button class="fx-btn primary" data-hx="eat">Съесть 1</button>`);
   if (it.use === "drink") btns.push(`<button class="fx-btn primary" data-hx="drink">Выпить</button>`);
-  if (it.use === "eternal") { const rd = !!(c.flagsPerm || {})[BOOKS[e.id] ? BOOKS[e.id].flag : "eternal"]; btns.push(`<button class="fx-btn primary" data-hx="eternal"${rd ? " disabled" : ""}>${rd ? (BOOKS[e.id] && BOOKS[e.id].verb ? "Уже была такая" : "Уже прочитана другая") : (BOOKS[e.id] && BOOKS[e.id].verb) || "Прочесть"}</button>`); }
+  if (it.use === "eternal") { const rd = !!(c.flagsPerm || {})[BOOKS[e.id] ? BOOKS[e.id].flag : "eternal"]; btns.push(`<button class="fx-btn primary" data-hx="eternal"${rd ? " disabled" : ""}>${rd ? (BOOKS[e.id] && BOOKS[e.id].verb ? "Уже была такая" : "Уже прочитана другая") : (BOOKS[e.id] && BOOKS[e.id].verb) || "Прочесть самому"}</button>`); }
   if (it.use === "look") btns.push(`<button class="fx-btn primary" data-hx="look">Посмотреть</button>`);
   if (it.use === "essflask" && e.ess) btns.push(`<button class="fx-btn primary" data-hx="essflask">Разбить и впитать</button>`);
   if (it.use === "salt") btns.push(`<button class="fx-btn primary" data-hx="salt-toggle" aria-expanded="${!!heroUi.salt}">Посыпать оружие</button>`);
@@ -9381,10 +9546,10 @@ $hero.addEventListener("click", e => {
     case "eternal": {          // книги-навсегда: «Тайны вечной жизни» (+2 Мдр), «Секреты воровства» (+2 Лов); каждую книгу своего вида герой читает один раз за жизнь
       const bk = entry && BOOKS[entry.id]; if (!bk) return;
       if ((c.flagsPerm || {})[bk.flag]) { toast("Этот герой уже читал такую книгу"); return; }
-      askYesNo(bk.verb ? { title: `${bk.verb} «${GEAR[entry.id].name}»?`, text: `Шприц опустеет, а ${c.name} уже никогда не сможет вколоть другую такую.`, yes: bk.verb } : { title: `Прочесть «${GEAR[entry.id].name}»?`, text: `Книга рассыплется в прах, а ${c.name} уже никогда не сможет прочесть другую такую.`, yes: "Прочесть" }).then(ok => {
+      askYesNo(bk.verb ? { title: `${c.name}: ${bk.verb.toLowerCase()} «${GEAR[entry.id].name}»?`, text: `Подействует только на ${c.name}. Другую такую этот герой ${bk.inf || "вколоть"} уже не сможет; если она нужна другому — сначала передайте её.`, yes: bk.verb } : { title: `${c.name}: прочесть «${GEAR[entry.id].name}»?`, text: `Подействует только на ${c.name}. Другую такую этот герой прочесть уже не сможет; если она нужна другому — сначала передайте её.`, yes: "Прочесть самому" }).then(ok => {
         if (!ok) return; const i = c.bag.indexOf(entry); if (i < 0 || (c.flagsPerm || {})[bk.flag]) return;
         c.bag.splice(i, 1); (c.flagsPerm ||= {})[bk.flag] = true; c.base[bk.stat] = (c.base[bk.stat] || 10) + 2; heroUi.sel = null;
-        if (state.run) logRun(`${c.name} ${bk.verb ? "вкалывает" : "читает"} «${GEAR[entry.id].name}»: ${STAT_NAME_RU[bk.stat]} +2 навсегда.`); toast(`${c.name}: ${STAT_NAME_RU[bk.stat]} +2`); saveChar(); rerender(); renderHero();
+        if (state.run) logRun(`${c.name} ${bk.act || (bk.verb ? "вкалывает" : "читает")} «${GEAR[entry.id].name}»: ${STAT_NAME_RU[bk.stat]} +2 навсегда.`); toast(`${c.name}: ${STAT_NAME_RU[bk.stat]} +2`); saveChar(); rerender(); renderHero();
       });
       return;
     }

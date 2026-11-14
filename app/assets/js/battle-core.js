@@ -288,7 +288,7 @@
     for (const c of u.conds) {
       if (["grappled", "restrained", "pinned", "trapped", "spearstop", "bastion", "unconscious", "stable", "buried", "paralyzed", "underground", "mired", "encased", "sunk", "chained", "drowning", "shackled"].includes(c.id)) return 0;
     }
-    for (const c of u.conds) if (c.id === "packhowl") sp += 1;
+    for (const c of u.conds) { if (c.id === "packhowl" || c.id === "urged") sp += 1; if (c.id === "solution") sp -= 1; }
     for (const c of u.conds) if (c.id === "iced") sp -= 2;          // обледенение (дубина Грольфа)          // «Загонный вой» вожака гончих (03.11)
     for (const c of u.conds) if (c.id === "slowed") { if (c.data.mult != null) sp = Math.floor(sp * c.data.mult); if (c.data.add) sp += c.data.add; }
     if (B.coldSpd) sp -= B.coldSpd(u);          // холод Ледяного грота

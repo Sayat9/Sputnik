@@ -20,7 +20,7 @@
   // Цена продажи вещей лавочнику не меняется (считается от базовой цены g.base).
   const RANK_GOODS = { "potion-good": 8, "shovel-good": 8, compass: 8 };
   const rankMul = (r, open) => r >= 9 ? 1.1 : open != null && r <= open - 1 ? 0.9 : 1;
-  GOODS.forEach(g => { const b = g.price; g.base = b; Object.defineProperty(g, "price", { configurable: true, get() { const r = partyRank(), need = RANK_GOODS[g.key]; return Math.max(1, Math.round(b * (r >= 9 ? 1.1 : need && r <= need - 1 ? 0.9 : 1) * (partyHas("goblin-merchant") ? 0.9 : 1))); } }); });          // «Торгаш» гоблина-торговца: −10 %
+  GOODS.forEach(g => { const b = g.price; g.base = b; Object.defineProperty(g, "price", { configurable: true, get() { const r = partyRank(), need = RANK_GOODS[g.key]; return Math.max(1, Math.round(b * (r >= 9 ? 1.1 : need && r <= need - 1 ? 0.9 : 1) * (partyHas("goblin-merchant") ? 0.9 : 1) * (partyHas("crystal-greed") ? 0.95 : 1))); } }); });          // «Торгаш» гоблина-торговца: −10 %
   const goodOpen = g => !RANK_GOODS[g.key] || partyRank() <= RANK_GOODS[g.key];
   // Кузница: на 9 ранге обычное оружие и броня +10 %, улучшенное (стальное) открывается с 8-го ранга, на 7-м на него −10 %.
   const forgeRank = (p, steel) => Math.max(1, Math.round(p * (steel ? (partyRank() <= 7 ? 0.9 : 1) : (partyRank() >= 9 ? 1.1 : 1))));
@@ -784,7 +784,7 @@
   // Оружие и броня: рыночная цена — как в кузнице (обычное 10/15, стальное 25/40); кузнец берёт −10 %, магазин −20 %; сломанное — пятая часть. Продаётся только из рюкзака.
   const gearMarket = e => { if (!e || (e.t !== "w" && e.t !== "a") || e.art) return 0; const base = e.t === "w" ? (e.steel ? FORGE_PRICE.steelWeapon : FORGE_PRICE.weapon) : (e.steel ? FORGE_PRICE.steelArmor : FORGE_PRICE.armor); return e.broken ? Math.max(1, Math.round(base * 0.2)) : base; };
   const gearPay = e => Math.max(1, Math.round(gearMarket(e) * (ui && ui.b === "forge" ? 0.9 : 0.8)));
-  const unitPrice = e => { if (e && e.t === "g" && AMMO_PACK[e.id] && e.id !== "arrow") return AMMO_PACK[e.id][0] / AMMO_PACK[e.id][1]; const g = GOODS.find(x => x.e && x.e.t === "g" && e && e.t === "g" && x.e.id === e.id); return g ? Math.min(g.price / g.e.qty, g.base / g.e.qty * (partyHas("goblin-merchant") ? 1.1 : 1)) : 0; };          // 10.11 (автор): продать дороже цены магазина нельзя ни с какими эффектами          // продажа — от базовой цены (ранг на неё не влияет)
+  const unitPrice = e => { if (e && e.t === "g" && AMMO_PACK[e.id] && e.id !== "arrow") return AMMO_PACK[e.id][0] / AMMO_PACK[e.id][1]; const g = GOODS.find(x => x.e && x.e.t === "g" && e && e.t === "g" && x.e.id === e.id); return g ? Math.min(g.price / g.e.qty, g.base / g.e.qty * (partyHas("goblin-merchant") ? 1.1 : 1) * (partyHas("crystal-greed") ? 1.05 : 1)) : 0; };          // 10.11 (автор): продать дороже цены магазина нельзя ни с какими эффектами          // продажа — от базовой цены (ранг на неё не влияет)
   const sellValue = (e, n) => { const v = Math.floor(unitPrice(e) * n + 1e-9); return v < 1 && n > 1 && unitPrice(e) > 0 && e && AMMO_PACK[e.id] ? 1 : v; };          // 12.11 (автор): неполную стопку стрел и кинжалов можно продать по доле цены (не меньше 1 монеты за остаток из 2+ штук)
   // 10.11: эссенция в колбе — продажа (Башня: цена эссенции с надбавками −20 %, магазин — ещё −20 %)
   function sellEssFlask(i, c0) {

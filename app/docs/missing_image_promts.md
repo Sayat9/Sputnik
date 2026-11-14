@@ -24,7 +24,7 @@
 
 ### Прототип Альфа-01 — `monsters/alpha01-full`
 
-> `full-body a large armored humanoid war prototype with massive servo fists and a glowing chest core, stepping out of a broken glass capsule, sinister underground laboratory basement, pipes and glass tanks, dim green light, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+> `full-body a large bio-golem: a hulking body of stitched grey-pink flesh with steel plates, pistons and tubes grafted into it, one huge mechanical fist, a glowing chest core, stepping out of a broken glass capsule, sinister underground laboratory basement, pipes and glass tanks, dim green light, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
 
 ### Сыворотка силы — `items/strength-serum`
 
@@ -33,6 +33,72 @@
 ### Старая фотография — `items/family-photo`
 
 > `an old faded sepia family photograph with bent corners: a scientist father and a sickly boy, lying on a stone pedestal in a labyrinth niche, hand-painted dark fantasy item art, square 1:1, no text`
+
+### Кристальный рудник прошлого (разлом 2 этажа, 14.11)
+
+### Окаменевший рудокоп — `monsters/petrified-miner-full`
+
+> `full-body a miner turned half to crystal, a pickaxe in hands, violet crystal crust over his skin and clothes, crystallized old mining town, violet and pale blue crystals growing through wooden houses and mine rails, cold glow, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
+### Кристальная крыса — `monsters/crystal-rat-full`
+
+> `full-body a large rat with glittering crystal teeth and crystal shards along its spine, crystallized old mining town, violet and pale blue crystals growing through wooden houses and mine rails, cold glow, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
+### Рудничный пони — `monsters/mine-pony-full`
+
+> `full-body a stocky mine pony with pack saddle, crystal spikes growing from its forehead and shoulders, ready to charge, crystallized old mining town, violet and pale blue crystals growing through wooden houses and mine rails, cold glow, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
+### Кристальный кузнец — `monsters/crystal-smith-full`
+
+> `full-body a burly blacksmith in a leather apron, half-crystallized, a heavy hammer with a glowing crystal head, crystallized old mining town, violet and pale blue crystals growing through wooden houses and mine rails, cold glow, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
+### Обвальник — `monsters/rockfall-full`
+
+> `full-body a hulking earth elemental of cracked rock and ore, crystal veins, pebbles falling from it, mine tunnel ceiling above, crystallized old mining town, violet and pale blue crystals growing through wooden houses and mine rails, cold glow, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
+### Кристальная трактирщица — `monsters/crystal-innkeeper-full`
+
+> `full-body a stout tavern keeper woman, half-crystallized, holding a bottle and a rolling pin, crystal shards in her hair, crystallized old mining town, violet and pale blue crystals growing through wooden houses and mine rails, cold glow, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
+### Кристальный надсмотрщик — `monsters/crystal-overseer-full`
+
+> `full-body a harsh mine overseer in chainmail with a whip, crystal growing over half his face, crystallized old mining town, violet and pale blue crystals growing through wooden houses and mine rails, cold glow, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
+### Осколочный охотник — `monsters/shard-hunter-full`
+
+> `full-body a lean hunter with a bow and crystal-shard arrowheads, crystal patches on his cloak, in a dark mine tunnel, crystallized old mining town, violet and pale blue crystals growing through wooden houses and mine rails, cold glow, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
+### Бригадир Горн — `monsters/foreman-gorn-full`
+
+> `full-body a massive mining foreman in crystal armor plates, a giant crystal-headed warhammer, stern bearded face, crystallized old mining town, violet and pale blue crystals growing through wooden houses and mine rails, cold glow, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
+### Поющий кристалл — `monsters/singing-crystal-full`
+
+> `full-body a huge living crystal cluster vibrating with visible sound waves, a faint face inside the facets, rooted in the ground, crystallized old mining town, violet and pale blue crystals growing through wooden houses and mine rails, cold glow, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
+### Первородный кристалл — `monsters/primal-crystal-full`
+
+> `full-body an enormous ancient crystal elemental, a towering humanoid of deep violet crystal with a pulsing heart-light, in a vast cavern at the heart of the mine, crystal spikes everywhere, cold glow, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
+### Кристаллизованная жадность — `monsters/crystal-greed-full`
+
+> `full-body a merchant fused with his market stall into a crystal construct, coins embedded in crystal, grasping crystal hands, greedy grin, crystallized old mining town, violet and pale blue crystals growing through wooden houses and mine rails, cold glow, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
+### Мастер-алхимик Дитрих Вейл — `monsters/crystal-alchemist-full`
+
+> `full-body an imperial alchemist with one crystal prosthetic leg, crystal growing through his skin, glass vials of glowing solution on his belt, a scalpel in hand, ruined research tent, crystallized old mining town, violet and pale blue crystals growing through wooden houses and mine rails, cold glow, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
+### Мастер-алхимик Дитрих Вейл (портрет NPC) — `npc/alchemist`
+
+> `bust portrait of an imperial field alchemist, tired sharp eyes, round goggles on forehead, imperial coat with brass buttons, a faint crystal patch on his neck, research tent with vials behind, hand-painted dark fantasy portrait, 4:5, no text`
+
+### Камертон резонанса — `items/resonance-fork`
+
+> `a crystal tuning fork with a brass handle, faint sound ripples around it, worn and used, lying on a stone pedestal in a labyrinth niche, hand-painted dark fantasy item art, square 1:1, no text`
+
+### Каменное сердце — `items/stone-heart`
+
+> `a heart-shaped chunk of warm violet crystal with a faint inner pulse, worn and used, lying on a stone pedestal in a labyrinth niche, hand-painted dark fantasy item art, square 1:1, no text`
 
 ### Кладбище прошлого, часть 2 (13.11)
 

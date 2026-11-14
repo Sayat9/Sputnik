@@ -1,5 +1,5 @@
 {
- "version": 1794688794,
+ "version": 1794691507,
  "files": [
   "assets/buildings/academy.webp",
   "assets/buildings/arena.webp",
@@ -878,13 +878,13 @@
   "assets/items/wind.webp": "a6d6f642a096cf8956003b06c1f69e63",
   "assets/js/battle-act.js": "b295a2c96a6eb64870f4d10a6172d458",
   "assets/js/battle-ai.js": "e2f08b768870c58238a11d6cfb7204f4",
-  "assets/js/battle-core.js": "1050ad9f177c96efd22574460ce2d77e",
+  "assets/js/battle-core.js": "97600ac88857d8b909af8cbee29060a3",
   "assets/js/battle-data.js": "35baf41ff3e24d3aecae7eb487ad78a0",
   "assets/js/battle-dice.js": "ea3624feced3c040908826fd5bb1b878",
   "assets/js/battle-end.js": "17c223e0218203dcf0c97fea5a930ab5",
   "assets/js/battle-env.js": "3ab70bb8487f44db27ed2830845a5a16",
   "assets/js/battle-ess.js": "cb315186ca700e31b2675cbb16f9a68d",
-  "assets/js/battle-ess2.js": "dee81b67608bcf68cd71ea9be04ebb80",
+  "assets/js/battle-ess2.js": "499a25b381fb6a0841fb032cda4c0dcb",
   "assets/js/battle-ext.js": "1b3becd0a8b7e151826400b02626930a",
   "assets/js/battle-menu.js": "9be21cc030a46ccc505332730e733a5e",
   "assets/js/battle-net.js": "f8172bd74527ba982fd73ea9ac71dbf3",
@@ -895,7 +895,7 @@
   "assets/js/battle.js": "adb047f6c19b8ca8e21fdb322f898c7d",
   "assets/js/net.js": "2e8be9ea96e5cf1bd44c120e636e4520",
   "assets/js/netglue.js": "859dd6b7df91e9c5996fae0597aa7bb7",
-  "assets/js/town.js": "dba758cf5bfbbadc818d8d71dc5a4d93",
+  "assets/js/town.js": "298a2f1400ea05e155de12a410023c1a",
   "assets/logo-admin.png": "aa45354a89500a24e2f481f6d7d3ee4a",
   "assets/logo.png": "2eea126130fb32be9d28f407acbc25bb",
   "assets/monsters/acid-slime-face.webp": "f2f81ab7dbded9d2017cdd9a690f3012",
@@ -1360,6 +1360,6 @@
   "fonts/f8.woff2": "6cc1ee17091d59eb93821c3594e8f38f",
   "fonts/f9.woff2": "070433480b7b645f69b543f284e386ce",
   "fonts/fonts.css": "1585a72a8d157b26cb424ab433fd4e19",
-  "index.html": "5562f174b8a0f0382b22fbd48a7b32d5"
+  "index.html": "8e676d499eccbdcdf5d8c95d95b51c2b"
  }
 }

@@ -3192,7 +3192,7 @@
     "candle-acolyte": { role: "skirmish", focus: ["weak", "nearest"], noFlee: true }, "penitent-dead": { role: "brute", focus: ["nearest"], noFlee: true }, "dead-templar": { role: "brute", focus: ["nearest"], noFlee: true },
     "buried-priest": { role: "brute", focus: ["cluster", "nearest"], noFlee: true }, "lesser-death": { role: "skirmish", focus: ["weak", "nearest"], noFlee: true }, "night-abbot": { role: "brute", focus: ["weak", "nearest"], noFlee: true }, "azik-lich": { role: "ranged", keep: 2, focus: ["weak", "nearest"], noFlee: true },
   });
-  Object.assign(DLG_START, { "azik-start": "Ох, зря вы сюда полезли…" });
+  Object.assign(DLG_START, { "azik-start": "Ох, зря вы сюда полезли…", "alch-start": "Эффективность… вот что ценит империя. Вы — неэффективны." });
   const gyUndead = t => !!(t && t.mon && typeof monCat === "function" && ["undead", "spirit"].includes(monCat(t.mon)));
   const gyDarkFight = () => !!(B.S && B.S.dark && !B.S.torch);
   /* Свечной служка (9) */
@@ -3354,6 +3354,7 @@
   /* Прототип Альфа-01 (6, секретный босс) */
   Object.assign(D.status, { protocol: { name: "Боевой протокол", good: true, ico: '<path d="M4 12h4l2-5 4 10 2-5h4"/>', desc: "+2 к урону и +1 Защиты." } });
   P["alpha01"] = { attackMods(u, ctx) { if (u.hp < u.maxHp / 2) ctx.dmgPlus = (ctx.dmgPlus || 0) + 2; },
+    turnStart(u) { if (u.side === "hero" && alive(u) && !u.down && u.hp < u.maxHp / 2) { B.heal(u, 2, u); fx(u, "+2 плоть", "good"); } },
     onDamaged(u) { if (alive(u) && u.hp < u.maxHp / 2 && !has(u, "protocol")) { addStatus(u, "protocol", { k: Infinity, data: { prot: 1 } }); fx(u, "боевой протокол", "skill"); log(`${u.name}: боевой протокол!`, u.side === "hero" ? "skill" : "bad"); } } };
   P["body:alpha01"] = { turnStart(u) { if (!alive(u) || u.down) return; if (u.noRegen === B.S.round || u.noRegen === B.S.round - 1) return; if (u.hp < u.maxHp) { B.heal(u, 4, u); fx(u, "+4 ремонт", "good"); } } };
   A["alpha01"] = { time: "action", tgt(u) { return specUnit(u, "Ракетный кулак: в кого?", foesIn(u, 4), B.cellsWithin(u, 4), "attack"); }, can(u) { return foesIn(u, 4).length ? true : "нет цели в 4 клетках"; },
@@ -3362,5 +3363,137 @@
       const r = await B.doAttack(u, t, atk, {}); if (r && r.hit && alive(t) && !t.down) await B.push(t, u.x, u.y, 2); return true; },
     ai(u) { const ts = foesIn(u, 4).filter(t => dist(u, t) >= 2).sort((a, b) => a.hp - b.hp); return ts.length ? { unit: ts[0], score: 12 } : null; } };
   { const prevApply = B.applyDamage; B.applyDamage = async function (src, tgt, parts, o) { if (tgt && (tgt.pass || []).includes("body:alpha01") && (parts || []).some(p => p && p.dt === "lightning") && B.S) { tgt.noRegen = B.S.round; } return prevApply.apply(this, arguments); }; }
+
+  /* ===== Кристальный рудник прошлого (14.11, автор; числа — черновик) ===== */
+  Object.assign(D.essCd, { "petrified-miner": 3, "crystal-rat": 2, "mine-pony": 3, "crystal-smith": 3, "rockfall": 3, "crystal-innkeeper": 3, "crystal-overseer": 3, "shard-hunter": 3, "foreman-gorn": 4, "singing-crystal": 4, "primal-crystal": 4, "crystal-greed": 3, "crystal-alchemist": 3 });
+  Object.assign(D.monTune, { "petrified-miner": { role: "brute", focus: ["nearest"] }, "crystal-rat": { role: "skirmish", focus: ["weak"] }, "mine-pony": { role: "brute", focus: ["nearest"] }, "crystal-smith": { role: "brute", focus: ["nearest"] },
+    "rockfall": { role: "brute", focus: ["nearest"] }, "crystal-innkeeper": { role: "support", focus: ["nearest"] }, "crystal-overseer": { role: "brute", focus: ["weak"] }, "shard-hunter": { role: "ranged", focus: ["weak"] },
+    "foreman-gorn": { role: "brute", focus: ["nearest"], noFlee: true }, "singing-crystal": { role: "ranged", focus: ["weak"], noFlee: true }, "primal-crystal": { role: "brute", focus: ["nearest"], noFlee: true }, "crystal-greed": { role: "brute", focus: ["weak"], noFlee: true }, "crystal-alchemist": { role: "ranged", focus: ["weak"], noFlee: true } });
+  Object.assign(D.status, {
+    cracked: { name: "Расколота броня", ico: '<path d="M12 3l-2 6 4 3-3 9"/>', desc: "Защита снижена." },
+    anvil: { name: "Раскалённое оружие", good: true, ico: '<path d="M4 14h16l-3 5H7z"/><path d="M12 4v6"/>', desc: "Атаки наносят +1к6 огнём." },
+    stonechest: { name: "Каменная грудь", good: true, ico: '<rect x="6" y="6" width="12" height="12" rx="2"/>', desc: "+1 Защиты." },
+    bottled: { name: "Оглушён бутылкой", atkDis: true, ico: '<path d="M10 3h4v4l2 3v11H8V10l2-3z"/>', desc: "Помеха на атаки." },
+    urged: { name: "Подогнан", good: true, ico: '<path d="M4 12h12M12 6l6 6-6 6"/>', desc: "+1 клетка движения и +2 урона." },
+    crystalshell: { name: "Кристальный панцирь", good: true, ico: '<path d="M12 2l7 5v8l-7 7-7-7V7z"/>', desc: "Защита растёт с каждым ударом." },
+    coinchime: { name: "Звон монет", atkDis: true, ico: '<circle cx="12" cy="12" r="6"/><path d="M12 9v6"/>', desc: "Помеха на атаки." },
+    crystalform: { name: "Кристальная форма", good: true, ico: '<path d="M12 2l6 6-2 10-4 4-4-4-2-10z"/>', desc: "+2 Защиты." },
+    solution: { name: "Кристальный раствор", ico: '<path d="M8 4h8M10 4v6l-5 10h14l-5-10V4"/>', desc: "−1 клетка движения." },
+  });
+  const crIn = (o, cells) => footprint(o).some(([x, y]) => cells.some(([cx, cy]) => cx === x && cy === y));
+  const crBox = (cx, cy, r) => { const out = []; for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) if (B.inB(cx + dx, cy + dy)) out.push([cx + dx, cy + dy]); return out; };
+  const crLight = a => a && (a.kind !== "ranged") && (!a.w || (a.w.props || []).some(p => /Лёгк/.test(p)) || /укус|bite/i.test(a.n || ""));
+  const crBestBox = (u, reach, r, n0) => { let best = null; for (const [x, y] of B.cellsWithin(u, reach)) { if (!B.inB(x, y)) continue; const cells = crBox(x, y, r), foes = enemiesOf(u).filter(o => alive(o) && !o.down && crIn(o, cells)).length, mine = alliesOf(u).filter(o => alive(o) && crIn(o, cells)).length + (crIn(u, cells) ? 1 : 0); const sc = foes - mine * 1.5; if (foes >= (n0 || 1) && (!best || sc > best.sc)) best = { cell: [x, y], sc }; } return best; };
+  /* Окаменевший рудокоп (9) */
+  P["petrified-miner"] = { turnStart(u) { if (!u.crustDone) { u.crustDone = true; u.temp = Math.max(u.temp || 0, 3); fx(u, "+3 врем. ОЗ", "good"); } } };
+  A["petrified-miner"] = { time: "action", tgt(u) { return specUnit(u, "Раскол киркой: кого?", foesIn(u, 1), B.cellsWithin(u, 1), "attack"); }, can(u) { return foesIn(u, 1).length ? true : "нет врага рядом"; },
+    async run(u, pk, ctl) { const t = pk.unit, a = B.attacksOf(u).filter(x => x.kind !== "ranged")[0]; if (!t || !a) return false; const r = await B.doAttack(u, t, a, { onCommit: () => ctl.commit() });
+      if (r && r.hit && alive(t)) { const c = has(t, "cracked"); if (!c) addStatus(t, "cracked", { k: Infinity, data: { prot: -1 } }); else if (c.data.prot > -2) c.data.prot--; fx(t, "броня треснула", "bad"); } return !(r && r.cancelled); },
+    ai(u) { const ts = foesIn(u, 1).filter(t => (t.prot || 0) > 0); return ts.length ? { unit: ts[0], score: 6 } : null; } };
+  /* Кристальная крыса (9) */
+  P["crystal-rat"] = { attackMods(u, ctx) { if (u.side !== "hero" || crLight(ctx.atk)) ctx.protIgnore = (ctx.protIgnore || 0) + 1; } };
+  const ratHops = u => B.cellsWithin(u, 2).filter(([x, y]) => B.inB(x, y) && B.canStand(u, x, y) && !B.occupant(x, y) && Math.max(Math.abs(x - u.x), Math.abs(y - u.y)) >= 1);
+  A["crystal-rat"] = { time: "bonus", tgt(u) { return { type: "cell", prompt: "Искрой в сторону: куда?", cells: ratHops(u), kind: "move" }; }, can(u) { return ratHops(u).length ? true : "некуда отскочить"; },
+    async run(u, pk, ctl) { const c = pk.cell; if (!c) return false; ctl.commit(); await B.teleport(u, c[0], c[1]); fx(u, "отскок", "skill"); return true; },
+    ai(u) { if (!foesIn(u, 1).length || u.hp > u.maxHp / 2) return null; const f = enemiesOf(u).filter(e => alive(e) && !e.down); const c = ratHops(u).sort((p, q) => Math.min(...f.map(e => Math.abs(e.x - q[0]) + Math.abs(e.y - q[1]))) - Math.min(...f.map(e => Math.abs(e.x - p[0]) + Math.abs(e.y - p[1]))))[0]; return c ? { cell: c, score: 5 } : null; } };
+  /* Рудничный пони (9): «Кристальный таран» — рывок до 3 клеток по прямой, всем в 3×3 вокруг точки остановки 1 урона */
+  const ponyCells = u => { const out = []; for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]]) { for (let i = 1; i <= 3; i++) { const x = u.x + dx * i, y = u.y + dy * i; if (!B.inB(x, y) || !B.canStand(u, x, y) || (B.occupant(x, y) && B.occupant(x, y) !== u)) break; out.push([x, y]); } } return out; };
+  A["mine-pony"] = { time: "action", tgt(u) { return { type: "cell", prompt: "Кристальный таран: где остановиться?", cells: ponyCells(u), kind: "attack" }; }, can(u) { return ponyCells(u).length ? true : "нет прямого пути"; },
+    async run(u, pk, ctl) { const c = pk.cell; if (!c) return false; ctl.commit(); const g = ui(); if (g) g.banner("Кристальный таран"); await B.teleport(u, c[0], c[1]);
+      for (const o of live().filter(o => alive(o) && o !== u && !o.isObj && crIn(o, crBox(c[0], c[1], 1)))) await B.applyDamage(u, o, [{ v: 1, dt: "bludgeon", label: "Кристальный таран" }], { src: u, splash: true, noAbilParts: true }); return true; },
+    ai(u) { let best = null; for (const c of ponyCells(u)) { const cells = crBox(c[0], c[1], 1), f = enemiesOf(u).filter(o => alive(o) && !o.down && crIn(o, cells)).length, a = alliesOf(u).filter(o => alive(o) && crIn(o, cells)).length; if (f >= 2 && f - a > 0 && (!best || f - a > best.sc)) best = { cell: c, sc: f - a }; } return best ? { cell: best.cell, score: 4 + best.sc } : null; } };
+  /* Кристальный кузнец (8) */
+  P["crystal-smith"] = { attackMods(u, ctx) { if (ctx.atk && ctx.atk.kind !== "spell") ctx.dmgPlus = (ctx.dmgPlus || 0) + 1; if (has(u, "anvil") && ctx.extra) ctx.extra.push({ n: 1, s: 6, b: 0, dt: "fire", label: "Раскалённая наковальня" }); } };
+  P["cr-anvil"] = { attackMods(u, ctx) { if (has(u, "anvil") && ctx.extra && !(u.pass || []).includes("crystal-smith")) ctx.extra.push({ n: 1, s: 6, b: 0, dt: "fire", label: "Раскалённая наковальня" }); } };
+  const smithTs = u => [u, ...alliesOf(u)].filter(o => alive(o) && !o.down && !o.isObj && dist(u, o) <= 2 && !has(o, "anvil"));
+  A["crystal-smith"] = { time: "bonus", tgt(u) { return specUnit(u, "Раскалённая наковальня: кому?", smithTs(u), B.cellsWithin(u, 2), "buff"); }, can(u) { return smithTs(u).length ? true : "нет союзника в 2 клетках"; },
+    async run(u, pk, ctl) { const t = pk.unit; if (!t) return false; ctl.commit(); addStatus(t, "anvil", { k: 2, when: "end" }); B.tmpPass(t, "cr-anvil", 2); fx(t, "раскалённое оружие", "good"); log(`${u.name} раскаляет оружие ${t.name}.`, "skill"); return true; },
+    ai(u) { const ts = smithTs(u).filter(o => o !== u && foesIn(o, 1).length); return ts.length ? { unit: ts[0], score: 6 } : null; } };
+  /* Обвальник (8) */
+  P["rockfall"] = { turnStart(u) { u.rfStart = [u.x, u.y]; },
+    async turnEndAsync(u) { if (u.rfStart && u.rfStart[0] === u.x && u.rfStart[1] === u.y && alive(u) && !has(u, "stonechest")) addStatus(u, "stonechest", { k: 1, when: "start", data: { prot: 1 } }); } };
+  P["body:rockfall"] = { async turnStartAsync(u) { const m = u.rfMark; if (!m || !alive(u)) return; u.rfMark = null; B.S.zones = (B.S.zones || []).filter(z => z.id !== "rf" + u.id); const g = ui(); if (g) g.banner("Свод рушится!");
+      for (const o of live().filter(o => alive(o) && o !== u && !o.isObj && crIn(o, m))) await saveDmg(u, o, "dex", dcOf(u, "str"), [2, 6], "bludgeon", "Свод рушится", ["splash"]); } };
+  A["rockfall"] = { time: "action", tgt(u) { return { type: "cell", prompt: "Свод рушится: центр области 3×3", cells: B.cellsWithin(u, 4).filter(([x, y]) => B.inB(x, y)), kind: "attack" }; }, can(u) { return u.rfMark ? "обвал уже готовится" : true; },
+    async run(u, pk, ctl) { const c = pk.cell; if (!c) return false; ctl.commit(); const cells = crBox(c[0], c[1], 1); u.rfMark = cells; (B.S.zones ||= []).push({ id: "rf" + u.id, kind: "kel", cells }); if (!(u.pass || []).includes("body:rockfall")) B.tmpPass(u, "body:rockfall", 2); log(`${u.name} расшатывает свод — здесь рухнет камень (подсвечено).`, "skill"); return true; },
+    ai(u) { if (u.rfMark) return null; const b = crBestBox(u, 4, 1, 1); return b ? { cell: b.cell, score: 5 + b.sc } : null; } };
+  /* Кристальная трактирщица (8) */
+  const innTs = u => foesIn(u, 4);
+  A["crystal-innkeeper"] = { time: "bonus", tgt(u) { return specUnit(u, "Бутылкой!: в кого?", innTs(u), B.cellsWithin(u, 4), "attack"); }, can(u) { return innTs(u).length ? true : "нет цели в 4 клетках"; },
+    async run(u, pk, ctl) { const t = pk.unit; if (!t) return false; ctl.commit(); const g = ui(); if (g) g.banner("Бутылкой!");
+      await B.applyDamage(u, t, [{ v: roll(1, 6).total, dt: "bludgeon", label: "Бутылка" }], { src: u, noAbilParts: true });
+      if (alive(t) && !t.down) { const sv = await save(t, "con", dcOf(u, "cha"), "Бутылкой!", [], u); if (!sv.ok) { addStatus(t, "bottled", { k: 1, when: "end" }); fx(t, "помеха", "bad"); } }
+      if (u.side !== "hero") for (const o of alliesOf(u).filter(o => alive(o) && !o.down && dist(u, o) <= 2 && o.hp < o.maxHp)) { const v = roll(1, 6).total; B.heal(o, v, u); fx(o, `+${v}`, "good"); }
+      return true; },
+    ai(u) { const ts = innTs(u); return ts.length ? { unit: ts.sort((a, b) => a.hp - b.hp)[0], score: 7 } : null; } };
+  /* Кристальный надсмотрщик (7) */
+  P["crystal-overseer"] = { attackAura(k, { att, ctx }) { if (alive(k) && !k.down && att.id !== k.id && dist(k, att) <= 3 && !ctx.mods.some(m => m.l === "Окрик")) ctx.mods.push({ l: "Окрик", v: 1 }); } };
+  P["cr-urged"] = { attackMods(u, ctx) { if (has(u, "urged")) ctx.dmgPlus = (ctx.dmgPlus || 0) + 2; } };
+  const urgeTs = u => alliesOf(u).filter(o => alive(o) && !o.down && !o.isObj && dist(u, o) <= 3 && !has(o, "urged"));
+  A["crystal-overseer"] = { time: "bonus", tgt(u) { return specUnit(u, "Подогнать: кого?", urgeTs(u), B.cellsWithin(u, 3), "buff"); }, can(u) { return urgeTs(u).length ? true : "нет союзника в 3 клетках"; },
+    async run(u, pk, ctl) { const t = pk.unit; if (!t) return false; ctl.commit(); addStatus(t, "urged", { k: Infinity, data: durEnd(t, 1) }); B.tmpPass(t, "cr-urged", 2); fx(t, "подогнан", "good"); log(`${u.name} подгоняет ${t.name}.`, "skill"); return true; },
+    ai(u) { const ts = urgeTs(u); return ts.length ? { unit: ts[0], score: 5 } : null; } };
+  /* Осколочный охотник (7) */
+  P["shard-hunter"] = { attackMods(u, ctx) { if (ctx.atk && ctx.atk.kind === "ranged") { ctx.dmgPlus = (ctx.dmgPlus || 0) + 1; ctx.protIgnore = (ctx.protIgnore || 0) + 1; } } };
+  A["shard-hunter"] = { time: "action", tgt(u) { return { type: "cell", prompt: "Сквозной выстрел: направление", cells: cellsAround(u, 1).filter(([x, y]) => B.inB(x, y)), kind: "attack" }; }, can(u) { return foesIn(u, 5).length ? true : "нет цели в 5 клетках"; },
+    async run(u, pk, ctl) { const c = pk.cell; if (!c) return false; ctl.commit(); const g = ui(); if (g) g.banner("Сквозной выстрел"); const cells = cellarLine(u, c, 5);
+      for (const o of live().filter(o => alive(o) && !o.isObj && o.side !== u.side && crIn(o, cells))) await saveDmg(u, o, "dex", dcOf(u, "dex"), [2, 6], "pierce", "Сквозной выстрел"); return true; },
+    ai(u) { let best = null; for (const c of cellsAround(u, 1)) { const cells = cellarLine(u, c, 5), n = enemiesOf(u).filter(o => alive(o) && !o.down && crIn(o, cells)).length; if (n && (!best || n > best.n)) best = { cell: c, n }; } return best && best.n >= 2 ? { cell: best.cell, score: 6 + best.n } : null; } };
+  /* Бригадир Горн (6) */
+  P["foreman-gorn"] = { onDamaged(u, { src, o }) { if (!src || src.side === u.side || !alive(u) || !o || !o.ctx) return; const st = has(u, "crystalshell"); if (!st) addStatus(u, "crystalshell", { k: Infinity, data: { prot: 1 } }); else if (st.data.prot < 3) st.data.prot++; else return; fx(u, "панцирь крепнет", u.side === "hero" ? "good" : "bad"); } };
+  A["foreman-gorn"] = { time: "action", tgt() { return { type: "none" }; }, can(u) { return foesIn(u, 2).length ? true : "нет врагов в 2 клетках"; },
+    async run(u, pk, ctl) { ctl.commit(); const g = ui(); if (g) g.banner("Раскол земли");
+      for (const t of enemiesOf(u).filter(o => alive(o) && !o.down && !o.isObj && dist(u, o) <= 2)) { const sv = await saveDmg(u, t, "dex", dcOf(u, "str"), [2, 8], "bludgeon", "Раскол земли", ["splash"]); if (!sv.ok && alive(t) && !t.down) { addStatus(t, "prone", { k: Infinity }); fx(t, "сбит с ног", "bad"); } } return true; },
+    ai(u) { const n = foesIn(u, 2).length; return n >= 2 || (n === 1 && u.side !== "hero") ? { score: 6 + n * 2 } : null; } };
+  /* Поющий кристалл (6) */
+  const singWave = async u => { const g = ui(); if (g) g.banner("Звенящая мана");
+    for (const t of B.units().filter(o => alive(o) && !o.down && !o.isObj && o.side !== u.side && dist(u, o) <= 2)) await B.applyDamage(u, t, [{ v: roll(1, 8).total, dt: "thunder", label: "Звенящая мана" }], { src: u, splash: true, noAbilParts: true, pierceSpectral: true }); };
+  { const prevMp = B.setMp; B.setMp = function (u, v) { const old = u && u.mp; const r = prevMp.apply(this, arguments);
+      try { if (u && B.S && B.S.phase === "fight" && (u.pass || []).includes("singing-crystal") && old - u.mp >= 3 && u.singTurn !== (u.turnsTaken || 0) + ":" + B.S.round) { u.singTurn = (u.turnsTaken || 0) + ":" + B.S.round; B.queue(() => singWave(u)); } } catch (e) { console.error("sing:", e); }
+      return r; }; }
+  P["body:singing-crystal"] = { async turnStartAsync(u) { if (!alive(u) || u.down || B.S.round < 2 || B.S.round % 2) return; const g = ui(); if (g) g.banner("Песнь кристалла");
+      for (const t of enemiesOf(u).filter(o => alive(o) && !o.down && !o.isObj)) { const sv = await saveDmg(u, t, "con", dcOf(u, "cha"), [2, 6], "thunder", "Песнь", ["splash"]); if (!sv.ok && alive(t) && !t.down) { addStatus(t, "stunned", { k: Infinity, data: durEnd(t, 1) }); fx(t, "оглушён", "bad"); } } } };
+  A["singing-crystal"] = { time: "action", tgt() { return { type: "none" }; }, can(u) { return foesIn(u, 3).length ? true : "нет врагов в 3 клетках"; },
+    async run(u, pk, ctl) { ctl.commit(); const g = ui(); if (g) g.banner("Высокая нота");
+      for (const t of enemiesOf(u).filter(o => alive(o) && !o.down && !o.isObj && dist(u, o) <= 3)) { const sv = await saveDmg(u, t, "con", dcOf(u, "cha"), [3, 6], "thunder", "Высокая нота", ["splash"]); if (!sv.ok && alive(t) && !t.down) { addStatus(t, "stunned", { k: Infinity, data: durEnd(t, 0) }); fx(t, "оглушён", "bad"); } } return true; },
+    ai(u) { const n = foesIn(u, 3).length; return u.side === "hero" && n >= 1 ? { score: 5 + n * 2 } : null; } };
+  /* Первородный кристалл (6, страж) */
+  { const prevApply = B.applyDamage; B.applyDamage = async function (src, tgt, parts, o) {
+      if (tgt && B.S && (tgt.pass || []).includes("primal-crystal") && src && src.side !== tgt.side && tgt.skinRound !== B.S.round && (parts || []).some(p => p && p.v > 0)) { tgt.skinRound = B.S.round; parts = parts.map(p => p && p.v > 0 ? { ...p, v: Math.floor(p.v / 2) } : p); fx(tgt, "кристаллическая кожа", "skill"); arguments[2] = parts; }
+      return prevApply.apply(this, arguments); }; }
+  P["body:primal-crystal"] = { onDamaged(u) { if (!u.shardsOut && alive(u) && u.hp <= u.maxHp / 2) { u.shardsOut = true; log(`От ${u.name} откалываются осколки — две кристальные крысы!`, "bad"); B.queue(async () => { B.spawnFoes(["crystal-rat", "crystal-rat"], u); const g = ui(); if (g) g.refresh(); }); } } };
+  const crystTs = u => foesIn(u, 4).filter(t => !has(t, "encased"));
+  A["primal-crystal"] = { time: "action", tgt(u) { return specUnit(u, "Кристаллизация: кого?", crystTs(u), B.cellsWithin(u, 4), "attack"); }, can(u) { return crystTs(u).length ? true : "нет цели в 4 клетках"; },
+    async run(u, pk, ctl) { const t = pk.unit; if (!t) return false; ctl.commit(); const g = ui(); if (g) g.banner("Кристаллизация");
+      const sv = await saveDmg(u, t, "con", dcOf(u, "con"), [3, 8], "earth", "Кристаллизация"); if (!sv.ok && alive(t) && !t.down) { addStatus(t, "encased", { k: Infinity, data: { hp: 10, ...durEnd(t, 1) } }); fx(t, "закристаллизован", "bad"); log(`${t.name} закристаллизован.`, "bad"); } return true; },
+    ai(u) { const ts = crystTs(u).sort((a, b) => b.hp - a.hp); return ts.length ? { unit: ts[0], score: 9 } : null; } };
+  /* Кристаллизованная жадность (7, особый) */
+  P["body:crystal-greed"] = { onHitDealt(u, ctx) { const t = ctx.tgt; if (!t || !t.hero || !ctx.res || !ctx.res.hit) return; const have = typeof goldOf === "function" ? goldOf(t.hero) : (t.hero.gold || 0), n = Math.min(have, roll(1, 6).total + 2); if (n <= 0) return;
+      t.hero.gold = have - n; B.S.ev.greedGold = (B.S.ev.greedGold || 0) + n; fx(t, `−${n} мон.`, "bad"); log(`${u.name} выхватывает у ${t.name} ${n} мон.`, "bad"); } };
+  const chimeTs = u => foesIn(u, 3).filter(t => !has(t, "coinchime"));
+  A["crystal-greed"] = { time: "bonus", tgt(u) { return specUnit(u, "Звон монет: кого?", chimeTs(u), B.cellsWithin(u, 3), "debuff"); }, can(u) { return chimeTs(u).length ? true : "нет цели в 3 клетках"; },
+    async run(u, pk, ctl) { const t = pk.unit; if (!t) return false; ctl.commit(); const sv = await save(t, "wis", dcOf(u, "cha"), "Звон монет", [], u); if (!sv.ok) { addStatus(t, "coinchime", { k: Infinity, data: durEnd(t, 1) }); fx(t, "засмотрелся", "bad"); } else fx(t, "устоял", ""); return true; },
+    ai(u) { const ts = chimeTs(u).sort((a, b) => dist(u, a) - dist(u, b)); return ts.length ? { unit: ts[0], score: 5 } : null; } };
+  /* Мастер-алхимик Дитрих Вейл (6, секретный босс) */
+  P["body:crystal-alchemist"] = { onDamaged(u) { if (alive(u) && u.hp <= u.maxHp / 2 && !has(u, "crystalform")) { addStatus(u, "crystalform", { k: Infinity, data: { prot: 2 } }); fx(u, "кристальная форма", "bad"); log(`Кристалл покрывает тело ${u.name}.`, "bad"); } } };
+  A["crystal-alchemist"] = { time: "action", tgt(u) { return { type: "cell", prompt: "Кристальный раствор: центр области 3×3", cells: B.cellsWithin(u, 5).filter(([x, y]) => B.inB(x, y)), kind: "attack" }; }, can(u) { return foesIn(u, 6).length ? true : "нет врагов рядом"; },
+    async run(u, pk, ctl) { const c = pk.cell; if (!c) return false; ctl.commit(); const g = ui(); if (g) g.banner("Кристальный раствор"); const cells = crBox(c[0], c[1], 1);
+      for (const o of live().filter(o => alive(o) && !o.isObj && o.side !== u.side && crIn(o, cells))) { const sv = await saveDmg(u, o, "dex", dcOf(u, "int"), [2, 8], "acid", "Кристальный раствор", ["splash"]); if (!sv.ok && alive(o) && !o.down) addStatus(o, "solution", { k: 2, when: "end" }); } return true; },
+    ai(u) { const b = crBestBox(u, 5, 1, 1); return b ? { cell: b.cell, score: 7 + b.sc * 2 } : null; } };
+  { const prevPB = B.potionBonus; B.potionBonus = (u, t) => { let v = prevPB ? prevPB(u, t) : 0; const pas = id => (u.pass || []).includes(id);
+      if (t === u && pas("crystal-innkeeper")) { v += 2; log(`${u.name}: хмельной кураж +2.`, "skill"); }
+      if (t === u && pas("crystal-alchemist")) { const d = roll(1, 4).total + 2; v += d; log(`${u.name}: имперская эффективность +${d}.`, "skill"); }
+      return v; }; }
+  /* «Камертон резонанса» (артефакт 7 класса): урон звуком от носителя — стак на цели; раз за бой «Камертон» по одной цели: n + n×1к4 звуком */
+  const forkOn = u => !!(u && u.hero && u.hero.equip && Object.values(u.hero.equip).some(e => e && e.id === "resonance-fork" && !e.broken));
+  { const prevApply = B.applyDamage; B.applyDamage = async function (src, tgt, parts, o) {
+      if (src && tgt && src.side !== tgt.side && !tgt.isObj && forkOn(src) && !(o && o.forkPop) && (parts || []).some(p => p && p.dt === "thunder" && p.v > 0)) { tgt.forkStacks = (tgt.forkStacks || 0) + 1; fx(tgt, `резонанс ${tgt.forkStacks}`, "skill"); }
+      return prevApply.apply(this, arguments); }; }
+  { const prevIA = B.iceActions; B.iceActions = (u, out) => { out = prevIA ? prevIA(u, out) : out;
+      if (u.side === "hero" && forkOn(u) && !u.forkUsed) { const ts = enemiesOf(u).filter(t => alive(t) && !t.down && (t.forkStacks || 0) > 0 && (!B.visibleTo || B.visibleTo(u, t))).sort((a, b) => b.forkStacks - a.forkStacks), t = ts[0];
+        out.push({ id: "fork", cat: "other", label: "Камертон", ico: "attack", sub: t ? `${t.name}: резонанс ${t.forkStacks} — ${t.forkStacks} + ${t.forkStacks}×1к4 звуком, раз за бой` : "нет цели с резонансом", enabled: !!t && B.timeOK(u, "action"),
+          run: async () => { if (!t || !alive(t)) return false; B.spendTime(u, "action"); u.forkUsed = true; const n = t.forkStacks; let v = n; for (let i = 0; i < n; i++) v += roll(1, 4).total; t.forkStacks = 0; const g = ui(); if (g) g.banner("Камертон резонанса");
+            log(`${u.name} ударяет камертоном: ${t.name} — ${v} звуком (${n} стак.).`, "skill"); await B.applyDamage(u, t, [{ v, dt: "thunder", label: "Камертон" }], { src: u, noAbilParts: true, forkPop: true }); return true; } }); }
+      return out; }; }
   B.fillActiveTimes();
 })();
