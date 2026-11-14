@@ -3251,9 +3251,9 @@
       } } catch (e) { console.error("gy kill hook:", e); }
       return prevReg.apply(this, arguments); }; }
   /* ===== Кладбище прошлого: монстры мест (14.11, одобрено автором; числа — черновик) ===== */
-  Object.assign(D.essCd, { "night-dweller": 3, "well-drowned": 3, "chained-deadhound": 3, "ghoul-digger": 3, "tomb-guardian": 4, "grave-mold": 3, "crypt-worm": 3, "keyholder": 3 });
+  Object.assign(D.essCd, { "night-dweller": 4, "well-drowned": 3, "ghoul-digger": 3, "tomb-guardian": 4, "grave-mold": 3, "crypt-worm": 3, "keyholder": 3 });
   Object.assign(D.monTune, {
-    "night-dweller": { role: "skirmish", focus: ["weak", "nearest"], fleeHp: 0.25 }, "well-drowned": { role: "brute", focus: ["nearest"], noFlee: true }, "chained-deadhound": { role: "brute", focus: ["nearest"], fleeHp: 0.2 },
+    "night-dweller": { role: "skirmish", focus: ["weak", "nearest"], fleeHp: 0.25 }, "well-drowned": { role: "brute", focus: ["nearest"], noFlee: true },
     "ghoul-digger": { role: "skirmish", focus: ["weak", "nearest"], noFlee: true }, "tomb-guardian": { role: "brute", focus: ["nearest"], noFlee: true }, "grave-mold": { role: "brute", focus: ["nearest"], noFlee: true },
     "crypt-worm": { role: "brute", focus: ["nearest"], noFlee: true }, "keyholder": { role: "brute", focus: ["nearest"], noFlee: true },
   });
@@ -3262,11 +3262,15 @@
     shackled: { name: "Прикован", ico: '<circle cx="8" cy="12" r="4"/><circle cx="16" cy="12" r="4"/>', desc: "Прикован цепью: не может двигаться." },
   });
   const ghosted = t => t && (has(t, "restrained") || has(t, "shackled") || has(t, "grappled") || has(t, "drowning") || has(t, "chained"));
-  /* Ночной жилец (8): первая атака в бою — с преимуществом и +1к6 */
-  P["night-dweller"] = { attackMods(u, ctx) { if (u.faceUsed || !ctx.tgt || ctx.tgt.isObj || ctx.tgt.side === u.side) return; u.faceUsed = true; ctx.adv.push("Чужое лицо"); if (ctx.extra) ctx.extra.push({ n: 1, s: 6, b: 0, dt: ctx.atk && ctx.atk.dt || "slash", label: "Чужое лицо" }); } };
-  A["night-dweller"] = { time: "bonus", tgt() { return { type: "self" }; }, can(u) { return u.side === "hero" ? true : "только у героя"; },
-    async run(u, pk, ctl) { ctl.commit(); addStatus(u, "hidden", { k: Infinity, data: { unseen: true, by: "Личина" } }); fx(u, "личина", "skill"); log(`${u.name} натягивает чужую личину и растворяется среди теней.`, "skill"); return true; },
-    ai(u) { return u.side === "hero" && !has(u, "hidden") ? { score: 5 } : null; } };
+  /* Ночной жилец (8). Монстр: «Притворство» — первая атака с преимуществом и +1к6. Герой: «Чужое лицо» — враги не выбирают его целью, пока он не атакует или не применит способность */
+  P["body:night-dweller"] = { attackMods(u, ctx) { if (u.faceUsed || !ctx.tgt || ctx.tgt.isObj || ctx.tgt.side === u.side) return; u.faceUsed = true; ctx.adv.push("Притворство"); if (ctx.extra) ctx.extra.push({ n: 1, s: 6, b: 0, dt: ctx.atk && ctx.atk.dt || "slash", label: "Притворство" }); } };
+  P["night-dweller"] = {};
+  B.disguised = t => !!(t && t.side === "hero" && (t.pass || []).includes("night-dweller") && !t.unmasked && alive(t) && !t.down);
+  { const prevAtk = B.doAttack; B.doAttack = async function (att, tgt, atk, o) { if (att && att.side === "hero" && tgt && tgt.side !== att.side && !tgt.isObj) att.unmasked = true; return prevAtk.apply(this, arguments); }; }
+  { const prevUse = B.useActive; B.useActive = async function (u, id, pk, o) { const r = await prevUse.apply(this, arguments); if (r && u && u.side === "hero" && id !== "night-dweller") u.unmasked = true; return r; }; }
+  A["night-dweller"] = { time: "bonus", tgt() { return { type: "self" }; }, can(u) { return u.side !== "hero" ? "только у героя" : u.unmasked ? true : "враги и так не видят в тебе противника"; },
+    async run(u, pk, ctl) { ctl.commit(); u.unmasked = false; fx(u, "чужое лицо", "skill"); log(`${u.name} снова надевает чужое лицо — враги отводят взгляд.`, "skill"); return true; },
+    ai(u) { return u.side === "hero" && u.unmasked && u.hp < u.maxHp / 2 ? { score: 6 } : null; } };
   /* Колодезная утопленница (7): утянуть и душить */
   const drownPull = async (u, t, heroVer) => {
     const sv = await save(t, "str", dcOf(u, "str"), "Утянуть", ["grapple"], u); if (sv.ok || !alive(t)) { fx(t, "вырвался", ""); return; }
@@ -3283,12 +3287,6 @@
   A["well-drowned"] = { time: "action", tgt(u) { return specUnit(u, "Утянуть: кого?", foesIn(u, 3), B.cellsWithin(u, 3), "attack"); }, can(u) { return foesIn(u, 3).length ? true : "нет цели в 3 клетках"; },
     async run(u, pk, ctl) { const t = pk.unit; if (!t) return false; ctl.commit(); const g = ui(); if (g) g.banner("Утянуть"); await drownPull(u, t, u.side === "hero"); return true; },
     ai(u) { if (B.units().some(o => { const d = has(o, "drowning"); return d && d.data.by === u.id; })) return null; const ts = foesIn(u, 3).filter(t => !has(t, "drowning")).sort((a, b) => dist(u, b) - dist(u, a)); return ts.length ? { unit: ts[0], score: 12 } : null; } };
-  /* Цепной пёс-мертвец (9) */
-  P["chained-deadhound"] = { attackMods(u, ctx) { const t = ctx.tgt; if (t && !t.isObj && t.side !== u.side && alliesOf(u).some(a => alive(a) && !a.down && dist(a, t) <= 1)) ctx.dmgPlus = (ctx.dmgPlus || 0) + 1; } };
-  P["body:chained-deadhound"] = { turnStart(u) { if (u.barked || !alive(u) || u.down || B.S.round > 2 || !enemiesOf(u).some(e => alive(e) && !e.down)) return; u.barked = true; const got = B.spawnFoes([Math.random() < .5 ? "zombie" : "skeleton"], u); if (got && got.length) { log(`${u.name} заходится лаем — на зов выходит мертвец!`, "bad"); const g = ui(); if (g) g.banner("Лай"); } } };
-  A["chained-deadhound"] = { time: "bonus", tgt() { return { type: "none" }; }, can(u) { return u.side === "hero" && enemiesOf(u).some(o => alive(o) && !o.down && dist(u, o) <= 2) ? true : "нет врагов в 2 клетках"; },
-    async run(u, pk, ctl) { ctl.commit(); log(`${u.name} злобно лает!`, "skill"); for (const o of enemiesOf(u).filter(o => alive(o) && !o.down && dist(u, o) <= 2)) { const sv = await save(o, "wis", dcOf(u, "con"), "Лай", ["fear"], u); if (!sv.ok && alive(o)) { addStatus(o, "dazzled", { k: 1, when: "end" }); fx(o, "сбит лаем", "bad"); } } return true; },
-    ai(u) { return u.side === "hero" && enemiesOf(u).filter(o => alive(o) && !o.down && dist(u, o) <= 2).length >= 1 ? { score: 5 } : null; } };
   /* Могильщик-упырь (8) */
   P["ghoul-digger"] = { attackMods(u, ctx) { const t = ctx.tgt; if (t && !t.isObj && t.side !== u.side && t.hp < t.maxHp / 2) ctx.dmgPlus = (ctx.dmgPlus || 0) + 2; if (u.digAdv && ctx.adv) { ctx.adv.push("Из-под земли"); u.digAdv = false; } if (u.venom === B.S.round) { ctx.venom = true; u.venom = -1; } },
     onHitDealt(u, ctx) { if (ctx.venom && ctx.res && ctx.res.hit && (ctx.tgt.alive || ctx.tgt.down) && !B.noBlood?.(ctx.tgt)) { addStatus(ctx.tgt, "poisoned", { k: 2, when: "end", src: u.id }); fx(ctx.tgt, "трупный яд", "bad"); } } };

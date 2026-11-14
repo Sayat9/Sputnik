@@ -21,22 +21,25 @@ const { chromium } = require('playwright');
     S = mkS(['tomb-guardian', 'zombie']); h = hero(S); const g = mon(S, 'tomb-guardian'), z = mon(S, 'zombie'); z.x = h.x; z.y = h.y - 1; g.x = z.x + 1; g.y = z.y; const zh = z.hp, gh = g.hp;
     await B.applyDamage(h, z, [{ v: 10, dt: 'slash', label: 't' }], { src: h, ctx: {}, melee: true }); o.wall = gh - g.hp >= 1 && zh - z.hp < 10;
     // плесень: уязвима к огню; червь растёт от гибели рядом; пёс зовёт мертвеца; упырь подкапывается
-    S = mkS(['grave-mold', 'crypt-worm', 'chained-deadhound', 'ghoul-digger']); h = hero(S); const mold = mon(S, 'grave-mold'), worm = mon(S, 'crypt-worm'), dog = mon(S, 'chained-deadhound'), dig = mon(S, 'ghoul-digger');
+    S = mkS(['grave-mold', 'crypt-worm', 'ghoul-digger']); h = hero(S); const mold = mon(S, 'grave-mold'), worm = mon(S, 'crypt-worm'), dig = mon(S, 'ghoul-digger');
     const mh = mold.hp; await B.applyDamage(h, mold, [{ v: 4, dt: 'fire', label: 'f' }], { src: h }); o.moldFire = mh - mold.hp === 8;
     mold.x = worm.x + 1; mold.y = worm.y; worm.hp = 10; B.kill(mold, h); o.worm = worm.hp > 10 && worm.feast === 1;
-    const n0 = S.units.length; S.round = 1; B.P['body:chained-deadhound'].turnStart(dog); o.bark = S.units.length === n0 + 1; B.P['body:chained-deadhound'].turnStart(dog); o.barkOnce = S.units.length === n0 + 1;
     const far = S.units.filter(x => x.hero)[1] || h; far.hp = 3; dig.x = far.x; dig.y = Math.max(0, far.y - 4); S.round = 2; await B.P['body:ghoul-digger'].turnStartAsync(dig); o.dig = B.dist(dig, far) <= 1 && dig.digAdv;
     // жилец: первая атака с преимуществом
-    S = mkS(['night-dweller']); h = hero(S); m = mon(S, 'night-dweller'); const ctx = { tgt: h, adv: [], extra: [], atk: { dt: 'slash' } }; B.P['night-dweller'].attackMods(m, ctx); const ctx2 = { tgt: h, adv: [], extra: [], atk: {} }; B.P['night-dweller'].attackMods(m, ctx2); o.face = ctx.adv.length === 1 && ctx.extra.length === 1 && ctx2.adv.length === 0;
+    S = mkS(['night-dweller']); h = hero(S); m = mon(S, 'night-dweller'); const ctx = { tgt: h, adv: [], extra: [], atk: { dt: 'slash' } }; B.P['body:night-dweller'].attackMods(m, ctx); const ctx2 = { tgt: h, adv: [], extra: [], atk: {} }; B.P['body:night-dweller'].attackMods(m, ctx2); o.pretend = ctx.adv.length === 1 && ctx.extra.length === 1 && ctx2.adv.length === 0;
+    // «Чужое лицо» у героя: монстры его видят, но не выбирают целью до его атаки
+    h.pass.push('night-dweller'); h.unmasked = false; const tg = () => B.AI && B.AI.targetsOf ? B.AI.targetsOf(m) : null; o.disguised = B.disguised(h) && B.visibleTo(m, h); m.x = h.x; m.y = h.y - 1; const mod = h.hp; for (let i = 0; i < 3; i++) { await B.AI.takeTurn(m); } o.notAttacked = h.hp === mod;
+    await B.doAttack(h, m, B.attacksOf(h)[0], {}); o.unmasked = !B.disguised(h); await B.A['night-dweller'].run(h, {}, { commit() {} }); o.remask = B.disguised(h);
     B.running = false; B.S = null;
     // встречи по местам
     const run = state.run; run.floor = 2; run.variant = 'undead'; run.day = 10; run.act = 1; run.pos = { x: 5, y: 5 }; riftSync(); dgUi.res = null; const k = Object.keys(run.riftsF2.tiles)[0].split(',').map(Number); run.pos = { x: k[0], y: k[1] }; riftEnter(); dgUi.res = null; const R = run.rift; R.phase = 'night';
     const seen = w => { const s = new Set(); for (let i = 0; i < 300; i++) gyGroup(R, ['easy', 'mid', 'hard'][i % 3], w).forEach(id => s.add(id)); return s; };
     const v = seen('village'), gr = seen('grave'), cr = seen('crypt');
-    o.villageOwn = ['night-dweller', 'well-drowned', 'chained-deadhound'].every(id => v.has(id)); o.graveOwn = ['ghoul-digger', 'tomb-guardian'].every(id => gr.has(id)); o.cryptOwn = ['grave-mold', 'crypt-worm', 'keyholder'].every(id => cr.has(id));
-    o.notInField = !['night-dweller', 'well-drowned', 'chained-deadhound', 'ghoul-digger', 'tomb-guardian', 'grave-mold', 'crypt-worm', 'keyholder'].some(id => seen('field').has(id));
-    o.essences = ['night-dweller', 'well-drowned', 'chained-deadhound', 'ghoul-digger', 'tomb-guardian', 'grave-mold', 'crypt-worm', 'keyholder'].every(id => ESSENCES[id] && MONSTERS.find(m => m.id === id && m.rift === 'gyard'));
+    o.villageOwn = ['night-dweller', 'well-drowned', 'bone-hound'].every(id => v.has(id)); o.graveOwn = ['ghoul-digger', 'tomb-guardian'].every(id => gr.has(id)); o.cryptOwn = ['grave-mold', 'crypt-worm', 'keyholder'].every(id => cr.has(id));
+    o.notInField = !['night-dweller', 'well-drowned', 'ghoul-digger', 'tomb-guardian', 'grave-mold', 'crypt-worm', 'keyholder'].some(id => seen('field').has(id));
+    o.essences = !MONSTERS.some(m => m.id === 'chained-deadhound') && ['night-dweller', 'well-drowned', 'ghoul-digger', 'tomb-guardian', 'grave-mold', 'crypt-worm', 'keyholder'].every(id => ESSENCES[id] && MONSTERS.find(m => m.id === id && m.rift === 'gyard'));
     o.libHidden = !libMonsters().some(m => m.id === 'keyholder') || (journal().riftsDone || {}).gyard;
+    o.book = (() => { const R2 = { pyroDone: false }; return !!GEAR['thief-secrets'] && BOOKS['thief-secrets'].stat === 'dex'; })();
     o.serviceText = !/без броска/.test(ESSENCES['night-abbot'].passive.text);
     return o;
   });

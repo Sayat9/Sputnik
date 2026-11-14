@@ -96,10 +96,6 @@
 
 > `full-body a drowned undead woman climbing out of an old stone well, long wet black hair, waterlogged grey skin, reaching hands, night village, moonlight, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
 
-### Цепной пёс-мертвец — `monsters/chained-deadhound-full`
-
-> `full-body a rotting undead guard dog with a broken iron chain on its collar, exposed ribs, glowing eyes, barking, night village fence, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
-
 ### Могильщик-упырь — `monsters/ghoul-digger-full`
 
 > `full-body a hunched ghoul gravedigger with long claws covered in earth, a torn leather apron, half emerging from a freshly dug grave, night cemetery, mist, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
@@ -123,6 +119,10 @@
 ### Коса последнего вздоха — `items/art-death-scythe`
 
 > `a long two-handed scythe with a dark worn wooden shaft and a pale ghostly blade, faint grey mist around the edge, worn and used, lying on a stone pedestal in a labyrinth niche, hand-painted dark fantasy item art, square 1:1, no text`
+
+### Секреты воровства — `items/thief-secrets`
+
+> `a worn leather book with burnt edges, lockpicks tucked into its spine and a small brass key on a string, lying on a stone pedestal in a labyrinth niche, hand-painted dark fantasy item art, square 1:1, no text`
 
 ### Тайны вечной жизни — `items/eternal-secrets`
 

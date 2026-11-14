@@ -13,7 +13,7 @@
     return { int: 2, role: ranged ? "ranged" : "melee", keep: ranged ? 2 : 0, focus: ["wounded", "weak", "nearest"], kite: ranged };
   };
   const seenBy = (u, t) => !(has(t, "hidden") && (dist(u, t) > 1 || has(t, "hidden").data.invis) && !(u.blind && dist(u, t) <= u.blind) && !(u.tremor && dist(u, t) <= u.tremor && !B.isFlying(t)));
-  const targetsOf = u => enemiesOf(u).filter(t => seenBy(u, t) && !t.dead && !has(t, "underground") && B.visibleTo(u, t) && !(u.spareDown && t.down));          // spareDown: пока до стоящего героя можно добраться, упавших не трогают
+  const targetsOf = u => enemiesOf(u).filter(t => seenBy(u, t) && !t.dead && !has(t, "underground") && B.visibleTo(u, t) && !(u.spareDown && t.down) && !(B.disguised && B.disguised(t)));          // «Чужое лицо»: видят, но не считают противником          // spareDown: пока до стоящего героя можно добраться, упавших не трогают
   // Можно ли вообще добраться до стоящего врага (сразу или за несколько ходов): атака из текущей клетки или путь к клетке, откуда он в досягаемости.
   function livingReachable(u) {
     const living = enemiesOf(u).filter(t => seenBy(u, t) && !t.dead && !t.down && !has(t, "underground") && B.visibleTo(u, t)); if (!living.length) return false;
