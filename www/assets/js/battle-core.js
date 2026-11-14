@@ -286,7 +286,7 @@
     let sp = Math.max(u.speedC, u.flyC) + hookSum(u, "speedBonus", {});
     if (B.S && B.S.units) for (const e of enemiesOf(u)) sp -= hookSum(e, "slowAura", { u });          // «Тяжёлые цепи» палача: враги рядом теряют скорость                       // бонус к скорости («Лёгкие ноги») — до замедления, как строка статов
     for (const c of u.conds) {
-      if (["grappled", "restrained", "pinned", "trapped", "spearstop", "bastion", "unconscious", "stable", "buried", "paralyzed", "underground", "mired", "encased", "sunk", "chained"].includes(c.id)) return 0;
+      if (["grappled", "restrained", "pinned", "trapped", "spearstop", "bastion", "unconscious", "stable", "buried", "paralyzed", "underground", "mired", "encased", "sunk", "chained", "drowning", "shackled"].includes(c.id)) return 0;
     }
     for (const c of u.conds) if (c.id === "packhowl") sp += 1;
     for (const c of u.conds) if (c.id === "iced") sp -= 2;          // обледенение (дубина Грольфа)          // «Загонный вой» вожака гончих (03.11)

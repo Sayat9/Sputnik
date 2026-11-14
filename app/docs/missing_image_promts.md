@@ -86,6 +86,40 @@
 
 > `full-body a distorted elderly village elder turned into a lesser lich, grey beard, glowing green eyes, simple wool clothes under a ragged dark mantle, a bone staff, skeletal hands rising from the ground around him, night village street, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
 
+### Кладбище прошлого, монстры мест (14.11)
+
+### Ночной жилец — `monsters/night-dweller-full`
+
+> `full-body an undead villager in a patched peasant shirt with a pale, too-perfect human face like a mask, a rusty sickle hidden behind his back, night village street, lantern light, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
+### Колодезная утопленница — `monsters/well-drowned-full`
+
+> `full-body a drowned undead woman climbing out of an old stone well, long wet black hair, waterlogged grey skin, reaching hands, night village, moonlight, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
+### Цепной пёс-мертвец — `monsters/chained-deadhound-full`
+
+> `full-body a rotting undead guard dog with a broken iron chain on its collar, exposed ribs, glowing eyes, barking, night village fence, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
+### Могильщик-упырь — `monsters/ghoul-digger-full`
+
+> `full-body a hunched ghoul gravedigger with long claws covered in earth, a torn leather apron, half emerging from a freshly dug grave, night cemetery, mist, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
+### Надгробный страж — `monsters/tomb-guardian-full`
+
+> `full-body a living tombstone golem made of mossy cracked gravestones, a carved stone face, heavy stone fists, night cemetery, mist, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
+### Гробовая плесень — `monsters/grave-mold-full`
+
+> `a pale fungal mold mass growing over an old coffin, spore clouds, small glowing caps, dark stone crypt, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
+### Склепный червь — `monsters/crypt-worm-full`
+
+> `full-body a huge pale crypt worm with a round toothy maw bursting from bones and broken coffins, dark stone crypt, candlelight, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
+### Ключник — `monsters/keyholder-full`
+
+> `full-body a rusty undead skeleton jailer with a huge ring of iron keys and a long chain with a shackle, tattered keeper robe, dark stone crypt, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
 ### Коса последнего вздоха — `items/art-death-scythe`
 
 > `a long two-handed scythe with a dark worn wooden shaft and a pale ghostly blade, faint grey mist around the edge, worn and used, lying on a stone pedestal in a labyrinth niche, hand-painted dark fantasy item art, square 1:1, no text`

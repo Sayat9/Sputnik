@@ -3250,5 +3250,87 @@
         const k = by && by.summon && by.owner ? B.byId(by.owner) : by; if (k && k.side === "hero" && alive(k) && (k.pass || []).includes("lesser-death") && k.maxMp) { B.setMp(k, k.mp + 2); fx(k, "+2 маны", "good"); }
       } } catch (e) { console.error("gy kill hook:", e); }
       return prevReg.apply(this, arguments); }; }
+  /* ===== Кладбище прошлого: монстры мест (14.11, одобрено автором; числа — черновик) ===== */
+  Object.assign(D.essCd, { "night-dweller": 3, "well-drowned": 3, "chained-deadhound": 3, "ghoul-digger": 3, "tomb-guardian": 4, "grave-mold": 3, "crypt-worm": 3, "keyholder": 3 });
+  Object.assign(D.monTune, {
+    "night-dweller": { role: "skirmish", focus: ["weak", "nearest"], fleeHp: 0.25 }, "well-drowned": { role: "brute", focus: ["nearest"], noFlee: true }, "chained-deadhound": { role: "brute", focus: ["nearest"], fleeHp: 0.2 },
+    "ghoul-digger": { role: "skirmish", focus: ["weak", "nearest"], noFlee: true }, "tomb-guardian": { role: "brute", focus: ["nearest"], noFlee: true }, "grave-mold": { role: "brute", focus: ["nearest"], noFlee: true },
+    "crypt-worm": { role: "brute", focus: ["nearest"], noFlee: true }, "keyholder": { role: "brute", focus: ["nearest"], noFlee: true },
+  });
+  Object.assign(D.status, {
+    drowning: { name: "Душат", ico: '<path d="M4 14c2 0 2-2 4-2s2 2 4 2 2-2 4-2 2 2 4 2M4 19c2 0 2-2 4-2s2 2 4 2 2-2 4-2 2 2 4 2"/>', desc: "Схвачен утопленницей: не двигаться; в начале её хода — вырваться Силой или получить урон." },
+    shackled: { name: "Прикован", ico: '<circle cx="8" cy="12" r="4"/><circle cx="16" cy="12" r="4"/>', desc: "Прикован цепью: не может двигаться." },
+  });
+  const ghosted = t => t && (has(t, "restrained") || has(t, "shackled") || has(t, "grappled") || has(t, "drowning") || has(t, "chained"));
+  /* Ночной жилец (8): первая атака в бою — с преимуществом и +1к6 */
+  P["night-dweller"] = { attackMods(u, ctx) { if (u.faceUsed || !ctx.tgt || ctx.tgt.isObj || ctx.tgt.side === u.side) return; u.faceUsed = true; ctx.adv.push("Чужое лицо"); if (ctx.extra) ctx.extra.push({ n: 1, s: 6, b: 0, dt: ctx.atk && ctx.atk.dt || "slash", label: "Чужое лицо" }); } };
+  A["night-dweller"] = { time: "bonus", tgt() { return { type: "self" }; }, can(u) { return u.side === "hero" ? true : "только у героя"; },
+    async run(u, pk, ctl) { ctl.commit(); addStatus(u, "hidden", { k: Infinity, data: { unseen: true, by: "Личина" } }); fx(u, "личина", "skill"); log(`${u.name} натягивает чужую личину и растворяется среди теней.`, "skill"); return true; },
+    ai(u) { return u.side === "hero" && !has(u, "hidden") ? { score: 5 } : null; } };
+  /* Колодезная утопленница (7): утянуть и душить */
+  const drownPull = async (u, t, heroVer) => {
+    const sv = await save(t, "str", dcOf(u, "str"), "Утянуть", ["grapple"], u); if (sv.ok || !alive(t)) { fx(t, "вырвался", ""); return; }
+    if (dist(u, t) > 1 && B.pullAdjacent) await B.pullAdjacent(u, t);
+    if (heroVer) { await B.applyDamage(u, t, [{ v: roll(2, 6).total, dt: "bludgeon", label: "Утянуть" }], { src: u }); if (alive(t) && !t.down) addStatus(t, "restrained", { k: 1, when: "end" }); }
+    else if (alive(t) && !t.down && dist(u, t) <= 1) { addStatus(t, "drowning", { k: Infinity, data: { by: u.id } }); fx(t, "душат", "bad"); log(`${u.name} утягивает ${t.name} и держит под водой!`, "bad"); } };
+  P["well-drowned"] = { slowAura(e, { u }) { return alive(e) && !e.down && dist(e, u) <= 1 ? 1 : 0; } };
+  P["body:well-drowned"] = { async turnStartAsync(u) { if (!alive(u) || u.down) return;
+      for (const t of B.units().filter(o => { const d = has(o, "drowning"); return d && d.data.by === u.id; })) {
+        if (!alive(t) || t.down || dist(u, t) > 1) { removeStatus(t, "drowning"); continue; }
+        const sv = await save(t, "str", dcOf(u, "str"), "Вырваться", ["grapple"], u); if (sv.ok) { removeStatus(t, "drowning"); fx(t, "вырвался", "good"); log(`${t.name} вырывается из хватки утопленницы.`); continue; }
+        await B.applyDamage(u, t, [{ v: roll(1, 8).total + 2, dt: "bludgeon", label: "Удушье" }], { src: u, noAbilParts: true }); } },
+    onDeath(u) { for (const t of B.units()) { const d = has(t, "drowning"); if (d && d.data.by === u.id) removeStatus(t, "drowning"); } } };
+  A["well-drowned"] = { time: "action", tgt(u) { return specUnit(u, "Утянуть: кого?", foesIn(u, 3), B.cellsWithin(u, 3), "attack"); }, can(u) { return foesIn(u, 3).length ? true : "нет цели в 3 клетках"; },
+    async run(u, pk, ctl) { const t = pk.unit; if (!t) return false; ctl.commit(); const g = ui(); if (g) g.banner("Утянуть"); await drownPull(u, t, u.side === "hero"); return true; },
+    ai(u) { if (B.units().some(o => { const d = has(o, "drowning"); return d && d.data.by === u.id; })) return null; const ts = foesIn(u, 3).filter(t => !has(t, "drowning")).sort((a, b) => dist(u, b) - dist(u, a)); return ts.length ? { unit: ts[0], score: 12 } : null; } };
+  /* Цепной пёс-мертвец (9) */
+  P["chained-deadhound"] = { attackMods(u, ctx) { const t = ctx.tgt; if (t && !t.isObj && t.side !== u.side && alliesOf(u).some(a => alive(a) && !a.down && dist(a, t) <= 1)) ctx.dmgPlus = (ctx.dmgPlus || 0) + 1; } };
+  P["body:chained-deadhound"] = { turnStart(u) { if (u.barked || !alive(u) || u.down || B.S.round > 2 || !enemiesOf(u).some(e => alive(e) && !e.down)) return; u.barked = true; const got = B.spawnFoes([Math.random() < .5 ? "zombie" : "skeleton"], u); if (got && got.length) { log(`${u.name} заходится лаем — на зов выходит мертвец!`, "bad"); const g = ui(); if (g) g.banner("Лай"); } } };
+  A["chained-deadhound"] = { time: "bonus", tgt() { return { type: "none" }; }, can(u) { return u.side === "hero" && enemiesOf(u).some(o => alive(o) && !o.down && dist(u, o) <= 2) ? true : "нет врагов в 2 клетках"; },
+    async run(u, pk, ctl) { ctl.commit(); log(`${u.name} злобно лает!`, "skill"); for (const o of enemiesOf(u).filter(o => alive(o) && !o.down && dist(u, o) <= 2)) { const sv = await save(o, "wis", dcOf(u, "con"), "Лай", ["fear"], u); if (!sv.ok && alive(o)) { addStatus(o, "dazzled", { k: 1, when: "end" }); fx(o, "сбит лаем", "bad"); } } return true; },
+    ai(u) { return u.side === "hero" && enemiesOf(u).filter(o => alive(o) && !o.down && dist(u, o) <= 2).length >= 1 ? { score: 5 } : null; } };
+  /* Могильщик-упырь (8) */
+  P["ghoul-digger"] = { attackMods(u, ctx) { const t = ctx.tgt; if (t && !t.isObj && t.side !== u.side && t.hp < t.maxHp / 2) ctx.dmgPlus = (ctx.dmgPlus || 0) + 2; if (u.digAdv && ctx.adv) { ctx.adv.push("Из-под земли"); u.digAdv = false; } if (u.venom === B.S.round) { ctx.venom = true; u.venom = -1; } },
+    onHitDealt(u, ctx) { if (ctx.venom && ctx.res && ctx.res.hit && (ctx.tgt.alive || ctx.tgt.down) && !B.noBlood?.(ctx.tgt)) { addStatus(ctx.tgt, "poisoned", { k: 2, when: "end", src: u.id }); fx(ctx.tgt, "трупный яд", "bad"); } } };
+  P["body:ghoul-digger"] = { async turnStartAsync(u) { const S = B.S; if (!alive(u) || u.down || S.round < 2 || S.round % 2 !== 0 || u.dugR === S.round) return; u.dugR = S.round;
+      const t = enemiesOf(u).filter(e => alive(e) && !e.down && !e.isObj).sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp)[0]; if (!t || dist(u, t) <= 1) return;
+      const c = B.freeCellsNear(t, 1, u)[0]; if (!c) return; log(`${u.name} зарывается в землю и выныривает рядом с ${t.name}!`, "bad"); await B.teleport(u, c[0], c[1]); u.digAdv = true; } };
+  A["ghoul-digger"] = { time: "bonus", tgt() { return { type: "self" }; }, can(u) { return u.side === "hero" ? true : "только у героя"; },
+    async run(u, pk, ctl) { ctl.commit(); u.venom = B.S.round; fx(u, "трупный яд", "skill"); return true; },
+    ai(u) { return u.side === "hero" && foesIn(u, 1).length && u.venom !== B.S.round ? { score: 6 } : null; } };
+  /* Надгробный страж (7): «Каменный заслон» — поверх общего B.shareDamage */
+  { const prevShare = B.shareDamage; B.shareDamage = async function (src, tgt, total, o) {
+      if (total > 0 && o && o.ctx && !o.shared) for (const g of alliesOf(tgt)) { if (!(g.pass || []).includes("tomb-guardian") || !alive(g) || g.down || dist(g, tgt) > 1) continue;
+        const k = Math.min(3, total); log(`${g.name}: каменный заслон — принимает ${k} урона за ${tgt.name}.`, "skill"); await B.applyDamage(src, g, [{ v: k, dt: "bludgeon", label: "Каменный заслон" }], { src, shared: true, pure: true }); total -= k; break; }
+      return prevShare ? prevShare.call(this, src, tgt, total, o) : total; }; }
+  P["tomb-guardian"] = {};
+  A["tomb-guardian"] = { time: "action", tgt(u) { return { type: "cell", prompt: "Поднять плиту: где?", cells: B.cellsWithin(u, 1).filter(([x, y]) => B.inB(x, y) && !B.occupant(x, y) && !B.S.cells[y][x]), kind: "move" }; },
+    can(u) { return B.cellsWithin(u, 1).some(([x, y]) => B.inB(x, y) && !B.occupant(x, y) && !B.S.cells[y][x]) ? true : "нет свободной клетки рядом"; },
+    async run(u, pk, ctl) { const c = pk.cell; if (!c) return false; ctl.commit(); B.S.cells[c[1]][c[0]] = "grave"; (B.S.tmpGrave ||= []).push({ x: c[0], y: c[1], until: B.S.round + 3 }); log(`${u.name} поднимает надгробную плиту.`, "skill"); const g = ui(); if (g) g.refresh(); return true; },
+    ai(u) { if (u.side !== "hero") return null; const foe = enemiesOf(u).filter(e => alive(e) && !e.down).sort((a, b) => dist(u, a) - dist(u, b))[0]; if (!foe || dist(u, foe) <= 1) return null; const c = B.cellsWithin(u, 1).filter(([x, y]) => B.inB(x, y) && !B.occupant(x, y) && !B.S.cells[y][x]).sort((p, q) => (Math.abs(p[0] - foe.x) + Math.abs(p[1] - foe.y)) - (Math.abs(q[0] - foe.x) + Math.abs(q[1] - foe.y)))[0]; return c ? { cell: c, score: 4 } : null; } };
+  { const prevRound = B.onRound; B.onRound = function () { const S = B.S; if (S && S.tmpGrave) S.tmpGrave = S.tmpGrave.filter(g => { if (S.round < g.until) return true; if (S.cells[g.y] && S.cells[g.y][g.x] === "grave") S.cells[g.y][g.x] = ""; return false; }); return prevRound ? prevRound.apply(this, arguments) : undefined; }; }
+  /* Гробовая плесень (9) */
+  P["grave-mold"] = { onDamaged(u, { src, o }) { if (!src || src.side === u.side || !o || !o.melee || !alive(src) || src.down) return; B.queue(async () => { if (!alive(src) || src.down) return; const sv = await save(src, "con", dcOf(u, "con"), "Споры", ["poison"], u); if (!sv.ok && !B.noBlood?.(src)) { addStatus(src, "poisoned", { k: 1, when: "end", src: u.id }); fx(src, "споры", "bad"); } }); } };
+  P["body:grave-mold"] = { vulnerable(u, { dt }) { return dt === "fire"; },
+    async turnStartAsync(u) { if (!alive(u) || u.down) return; const near = enemiesOf(u).filter(o => alive(o) && !o.down && !o.isObj && dist(u, o) <= 1); for (const t of near) { const sv = await save(t, "con", dcOf(u, "con"), "Споры", ["poison"], u); if (!sv.ok) { await B.applyDamage(u, t, [{ v: roll(1, 4).total, dt: "poison", label: "Споры" }], { src: u, noAbilParts: true }); if (alive(t) && !t.down) addStatus(t, "poisoned", { k: 1, when: "end", src: u.id }); } } } };
+  A["grave-mold"] = { time: "action", tgt() { return { type: "none" }; }, can(u) { return u.side === "hero" && enemiesOf(u).some(o => alive(o) && !o.down && dist(u, o) <= 1) ? true : "нет врагов рядом"; },
+    async run(u, pk, ctl) { ctl.commit(); const g = ui(); if (g) g.banner("Облако спор"); for (const o of enemiesOf(u).filter(o => alive(o) && !o.down && dist(u, o) <= 1)) { const sv = await save(o, "con", dcOf(u, "con"), "Облако спор", ["poison"], u); if (!sv.ok && !B.noBlood?.(o)) { addStatus(o, "poisoned", { k: 2, when: "end", src: u.id }); fx(o, "споры", "bad"); } } return true; },
+    ai(u) { return u.side === "hero" && enemiesOf(u).filter(o => alive(o) && !o.down && dist(u, o) <= 1 && !has(o, "poisoned")).length >= 1 ? { score: 6 } : null; } };
+  /* Склепный червь (8) */
+  P["crypt-worm"] = { attackMods(u, ctx) { if (u.feast) ctx.dmgPlus = (ctx.dmgPlus || 0) + u.feast; if (u.swallow === B.S.round && ctx.extra) { ctx.extra.push({ n: 1, s: 6, b: 0, dt: "pierce", label: "Заглотить" }); ctx.swallow = true; u.swallow = -1; } },
+    onHitDealt(u, ctx) { if (ctx.swallow && ctx.res && ctx.res.hit && alive(ctx.tgt) && !ctx.tgt.down) { addStatus(ctx.tgt, "restrained", { k: 1, when: "end" }); fx(ctx.tgt, "заглочен", "bad"); } },
+    async afterAttack(u, ctx) { if (u.side === "hero" && ctx.res && ctx.res.killed && ctx.tgt && !ctx.tgt.isObj && (u.feast || 0) < 3) { u.feast = (u.feast || 0) + 1; fx(u, `ненасытный +${u.feast}`, "good"); } } };
+  A["crypt-worm"] = { time: "action", tgt(u) { return specUnit(u, "Заглотить: кого?", foesIn(u, 1), B.cellsWithin(u, 1), "attack"); }, can(u) { return u.side === "hero" && foesIn(u, 1).length ? true : "нет врага рядом"; },
+    async run(u, pk, ctl) { const t = pk.unit; if (!t) return false; const atk = B.attacksOf(u).filter(a => a.kind !== "ranged")[0]; if (!atk) return false; ctl.commit(); u.swallow = B.S.round; await B.doAttack(u, t, atk, {}); u.swallow = -1; return true; },
+    ai(u) { const ts = foesIn(u, 1); return u.side === "hero" && ts.length ? { unit: ts[0], score: 7 } : null; } };
+  /* Ключник (7) */
+  P["keyholder"] = { attackMods(u, ctx) { if (ctx.tgt && ctx.extra && ghosted(ctx.tgt)) ctx.extra.push({ n: 1, s: 6, b: 0, dt: ctx.atk && ctx.atk.dt || "bludgeon", label: "Хватка цепи" }); } };
+  A["keyholder"] = { time: "action", tgt(u) { return specUnit(u, "Цепь ключника: кого?", foesIn(u, 3), B.cellsWithin(u, 3), "attack"); }, can(u) { return foesIn(u, 3).length ? true : "нет цели в 3 клетках"; },
+    async run(u, pk, ctl) { const t = pk.unit; if (!t) return false; ctl.commit(); const g = ui(); if (g) g.banner("Цепь ключника"); const sv = await save(t, "dex", dcOf(u, "dex"), "Цепь ключника", ["grapple"], u); if (!sv.ok && alive(t) && !t.down) { addStatus(t, "shackled", { k: 1, when: "end" }); fx(t, "прикован", "bad"); log(`${u.name} приковывает ${t.name} цепью.`, "bad"); } else fx(t, "увернулся", ""); return true; },
+    ai(u) { const ts = foesIn(u, 3).filter(t => !ghosted(t)).sort((a, b) => dist(u, b) - dist(u, a)); return ts.length ? { unit: ts[0], score: 10 } : null; } };
+  // склепный червь-монстр: гибель любого существа рядом (2 клетки) — лечение 1к8 и рост (до +3 к урону)
+  { const prevKill = B.kill; B.kill = function (u, by) { const was = u && u.alive; const r = prevKill.apply(this, arguments);
+      try { if (was && u && !u.alive && B.S) for (const w of B.units().filter(o => o.side === "mon" && alive(o) && !o.down && o.id !== u.id && (o.pass || []).includes("body:crypt-worm") && dist(o, u) <= 2)) { B.heal(w, roll(1, 8).total, w); if ((w.feast || 0) < 3) w.feast = (w.feast || 0) + 1; log(`${w.name} пожирает павшего и растёт.`, "bad"); fx(w, "пожирает", "bad"); } } catch (e) { console.error("worm:", e); }
+      return r; }; }
   B.fillActiveTimes();
 })();

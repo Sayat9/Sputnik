@@ -30,6 +30,9 @@ const { chromium } = require('playwright');
       return { hung: !!(dgUi.enc && Battle.running), ser, ms: Date.now() - t0 }; };
     const heal = () => { state.party = party(); state.party.forEach(c => { run.status[c.id] = { fat: 0, sat: 9, starve: 0, awake: 0 }; }); };
     const cases = [
+      ['деревня ночью', () => { R.zone = null; R.phase = 'night'; riftFight('Ночь в деревне', ['well-drowned', 'night-dweller', 'chained-deadhound']); }],
+      ['кладбище', () => { riftFight('Кладбище', ['tomb-guardian', 'ghoul-digger', 'zombie']); }],
+      ['склеп', () => { riftFight('Склеп', ['keyholder', 'crypt-worm', 'grave-mold']); }],
       ['церковь: тяжёлая', () => { R.zone = null; R.phase = 'night'; riftFight('Церковь: тяжёлая встреча', ['dead-templar', 'penitent-dead', 'candle-acolyte']); }],
       ['склеп: священник во тьме', () => { run.light = false; R.zone = 'crypt'; riftFight('Склеп: Погребённый священник', ['buried-priest', 'skeleton-warrior']); dgUi.enc.gyCrypt = true; R.zone = null; }],
       ['дух смерти', () => { riftFight('Свет на кладбище: Младший дух смерти', ['lesser-death']); dgUi.enc.gySpirit = true; }],
