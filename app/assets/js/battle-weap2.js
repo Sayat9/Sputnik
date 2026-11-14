@@ -226,7 +226,7 @@
   /* ===== пассивки ===== */
   // «Коса последнего вздоха» (6, с Младшего духа смерти; одобрено автором 14.11, числа — черновик): по раненым ниже половины +1к8 некротикой;
   // раз в бой удар по врагу ниже четверти ОЗ добивает его (стражи, боссы и особые — вместо этого двойной урон удара).
-  D.SCYTHE = { dice: [1, 8], low: 0.5, exec: 0.25 };
+  D.SCYTHE = { dice: [2, 6], low: 0.5, exec: 1 / 3, healKill: [1, 6] };          // 14.11: усилена по просьбе автора (было 1к8 и порог ¼)
   const scytheOn = (u, atk) => atk && atk.w && atk.w.artId === "death-scythe" && atk.mode === "hand" && !atk.thrown;
   P.weap2 = {
     attackMods(u, ctx) {
@@ -235,10 +235,11 @@
       if (!u.scytheUsed && tgt.hp <= tgt.maxHp * D.SCYTHE.exec) ctx.scytheExec = true;
     },
     async afterAttack(u, ctx) {
+      { const { res, tgt, atk } = ctx; if (scytheOn(u, atk) && res && res.killed && tgt && !tgt.isObj && alive(u) && !u.down && u.hp < u.maxHp) { const n = roll(D.SCYTHE.healKill[0], D.SCYTHE.healKill[1]).total; B.heal(u, n, u); fx(u, `жатва +${n}`, "good"); } }
       { const { res, tgt } = ctx; if (ctx.scytheExec && res && res.hit && tgt && !u.scytheUsed && (tgt.alive || tgt.down)) {
         u.scytheUsed = true; const big = tgt.mon && ["guardian", "boss", "special", "lord"].includes(tgt.mon.rank);
         if (big) { if (alive(tgt) && res.dealt > 0) { log(`${u.name}: коса жнёт — ${tgt.name} получает удар ещё раз.`, "skill"); await B.applyDamage(u, tgt, [{ v: res.dealt, dt: "necrotic", label: "Коса последнего вздоха" }], { src: u, noAbilParts: true }); } }
-        else if (alive(tgt) || tgt.down) { log(`${u.name}: последний вздох — коса забирает ${tgt.name}.`, "kill"); fx(tgt, "последний вздох", "bad"); B.kill(tgt, u); }
+        else if (alive(tgt) || tgt.down) { log(`${u.name}: последний вздох — коса забирает ${tgt.name}.`, "kill"); fx(tgt, "последний вздох", "bad"); B.kill(tgt, u); if (alive(u) && !u.down && u.hp < u.maxHp) { const n = roll(D.SCYTHE.healKill[0], D.SCYTHE.healKill[1]).total; B.heal(u, n, u); fx(u, `жатва +${n}`, "good"); } }
       } }
       const { res, tgt, atk } = ctx, w = atk && atk.w;
       if (!res || !res.hit || !tgt || tgt.isObj || tgt.side === u.side) return;

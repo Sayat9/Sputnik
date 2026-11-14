@@ -50,7 +50,7 @@ const { chromium } = require('playwright');
     o.inChurch = R.zone === 'church' && R.w === 3 && R.h === 7; let dayCh = 0; for (const y of [5, 4, 3, 2, 1, 0]) { R.phase = 'day'; R.pt = 0; riftMove(1, y); if (dgUi.enc) dayCh++; clr(); } o.churchDayEmpty = dayCh === 0 && R.pos.y === 0 && !R.bossDead;
     rerender(); o.exploreBtn = !!document.querySelector('[data-rift="gy-explore"]:not([disabled])') && !document.querySelector('[data-rift="gy-altar"]') && !document.querySelector('[data-rift="gy-dig"]');
     gyExplore(); o.explored = !!dgUi.res && /Осмотр церкви/.test(dgUi.res.title); clr(); gyExplore(); o.exploreOnce = !dgUi.res;
-    let nightCh = 0, own = true; for (let i = 0; i < 80; i++) { R.phase = 'night'; R.pt = 0; R.ncl = {}; R.pos = { x: 1, y: 4 }; riftMove(1, 3); if (dgUi.enc) { nightCh++; if (!dgUi.enc.list.every(id => ['candle-acolyte', 'penitent-dead', 'dead-templar'].includes(id))) own = false; } clr(); } o.churchNight = nightCh > 40 && own;
+    let nightCh = 0, own = true; for (let i = 0; i < 80; i++) { R.phase = 'night'; R.pt = 0; R.ncl = {}; R.pos = { x: 1, y: 4 }; riftMove(1, 3); if (dgUi.enc) { nightCh++; if (!dgUi.enc.list.every(id => [...GY_CHURCH[9], ...GY_CHURCH[8], ...GY_CHURCH[7]].includes(id))) own = false; } clr(); } o.churchNight = nightCh > 40 && own;
     R.phase = 'night'; R.pt = 0; R.pos = { x: 1, y: 1 }; riftMove(1, 0); o.boss = fightIds() && fightIds()[0] === 'night-abbot' && dgUi.enc.gyBoss && dgUi.enc.dark === true && dgUi.enc.big10 === true;
     return o;
   });
