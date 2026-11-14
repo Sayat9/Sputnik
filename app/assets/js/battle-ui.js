@@ -20,7 +20,7 @@
     if (location.hash.slice(1) !== hash) location.hash = hash; else if (typeof rerender === "function") rerender();
   };
   // Окна «Меню» и «Настройки» приложения не должны оставаться поверх боя (13.11: «обезьяна» находила два окна сразу).
-  const closeAppMenus = () => { for (const id of ["setov", "menuov"]) { const el = document.getElementById(id); if (el) el.hidden = true; } };
+  const closeAppMenus = () => { for (const id of ["setov", "menuov", "iteminfo"]) { const el = document.getElementById(id); if (el) el.hidden = true; } if (typeof closeSheet === "function") try { closeSheet(); } catch (e) {} if (typeof closeHero === "function" && typeof heroUi !== "undefined" && heroUi) try { closeHero(); } catch (e) {} };          // 14.11: и лист справочника (#sheet) — иначе он оставался поверх боя после «Вернуться в бой»
   UI.unpeek = function () {
     closeAppMenus();
     document.body.classList.remove("bt-peek"); const btn = document.getElementById("bt-back"); if (btn) btn.hidden = true;

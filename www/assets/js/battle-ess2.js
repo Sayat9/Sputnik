@@ -2943,7 +2943,7 @@
   /* ===== Чаща прошлого: стражи 6 класса (хранитель, натуралист), Луна, корни, диалоги (08.11) ===== */
   Object.assign(D.essCd, { "fallen-keeper": 4, naturalist: 5, luna: 2 });
   Object.assign(D.monTune, { "fallen-keeper": { role: "brute", focus: ["cluster", "nearest"], noFlee: true }, naturalist: { role: "brute", focus: ["weak", "nearest"], noFlee: true }, luna: { role: "brute", focus: ["weak", "nearest"], noFlee: true } });
-  D.terrain.roots = { name: "Корни", cost: 2, flammable: true, note: "Корни хранителя: труднопроходны 2 хода. Рубятся режущим оружием или сгорают от огня." };
+  D.terrain.roots = { name: "Корни", cost: 2, flammable: true, note: "Труднопроходимы. Горючие." };
   D.SVG.roots = '<path d="M10 90 Q30 60 18 20 M38 94 Q46 60 36 12 M64 94 Q56 58 70 14 M88 88 Q72 60 84 22 M14 54 Q50 40 88 58 M10 76 Q50 66 92 78" stroke="#7a4e24" stroke-width="7" fill="none" stroke-linecap="round"/><path d="M20 34 Q50 26 80 36" stroke="#5a3616" stroke-width="5" fill="none"/>';
   const rootsAt = (x, y, rounds) => { const S = B.S; if (!S.cells[y] || x < 0 || x >= B.W) return; const c = S.cells[y][x]; if (c && c !== "bush" && c !== "roots" && !(D.terrain[c] || {}).thicket) return; S.cells[y][x] = "roots"; (S.tmpRoots ||= []).push({ x, y, until: S.round + rounds, prev: c === "roots" ? null : c }); };
   const clearRoots = (x, y) => { const S = B.S; if (S.cells[y] && S.cells[y][x] === "roots") { const rec = (S.tmpRoots || []).find(r => r.x === x && r.y === y); S.cells[y][x] = rec ? rec.prev || null : null; S.tmpRoots = (S.tmpRoots || []).filter(r => !(r.x === x && r.y === y)); } };
@@ -3187,7 +3187,7 @@
     async run(u, pk, ctl) { ctl.commit(); const g = ui(); if (g) g.banner("Клич Гракха"); log(`${u.name}: клич Гракха!`, "skill"); for (const o of alliesOf(u).filter(o => alive(o) && !o.down && dist(u, o) <= 3)) { B.tmpPass(o, "gc-clich", 2); fx(o, "клич", "good"); } return true; },
     ai(u) { return !u.cried && alliesOf(u).some(o => alive(o) && dist(u, o) <= 3) ? (u.cried = true, { score: 10 }) : null; } };
   /* ===== Кладбище прошлого, часть 2 (13.11): склеп, церковь, дух смерти, Азик. Числа — черновик ===== */
-  Object.assign(D.essCd, { "candle-acolyte": 3, "penitent-dead": 2, "dead-templar": 4, "buried-priest": 4, "lesser-death": 3, "night-abbot": 4 });
+  Object.assign(D.essCd, { "candle-acolyte": 3, "penitent-dead": 2, "dead-templar": 4, "buried-priest": 4, "lesser-death": 3, "night-abbot": 4, "azik-lich": 3 });
   Object.assign(D.monTune, {
     "candle-acolyte": { role: "skirmish", focus: ["weak", "nearest"], noFlee: true }, "penitent-dead": { role: "brute", focus: ["nearest"], noFlee: true }, "dead-templar": { role: "brute", focus: ["nearest"], noFlee: true },
     "buried-priest": { role: "brute", focus: ["cluster", "nearest"], noFlee: true }, "lesser-death": { role: "skirmish", focus: ["weak", "nearest"], noFlee: true }, "night-abbot": { role: "brute", focus: ["weak", "nearest"], noFlee: true }, "azik-lich": { role: "ranged", keep: 2, focus: ["weak", "nearest"], noFlee: true },
@@ -3217,15 +3217,16 @@
   P["buried-priest"] = {};
   P["body:buried-priest"] = { async turnStartAsync(u) { if (!alive(u) || u.down) return; const near = enemiesOf(u).filter(o => alive(o) && !o.down && dist(u, o) <= 1); if (!near.length) return; log(`Кадило ${u.name} чадит могильным дымом.`, "bad"); for (const o of near) await B.applyDamage(u, o, [{ v: roll(1, 6).total, dt: "necrotic", label: "Кадило" }], { src: u, noAbilParts: true }); } };
   A["buried-priest"] = { time: "action", tgt() { return { type: "none" }; }, can(u) { return enemiesOf(u).some(o => alive(o) && !o.down && dist(u, o) <= 3) ? true : "нет врагов в 3 клетках"; },
-    async run(u, pk, ctl) { ctl.commit(); await gyKnell(u, 3, [3, 6], u.hero ? "radiant" : "necrotic", "Заупокойная", true); return true; },
+    async run(u, pk, ctl) { ctl.commit(); await gyKnell(u, 3, [3, 6], u.hero ? "radiant" : "necrotic", "Заупокойная", true); for (const o of [u, ...alliesOf(u)].filter(o => alive(o) && !o.down && dist(u, o) <= 3 && o.hp < o.maxHp)) { B.heal(o, roll(1, 6).total, u); fx(o, "заупокойная", "good"); } return true; },
     ai(u) { const n = enemiesOf(u).filter(o => alive(o) && !o.down && dist(u, o) <= 3).length; return n >= 2 ? { score: 9 + n * 2 } : null; } };
   /* Младший дух смерти (6, свет на кладбище) */
-  P["lesser-death"] = { attackMods(u, ctx) { const t = ctx.tgt; if (t && ctx.extra && t.hp < t.maxHp / 2) ctx.extra.push({ n: 1, s: 8, b: 0, dt: "necrotic", label: "Последний вздох" }); if (u.beyond === B.S.round && ctx.adv) { ctx.adv.push("Шаг за грань"); u.beyond = -1; } } };
+  P["lesser-death"] = { attackMods(u, ctx) { const t = ctx.tgt; if (t && !t.isObj && ctx.extra && t.hp < t.maxHp / 2) { ctx.extra.push({ n: 1, s: 8, b: 0, dt: "necrotic", label: "Последний вздох" }); ctx.critMin = Math.min(ctx.critMin || 20, 19); }
+    if (u.beyond === B.S.round && ctx.adv) { ctx.adv.push("Шаг за грань"); if (ctx.extra) ctx.extra.push({ n: 1, s: 8, b: 0, dt: "necrotic", label: "Шаг за грань" }); u.beyond = -1; } } };
   P["body:lesser-death"] = { resist(u, { dt }) { return ["pierce", "slash", "bludgeon"].includes(dt); },
     async turnStartAsync(u) { if (!alive(u) || u.down || enemiesOf(u).some(o => alive(o) && !o.down && dist(u, o) <= 1)) return; const t = enemiesOf(u).filter(o => alive(o) && !o.down).sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp)[0]; if (!t) return; const c = B.freeCellsNear(t, 1, u)[0]; if (c) { log(`${u.name} скользит сквозь тьму к ${t.name}.`, "bad"); await B.teleport(u, c[0], c[1]); } } };
   A["lesser-death"] = { time: "bonus", tgt(u) { return specUnit(u, "Шаг за грань: к кому?", foesIn(u, 4).filter(t => B.freeCellsNear(t, 1, u).length), B.cellsWithin(u, 4), "attack"); }, can(u) { return u.side === "hero" && foesIn(u, 4).some(t => B.freeCellsNear(t, 1, u).length) ? true : "нет цели в 4 клетках"; },
     async run(u, pk, ctl) { const t = pk.unit; if (!t) return false; const c = dist(u, t) <= 1 ? [u.x, u.y] : B.freeCellsNear(t, 1, u)[0]; if (!c) return false; ctl.commit(); if (c[0] !== u.x || c[1] !== u.y) await B.teleport(u, c[0], c[1]); u.beyond = B.S.round; fx(u, "шаг за грань", "skill"); return true; },
-    ai() { return null; } };
+    ai(u) { if (u.t && !u.t.action) return null; const ts = foesIn(u, 4).filter(t => B.freeCellsNear(t, 1, u).length).sort((x, y) => x.hp / x.maxHp - y.hp / y.maxHp); return ts.length ? { unit: ts[0], score: 7 } : null; } };
   /* Настоятель Вечной ночи (6, страж разлома) */
   P["night-abbot"] = { turnStart(u) { if (!alive(u) || u.down || !B.S || B.S.phase !== "fight") return; const t = [u, ...alliesOf(u)].filter(o => alive(o) && !o.down && dist(u, o) <= 3 && o.hp < o.maxHp && !has(o, "noheal")).sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp)[0]; if (t) { B.heal(t, roll(1, 4).total + 1, u); fx(t, "служба", "good"); } } };
   P["body:night-abbot"] = { turnStart(u) { if (!u.flock && u.hp < u.maxHp / 2) { u.flock = true; B.spawnFoes(["candle-acolyte", "candle-acolyte"], u); log(`${u.name} поднимает свою паству!`, "bad"); const g = ui(); if (g) g.banner("Паства"); } } };
@@ -3234,9 +3235,14 @@
     ai(u) { const ts = foesIn(u, 5).filter(t => !has(t, "noheal")).sort((a, b) => b.hp - a.hp); return ts.length ? { unit: ts[0], score: 12 } : null; } };
   /* Азик, низший владыка мёртвых (6, секретный босс; эссенции нет) */
   P["body:azik-lich"] = { turnStart(u) { if (!alive(u) || u.down) return; const S = B.S; if (S.round >= 2 && S.round % 3 === 2 && u.raised !== S.round) { u.raised = S.round; if (enemiesOf(u).length && alliesOf(u).filter(o => alive(o)).length < 4) { B.spawnFoes(["skeleton", "zombie"], u); log(`${u.name} поднимает мертвецов из земли!`, "bad"); const g = ui(); if (g) g.banner("Владыка мёртвых"); } } },
-    async turnStartAsync(u) { const S = B.S; if (!alive(u) || u.down || S.round % 3 !== 1 || u.grasp === S.round) return; const t = foesIn(u, 5).filter(o => !has(o, "restrained")).sort((a, b) => dist(u, b) - dist(u, a))[0]; if (!t) return; u.grasp = S.round;          // «Хватка могилы»: у Азика нет эссенции, поэтому способность — особенность тела
-      const g = ui(); if (g) g.banner("Хватка могилы"); log(`${u.name}: Хватка могилы — ${t.name}!`, "bad"); const sv = await saveDmg(u, t, "con", 8 + (u.pb || 3) + amod(u.abil.int), [2, 8], "necrotic", "Хватка могилы", []); if (!sv.ok && alive(t) && !t.down) { addStatus(t, "restrained", { k: 1, when: "end" }); fx(t, "хватка", "bad"); } },
     onDeath(u) { if (B.say) B.say("azik-lich", "вечность… была… так близко…"); } };
+  P["azik-lich"] = { async afterAttack(u, ctx) { const r = ctx.res; if (!r || !r.hit || !(r.dealt > 0) || !alive(u) || u.down || !ctx.tgt || ctx.tgt.isObj || ctx.tgt.side === u.side || u.hp >= u.maxHp) return; const n = Math.max(1, Math.floor(r.dealt / 4)); B.heal(u, n, u); fx(u, `+${n} ОЗ`, "good"); } };
+  A["azik-lich"] = { time: "action", tgt(u) { return specUnit(u, "Хватка могилы: на кого?", foesIn(u, 5), B.cellsWithin(u, 5), "attack"); }, can(u) { return foesIn(u, 5).length ? true : "нет цели в 5 клетках"; },
+    async run(u, pk, ctl) { const t = pk.unit; if (!t) return false; ctl.commit(); const g = ui(); if (g) g.banner("Хватка могилы"); const hp0 = t.hp;
+      const sv = await saveDmg(u, t, "con", u.hero ? dcOf(u, "int") : 8 + (u.pb || 3) + amod(u.abil.int), [2, 8], "necrotic", "Хватка могилы", []);
+      const got = Math.max(0, hp0 - Math.max(0, t.hp)); if (got > 0 && alive(u) && !u.down && u.hp < u.maxHp) { const n = Math.max(1, Math.floor(got / 2)); B.heal(u, n, u); fx(u, `+${n} ОЗ`, "good"); }
+      if (!sv.ok && alive(t) && !t.down) { addStatus(t, "restrained", { k: 1, when: "end" }); fx(t, "хватка", "bad"); } return true; },
+    ai(u) { const ts = foesIn(u, 5).filter(t => !has(t, "restrained")).sort((a, b) => dist(u, b) - dist(u, a)); return ts.length ? { unit: ts[0], score: 11 } : null; } };
   // «Отпевание» и «Последний вздох»: гибель врага рядом с носителем эссенции / добивание
   { const prevReg = B.regKill; B.regKill = function (u, by) {
       try { if (u && u.side === "mon" && B.S && B.S.phase === "fight") {

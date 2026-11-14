@@ -368,7 +368,7 @@
     if (nat === 1 && att.side === "hero" && B.wearWeapon) B.wearWeapon(att, atk);
     if (nat === 1 && att.side === "hero" && atk.kind === "melee" && !ctx.dmgOnly) addStatus(att, "fumbled", { k: 2, when: "end" });          // крит. промах в ближнем бою: −3 к следующей атаке                                  // критический промах: оружие теряет 1 прочности
     if (nat === 20 && att.side === "mon" && tgt.side === "hero" && B.wearArmor) B.wearArmor(tgt, 1);                // натуральная 20 монстра: броня носителя теряет 1 прочности
-    const hit = ctx.autoHit || nat === 20 || (nat !== 1 && total >= ctx.ac), crit = nat === 20 || (hit && ctx.autoCrit);
+    const hit = ctx.autoHit || nat === 20 || (nat !== 1 && total >= ctx.ac), crit = nat === 20 || (hit && ctx.autoCrit) || (hit && ctx.critMin && nat >= ctx.critMin);          // critMin — расширенный диапазон крита (эссенция духа смерти)
     const res = { hit, crit, nat, total, ac: ctx.ac, dealt: 0, parried: false, killed: false, att, tgt, atk, ctx, post: [] };
     const fused = has(tgt, "fuse");                                                    // бомба горит в руке: любое попадание по подрывнику взрывает её, даже если он упадёт
     const touchDouble = () => { if (tgt.kind === "double") { const ow = B.byId(tgt.owner); if (ow) hookAll(ow, "doubleAttacked", { att, double: tgt, res }); } };          // «Подмена»: кто тронул двойника, тот обманут

@@ -18,8 +18,8 @@ const STEPS = +process.argv[2] || 250;
     // 2) окна поверх экрана
     const big = [...document.querySelectorAll('body *')].filter(el => { const cs = getComputedStyle(el); if (cs.position !== 'fixed' && !el.classList.contains('bt-modal')) return false; if (!vis(el)) return false; const r = el.getBoundingClientRect(); return r.width * r.height > W * H * 0.35; })
       .filter(el => !el.classList.contains('bt-root') && el.id !== 'scrim');
-    const POP = ['diceov', 'iteminfo', 'fxinfo', 'saveov', 'net-logov', 'netov'];          // кубик, подсказки, окно «Онлайн» и журнал сети — законно поверх окна
-    const top = big.filter(el => !big.some(o => o !== el && o.contains(el)) && !POP.includes(el.id) && !el.classList.contains('fx-toast') && !el.classList.contains('out'));
+    const POP = ['diceov', 'iteminfo', 'fxinfo', 'saveov', 'net-logov', 'netov', 'rost-ask'];          // + вопрос «что с вещами» при уходе в запас (14.11)          // кубик, подсказки, окно «Онлайн» и журнал сети — законно поверх окна
+    const top = big.filter(el => !big.some(o => o !== el && o.contains(el)) && !POP.includes(el.id) && !el.querySelector('[data-yn]') && !el.classList.contains('fx-toast') && !el.classList.contains('out'));          // окна-вопросы «да/нет» — законно поверх
     window.__seen ||= {}; for (const el of big) window.__seen[el.id ? '#' + el.id : '.' + [...el.classList].join('.')] = 1; window.__seen['hash:' + location.hash] = 1;
     if (document.querySelector('.bt-root:not([hidden])')) window.__seen['бой:' + (Battle.UI && Battle.UI.mode)] = 1;
     const name = el => el.id ? '#' + el.id : '.' + [...el.classList].join('.');

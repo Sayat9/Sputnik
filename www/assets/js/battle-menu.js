@@ -187,9 +187,8 @@
   UI.cellEffects = function (x, y) { if (rolling()) return;
     const S = B.S, t = B.tinfo(x, y), tid = B.terrain(x, y), out = [];
     out.push({ h: t ? t.name : "Ровная земля", t: t ? t.note : "Обычная земля: ничего особенного." });
-    const od = B.objAt && B.objAt(x, y); if (od) out.push({ h: "Можно разрушить", t: `КД ${od.ac}, ОЗ ${od.hp}/${od.maxHp}. Бьют оружием (молот и тяжёлое оружие — с преимуществом, обычное по камню может отдать в руку) или областью: взрывом, обвалом.` });
-    if (t && t.block) out.push({ h: "Закрывает обзор", t: "Клетки за ним не видны, туда нельзя стрелять, метать и колдовать." });
-    if (t && t.wet) out.push({ h: "Вода", t: "Холод и молния по вставшему сюда +1к4." });
+    const od = B.objAt && B.objAt(x, y); if (od) out.push({ h: "Можно разрушить", t: `Прочность ${od.hp}/${od.maxHp}.` });
+    
     if (S.dark) out.push({ h: B.lightAt(x, y) ? "Освещено" : "Тьма", t: B.lightAt(x, y) ? "Свет: штрафов тьмы нет." : "Помеха на Восприятие и дальние атаки у тех, кто без тёмного зрения; в тени можно прятаться." });
     for (const o of S.objs) if (o.x === x && o.y === y) {
       if (o.kind === "trap" && (!o.hidden || o.owner === "hero")) out.push({ h: "Ловушка", t: `Сл ${o.dc}, ${o.dmg} ${D.DT[o.dt] || ""}; наступивший спасается Ловкостью, при провале опутан.` });

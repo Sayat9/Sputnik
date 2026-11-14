@@ -86,6 +86,10 @@
 
 > `full-body a distorted elderly village elder turned into a lesser lich, grey beard, glowing green eyes, simple wool clothes under a ragged dark mantle, a bone staff, skeletal hands rising from the ground around him, night village street, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
 
+### Коса последнего вздоха — `items/art-death-scythe`
+
+> `a long two-handed scythe with a dark worn wooden shaft and a pale ghostly blade, faint grey mist around the edge, worn and used, lying on a stone pedestal in a labyrinth niche, hand-painted dark fantasy item art, square 1:1, no text`
+
 ### Тайны вечной жизни — `items/eternal-secrets`
 
 > `an ancient black leather book with bone clasps and a faintly glowing green rune on the cover, worn and used, lying on a stone pedestal in a labyrinth niche, hand-painted dark fantasy item art, square 1:1, no text`

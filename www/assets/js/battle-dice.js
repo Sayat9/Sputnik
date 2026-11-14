@@ -330,6 +330,8 @@
   let current = null;                                     // открытое окно
   function portraitOf(u) { return u && u.face ? `<img src="${u.face}" alt="">` : ""; }
   function createSheet(u, meta) {
+    { const m = document.querySelector(".bt-modal:not([hidden])"); if (m && !m.querySelector(".bt-endscr") && m.querySelector(".insp, .bt-insp-wrap, .cellinfo, .bt-dlg.menu")) { m.hidden = true; m.innerHTML = ""; } }          // только окна осмотра и меню — вопросы и реакции не трогаем
+    if (typeof closeHero === "function" && document.getElementById("heroov") && !document.getElementById("heroov").hidden) try { closeHero(); } catch (e) {}          // и окно героя (открыто удержанием) — бросок важнее          // 14.11: окно осмотра не остаётся под окном броска
     const root = document.createElement("div");
     root.className = "bd-ov"; root.setAttribute("role", "dialog"); root.setAttribute("aria-modal", "true"); root.setAttribute("aria-label", meta.title || "Бросок");
     const duo = meta.att && meta.tgt;

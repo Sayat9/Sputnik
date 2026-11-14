@@ -10,7 +10,7 @@ const L = require('./bui_lib.js');
     o.k = kinds; o.r7 = state.auction.slots.map(s => s.cls);
     // покупка
     state.run = null; await loadTown(); c.rank = 9; c.gold = 100000; auctionRoll(); const sl = state.auction.slots[0]; const st0 = (inventory().essStash || []).length;
-    Town.open('auction'); window.__shot = 1; o.lots = document.querySelectorAll('.tw-lot').length; o.locked = document.querySelectorAll('.tw-lot.locked').length; document.querySelector('[data-t="lot-buy"]').click(); o.sold = sl.sold; o.stash = (inventory().essStash || []).length - st0; o.gold = 100000 - c.gold === sl.price; Town.close();
+    Town.open('auction'); window.__shot = 1; o.lots = document.querySelectorAll('.tw-lot').length; o.locked = document.querySelectorAll('.tw-lot.locked').length; document.querySelector('[data-t="lot-buy"]').click(); o.sold = sl.sold; o.stash = (inventory().essStash || []).length - st0; o.flask = (c.bag || []).some(x => x.id === 'ess-flask' && x.ess === sl.id); o.gold = 100000 - c.gold === sl.price; Town.close();
     // баннер
     state.townUnlocked = true; location.hash = 'town'; route(); o.banner = !!document.querySelector('.gate-alert') === gateInfo().open;
     return o; });
@@ -19,7 +19,7 @@ const L = require('./bui_lib.js');
   ok('новый слот — без артефактов и разломов', R.k.newArt === 0 && R.k.newRift === 0, R.k);
   ok('старые слоты: ~10 % артефактов и ~10 % эссенций разломов', R.k.art > 30 && R.k.art < 130 && R.k.rift > 30 && R.k.rift < 130, R.k);
   ok('класс эссенции совпадает со слотом', R.k.wrongCls === 0, R.k);
-  ok('9 лотов, 8 закрыты; покупка — в запас, деньги списаны', R.lots === 9 && R.locked === 8 && R.sold && R.stash === 1 && R.gold, R);
+  ok('9 лотов, 8 закрыты; эссенция — в колбе в рюкзак героя, деньги списаны', R.lots === 9 && R.locked === 8 && R.sold && R.stash === 0 && R.flask && R.gold, R);
   ok('баннер «Портал открыт» соответствует вратам', R.banner, R);
   ok('errs: нет', !errs.length, errs);
   console.log(`проверок: ${n}, не прошли: ${bad}`); await b.close(); process.exit(bad ? 1 : 0); })();

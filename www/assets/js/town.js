@@ -52,6 +52,7 @@
   const talk = () => SHOP_TALK[Math.floor(Math.random() * SHOP_TALK.length)];
 
   const hero = () => state.party.find(c => c.id === ui.hero) || state.party[0];
+  const payGoldCheck = n => (typeof partyGold === "function" ? partyGold() : 0) >= n;
   const classMult = m => CLS_MULT[m.cls] || 1;
   const infoPrice = (m, k) => (INFO_PRICE[k] || 5) * classMult(m);
   const html = s => { host.innerHTML = s; };
@@ -759,7 +760,7 @@
           const i = A.slots.findIndex(x => x.cls === cls), sl = i >= 0 ? A.slots[i] : null;
           if (!sl) return `<div class="tw-row tw-lot locked"><div class="tw-who"><div><b>Лот ${cls} класса</b><small>закрыт · откроется с ${cls} ранга${cls >= rank ? " — после следующего похода" : ""}</small></div></div></div>`;
           if (sl.kind === "none") return `<div class="tw-row tw-lot"><div class="tw-who"><div><b>Лот ${cls} класса</b><small>торгов нет: таких товаров пока нет</small></div></div></div>`;
-          const nm = sl.kind === "art" ? `Артефакт ${cls} класса: ${esc(artName(sl.id))}` : esc(ESSENCES[sl.id].name), sub = sl.kind === "art" ? "свойства — после определения в Башне магов" : `эссенция ${cls} класса${sl.rift ? " · из разлома" : ""}${(() => { const m = MONSTERS.find(x => x.id === essSource(sl.id)); return m && rankOf(m) === "rare" ? " · редкий монстр" : ""; })()} · уйдёт в запас эссенций отряда`;
+          const nm = sl.kind === "art" ? `Артефакт ${cls} класса: ${esc(artName(sl.id))}` : esc(ESSENCES[sl.id].name), sub = sl.kind === "art" ? "свойства — после определения в Башне магов" : `эссенция ${cls} класса${sl.rift ? " · из разлома" : ""}${(() => { const m = MONSTERS.find(x => x.id === essSource(sl.id)); return m && rankOf(m) === "rare" ? " · редкий монстр" : ""; })()} · в колбе — в рюкзак выбранного героя`;
           return `<div class="tw-row tw-lot"><div class="tw-who"><div><b>${nm}</b><small>${sub}</small></div></div>${sl.sold ? `<span class="tw-done">${ICO_CHECK}</span>` : `<button class="fx-btn primary" data-t="lot-buy" data-i="${i}"${partyGold() >= sl.price ? "" : " disabled"}>${sl.price}</button>`}</div>`; }).join("");
         return frame("Аукцион", "Рафдония", `${heroStrip()}<p class="tw-lead">Лоты меняются после каждого похода в лабиринт. Чем выше ранг отряда, тем больше лотов: сейчас открыто ${A.slots.length} из 9.</p><div class="tw-rows">${cells}</div>${msgLine()}`);
       },
@@ -968,12 +969,17 @@
       case "atab": ui.tab = ds.k; break;
       case "ttab": ui.tab = ds.k; break;
       case "flask-buy": buyFlask(ds.id); break;
-      case "lot-buy": {          // аукцион: эссенция — в запас отряда (впитать в «Навыках»), артефакт — сокровище или в рюкзак покупателя
+      case "lot-buy": {          // аукцион (14.11): эссенция — в колбе в рюкзак выбранного героя; артефакт — сокровище или в рюкзак покупателя
         const A = auctionState(), sl = A.slots[+ds.i], c = hero(); if (!sl || sl.sold || sl.kind === "none" || !c) break;
+        if (sl.kind === "ess") { const src = MONSTERS.find(m => m.id === essSource(sl.id)), item = { t: "g", id: "ess-flask", qty: 1, ess: sl.id, from: src ? src.name : "" };
+          if (!payGoldCheck(sl.price)) { ui.msg = "Не хватает монет."; break; }
+          if (addToBag(c, item) > 0) { ui.msg = `У ${c.name} нет места в рюкзаке — выберите другого героя.`; break; }
+          if (!payGold(c, sl.price)) { const k = (c.bag || []).findIndex(x => x.id === "ess-flask" && x.ess === sl.id); if (k >= 0) c.bag.splice(k, 1); ui.msg = "Не хватает монет."; break; }
+          markEssNamed(sl.id); sl.sold = true; visit(); ui.msg = `Куплена ${ESSENCES[sl.id].name} — колба у ${c.name} в рюкзаке.`; saveChar(); break; }
         if (sl.kind === "art" && !TREASURES[sl.id] && addToBag(c, { t: "g", id: sl.id, qty: 1 }) > 0) { ui.msg = `У ${c.name} нет места в рюкзаке.`; break; }
         if (!payGold(c, sl.price)) { if (sl.kind === "art" && !TREASURES[sl.id]) takeGear(c, sl.id, 1); ui.msg = "Не хватает монет."; break; }
-        if (sl.kind === "ess") { essStash().push(sl.id); markEssNamed(sl.id); } else if (TREASURES[sl.id]) giveTreasure(sl.id); else artSeen(sl.id);
-        sl.sold = true; visit(); ui.msg = sl.kind === "ess" ? `Куплена ${ESSENCES[sl.id].name} — она в запасе эссенций отряда (вкладка «Навыки» героя).` : `Куплен артефакт ${sl.cls} класса — определите его в Башне магов.`; saveChar(); break;
+        if (TREASURES[sl.id]) giveTreasure(sl.id); else artSeen(sl.id);
+        sl.sold = true; visit(); ui.msg = `Куплен артефакт ${sl.cls} класса — определите его в Башне магов.`; saveChar(); break;
       }
       case "essflask-sell": sellEssFlask(+ds.i); break;
       case "aid": identify(ds.id); break;
