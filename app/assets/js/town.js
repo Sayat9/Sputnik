@@ -21,6 +21,7 @@
   const RANK_GOODS = { "potion-good": 8, "shovel-good": 8, compass: 8 };
   const rankMul = (r, open) => r >= 9 ? 1.1 : open != null && r <= open - 1 ? 0.9 : 1;
   GOODS.forEach(g => { const b = g.price; g.base = b; Object.defineProperty(g, "price", { configurable: true, get() { const r = partyRank(), need = RANK_GOODS[g.key]; return Math.max(1, Math.round(b * (r >= 9 ? 1.1 : need && r <= need - 1 ? 0.9 : 1) * (partyHas("goblin-merchant") ? 0.9 : 1) * (partyHas("crystal-greed") ? 0.95 : 1))); } }); });          // «Торгаш» гоблина-торговца: −10 %
+  T.goods = GOODS;          // для тестов
   const goodOpen = g => !RANK_GOODS[g.key] || partyRank() <= RANK_GOODS[g.key];
   // Кузница: на 9 ранге обычное оружие и броня +10 %, улучшенное (стальное) открывается с 8-го ранга, на 7-м на него −10 %.
   const forgeRank = (p, steel) => Math.max(1, Math.round(p * (steel ? (partyRank() <= 7 ? 0.9 : 1) : (partyRank() >= 9 ? 1.1 : 1))));

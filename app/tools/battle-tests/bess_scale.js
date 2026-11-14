@@ -14,7 +14,7 @@ const { chromium } = require('playwright');
       return { id: e.id, cls: e.cls, plus, minus };
     });
   });
-  const RULE = { 9: r => r.plus === 3 && r.minus === 1, 8: r => r.plus >= 4 && r.minus >= 2, 7: r => r.plus >= 5 && r.minus >= 2, 6: r => r.plus >= 7 && r.minus >= 3 };
+  const RULE = { 5: r => r.plus >= 12 && r.minus >= 5, 9: r => r.plus === 3 && r.minus === 1, 8: r => r.plus >= 4 && r.minus >= 2, 7: r => r.plus >= 5 && r.minus >= 2, 6: r => r.plus >= 7 && r.minus >= 3 };
   let bad = 0; for (const r of rows) { const good = RULE[r.cls] ? RULE[r.cls](r) : true; if (!good) { bad++; console.log('  ✗', r.cls, r.id, 'плюсов', r.plus, 'минусов', r.minus); } }
   console.log('эссенций:', rows.length, 'не по правилу:', bad, errs.length ? errs : '');
   await b.close();

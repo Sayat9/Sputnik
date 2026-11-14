@@ -44,7 +44,7 @@
   function setHp(u, v) { u.hp = clamp(Math.round(v), 0, u.maxHp); if (u.hero) u.hero.hp = u.hp; }
   function setMp(u, v) { const old = u.mp; u.mp = clamp(Math.round(v), 0, u.maxMp); if (u.hero) u.hero.mp = u.mp; if (u.mp !== old && B.S && B.S.phase === "fight") { const g = ui(); if (g && g.fxMana) g.fxMana(u, u.mp - old); }          // синее число над бойцом (12.11)
     if (u.hero && u.mp < old && B.staffCharge) B.staffCharge(u, old - u.mp); }          // посох разрядов копит потраченную ману
-  const canAct = u => alive(u) && !u.down && !has(u, "unconscious") && !has(u, "stable") && !has(u, "paralyzed") && !has(u, "encased") && !has(u, "underground");          // закопавшийся землекоп не действует и не реагирует
+  const canAct = u => alive(u) && !u.down && !has(u, "unconscious") && !has(u, "stable") && !has(u, "paralyzed") && !has(u, "encased") && !has(u, "trolldown") && !has(u, "underground");          // закопавшийся землекоп не действует и не реагирует
   function revive(u) {
     removeStatus(u, "unconscious"); removeStatus(u, "stable"); removeStatus(u, "prone"); u.down = false; u.deathSaves = { ok: 0, fail: 0 };          // вылечили — сразу на ногах (автор 03.11)
     log(`${u.name} приходит в себя.`, "good"); const g = ui(); if (g) g.fxText(u, "в сознании", "good");

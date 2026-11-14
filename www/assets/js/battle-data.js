@@ -272,7 +272,7 @@
     "stone-elk": [1, 2], "ice-deer": [1, 2], "glen-warden": [1, 2], "silent-predator": [1, 2], "toll-bull": [1, 2], "mutant-boar": [1, 2],
     "lab-direwolf": [1, 2], "fled-chimera": [1, 2], "swamp-fang": [1, 2], "magma-wyrm": [1, 2], "deep-serpent": [1, 2],
     "mammoth-calf": [2, 2], "crystal-colossus": [2, 2], "magma-golem": [2, 2], "rift-heart": [2, 2], "giant-mole": [2, 2], "spider-queen": [2, 2], "faceless-sculptor": [2, 2], "flesh-golem": [2, 2], "kel-worm": [2, 2], "fallen-keeper": [2, 2],
-    "faceless-ringer": [1, 1], "bone-knight": [1, 1], "corpse-eater": [1, 1], "werewolf": [1, 1], "orc-chief": [1, 1], "forge-smith": [1, 1], "half-troll": [1, 1], "trollgob-porter": [1, 1],
+    "faceless-ringer": [1, 1], "bone-knight": [1, 1], "corpse-eater": [1, 1], "werewolf": [1, 1], "orc-chief": [1, 1], "forge-smith": [1, 1], "half-troll": [1, 1], "troll": [2, 2], "trollgob-porter": [1, 1],
     "fog-lantern": [1, 1], "dead-vulture": [1, 1],
   };
   Object.assign(D.essCd, { rat: 2, "rat-king": 4, "rat-catcher": 3 });

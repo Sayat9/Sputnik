@@ -2,7 +2,7 @@
 const { chromium } = require('playwright'); const fs = require('fs');
 const NEG = /[−-]\d|Жадность|Серебро жжёт|Боится|Уязвимость|Тяжёлый|Холод (сковывает|жжёт)|Хрупкий|Нестабильность|Плохое зрение/;
 const count = (stats, other) => { let plus = 0, minus = 0; for (const v of Object.values(stats)) { if (v > 0) plus += v; else if (v < 0) minus++; } for (const o of other || []) { if (NEG.test(o)) minus++; else { const m = /\+(\d+)(,\d+)?( м)?/.exec(o); plus += m && !m[3] ? +m[1] : 1; } } return { plus, minus }; };
-const RULE = { 9: r => r.plus === 3 && r.minus === 1, 8: r => r.plus >= 4 && r.minus >= 2, 7: r => r.plus >= 5 && r.minus >= 2, 6: r => r.plus >= 7 && r.minus >= 3 };
+const RULE = { 5: r => r.plus >= 12 && r.minus >= 5, 9: r => r.plus === 3 && r.minus === 1, 8: r => r.plus >= 4 && r.minus >= 2, 7: r => r.plus >= 5 && r.minus >= 2, 6: r => r.plus >= 7 && r.minus >= 3 };
 const ST = { str: 'Сил', dex: 'Лов', con: 'Тел', int: 'Инт', wis: 'Муд', cha: 'Хар' };
 const stat = s => Object.entries(s).map(([k, v]) => `${ST[k]} ${v > 0 ? '+' : '−'}${Math.abs(v)}`).join(', ');
 // Предложенные эссенции 3 этажа (ещё не в игре): [класс, название, тип, зона, статы, особенности]

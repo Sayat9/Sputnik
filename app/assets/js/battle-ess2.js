@@ -3362,7 +3362,7 @@
       const atk = { ...(B.attacksOf(u).filter(a => a.kind !== "ranged")[0] || {}), id: "rocket", n: "Ракетный кулак", dmg: { n: 2, s: 8, b: amod(u.abil.str) }, dt: "bludgeon" };
       const r = await B.doAttack(u, t, atk, {}); if (r && r.hit && alive(t) && !t.down) await B.push(t, u.x, u.y, 2); return true; },
     ai(u) { const ts = foesIn(u, 4).filter(t => dist(u, t) >= 2).sort((a, b) => a.hp - b.hp); return ts.length ? { unit: ts[0], score: 12 } : null; } };
-  { const prevApply = B.applyDamage; B.applyDamage = async function (src, tgt, parts, o) { if (tgt && (tgt.pass || []).includes("body:alpha01") && (parts || []).some(p => p && p.dt === "lightning") && B.S) { tgt.noRegen = B.S.round; } return prevApply.apply(this, arguments); }; }
+  P["body:alpha01"].dmgFlat = (u, { dt }) => { if (dt === "lightning" && B.S) u.noRegen = B.S.round; return 0; };
 
   /* ===== Кристальный рудник прошлого (14.11, автор; числа — черновик) ===== */
   Object.assign(D.essCd, { "petrified-miner": 3, "crystal-rat": 2, "mine-pony": 3, "crystal-smith": 3, "rockfall": 3, "crystal-innkeeper": 3, "crystal-overseer": 3, "shard-hunter": 3, "foreman-gorn": 4, "singing-crystal": 4, "primal-crystal": 4, "crystal-greed": 3, "crystal-alchemist": 3 });
@@ -3458,9 +3458,7 @@
       for (const t of enemiesOf(u).filter(o => alive(o) && !o.down && !o.isObj && dist(u, o) <= 3)) { const sv = await saveDmg(u, t, "con", dcOf(u, "cha"), [3, 6], "thunder", "Высокая нота", ["splash"]); if (!sv.ok && alive(t) && !t.down) { addStatus(t, "stunned", { k: Infinity, data: durEnd(t, 0) }); fx(t, "оглушён", "bad"); } } return true; },
     ai(u) { const n = foesIn(u, 3).length; return u.side === "hero" && n >= 1 ? { score: 5 + n * 2 } : null; } };
   /* Первородный кристалл (6, страж) */
-  { const prevApply = B.applyDamage; B.applyDamage = async function (src, tgt, parts, o) {
-      if (tgt && B.S && (tgt.pass || []).includes("primal-crystal") && src && src.side !== tgt.side && tgt.skinRound !== B.S.round && (parts || []).some(p => p && p.v > 0)) { tgt.skinRound = B.S.round; parts = parts.map(p => p && p.v > 0 ? { ...p, v: Math.floor(p.v / 2) } : p); fx(tgt, "кристаллическая кожа", "skill"); arguments[2] = parts; }
-      return prevApply.apply(this, arguments); }; }
+  P["primal-crystal"] = { dmgTotal(u, { total, src }) { if (!B.S || !src || src.side === u.side || total <= 0 || u.skinRound === B.S.round) return total; u.skinRound = B.S.round; fx(u, "кристаллическая кожа", "skill"); return Math.floor(total / 2); } };
   P["body:primal-crystal"] = { onDamaged(u) { if (!u.shardsOut && alive(u) && u.hp <= u.maxHp / 2) { u.shardsOut = true; log(`От ${u.name} откалываются осколки — две кристальные крысы!`, "bad"); B.queue(async () => { B.spawnFoes(["crystal-rat", "crystal-rat"], u); const g = ui(); if (g) g.refresh(); }); } } };
   const crystTs = u => foesIn(u, 4).filter(t => !has(t, "encased"));
   A["primal-crystal"] = { time: "action", tgt(u) { return specUnit(u, "Кристаллизация: кого?", crystTs(u), B.cellsWithin(u, 4), "attack"); }, can(u) { return crystTs(u).length ? true : "нет цели в 4 клетках"; },
@@ -3486,14 +3484,34 @@
       return v; }; }
   /* «Камертон резонанса» (артефакт 7 класса): урон звуком от носителя — стак на цели; раз за бой «Камертон» по одной цели: n + n×1к4 звуком */
   const forkOn = u => !!(u && u.hero && u.hero.equip && Object.values(u.hero.equip).some(e => e && e.id === "resonance-fork" && !e.broken));
-  { const prevApply = B.applyDamage; B.applyDamage = async function (src, tgt, parts, o) {
-      if (src && tgt && src.side !== tgt.side && !tgt.isObj && forkOn(src) && !(o && o.forkPop) && (parts || []).some(p => p && p.dt === "thunder" && p.v > 0)) { tgt.forkStacks = (tgt.forkStacks || 0) + 1; fx(tgt, `резонанс ${tgt.forkStacks}`, "skill"); }
-      return prevApply.apply(this, arguments); }; }
+  P["cr-fork"] = { dmgBonusVs(src, { dt, tgt, o }) { if (dt !== "thunder" || !tgt || tgt.isObj || tgt.side === src.side || !forkOn(src) || (o && (o.forkPop || o.forkSeen))) return 0; if (o) o.forkSeen = true; tgt.forkStacks = (tgt.forkStacks || 0) + 1; fx(tgt, `резонанс ${tgt.forkStacks}`, "skill"); return 0; } };
   { const prevIA = B.iceActions; B.iceActions = (u, out) => { out = prevIA ? prevIA(u, out) : out;
       if (u.side === "hero" && forkOn(u) && !u.forkUsed) { const ts = enemiesOf(u).filter(t => alive(t) && !t.down && (t.forkStacks || 0) > 0 && (!B.visibleTo || B.visibleTo(u, t))).sort((a, b) => b.forkStacks - a.forkStacks), t = ts[0];
         out.push({ id: "fork", cat: "other", label: "Камертон", ico: "attack", sub: t ? `${t.name}: резонанс ${t.forkStacks} — ${t.forkStacks} + ${t.forkStacks}×1к4 звуком, раз за бой` : "нет цели с резонансом", enabled: !!t && B.timeOK(u, "action"),
           run: async () => { if (!t || !alive(t)) return false; B.spendTime(u, "action"); u.forkUsed = true; const n = t.forkStacks; let v = n; for (let i = 0; i < n; i++) v += roll(1, 4).total; t.forkStacks = 0; const g = ui(); if (g) g.banner("Камертон резонанса");
             log(`${u.name} ударяет камертоном: ${t.name} — ${v} звуком (${n} стак.).`, "skill"); await B.applyDamage(u, t, [{ v, dt: "thunder", label: "Камертон" }], { src: u, noAbilParts: true, forkPop: true }); return true; } }); }
       return out; }; }
+
+  /* ===== 5 класс: Пещерный тролль (14.11, автор; числа — черновик) ===== */
+  Object.assign(D.essCd, { troll: 99 }); Object.assign(D.monTune, { troll: { role: "brute", focus: ["weak", "nearest"], noFlee: true } });
+  Object.assign(D.status, { trolldown: { name: "Повержен (встаёт)", ico: '<path d="M4 18h16M7 14l5-6 5 6"/>', desc: "Лежит без движения; в начале своего хода встанет, если регенерация не остановлена." },
+    trollburn: { name: "Регенерация остановлена", ico: '<path d="M12 3c3 4 5 6 5 10a5 5 0 0 1-10 0c0-4 2-6 5-10z"/>', desc: "Огонь или кислота: регенерация не работает до конца его следующего хода." },
+    trollrage: { name: "Ярость тролля", good: true, ico: '<path d="M5 19l7-14 7 14"/>', desc: "+2 к попаданию, удары не учитывают Защиту, лишний удар когтями." } });
+  const isTroll = u => (u.pass || []).includes("troll") || (u.pass || []).includes("body:troll");
+  const trollBlocked = u => { const st = has(u, "trollburn"); return !!st; };
+  const trollBurn = (u, dt, v) => { if ((dt !== "fire" && dt !== "acid") || !(v > 0) || !B.S) return 0; removeStatus(u, "trollburn"); addStatus(u, "trollburn", { k: Infinity, data: durEnd(u, 1) }); fx(u, "регенерация остановлена", u.side === "hero" ? "bad" : "good"); log(`${u.name}: огонь/кислота — регенерация остановлена.`, "skill"); return 0; };
+  P.troll = { dmgFlat(u, { dt, v }) { return trollBurn(u, dt, v); }, turnStart(u) { if (u.side !== "hero" || !alive(u) || u.down || trollBlocked(u) || u.hp >= u.maxHp) return; B.heal(u, 5, u); fx(u, "+5 тролья кровь", "good"); },
+    beforeZero(u) { if (u.side !== "hero" || u.trollRip || (u.mp || 0) < 6) return false; u.trollRip = true; B.setMp(u, u.mp - 6); log(`${u.name} вырывает плоть из лап смерти и встаёт!`, "good"); fx(u, "вырвать плоть", "good"); return Math.max(1, Math.floor(u.maxHp / 2)); } };
+  A.troll = { time: "reaction", tgt() { return { type: "self" }; }, can(u) { return u.trollRip ? "уже было в этом бою" : "срабатывает само на 0 ОЗ (6 маны)"; }, async run() { return false; }, ai() { return null; } };
+  P["body:troll"] = { dmgFlat(u, { dt, v }) { return trollBurn(u, dt, v); },
+    async turnStartAsync(u) { if (!alive(u)) return; const down = has(u, "trolldown");
+      if (down) { removeStatus(u, "trolldown"); removeStatus(u, "prone"); if (u.t) u.t.move = B.speedOf(u); log(`${u.name} поднимается!`, "bad"); fx(u, "встаёт", "bad"); }
+      if (!trollBlocked(u) && u.hp < u.maxHp) { B.heal(u, 20, u); fx(u, "+20 регенерация", "bad"); }
+      if (u.hp < u.maxHp / 2 && !has(u, "trollrage")) { addStatus(u, "trollrage", { k: Infinity }); log(`${u.name} впадает в ярость!`, "bad"); } else if (u.hp >= u.maxHp / 2 && has(u, "trollrage")) removeStatus(u, "trollrage"); },
+    beforeZero(u) { if (trollBlocked(u)) return false; if (!has(u, "trolldown")) { addStatus(u, "trolldown", { k: Infinity }); addStatus(u, "prone", { k: Infinity }); log(`${u.name} падает… но рана уже затягивается.`, "bad"); fx(u, "повержен?", ""); } return 1; },
+    onDamaged(u, { src, o }) { if (!src || src.side === u.side || !o || !o.melee || !alive(u)) return; B.queue(async () => { const g = ui(); for (const t of live().filter(t => alive(t) && !t.down && !t.isObj && t !== u && dist(u, t) <= 1 && t.side !== u.side)) await B.applyDamage(u, t, [{ v: roll(1, 6).total, dt: "acid", label: "Едкая кровь" }], { src: u, noAbilParts: true, splash: true }); }); },
+    attackMods(u, ctx) { if (has(u, "trollrage")) { ctx.mods.push({ l: "Ярость тролля", v: 2 }); ctx.protIgnore = 99; } },
+    async afterAttack(u, ctx) { if (!has(u, "trollrage") || u.rageR === B.S.round || u.rageBusy) return; const t = ctx.tgt; if (!t || !alive(t) || t.down) return; const claws = (u.atk || []).find(a => /Когти/.test(a.n)); if (!claws) return;
+      u.rageR = B.S.round; u.rageBusy = true; log(`${u.name} в ярости бьёт ещё раз!`, "bad"); try { await B.doAttack(u, t, claws, {}); } finally { u.rageBusy = false; } } };
   B.fillActiveTimes();
 })();

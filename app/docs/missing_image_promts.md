@@ -34,6 +34,10 @@
 
 > `an old faded sepia family photograph with bent corners: a scientist father and a sickly boy, lying on a stone pedestal in a labyrinth niche, hand-painted dark fantasy item art, square 1:1, no text`
 
+### Пещерный тролль (5 класс, 14.11) — `monsters/troll-full`
+
+> `full-body a huge hunched cave troll with grey-green warty hide, long arms with black claws, tusked jaw dripping acidic saliva, half-healed wounds closing on its body, dark damp cavern, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
 ### Кристальный рудник прошлого (разлом 2 этажа, 14.11)
 
 ### Окаменевший рудокоп — `monsters/petrified-miner-full`
