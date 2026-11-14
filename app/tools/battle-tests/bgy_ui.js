@@ -30,6 +30,8 @@ const { chromium } = require('playwright');
       return { hung: !!(dgUi.enc && Battle.running), ser, ms: Date.now() - t0 }; };
     const heal = () => { state.party = party(); state.party.forEach(c => { run.status[c.id] = { fat: 0, sat: 9, starve: 0, awake: 0 }; }); };
     const cases = [
+      ['подвал: экземпляры', () => { riftFight('Подвал', ['half-mech', 'half-mech', 'lab-janitor']); }],
+      ['подвал: прототип', () => { riftFight('Подвал', ['alpha01']); }],
       ['деревня ночью', () => { R.zone = null; R.phase = 'night'; riftFight('Ночь в деревне', ['well-drowned', 'night-dweller', 'bone-hound']); }],
       ['кладбище', () => { riftFight('Кладбище', ['tomb-guardian', 'ghoul-digger', 'zombie']); }],
       ['склеп', () => { riftFight('Склеп', ['keyholder', 'crypt-worm', 'grave-mold']); }],

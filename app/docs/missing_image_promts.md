@@ -56,6 +56,28 @@
 
 > `full-body a mechanical wooden-and-iron mannequin with swinging pendulum blades for arms, standing in a narrow trapped corridor, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
 
+### Чаща прошлого — подвал лаборатории (14.11)
+
+### Голем-уборщик — `monsters/lab-janitor-full`
+
+> `full-body a small dented tin golem janitor with a mop-arm and an acid sprayer tank on its back, sinister underground laboratory basement, pipes and glass tanks, dim green light, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
+### Недоделанный экземпляр — `monsters/half-mech-full`
+
+> `full-body an unfinished half-human half-machine experiment, steel plates bolted to pale skin, a piston fist, sparking wires, sinister underground laboratory basement, pipes and glass tanks, dim green light, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
+### Прототип Альфа-01 — `monsters/alpha01-full`
+
+> `full-body a large armored humanoid war prototype with massive servo fists and a glowing chest core, stepping out of a broken glass capsule, sinister underground laboratory basement, pipes and glass tanks, dim green light, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
+### Сыворотка силы — `items/strength-serum`
+
+> `a glass syringe with thick glowing red serum and brass fittings, worn and used, lying on a stone pedestal in a labyrinth niche, hand-painted dark fantasy item art, square 1:1, no text`
+
+### Старая фотография — `items/family-photo`
+
+> `an old faded sepia family photograph with bent corners: a scientist father and a sickly boy, lying on a stone pedestal in a labyrinth niche, hand-painted dark fantasy item art, square 1:1, no text`
+
 ### Кладбище прошлого, часть 2 (13.11)
 
 ### Свечной служка — `monsters/candle-acolyte-full`

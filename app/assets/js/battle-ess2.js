@@ -3330,5 +3330,37 @@
   { const prevKill = B.kill; B.kill = function (u, by) { const was = u && u.alive; const r = prevKill.apply(this, arguments);
       try { if (was && u && !u.alive && B.S) for (const w of B.units().filter(o => o.side === "mon" && alive(o) && !o.down && o.id !== u.id && (o.pass || []).includes("body:crypt-worm") && dist(o, u) <= 2)) { B.heal(w, roll(1, 8).total, w); if ((w.feast || 0) < 3) w.feast = (w.feast || 0) + 1; log(`${w.name} пожирает павшего и растёт.`, "bad"); fx(w, "пожирает", "bad"); } } catch (e) { console.error("worm:", e); }
       return r; }; }
+  /* ===== Чаща прошлого: подвал лаборатории (14.11, автор; числа — черновик) ===== */
+  Object.assign(D.essCd, { "lab-janitor": 3, "half-mech": 3, "alpha01": 3 });
+  Object.assign(D.monTune, { "lab-janitor": { role: "brute", focus: ["nearest"], noFlee: true }, "half-mech": { role: "brute", focus: ["nearest"], noFlee: true }, "alpha01": { role: "brute", focus: ["weak", "nearest"], noFlee: true } });
+  const cellarLine = (u, c, n) => { const dx = Math.sign(c[0] - u.x), dy = Math.sign(c[1] - u.y), out = []; for (let i = 1; i <= n; i++) { const x = u.x + dx * i, y = u.y + dy * i; if (B.inB(x, y)) out.push([x, y]); } return out; };
+  const cellarIn = (o, cells) => footprint(o).some(([x, y]) => cells.some(([cx, cy]) => cx === x && cy === y));
+  /* Голем-уборщик (9) */
+  P["lab-janitor"] = { turnStart(u) { for (const st of ["poisoned", "bleeding", "burning"]) if (has(u, st)) { removeStatus(u, st); fx(u, "санобработка", "good"); break; } } };
+  A["lab-janitor"] = { time: "action", tgt(u) { return { type: "cell", prompt: "Кислотная струя: в какую сторону?", cells: cellsAround(u, 1).filter(([x, y]) => B.inB(x, y)), kind: "attack" }; }, can(u) { return foesIn(u, 3).length ? true : "нет врагов в 3 клетках"; },
+    async run(u, pk, ctl) { const c = pk.cell; if (!c) return false; ctl.commit(); const cells = cellarLine(u, c, 3); const g = ui(); if (g) g.banner("Кислотная струя"); for (const o of live().filter(o => alive(o) && !o.isObj && o.side !== u.side && cellarIn(o, cells))) await saveDmg(u, o, "dex", dcOf(u, "con"), [1, 8], "acid", "Кислотная струя"); return true; },
+    ai(u) { const t = foesIn(u, 3).sort((a, b) => dist(u, a) - dist(u, b))[0]; if (!t || (t.x !== u.x && t.y !== u.y && Math.abs(t.x - u.x) !== Math.abs(t.y - u.y))) return null; return { cell: [u.x + Math.sign(t.x - u.x), u.y + Math.sign(t.y - u.y)], score: 8 }; } };
+  /* Недоделанный экземпляр (8) */
+  const piston = async (u, t) => { if (!alive(t) || t.down || t.isObj || u.pistonR === B.S.round) return; u.pistonR = B.S.round; const n = await B.push(t, u.x, u.y, 1); if (n) fx(t, "отброшен", "bad"); };
+  P["half-mech"] = { async afterAttack(u, ctx) { const r = ctx.res; if (r && r.hit && ctx.melee !== false && ctx.atk && ctx.atk.kind !== "ranged" && ctx.tgt && ctx.tgt.side !== u.side) await piston(u, ctx.tgt); },
+    attackMods(u, ctx) { if (u.overload === B.S.round) { ctx.mods.push({ l: "Перегрузка", v: 2 }); ctx.dmgPlus = (ctx.dmgPlus || 0) + 2; } },
+    async turnEndAsync(u) { if (u.overload === B.S.round && alive(u)) { u.overload = -1; await B.applyDamage(null, u, [{ v: roll(1, 6).total, dt: "lightning", label: "Перегрузка" }], { noAbilParts: true, self: true }); } } };
+  P["body:half-mech"] = { async turnStartAsync(u) { if (!alive(u) || u.down || Math.random() >= 0.25) return; log(`${u.name} искрит — сбой!`, "bad"); fx(u, "сбой", "bad");
+      await B.applyDamage(null, u, [{ v: roll(1, 6).total, dt: "lightning", label: "Сбой" }], { noAbilParts: true, self: true });
+      for (const o of live().filter(o => alive(o) && !o.isObj && o.id !== u.id && dist(u, o) <= 1)) await B.applyDamage(u, o, [{ v: roll(1, 6).total, dt: "lightning", label: "Сбой" }], { src: u, noAbilParts: true }); } };
+  A["half-mech"] = { time: "bonus", tgt() { return { type: "self" }; }, can(u) { return u.side === "hero" ? true : "только у героя"; },
+    async run(u, pk, ctl) { ctl.commit(); u.overload = B.S.round; fx(u, "перегрузка", "skill"); return true; },
+    ai(u) { return u.side === "hero" && foesIn(u, 1).length && u.hp > u.maxHp / 2 ? { score: 6 } : null; } };
+  /* Прототип Альфа-01 (6, секретный босс) */
+  Object.assign(D.status, { protocol: { name: "Боевой протокол", good: true, ico: '<path d="M4 12h4l2-5 4 10 2-5h4"/>', desc: "+2 к урону и +1 Защиты." } });
+  P["alpha01"] = { attackMods(u, ctx) { if (u.hp < u.maxHp / 2) ctx.dmgPlus = (ctx.dmgPlus || 0) + 2; },
+    onDamaged(u) { if (alive(u) && u.hp < u.maxHp / 2 && !has(u, "protocol")) { addStatus(u, "protocol", { k: Infinity, data: { prot: 1 } }); fx(u, "боевой протокол", "skill"); log(`${u.name}: боевой протокол!`, u.side === "hero" ? "skill" : "bad"); } } };
+  P["body:alpha01"] = { turnStart(u) { if (!alive(u) || u.down) return; if (u.noRegen === B.S.round || u.noRegen === B.S.round - 1) return; if (u.hp < u.maxHp) { B.heal(u, 4, u); fx(u, "+4 ремонт", "good"); } } };
+  A["alpha01"] = { time: "action", tgt(u) { return specUnit(u, "Ракетный кулак: в кого?", foesIn(u, 4), B.cellsWithin(u, 4), "attack"); }, can(u) { return foesIn(u, 4).length ? true : "нет цели в 4 клетках"; },
+    async run(u, pk, ctl) { const t = pk.unit; if (!t) return false; ctl.commit(); const g = ui(); if (g) g.banner("Ракетный кулак");
+      const atk = { ...(B.attacksOf(u).filter(a => a.kind !== "ranged")[0] || {}), id: "rocket", n: "Ракетный кулак", dmg: { n: 2, s: 8, b: amod(u.abil.str) }, dt: "bludgeon" };
+      const r = await B.doAttack(u, t, atk, {}); if (r && r.hit && alive(t) && !t.down) await B.push(t, u.x, u.y, 2); return true; },
+    ai(u) { const ts = foesIn(u, 4).filter(t => dist(u, t) >= 2).sort((a, b) => a.hp - b.hp); return ts.length ? { unit: ts[0], score: 12 } : null; } };
+  { const prevApply = B.applyDamage; B.applyDamage = async function (src, tgt, parts, o) { if (tgt && (tgt.pass || []).includes("body:alpha01") && (parts || []).some(p => p && p.dt === "lightning") && B.S) { tgt.noRegen = B.S.round; } return prevApply.apply(this, arguments); }; }
   B.fillActiveTimes();
 })();
