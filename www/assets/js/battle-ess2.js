@@ -3502,11 +3502,15 @@
   const trollBurn = (u, dt, v) => { if ((dt !== "fire" && dt !== "acid") || !(v > 0) || !B.S) return 0; removeStatus(u, "trollburn"); addStatus(u, "trollburn", { k: Infinity, data: durEnd(u, 1) }); fx(u, "регенерация остановлена", u.side === "hero" ? "bad" : "good"); log(`${u.name}: огонь/кислота — регенерация остановлена.`, "skill"); return 0; };
   P.troll = { dmgFlat(u, { dt, v }) { return trollBurn(u, dt, v); }, turnStart(u) { if (u.side !== "hero" || !alive(u) || u.down || trollBlocked(u) || u.hp >= u.maxHp) return; B.heal(u, 7, u); fx(u, "+7 тролья кровь", "good"); },
     beforeZero(u) { if (u.side !== "hero" || u.trollRip || (u.mp || 0) < 6) return false; u.trollRip = true; B.setMp(u, u.mp - 6); log(`${u.name} вырывает плоть из лап смерти и встаёт!`, "good"); fx(u, "вырвать плоть", "good"); return Math.max(1, Math.floor(u.maxHp / 2)); } };
-  const clubTs = u => enemiesOf(u).filter(t => alive(t) && !t.down && !t.isObj && dist(u, t) <= 1);
-  A.troll = { time: "action", tgt() { return { type: "none" }; }, can(u) { if (u.side === "hero") return u.trollRip ? "уже было в этом бою" : "срабатывает само на 0 ОЗ (6 маны)"; return clubTs(u).length ? true : "никого рядом"; },
-    async run(u, pk, ctl) { if (u.side === "hero") return false; const club = (u.atk || []).find(a => /Дубина/.test(a.n)); const ts = clubTs(u); if (!club || !ts.length) return false; ctl.commit(); const g = ui(); if (g) g.banner("Размах дубиной");
-      for (const t of ts) if (alive(t) && !t.down) await B.doAttack(u, t, club, {}); return true; },
-    ai(u) { if (u.side === "hero") return null; const n = clubTs(u).length; return n >= 2 ? { score: 8 + n * 4 } : null; } };
+  // «Размах дубиной» (автор 15.11): область 2×2 вплотную к троллю в одну сторону
+  const fpSet = u => new Set(footprint(u).map(([x, y]) => x + "," + y));
+  const clubBoxes = u => { const fp = fpSet(u), out = []; for (let y = u.y - 2; y <= u.y + (u.h || 1); y++) for (let x = u.x - 2; x <= u.x + (u.w || 1); x++) { const cells = [[x, y], [x + 1, y], [x, y + 1], [x + 1, y + 1]].filter(([a, b]) => B.inB(a, b)); if (cells.length < 4 || cells.some(([a, b]) => fp.has(a + "," + b))) continue; if (!cells.some(([a, b]) => footprint(u).some(([fx, fy]) => Math.max(Math.abs(fx - a), Math.abs(fy - b)) === 1))) continue; out.push(cells); } return out; };
+  const boxFoes = (u, cells) => enemiesOf(u).filter(t => alive(t) && !t.down && !t.isObj && footprint(t).some(([x, y]) => cells.some(([a, b]) => a === x && b === y)));
+  const bestBox = u => { let best = null; for (const c of clubBoxes(u)) { const n = boxFoes(u, c).length; if (n && (!best || n > best.n)) best = { cells: c, n }; } return best; };
+  A.troll = { time: "action", tgt(u) { return { type: "none" }; }, can(u) { if (u.side === "hero") return u.trollRip ? "уже было в этом бою" : "срабатывает само на 0 ОЗ (6 маны)"; return bestBox(u) ? true : "никого рядом"; },
+    async run(u, pk, ctl) { if (u.side === "hero") return false; const club = (u.atk || []).find(a => /Дубина/.test(a.n)), bb = bestBox(u); if (!club || !bb) return false; ctl.commit(); const g = ui(); if (g) g.banner("Размах дубиной");
+      for (const t of boxFoes(u, bb.cells)) if (alive(t) && !t.down) await B.doAttack(u, t, club, {}); return true; },
+    ai(u) { if (u.side === "hero") return null; const bb = bestBox(u); return bb && bb.n >= 2 ? { score: 8 + bb.n * 4 } : null; } };
   P["body:troll"] = { dmgFlat(u, { dt, v }) { return trollBurn(u, dt, v); },
     async turnStartAsync(u) { if (!alive(u)) return; const down = has(u, "trolldown");
       if (down) { removeStatus(u, "trolldown"); removeStatus(u, "prone"); if (u.t) u.t.move = B.speedOf(u); log(`${u.name} поднимается!`, "bad"); fx(u, "встаёт", "bad"); }
@@ -3517,5 +3521,117 @@
     attackMods(u, ctx) { if (has(u, "trollrage")) { ctx.mods.push({ l: "Ярость тролля", v: 2 }); ctx.protIgnore = 99; } },
     async afterAttack(u, ctx) { if (!has(u, "trollrage") || u.rageR === B.S.round || u.rageBusy) return; const t = ctx.tgt; if (!t || !alive(t) || t.down) return; const claws = (u.atk || []).find(a => /Когти/.test(a.n)); if (!claws) return;
       u.rageR = B.S.round; u.rageBusy = true; log(`${u.name} в ярости бьёт ещё раз!`, "bad"); try { await B.doAttack(u, t, claws, {}); } finally { u.rageBusy = false; } } };
+
+  /* ===== 5 класс: огр, мать-кладка, пожиратель магии, наездник ужаса, вечный страж руин (15.11, автор; числа — черновик) ===== */
+  Object.assign(D.essCd, { ogre: 4, "brood-mother": 4, "mana-devourer": 99, "dread-rider": 3, "ruin-guardian": 3 });
+  Object.assign(D.monTune, { ogre: { role: "brute", focus: ["nearest"], noFlee: true }, "brood-mother": { role: "guardian", leash: 0, focus: ["nearest"], noFlee: true }, "brood-larva": { role: "brute", focus: ["nearest"], noFlee: true },
+    "mana-devourer": { role: "brute", focus: ["weak"], noFlee: true }, "dread-rider": { role: "brute", focus: ["weak", "nearest"], noFlee: true }, "ruin-guardian": { role: "brute", focus: ["nearest"], noFlee: true } });
+  Object.assign(D.status, { deathmark: { name: "Метка смерти", ico: '<circle cx="12" cy="10" r="5"/><path d="M9 20l3-4 3 4"/>', desc: "Наездник ужаса бьёт по тебе с удвоенными костями урона. Снимает лечение или урон излучением." },
+    runeweak: { name: "Оглушён руной", ico: '<path d="M6 4l6 16 6-16"/>', desc: "−2 к попаданию." , data: {} },
+    beamaim: { name: "Готовит рунный луч", ico: '<path d="M3 12h18"/>', desc: "В начале следующего хода выстрелит по подсвеченной линии." } });
+  const isLight = a => a && a.w && ((a.w.props || []).some(p => /Лёгк/.test(p)) || a.w.kind === "Лёгкое");
+  /* Огр */
+  P["body:ogre"] = { dmgFlat(u, { o }) { const a = o && o.ctx && o.ctx.atk; return isLight(a) ? -5 : 0; },
+    saveMods(u, ctx) { if (ctx && (ctx.abil === "str" || ctx.abil === "dex")) { (ctx.adv ||= []).push("Непоколебимый"); } },
+    async afterAttack(u, ctx) { const r = ctx.res; if (r && r.hit && ctx.tgt && alive(ctx.tgt) && !ctx.tgt.down && ctx.atk && /Дубина/.test(ctx.atk.n)) { const n = await B.push(ctx.tgt, u.x, u.y, 2); if (n) fx(ctx.tgt, "отброшен", "bad"); } } };
+  P.ogre = { dmgFlat(u, { o }) { const a = o && o.ctx && o.ctx.atk; return u.side === "hero" && isLight(a) ? -3 : 0; } };
+  A.ogre = { time: "action", tgt() { return { type: "none" }; }, can(u) { return foesIn(u, 2).length ? true : "нет врагов в 2 клетках"; },
+    async run(u, pk, ctl) { ctl.commit(); const g = ui(); if (g) g.banner(u.side === "hero" ? "Удар-землетрясение" : "Землетрясение");
+      for (const t of enemiesOf(u).filter(o => alive(o) && !o.down && !o.isObj && dist(u, o) <= 2)) { const sv = await saveDmg(u, t, "dex", dcOf(u, "str"), [2, 8, u.side === "hero" ? amod(u.abil.str) : 0], "bludgeon", u.side === "hero" ? "Удар-землетрясение" : "Землетрясение", ["splash"]); if (!sv.ok && alive(t) && !t.down) { addStatus(t, "prone", { k: Infinity }); fx(t, "сбит с ног", "bad"); } } return true; },
+    ai(u) { const n = foesIn(u, 2).length; return n >= 2 || (u.side !== "hero" && n >= 1 && Math.random() < .4) ? { score: 7 + n * 3 } : null; } };
+  /* Мать-кладка и личинки */
+  const larvae = u => live().filter(o => alive(o) && o.ref === "brood-larva" && o.owner === u.id);
+  const spawnLarva = (u, n, side, rounds) => { let got = 0; for (let i = 0; i < n; i++) { const c = B.freeCellsNear(u, 2, { size: 1, side, id: "tmpl" })[0]; if (!c) break; const m = B.monUnit("brood-larva", -1);
+      Object.assign(m, { summon: true, kind: "larva", owner: u.id, side, idx: null, x: c[0], y: c[1], noReward: true, auto: true, ess: [], name: "Личинка", base: "Личинка", ...(rounds ? { expires: B.S.round + rounds } : {}) }); B.addUnit(m, u.id); m.ai = Object.assign({}, m.ai, { noFlee: true, fleeHp: null });
+      if (side === "hero" && (u.pass || []).includes("brood-mother")) { m.maxHp += 10; m.hp += 10; m.atk = m.atk.map(a => ({ ...a, dmg: { ...a.dmg, b: (a.dmg.b || 0) + 2 } })); } got++; } const g = ui(); if (g) g.refresh(); return got; };
+  B.spawnLarva = spawnLarva;
+  P["body:brood-mother"] = { async turnStartAsync(u) { if (!alive(u) || u.side !== "mon") return; const k = Math.max(0, Math.min(2, 6 - larvae(u).length)); if (k && spawnLarva(u, k, u.side, 0)) log(`${u.name} откладывает личинок.`, "bad"); } };
+  { const prevShare = B.shareDamage; B.shareDamage = async function (src, tgt, total, o) {
+      if (total > 0 && tgt && (tgt.pass || []).includes("body:brood-mother") && !(o && o.shared)) { const l = larvae(tgt).filter(x => !x.down && dist(x, tgt) <= 1)[0];
+        if (l) { log(`${tgt.name}: личинка принимает удар (${total}).`, "skill"); await B.applyDamage(src, l, [{ v: total, dt: "bludgeon", label: "Живой щит" }], { src, shared: true, pure: true }); return 0; } }
+      return prevShare ? prevShare.call(this, src, tgt, total, o) : total; }; }
+  // «Плодовитость» у героя: гибель своего призванного — +2 маны
+  { const prevKill = B.kill; B.kill = function (u, by) { const was = u && u.alive; const r = prevKill.apply(this, arguments);
+      try { if (was && u && !u.alive && u.summon && u.owner && B.S) { const ow = B.byId(u.owner); if (ow && ow.side === "hero" && alive(ow) && (ow.pass || []).includes("brood-mother")) { B.setMp(ow, ow.mp + 2); fx(ow, "+2 маны", "good"); } } } catch (e) { console.error("brood:", e); }
+      return r; }; }
+  P["brood-mother"] = {};
+  A["brood-mother"] = { time: "action", tgt(u) { return u.side === "hero" ? { type: "none" } : { type: "cell", prompt: "Кислотный выдох: центр 3×3", cells: B.cellsWithin(u, 4).filter(([x, y]) => B.inB(x, y)), kind: "attack" }; },
+    can(u) { return u.side === "hero" ? (B.freeCellsNear(u, 2, { size: 1, side: u.side, id: "tmpl" }).length ? true : "нет места") : foesIn(u, 5).length ? true : "нет врагов"; },
+    async run(u, pk, ctl) { if (u.side === "hero") { ctl.commit(); spawnLarva(u, 2, u.side, 3); log(`${u.name} призывает выводок.`, "skill"); return true; }
+      const c = pk.cell; if (!c) return false; ctl.commit(); const g = ui(); if (g) g.banner("Кислотный выдох"); const cells = crBox(c[0], c[1], 1);
+      for (const o of live().filter(o => alive(o) && !o.isObj && o.side !== u.side && crIn(o, cells))) await saveDmg(u, o, "dex", dcOf(u, "con"), [3, 8], "acid", "Кислотный выдох", ["splash"]); return true; },
+    ai(u) { if (u.side === "hero") return foesIn(u, 4).length ? { score: 6 } : null; const b = crBestBox(u, 4, 1, 1); return b ? { cell: b.cell, score: 7 + b.sc * 3 } : null; } };
+  // «Плодовитость»: призванные героя-матери сильнее (общий хук для любых призывов героя)
+  { const prevAdd = B.addUnit; B.addUnit = function (m, after) { const r = prevAdd.apply(this, arguments); try { const ow = m && m.summon && m.owner && B.byId && B.byId(m.owner); if (ow && ow.side === "hero" && (ow.pass || []).includes("brood-mother") && m.ref !== "brood-larva" && !m.broodBuff) { m.broodBuff = true; m.maxHp += 10; m.hp += 10; if (m.atk) m.atk = m.atk.map(a => ({ ...a, dmg: a.dmg && typeof a.dmg === "object" ? { ...a.dmg, b: (a.dmg.b || 0) + 2 } : a.dmg })); } } catch (e) {} return r; }; }
+  /* Пожиратель магии */
+  const abilCls = (src, o) => { if (!src) return null; if (src.side === "mon" && src.mon) return src.mon.cls; const lbl = o && (o.abilLabel || o.label); for (const id of src.ess || []) { const e = ESSENCES[id]; if (e && e.active && (!lbl || e.active.name === lbl)) return e.cls; } return null; };
+  P["body:mana-devourer"] = {
+    dmgTotal(u, { total, o, src }) { if (!src || src.side === u.side || (o && o.ctx) || (o && o.pure) || total <= 0) return total;
+      if (!u.gulped && B.S) { u.gulped = true; log(`${u.name} глотает способность и возвращает её!`, "bad"); const v = total; B.queue(async () => { if (alive(src)) await B.applyDamage(u, src, [{ v, dt: "arcane", label: "Глоток" }], { src: u, noAbilParts: true, pure: true }); }); return 0; }
+      const cl = abilCls(src, o); if (cl != null && cl >= 8) { fx(u, "не берёт", "skill"); return 0; } if (cl === 7) return Math.floor(total / 2); return total; },
+    async turnStartAsync(u) { if (!alive(u) || u.down) return; let got = 0; for (const h of enemiesOf(u).filter(o => alive(o) && o.side === "hero" && dist(u, o) <= 4 && (o.mp || 0) > 0)) { const k = Math.min(4, h.mp); B.setMp(h, h.mp - k); got += k; fx(h, `−${k} маны`, "bad"); }
+      if (got) { B.heal(u, got, u); log(`${u.name} пьёт ману: −${got} у героев.`, "bad"); } } };
+  P["mana-devourer"] = { abilityParts(u, { parts }) { if (u.side === "hero" && u.mp >= u.maxMp && parts && parts.length) parts.push({ v: 2, dt: parts[0].dt, label: "Сытый голод" }); } };
+  A["mana-devourer"] = { time: "reaction", tgt() { return { type: "self" }; }, can() { return "срабатывает само"; }, async run() { return false; }, ai() { return null; } };
+  // «Сытый голод» и «Поглотить чары» у героя: способность врага рядом
+  { const prevApply = B.applyDamage; B.applyDamage = async function (src, tgt, parts, o) {
+      try { if (o && !o.ctx && parts && parts[0] && parts[0].label && !o.abilLabel) o.abilLabel = parts[0].label; } catch (e) {}
+      try { if (src && tgt && B.S && src.side !== "hero" && tgt.side === "hero" && !(o && (o.ctx || o.pure || o.self))) {
+        for (const h of live().filter(x => alive(x) && !x.down && x.side === "hero" && (x.pass || []).includes("mana-devourer"))) {
+          if (dist(h, src) <= 3 && h.hungerTurn !== B.S.round) { h.hungerTurn = B.S.round; B.setMp(h, h.mp + 2); fx(h, "+2 маны", "good"); }
+          if (dist(h, tgt) <= 2 && h.absorbR !== B.S.round && h.t && h.t.react > 0 && h.mp >= 4) { h.absorbR = B.S.round; h.t.react = 0; log(`${h.name}: «Поглотить чары» — способность гаснет у ${tgt.name}.`, "good"); fx(tgt, "погашено", "good"); return { total: 0, absorbed: 0, notes: ["поглощено"] }; } } } } catch (e) { console.error("devour:", e); }
+      return prevApply.apply(this, arguments); }; }
+  /* Наездник ужаса */
+  P["dread-rider"] = { noProvoke(u) { return !!(u.t && u.t.moved >= 3); },
+    attackMods(u, ctx) { if (u.side === "hero" && u.t && u.t.moved >= 3 && !u.t.riderHit && ctx.extra) { u.t.riderHit = true; ctx.extra.push({ n: 1, s: 8, b: 0, dt: ctx.atk && ctx.atk.dt || "pierce", label: "Всадник ужаса" }); } } };
+  P["body:dread-rider"] = {
+    turnStart(u) { if (!alive(u) || u.side !== "mon") return; if (!live().some(h => alive(h) && has(h, "deathmark"))) { const hs = enemiesOf(u).filter(h => alive(h) && !h.down && h.side === "hero"); const h = hs[Math.floor(Math.random() * hs.length)]; if (h) { addStatus(h, "deathmark", { k: Infinity, data: { by: u.id } }); log(`${u.name} отмечает ${h.name} меткой смерти.`, "bad"); } } },
+    attackMods(u, ctx) { const m = ctx.tgt && has(ctx.tgt, "deathmark"); if (m && ctx.extra && ctx.atk && ctx.atk.dmg) ctx.extra.push({ n: ctx.atk.dmg.n, s: ctx.atk.dmg.s, b: 0, dt: ctx.atk.dt, label: "Метка смерти" }); },
+    noProvoke(u) { return !!(u.t && u.t.moved >= 3); } };
+  { const prevAH = B.afterHeal; B.afterHeal = (t, v, by) => { if (prevAH) prevAH(t, v, by); if (t && v > 0 && has(t, "deathmark") && !(by && (by.pass || []).includes("body:dread-rider"))) { removeStatus(t, "deathmark"); log(`Метка смерти снята с ${t.name}.`, "good"); } }; }
+  const riderLine = (u, dx, dy) => { const out = []; let x = u.x, y = u.y; for (let i = 0; i < 12; i++) { x += dx; y += dy; if (!B.inB(x, y) || !B.inB(x + (u.w || 1) - 1, y + (u.h || 1) - 1)) break; out.push([x, y]); } return out; };
+  const riderDirs = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+  const riderPlan = (u, dx, dy) => { let left = B.speedOf(u) || u.speedC || 4, hit = [], stop = null, passed = 0; const me = { ...u };
+    for (const [x, y] of riderLine(u, dx, dy)) { if (left <= 0) break; const cells = footprint({ ...u, x, y }); if (cells.some(([a, b]) => B.S.cells[b] && D.terrain[B.S.cells[b][a]] && D.terrain[B.S.cells[b][a]].obstacle)) break;
+      const foes = live().filter(o => alive(o) && !o.isObj && o.side !== u.side && !hit.includes(o) && footprint(o).some(([a, b]) => cells.some(([c, d]) => c === a && d === b))); passed++; left--;
+      for (const f of foes) { hit.push({ f, at: passed }); left--; }
+      if (!live().some(o => o !== u && alive(o) && footprint(o).some(([a, b]) => cells.some(([c, d]) => c === a && d === b)))) stop = [x, y]; }
+    return { hit, stop }; };
+  A["dread-rider"] = { time: "action", tgt(u) { return { type: "cell", prompt: "Пролёт: направление", cells: riderDirs.map(([dx, dy]) => [u.x + dx, u.y + dy]).filter(([x, y]) => B.inB(x, y)), kind: "attack" }; },
+    can(u) { return riderDirs.some(([dx, dy]) => riderPlan(u, dx, dy).stop) ? true : "некуда мчаться"; },
+    async run(u, pk, ctl) { const c = pk.cell; if (!c) return false; const dx = Math.sign(c[0] - u.x), dy = Math.sign(c[1] - u.y); const pl = riderPlan(u, dx, dy); if (!pl.stop) return false; ctl.commit(); const g = ui(); if (g) g.banner("Пролёт");
+      for (const { f, at } of pl.hit) { if (!alive(f)) continue; if (at <= 3 && f.t && f.t.react > 0 && canAct(f) && alive(u)) { const a = B.attacksOf(f).filter(a => a.kind !== "ranged")[0]; if (a) { f.t.react = 0; log(`${f.name} бьёт проносящегося ${u.name}.`, "skill"); await B.doAttack(f, u, a, { reaction: true }); } }
+        if (alive(u) && alive(f)) await B.applyDamage(u, f, [{ v: roll(u.side === "hero" ? 2 : 3, u.side === "hero" ? 8 : 6).total, dt: "bludgeon", label: "Пролёт" }], { src: u, noAbilParts: true }); }
+      if (alive(u)) { await B.teleport(u, pl.stop[0], pl.stop[1]); if (u.t) u.t.moved += Math.max(Math.abs(pl.stop[0] - c[0]), Math.abs(pl.stop[1] - c[1])) + 1; } return true; },
+    ai(u) { let best = null; for (const [dx, dy] of riderDirs) { const pl = riderPlan(u, dx, dy); if (pl.stop && pl.hit.length && (!best || pl.hit.length > best.n)) best = { cell: [u.x + dx, u.y + dy], n: pl.hit.length }; } return best ? { cell: best.cell, score: 6 + best.n * 4 } : null; } };
+  { const prevApply2 = B.applyDamage; B.applyDamage = async function (src, tgt, parts, o) { try { if (tgt && has(tgt, "deathmark") && (parts || []).some(p => p && p.dt === "radiant" && p.v > 0)) { removeStatus(tgt, "deathmark"); log(`Свет снимает метку смерти с ${tgt.name}.`, "good"); } } catch (e) {} return prevApply2.apply(this, arguments); }; }
+  /* Вечный страж руин */
+  const runeCells = () => (B.S && B.S.runes) || [];
+  const onRune = u => runeCells().some(([x, y]) => footprint(u).some(([a, b]) => a === x && b === y));
+  const placeRunes = g => { const S = B.S; const free = (x, y) => B.inB(x, y) && !(S.cells[y] && S.cells[y][x] && D.terrain[S.cells[y][x]] && D.terrain[S.cells[y][x]].obstacle) && !live().some(o => alive(o) && footprint(o).some(([a, b]) => a === x && b === y));
+    const near = []; for (const [fx, fy] of footprint(g)) for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { const x = fx + dx, y = fy + dy; if (free(x, y) && !near.some(c => c[0] === x && c[1] === y)) near.push([x, y]); }
+    const far = []; for (let y = 0; y < B.H; y++) for (let x = 0; x < B.W; x++) if (free(x, y) && dist({ x, y, w: 1, h: 1 }, g) >= 3) far.push([x, y]);
+    const pick = (a, n) => { const out = []; while (a.length && out.length < n) out.push(a.splice(Math.floor(Math.random() * a.length), 1)[0]); return out; };
+    S.runes = [...pick(near, 2), ...pick(far, 2)]; S.zones = (S.zones || []).filter(z => z.id !== "runes"); S.zones.push({ id: "runes", kind: "warm", cells: S.runes }); const gu = ui(); if (gu) gu.refresh(); };
+  P["body:ruin-guardian"] = {
+    dmgTotal(u, { total, o }) { if (total <= 0) return total; const att = o && o.ctx && o.ctx.att; if (o && o.ctx && (o.ctx.runeHit || (o.src && onRune(o.src)))) return total * 2; return Math.ceil(total * 0.75); },
+    defendMods(u, ctx) { if (ctx.att && onRune(ctx.att)) { ctx.runeHit = true; if (ctx.notes) ctx.notes.push("рунная точка: ×2"); } },
+    async turnStartAsync(u) { if (!alive(u) || u.side !== "mon") return; const S = B.S;
+      if (u.beam) { const cells = u.beam; u.beam = null; removeStatus(u, "beamaim"); S.zones = (S.zones || []).filter(z => z.id !== "beam" + u.id); const g = ui(); if (g) g.banner("Рунный луч");
+        for (const o of live().filter(o => alive(o) && !o.isObj && o.side !== u.side && crIn(o, cells))) await saveDmg(u, o, "dex", dcOf(u, "wis"), [4, 10], "arcane", "Рунный луч");
+        const end = cells[cells.length - 1]; if (end) for (const o of live().filter(o => alive(o) && !o.isObj && o.side !== u.side && crIn(o, crBox(end[0], end[1], 1)))) await B.applyDamage(u, o, [{ v: roll(2, 8).total, dt: "arcane", label: "Взрыв руны" }], { src: u, noAbilParts: true, splash: true }); }
+      else if (S.round >= 2 && (S.round - (u.beamR || 0)) >= 3) { const t = enemiesOf(u).filter(h => alive(h) && !h.down).sort((a, b) => dist(u, b) - dist(u, a))[0];
+        if (t) { const dx = Math.sign(t.x - u.x), dy = Math.sign(t.y - u.y), cells = []; let x = u.x + (dx > 0 ? (u.w || 1) - 1 : 0), y = u.y + (dy > 0 ? (u.h || 1) - 1 : 0); for (let i = 0; i < 9; i++) { x += dx || 0; y += dy || 0; if (!B.inB(x, y)) break; cells.push([x, y]); }
+          if (cells.length) { u.beam = cells; u.beamR = S.round; addStatus(u, "beamaim", { k: Infinity }); (S.zones ||= []).push({ id: "beam" + u.id, kind: "kel", cells }); log(`${u.name} собирает руны — луч готовится (линия подсвечена).`, "bad"); } } }
+      placeRunes(u); } };
+  P["ruin-guardian"] = { turnStart(u) { if (u.side === "hero" && !u.runeArmor) { u.runeArmor = true; u.temp = Math.max(u.temp || 0, 15); fx(u, "15 врем. ОЗ", "good"); } } };
+  P["cr-runeweak"] = { attackMods(u, ctx) { if (has(u, "runeweak")) ctx.mods.push({ l: "Руна", v: -2 }); } };
+  A["ruin-guardian"] = { time: "action", tgt() { return { type: "none" }; }, can(u) { return foesIn(u, 1).length ? true : "никого рядом"; },
+    async run(u, pk, ctl) { const a = B.attacksOf(u).filter(x => x.kind !== "ranged")[0]; if (!a) return false; ctl.commit(); const g = ui(); if (g) g.banner(u.side === "hero" ? "Рунный удар" : "Сотрясение");
+      for (const t of enemiesOf(u).filter(o => alive(o) && !o.down && !o.isObj && dist(u, o) <= 1)) { await B.doAttack(u, t, a, u.side === "hero" ? { extra: [{ n: 1, s: 8, b: 0, dt: "arcane", label: "Рунный удар" }] } : {});
+        if (u.side === "hero" && alive(t)) { addStatus(t, "runeweak", { k: Infinity, data: durEnd(u, 1) }); B.tmpPass(t, "cr-runeweak", 2); } } return true; },
+    ai(u) { const n = foesIn(u, 1).length; return n >= 2 ? { score: 8 + n * 3 } : null; } };
+  // ранний расчёт руны: первая расстановка — в начале боя (первый ход любого бойца)
+  { const prevRound = B.onRound; B.onRound = function () { try { const S = B.S; if (S && !S.runes) { const g = live().find(o => alive(o) && (o.pass || []).includes("body:ruin-guardian")); if (g) placeRunes(g); } } catch (e) {} return prevRound ? prevRound.apply(this, arguments) : undefined; }; }
   B.fillActiveTimes();
 })();

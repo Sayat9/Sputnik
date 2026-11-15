@@ -34,6 +34,30 @@
 
 > `an old faded sepia family photograph with bent corners: a scientist father and a sickly boy, lying on a stone pedestal in a labyrinth niche, hand-painted dark fantasy item art, square 1:1, no text`
 
+### Огр (5 класс, 15.11) — `monsters/ogre-full`
+
+> `full-body a colossal ogre with lumpy grey-brown hide like stone plates, a tree-trunk club over the shoulder, tiny eyes, ragged hide loincloth, rocky cave, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
+### Мать-кладка (5 класс, 15.11) — `monsters/brood-mother-full`
+
+> `full-body a huge bloated insect queen fused into a nest of resin and eggs, eyeless head with mandibles, pale glistening larvae crawling around her, dark hive cavern, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
+### Личинка кладки — `monsters/brood-larva-full`
+
+> `full-body a pale fat insect larva the size of a dog with small mandibles and acid drool, hive floor, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
+### Пожиратель магии (5 класс, 15.11) — `monsters/mana-devourer-full`
+
+> `full-body a floating aberrant elemental of black void and torn violet light, a gaping mouth in its chest swallowing streams of blue magic, ruined arcane hall, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
+### Наездник ужаса (5 класс, 15.11) — `monsters/dread-rider-full`
+
+> `full-body an undead knight in blackened plate on a skeletal warhorse wreathed in grey fire, long lance lowered for a charge, foggy battlefield, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
+### Вечный страж руин (5 класс, 15.11) — `monsters/ruin-guardian-full`
+
+> `full-body a towering ancient stone golem covered in glowing blue runes, massive fists, a rune beam forming in its chest, overgrown ruined temple, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
 ### Пещерный тролль (5 класс, 14.11) — `monsters/troll-full`
 
 > `full-body a huge hunched cave troll with grey-green warty hide, long arms with black claws, tusked jaw dripping acidic saliva, half-healed wounds closing on its body, dark damp cavern, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`

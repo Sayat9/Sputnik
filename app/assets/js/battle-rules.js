@@ -54,6 +54,7 @@
     if (has(u, "noheal")) { log(`${u.name}: раны не затягиваются.`); const g = ui(); if (g) g.fxText(u, "не лечится", "bad"); return 0; }
     const before = u.hp; setHp(u, u.hp + n);
     const got = u.hp - before;
+    if (got > 0 && B.afterHeal) { try { B.afterHeal(u, got, src); } catch (e) { console.error(e); } }          // метка смерти снимается лечением (15.11)
     if (before === 0 && u.hp > 0 && u.down && !u.dead) revive(u);
     if (got > 0) {
       log(`${u.name} восстанавливает ${got} ОЗ.`, "good"); const g = ui(); if (g) g.fxHeal(u, got);
@@ -157,6 +158,7 @@
       total += Math.max(0, v); if (PHYS_DT.includes(p.dt) && !NO_PROT.includes(p.label)) phys += Math.max(0, v);
     }
     for (const id of tgt.pass) { const P = B.P && B.P[id]; if (P && P.dmgTotal) total = P.dmgTotal(tgt, { total, o, src, notes }); }
+    if (tgt.mprot && src && !o.pure && total > 0 && (!o.ctx || (o.ctx.atk && (o.ctx.atk.mana || o.ctx.atk.magic || o.ctx.atk.dt === "arcane")))) { const k = Math.min(total, tgt.mprot); total -= k; notes.push(`магическая броня −${k}`); }          // «Магическая броня» (15.11): урон способностей и магических атак
     total = Math.max(0, total);
     { // Защита (вариант Б, решение автора 02.11): вычитается из физического урона попадания; от попадания остаётся хотя бы 1; крит пробивает половину Защиты (черновик)
       const pr = Math.max(0, (tgt.prot || 0) + (B.protAura ? B.protAura(tgt) : 0) + (tgt.conds || []).reduce((q, c) => q + ((c.data && c.data.prot) || 0), 0) + ((o.ctx && o.ctx.protPlus) || 0) - ((o.ctx && o.ctx.protIgnore) || 0));          // двуручное оружие пробивает 1 Защиты
@@ -294,7 +296,7 @@
     if (B.S && B.S.dust && B.S.dust.some(d => d.until >= B.S.round && footprint(tgt).some(([x, y]) => d.cells.some(([cx, cy]) => cx === x && cy === y)))) ctx.dis.push("пыльная завеса");
     for (const a of alliesOf(att)) hookAll(a, "attackAura", { ally: a, att, tgt, ctx });          // «Пока король жив»
     const ha = tinfo(att.x, att.y), ht = tinfo(tgt.x, tgt.y);                                              // высота: с возвышенности бьют точнее, и по стоящему на ней тоже (решение автора, черновик)
-    if (ha && ha.elevated) ctx.mods.push({ l: "Высота (атакует сверху)", v: B.D.height.att });
+    if (ha && (ha.elevated || (ha.obstacle && att.leaper))) ctx.mods.push({ l: "Высота (атакует сверху)", v: B.D.height.att });
     if (ht && ht.elevated) ctx.mods.push({ l: "Высота (цель на возвышении)", v: B.D.height.tgt });
     if (ctx.dust && ctx.adv.length) { ctx.notes.push("густая пыль гасит преимущество"); ctx.adv.length = 0; }
     return ctx;
@@ -664,6 +666,8 @@
     if (has(u, "overswung") || has(u, "quaked")) u.t.bonus = 0;                                       // «Тяжёлый замах»: нет доп. действия                                       // оглушение: нет доп. действия и реакции
     tickStatuses(u, "start");
     hookAll(u, "turnStart", {});
+    if (alive(u) && !u.down && u.regen && u.hp < u.maxHp && !has(u, "trollburn")) { heal(u, u.regen, u); }          // регенерация героя (Тел 25+, эссенции)
+    if (alive(u) && !u.down && u.mregen && u.mp < u.maxMp) setMp(u, u.mp + u.mregen);          // Мдр 25+: восстановление маны
     if (alive(u) && B.coldTurnStart) await B.coldTurnStart(u);          // ледяные твари гасят жаровни, страж крушит огромную (Ледяной грот)
     // начало хода: кровотечение, горение, хватка и т. п.
     const bl = has(u, "bleeding"); if (bl && alive(u)) { const bd = bl.data && bl.data.dice ? B.parseDice(bl.data.dice) : null, bv = bd ? roll(bd.n, bd.s).total : 1; log(`${u.name} истекает кровью (${bv}).`); await applyDamage(bl.src ? B.byId(bl.src) : null, u, [{ v: bv, dt: "slash", label: "Кровотечение" }], {}); }

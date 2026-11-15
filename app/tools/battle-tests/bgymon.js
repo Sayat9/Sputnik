@@ -12,7 +12,7 @@ const { chromium } = require('playwright');
     const fail = () => { const g = crypto.getRandomValues.bind(crypto); crypto.getRandomValues = a => { a[0] = 0; for (let i = 1; i < a.length; i++) a[i] = 0; return a; }; return () => { crypto.getRandomValues = g; }; };
     // утопленница: тянет, держит, душит; гибель — отпускает
     let S = mkS(['well-drowned']), h = hero(S), m = mon(S, 'well-drowned'); m.x = h.x; m.y = h.y - 3; let un = fail(); await B.A['well-drowned'].run(m, { unit: h }, { commit() {} }); un();
-    o.pull = B.dist(m, h) <= 1 && !!B.has(h, 'drowning') && B.speedOf(h) === 0;
+    o.pull = B.dist(m, h) <= 1 && !!B.has(h, 'drowning') && B.speedOf(h) === 0 ? true : [B.dist(m, h), !!B.has(h, 'drowning'), B.speedOf(h), h.x, h.y, m.x, m.y];
     const hp0 = h.hp; un = fail(); await B.P['body:well-drowned'].turnStartAsync(m); un(); o.choke = h.hp < hp0;
     B.kill(m, null); o.release = !B.has(h, 'drowning');
     // ключник: прикован — скорость 0

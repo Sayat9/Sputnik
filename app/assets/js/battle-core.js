@@ -74,6 +74,8 @@
   const terrain = (x, y) => (inB(x, y) ? B.S.cells[y][x] : null);
   const tinfo = (x, y) => { const t = terrain(x, y); return t ? D.terrain[t] : null; };
   const obstacleAt = (x, y) => { const t = tinfo(x, y); return !!(t && t.obstacle); };
+  const leapable = (u, x, y) => { if (!u || !u.leaper) return false; const t = tinfo(x, y); return !!(t && t.obstacle && !t.hazard && !/Стена|стена|wall/.test((t.name || "") + (B.S && B.S.cells[y] ? B.S.cells[y][x] : ""))); };          // Ловкость 25+: запрыгнуть на препятствие (кроме стен)
+  B.leapable = leapable;
   B.isUnseen = isUnseen;
   Object.assign(B, { inB, key, cheb, DIRS, footprint, dist, distAt, distCell, alive, live, enemiesOf, alliesOf, occupant, terrain, tinfo, obstacleAt, units });
 
@@ -199,10 +201,12 @@
     if (u.hp <= 0) { u.hp = 0; u.down = true; u.conds.push(mkStatus("unconscious", { k: Infinity }), mkStatus("prone", { k: Infinity })); }
     if (c.dead) { u.dead = true; u.alive = false; u.down = true; }
     if (c.tmpHp > 0) u.temp = Math.max(u.temp || 0, c.tmpHp);          // временные ОЗ таверны «Кладбища прошлого»
+    // пороги характеристик (автор 15.11): Тел 25+ — регенерация 1, Лов 25+ — запрыгивать на препятствия, Мдр 25+ — восстановление маны 1 за ход
+    u.regen = (eb.regen || 0) + (u.abil.con >= 25 ? 1 : 0); u.mregen = u.abil.wis >= 25 ? 1 : 0; u.leaper = u.abil.dex >= 25; u.mprot = eb.mprot || 0; u.sightMod = eb.sight || 0;
     return u;
   }
   // Строки «иное» эссенций, которые важны в бою: сопротивления, уязвимости, чувства, дальность броска, страх света и огня.
-  const DT_ACC = { "огнём": "fire", "ядом": "poison", "холодом": "cold", "молнией": "lightning", "звуком": "thunder", "излучением": "radiant", "некротическим": "necrotic" };
+  const DT_ACC = { "огнём": "fire", "ядом": "poison", "холодом": "cold", "молнией": "lightning", "звуком": "thunder", "излучением": "radiant", "некротическим": "necrotic", "дробящим": "bludgeon", "кислотой": "acid" };
   const toCells = txt => Math.floor(parseFloat(String(txt).replace(",", ".")) / 1.5 + 1e-6);
   function essenceTraits(u) {
     u.throwBonus = 0; u.sight = 0; u.fearsLight = false; u.poorSight = false; u.extraTaken = {}; u.burrowC = 0;
@@ -234,7 +238,8 @@
       speedC: cellsOfM(sp.walk), flyC: cellsOfM(sp.fly), climbC: cellsOfM(sp.climb), atk: (cb.atk || []).map(a => { const dm = parseDice(a.dmg), cut = (D.monDmgCut[m.cls] || 0) - (D.monDmgPerCls || 0) * Math.max(0, 9 - (m.cls || 9)); const bo = m.boost || {}; return { ...a, hit: (a.hit || 0) + (bo.hit || 0), dmg: { ...dm, b: Math.max(0, dm.b - cut) + (bo.dmg || 0) } }; }),          // m.boost — точечное усиление (MON_BOOST)
       seq: cb.seq || null, vuln: cb.vuln || [],
       skills: parseSkills(m.senses), initB: 0, face: ART.monsterFace(id), blind: cb.blind || 0, tremor: cb.tremor || 0, dv: /Тёмное зрение/.test(m.senses || ""), shield: !!cb.shield, rare: !!m.rare, cls: m.cls });
-    { const f = D.foot && D.foot[id]; if (f) { u.w = f[0]; u.h = f[1]; u.size = f[0] === f[1] ? f[0] : 2; } }          // 09.11: размер на поле по таблице (1×1, 2×1, 2×2); класс размера u.size: 2×1 — «большой»
+    { const f = D.foot && D.foot[id]; if (f) { u.w = f[0]; u.h = f[1]; u.size = f[0] === f[1] ? f[0] : 2; } }
+    u.mprot = m.mprot || 0;          // «Магическая броня» монстра (15.11)          // 09.11: размер на поле по таблице (1×1, 2×1, 2×2); класс размера u.size: 2×1 — «большой»
     ABIL.forEach((k, i) => { u.abil[k] = m.abil[i]; });
     if (m.carry && m.carry.arrows != null && u.atk.some(a => a.kind === "ranged")) { u.arrows = m.carry.arrows; u.atk.forEach(a => { if (a.kind === "ranged" && !/метнуть/.test(a.n)) a.ammo = true; }); }          // путник-лучник: стрелы считаются
     if (m.essences) u.ess = m.essences.filter(e => ESSENCES[e]);          // путники: до трёх эссенций
@@ -303,7 +308,7 @@
   B.standCost = standCost;
   const isFlying = u => u.flyC > 0 && u.flyC >= u.speedC;
   function stepCost(u, x, y) {
-    if (isFlying(u)) return 1;
+    if (isFlying(u) || (u.pass || []).includes("dread-rider")) return 1;          // «Всадник ужаса»: местность не замедляет
     let c = 1;
     for (const [fx, fy] of footprint(u, x, y)) { const t = tinfo(fx, fy); if (t && t.cost) c = Math.max(c, t.cost); }
     return c;
@@ -311,14 +316,14 @@
   function canPass(u, x, y, o = {}) {
     const through = o.through || (u.pass && u.pass.some(id => B.P && B.P[id] && B.P[id].passThrough));      // «Летучий прах»: сквозь клетки других существ
     for (const [fx, fy] of footprint(u, x, y)) {
-      if (!inB(fx, fy) || obstacleAt(fx, fy)) return false;
+      if (!inB(fx, fy) || (obstacleAt(fx, fy) && !leapable(u, fx, fy))) return false;
       const oc = occupant(fx, fy, u);
       if (oc && oc.side !== u.side && !through) return false;
     }
     return true;
   }
   function canStand(u, x, y) {
-    for (const [fx, fy] of footprint(u, x, y)) { if (!inB(fx, fy) || obstacleAt(fx, fy)) return false; if (occupant(fx, fy, u)) return false; }
+    for (const [fx, fy] of footprint(u, x, y)) { if (!inB(fx, fy) || (obstacleAt(fx, fy) && !leapable(u, fx, fy))) return false; if (occupant(fx, fy, u)) return false; }
     return true;
   }
   // Карта достижимых клеток: key -> {x, y, cost, prev}. budget — запас движения в клетках.
@@ -383,8 +388,9 @@
     // полное укрытие (стена) закрывает всё; туман часовни (S.fog) ограничивает обзор сверху. Команда видит то, что видит любой её боец.
   const sightRange = u => {
     const S = B.S || {}; let r = 4 + (S.sight || 0); const t = tinfo(u.x, u.y);
-    if (!S.noElev && t && t.elevated) r += 2;
+    if (!S.noElev && t && (t.elevated || (t.obstacle && u.leaper))) r += 2;
     if (isFlying(u)) r += 2;
+    r += u.sightMod || 0;
     if (S.dark && !S.torch) r -= 2;
     if (u.pass && u.pass.includes("fog-lantern") && u.side === "hero") r += 1;          // «Фонарь проводника»          // тьма без факела: −2 к обзору (горящий факел — без штрафа)
     if (S.fog > 0) r = Math.min(r, S.fog);
