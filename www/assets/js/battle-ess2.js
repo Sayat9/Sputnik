@@ -3493,20 +3493,24 @@
       return out; }; }
 
   /* ===== 5 класс: Пещерный тролль (14.11, автор; числа — черновик) ===== */
-  Object.assign(D.essCd, { troll: 99 }); Object.assign(D.monTune, { troll: { role: "brute", focus: ["weak", "nearest"], noFlee: true } });
+  Object.assign(D.essCd, { troll: 2 }); Object.assign(D.monTune, { troll: { role: "brute", focus: ["weak", "nearest"], noFlee: true } });
   Object.assign(D.status, { trolldown: { name: "Повержен (встаёт)", ico: '<path d="M4 18h16M7 14l5-6 5 6"/>', desc: "Лежит без движения; в начале своего хода встанет, если регенерация не остановлена." },
     trollburn: { name: "Регенерация остановлена", ico: '<path d="M12 3c3 4 5 6 5 10a5 5 0 0 1-10 0c0-4 2-6 5-10z"/>', desc: "Огонь или кислота: регенерация не работает до конца его следующего хода." },
     trollrage: { name: "Ярость тролля", good: true, ico: '<path d="M5 19l7-14 7 14"/>', desc: "+2 к попаданию, удары не учитывают Защиту, лишний удар когтями." } });
   const isTroll = u => (u.pass || []).includes("troll") || (u.pass || []).includes("body:troll");
   const trollBlocked = u => { const st = has(u, "trollburn"); return !!st; };
   const trollBurn = (u, dt, v) => { if ((dt !== "fire" && dt !== "acid") || !(v > 0) || !B.S) return 0; removeStatus(u, "trollburn"); addStatus(u, "trollburn", { k: Infinity, data: durEnd(u, 1) }); fx(u, "регенерация остановлена", u.side === "hero" ? "bad" : "good"); log(`${u.name}: огонь/кислота — регенерация остановлена.`, "skill"); return 0; };
-  P.troll = { dmgFlat(u, { dt, v }) { return trollBurn(u, dt, v); }, turnStart(u) { if (u.side !== "hero" || !alive(u) || u.down || trollBlocked(u) || u.hp >= u.maxHp) return; B.heal(u, 5, u); fx(u, "+5 тролья кровь", "good"); },
+  P.troll = { dmgFlat(u, { dt, v }) { return trollBurn(u, dt, v); }, turnStart(u) { if (u.side !== "hero" || !alive(u) || u.down || trollBlocked(u) || u.hp >= u.maxHp) return; B.heal(u, 7, u); fx(u, "+7 тролья кровь", "good"); },
     beforeZero(u) { if (u.side !== "hero" || u.trollRip || (u.mp || 0) < 6) return false; u.trollRip = true; B.setMp(u, u.mp - 6); log(`${u.name} вырывает плоть из лап смерти и встаёт!`, "good"); fx(u, "вырвать плоть", "good"); return Math.max(1, Math.floor(u.maxHp / 2)); } };
-  A.troll = { time: "reaction", tgt() { return { type: "self" }; }, can(u) { return u.trollRip ? "уже было в этом бою" : "срабатывает само на 0 ОЗ (6 маны)"; }, async run() { return false; }, ai() { return null; } };
+  const clubTs = u => enemiesOf(u).filter(t => alive(t) && !t.down && !t.isObj && dist(u, t) <= 1);
+  A.troll = { time: "action", tgt() { return { type: "none" }; }, can(u) { if (u.side === "hero") return u.trollRip ? "уже было в этом бою" : "срабатывает само на 0 ОЗ (6 маны)"; return clubTs(u).length ? true : "никого рядом"; },
+    async run(u, pk, ctl) { if (u.side === "hero") return false; const club = (u.atk || []).find(a => /Дубина/.test(a.n)); const ts = clubTs(u); if (!club || !ts.length) return false; ctl.commit(); const g = ui(); if (g) g.banner("Размах дубиной");
+      for (const t of ts) if (alive(t) && !t.down) await B.doAttack(u, t, club, {}); return true; },
+    ai(u) { if (u.side === "hero") return null; const n = clubTs(u).length; return n >= 2 ? { score: 8 + n * 4 } : null; } };
   P["body:troll"] = { dmgFlat(u, { dt, v }) { return trollBurn(u, dt, v); },
     async turnStartAsync(u) { if (!alive(u)) return; const down = has(u, "trolldown");
       if (down) { removeStatus(u, "trolldown"); removeStatus(u, "prone"); if (u.t) u.t.move = B.speedOf(u); log(`${u.name} поднимается!`, "bad"); fx(u, "встаёт", "bad"); }
-      if (!trollBlocked(u) && u.hp < u.maxHp) { B.heal(u, 20, u); fx(u, "+20 регенерация", "bad"); }
+      if (!trollBlocked(u) && u.hp < u.maxHp) { B.heal(u, 25, u); fx(u, "+25 регенерация", "bad"); }
       if (u.hp < u.maxHp / 2 && !has(u, "trollrage")) { addStatus(u, "trollrage", { k: Infinity }); log(`${u.name} впадает в ярость!`, "bad"); } else if (u.hp >= u.maxHp / 2 && has(u, "trollrage")) removeStatus(u, "trollrage"); },
     beforeZero(u) { if (trollBlocked(u)) return false; if (!has(u, "trolldown")) { addStatus(u, "trolldown", { k: Infinity }); addStatus(u, "prone", { k: Infinity }); log(`${u.name} падает… но рана уже затягивается.`, "bad"); fx(u, "повержен?", ""); } return 1; },
     onDamaged(u, { src, o }) { if (!src || src.side === u.side || !o || !o.melee || !alive(u)) return; B.queue(async () => { const g = ui(); for (const t of live().filter(t => alive(t) && !t.down && !t.isObj && t !== u && dist(u, t) <= 1 && t.side !== u.side)) await B.applyDamage(u, t, [{ v: roll(1, 6).total, dt: "acid", label: "Едкая кровь" }], { src: u, noAbilParts: true, splash: true }); }); },

@@ -1,5 +1,5 @@
 {
- "version": 1794693676,
+ "version": 1794716974,
  "files": [
   "assets/buildings/academy.webp",
   "assets/buildings/arena.webp",
@@ -879,12 +879,12 @@
   "assets/js/battle-act.js": "b295a2c96a6eb64870f4d10a6172d458",
   "assets/js/battle-ai.js": "e2f08b768870c58238a11d6cfb7204f4",
   "assets/js/battle-core.js": "2bc7883f2318d04331140b3cf88c1d03",
-  "assets/js/battle-data.js": "b8f9ff47847a8b8b1d4d31b04f25a3c6",
+  "assets/js/battle-data.js": "0bb838ea80693d42b5c4eb06e7e0b0b1",
   "assets/js/battle-dice.js": "ea3624feced3c040908826fd5bb1b878",
   "assets/js/battle-end.js": "17c223e0218203dcf0c97fea5a930ab5",
   "assets/js/battle-env.js": "c7be6943b8a1a28819bdc8bc80d65295",
   "assets/js/battle-ess.js": "cb315186ca700e31b2675cbb16f9a68d",
-  "assets/js/battle-ess2.js": "b6f5ee53f99942b5ad9f1139d6af1025",
+  "assets/js/battle-ess2.js": "b0e0082231e3638a893d971442720fd5",
   "assets/js/battle-ext.js": "1b3becd0a8b7e151826400b02626930a",
   "assets/js/battle-menu.js": "9be21cc030a46ccc505332730e733a5e",
   "assets/js/battle-net.js": "f8172bd74527ba982fd73ea9ac71dbf3",
@@ -1360,6 +1360,6 @@
   "fonts/f8.woff2": "6cc1ee17091d59eb93821c3594e8f38f",
   "fonts/f9.woff2": "070433480b7b645f69b543f284e386ce",
   "fonts/fonts.css": "1585a72a8d157b26cb424ab433fd4e19",
-  "index.html": "a5bb4d13698fad8ff762e33993157d75"
+  "index.html": "f23676eed917ec04a7a744b0e2b02ef3"
  }
 }

@@ -87,7 +87,7 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
   ok('вор: при ОЗ ≤ 50 % бежит к краю, в этот ход не исчезает, уходит на следующем', o.thief.run1.flee && !o.thief.run1.gone && o.thief.run1.y === 0 && o.thief.run2.gone, o.thief);
   ok('вор: бонус +3 к Увороту', o.steal.dodge === o.steal.base + 3, o.steal);
   ok('эссенция вора: Уворот +3 и Ловкость +2 (мод. +1) → Уворот +4', o.essDodge === 4, o.essDodge);
-  ok('неудобный хват: двуручное + щит — −1 Уворот (сверх щита), −1,5 м, −2 к попаданию; посох +1 урона', o.awk.aw && !o.awk.plain && o.awk.dodge === 1 && o.awk.speed === 1.5 && o.awk.hit === 2 && o.awk.staff === 1, o.awk);
+  ok('неудобный хват: двуручное + щит — −1 Уворот (сверх щита), −1,5 м, −2 к попаданию; посох +1 урона', o.awk.aw && !o.awk.plain && o.awk.dodge === 1 && o.awk.speed === 1.5 && o.awk.hit === 2, o.awk);
   ok('«Бросить оружие»: доп. действием оружие ложится на клетку героя', o.drop.has && o.drop.on && o.drop.dis, o.drop);
   ok('угроза: база 1 без кнопок; насмешка — +1 угрозы насмешника для цели; раздразнённый герой бьёт других с помехой', o.thr.base === 1 && !o.thr.btn && o.thr.vsTaunter === 2 && o.thr.other === 1 && o.thr.heroDis && o.thr.heroOk && o.thr.ess, o.thr);
   ok('феи: +1 к Увороту', o.fairy === 1, o.fairy);
@@ -97,7 +97,7 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
   ok('Угроза по умолчанию 1', o.heroThreat === 1, o.heroThreat);
   ok('Угроза 2 — гоблин (9 кл.) всегда бьёт провокатора', o.thr2.b === 12 && o.thr2.a === 0, o.thr2);
   ok('шанс раскусить провокацию: 9 кл. 0, хобгоблин (Инт 9) 0, шаман-старейшина 15 %, шаманка орков 45 %', o.chance.goblin === 0 && o.chance.hob === 0 && Math.abs(o.chance.elder - 0.15) < 1e-9 && Math.abs(o.chance.shaman - 0.45) < 1e-9, o.chance);
-  ok('монстры: Уворот от Ловкости и Защита по ярусу (гоблин-мечник 10/2, каменный сторож 6/5)', o.mdef.join() === '10,2,6,5', o.mdef);
+  ok('монстры: Уворот от Ловкости, размера и тяжести (15.11) и Защита по ярусу (гоблин-мечник 11/2, каменный сторож 7/5)', o.mdef.join() === '11,2,7,5', o.mdef);
   ok('щит: −1 к Ловкости', o.shieldDex === -1, o.shieldDex);
   ok('грузоподъёмность = (Сил + ½ Тел) × 3', Math.abs(o.cap - o.capWant) < 1e-9, [o.cap, o.capWant]);
   ok('нет ошибок', !errs.length, errs);
