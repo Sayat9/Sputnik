@@ -693,7 +693,8 @@
     if (here.length) opts.push({ id: "pickup", cat: "item", label: `Подобрать: ${dropNames(here)}`, ico: "throwing", sub: "свободное действие — вы стоите на нём", time: "free", enabled: true, run: () => pickUpWeapon(u), pop: true });
     if (D.race[u.race] && D.race[u.race].heart) opts.push({ id: "heart", cat: "item", label: "Драконье сердце", ico: "heart", sub: "временные ОЗ = уровень + Тел., раз за отдых", time: "bonus", enabled: !bon && !(c.flags && c.flags.heart), why: bon || "уже использовано", run: () => dragonHeart(u) });
     // побег
-    opts.push({ id: "flee", cat: "flee", label: "Побег", ico: "flee", sub: "добежать до нижнего края и покинуть поле", time: "action", enabled: speedOf(u) > 0, why: "скорость 0", run: () => runFlee(u) });
+    const noFlee = !!(B.S && B.S.ev && B.S.ev.noFlee);          // Башня (автор 16.11): из комнат не сбежать, кроме комнаты босса — раз за заход
+    opts.push({ id: "flee", cat: "flee", label: "Побег", ico: "flee", sub: noFlee ? "из этой комнаты не сбежать" : "добежать до нижнего края и покинуть поле", time: "action", enabled: !noFlee && speedOf(u) > 0, why: noFlee ? "из этой комнаты не сбежать" : "скорость 0", run: () => runFlee(u) });
     if (has(u, "underground")) for (const o of opts) { o.enabled = false; o.why = "под землёй до начала хода"; }          // «Нырок под землю»: до следующего хода ничего не делает
     return opts;
   }

@@ -36,14 +36,27 @@ const { chromium } = require('playwright');
     T.doors = [{ type: 'rest' }, { type: 'fight' }]; state.party.forEach(c => { c.hp = 5; run.status[c.id].fat = 3; }); towerChoose(0); clr(); towerRest(); o.rest = state.party.every(c => c.hp > 5 && run.status[c.id].fat <= 2) && T.room.done && !dgUi.enc ? true : [state.party.map(c => [c.hp, run.status[c.id].fat]), T.room, !!dgUi.enc]; towerNext(); clr();
     T.doors = [{ type: 'heal' }, { type: 'fight' }]; state.party.forEach(c => { c.hp = 3; }); towerChoose(0); o.heal = state.party.every(c => c.hp === maxHp(c)) && T.room.done; towerNext(); clr();
     T.doors = [{ type: 'trial' }, { type: 'fight' }]; towerChoose(0); clr(); towerTrial(); o.trial = T.room.done && /Испытание (пройдено|провалено)/.test(dgUi.res.lines.join(' ')); towerNext(); clr();
-    T.doors = [{ type: 'library' }, { type: 'treasure' }]; towerChoose(0); o.library = T.room.done && dgUi.res.title === 'Библиотека'; towerNext(); clr();
-    T.doors = [{ type: 'treasure' }, { type: 'fight' }]; towerChoose(0); o.treasure = T.room.done && dgUi.res.anim === 'chest'; towerNext(); clr();
+    // библиотека: до 20 — без разломов, 1 проверка; с 40 — 4 проверки по 2 сведения
+    const libRun = (L) => { T.lvl = L - 1; T.doors = [{ type: 'library' }, { type: 'fight' }]; towerChoose(0); const lib = T.room.lib; const start = lib.step; const ch = lib.checks; let guard = 0;
+      while (!T.room.done && guard++ < 40) { rerender(); const b = document.querySelector('[data-tw="lib-roll"]') || document.querySelector('[data-tw="lib"]'); if (!b) break; b.click(); }
+      const res = { start, ch, done: T.room.done, log: lib.log.length }; towerNext(); clr(); return res; };
+    const l1 = libRun(5), l40 = libRun(42); o.library = l1.start === 'floor' && l1.ch === 1 && l1.done && l40.start === 'src' && l40.ch === 4 && l40.done ? true : [l1, l40];
+    o.libChecks = twLibChecks(19) === 1 && twLibChecks(20) === 2 && twLibChecks(30) === 3 && twLibChecks(40) === 4;
+    const trv = L => { T.lvl = L - 1; T.doors = [{ type: 'treasure' }, { type: 'fight' }]; const v0 = sackTotalValue(); towerChoose(0); const v = sackTotalValue() - v0, ok = T.room.done && dgUi.res.anim === 'chest'; towerNext(); clr(); return ok ? v : -1; };
+    const t1 = trv(10), t2 = trv(30), t3 = trv(45); o.treasure = t1 >= 480 && t1 <= 1020 && t2 >= 1950 && t2 <= 5100 && t3 >= 4950 ? true : [t1, t2, t3];
+    // побег: обычная комната — нельзя, босс — раз за заход
+    T.doors = [{ type: 'fight' }, { type: 'rest' }]; towerChoose(0); o.noFleeFight = dgUi.enc.noFlee === true; dgUi.enc.outcome = 'win'; finishFight(dgUi.enc, dgUi.enc.list.map((x, i) => i)); towerNext(); clr();
+    T.lvl = 29; T.doors = [{ type: 'boss' }, { type: 'fight' }, { type: 'rest' }]; towerChoose(0); const f1 = dgUi.enc.noFlee; dgUi.enc.outcome = 'flee'; finishFight(dgUi.enc, []); clr(); towerChoose(0); const f2 = dgUi.enc.noFlee; dgUi.enc.outcome = 'win'; finishFight(dgUi.enc, [0]); T.chest = null; towerNext(); clr();
+    o.bossFleeOnce = f1 === false && f2 === true;
     // выход закрыт
     T.doors = [{ type: 'exit' }, { type: 'fight' }]; const l0 = T.lvl; towerChoose(0); o.exitClosed = T.lvl === l0 && !!T.doors && /не открыт/.test(dgUi.res.lines.join(' ')); clr();
     // срок этажа
     o.days = FLOOR_DAYS[4] === 28 && FLOOR_DAYS[10] === 70;
     // Харизма 25+ → +1 Уворот
     const c = state.party[0], a0 = derived(totals(c), c).ac; c.base.cha = 30; const a1 = derived(totals(c), c).ac; o.cha = a1 - a0 === 1;
+    // табличка у портала на 4 этаж
+    run.floor = 3; const nk2 = Object.entries(FL().portals).find(([, v]) => v === 'f3next')[0].split(',').map(Number); run.pos = { x: nk2[0], y: nk2[1] }; dgUi.phase = 'menu'; rerender(); const sb = document.querySelector('[data-twsign]');
+    o.signFirst = !!sb && sb === document.querySelector('.dg-menu button, [data-twsign]'); if (sb) sb.click(); o.sign = !!dgUi.res && /ДОРОГИ НАЗАД НЕ БУДЕТ/.test(JSON.stringify(dgUi.res)); clr(); run.floor = 4;
     rerender(); o.uiAgain = document.querySelectorAll('[data-tw="door"]').length >= 2;
     return o;
   });
