@@ -7862,10 +7862,10 @@ function addXpAll(total) {          // опыт всем героям отряд
   return ups;
 }
 // Достижения захода (решения автора 27.10): добраться до портала на 2 этаж до конца 2-го дня, до портала на 3 этаж — до конца 5-го дня: +2 опыта каждому герою, один раз за заход.
-const ACHIEVEMENTS = { portal2: { title: "Быстрый спуск", text: "Отряд дошёл до портала на 2 этаж до конца 2-го дня", day: 2, xp: 2 }, portal3: { title: "Лёгкий путь вниз", text: "Отряд дошёл до портала на 3 этаж до конца 5-го дня", day: 5, xp: 2 } };
+const ACHIEVEMENTS = { portal2: { title: "Быстрый спуск", text: "Отряд дошёл до портала на 2 этаж до конца 2-го дня", day: 2, xp: 2 }, portal3: { title: "Лёгкий путь вниз", text: "Отряд дошёл до портала на 3 этаж до конца 5-го дня", day: 5, xp: 2 }, portal4: { title: "Путь в Башню", text: "Отряд дошёл до портала на 4 этаж до конца 15-го дня", day: 15, xp: 2 } };
 function achCheck() {
   const r = state.run; if (!r || !state.party.length || tileType(r.pos.x, r.pos.y) !== "portal") return;
-  const k = FL().portals[tkey(r.pos.x, r.pos.y)], id = r.floor === 1 ? "portal2" : r.floor === 2 && k === "exit" ? "portal3" : null;
+  const k = FL().portals[tkey(r.pos.x, r.pos.y)], id = r.floor === 1 ? "portal2" : r.floor === 2 && k === "exit" ? "portal3" : r.floor === 3 && k === "f3next" ? "portal4" : null;
   if (!id || (r.ach ||= {})[id] || r.day > ACHIEVEMENTS[id].day) return;
   const A = ACHIEVEMENTS[id]; r.ach[id] = r.day;
   const ups = addXpAll(A.xp);
