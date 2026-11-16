@@ -490,7 +490,8 @@
     const names = {};
     ev.list.forEach(id => { names[id] = (names[id] || 0) + 1; });
     const seen = {};
-    ev.list.forEach((id, idx) => { const m = monUnit(id, idx); seen[id] = (seen[id] || 0) + 1; if (names[id] > 1) { m.numName = m.base + " " + seen[id]; m.name = m.base; } S.units.push(m); if (B.initUnit) B.initUnit(m); });
+    ev.list.forEach((id, idx) => { const m = monUnit(id, idx); seen[id] = (seen[id] || 0) + 1; if (names[id] > 1) { m.numName = m.base + " " + seen[id]; m.name = m.base; } S.units.push(m); if (B.initUnit) B.initUnit(m);
+      const tb = ev.tBoost; if (tb) { if (tb.hp) { m.maxHp = Math.round(m.maxHp * tb.hp); m.hp = m.maxHp; } if (tb.dmg || tb.hit) m.atk = (m.atk || []).map(a => ({ ...a, hit: (a.hit || 0) + (tb.hit || 0), dmg: a.dmg && typeof a.dmg === "object" ? { ...a.dmg, b: (a.dmg.b || 0) + (tb.dmg || 0) } : a.dmg })); } });          // Башня: с 10-го и 20-го уровня враги сильнее
     return S;
   }
   B.newBattle = newBattle;

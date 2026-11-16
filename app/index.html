@@ -1117,6 +1117,17 @@ dl.kv { margin: 0; }
 @keyframes vnIn { from { transform: translateY(16px); opacity: 0; } to { transform: none; opacity: 1; } }
 #rf-svg.rf-quake, .rf-grid.rf-quake { animation: rfQuake .3s 6; }
 @keyframes rfQuake { 0%, 100% { transform: translate(0); } 20% { transform: translate(-5px, 3px); } 45% { transform: translate(5px, -3px); } 70% { transform: translate(-3px, -2px); } }
+.tw-stage { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 56px 12px 12px; overflow-y: auto; }
+.tw-ask { margin: 0; color: var(--fx-text); font-size: 15px; text-align: center; }
+.tw-doors { display: grid; gap: 10px; width: 100%; max-width: 560px; grid-template-columns: repeat(2, 1fr); }
+.tw-doors.n3 { grid-template-columns: repeat(3, 1fr); }
+.tw-door { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 6px; border-radius: 10px; border: 1px solid var(--fx-line, #5a4a30); background: rgb(20 16 12 / .7); color: var(--fx-text); cursor: pointer; min-width: 0; }
+.tw-door .ev-pic { position: static; inset: auto; height: auto; width: 100%; aspect-ratio: 3 / 2; object-fit: cover; border-radius: 7px; animation: none; }
+.tw-door b { font-size: 14px; } .tw-door small { font-size: 11.5px; color: var(--fx-muted); }
+.tw-door.off { opacity: .55; }
+.tw-room { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 100%; max-width: 420px; }
+.tw-room .ev-pic { position: static; inset: auto; height: auto; width: 100%; aspect-ratio: 3 / 2; object-fit: cover; border-radius: 10px; animation: none; }
+.tw-stage .rf-bar { position: static; }
 </style>
 
 <header class="top">
@@ -1183,6 +1194,7 @@ dl.kv { margin: 0; }
 <script src="assets/packs/web1.js" onerror="void 0"></script>
 <script src="assets/packs/web2.js" onerror="void 0"></script>
 <script src="assets/packs/web3.js" onerror="void 0"></script>
+<script src="assets/packs/web4.js" onerror="void 0"></script>
 <script>
 /* ===================== ДАННЫЕ =====================
    Все числа живут здесь. Цены снаряжения — черновик,
@@ -4008,6 +4020,142 @@ if (typeof document !== "undefined") document.addEventListener("click", e => {
   riftRollStart(); saveChar(); rerender();
 });
 /*RIFT-END*/
+/*TOWER-BEGIN*/
+// ===== 4 этаж — Башня (автор 16.11): генерируемое подземелье из 50 уровней (уровень = пройденные комнаты). Числа — черновик =====
+// Каждая комната — выбор из 2 дверей (3 — с шансом 10 %, на каждом 5-м уровне 20 %, на каждом 10-м и после босса — всегда).
+const TW_MAX = 50, FLOOR_DAYS = { 1: 7, 2: 14, 3: 21, 4: 28, 5: 35, 6: 42, 7: 49, 8: 56, 9: 63, 10: 70 };          // сроки этажей до 10-го: +7 дней на этаж (пока так)
+const TW_DOOR = {
+  fight: { name: "Бой", sub: "враги за дверью" }, group: { name: "Групповой бой", sub: "много врагов" }, hard: { name: "Тяжёлый бой", sub: "сильные враги" },
+  mini: { name: "Мини-босс", sub: "сильный враг со свитой" }, boss: { name: "Босс", sub: "хозяин уровня" },
+  rest: { name: "Зона отдыха", sub: "здесь можно поспать" }, heal: { name: "Зона лечения", sub: "раны затянутся" }, trial: { name: "Испытание", sub: "проверка сил" },
+  treasure: { name: "Сокровищница", sub: "редкая комната" }, library: { name: "Библиотека", sub: "редкая комната" }, rift: { name: "Разлом", sub: "" }, exit: { name: "Выход на 5 этаж", sub: "портал наверх" },
+};
+const TW_WEIGHT = { fight: 30, group: 18, hard: 14, rest: 12, heal: 10, trial: 10, rift: 0 };          // разлом пока не появляется
+const TW_BOSSES = ["troll", "ogre", "brood-mother", "mana-devourer", "dread-rider", "ruin-guardian"], TW_BIG_BOSS = ["brood-mother", "dread-rider", "ruin-guardian"];
+const TW_MINIS = ["forge-smith", "trap-queen", "orc-chief", "silence-keeper", "foreman-gorn", "alpha01", "crystal-alchemist", "night-abbot", "lantern-keeper"];
+const towerState = () => state.run && state.run.tower;
+const twBand = L => L >= 20 ? 3 : L >= 10 ? 2 : 1;          // с 10-го и с 20-го уровня бои сложнее
+const twPool = cls => MONSTERS.filter(m => m.cls === cls && !m.draft && !m.dyn && !m.rift && !m.spectral && m.rank === "normal" && (m.floor === 2 || m.floor === 3) && m.abil && m.traits);
+const twPick = cls => { const a = twPool(cls); return a.length ? a[rnd(a.length)].id : null; };
+function towerGroup(type, L) {
+  const b = twBand(L), p = c => twPick(c), n = (lo, hi) => lo + rnd(hi - lo + 1);
+  const T = {
+    fight: [[7, 8, 8], [7, 7, 8], [7, 7, 7]], group: [[8, 8, 8, 8, ...(n(0, 1) ? [8] : [])], [8, 8, 8, 7, 7], [7, 7, 7, 7, 8, 8]], hard: [[7, 7, 8], [7, 7, 7], [6, 7, 7]],
+  }[type][b - 1];
+  return T.map(c => c === 6 ? pick1(TW_MINIS.filter(id => MONSTERS.some(m => m.id === id))) : p(c)).filter(Boolean);
+}
+function towerDoors(L, afterBoss) {
+  const n = L % 10 === 0 || afterBoss ? 3 : Math.random() < (L % 5 === 0 ? 0.2 : 0.1) ? 3 : 2, out = [];
+  if (L % 10 === 0) out.push("boss"); else if (L % 5 === 0) out.push("mini");          // босс — каждый 10-й, мини-босс — каждый 5-й (не 10-й)
+  if ([21, 31, 41, 50].includes(L)) out.push("exit");          // выход — с 20-го уровня: 21, 31, 41 и 50
+  if (L >= 20 && L % 5 === 1 && out.length < n) { const d = Math.random(); if (d < 0.1) out.push("treasure"); else if (d < 0.2) out.push("library"); }          // одна проверка на один слот
+  const pool = Object.entries(TW_WEIGHT).filter(([, w]) => w > 0), tot = pool.reduce((a, [, w]) => a + w, 0);
+  while (out.length < n) { let x = Math.random() * tot, k = pool[0][0]; for (const [id, w] of pool) { x -= w; if (x <= 0) { k = id; break; } } out.push(k); }
+  return shuf(out).slice(0, Math.max(n, out.length)).map(type => ({ type }));
+}
+function towerEnter() {
+  const r = state.run; r.tower ||= { lvl: 0, doors: null, room: null, afterBoss: false };
+  const T = r.tower; if (!T.doors && !T.room) T.doors = towerDoors(T.lvl + 1, T.afterBoss);
+}
+const twArt = cls => { const id = treasurePick(cls); if (!id) return `Артефакт ${cls} класса: таких не осталось`; if (ART_WEAPONS[id]) return giveParty({ t: "w", id: ART_WEAPONS[id].base, art: id, qty: 1 }); if (ART_ARMORS[id]) return giveParty({ t: "a", id: ART_ARMORS[id].base, art: id, qty: 1 }); if (TREASURES[id]) { giveTreasure(id); return `Артефакт ${cls} класса (неопознан)`; } return giveParty({ t: "g", id, qty: 1 }); };
+const twRollCls = table => { let x = Math.random(), acc = 0; for (const [c, p] of table) { acc += p; if (x < acc) return c; } return table[table.length - 1][0]; };
+function twStones(lo, hi, classes) {          // клад: камни нескольких классов на сумму от lo до hi
+  let left = lo + rnd(hi - lo + 1); const total = left, lines = [];
+  for (const c of classes.slice().sort((a, b) => a - b)) { if (c === Math.max(...classes)) continue; const pr = stonePrice(c), take = Math.floor(left * (0.25 + Math.random() * 0.3) / pr); if (take > 0) { lines.push(giveParty({ t: "g", id: "stone-" + c, qty: take, noGem: true })); left -= take * pr; } }
+  const c9 = Math.max(...classes); if (left > 0) lines.push(giveParty({ t: "g", id: "stone-" + c9, qty: Math.floor(left / stonePrice(c9)) || 1, noGem: true }));
+  return { lines, total };
+}
+function towerChest(kind) {
+  const lines = []; let anim = "chest";
+  if (kind === "mini") { const s = twStones(300, 500, [9, 8, 7]); lines.push(`Клад на ${s.total} монет камнями:`, ...s.lines); if (Math.random() < 0.3) lines.push(twArt(twRollCls([[9, 0.6], [8, 0.3], [7, 0.1]]))); }
+  else if (kind === "boss") { const s = twStones(1000, 1500, [9, 8, 7, 6]); lines.push(`Клад на ${s.total} монет камнями:`, ...s.lines, twArt(twRollCls([[9, 0.3], [8, 0.3], [7, 0.2], [6, 0.2]]))); }
+  else if (kind === "treasure") { const s = twStones(150, 250, [9, 8, 7]); lines.push(...s.lines, twArt(twRollCls([[9, 0.4], [8, 0.4], [7, 0.2]]))); }
+  return { lines, anim };
+}
+function towerChoose(i) {
+  const r = state.run, T = towerState(); if (!T || !T.doors || dgUi.enc || r.ending) return; const d = T.doors[i]; if (!d) return;
+  if (d.type === "exit") { dgUi.res = { title: "Выход на 5 этаж", roll: "", pic: "tower-exit", lines: ["Портал наверх мерцает, но не пускает: 5 этаж ещё не открыт."] }; return; }
+  tick(); if (advanceTime()) return;
+  const L = T.lvl + 1; T.room = { type: d.type, L, done: false }; T.prevDoors = T.doors; T.doors = null;
+  logRun(`Башня, уровень ${L}: ${TW_DOOR[d.type].name}.`);
+  if (["fight", "group", "hard", "mini", "boss"].includes(d.type)) { towerFight(T.room); return; }
+  if (d.type === "heal") { const lines = []; for (const c of state.party) if (!c.dead) { c.hp = maxHp(c); c.mp = maxMp(c); lines.push(`${c.name}: ОЗ и мана полностью`); } T.room.done = true; dgUi.res = { title: "Зона лечения", roll: "", pic: "tower-heal", lines }; return; }
+  if (d.type === "treasure") { const x = towerChest("treasure"); T.room.done = true; dgUi.res = { title: "Сокровищница", roll: "", anim: "chest", lines: x.lines }; logRun("Сокровищница: " + x.lines.join(" ")); return; }
+  if (d.type === "library") { const lines = towerLibrary(); T.room.done = true; dgUi.res = { title: "Библиотека", roll: "", pic: "tower-library", lines }; return; }
+  dgUi.res = { title: TW_DOOR[d.type].name, roll: "", pic: "tower-" + d.type, lines: [d.type === "rest" ? "Тихая комната. Здесь можно спокойно поспать." : "В комнате ждёт испытание."] };
+}
+function towerFight(room) {
+  const L = room.L, b = twBand(L), t = room.type;
+  let list, title, big = false;
+  if (t === "boss") { const id = room.boss || (room.boss = pick1(TW_BOSSES)); list = [id]; title = `Башня, уровень ${L}: босс — ${MONSTERS.find(m => m.id === id).name}`; big = TW_BIG_BOSS.includes(id); }
+  else if (t === "mini") { const id = room.mini || (room.mini = pick1(TW_MINIS.filter(x => MONSTERS.some(m => m.id === x)))); list = [id, twPick(8), twPick(7)].filter(Boolean); title = `Башня, уровень ${L}: мини-босс — ${MONSTERS.find(m => m.id === id).name}`; big = true; }
+  else { list = room.list || (room.list = towerGroup(t, L)); title = `Башня, уровень ${L}: ${TW_DOOR[t].name.toLowerCase()}`; }
+  startSpecial(title, { zone: "stone", place: "Башня", list, big10: big });
+  dgUi.enc.tower = true; dgUi.enc.tBoost = b === 3 ? { hp: 1.4, dmg: 2, hit: 1 } : b === 2 ? { hp: 1.2, dmg: 1 } : null;
+}
+function towerFightDone(e) {
+  const T = towerState(); if (!T || !e.tower || !T.room) return;
+  if (e.outcome !== "win") { logRun("Башня: отряд отступил — комната не пройдена."); T.doors = T.prevDoors || towerDoors(T.room.L, false); T.room = null; return; }
+  T.room.done = true;
+  if (T.room.type === "mini" || T.room.type === "boss") { const x = towerChest(T.room.type); T.chest = { title: T.room.type === "boss" ? "Клад босса" : "Клад мини-босса", lines: x.lines }; logRun(`${T.chest.title}: ${x.lines.join(" ")}`); }
+}
+function towerNext() {
+  const T = towerState(); if (!T || !T.room || !T.room.done) return;
+  T.afterBoss = T.room.type === "boss"; T.lvl = T.room.L; T.room = null; T.chest = null;
+  if (T.lvl >= TW_MAX) { dgUi.res = { title: "Вершина башни", roll: "", pic: "tower-exit", lines: [`Пройдено ${TW_MAX} уровней. Выше — портал на 5 этаж; он ещё не открыт.`] }; T.doors = [{ type: "exit" }]; return; }
+  T.doors = towerDoors(T.lvl + 1, T.afterBoss);
+}
+function towerRest() {          // зона отдыха: сон без нападений (как привал, но спокойно)
+  const r = state.run, T = towerState(); if (!T || !T.room || T.room.type !== "rest" || T.room.slept) return;
+  const lines = []; tick(new Set(state.party.map(c => c.id))); advanceTime(); advanceTime();
+  for (const c of state.party) { if (c.dead) continue; const st = r.status[c.id]; const got = eatRations(c, 1); if (got) { st.sat = Math.min(9, st.sat + 3); st.starve = 0; }
+    st.fat = Math.max(0, st.fat - 2); st.awake = 0; const h = Math.max(1, Math.round(maxHp(c) * 0.5)); c.hp = Math.min(maxHp(c), hpOf(c) + h); restMana(c, 1); lines.push(`${c.name}: +${h} ОЗ, усталость −2${got ? "" : ", без еды"}`); }
+  T.room.slept = true; T.room.done = true; logRun("Башня: сон в зоне отдыха. " + lines.join("; ")); dgUi.res = { title: "Зона отдыха", roll: "", pic: "tower-rest", lines };
+}
+const TW_TRIALS = [["Осыпающийся мост", "dex", "Ловкость"], ["Каменная плита", "str", "Сила"], ["Загадка на двери", "int", "Интеллект"], ["Голос в темноте", "wis", "Мудрость"], ["Страж-привратник", "cha", "Харизма"]];
+function towerTrial() {
+  const T = towerState(); if (!T || !T.room || T.room.type !== "trial" || T.room.done) return;
+  const [name, ab, abRu] = T.room.trial || (T.room.trial = pick1(TW_TRIALS)), dc = 13 + twBand(T.room.L);
+  const live = state.party.filter(c => !c.dead), hero = live.slice().sort((a, b) => totals(b)[ab].total - totals(a)[ab].total)[0]; if (!hero) return;
+  const d = riftD(1 + rnd(20)), mod = Math.floor((totals(hero)[ab].total - 10) / 2), sum = d + mod, ok = sum >= dc, lines = [`${name}: ${hero.name} — ${abRu} к20 = ${d} ${mod >= 0 ? "+" : "−"} ${Math.abs(mod)} = ${sum} против Сл ${dc}.`];
+  if (ok) { lines.push("Испытание пройдено.", giveParty({ t: "g", id: "stone-8", qty: 2 + rnd(3), noGem: true }), giveParty({ t: "g", id: "stone-7", qty: 1, noGem: true })); if (Math.random() < .3) lines.push(giveParty({ t: "g", id: "potion-good", qty: 1 })); }
+  else { lines.push("Испытание провалено."); for (const c of live) { const v = roll2d6(); c.hp = Math.max(1, hpOf(c) - v); lines.push(`${c.name}: −${v} ОЗ`); } }
+  T.room.done = true; logRun("Башня, испытание: " + lines.join(" ")); dgUi.res = { title: "Испытание", roll: `к20 = ${d}`, pic: "tower-trial", lines };
+}
+const roll2d6 = () => 2 + rnd(6) + rnd(6);
+function towerLibrary() {          // библиотека: записи о монстрах, которых отряд уже встречал (по 2 раздела у двух)
+  const j = journal().known || {}, ids = Object.keys(j).filter(id => MONSTERS.some(m => m.id === id && !m.dyn)), lines = [];
+  for (const id of shuf(ids).slice(0, 2)) { const rec = j[id], miss = ["stats", "behavior", "attacks", "body", "ess-passive"].filter(k => !(rec.revealed || []).includes(k)).slice(0, 2); if (!miss.length) continue; seenKeys(id, miss); lines.push(`${MONSTERS.find(m => m.id === id).name}: открыты новые записи.`); }
+  if (!lines.length) lines.push("На полках — только то, что вы уже знаете.");
+  return lines;
+}
+function towerStage() {
+  const r = state.run, T = towerState() || (towerEnter(), towerState()), L = T.room ? T.room.L : T.lvl + 1;
+  const card = (d, i) => { const D = TW_DOOR[d.type], off = d.type === "exit";
+    return `<button class="tw-door${off ? " off" : ""}" data-tw="door" data-i="${i}" aria-label="${esc(D.name)}">${evPic("tower-" + d.type)}<b>${esc(D.name)}</b><small>${esc(off ? "пока закрыт" : D.sub)}</small></button>`; };
+  let body = "";
+  if (T.doors) body = `<p class="tw-ask">Перед отрядом ${T.doors.length === 3 ? "три двери" : "две двери"}. Куда идти?</p><div class="tw-doors n${T.doors.length}">${T.doors.map(card).join("")}</div>`;
+  else if (T.room) { const D = TW_DOOR[T.room.type], B = (a, l, sub, pri) => `<button class="fx-btn${pri ? " primary" : ""}" data-tw="${a}">${l}${sub ? `<small>${sub}</small>` : ""}</button>`;
+    body = `<div class="tw-room">${evPic("tower-" + T.room.type)}<b>${esc(D.name)}</b></div><div class="rf-bar">
+      ${T.room.type === "rest" && !T.room.slept ? B("rest", "Поспать", "без нападений, 2 действия", true) : ""}
+      ${T.room.type === "trial" && !T.room.done ? B("trial", "Пройти испытание", "бросает лучший в нужной характеристике", true) : ""}
+      ${T.chest ? B("chest", "Открыть клад", "", true) : ""}
+      ${T.room.done && !T.chest ? B("next", "Идти дальше", `к уровню ${T.room.L + 1}`, true) : ""}
+      ${T.room.type === "rest" && !T.room.slept ? B("next-skip", "Не спать и идти дальше", "", false) : ""}</div>`; }
+  return `<div class="tw-stage"><div class="phase-pill rf-pill" style="top:12px">Башня · уровень ${Math.min(L, TW_MAX)} из ${TW_MAX}${twBand(L) > 1 ? ` · опасность ${twBand(L)}` : ""}</div>${body}</div>`;
+}
+if (typeof document !== "undefined") document.addEventListener("click", e => {
+  const b = e.target.closest && e.target.closest("[data-tw]"); if (!b || !state.run || state.run.floor !== 4) return;
+  const a = b.dataset.tw, T = towerState(); if (!T) return;
+  if (a === "door") towerChoose(+b.dataset.i);
+  if (a === "rest") towerRest();
+  if (a === "trial") towerTrial();
+  if (a === "chest" && T.chest) { dgUi.res = { title: T.chest.title, roll: "", anim: "chest", lines: T.chest.lines }; T.chest = null; }
+  if (a === "next") towerNext();
+  if (a === "next-skip" && T.room && T.room.type === "rest") { T.room.done = true; towerNext(); }
+  RIFT_D = null; riftRollStart(); saveChar(); rerender();
+});
+/*TOWER-END*/
 // Картинка перехода между этажами (07.11): после смены этажа — окно с заставкой.
 if (typeof switchFloor === "function") { const _sf = switchFloor; switchFloor = function () { const r = state.run, f = r && r.floor; _sf.apply(this, arguments); const r2 = state.run; if (r2 && r2.floor !== f && !dgUi.res) dgUi.res = { title: `${r2.floor} этаж`, roll: "", pic: "floor-change", lines: [`Портал выводит отряд на ${r2.floor} этаж. День ${r2.day}.`] }; }; }
 /*DB-BEGIN*/
@@ -4839,7 +4987,8 @@ function derived(t, c = char) {
   const eb = essBonus(c);
   add(Math.floor((c.level - 1) / 2), "опыт");                                         // +0,5 Защиты за уровень после 1-го (решение автора 02.11)
   add(eb.ac, "эссенции");
-  if (c.race === "fairy" || c.race === "darkfairy") { ac += 1; dodgeSrc.push("+1 фея"); }          // феи юркие: +1 к Увороту (решение автора 02.11)
+  if (c.race === "fairy" || c.race === "darkfairy") { ac += 1; dodgeSrc.push("+1 фея"); }
+  if (t.cha && t.cha.total >= 25) { ac += 1; dodgeSrc.push("+1 Харизма 25+"); }          // порог Харизмы (автор 16.11)          // феи юркие: +1 к Увороту (решение автора 02.11)
   if (eb.dodge) { ac += eb.dodge; dodgeSrc.push(`${eb.dodge > 0 ? "+" : "−"}${Math.abs(eb.dodge)} эссенции`); }                                                                  // эссенции «КД +N» дают Защиту (решение автора 02.11)
   pen(OVERLOAD[ld.level].dodge, LOAD_NAME[ld.level].toLowerCase());
   if (awkward2h(c)) { pen(AWK.dodge, "неудобный хват двуручного"); warnings.push(`Двуручное и вещь во второй руке: −${AWK.dodge} Уворот, −1,5 м скорости, −${AWK.hit} к попаданию обоими оружиями.`); }
@@ -4968,7 +5117,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 153;
+const BATTLE_REV = 154;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-weap2.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster() || st.dev === false) st.tactical = true; return st; }
@@ -6036,7 +6185,8 @@ const kingEscort = () => {
 };
 const hobTrio = () => { const ids = ["hobgoblin", "hobgoblin-brute", "hobgoblin-thrower", "hobgoblin-driver"], n = 1 + rnd(3); return Array.from({ length: n }, () => ids[rnd(ids.length)]); };
 // Конфиг текущего этажа: размер, порталы, число дней.
-function FL() { const r = state.run; if (r && r.floor === 3) return { n: 3, size: F3_SIZE, days: F3_DAYS, acts: 3, portals: F3_PORTALS, variant: FLOOR3 }; if (r && r.floor === 2) { const v = FLOOR2[r.variant] || FLOOR2.goblin; return { n: 2, size: 11, days: 14, acts: 3, portals: { "0,10": "entry", "10,0": "exit" }, variant: v }; } return FLOOR1; }
+const FLOOR4 = { n: 4, name: "Башня", zone: "stone", portalKind: "stone", dark: [], placeAt: () => null };
+function FL() { const r = state.run; if (r && r.floor === 4) return { n: 4, size: 1, days: 28, acts: 3, portals: {}, variant: FLOOR4 }; if (r && r.floor === 3) return { n: 3, size: F3_SIZE, days: F3_DAYS, acts: 3, portals: F3_PORTALS, variant: FLOOR3 }; if (r && r.floor === 2) { const v = FLOOR2[r.variant] || FLOOR2.goblin; return { n: 2, size: 11, days: 14, acts: 3, portals: { "0,10": "entry", "10,0": "exit" }, variant: v }; } return FLOOR1; }
 const T = 64;                                   // размер квадрата в SVG
 const tkey = (x, y) => x + "," + y;
 const inBounds = (x, y) => x >= 0 && y >= 0 && x < FL().size && y < FL().size;
@@ -6617,7 +6767,7 @@ const shuf = a => { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) 
 const pick1 = a => a[rnd(a.length)];
 
 /* ----- картинки-заставки: assets/events/<имя>.webp, пока нет — .svg-заглушка ----- */
-const EV_PIC = { "rift-open": "rift-open", "rift-enter": "rift-enter", "floor-change": "floor-change", find: "treasure", dig: "dig", ambush: "ambush", trap: "ambush", hard: "monsters", mid: "monsters", easy: "monsters", empty: "nothing", group: "travelers", find: "treasure" };
+const EV_PIC = { ...Object.fromEntries(["fight", "group", "hard", "boss", "mini", "rest", "trial", "treasure", "rift", "heal", "library", "exit"].map(k => ["tower-" + k, "tower-" + k])), "rift-open": "rift-open", "rift-enter": "rift-enter", "floor-change": "floor-change", find: "treasure", dig: "dig", ambush: "ambush", trap: "ambush", hard: "monsters", mid: "monsters", easy: "monsters", empty: "nothing", group: "travelers", find: "treasure" };
 const evPic = k => `<img class="ev-pic" src="${artPath("events/" + (EV_PIC[k] || "nothing"))}" alt="">`;          // нарисованные — webp (путь в RASTER), пока нет — svg-заглушка
 
 /* ----- бросок делает приложение: ~1,5 с крутится кубик, ~1,2 с виден результат, потом само подтверждается (с Игральными кубиками — ждёт «Подтвердить»/«перебросить») ----- */
@@ -7255,7 +7405,7 @@ function portalInfo() {
     return { title: "Портал на 1 этаж", text: `Вернуться на 1 этаж можно, пока не прошёл 7-й день (сейчас день ${r.day}).`, ok: true, to: 1 };
   }
   if (r.floor === 3) {
-    if (k === "f3next") return { title: "Портал дальше", text: "Портал наверху этажа пока не активен.", ok: false };
+    if (k === "f3next") return { title: "Портал на 4 этаж", text: `Портал ведёт в Башню — 4 этаж: комната за комнатой, выбирая двери. Назад этот портал не ведёт. 4 этаж закрывается после ${FLOOR_DAYS[4]}-го дня (сейчас день ${r.day}).`, ok: true, to: 4 };
     const v = f3VariantOf(tkey(r.pos.x, r.pos.y));
     if (r.day > PORTAL_LAST_DAY) return { title: "Портал на 2 этаж", text: `После ${PORTAL_LAST_DAY}-го дня порталы между этажами отключены (сейчас день ${r.day}).`, ok: false };
     return { title: "Портал на 2 этаж", text: `Портал ведёт на 2 этаж: <b style="color:var(--fx-gold-hi)">${FLOOR_NAME[v]}</b>. Порталы между этажами работают до конца ${PORTAL_LAST_DAY}-го дня, потом отключатся (сейчас день ${r.day}).`, ok: true, to: 2, variant: v };
@@ -7591,7 +7741,9 @@ const FLOOR_KEYS = ["pos", "hidden", "spin", "visited", "cleared", "caches", "st
 function switchFloor() {
   const r = state.run, pi = portalInfo(); if (!pi.ok) return;
   (r.fs ||= {})[r.floor] = { ...Object.fromEntries(FLOOR_KEYS.map(k => [k, r[k]])), variant: r.variant };          // вариант тоже помним: при возврате на 2 этаж карта и тайны остаются
-  if (pi.to === 3) {
+  if (pi.to === 4) {
+    r.floor = 4; delete r.variant; towerEnter(); logRun(`Отряд вошёл в Башню — 4 этаж (день ${r.day}).`); ngEnterFloor(4);
+  } else if (pi.to === 3) {
     r.floor = 3; delete r.variant;
     const saved = r.fs[3] && r.fs[3].visited ? r.fs[3] : null, [ex, ey] = pi.entry.split(",").map(Number), ring = [];
     for (let y = 0; y < F3_SIZE; y++) for (let x = 0; x < F3_SIZE; x++) { const d = Math.max(Math.abs(x - ex), Math.abs(y - ey)); if (d === 2 || d === 3) ring.push([x, y]); }
@@ -7761,6 +7913,7 @@ function finishFight() {
   orcFightDone(e, killed.map(i => e.list[i]));
   f3MonFightDone({ list: e.list, killed });
   try { riftFightDone(e, killed); } catch (err) { console.error("rift:", err); }
+  try { towerFightDone(e); } catch (err) { console.error("tower:", err); }
   try { const R = state.run && state.run.rift; if (R && R.bossDead && !R.chestOpen && !dgUi.res) riftChest(); } catch (err) { console.error("rift chest:", err); }
   dgUi.enc = null;
 }
@@ -8573,11 +8726,11 @@ function renderDungeon() {
   <div class="dg">
     <div class="dg-top">
       <div class="dg-clock"><span>День</span><b>${r.day}<small>/${FL().days}</small></b></div>
-      <div class="dg-floor">${r.rift ? `<span class="rf-title">${esc(RIFTS[r.rift.id].name)}</span><small class="rf-sub">время этажа стоит · шагов ${r.rift.steps}</small>` : `${FL().n} этаж`}${devOn() ? `<button class="fx-btn" data-dg="gm" aria-label="Меню мастера" aria-expanded="${dgUi.gm}">${ICO_DOTS}</button>` : ""}</div>
+      <div class="dg-floor">${r.rift ? `<span class="rf-title">${esc(RIFTS[r.rift.id].name)}</span><small class="rf-sub">время этажа стоит · шагов ${r.rift.steps}</small>` : r.floor === 4 ? `<span class="rf-title">4 этаж · Башня</span><small class="rf-sub">уровень ${towerState() ? Math.min(towerState().lvl + (towerState().room ? 0 : 1), TW_MAX) : 1} из ${TW_MAX}</small>` : `${FL().n} этаж`}${devOn() ? `<button class="fx-btn" data-dg="gm" aria-label="Меню мастера" aria-expanded="${dgUi.gm}">${ICO_DOTS}</button>` : ""}</div>
       <div class="dg-clock r"><span>Действие</span><b>${r.act}<small>/${FL().acts}</small></b><div class="pips" aria-hidden="true">${actionPips}</div></div>
     </div>
     <div class="stage" id="stage">
-      ${r.rift ? riftStage() : `${stageSvg()}
+      ${r.rift ? riftStage() : r.floor === 4 ? towerStage() : `${stageSvg()}
       ${stageOverlay()}
       ${menu ? `<button class="fx-btn corner-btn r" data-dg="sup" aria-expanded="${dgUi.sup}">${ICO_PACK}Снаряжение</button>` : ""}
       ${moving ? `<button class="fx-btn corner-btn r" data-dg="cancel" aria-label="Отменить действие">${ICO_X}${dgUi.lookSelf ? "Закрыть" : "Отмена"}</button>

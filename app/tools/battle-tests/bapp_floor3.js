@@ -68,7 +68,7 @@ const L = require('./bui_lib.js');
   ok('раскладка: храм внизу по центру, лагерь орков сверху по центру, ловушки справа сверху, Звон по центру (Сердце в середине), пылающие слева сверху, Ведьмин лес в углу, между ними угодья', JSON.stringify(res.layout) === JSON.stringify(['Храм изваяний', 'Лагерь орков', 'Зона ловушек', 'Звон', 'Сердце этажа', 'Пылающие земли', 'Ведьмин лес', 'Охотничьи угодья', 'Охотничьи угодья', 'Охотничьи угодья']), res.layout);
   ok('все 961 тайл рисуются и встречи не падают', res.tileErrors === 0, res.tileErrors);
   ok('встреч на 3 этаже пока нет', res.noEnc);
-  ok('портал дальше не активен', res.next && res.next.ok === false, res.next);
+  ok('портал дальше ведёт на 4 этаж (Башня, 16.11)', res.next && res.next.ok === true && /4 этаж/.test(res.next.title), res.next);
   for (const k of ['0,30', '30,30', '0,15', '30,15']) { const o = res.back[k]; ok(`вход ${k} ведёт на ${o.want}`, o.ok && o.to === 2 && o.variant === o.want && o.after && o.after[0] === 2 && o.after[1] === o.want && o.after[2] === 6, o); }
   ok('четыре варианта ведут на четыре разных входа', res.pairsDistinct && ['goblin', 'beast', 'undead', 'stone'].every(v => res.pairs[v + '_floor'] === 3), res.pairs);
   ok('день 14: порталы работают до конца дня в обе стороны', res.off[14][0] && res.off[14][1], res.off[14]);

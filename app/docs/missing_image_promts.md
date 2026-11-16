@@ -6,6 +6,58 @@
 
 ## События на шаге (заставки)
 
+### Башня — 4 этаж: заставки дверей (16.11)
+
+Общий стиль: `…, hand-painted dark fantasy scene art, landscape 3:2, no text`.
+
+### Бой — `events/tower-fight`
+
+> `an arched stone doorway in an ancient tower, beyond it shadowy armed figures waiting in torchlight, dark fantasy, hand-painted dark fantasy scene art, landscape 3:2, no text`
+
+### Групповой бой — `events/tower-group`
+
+> `an arched stone doorway in an ancient tower, beyond it a crowd of many glowing eyes in the darkness, hand-painted dark fantasy scene art, landscape 3:2, no text`
+
+### Тяжёлый бой — `events/tower-hard`
+
+> `a heavy iron-bound tower door with claw marks and blood, menacing red light behind it, hand-painted dark fantasy scene art, landscape 3:2, no text`
+
+### Мини-босс — `events/tower-mini`
+
+> `an ornate tower door with a cracked emblem, a large silhouette and its guards visible through the gap, hand-painted dark fantasy scene art, landscape 3:2, no text`
+
+### Босс — `events/tower-boss`
+
+> `a colossal gilded tower gate with a crown emblem, an enormous shadow looming behind, golden light, hand-painted dark fantasy scene art, landscape 3:2, no text`
+
+### Зона отдыха — `events/tower-rest`
+
+> `a quiet tower chamber with a small hearth, bedrolls and a warm glow, safe and calm, hand-painted dark fantasy scene art, landscape 3:2, no text`
+
+### Зона лечения — `events/tower-heal`
+
+> `a tower chamber with a glowing turquoise healing spring and moss, soft light, hand-painted dark fantasy scene art, landscape 3:2, no text`
+
+### Испытание — `events/tower-trial`
+
+> `a tower chamber with a strange mechanism, runes and a riddle carved on a stone door, hand-painted dark fantasy scene art, landscape 3:2, no text`
+
+### Сокровищница — `events/tower-treasure`
+
+> `a tower vault full of gold coins, gems and an ornate chest, glittering light, hand-painted dark fantasy scene art, landscape 3:2, no text`
+
+### Библиотека — `events/tower-library`
+
+> `a dusty tower library with tall shelves, floating candles and open ancient tomes, hand-painted dark fantasy scene art, landscape 3:2, no text`
+
+### Разлом — `events/tower-rift`
+
+> `a tower doorway torn into a swirling violet rift portal, hand-painted dark fantasy scene art, landscape 3:2, no text`
+
+### Выход на 5 этаж — `events/tower-exit`
+
+> `a tower stairway leading up to a dormant blue portal at the top, sealed, hand-painted dark fantasy scene art, landscape 3:2, no text`
+
 ### Кладбище прошлого, монстры мест (14.11)
 
 ### Колодезная утопленница — `monsters/well-drowned-full`
