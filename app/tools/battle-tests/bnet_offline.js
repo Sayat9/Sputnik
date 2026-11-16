@@ -1,7 +1,7 @@
 // Клиент игрока без связи: окно входа закрывается, доступны команда, герои, справочник, библиотека, карта.
 const { chromium } = require('playwright');
 (async () => {
-  const b = await chromium.launch({ executablePath: process.env.CHROME || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
+  const b = await chromium.launch();
   const p = await b.newPage({ viewport: { width: 400, height: 800 } }); const errs = []; p.on('pageerror', e => errs.push(e.message));
   const R = []; const ok = (n, v, x) => { R.push(!!v); if (!v) console.log('  ✗', n, x === undefined ? '' : JSON.stringify(x)); };
   await p.addInitScript(() => localStorage.clear());

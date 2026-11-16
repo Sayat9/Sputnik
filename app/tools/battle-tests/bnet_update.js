@@ -1,7 +1,7 @@
 // Окно обновления (с имитацией моста Android): вопрос → полоса прогресса → применение; и окно команды у игрока.
 const { chromium } = require('playwright');
 (async () => {
-  const b = await chromium.launch({ executablePath: process.env.CHROME || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
+  const b = await chromium.launch();
   const p = await b.newPage({ viewport: { width: 400, height: 800 } }); const errs = []; p.on('pageerror', e => errs.push(e.message));
   const R = []; const ok = (n, v, x) => { R.push(!!v); if (!v) console.log('  ✗', n, x === undefined ? '' : JSON.stringify(x)); };
   await p.addInitScript(() => { localStorage.clear(); window.applied = 0; window.SputnikApp = { steps: () => true, version: () => '1', pending: () => false, status: () => '', checkOnly() { setTimeout(() => window.sputnikUpdate('available', 5), 100); }, startDownload() { let i = 0; const t = setInterval(() => { i += 25; window.sputnikProgress(i); if (i >= 100) { clearInterval(t); window.sputnikUpdate('downloaded', 5); } }, 150); }, applyUpdate() { window.applied++; } }; });

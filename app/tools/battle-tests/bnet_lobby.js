@@ -2,7 +2,7 @@
 const { chromium } = require('playwright');
 const URL = 'http://localhost:8765/index.html';
 (async () => {
-  const b = await chromium.launch({ executablePath: process.env.CHROME || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
+  const b = await chromium.launch();
   const ctx = await b.newContext({ viewport: { width: 400, height: 860 }, serviceWorkers: 'block' });          // один контекст нужен для BroadcastChannel; хранилище у каждой страницы своё, как на разных телефонах
   const h = await ctx.newPage(), c1 = await ctx.newPage(), c2 = await ctx.newPage(), errs = [];
   for (const p of [h, c1, c2]) await p.addInitScript(() => { const m = new Map(); Object.assign(Storage.prototype, { getItem(k) { return m.has(k) ? m.get(k) : null; }, setItem(k, v) { m.set(k, String(v)); }, removeItem(k) { m.delete(k); }, clear() { m.clear(); } }); });

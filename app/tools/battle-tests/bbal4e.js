@@ -8,7 +8,7 @@ const CASES = [
   ['rat-catcher',2,'1',G('rat-catcher',1)],
 ].filter(c => !ONLY || c[0] === ONLY).filter((c, i) => !process.argv[4] || i % +process.argv[4].split('/')[1] === +process.argv[4].split('/')[0]);
 (async () => {
-  const b = await chromium.launch({ executablePath: process.env.CHROME || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
+  const b = await chromium.launch();
   const p = await b.newPage({ viewport: { width: 400, height: 860 } }); const errs = [];
   p.on('pageerror', e => errs.push(e.message));
   await p.addInitScript(() => { localStorage.setItem('sputnik.state.v2', JSON.stringify({ party: [], sessions: [], settings: { tactical: false } })); });

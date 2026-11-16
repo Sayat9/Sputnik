@@ -2,7 +2,7 @@
 const { chromium } = require('playwright');
 const URL = 'http://localhost:8765/index.html';
 (async () => {
-  const b = await chromium.launch({ executablePath: process.env.CHROME || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
+  const b = await chromium.launch();
   const ctx = await b.newContext({ viewport: { width: 400, height: 860 }, serviceWorkers: 'block' });
   const h = await ctx.newPage(), c = await ctx.newPage(), errs = [];
   for (const [n, p] of [['host', h], ['c', c]]) { p.on('pageerror', e => errs.push(n + ': ' + e.message)); await p.addInitScript(() => { const m = new Map(); Object.assign(Storage.prototype, { getItem(k) { return m.has(k) ? m.get(k) : null; }, setItem(k, v) { m.set(k, String(v)); }, removeItem(k) { m.delete(k); }, clear() { m.clear(); } }); }); }

@@ -1,7 +1,7 @@
 const { chromium } = require('playwright');
 const URL = 'http://localhost:8765/index.html';
 (async () => {
-  const b = await chromium.launch({ executablePath: process.env.CHROME || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
+  const b = await chromium.launch();
   const ctx = await b.newContext({ viewport: { width: 400, height: 860 } }); const h = await ctx.newPage(), c = await ctx.newPage(), errs = [];
   for (const [n, p] of [['host', h], ['client', c]]) p.on('pageerror', e => errs.push(n + ': ' + e.message));
   await h.addInitScript(() => localStorage.clear()); await c.addInitScript(() => localStorage.clear());

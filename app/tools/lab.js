@@ -30,7 +30,7 @@ if (/\|/.test((args.party || '') + (args.mons || '') + (args.nat || ''))) { // �
     process.stdout.write(`[${pa || 'tank,archer,mage'}] против [${mo || 'этаж ' + na}]: ` + (r.stdout || r.stderr)); }
   process.exit(0); }
 (async () => {
-  const b = await chromium.launch({ executablePath: process.env.CHROME || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
+  const b = await chromium.launch();
   const p = await b.newPage(); const errs = []; p.on('pageerror', e => errs.push(e.message + ' @ ' + (e.stack || '').split('\n').slice(1, 3).join(' | ')));
   await p.addInitScript(() => { localStorage.setItem('sputnik.state.v2', JSON.stringify({ party: [], sessions: [], settings: { tactical: false } })); });
   await p.goto(`file://${APP}/index.html`); await p.waitForTimeout(400);

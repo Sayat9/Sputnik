@@ -27,7 +27,7 @@ const PROP = [
   [6, 'Вождь орков', 'К (железная воля, боевой клич)', 'лагерь орков', { str: 2, con: 2, cha: 2, dex: -1 }, ['Запугивание +1', 'Инициатива −1', 'Скрытность −1']],
 ];
 (async () => {
-  const b = await chromium.launch({ executablePath: process.env.CHROME || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' }); const p = await b.newPage();
+  const b = await chromium.launch(); const p = await b.newPage();
   await p.addInitScript(() => localStorage.setItem('sputnik.state.v2', JSON.stringify({ party: [], sessions: [] })));
   await p.goto('file:///home/user/app/index.html'); await p.waitForTimeout(300);
   const ess = await p.evaluate(() => Object.values(ESSENCES).map(e => ({ id: e.id, name: e.name.replace('Эссенция ', ''), cls: e.cls, stats: e.stats, other: e.other || [] })));

@@ -6,7 +6,7 @@ const ONLY = (process.argv[2] || '').split(',').filter(Boolean);
 const GEAR = { 'hobgoblin-brute': { main: 'mace' }, 'horned-hare': { main: 'spear' }, blackwing: { main: 'spear' }, 'goblin-assassin': { main: 'rapier' }, 'hobgoblin-thrower': { main: 'sword', bag: ['spear', 'spear'] }, 'bone-knight': { main: 'sword' }, 'hobgoblin-driver': { main: 'spear' }, wolf: { main: 'sword' } };
 const FAR = ['bone-hound'];                    // враги не рядом: способность — сближение
 (async () => {
-  const b = await chromium.launch({ executablePath: process.env.CHROME || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
+  const b = await chromium.launch();
   const p = await b.newPage(); const errs = [];
   p.on('pageerror', e => errs.push(e.message));
   await p.addInitScript(() => { localStorage.setItem('sputnik.state.v2', JSON.stringify({ party: [], sessions: [], settings: { tactical: false } })); });

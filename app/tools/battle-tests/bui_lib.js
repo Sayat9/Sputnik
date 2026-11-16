@@ -1,7 +1,7 @@
 // Общая обвязка для проверки интерфейса боя в настоящем браузере.
 const { chromium } = require('playwright');
 const fs = require('fs');
-const EXE = process.env.CHROME || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
+const EXE = process.env.CHROME || '/opt/pw-browsers/chromium';
 const SHOTS = process.env.SHOTS || '/tmp/battle-shots';
 fs.mkdirSync(SHOTS, { recursive: true });
 

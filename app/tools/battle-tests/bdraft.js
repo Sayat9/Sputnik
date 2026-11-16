@@ -1,7 +1,7 @@
 // Создание героя с луком через настоящий finishDraft: колчан на 40 стрел; с мечом стрел нет.
 const { chromium } = require('playwright');
 (async () => {
-  const b = await chromium.launch({ executablePath: process.env.CHROME || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
+  const b = await chromium.launch();
   const p = await b.newPage(); const errs = []; p.on('pageerror', e => errs.push(e.message));
   await p.addInitScript(() => { localStorage.setItem('sputnik.state.v2', JSON.stringify({ party: [], sessions: [], settings: { tactical: false } })); });
   await p.goto('file:///home/user/app/index.html'); await p.waitForTimeout(500);

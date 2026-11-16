@@ -1,7 +1,7 @@
 // Онлайн: слой связи (Link, комнаты, RPC, куски, переподключение) на loopback между двумя страницами.
 const { chromium } = require('playwright');
 (async () => {
-  const b = await chromium.launch({ executablePath: process.env.CHROME || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
+  const b = await chromium.launch();
   const ctx = await b.newContext(); const h = await ctx.newPage(), c = await ctx.newPage(), errs = [];
   for (const p of [h, c]) { p.on('pageerror', e => errs.push(e.message)); await p.goto('http://localhost:8765/tools/battle-tests/README.md'); await p.addScriptTag({ path: '/home/user/app/assets/js/net.js' }); }
   const R = []; const ok = (n, v, x) => { R.push(v); if (!v) console.log('  ✗', n, x === undefined ? '' : JSON.stringify(x)); };

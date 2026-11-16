@@ -1,7 +1,7 @@
 // Масштаб эссенций (автор, 27.10): 9 класс — ровно +3 и −1; 8 — минимум +4 и −2; 7 — минимум +5 и −2; 6 — +7 и −3 (сумма положительных статов и «+N» особенностей; минус — каждый отрицательный пункт).
 const { chromium } = require('playwright');
 (async () => {
-  const b = await chromium.launch({ executablePath: process.env.CHROME || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
+  const b = await chromium.launch();
   const p = await b.newPage(); const errs = []; p.on('pageerror', e => errs.push(e.message));
   await p.addInitScript(() => { localStorage.setItem('sputnik.state.v2', JSON.stringify({ party: [], sessions: [] })); });
   await p.goto('file:///home/user/app/index.html'); await p.waitForTimeout(400);

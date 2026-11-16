@@ -4,7 +4,7 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
 const N = +process.argv[2] || 6;
 const ONLY = (process.argv[3] || '').split(',').filter(Boolean);
 (async () => {
-  const b = await chromium.launch({ executablePath: process.env.CHROME || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
+  const b = await chromium.launch();
   const p = await b.newPage({ viewport: { width: 400, height: 860 } }); const errs = [];
   p.on('pageerror', e => errs.push(e.message + ' @ ' + (e.stack || '').split('\n').slice(0, 3).join(' | ')));
   p.on('console', m => { if (m.type() === 'error') errs.push('console: ' + m.text()); });

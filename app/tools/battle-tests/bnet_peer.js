@@ -1,7 +1,7 @@
 // Настоящий PeerJS (WebRTC через публичный сервер рукопожатий): ведущий ↔ игрок. Может не пройти в изолированной сети.
 const { chromium } = require('playwright');
 (async () => {
-  const b = await chromium.launch({ executablePath: process.env.CHROME || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--disable-features=WebRtcHideLocalIpsWithMdns'] });
+  const b = await chromium.launch({ executablePath: process.env.CHROME || '/opt/pw-browsers/chromium', args: ['--disable-features=WebRtcHideLocalIpsWithMdns'] });
   const ctx = await b.newContext(); const h = await ctx.newPage(), c = await ctx.newPage(), errs = [];
   for (const p of [h, c]) { p.on('pageerror', e => errs.push(e.message)); await p.goto('http://localhost:8765/tools/battle-tests/README.md'); await p.addScriptTag({ path: '/home/user/app/assets/vendor/peerjs.min.js' }); await p.addScriptTag({ path: '/home/user/app/assets/js/net.js' }); }
   await h.evaluate(async () => { Net.handle('hello', (d, link) => { const p = Net.bind(link, d.pid || Net.newPid(), d.name); return { pid: p.pid }; }); Net.handle('echo', d => d); await Net.startHost({ code: 'PEER' + Math.floor(Math.random() * 9) }); });
