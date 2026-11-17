@@ -26,6 +26,12 @@ const { chromium } = require('playwright');
     const su = S.units.find(u => u.hero && u.hero.saint), m = S.units.find(u => u.side === 'mon'); const h0 = su.hp;
     await B.applyDamage(m, su, [{ v: 7, dt: 'poison', label: 'яд' }], { src: m }); o.immuneDmg = su.hp === h0 && B.immuneTo(su, 'poisoned') && B.immuneTo(su, 'frightened');
     const ctx = { mods: [] }; B.P['stone-saint'].attackMods(su, ctx); o.hit2 = ctx.mods.some(x => x.v === 2);
+    // 5 ур.: призвавший гибнет — святая умирает вместо него, браслет сломан, он встаёт с полными ОЗ
+    const au = S.units.find(u => u.hero === a); su.level = 5; await B.applyDamage(m, au, [{ v: 999, dt: 'slashing', label: 'x' }], { src: m });
+    o.lvl5save = au.alive && !au.down && au.hp === au.maxHp && !su.alive && a.equip.charm.bhp === 0 && !a.dead;
+    su.level = 2; su.alive = true; su.dead = false; su.down = false; s.dead = false; a.equip.charm.bhp = 3; su.hp = su.maxHp;
+    au.hp = 1; await B.applyDamage(m, au, [{ v: 999, dt: 'slashing', label: 'x' }], { src: m }); o.lvl2nosave = !au.alive && a.equip.charm.bhp === 3;
+    a.dead = false; s.level = 2;
     B.running = false; B.S = null;
     // гибель: браслет −1, вещи призвавшему, уровень хранится
     addToBag(s, { t: 'g', id: 'torch', qty: 3 }); const torches0 = countGear(a, 'torch'); s.dead = true; buryFallen();

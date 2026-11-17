@@ -94,6 +94,7 @@
       if (stealth >= bestPerc) { addStatus(m, "hidden", { k: Infinity, data: { unseen: true, dc: stealth } }); }                // героям не виден, пока его не заметят
     }
     for (const h of B.heroes()) if (h.pass && h.pass.includes("worm-larva")) addStatus(h, "hidden", { k: Infinity, data: { unseen: true, dc: 15 } });          // «Спячка в песке»: герой с эссенцией начинает бой затаившись
+    if (B.shadowHuntStart) B.shadowHuntStart(S);          // тень пришла за меченым — встаёт у него за спиной
     S.initialMons = B.mons().length;
   }
 

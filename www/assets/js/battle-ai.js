@@ -285,6 +285,7 @@
   };
   async function takeTurnInner(u, S, pr) {
     u.startCell = u.startCell || [u.x, u.y];
+    if (u.side === "mon" && B.shadowTurn && await B.shadowTurn(u)) return;          // тень с меткой прячется и не атакует
     ui() && ui().focusUnit(u);
     if (has(u, "prone")) { const cost = B.standCost(u); if (u.t.move >= cost && speedOf(u) > 0) { removeStatus(u, "prone"); u.t.move -= cost; log(`${u.name} встаёт.`); await sleep(250); } }
     if (u.side === "hero" && u.hero && B.dropsHere && B.dropsHere(u).length) await B.pickUpWeapon(u);          // стоит на своём оружии — подбирает (свободное действие)

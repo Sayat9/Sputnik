@@ -87,6 +87,7 @@
   };
   function kill(u, by) {
     const S = B.S; if (!u.alive) return;
+    if (u.side === "hero" && !u.summon && B.saintSave && B.saintSave(u)) { revive(u); setHp(u, u.maxHp); return; }          // браслет святой 5 ур.: святая гибнет вместо призвавшего (17.11)
     u.alive = false; setHp(u, 0);
     try { hookAll(u, "onDeath", { by }); } catch (e) {}          // подкидыш лопается слизью и т. п.
     if (u.side === "mon" && B.regKill(u, by)) log(`${u.name} убит.`, "kill");          // вражеские призванные (крысы, вороны) и выскочивший мимик тоже дают обычные награды
@@ -296,8 +297,9 @@
     if (B.S && B.S.dust && B.S.dust.some(d => d.until >= B.S.round && footprint(tgt).some(([x, y]) => d.cells.some(([cx, cy]) => cx === x && cy === y)))) ctx.dis.push("пыльная завеса");
     for (const a of alliesOf(att)) hookAll(a, "attackAura", { ally: a, att, tgt, ctx });          // «Пока король жив»
     const ha = tinfo(att.x, att.y), ht = tinfo(tgt.x, tgt.y);                                              // высота: с возвышенности бьют точнее, и по стоящему на ней тоже (решение автора, черновик)
-    if (ha && (ha.elevated || (ha.obstacle && att.leaper))) ctx.mods.push({ l: "Высота (атакует сверху)", v: B.D.height.att });
-    if (ht && ht.elevated) ctx.mods.push({ l: "Высота (цель на возвышении)", v: B.D.height.tgt });
+    const big = u => (u.w || u.size || 1) * (u.h || u.size || 1) >= 2;          // 17.11 (автор): большим (2×1, 1×2) и очень большим (2×2+) высота бонуса не даёт
+    if (ha && !big(att) && (ha.elevated || (ha.obstacle && att.leaper))) ctx.mods.push({ l: "Высота (атакует сверху)", v: B.D.height.att });
+    if (ht && !big(tgt) && ht.elevated) ctx.mods.push({ l: "Высота (цель на возвышении)", v: B.D.height.tgt });
     if (ctx.dust && ctx.adv.length) { ctx.notes.push("густая пыль гасит преимущество"); ctx.adv.length = 0; }
     return ctx;
   }
@@ -714,6 +716,7 @@
   function checkEnd() {
     const S = B.S; if (S.outcome) return S.outcome;
     const mons = B.mons(), heroes = B.heroes();
+    if (B.shadowSlip && B.shadowSlip()) { S.outcome = "win"; return S.outcome; }          // ускользнула тень с меткой (17.11)
     const monsLeft = mons.filter(alive);
     if (!monsLeft.length) { const fled = mons.some(m => m.fled); S.outcome = fled && S.killed.length < mons.length ? "retreat" : "win"; return S.outcome; }
     const heroesIn = heroes.filter(h => alive(h) && !h.down);

@@ -1803,7 +1803,7 @@
     ai(u) { return !has(u, "faithwall") && within(u, 1).length >= (friends(u).some(o => dist(o, u) <= 1) ? 1 : 2) ? { score: 18 } : null; },
   };
 
-  /* Мраморная святая (7): «Ореол» (+1 к спасброскам союзников рядом), «Исцеляющий свет» 2к6 + Инт в 4 клетках */
+  /* Мраморная дева (7): «Ореол» (+1 к спасброскам союзников рядом), «Исцеляющий свет» 2к6 + Инт в 4 клетках */
   P["marble-saint"] = { saveAura(a, { u, ctx }) { if (u !== a && u.side === a.side && dist(a, u) <= 1) ctx.mods.push({ l: "Ореол", v: 1 }); } };
   A["marble-saint"] = {
     time: "action",
@@ -3638,5 +3638,72 @@
   P["stone-saint"] = { immune(u, { id }) { return ["poisoned", "frightened", "charmed", "mourned", "lured"].includes(id); },
     dmgFlat(u, { dt, v }) { return dt === "poison" || dt === "psychic" ? -v : 0; },
     attackMods(u, ctx) { if ((u.level || 1) >= 2) ctx.mods.push({ l: "Святая, 2 ур.", v: 2 }); } };
+  // 5 ур. (автор 17.11): призвавший погиб — браслет ломается, святая рассыпается, а призвавший встаёт с полными ОЗ.
+  B.saintSave = h => {
+    const c = h.hero; if (!c || typeof c !== "object" || c.saint) return false;
+    const s = B.S.units.find(x => x.hero && x.hero.saint && x.hero.saint.by === c.id && x.alive && !x.down && (x.level || 1) >= 5);
+    if (!s) return false;
+    const e = c.equip && c.equip.charm && c.equip.charm.id === "saint-bracelet" ? c.equip.charm : null; if (e) e.bhp = 0;
+    B.log(`Браслет ${c.name} раскалывается: Каменная святая принимает смерть на себя.`, "bad");
+    B.kill(s, null);
+    B.log(`${c.name} поднимается с полными силами.`, "good");
+    return true;
+  };
+  /* ===== Непримечательная тень (7, Башня, 17.11): метка, уход в скрытность, засада на ночлеге ===== */
+  Object.assign(D.essCd, { "plain-shadow": 4 });
+  Object.assign(D.monTune, { "plain-shadow": { role: "skirmisher", focus: ["weak", "nearest"], noFlee: true } });
+  const backOf = (a, t) => { const fa = footprint(a), w = t.w || t.size || 1, h = t.h || t.size || 1, y = t.side === "hero" ? t.y + h : t.y - 1;          // спина героя — под ним, монстра — над ним
+    return fa.some(([x, yy]) => yy === y && x >= t.x && x < t.x + w); };
+  B.shadowBack = backOf;
+  P["plain-shadow"] = {
+    dmgBonusVs(u, { tgt, o }) { if (!o || !o.ctx || !o.melee || o.shadowBack || !tgt || tgt.side === u.side || !backOf(u, tgt)) return 0; o.shadowBack = true; const r = roll(2, 6).total; fx(tgt, `под лопатку +${r}`, "bad"); return r; },
+    noProvoke(u) { return !!(u.side === "mon" && B.S && B.S.ev && B.S.ev.shadowHunt); },          // за меченым приходит без звука
+    onDamaged(u, { total }) {          // монстр: после первого урона метит героя и уходит в скрытность
+      const S = B.S; if (u.side !== "mon" || !S || !S.ev || S.ev.shadowHunt || u.shadowMark || !alive(u) || u.down || !(total > 0)) return;
+      const hs = B.heroes().filter(h => alive(h) && h.hero && typeof h.hero === "object" && !h.hero.saint); if (!hs.length) return;
+      const w = hs.map(h => typeof shadowPickW === "function" ? shadowPickW(h.hero) : 3), sum = w.reduce((a, b) => a + b, 0); let x = Math.random() * sum, pick = hs[0];
+      for (let i = 0; i < hs.length; i++) { x -= w[i]; if (x < 0) { pick = hs[i]; break; } }
+      u.shadowMark = pick.hero.id; B.setCd(u, "plain-shadow", 4);
+      const dc = d20() + amod(u.abil.dex) + (u.skills.stealth || 0);
+      addStatus(u, "hidden", { k: Infinity, data: { unseen: true, dc: Math.max(dc, 12) } });
+      log(`${u.name} растворяется среди теней.`, "skill"); ui() && ui().refresh();
+    },
+    turnEnd(u) {          // за меченым: после удара снова прячется (обычная скрытность)
+      const S = B.S; if (u.side !== "mon" || !S || !S.ev || !S.ev.shadowHunt || !alive(u) || u.down || has(u, "hidden")) return;
+      const per = Math.max(0, ...B.heroes().filter(h => alive(h) && !h.down).map(h => B.passivePerceptionOf(h))), r = d20() + amod(u.abil.dex) + (u.skills.stealth || 0);
+      if (r >= per) { addStatus(u, "hidden", { k: Infinity, data: { unseen: true, dc: r } }); log(`${u.name} снова исчезает.`, "skill"); }
+    },
+  };
+  const d20 = () => roll(1, 20).total;
+  P["body:shadow-victim"] = { dmgTotal(t, { total, src, notes }) {          // меченый не караулил: первый удар тени ×2
+    if (!src || src.ref !== "plain-shadow" || t.shadowDoubled || !(total > 0)) return total; t.shadowDoubled = true; notes && notes.push("спал: удар ×2"); return total * 2; } };
+  A["plain-shadow"] = { time: "bonus", tgt() { return { type: "self" }; },
+    can(u) { if (u.side === "mon") return "сама"; return has(u, "hidden") ? "уже скрыт" : true; },
+    async run(u, pk, ctl) { ctl.commit(); const r = await B.hideRoll(u, { anywhere: true, seen: true, title: "Стать никем", toast: false }); return !!r; },
+    ai() { return null; } };
+  // Ход тени с меткой, пока её не нашли: не атакует, уходит подальше от героев.
+  B.shadowTurn = async u => {
+    const S = B.S; if (!u.shadowMark || !B.isUnseen(u) || (S.ev && S.ev.shadowHunt)) return false;
+    const map = B.pathMap(u, u.t.move, {}), es = B.heroes().filter(h => alive(h) && !h.down);
+    const cands = [...map.values()].filter(v => B.canStand(u, v.x, v.y) || (v.x === u.x && v.y === u.y));
+    const far = v => Math.min(99, ...es.map(e => dist(e, { ...u, x: v.x, y: v.y, id: u.id })));
+    cands.sort((a, b) => far(b) - far(a)); const dest = cands[0];
+    if (dest && (dest.x !== u.x || dest.y !== u.y)) { const r = await B.moveAlong(u, B.pathTo(map, dest.x, dest.y), { noProvoke: true }); u.t.move = Math.max(0, u.t.move - r.spent); }
+    return true;
+  };
+  // Остались одни ненайденные тени с меткой — бой окончен, тень уходит (в итоге её нет).
+  B.shadowSlip = () => {
+    const S = B.S, ms = B.mons().filter(m => alive(m)); if (!ms.length || !ms.every(m => m.shadowMark && B.isUnseen(m))) return false;
+    for (const m of ms) { S.ev.shadowSlip = { hero: m.shadowMark, boost: S.ev.tBoost || null }; (S.ev.vanished ||= []).push(m.idx); }
+    S.units = S.units.filter(x => !ms.includes(x)); S.order = (S.order || []).filter(x => !ms.some(m => m.id === (x && x.id ? x.id : x)));
+    return true;
+  };
+  // Засада на ночлеге: тень за спиной у меченого, у него — «спал: удар ×2», если не караулил.
+  B.shadowHuntStart = S => {
+    const sh = S.ev && S.ev.shadowHunt; if (!sh) return; const u = B.mons().find(m => m.ref === "plain-shadow"), t = B.heroes().find(h => h.hero && h.hero.id === sh.target); if (!u || !t) return;
+    const h = t.h || t.size || 1, opts = [[t.x, t.y + h], [t.x - 1, t.y + h], [t.x + 1, t.y + h], [t.x - 1, t.y], [t.x + 1, t.y], [t.x, t.y - 1]];
+    for (const [x, y] of opts) if (B.canStand(u, x, y) && !B.occupant(x, y)) { u.x = x; u.y = y; u.startCell = [x, y]; break; }
+    if (!sh.guard && !t.pass.includes("body:shadow-victim")) t.pass.push("body:shadow-victim");
+  };
   B.fillActiveTimes();
 })();

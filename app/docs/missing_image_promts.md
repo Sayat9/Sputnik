@@ -58,6 +58,12 @@
 
 > `a tower stairway leading up to a dormant blue portal at the top, sealed, hand-painted dark fantasy scene art, landscape 3:2, no text`
 
+### Башня — 4 этаж, монстры (17.11)
+
+### Непримечательная тень — `monsters/plain-shadow-full`
+
+> `full-body an unremarkable humanoid shadow, a thin grey silhouette with no face that looks like an ordinary person at first glance, slightly blurred edges dissolving into smoke, holding a short dark knife low behind its back, standing in the corner of a dim stone tower room, torchlight casting long shadows, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
 ### Кладбище прошлого, монстры мест (14.11)
 
 ### Колодезная утопленница — `monsters/well-drowned-full`
