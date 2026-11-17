@@ -3633,5 +3633,10 @@
     ai(u) { const n = foesIn(u, 1).length; return n >= 2 ? { score: 8 + n * 3 } : null; } };
   // ранний расчёт руны: первая расстановка — в начале боя (первый ход любого бойца)
   { const prevRound = B.onRound; B.onRound = function () { try { const S = B.S; if (S && !S.runes) { const g = live().find(o => alive(o) && (o.pass || []).includes("body:ruin-guardian")); if (g) placeRunes(g); } } catch (e) {} return prevRound ? prevRound.apply(this, arguments) : undefined; }; }
+
+  /* ===== Каменная святая (спутница из браслета, 17.11): неуязвима к яду и психическому урону, с 2 уровня +2 к атакам ===== */
+  P["stone-saint"] = { immune(u, { id }) { return ["poisoned", "frightened", "charmed", "mourned", "lured"].includes(id); },
+    dmgFlat(u, { dt, v }) { return dt === "poison" || dt === "psychic" ? -v : 0; },
+    attackMods(u, ctx) { if ((u.level || 1) >= 2) ctx.mods.push({ l: "Святая, 2 ур.", v: 2 }); } };
   B.fillActiveTimes();
 })();

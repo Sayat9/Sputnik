@@ -195,6 +195,7 @@
     for (const k of ABIL) u.abil[k] = t[k].total;
     u.ess = (c.essences || []).filter(id => ESSENCES[id]);
     u.pass = [...u.ess, "race:" + c.race, "weap", "weap2"];
+    if (c.saint) u.pass.push("stone-saint");          // Каменная святая (браслет, 17.11)
     if (u.ess.some(id => (ESSENCES[id].other || []).some(o => /^Тёмное зрение/.test(o)))) u.dv = true;
     essenceTraits(u);
     u.insp = c.insp ?? inspMax(c);                                                  // переброс: у каждого по одному, пока не потрачен (восстанавливает только сон)

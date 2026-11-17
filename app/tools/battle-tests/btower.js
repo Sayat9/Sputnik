@@ -43,7 +43,7 @@ const { chromium } = require('playwright');
     const l1 = libRun(5), l40 = libRun(42); o.library = l1.start === 'floor' && l1.ch === 1 && l1.done && l40.start === 'src' && l40.ch === 4 && l40.done ? true : [l1, l40];
     o.libChecks = twLibChecks(19) === 1 && twLibChecks(20) === 2 && twLibChecks(30) === 3 && twLibChecks(40) === 4;
     const trv = L => { T.lvl = L - 1; T.doors = [{ type: 'treasure' }, { type: 'fight' }]; const v0 = sackTotalValue(); towerChoose(0); const v = sackTotalValue() - v0, ok = T.room.done && dgUi.res.anim === 'chest'; towerNext(); clr(); return ok ? v : -1; };
-    const t1 = trv(10), t2 = trv(30), t3 = trv(45); o.treasure = t1 >= 480 && t1 <= 1020 && t2 >= 1950 && t2 <= 5100 && t3 >= 4950 ? true : [t1, t2, t3];
+    const t1 = trv(10), t2 = trv(30), t3 = trv(45); o.treasure = t1 >= 280 && t1 <= 820 && t2 >= 950 && t2 <= 2550 && t3 >= 1950 && t3 <= 5300 ? true : [t1, t2, t3];
     // побег: обычная комната — нельзя, босс — раз за заход
     T.doors = [{ type: 'fight' }, { type: 'rest' }]; towerChoose(0); o.noFleeFight = dgUi.enc.noFlee === true; dgUi.enc.outcome = 'win'; finishFight(dgUi.enc, dgUi.enc.list.map((x, i) => i)); towerNext(); clr();
     T.lvl = 29; T.doors = [{ type: 'boss' }, { type: 'fight' }, { type: 'rest' }]; towerChoose(0); const f1 = dgUi.enc.noFlee; dgUi.enc.outcome = 'flee'; finishFight(dgUi.enc, []); clr(); towerChoose(0); const f2 = dgUi.enc.noFlee; dgUi.enc.outcome = 'win'; finishFight(dgUi.enc, [0]); T.chest = null; towerNext(); clr();

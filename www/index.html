@@ -1452,7 +1452,7 @@ const monCourse = cls => partyEdu("mon" + cls);                                 
 const navActive = () => !!(state.run && partyEdu("nav" + curFloor()));
 const monBadge = m => `${RANKS[rankOf(m)] || ""} · ${m.type || ""}`.replace(/^ · | · $/g, "");
 const inspMax = c => (c && c.race === "gnome" ? 2 : 1);          // переброс: у гнома хранится два
-const raceById = id => RACES.find(r => r.id === id) || RACES[0];
+const raceById = id => (id === "stone-saint" && typeof SAINT_RACE !== "undefined" ? SAINT_RACE : RACES.find(r => r.id === id) || RACES[0]);
 
 const ESSENCES = {
   goblin: {
@@ -4077,9 +4077,9 @@ function towerChest(kind) {
   else if (kind === "boss") { const s = twStones(1000, 1500, [9, 8, 7, 6]); lines.push(`Клад на ${s.total} монет камнями:`, ...s.lines, twArt(twRollCls([[9, 0.3], [8, 0.3], [7, 0.2], [6, 0.2]]))); }
   else if (kind === "treasure") {          // автор 16.11: по уровням башни
     const L = (towerState() && towerState().room && towerState().room.L) || 1;
-    if (L <= 20) { const s = twStones(500, 1000, [9, 8, 7]); lines.push(`Камни на ${s.total} монет:`, ...s.lines); if (Math.random() < 0.3) lines.push(twArt(twRollCls([[9, 0.4], [8, 0.4], [7, 0.2]]))); }
-    else if (L <= 40) { const s = twStones(2000, 5000, [9, 8, 7, 6]); lines.push(`Камни на ${s.total} монет:`, ...s.lines); if (Math.random() < 0.3) lines.push(twArt(twRollCls([[7, 0.3], [8, 0.7]]))); }
-    else { const s = twStones(5000, 10000, [9, 8, 7, 6]); lines.push(`Камни на ${s.total} монет:`, ...s.lines); if (Math.random() < 0.1) lines.push(giveParty({ t: "g", id: "stone-5", qty: 1, noGem: true })); lines.push(twArt(twRollCls([[8, 0.3], [7, 0.5], [6, 0.2]]))); }
+    if (L <= 20) { const s = twStones(300, 800, [9, 8, 7]); lines.push(`Камни на ${s.total} монет:`, ...s.lines); if (Math.random() < 0.3) lines.push(twArt(twRollCls([[9, 0.4], [8, 0.4], [7, 0.2]]))); }
+    else if (L <= 40) { const s = twStones(1000, 2500, [9, 8, 7, 6]); lines.push(`Камни на ${s.total} монет:`, ...s.lines); if (Math.random() < 0.3) lines.push(twArt(twRollCls([[7, 0.3], [8, 0.7]]))); }
+    else { const s = twStones(2000, 5000, [9, 8, 7, 6]); lines.push(`Камни на ${s.total} монет:`, ...s.lines); if (Math.random() < 0.1) lines.push(giveParty({ t: "g", id: "stone-5", qty: 1, noGem: true })); lines.push(twArt(twRollCls([[8, 0.3], [7, 0.5], [6, 0.2]]))); }
   }
   return { lines, anim };
 }
@@ -4212,6 +4212,58 @@ if (typeof document !== "undefined") document.addEventListener("click", e => {
 });
 if (typeof document !== "undefined") document.addEventListener("click", e => { const b = e.target.closest && e.target.closest("[data-twsign]"); if (!b || !state.run) return; spNotice("Табличка у портала", "ДОРОГИ НАЗАД НЕ БУДЕТ"); saveChar(); rerender(); });          // табличка у портала на 4 этаж (автор 16.11)
 /*TOWER-END*/
+/*SAINT-BEGIN*/
+// ===== Браслет каменной святой (артефакт 5 класса, автор 17.11). Добыча — Владыка теней (монстра пока нет); выдаёт мастер. Числа — автора, остальное — черновик =====
+// Святая — спутница отряда: 9 ранг, без эссенций и опыта, носит вещи; призывает и командует тот, кто носит браслет. Пока она с отрядом — у призвавшего −30 % макс. ОЗ и маны.
+// Убита — браслет −1 прочности (из 3), её вещи — в рюкзак призвавшего, уровень сохраняется. Уровни 2–5 — по 100 камней 9, 8, 7, 6 класса. При выходе из лабиринта отзывается сама.
+const SAINT_RACE = { id: "stone-saint", name: "Каменная святая", tax: "low", life: "", mods: {}, statText: "", plus: [], minus: [], hidden: true };
+const SAINT_MAX = 5, SAINT_UP_CLS = { 2: 9, 3: 8, 4: 7, 5: 6 }, SAINT_UP_N = 100, BRACELET_HP = 3;
+const SAINT_PERK = { 2: { str: 4 }, 3: { con: 4 }, 4: { str: 2, con: 2 }, 5: { str: 4, con: 4 } };
+const saintPerk = c => { const o = {}; for (let l = 2; l <= (c.level || 1); l++) for (const [k, v] of Object.entries(SAINT_PERK[l] || {})) o[k] = (o[k] || 0) + v; return o; };
+const isSaint = c => !!(c && c.saint);
+const saintOf = () => (state.party || []).find(c => c.saint && !c.dead);
+const braceletOn = c => { const e = c && c.equip && c.equip.charm; return e && e.id === "saint-bracelet" ? e : null; };
+const saintDrain = c => !!(c && !c.saint && (state.party || []).some(s => s.saint && s.saint.by === c.id && !s.dead));
+function saintSummon(c) {
+  const e = braceletOn(c), r = state.run; if (!e) return "Браслет должен быть надет.";
+  if (!r) return "Призвать можно только в лабиринте.";
+  if (saintOf()) return "В отряде уже есть призванная святая.";
+  if ((e.bhp ?? BRACELET_HP) <= 0) return "Браслет разрушен.";
+  const d = e.sdata || {}, lvl = e.slvl || 1;
+  const s = { id: "saint-" + c.id, name: "Каменная святая", race: "stone-saint", gender: "f", level: lvl, xp: 0, rank: 9, luck: 1, base: { str: 30, dex: 10, con: 30, int: 20, wis: 20, cha: 20 },
+    equip: d.equip || { body: { t: "g", id: "clothes" } }, bag: d.bag || [], kit: true, essences: [], saint: { by: c.id }, ...(c.owner ? { owner: c.owner } : {}) };
+  s.hp = maxHp(s); s.mp = maxMp(s); state.party.push(s);
+  c.hp = Math.min(hpOf(c), maxHp(c)); c.mp = Math.min(c.mp ?? maxMp(c), maxMp(c));
+  logRun(`${c.name} призывает Каменную святую (${lvl} ур.).`); return null;
+}
+function saintStore(s, keepItems) {          // отзыв: вещи остаются при ней (в браслете), уровень — тоже
+  const by = state.party.find(x => x.id === s.saint.by), e = by && braceletOn(by) || findBracelet(s.saint.by);
+  if (e && keepItems) e.sdata = { equip: s.equip, bag: s.bag };
+  state.party = state.party.filter(x => x.id !== s.id); if (state.run && state.run.status) delete state.run.status[s.id];
+}
+const findBracelet = id => { for (const c of state.party || []) for (const e of [...Object.values(c.equip || {}), ...(c.bag || [])]) if (e && e.id === "saint-bracelet" && (!id || c.id === id)) return e; return null; };
+function saintRecall(c) { const s = (state.party || []).find(x => x.saint && x.saint.by === c.id); if (!s) return; saintStore(s, true); logRun(`${c.name} отзывает Каменную святую.`); }
+function saintFall(s) {          // святая погибла: браслет −1, вещи — призвавшему
+  const by = state.party.find(x => x.id === s.saint.by && !x.dead) || state.party.find(x => !x.dead && !x.saint), e = findBracelet(s.saint.by);
+  if (e) { e.bhp = Math.max(0, (e.bhp ?? BRACELET_HP) - 1); e.sdata = null; }
+  const lines = []; for (const it of [...Object.values(s.equip || {}), ...(s.bag || [])].filter(x => x && !(x.t === "g" && x.id === "clothes"))) lines.push(by ? addToBag(by, { ...it, qty: it.qty || 1 }) || it.id : it.id);
+  state.party = state.party.filter(x => x.id !== s.id); if (state.run && state.run.status) delete state.run.status[s.id];
+  logRun(`Каменная святая рассыпается. Браслет треснул (${e ? e.bhp : 0}/${BRACELET_HP}).${lines.length && by ? ` Её вещи — у ${by.name}.` : ""}`);
+}
+function saintsBeforeBury() {          // вызывается из buryFallen: святую не хоронят, а погибший призывающий отзывает её
+  for (const s of (state.party || []).filter(x => x.saint)) {
+    if (s.dead) { saintFall(s); continue; }
+    const by = state.party.find(x => x.id === s.saint.by); if (!by || by.dead) saintStore(s, true);
+  }
+}
+function saintLevelUp(s) {
+  const nl = (s.level || 1) + 1, cls = SAINT_UP_CLS[nl]; if (!cls || nl > SAINT_MAX) return "Святая уже на высшем уровне.";
+  const have = sackRows().filter(r => r.cls === cls).reduce((a, r) => a + r.qty, 0); if (have < SAINT_UP_N) return `Нужно ${SAINT_UP_N} камней ${cls} класса (есть ${have}).`;
+  let left = SAINT_UP_N; for (const r of sackRows().filter(r => r.cls === cls)) { const k = Math.min(left, r.qty), it = sack().items[r.key]; if (it) it.qty -= k; left -= k; if (!left) break; }
+  const before = maxHp(s); s.level = nl; s.hp = Math.min(maxHp(s), hpOf(s) + maxHp(s) - before);
+  const e = findBracelet(s.saint.by); if (e) e.slvl = nl; logRun(`Каменная святая усилена до ${nl} уровня (${SAINT_UP_N} камней ${cls} класса).`); return null;
+}
+/*SAINT-END*/
 // Картинка перехода между этажами (07.11): после смены этажа — окно с заставкой.
 if (typeof switchFloor === "function") { const _sf = switchFloor; switchFloor = function () { const r = state.run, f = r && r.floor; _sf.apply(this, arguments); const r2 = state.run; if (r2 && r2.floor !== f && !dgUi.res) dgUi.res = { title: `${r2.floor} этаж`, roll: "", pic: "floor-change", lines: [`Портал выводит отряд на ${r2.floor} этаж. День ${r2.day}.`] }; }; }
 /*DB-BEGIN*/
@@ -4317,8 +4369,8 @@ const DISTRICTS = [
 
 // Готовые рисованные картинки (webp) заменяют векторные заглушки.
 // Дата сборки для телефона: build.sh вписывает её сюда, в веб-версии строка пустая.
-const APP_BUILD = "16.11.2026 17:31";
-const APP_VERSION = 1794832269;                 // номер сборки, тоже вписывает build.sh
+const APP_BUILD = "17.11.2026 11:47";
+const APP_VERSION = 1794898024;                 // номер сборки, тоже вписывает build.sh
 const UPDATE_URL = "https://raw.githubusercontent.com/Sayat9/Sputnik/main/www/";
 const RASTER = new Set(["monsters/lesser-death-full", "monsters/lesser-death-face", "monsters/crystal-innkeeper-full", "monsters/crystal-innkeeper-face", "monsters/mine-pony-full", "monsters/mine-pony-face", "monsters/foreman-gorn-full", "monsters/foreman-gorn-face", "monsters/rockfall-full", "monsters/rockfall-face", "monsters/crystal-greed-full", "monsters/crystal-greed-face", "monsters/crystal-alchemist-full", "monsters/crystal-alchemist-face", "monsters/shard-hunter-full", "monsters/shard-hunter-face", "monsters/crystal-rat-full", "monsters/crystal-rat-face", "monsters/petrified-miner-full", "monsters/petrified-miner-face", "monsters/dead-templar-full", "monsters/dead-templar-face", "monsters/buried-priest-full", "monsters/buried-priest-face", "monsters/azik-lich-full", "monsters/azik-lich-face", "monsters/night-abbot-full", "monsters/night-abbot-face", "monsters/crystal-smith-full", "monsters/crystal-smith-face", "monsters/crystal-overseer-full", "monsters/crystal-overseer-face", "monsters/singing-crystal-full", "monsters/singing-crystal-face", "monsters/penitent-dead-full", "monsters/penitent-dead-face", "monsters/primal-crystal-full", "monsters/primal-crystal-face", "monsters/night-dweller-full", "monsters/night-dweller-face", "monsters/candle-acolyte-full", "monsters/candle-acolyte-face", "monsters/brood-larva-full", "monsters/brood-larva-face", "monsters/ruin-guardian-full", "monsters/ruin-guardian-face", "monsters/mana-devourer-full", "monsters/mana-devourer-face", "monsters/alpha01-full", "monsters/alpha01-face", "monsters/brood-mother-full", "monsters/brood-mother-face", "monsters/ogre-full", "monsters/ogre-face", "monsters/half-mech-full", "monsters/half-mech-face", "monsters/ash-owl-full", "monsters/ash-owl-face", "monsters/lab-janitor-full", "monsters/lab-janitor-face", "monsters/troll-full", "monsters/troll-face", "monsters/dread-rider-full", "monsters/dread-rider-face", "items/stone-heart", "items/resonance-fork", "items/strength-serum", "items/family-photo", "npc/alchemist", "monsters/goblin-foreman-full", "monsters/goblin-foreman-face", "monsters/swarm-mother-full", "monsters/swarm-mother-face", "monsters/pendulum-guard-full", "monsters/pendulum-guard-face", "monsters/stone-slime-full", "monsters/stone-slime-face", "monsters/mine-ghost-full", "monsters/mine-ghost-face", "monsters/kobold-captain-full", "monsters/kobold-captain-face", "monsters/split-slime-full", "monsters/split-slime-face", "monsters/branded-critter-full", "monsters/branded-critter-face", "monsters/clockwork-orange-full", "monsters/clockwork-orange-face", "monsters/fallen-keeper-full", "monsters/fallen-keeper-face", "monsters/chimera-hound-full", "monsters/chimera-hound-face", "monsters/acid-slime-full", "monsters/acid-slime-face", "monsters/rimuru-full", "monsters/rimuru-face", "monsters/unfinished-blade-full", "monsters/unfinished-blade-face", "monsters/alch-intern-full", "monsters/alch-intern-face", "monsters/cart-mimic-full", "monsters/cart-mimic-face", "monsters/mutant-boar-full", "monsters/mutant-boar-face", "monsters/luna-full", "monsters/luna-face", "monsters/naturalist-full", "monsters/naturalist-face", "monsters/moss-hedgehog-full", "monsters/moss-hedgehog-face", "monsters/homunculus-full", "monsters/homunculus-face", "monsters/fled-chimera-full", "monsters/fled-chimera-face", "monsters/tree-lynx-full", "monsters/tree-lynx-face", "monsters/firefly-swarm-full", "monsters/firefly-swarm-face", "monsters/senior-alch-full", "monsters/senior-alch-face", "items/mush-rest", "items/art-rampart-pike", "items/mush-light", "items/art-mirror-shield", "items/frost-amulet", "items/mush-heal", "items/mush-poison", "items/art-storm-axe", "items/art-shadow-daggers", "items/sstone-para", "items/mush-food", "items/sstone-freeze", "items/art-thunder-spear", "items/hide-cloak", "items/frost-gloves", "items/sstone-boom", "items/mush-boom", "items/art-moon-sword", "items/mush-mana", "items/art-meteor-mace", "items/art-magnet-gloves", "buildings/auction", "monsters/mad-berserker-face", "monsters/mad-berserker-full", "monsters/trollgob-porter-face", "monsters/trollgob-porter-full", "monsters/fog-lantern-face", "monsters/fog-lantern-full", "monsters/mad-pyromancer-face", "monsters/mad-pyromancer-full", "monsters/blood-ghoul-face", "monsters/blood-ghoul-full", "monsters/chief-engineer-face", "monsters/chief-engineer-full", "monsters/pack-leader-face", "monsters/pack-leader-full", "monsters/city-captain-face", "monsters/city-captain-full", "monsters/blood-bat-face", "monsters/blood-bat-full", "monsters/blood-slave-face", "monsters/blood-slave-full", "monsters/dust-cherub-face", "monsters/dust-cherub-full", "monsters/lost-trail-face", "monsters/lost-trail-full", "monsters/mourner-face", "monsters/mourner-full", "monsters/marble-halberdier-face", "monsters/marble-halberdier-full", "monsters/faceless-sculptor-face", "monsters/faceless-sculptor-full", "monsters/maid-shade-face", "monsters/maid-shade-full", "monsters/lost-wanderer-face", "monsters/lost-wanderer-full", "monsters/goblin-provoker-face", "monsters/goblin-provoker-full", "monsters/keen-raven-face", "monsters/keen-raven-full", "monsters/iron-fox-face", "monsters/iron-fox-full", "monsters/nasty-goblin-face", "monsters/nasty-goblin-full", "monsters/tracker-hunter-face", "monsters/tracker-hunter-full", "monsters/glen-warden-face", "monsters/glen-warden-full", "monsters/silent-predator-face", "monsters/silent-predator-full", "monsters/caryatid-face", "monsters/caryatid-full", "monsters/scarecrow-face", "monsters/scarecrow-full", "monsters/marble-guardian-face", "monsters/marble-guardian-full", "monsters/marble-saint-face", "monsters/marble-saint-full", "monsters/witch-owl-face", "monsters/witch-owl-full", "monsters/toll-hunter-face", "monsters/toll-hunter-full", "items/steel-pike", "items/calm-flute", "items/dice", "items/art-falling-star", "items/art-echo-blade", "items/art-discharge-staff", "items/weak-salt", "items/silver-salt", "items/tollbell", "items/director-quiver", "items/flame", "items/herb-poison", "items/herb-food", "items/herb-rest", "items/repair-charm", "items/durable-charm", "items/regen-charm", "items/herb-heal", "items/herb-mana", "items/boots", "items/wind", "items/whetstone", "items/daedalus-hammer", "items/unbreakable-charm", "items/pike", "items/bell", "items/flask", "items/monocle", "buildings/arena", "buildings/academy", "buildings/bank", "buildings/storage", "races/dragon-f", "races/fairy-f", "races/gnome-f", "races/darkfairy-f", "events/to-labyrinth", "races/human-f", "races/barbarian-f", "races/dwarf-f", "races/beastkin-f", "events/to-town", "events/ambush", "events/monsters", "events/nothing", "events/travelers", "events/treasure", "items/mace", "items/warhammer", "items/armor-leather", "items/armor-hide", "items/armor-chainmail", "items/steel-dagger", "items/steel-sword", "items/steel-greatsword", "items/steel-shield", "items/steel-tower-shield", "items/shortbow", "items/longbow", "items/rapier", "items/shield", "items/tower-shield", "items/unknown-mushroom", "items/stone-9", "items/stone-8", "items/stone-7", "items/ration", "items/potion", "items/torch", "items/arrows", "items/clothes", "items/shovel", "items/shovel-good", "items/shovel-best", "items/dagger", "items/sword", "items/greatsword", "items/spear", "monsters/goblin-king-face", "monsters/goblin-king-full", "monsters/goblin-bomber-face", "monsters/goblin-bomber-full", "monsters/hobgoblin-shield-face", "monsters/hobgoblin-shield-full", "races/barbarian", "races/human", "races/dwarf", "races/beastkin", "races/fairy", "races/dragon", "monsters/goblin-face", "monsters/goblin-full", "monsters/goblin-archer-face", "monsters/goblin-archer-full", "monsters/goblin-sword-face", "monsters/goblin-sword-full", "monsters/goblin-spear-face", "monsters/goblin-spear-full", "monsters/wolf-face", "monsters/wolf-full", "monsters/fox-face", "monsters/fox-full", "monsters/mouse-face", "monsters/mouse-full", "monsters/bat-face", "monsters/bat-full", "monsters/hobgoblin-face", "monsters/hobgoblin-full", "monsters/zombie-face", "monsters/zombie-full", "monsters/skeleton-face", "monsters/skeleton-full", "monsters/skeleton-archer-face", "monsters/skeleton-archer-full", "monsters/ghoul-face", "monsters/ghoul-full", "monsters/dark-bear-face", "monsters/dark-bear-full", "monsters/skeleton-warrior-face", "monsters/skeleton-warrior-full", "monsters/living-stone-face", "monsters/living-stone-full", "monsters/wisp-face", "monsters/wisp-full", "monsters/pixie-face", "monsters/pixie-full", "monsters/green-boulder-face", "monsters/green-boulder-full", "monsters/stone-guardian-face", "monsters/stone-guardian-full", "monsters/spider-queen-face", "monsters/spider-queen-full", "monsters/ash-wraith-face", "monsters/ash-wraith-full", "monsters/ash-spirit-face", "monsters/ash-spirit-full", "monsters/plague-fat-face", "monsters/plague-fat-full", "monsters/bone-hound-face", "monsters/bone-hound-full", "monsters/dust-crawler-face", "monsters/dust-crawler-full", "monsters/faceless-ringer-face", "monsters/faceless-ringer-full", "monsters/mirror-dead-face", "monsters/mirror-dead-full", "monsters/whisperer-face", "monsters/whisperer-full", "monsters/morok-face", "monsters/morok-full", "monsters/grey-shade-face", "monsters/grey-shade-full", "monsters/blackwing-face", "monsters/blackwing-full", "monsters/swamp-fang-face", "monsters/swamp-fang-full", "monsters/web-spider-face", "monsters/web-spider-full", "monsters/goblin-shaman-face", "monsters/goblin-shaman-full", "monsters/goblin-assassin-face", "monsters/goblin-assassin-full", "monsters/goblin-trapper-face", "monsters/goblin-trapper-full", "monsters/goblin-elder-face", "monsters/goblin-elder-full", "monsters/hobgoblin-brute-face", "monsters/hobgoblin-brute-full", "monsters/hobgoblin-thrower-face", "monsters/hobgoblin-thrower-full", "monsters/hobgoblin-driver-face", "monsters/hobgoblin-driver-full", "monsters/goblin-thief-face", "monsters/goblin-thief-full", "monsters/horned-hare-face", "monsters/horned-hare-full", "monsters/swamp-toad-face", "monsters/swamp-toad-full", "monsters/burrower-face", "monsters/burrower-full", "monsters/crow-face", "monsters/crow-full", "monsters/dire-wolf-face", "monsters/dire-wolf-full", "monsters/werewolf-face", "monsters/werewolf-full", "monsters/giant-mole-face", "monsters/giant-mole-full", "monsters/bone-knight-face", "monsters/bone-knight-full", "monsters/gravedigger-face", "monsters/gravedigger-full", "monsters/corpse-eater-face", "monsters/corpse-eater-full", "monsters/drop-face", "monsters/drop-full", "monsters/dust-whirl-face", "monsters/dust-whirl-full", "monsters/magma-hound-face", "monsters/magma-hound-full", "monsters/crystalloid-face", "monsters/crystalloid-full", "monsters/lake-spirit-face", "monsters/lake-spirit-full", "monsters/magma-golem-face", "monsters/magma-golem-full", "monsters/deep-serpent-face", "monsters/deep-serpent-full", "monsters/crystal-colossus-face", "monsters/crystal-colossus-full", "monsters/storm-spirit-face", "monsters/storm-spirit-full", "monsters/rift-heart-face", "monsters/rift-heart-full", "items/compass", "items/steel-mace", "items/steel-rapier", "items/unknown-herb", "items/twin-daggers", "items/unknown-stone", "items/steel-twin-daggers", "items/potion-good", "items/coins", "items/steel-spear", "items/steel-warhammer", "items/steel-shortbow", "items/steel-longbow", "items/steel-armor-leather", "items/steel-armor-hide", "items/steel-armor-chainmail", "items/gloves", "items/staff", "items/axe", "items/greataxe", "items/firstaid", "items/flute", "items/chalice", "items/once-more", "items/guard", "items/beginners-luck", "buildings/tower", "buildings/guild", "buildings/church", "buildings/library", "buildings/gate", "buildings/tavern", "buildings/shop", "buildings/forge", "buildings/board", "buildings/hall", "races/gnome", "races/darkfairy", "monsters/rat-face", "monsters/rat-full", "monsters/rat-king-face", "monsters/rat-king-full", "monsters/rat-catcher-face", "monsters/rat-catcher-full", "monsters/silence-keeper-face", "monsters/silence-keeper-full", "monsters/orc-wolf-face", "monsters/orc-wolf-full", "monsters/orc-thrower-face", "monsters/orc-thrower-full", "monsters/orc-spear-face", "monsters/orc-spear-full", "monsters/orc-scout-face", "monsters/orc-scout-full", "monsters/orc-falcon-face", "monsters/orc-falcon-full", "monsters/mimic-face", "monsters/mimic-full", "monsters/orc-chief-face", "monsters/orc-chief-full", "items/repair-kit", "items/repair-kit-pro", "monsters/orc-executioner-face", "monsters/orc-executioner-full", "monsters/orc-shaman-face", "monsters/orc-shaman-full", "monsters/orc-guard-face", "monsters/orc-guard-full", "items/brotherhood-ring", "items/hearth", "items/mana-charm", "items/fatigue-charm", "items/hunger-charm", "items/steel-greataxe", "items/steel-axe", "items/steel-gloves", "items/steel-staff", "items/art-shadow-fang", "items/art-flurry-rapier", "items/art-reaper-axe", "items/art-ricochet-bow", "items/art-rift-hammer", "items/art-bastion-shield", "items/art-mirage-armor", "items/art-magnet-mail", "monsters/grey-vulture-face", "monsters/grey-vulture-full", "monsters/thorn-hound-face", "monsters/thorn-hound-full", "monsters/bone-ranger-face", "monsters/bone-ranger-full", "monsters/forge-smith-face", "monsters/forge-smith-full", "monsters/magma-wyrm-face", "monsters/magma-wyrm-full", "monsters/stone-elk-face", "monsters/stone-elk-full", "monsters/trap-master-face", "monsters/trap-master-full", "monsters/trap-queen-face", "monsters/trap-queen-full", "monsters/boulder-beetle-face", "monsters/boulder-beetle-full", "monsters/trap-crab-face", "monsters/trap-crab-full", "monsters/wire-spider-face", "monsters/wire-spider-full", "monsters/bolt-golem-face", "monsters/bolt-golem-full", "monsters/coal-beetle-face", "monsters/coal-beetle-full", "monsters/ember-salamander-face", "monsters/ember-salamander-full", "monsters/ash-executioner-face", "monsters/ash-executioner-full", "monsters/brazier-golem-face", "monsters/brazier-golem-full", "monsters/ember-reaper-face", "monsters/ember-reaper-full", "monsters/goblin-blaster-face", "monsters/goblin-blaster-full", "monsters/frost-beetle-face", "monsters/frost-beetle-full", "monsters/dead-vulture-face", "monsters/dead-vulture-full", "monsters/half-troll-face", "monsters/half-troll-full", "monsters/kobold-guard-face", "monsters/kobold-guard-full", "monsters/kobold-face", "monsters/kobold-full", "monsters/sand-vulture-face", "monsters/sand-vulture-full", "monsters/sand-worm-face", "monsters/sand-worm-full", "monsters/snow-hunter-face", "monsters/snow-hunter-full", "monsters/sand-scorpion-face", "monsters/sand-scorpion-full", "monsters/big-stinger-face", "monsters/big-stinger-full", "monsters/ice-spirit-face", "monsters/ice-spirit-full", "monsters/goblin-miner-face", "monsters/goblin-miner-full", "monsters/kel-worm-face", "monsters/kel-worm-full", "monsters/ice-deer-face", "monsters/ice-deer-full", "monsters/mammoth-calf-face", "monsters/mammoth-calf-full", "monsters/slime-face", "monsters/slime-full", "monsters/worm-larva-face", "monsters/worm-larva-full", "monsters/ice-imp-face", "monsters/ice-imp-full", "events/dig", "events/rift-open", "events/rift-enter", "events/floor-change", "monsters/mirage-scorpion-face", "monsters/mirage-scorpion-full", "monsters/toll-beetle-face", "monsters/toll-beetle-full", "monsters/echo-jackal-face", "monsters/echo-jackal-full", "monsters/pseudo-cactus-face", "monsters/pseudo-cactus-full", "monsters/toll-bull-face", "monsters/toll-bull-full", "monsters/shrieker-face", "monsters/shrieker-full", "monsters/toll-rat-face", "monsters/toll-rat-full", "monsters/choir-dead-face", "monsters/choir-dead-full", "monsters/bell-ringer-face", "monsters/bell-ringer-full", "monsters/toll-guard-face", "monsters/toll-guard-full"]);
 // 10.11: веб-версия (предел файлов артефакта) — часть картинок приходит «пачкой» data:-URI (window.IMG_PACK из assets/packs/*.js); в APK пачки нет, берутся обычные файлы
@@ -4327,7 +4379,7 @@ const ART = {
   weapon: id => artPath(`items/${id}`),
   gear: id => { const k = id === "arrow" || id === "arrow-steel" ? "arrows" : /^throw-dagger/.test(id) ? "dagger" : id === "calm-flute" && !RASTER.has("items/calm-flute") ? "flute" : id; return RASTER.has(`items/${k}`) ? artPath(`items/${k}`) : null; },
   armor: id => artPath(`items/armor-${id}`),
-  race: id => artPath(`races/${id}`),
+  race: id => id === "stone-saint" ? artPath("monsters/marble-saint-face") : artPath(`races/${id}`),
   // Монстр без своей картинки (ph: "beast" | "undead" | "elemental") получает силуэт-заглушку по типу.
   monsterFace: id => { const m = MONSTERS.find(x => x.id === id); return m && m.face ? m.face : m && m.ph && !RASTER.has(`monsters/${id}-face`) ? `assets/monsters/ph-${m.ph}-face.svg` : artPath(`monsters/${id}-face`); },
   monsterFull: id => { const m = MONSTERS.find(x => x.id === id); return m && m.full ? m.full : m && m.ph && !RASTER.has(`monsters/${id}-full`) ? `assets/monsters/ph-${m.ph}-full.svg` : artPath(`monsters/${id}-full`); },
@@ -4718,6 +4770,7 @@ const GEAR = {
   "flask-legend": { short: "Колба✦", name: "Легендарная колба", weight: 0.1, stack: 5, note: "Сохраняет выпавшую эссенцию любого класса; при броске к20 18+ не ломается." },
   "family-photo": { short: "Фото", name: "Старая фотография", weight: 0, stack: 1, use: "look", riftOnly: true, note: "Семейное фото. На обороте есть надпись.", look: "Фотография семьи, мужчина учёный, сын выглядит болезненно. Подпись на обратной стороне: «С днём рождения, мой мальчик»." },
   "cellar-key": { short: "Ключ", name: "Ключ от подвала", weight: 0, stack: 1, riftOnly: true, note: "Тяжёлый железный ключ." },
+  "saint-bracelet": { short: "Браслет", name: "Браслет каменной святой", weight: 0.2, stack: 1, slot: "charm", cls: 5, treasure: true, use: "saint", note: "Артефакт 5 класса. Тяжёлый каменный браслет с ликом святой." },
   "stone-heart": { short: "Сердце", name: "Каменное сердце", weight: 1, stack: 1, use: "eternal", note: "Тёплый кристалл из груди алхимика. Действует на того, кто поглотит его сам." },
   "resonance-fork": { short: "Камертон", name: "Камертон резонанса", weight: 0.2, stack: 1, slot: "charm", cls: 7, treasure: true, note: "Артефакт 7 класса. Звенит в такт ударам звуком." },
   "strength-serum": { short: "Сыворотка", name: "Сыворотка силы", weight: 0.1, stack: 1, use: "eternal", note: "Красная сыворотка. Действует на того, кто вколет её себе." },
@@ -4815,6 +4868,7 @@ GEAR_ICON["daedalus-hammer"] = `<svg viewBox="0 0 24 24" fill="none" stroke="cur
 GEAR_ICON["unbreakable-charm"] = AMU("#9fb4c2"); GEAR_ICON["repair-charm"] = AMU("#d6a64c"); GEAR_ICON["durable-charm"] = AMU("#7ad0dc"); GEAR_ICON["regen-charm"] = AMU("#e0584a");
 GEAR_ICON["frost-amulet"] = AMU("#9ad0ff");
 GEAR_ICON["resonance-fork"] = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 3v8a3 3 0 0 0 6 0V3" stroke="#c9a8ff"/><path d="M12 14v7"/><path d="M5 6q-2 3 0 6M19 6q2 3 0 6" stroke-width="1.2" opacity=".7"/></svg>`;
+GEAR_ICON["saint-bracelet"] = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><ellipse cx="12" cy="12" rx="8" ry="5" stroke="#c8c0b0"/><circle cx="12" cy="9.5" r="2.4" fill="#9a9488"/></svg>`;
 GEAR_ICON["stone-heart"] = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 20 4 11a4 4 0 0 1 8-5 4 4 0 0 1 8 5z" fill="#8a6ab0" opacity=".8"/><path d="M8 9l4 3 4-3M12 12v6" stroke-width="1"/></svg>`;
 GEAR_ICON["founder-crown"] = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M3 18h18l-1-10-4.5 4L12 5l-3.5 7L4 8z" fill="currentColor" opacity=".25"/><path d="M3 18h18l-1-10-4.5 4L12 5l-3.5 7L4 8zM4 21h16"/></svg>`;
 GEAR_ICON["thief-secrets"] = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h11a3 3 0 013 3v13H8a3 3 0 01-3-3z" fill="currentColor" opacity=".15"/><path d="M5 4h11a3 3 0 013 3v13H8a3 3 0 01-3-3zM5 17a3 3 0 013-3h11"/><path d="M10 8h5M10 11h3"/></svg>`;
@@ -4975,7 +5029,8 @@ function fluteOutcome(c, d20) {
 }
 const hasEssence = (c, id) => (c.essences || []).includes(id);
 const mainItem = (c = char) => itemOf((c.equip || {}).main);
-const isBigGrip = c => !!(c.giantGrip && c.race === "barbarian");                     // «Великан»: двуручное в одной руке
+const bigRace = c => c.race === "barbarian" || !!(c.saint && c.level >= 4);          // святая с 4 уровня — как варвар
+const isBigGrip = c => !!(c.giantGrip && bigRace(c));                     // «Великан»: двуручное в одной руке
 // Лук держат одной рукой, а вторая свободна для кинжала; для остального двуручного обе руки заняты (кроме «Великана»).
 const pikeShield = (m, off) => !!(m && (m.props || []).includes("Можно со щитом") && off && (off.id === "shield" || off.id === "tower-shield"));          // пика со щитом — малым или ростовым (09.11, автор)
 const twoHanded = (c = char) => { const m = mainItem(c); return isTwoHandedWeapon(m) && m.group !== "ranged" && !isBigGrip(c) && !pikeShield(m, itemOf((c.equip || {}).off)) && !(c.equip || {}).off; };          // обе руки заняты двуручным (вторая рука пуста)
@@ -4990,8 +5045,9 @@ function gearDexPenalty(c) {
   const off = itemOf((c.equip || {}).off), main = itemOf((c.equip || {}).main);
   let g = 0;
   if (off && off.id === "shield" && !twoHanded(c)) g -= 1;          // щит: −1 к Ловкости (было −2, правка автора 02.11)
-  if (isBigGrip(c) && isTwoHandedWeapon(main) && main.group !== "ranged") g -= 2;
-  if (isBigGrip(c) && isTwoHandedWeapon(off) && off.group !== "ranged" && off.id !== "tower-shield") g -= 4;          // два двуручных сразу: большой штраф (решение автора)
+  const noGripPen = !!(c.saint && c.level >= 5);          // святая 5 ур.: без штрафа
+  if (isBigGrip(c) && !noGripPen && isTwoHandedWeapon(main) && main.group !== "ranged") g -= 2;
+  if (isBigGrip(c) && !noGripPen && isTwoHandedWeapon(off) && off.group !== "ranged" && off.id !== "tower-shield") g -= 4;          // два двуручных сразу: большой штраф (решение автора)
   return g;
 }
 function totals(c = char) {
@@ -5000,7 +5056,7 @@ function totals(c = char) {
   const out = {};
   for (const k of STAT_KEYS) {
     const b = +c.base[k] || 0, r = race.mods[k] || 0, e = ess.reduce((s, x) => s + (x.stats[k] || 0), 0);
-    const g = k === "dex" ? gearDexPenalty(c) : 0;
+    const g = (k === "dex" ? gearDexPenalty(c) : 0) + (c.saint ? (saintPerk(c)[k] || 0) : 0);          // святая: бонусы уровней
     out[k] = { base: b, race: r, ess: e, gear: g, total: b + r + e + g };
   }
   return out;
@@ -5044,7 +5100,8 @@ function derived(t, c = char) {
   add(Math.floor((c.level - 1) / 2), "опыт");                                         // +0,5 Защиты за уровень после 1-го (решение автора 02.11)
   add(eb.ac, "эссенции");
   if (c.race === "fairy" || c.race === "darkfairy") { ac += 1; dodgeSrc.push("+1 фея"); }
-  if (t.cha && t.cha.total >= 25) { ac += 1; dodgeSrc.push("+1 Харизма 25+"); }          // порог Харизмы (автор 16.11)          // феи юркие: +1 к Увороту (решение автора 02.11)
+  if (t.cha && t.cha.total >= 25) { ac += 1; dodgeSrc.push("+1 Харизма 25+"); }
+  if (c.saint) { ac -= 1; dodgeSrc.push("−1 тяжёлая"); if (c.level >= 3) add(2, "святая, 3 ур."); }          // порог Харизмы (автор 16.11)          // феи юркие: +1 к Увороту (решение автора 02.11)
   if (eb.dodge) { ac += eb.dodge; dodgeSrc.push(`${eb.dodge > 0 ? "+" : "−"}${Math.abs(eb.dodge)} эссенции`); }                                                                  // эссенции «КД +N» дают Защиту (решение автора 02.11)
   pen(OVERLOAD[ld.level].dodge, LOAD_NAME[ld.level].toLowerCase());
   if (awkward2h(c)) { pen(AWK.dodge, "неудобный хват двуручного"); warnings.push(`Двуручное и вещь во второй руке: −${AWK.dodge} Уворот, −1,5 м скорости, −${AWK.hit} к попаданию обоими оружиями.`); }
@@ -5159,7 +5216,7 @@ function essBonus(c) {
 }
 // Скорость героя в метрах: 9 м, бонусы эссенций, штрафы груза и брони (rules.md, «Вес», «Броня»).
 function heroSpeedM(c, t = totals(c), ld = load(c, t)) {
-  let sp = 9 + essBonus(c).speed;
+  let sp = 9 + essBonus(c).speed + (c.saint && c.level >= 5 ? 3 : 0);
   sp -= OVERLOAD[ld.level].speed;
   const armor = itemOf((c.equip || {}).body), main = itemOf((c.equip || {}).main);
   if (armor && armor.kindOf === "armor" && armor.str && t.str.total < armor.str) sp -= 3;
@@ -5167,13 +5224,13 @@ function heroSpeedM(c, t = totals(c), ld = load(c, t)) {
   if (awkward2h(c)) sp -= AWK.speed;          // неудобный хват двуручного (03.11)
   return Math.max(1.5, sp);
 }
-const maxMp = c => derived(totals(c), c).mana;
+const maxMp = c => { const m = derived(totals(c), c).mana; return typeof saintDrain === "function" && saintDrain(c) ? Math.max(1, Math.floor(m * 0.7)) : m; };
 const mpOf = c => (c.mp == null ? maxMp(c) : Math.max(0, Math.min(c.mp, maxMp(c))));
 const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); };
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 155;
+const BATTLE_REV = 156;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-weap2.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster() || st.dev === false) st.tactical = true; return st; }
@@ -5399,6 +5456,7 @@ function setTactical(on) {
 // Бой сообщает итог: outcome — win | flee | retreat, killed — номера убитых в ev.list. Дальше всё как в старом экране боя.
 // Погибший герой уходит из отряда, его вещи (надетое и рюкзак) делятся между живыми (решение автора). Что не влезло — остаётся на теле.
 function buryFallen() {
+  if (typeof saintsBeforeBury === "function") saintsBeforeBury();
   const alive = state.party.filter(c => !c.dead), dead = state.party.filter(c => c.dead);
   if (!dead.length || !alive.length) return;
   const lines = [];
@@ -5436,7 +5494,8 @@ const MANA_PER_LVL = 2;          // мана за уровень после пе
 const manaRestPct = c => Math.max(0.3, Math.min(1, 0.6 + 0.1 * mod(totals(c).wis.total)));
 function restMana(c, part = 1) { const mx = maxMp(c), b = mpOf(c), add = Math.max(1, Math.ceil(mx * manaRestPct(c) * part)); c.mp = Math.min(mx, b + add); return c.mp - b; }
 const HP_PER_LVL = 5;          // за уровень: было 9 (слишком быстрый рост, автор 02.11)
-const maxHp = c => Math.max(1, 10 + hpCon(c)) + (c.level - 1) * Math.max(1, HP_PER_LVL + hpCon(c)) + essBonus(c).hp;
+const maxHpBase = c => Math.max(1, 10 + hpCon(c)) + (c.level - 1) * Math.max(1, HP_PER_LVL + hpCon(c)) + essBonus(c).hp;
+const maxHp = c => typeof saintDrain === "function" && saintDrain(c) ? Math.max(1, Math.floor(maxHpBase(c) * 0.7)) : maxHpBase(c);          // браслет святой: −30 % у призвавшего
 const hpOf = c => (c.hp == null ? maxHp(c) : Math.max(0, Math.min(c.hp, maxHp(c))));
 // Отдых в лабиринте лечит не полностью: доля от макс. ОЗ зависит от Усталости перед сном, плюс мод. ТЕЛ.
 // Голодный (сутки и больше без еды) лечится вдвое хуже. Караульный не спит и не лечится.
@@ -5666,8 +5725,9 @@ const CREST = `<img class="logo-px" src="${isMaster() ? "assets/logo-admin.png" 
 
 // Временная заглушка портрета, пока не готовы картинки рас.
 // Портрет по расе и полу: у женщин — races/<id>-f, если нарисован, иначе общий портрет расы (решение автора 31.10).
-const raceFace = (race, g) => (g === "f" && RASTER.has(`races/${race}-f`) ? artPath(`races/${race}-f`) : ART.race(race));
+const raceFace = (race, g) => (race !== "stone-saint" && g === "f" && RASTER.has(`races/${race}-f`) ? artPath(`races/${race}-f`) : ART.race(race));
 function phPortrait(r, sex) {
+  if (r.id === "stone-saint") return img(ART.race(r.id), "Портрет: " + r.name);          // Каменная святая — портрет мраморной святой
   if (sex === "f" && RASTER.has(`races/${r.id}-f`)) return img(raceFace(r.id, sex), "Портрет: " + r.name);
   if (RASTER.has("races/" + r.id)) return img(ART.race(r.id), "Портрет: " + r.name);
   const g = "ph-" + r.id;
@@ -7856,6 +7916,7 @@ const monXp = m => Math.max(1, 10 - m.cls);
 function addXpAll(total) {          // опыт всем героям отряда + повышения уровней
   const ups = [];
   state.party.forEach(c => {
+    if (c.saint) return;          // святая опыта не получает
     c.xp = (c.xp || 0) + total;
     while (c.xp >= xpNeed(c) && c.level < 20) {
       const before = maxHp(c), mpBefore = maxMp(c); c.xp -= xpNeed(c); c.level++;
@@ -7941,7 +8002,7 @@ const rankChip = c => `<span class="rank-chip" title="${heroRank(c)} ранг �
 /*RANK-END*/
 const xpBar = c => `${rankChip(c)}<div class="xp-box"><div class="lrow"><span>${c.level} уровень · опыт <button class="fx-btn" data-hx="kills" aria-label="Список убийств героя" style="padding:1px 8px;font-size:12px;margin-left:6px">Убийства</button></span><b>${c.xp || 0} / ${xpNeed(c)}</b></div>
   <div class="lbar"><i style="width:${Math.min(100, Math.round((c.xp || 0) / xpNeed(c) * 100))}%"></i></div></div>`;
-const essSlots = c => `${(c.essences || []).length}/${c.level}`;
+const essSlots = c => `${(c.essences || []).length}/${c.saint ? 0 : c.level}`;
 // Итог боя: победа открывает тип всех монстров, при бегстве и отступлении монстров — только убитых.
 // Квадрат зачищен после победы или отступления монстров; если сбежал отряд, монстры остались.
 const OUTCOME = { win: "Победа", flee: "Бег", retreat: "Монстры убегают" };
@@ -8126,6 +8187,7 @@ const ARTIFACTS = {
   chalice: { cls: 8, name: "Чаша здоровья", ico: () => GEAR_ICON.chalice, text: GEAR.chalice.note },
   "beginners-luck": { cls: 8, name: "Удача новичка", ico: () => GEAR_ICON["beginners-luck"], text: GEAR["beginners-luck"].note },
   ...Object.fromEntries(["whetstone", "daedalus-hammer", "unbreakable-charm", "repair-charm", "durable-charm", "regen-charm", "mana-charm", "fatigue-charm", "hunger-charm", "frost-gloves", "hide-cloak", "frost-amulet"].map(id => [id, { cls: GEAR[id].cls, name: GEAR[id].name, ico: () => GEAR_ICON[id], text: GEAR[id].note }])),
+  "saint-bracelet": { cls: 5, name: "Браслет каменной святой", ico: () => GEAR_ICON["saint-bracelet"], text: "Носитель призывает из инвентаря Каменную святую (9 ранг, Сил и Тел 30, Лов 10, остальные 20). Пока она с отрядом, у призвавшего −30 % макс. ОЗ и маны. Святая носит вещи, не ест и не устаёт, не берёт эссенций и опыта, неуязвима к яду и психическому урону. Погибла — браслет теряет 1 из 3 прочности. Уровни 2–5 — по 100 камней 9, 8, 7 и 6 класса." },
   "resonance-fork": { cls: 7, name: "Камертон резонанса", ico: () => GEAR_ICON["resonance-fork"], text: "Каждый урон звуком от носителя оставляет на цели стак резонанса (n). Раз за бой — действие «Камертон» по одной цели: она получает n + n×1к4 урона звуком, стаки снимаются." },
   "calm-flute": { cls: 9, name: "Флейта успокоения", ico: () => GEAR_ICON.flute, text: GEAR["calm-flute"].note },
   tollbell: { cls: 7, name: "Серебряный колокольчик", ico: () => ICO_BELL, text: "Уникальный (сокровищница Звона). Раз в день: если монстр атаковал героя ментальной атакой или дебаффом и герой провалил проверку (Инт, Муд или Хар), колокольчик звенит сам — перебросок с преимуществом получает пострадавший и все остальные, кого задела та же способность. Можно взвести заранее из Инвентаря: тогда следующие ментальные проверки команды идут с преимуществом." },
@@ -8892,6 +8954,7 @@ function tileNote(x, y) {
 // По rules.md: +1 Усталость за сутки без сна; со 2-х суток без еды +1 Усталость в сутки.
 function tick(sleepers = new Set()) {
   for (const c of state.party) {
+    if (c.saint) continue;          // святая не устаёт и не голодает
     const st = state.run.status[c.id];
     if (st.sat > 0) st.sat--;
     else { st.starve++; if (st.starve >= 6 && st.starve % 3 === 0) st.fat++; }
@@ -8907,6 +8970,7 @@ function advanceTime() {
   return false;
 }
 function endRun(early) {
+  for (const s of (state.party || []).filter(x => x.saint)) { if (s.dead) saintFall(s); else saintStore(s, true); }          // при выходе святая отзывается сама
   const FL_DAYS = FL().days, st = state.run && state.run.status;
   if (st) for (const c of state.party) if (st[c.id]) c.carry = { ...st[c.id] };
   for (const c of state.party) if (!c.dead) try { c.mp = maxMp(c); } catch (e) {}          // 09.11: в городе мана восстанавливается сама          // усталость и голод переходят в город и в следующий заход, пока их не снимет таверна
@@ -8922,6 +8986,7 @@ function visit(x, y) { if (inVoid(x, y)) return; const k = tkey(x, y); if (!stat
 
 // Еда общая, но лежит у каждого своя: герой сначала ест из своего рюкзака, потом берёт у того, у кого больше всего.
 function eatRations(c, n) {
+  if (c && c.saint) return n;          // святая не ест
   let got = takeGear(c, "ration", n);
   while (got < n) {
     const donor = state.party.filter(o => o.id !== c.id && countGear(o, "ration") > 0).sort((a, b) => countGear(b, "ration") - countGear(a, "ration"))[0];
@@ -9431,7 +9496,7 @@ function heroStats(c) {
     <div class="hs-grid">${STAT_KEYS.map(k => { const x = t[k]; return `<div class="hs">
       <div class="k">${STAT_SHORT[k]}</div><b>${x.total} <small>${signed(mod(x.total))}</small></b>
       <div class="src">база ${x.base}${x.race ? ` · раса ${signed(x.race)}` : ""}${x.ess ? ` · <span class="e${x.ess < 0 ? " neg" : ""}">эсс. ${signed(x.ess)}</span>` : ""}</div></div>`; }).join("")}</div>
-    ${xpBar(c)}
+    ${c.saint ? "" : xpBar(c)}
     <div class="hp-box">
       <div class="lrow"><span>Очки здоровья</span><b>${hpOf(c)} / ${maxHp(c)}</b></div>
       <div class="lbar"><i style="width:${Math.round(hpOf(c) / maxHp(c) * 100)}%"></i></div>
@@ -9440,6 +9505,9 @@ function heroStats(c) {
     </div>
     ${c.dead ? `<div class="hp-box"><p class="trait neg" style="margin:0;text-align:center"><b>Погиб в бою.</b> Из лабиринта вернётся только по решению мастера.</p>
       <div class="btn-row" style="justify-content:center"><button class="fx-btn" data-hx="revive">Воскресить (мастер)</button></div></div>` : ""}
+    ${c.saint ? (() => { const nl = (c.level || 1) + 1, cls = SAINT_UP_CLS[nl], have = cls ? sackRows().filter(r => r.cls === cls).reduce((a, r) => a + r.qty, 0) : 0;
+      return `<div class="hp-box"><p class="trait" style="margin:0;text-align:center"><b>Каменная святая</b> · ${c.level} ур. из ${SAINT_MAX}. Призвал(а): ${esc((state.party.find(x => x.id === c.saint.by) || {}).name || "—")}. Не ест, не устаёт, не берёт эссенций и опыта.</p>
+      ${cls ? `<div class="btn-row" style="justify-content:center"><button class="fx-btn primary" data-hx="saint-up"${have >= SAINT_UP_N ? "" : " disabled"}>Усилить до ${nl} ур. <small>${SAINT_UP_N} камней ${cls} класса (есть ${have})</small></button></div>` : ""}</div>`; })() : ""}
     <div class="hp-box">
       <div class="lrow"><span>Мана</span><b>${mpOf(c)} / ${maxMp(c)}</b></div>
       <div class="lbar"><i class="mp" style="width:${Math.round(mpOf(c) / Math.max(1, maxMp(c)) * 100)}%"></i></div>
@@ -9534,6 +9602,8 @@ function selPanel(c) {
   if (it.ammo) { const cur = ammoFor(c, it.ammo) === e.id, set = (c.ammoPref || {})[it.ammo] === e.id; btns.push(`<button class="fx-btn${cur ? "" : " primary"}" data-hx="ammo-pref"${set ? " disabled" : ""}>${set ? "Выбраны по умолчанию" : it.ammo === "bow" ? "Стрелять этими" : "Метать эти"}</button>`); }
   if (it.use === "eat") btns.push(`<button class="fx-btn primary" data-hx="eat">Съесть 1</button>`);
   if (it.use === "drink") btns.push(`<button class="fx-btn primary" data-hx="drink">Выпить</button>`);
+  if (it.use === "saint") { const worn = braceletOn(c) === e, mine = (state.party || []).some(x => x.saint && x.saint.by === c.id), bhp = e.bhp ?? BRACELET_HP;
+    btns.push(mine ? `<button class="fx-btn" data-hx="saint-back">Отозвать святую</button>` : `<button class="fx-btn primary" data-hx="saint-call"${worn && state.run && !saintOf() && bhp > 0 ? "" : " disabled"}>Призвать святую<small>${!worn ? "сначала надеть" : !state.run ? "только в лабиринте" : bhp <= 0 ? "браслет разрушен" : saintOf() ? "святая уже призвана" : `прочность ${bhp}/${BRACELET_HP} · ${e.slvl || 1} ур.`}</small></button>`); }
   if (it.use === "eternal") { const rd = !!(c.flagsPerm || {})[BOOKS[e.id] ? BOOKS[e.id].flag : "eternal"]; btns.push(`<button class="fx-btn primary" data-hx="eternal"${rd ? " disabled" : ""}>${rd ? (BOOKS[e.id] && BOOKS[e.id].verb ? "Уже была такая" : "Уже прочитана другая") : (BOOKS[e.id] && BOOKS[e.id].verb) || "Прочесть самому"}</button>`); }
   if (it.use === "look") btns.push(`<button class="fx-btn primary" data-hx="look">Посмотреть</button>`);
   if (it.use === "essflask" && e.ess) btns.push(`<button class="fx-btn primary" data-hx="essflask">Разбить и впитать</button>`);
@@ -9814,6 +9884,9 @@ $hero.addEventListener("click", e => {
       chaliceFill(entry); if (state.run) logRun(`${c.name} наполняет чашу здоровья водой: через 2 дня будет зелье.`);
       heroAfterChange("Чаша наполнена водой: через 2 дня станет зельем"); return;
     }
+    case "saint-call": { const why = saintSummon(c); if (why) { toast(why); return; } heroAfterChange("Каменная святая призвана"); return; }
+    case "saint-back": { saintRecall(c); heroAfterChange("Святая отозвана"); return; }
+    case "saint-up": { const why = saintLevelUp(c); if (why) { toast(why); return; } heroAfterChange(`Святая: ${c.level} уровень`); return; }
     case "look": { if (entry) { const g = GEAR[entry.id] || {}; showItemInfo(entry, c, "", g.look ? { ...itemOf(entry, c), note: g.look } : null); } return; }
     case "eternal": {          // книги-навсегда: «Тайны вечной жизни» (+2 Мдр), «Секреты воровства» (+2 Лов); каждую книгу своего вида герой читает один раз за жизнь
       const bk = entry && BOOKS[entry.id]; if (!bk) return;
@@ -9853,8 +9926,8 @@ $hero.addEventListener("click", e => {
       if (prev && slot === "main" && (it && (it.props || []).includes("Можно со щитом")) && shieldLike(itemOf(prev)) && !c.equip.off) c.equip.off = prev;          // 09.11: пика вместо щита в правой руке — щит переходит в левую
       else if (prev) addToBag(c, { ...prev, qty: 1 });
       if (slot === "off" && it && (it.props || []).includes("Можно со щитом") && shieldLike(itemOf(c.equip.main))) { const t0 = c.equip.main; c.equip.main = c.equip.off; c.equip.off = t0; }          // пика «в левую руку» при щите в правой — меняем местами: пика в правую, щит в левую
-      if (slot === "off" && isTwoHandedWeapon(it) && it.group !== "ranged" && c.race === "barbarian" && !pikeShield(itemOf(c.equip.main), itemOf(c.equip.off))) c.giantGrip = true;
-      if (c.race === "barbarian" && c.equip.main && c.equip.off) { const mi2 = itemOf(c.equip.main), oi2 = itemOf(c.equip.off); if (!pikeShield(mi2, oi2) && ((isTwoHandedWeapon(mi2) && mi2.group !== "ranged") || (isTwoHandedWeapon(oi2) && oi2.group !== "ranged"))) c.giantGrip = true; }          // варвару можно двуручное (пика, ростовой щит) и вторую руку: «Великан», штраф к Ловкости в предупреждениях          // второе двуручное в левую руку: «Великан» с большим штрафом
+      if (slot === "off" && isTwoHandedWeapon(it) && it.group !== "ranged" && bigRace(c) && !pikeShield(itemOf(c.equip.main), itemOf(c.equip.off))) c.giantGrip = true;
+      if (bigRace(c) && c.equip.main && c.equip.off) { const mi2 = itemOf(c.equip.main), oi2 = itemOf(c.equip.off); if (!pikeShield(mi2, oi2) && ((isTwoHandedWeapon(mi2) && mi2.group !== "ranged") || (isTwoHandedWeapon(oi2) && oi2.group !== "ranged"))) c.giantGrip = true; }          // варвару можно двуручное (пика, ростовой щит) и вторую руку: «Великан», штраф к Ловкости в предупреждениях          // второе двуручное в левую руку: «Великан» с большим штрафом
       if (slot === "main" && c.equip.off && ((isTwoHandedWeapon(it) && it.group === "ranged" && !lightMelee(itemOf(c.equip.off))) || !offAllowed(it, itemOf(c.equip.off)))) {
         if (addToBag(c, { ...c.equip.off, qty: 1 })) { toast("Нет места для предмета из левой руки"); c.equip.main = prev; c.bag.push(entry); if (prev) takeLast(c, prev); saveChar(); renderHero(); return; }
         delete c.equip.off;
@@ -10453,7 +10526,7 @@ function fitText(root = document) {
 /* ----- конец игры: погиб весь отряд (решение автора 01.11) ----- */
 function gameOverCheck() {
   if (typeof isMaster === "function" && !isMaster()) return false;
-  const p = state.party || []; if (!p.length || !p.every(c => c.dead)) return false;
+  const p = (state.party || []).filter(c => !c.saint); if (!p.length || !p.every(c => c.dead)) return false;
   showGameOver(); return true;
 }
 function showGameOver() {
