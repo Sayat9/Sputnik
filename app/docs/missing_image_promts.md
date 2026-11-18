@@ -60,6 +60,94 @@
 
 ### Башня — 4 этаж, монстры (17.11)
 
+### Ползучая лоза — `monsters/creeping-vine-full`
+
+> `full-body a creeping thorny vine monster hiding among grass on a stone tower floor, many whip-like tendrils rising, small leaves, faintly glowing sap, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
+### Свечной огарок — `monsters/candle-stub-full`
+
+> `full-body a small living candle stub creature, melted wax body with tiny arms, a bright flame wick on its head, wax drips, dark stone tower corridor, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
+### Пыльная моль — `monsters/dust-moth-full`
+
+> `full-body a large grey dust moth with frayed wings shedding pale dust, fluttering toward a torch flame in a dark tower room, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
+### Каменный клоп — `monsters/wall-bug-full`
+
+> `full-body a flat stone-shelled bug crawling out of a crack in old masonry, grey plates that look like bricks, short mandibles, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
+### Гарпия — `monsters/harpy-full`
+
+> `full-body a gaunt harpy with ragged dark feathers, human-like screaming face, long talons, perched on a broken tower ledge, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
+### Гаргулья — `monsters/gargoyle-full`
+
+> `full-body a crouching stone gargoyle with folded bat wings and cracked grey skin, pretending to be a statue on a tower pedestal, eyes faintly glowing, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
+### Кентавр-разбойник — `monsters/centaur-raider-full`
+
+> `full-body a lean centaur raider with a short bow, leather armor and a hood, scarred chestnut horse body, quiver of arrows, galloping pose, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
+### Гигантская мухоловка — `monsters/flytrap-full`
+
+> `full-body a giant venus flytrap monster rooted into cracked tower floor stones, huge toothed jaws dripping digestive sap, sweet glowing nectar, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
+### Живой фолиант — `monsters/living-tome-full`
+
+> `full-body a flying living book with fluttering pages like wings, sharp paper edges, glowing runes and an ink eye on the cover, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
+### Пустой доспех — `monsters/empty-armor-full`
+
+> `full-body an empty suit of old plate armor walking on its own, dark hollow visor with nothing inside, rusty longsword, faint mist inside the joints, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
+### Песочный часовой — `monsters/sand-sentinel-full`
+
+> `full-body a brass clockwork sentinel with an hourglass for a chest, sand flowing inside, a long clock-hand spear, gears visible, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
+### Древняя гарпия — `monsters/elder-harpy-full`
+
+> `full-body an ancient matriarch harpy, large and grey-feathered, old wrinkled cruel face, crown of bones, massive hooked talons, wings spread, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
+### Гаргулья-страж — `monsters/gargoyle-guard-full`
+
+> `full-body a bulky stone gargoyle guardian with heavy fists and broad wings, standing protectively in front of a tower door, moss in the cracks, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
+### Кентавр-рыцарь — `monsters/centaur-knight-full`
+
+> `full-body a centaur knight in full plate armor with a long lance and a tower shield, armored horse body with barding, noble stern face, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
+### Механический конь — `monsters/mech-horse-full`
+
+> `full-body a mechanical steam horse made of steel plates and pistons, glowing furnace in the chest, steam from the nostrils, riveted legs, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
+### Цветок-сирена — `monsters/siren-flower-full`
+
+> `full-body a huge beautiful flower with a woman-like pistil face singing, glittering pollen clouds, thorny stems rooted in stone, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
+### Стеклянный голем — `monsters/glass-golem-full`
+
+> `full-body a humanoid golem of cracked glass refracting light into rainbow shards, sharp edges, hollow transparent body, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
+### Древняя гаргулья — `monsters/elder-gargoyle-full`
+
+> `full-body an ancient huge gargoyle of weathered black stone, horned, huge wings, tail with stone spikes, petrifying glowing eyes, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
+### Паровой бык — `monsters/steam-bull-full`
+
+> `full-body a massive steam-powered bull made of riveted steel, pressure gauges on its back, boiler belly glowing red, steam venting from horns, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
+### Древень-страж — `monsters/treant-warden-full`
+
+> `full-body a giant treant guardian with bark armor and branch arms, roots bursting through the tower floor, small glowing sap wounds, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
+### Кентавр-вождь — `monsters/centaur-chief-full`
+
+> `full-body a centaur chieftain with a longbow and a curved sabre, chainmail, feathered war banner on the back, proud scarred face, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
+### Сфинкс-привратник — `monsters/sphinx-full`
+
+> `full-body a sphinx gatekeeper with a lion body, eagle wings and a calm wise human face, ancient headdress, guarding a tower gate with carved riddles, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`
+
 ### Непримечательная тень — `monsters/plain-shadow-full`
 
 > `full-body an unremarkable humanoid shadow, a thin grey silhouette with no face that looks like an ordinary person at first glance, slightly blurred edges dissolving into smoke, holding a short dark knife low behind its back, standing in the corner of a dim stone tower room, torchlight casting long shadows, hand-painted dark fantasy creature art, full figure, portrait 2:3, no text`

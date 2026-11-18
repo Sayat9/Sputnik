@@ -12,7 +12,7 @@ const L = require('./bui_lib.js');
   ok('механический пёс — механизм, зомби — нежить, гоблин — гуманоид, волк — зверь', K.golem === 'construct' && K.zombie === 'undead' && K.goblin === 'humanoid' && K.wolf === 'beast', K);
   ok('у каждого монстра есть подпись вида', K.all, K);
   const C = await p.evaluate(() => { state.journal = null; unlockJournal(8); unlockJournal(9); openLibrary(); const chips = [...document.querySelectorAll('[data-lx="kind"]')].map(x => x.textContent.trim()); closeLibrary(); return chips; });
-  ok('в библиотеке 7 групп + «Все»', C.length === 8 && C.includes('Механизмы и конструкты'), C);
+  ok('в библиотеке 8 групп + «Все» (18.11: + растения)', C.length === 9 && C.includes('Механизмы и конструкты') && C.includes('Растения'), C);
   ok('errs: нет', !errs.length, errs);
   console.log(`проверок: ${n}, не прошли: ${bad}`); await b.close(); process.exit(bad ? 1 : 0);
 })();

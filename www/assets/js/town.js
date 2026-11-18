@@ -387,7 +387,7 @@
   const NOVEL_RU = { known: "Уже известный", new: "Новый (ещё не открыт)" };
   const STAGES = [["kind", "Тип монстра"], ["rank", "Ранг: обычный, редкий или особый"], ["novel", "Известный или новый монстр"], ["info", "Вид сведений"]];
   const rankGroup = m => { const r = rankOf(m); return r === "normal" || r === "rare" ? r : "special"; };
-  const libBonus = c => { const t = totals(c); return mod(t.int.total) + mod(t.wis.total); };
+  const libBonus = c => { const t = totals(c); return mod(t.int.total) + mod(t.wis.total) + (typeof studyBonus === "function" ? studyBonus(c) : 0); };
   // Кандидаты — все готовые монстры класса со всех этажей, кроме разломов (правка 09.11: раньше брался только 1 этаж).
   const libCands = cls => MONSTERS.filter(m => !m.draft && (!m.rift || (journal().riftsDone || {})[m.rift]) && m.cls === cls);          // монстры разломов в библиотеке не ищутся (секрет)
   const LIB_ZONE_RU = { goblin: "Гоблины", beast: "Звери", undead: "Нежить", stone: "Элементали и камень", orc: "Орки" };

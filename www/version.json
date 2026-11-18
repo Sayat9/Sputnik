@@ -1,5 +1,5 @@
 {
- "version": 1795007957,
+ "version": 1795011988,
  "files": [
   "assets/buildings/academy.webp",
   "assets/buildings/arena.webp",
@@ -973,26 +973,26 @@
   "assets/items/weak-salt.webp": "4d8f47cfa81553a09e087c1c96447df3",
   "assets/items/whetstone.webp": "34c780a688f1cd426b20322a42967447",
   "assets/items/wind.webp": "a6d6f642a096cf8956003b06c1f69e63",
-  "assets/js/battle-act.js": "376c183e1758a5e514be0441a7a119e1",
+  "assets/js/battle-act.js": "23f787e10a1fedb9b627bf703643a199",
   "assets/js/battle-ai.js": "baf36b17946b0d7e1a1a96ecb2b026eb",
   "assets/js/battle-core.js": "20ce0a3c8c72849091f9a1a536d1846e",
-  "assets/js/battle-data.js": "5b0f959adbd7d55695cb6a9b13101ec3",
+  "assets/js/battle-data.js": "abe6347de065dbf0e5767091dba95039",
   "assets/js/battle-dice.js": "ea3624feced3c040908826fd5bb1b878",
   "assets/js/battle-end.js": "17c223e0218203dcf0c97fea5a930ab5",
   "assets/js/battle-env.js": "c7be6943b8a1a28819bdc8bc80d65295",
   "assets/js/battle-ess.js": "cb315186ca700e31b2675cbb16f9a68d",
-  "assets/js/battle-ess2.js": "109e5ca894e55d5a130c2f72f5c97db8",
+  "assets/js/battle-ess2.js": "fd8de64a1755485a3e7bc69b9600ae03",
   "assets/js/battle-ext.js": "1b3becd0a8b7e151826400b02626930a",
   "assets/js/battle-menu.js": "2b915a4770449435ce0503637cbd419d",
   "assets/js/battle-net.js": "f8172bd74527ba982fd73ea9ac71dbf3",
-  "assets/js/battle-rules.js": "cde0a2d120e630151945b3d3a436fc84",
+  "assets/js/battle-rules.js": "42e43ccc0e9aca02b39ffcc7bd8adfa5",
   "assets/js/battle-ui.js": "5a846d51c28441dd21e5e8d1cace33be",
   "assets/js/battle-weap.js": "dca79d9e289486c1995936a8dcad7d62",
   "assets/js/battle-weap2.js": "619eeb93698101b3e13bb9455753439d",
-  "assets/js/battle.js": "4ae43e27825e4df31ffba7bb3bd9c2a0",
+  "assets/js/battle.js": "6d3f37f9856f1c89ab45095f9b1b1f77",
   "assets/js/net.js": "2e8be9ea96e5cf1bd44c120e636e4520",
   "assets/js/netglue.js": "859dd6b7df91e9c5996fae0597aa7bb7",
-  "assets/js/town.js": "f7616e5c017a8f24cf8ef0b4e6bf1e48",
+  "assets/js/town.js": "480e8bfdcc5dadcfcd47e4c9582d709c",
   "assets/logo-admin.png": "aa45354a89500a24e2f481f6d7d3ee4a",
   "assets/logo.png": "2eea126130fb32be9d28f407acbc25bb",
   "assets/monsters/acid-slime-face.webp": "f2f81ab7dbded9d2017cdd9a690f3012",
@@ -1522,6 +1522,6 @@
   "fonts/f8.woff2": "6cc1ee17091d59eb93821c3594e8f38f",
   "fonts/f9.woff2": "070433480b7b645f69b543f284e386ce",
   "fonts/fonts.css": "1585a72a8d157b26cb424ab433fd4e19",
-  "index.html": "9fde68216826814bcbbd5bbcfdb11d72"
+  "index.html": "199eb7f157b322b094105f3f0499af0d"
  }
 }

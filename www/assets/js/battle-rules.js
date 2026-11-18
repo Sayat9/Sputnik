@@ -149,7 +149,7 @@
       if (p.dt === "fire" && B.fireOn) B.fireOn(tgt);                                    // любой огонь по рою паучат уничтожает его
       if (tgt.vuln.includes(p.dt) || hookAny(tgt, "vulnerable", { dt: p.dt }) || (tgt.hero && D.race[tgt.race] && (D.race[tgt.race].vuln || []).includes(p.dt))) { v *= 2; notes.push("уязвим"); }
       else if (p.dt === "radiant" && tgt.mon && typeof monCat === "function" && monCat(tgt.mon) === "undead") { v = Math.ceil(v * 1.5); notes.push("нежить: свет жжёт"); }          // 12.11 (автор): нежить получает повышенный урон от света (×1,5 — черновик)
-      if (tgt.resist.includes(p.dt) || hookAny(tgt, "resist", { dt: p.dt }) || (has(tgt, "faithwall") && PHYS_DT.includes(p.dt))) {          // «Стена веры» мраморного стража (03.11)
+      if (tgt.resist.includes(p.dt) || hookAny(tgt, "resist", { dt: p.dt }) || ((has(tgt, "faithwall") || has(tgt, "petrified")) && PHYS_DT.includes(p.dt))) {          // «Стена веры» мраморного стража (03.11)
       v = Math.floor(v / 2); notes.push("сопротивление"); }
       const exd = tgt.extraTaken && tgt.extraTaken[p.dt]; if (exd) { const xd = B.parseDice(exd), xr = roll(xd.n, xd.s).total; v += xr; notes.push(`чувствительность +${xr}`); }       // «Боится огня», «Холод жжёт»
       v += hookSum(tgt, "dmgFlat", { dt: p.dt, melee: o.melee, o, src, v, memo });
@@ -296,6 +296,8 @@
     { const tn = has(att, "taunted"); if (tn && tn.data && tn.data.by && tgt.id !== tn.data.by && att.side === "hero") ctx.dis.push("насмешка"); }          // героя раздразнили: по другим целям — с помехой (угроза, 03.11)
     if (B.S && B.S.dust && B.S.dust.some(d => d.until >= B.S.round && footprint(tgt).some(([x, y]) => d.cells.some(([cx, cy]) => cx === x && cy === y)))) ctx.dis.push("пыльная завеса");
     for (const a of alliesOf(att)) hookAll(a, "attackAura", { ally: a, att, tgt, ctx });          // «Пока король жив»
+    for (const a of alliesOf(tgt)) if (a !== tgt) hookAll(a, "guardAura", { att, tgt, ctx });          // «Хранитель порога» гаргульи-стража (18.11)
+    if (att.riddleDis) ctx.dis.push("загадка сфинкса");
     const ha = tinfo(att.x, att.y), ht = tinfo(tgt.x, tgt.y);                                              // высота: с возвышенности бьют точнее, и по стоящему на ней тоже (решение автора, черновик)
     const big = u => (u.w || u.size || 1) * (u.h || u.size || 1) >= 2;          // 17.11 (автор): большим (2×1, 1×2) и очень большим (2×2+) высота бонуса не даёт
     if (ha && !big(att) && (ha.elevated || (ha.obstacle && att.leaper))) ctx.mods.push({ l: "Высота (атакует сверху)", v: B.D.height.att });
@@ -372,8 +374,9 @@
     if (nat === 1 && att.side === "hero" && B.wearWeapon) B.wearWeapon(att, atk);
     if (nat === 1 && att.side === "hero" && atk.kind === "melee" && !ctx.dmgOnly) addStatus(att, "fumbled", { k: 2, when: "end" });          // крит. промах в ближнем бою: −3 к следующей атаке                                  // критический промах: оружие теряет 1 прочности
     if (nat === 20 && att.side === "mon" && tgt.side === "hero" && B.wearArmor) B.wearArmor(tgt, 1);                // натуральная 20 монстра: броня носителя теряет 1 прочности
-    const hit = ctx.autoHit || nat === 20 || (nat !== 1 && total >= ctx.ac), crit = nat === 20 || (hit && ctx.autoCrit) || (hit && ctx.critMin && nat >= ctx.critMin);          // critMin — расширенный диапазон крита (эссенция духа смерти)
+    const hit = ctx.autoHit || nat === 20 || (nat !== 1 && total >= ctx.ac), crit0 = nat === 20 || (hit && ctx.autoCrit) || (hit && ctx.critMin && nat >= ctx.critMin), crit = crit0 && !hookAny(tgt, "critGuard", { att, atk });          // «Никого внутри» (пустой доспех): первый крит за бой — обычное попадание          // critMin — расширенный диапазон крита (эссенция духа смерти)
     const res = { hit, crit, nat, total, ac: ctx.ac, dealt: 0, parried: false, killed: false, att, tgt, atk, ctx, post: [] };
+    if (att.riddleDis) att.riddleDis = false;          // помеха от загадки — только на первую атаку
     const fused = has(tgt, "fuse");                                                    // бомба горит в руке: любое попадание по подрывнику взрывает её, даже если он упадёт
     const touchDouble = () => { if (tgt.kind === "double") { const ow = B.byId(tgt.owner); if (ow) hookAll(ow, "doubleAttacked", { att, double: tgt, res }); } };          // «Подмена»: кто тронул двойника, тот обманут
     const g = ui(); if (g) await g.animAttack(att, tgt, atk, animKind(atk));
@@ -451,6 +454,7 @@
     if (abil === "wis" && has(u, "mourned")) dis.push("плач по живым");
     if ((abil === "str" || abil === "dex") && has(u, "iced")) dis.push("обледенение");          // дубина Грольфа
     for (const a of alliesOf(u)) hookAll(a, "saveAura", { ally: a, u, abil, ctx });                // «Под защитой духов», «Голос старейшины»
+    for (const e of enemiesOf(u)) hookAll(e, "foeSaveAura", { u, abil, ctx });          // «Сладкий аромат» цветка-сирены (18.11)
     if (abil === "dex" && o.from && B.wallCover) { const w = B.wallCover(o.from, u); if (w) mods.push({ l: "Живая стена", v: 2 }); }
     return ctx;
   }

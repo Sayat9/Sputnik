@@ -3723,5 +3723,229 @@
     for (const [x, y] of opts) if (B.canStand(u, x, y) && !B.occupant(x, y)) { u.x = x; u.y = y; u.startCell = [x, y]; break; }
     if (!sh.guard && !t.pass.includes("body:shadow-victim")) t.pass.push("body:shadow-victim");
   };
+  /* ===== 4 этаж — Башня: новые монстры 9–6 класса (18.11; числа — черновик) ===== */
+  Object.assign(D.essCd, { "creeping-vine": 3, "candle-stub": 2, "dust-moth": 3, "wall-bug": 3, harpy: 3, gargoyle: 3, "centaur-raider": 2, flytrap: 3, "living-tome": 3, "empty-armor": 4, "sand-sentinel": 99,
+    "elder-harpy": 3, "gargoyle-guard": 3, "centaur-knight": 3, "mech-horse": 3, "siren-flower": 3, "glass-golem": 3, "elder-gargoyle": 3, "steam-bull": 2, "treant-warden": 3, "centaur-chief": 5, sphinx: 4 });
+  Object.assign(D.monTune, { "creeping-vine": { role: "brute", focus: ["nearest"], noFlee: true, hide: true, still: true }, "candle-stub": { role: "skirmisher", focus: ["nearest"] }, "dust-moth": { role: "skirmisher", focus: ["weak", "nearest"] },
+    "wall-bug": { role: "brute", focus: ["nearest"] }, harpy: { role: "skirmisher", focus: ["weak", "nearest"] }, gargoyle: { role: "brute", focus: ["nearest"], noFlee: true, hide: true, still: true },
+    "centaur-raider": { role: "ranged", keep: 3, kite: true, focus: ["weak", "nearest"] }, flytrap: { role: "guardian", leash: 0, focus: ["nearest"], noFlee: true }, "living-tome": { role: "ranged", keep: 2, focus: ["weak"] },
+    "empty-armor": { role: "brute", focus: ["nearest"], noFlee: true }, "sand-sentinel": { role: "brute", focus: ["nearest"], noFlee: true }, "elder-harpy": { role: "skirmisher", focus: ["weak", "nearest"], noFlee: true },
+    "gargoyle-guard": { role: "brute", focus: ["attacker", "nearest"], noFlee: true }, "centaur-knight": { role: "brute", focus: ["nearest"], noFlee: true }, "mech-horse": { role: "brute", focus: ["weak", "nearest"], noFlee: true },
+    "siren-flower": { role: "guardian", leash: 0, focus: ["nearest"], noFlee: true }, "glass-golem": { role: "brute", focus: ["nearest"], noFlee: true }, "elder-gargoyle": { role: "brute", focus: ["nearest"], noFlee: true },
+    "steam-bull": { role: "brute", focus: ["cluster", "nearest"], noFlee: true }, "treant-warden": { role: "brute", focus: ["cluster", "nearest"], noFlee: true }, "centaur-chief": { role: "ranged", keep: 3, kite: true, focus: ["weak"], noFlee: true },
+    sphinx: { role: "brute", focus: ["nearest"], noFlee: true } });
+  Object.assign(D.status, {
+    platedrop: { name: "Сброс пластин", good: true, ico: '<path d="M6 4h12v6l-6 10-6-10z"/>', desc: "Защита +3, Уворот −2." },
+    waystand: { name: "Страж на пути", good: true, ico: '<path d="M12 3l7 3v6c0 5-3 8-7 9-4-1-7-4-7-9V6z"/>', desc: "Защита +2, пока рядом стоит страж." },
+    stoning: { name: "Каменеет", ico: '<rect x="6" y="6" width="12" height="12" rx="2"/>', desc: "Скорость 0. Ещё один взгляд — окаменеет." },
+    petrified: { name: "Окаменел", ico: '<rect x="5" y="5" width="14" height="14" rx="1"/><path d="M5 12h14M12 5v14"/>', desc: "Не действует; физический урон по нему вдвое меньше." },
+    pollen: { name: "Зачарован пыльцой", ico: '<circle cx="12" cy="12" r="3"/><path d="M12 3v4M12 17v4M3 12h4M17 12h4"/>', desc: "В начале своего хода идёт к цветку на 2 клетки и теряет действие." },
+    steam: { name: "Давление пара", good: true, ico: '<path d="M8 20c-2-3 2-4 0-7M12 20c-2-3 2-4 0-7M16 20c-2-3 2-4 0-7"/>', desc: "Каждое давление — +1 к урону атак." } });
+  const f4has = (u, id) => (u.pass || []).includes(id);
+  const nearWall = u => footprint(u).some(([x, y]) => [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, -1], [1, -1], [-1, 1]].some(([dx, dy]) => { if (footprint(u).some(([fx, fy]) => fx === x + dx && fy === y + dy)) return false; if (!B.inB(x + dx, y + dy)) return true; const t = B.tinfo(x + dx, y + dy); return !!(t && (t.obstacle || t.block)); }));
+  const stepsToward = async (t, to, n) => { let moved = 0;
+    for (let i = 0; i < n && dist(t, to) > 1; i++) { const dx = Math.sign(to.x - t.x), dy = Math.sign(to.y - t.y); let done = false;
+      for (const [a, b] of [[dx, dy], [dx, 0], [0, dy]].filter(([a, b]) => a || b)) { const nx = t.x + a, ny = t.y + b; if (B.canStand(t, nx, ny)) { const from = [t.x, t.y]; t.x = nx; t.y = ny; moved++; const g = ui(); if (g) await g.animMove(t, from, [nx, ny]); B.breakGrapples(t); await B.terrainEnter(t); done = true; break; } }
+      if (!done || !alive(t) || t.down) break; }
+    return moved; };
+  B.f4Steps = stepsToward;
+  // конус: клетки в r от u в сторону цели (ширина растёт с расстоянием)
+  const coneCells = (u, tx, ty, r) => { const [cx, cy] = [u.x + ((u.w || 1) - 1) / 2, u.y + ((u.h || 1) - 1) / 2], vx = Math.sign(tx - cx), vy = Math.sign(ty - cy), out = [];
+    if (!vx && !vy) return out; const len = Math.hypot(vx, vy);
+    for (const [x, y] of B.cellsWithin(u, r)) { if (footprint(u).some(([a, b]) => a === x && b === y)) continue; const dx = x - cx, dy = y - cy, along = (dx * vx + dy * vy) / len, side = Math.abs(dx * vy - dy * vx) / len; if (along > 0 && side <= along * 0.75 + 0.01) out.push([x, y]); }
+    return out; };
+  B.coneCells = coneCells;
+  const coneSpec = (u, name, r) => ({ type: "cell", prompt: `${name}: в какую сторону (конус ${r} клетки)`, cells: B.cellsWithin(u, 1).filter(([x, y]) => !footprint(u).some(([a, b]) => a === x && b === y)), kind: "area" });
+  const coneFoes = (u, c, r) => { const cells = coneCells(u, c[0], c[1], r); return live().filter(o => alive(o) && !o.down && !o.isObj && o.side !== u.side && crIn(o, cells)); };
+  const bestCone = (u, r) => { let best = null; for (const c of B.cellsWithin(u, 1)) { const n = coneFoes(u, c, r).length, bad = live().filter(o => o.side === u.side && o !== u && crIn(o, coneCells(u, c[0], c[1], r))).length; if (n && (!best || n - bad > best.n)) best = { cell: c, n: n - bad }; } return best && best.n > 0 ? best : null; };
+  const onceO = (o, k) => { if (!o || o[k]) return false; o[k] = true; return true; };
+
+  /* Ползучая лоза */
+  P["creeping-vine"] = { async reactEnter(u, t) { if (!alive(u) || u.down || t.side === u.side || !B.S || u.vineRound === B.S.round || has(t, "restrained")) return; u.vineRound = B.S.round;
+      const sv = await save(t, "str", dcOf(u, "str"), "Цепкие побеги", [], u); if (!sv.ok) { addStatus(t, "restrained", { k: 1, when: "end" }); fx(t, "опутан", "bad"); log(`${t.name}: побеги лозы цепляются за ноги.`, "bad"); } } };
+  A["creeping-vine"] = { time: "action", tgt(u) { return specUnit(u, "Оплести: цель в 2 клетках", foesIn(u, 2), B.cellsWithin(u, 2)); }, can(u) { return foesIn(u, 2).length ? true : "нет цели в 2 клетках"; },
+    async run(u, pk, ctl) { const t = pk.unit; if (!t) return false; ctl.commit(); const sv = await save(t, "str", dcOf(u, u.side === "hero" ? "dex" : "str"), "Оплести", [], u);
+      if (!sv.ok && alive(t)) { addStatus(t, "restrained", { k: Infinity, data: durEnd(t, 1) }); await stepsToward(t, u, 1); fx(t, "оплетён", "bad"); } return true; },
+    ai(u) { const ts = foesIn(u, 2).filter(t => !has(t, "restrained")); return ts.length ? { unit: ts[0], score: 8 } : null; } };
+  /* Свечной огарок */
+  P["candle-stub"] = { turnStart(u) { if (!has(u, "lit")) addStatus(u, "lit", { k: Infinity }); }, dmgBonusVs(u, { o }) { return o && o.ctx && onceO(o, "candleFire") ? 1 : 0; } };
+  P["body:candle-stub"] = { resist(u, { dt }) { return dt === "fire"; } };
+  A["candle-stub"] = { time: "action", tgt(u) { return specUnit(u, "Капля воска: цель в 4 клетках", foesIn(u, 4), B.cellsWithin(u, 4)); }, can(u) { return foesIn(u, 4).length ? true : "нет цели в 4 клетках"; },
+    async run(u, pk, ctl) { const t = pk.unit; if (!t) return false; ctl.commit(); const sv = await save(t, "dex", dcOf(u, "dex"), "Капля воска", [], u);
+      if (!sv.ok && alive(t)) { addStatus(t, "slowed", { k: Infinity, data: { add: -2, ...durEnd(t, 1) } }); fx(t, "в воске", "bad"); } return true; },
+    ai(u) { const ts = foesIn(u, 4).filter(t => !has(t, "slowed")); return ts.length ? { unit: ts[0], score: 6 } : null; } };
+  /* Пыльная моль */
+  P["dust-moth"] = { attackMods(u, ctx) { const t = ctx.tgt; if (t && (has(t, "burning") || (B.S && B.S.dark && B.lightAt(t.x, t.y)))) ctx.mods.push({ l: "Тянется к огню", v: 2 }); } };
+  A["dust-moth"] = { time: "bonus", tgt() { return { type: "self" }; },
+    can(u) { if (u.side === "mon") return B.S.torch && B.heroes().some(h => alive(h) && dist(h, u) <= 1) ? true : "рядом нет света"; return [u, ...alliesOf(u).filter(a => dist(a, u) <= 1)].some(a => has(a, "burning")) || B.cellsWithin(u, 1).some(([x, y]) => B.terrain(x, y) === "fire") ? true : "рядом нет огня"; },
+    async run(u, pk, ctl) { ctl.commit();
+      if (u.side === "mon") { B.S.torch = false; B.S.torchLeft = 0; B.S.torchFixed = false; log(`${u.name} гасит свет: тьма.`, "bad"); fx(u, "тьма", "bad"); ui() && ui().refresh(); return true; }
+      for (const a of [u, ...alliesOf(u).filter(a => dist(a, u) <= 1)]) removeStatus(a, "burning");
+      for (const [x, y] of B.cellsWithin(u, 1)) if (B.terrain(x, y) === "fire") B.S.cells[y][x] = null; fx(u, "огонь погас", "good"); ui() && ui().refresh(); return true; },
+    ai(u) { return u.side === "mon" && B.S.torch && B.S.dark && B.heroes().some(h => alive(h) && dist(h, u) <= 1) ? { score: 9 } : null; } };
+  /* Каменный клоп */
+  P["wall-bug"] = { protBonus: 2 };
+  { const prev = B.protAura; B.protAura = t => (prev ? prev(t) : 0) + (f4has(t, "wall-bug") && nearWall(t) ? 2 : 0); }
+  const leapTargets = (u, r) => foesIn(u, r).filter(t => B.freeCellsNear(t, 1, u).some(c => distCell(u, c[0], c[1]) <= r));
+  A["wall-bug"] = { time: "action", tgt(u) { return specUnit(u, "Выстрелить из щели: цель в 4 клетках", leapTargets(u, 4), B.cellsWithin(u, 4)); },
+    can(u) { if (!nearWall(u)) return "нужно стоять у стены или препятствия"; const a = atkFor(u, "melee"); if (!a) return "нужна атака ближнего боя"; return leapTargets(u, 4).length ? true : "нет цели в 4 клетках"; },
+    async run(u, pk, ctl) { const t = pk.unit, a = atkFor(u, "melee"); if (!t || !a) return false; const c = B.freeCellsNear(t, 1, u).sort((p, q) => distCell(u, p[0], p[1]) - distCell(u, q[0], q[1]))[0]; if (!c) return false;
+      await B.teleport(u, c[0], c[1]); fx(u, "из щели", "good"); const r = await B.doAttack(u, t, a, { onCommit: () => { B.commitAttack(u, a, t); ctl.commit(); } }); if (r && r.cancelled) ctl.commit(); return true; },
+    ai(u) { if (!nearWall(u)) return null; const ts = leapTargets(u, 4).filter(t => dist(u, t) > 1); return ts.length ? { unit: ts[0], score: 9 } : null; } };
+  /* Гарпия */
+  P.harpy = { attackMods(u, ctx) { const t = ctx.tgt; if (!t) return; const n = Math.min(2, alliesOf(u).filter(a => a !== u && alive(a) && !a.down && dist(a, t) <= 1).length); if (n) ctx.mods.push({ l: "Стайная охота", v: n }); } };
+  A.harpy = { time: "action", tgt(u) { return coneSpec(u, "Перья-лезвия", 3); }, can(u) { return B.cellsWithin(u, 1).some(c => coneFoes(u, c, 3).length) ? true : "никого в конусе"; },
+    async run(u, pk, ctl) { const c = pk.cell; if (!c) return false; const ts = coneFoes(u, c, 3); if (!ts.length) return false; ctl.commit(); ui() && ui().banner("Перья-лезвия");
+      for (const t of ts) await saveDmg(u, t, "dex", dcOf(u, "dex"), [2, 4, u.side === "hero" ? 0 : 1], "slash", "Перья-лезвия", ["splash"]); return true; },
+    ai(u) { const b = bestCone(u, 3); return b && (b.n >= 2 || Math.random() < .3) ? { cell: b.cell, score: 5 + b.n * 3 } : null; } };
+  /* Гаргулья и гаргулья-страж: каменная кожа */
+  const stoneSkin = { dmgFlat(u, { dt, v }) { if (!(v > 0)) return 0; if (dt === "bludgeon") return 2; return ["slash", "pierce", "pierce"].includes(dt) ? -Math.min(2, v) : 0; } };
+  P.gargoyle = stoneSkin; P["body:gargoyle-guard"] = stoneSkin;
+  const dropTargets = (u, r) => foesIn(u, r).filter(t => B.freeCellsNear(t, 1, u).length);
+  A.gargoyle = { time: "action", tgt(u) { return specUnit(u, "Падение камнем: цель в 3 клетках", dropTargets(u, 3), B.cellsWithin(u, 3)); },
+    can(u) { const a = atkFor(u, "melee"); if (!a) return "нужна атака ближнего боя"; return dropTargets(u, 3).length ? true : "нет цели в 3 клетках"; },
+    async run(u, pk, ctl) { const t = pk.unit, a = atkFor(u, "melee"); if (!t || !a) return false; if (dist(u, t) > 1) { const c = B.freeCellsNear(t, 1, u).sort((p, q) => distCell(u, p[0], p[1]) - distCell(u, q[0], q[1]))[0]; if (!c) return false; await B.teleport(u, c[0], c[1]); }
+      const r = await B.doAttack(u, t, a, { extra: [{ n: 1, s: 8, b: 0, dt: "bludgeon", label: "Падение камнем", critDouble: true }], onCommit: () => { B.commitAttack(u, a, t); ctl.commit(); }, rider: async res => {
+        const tt = res.tgt; if (!alive(tt) || tt.down) return; const sv = await save(tt, "str", dcOf(u, "str"), "Падение камнем", [], u); if (!sv.ok) { addStatus(tt, "prone", { k: Infinity }); fx(tt, "сбит с ног", "bad"); } } });
+      return !(r && r.cancelled); },
+    ai(u) { const ts = dropTargets(u, 3); return ts.length ? { unit: ts[0], score: 9 } : null; } };
+  /* Кентавр-разбойник */
+  P["centaur-raider"] = { dmgBonusVs(u, { o }) { const a = o && o.ctx && o.ctx.atk; return a && a.kind === "ranged" && (u.t && (u.t.moved || 0) >= 2) && onceO(o, "raiderRide") ? 2 : 0; } };
+  A["centaur-raider"] = { time: "action",
+    tgt(u) { const a = atkFor(u, "ranged"); return specUnit(u, "Залп на отходе: в кого стрелять (сначала отход на 3 клетки)", a ? B.attackTargets(u, a).filter(t => t.side !== u.side) : [], a ? B.rangeCells(u, a) : []); },
+    can(u) { const a = atkFor(u, "ranged"); if (!a) return "нужен лук и стрелы"; return B.attackTargets(u, a).some(t => t.side !== u.side) ? true : "нет целей"; },
+    async run(u, pk, ctl) { const t = pk.unit, a = atkFor(u, "ranged"); if (!t || !a) return false;
+      const map = B.pathMap(u, 3, {}), cands = [...map.values()].filter(v => v.cost <= 3 && B.canStand(u, v.x, v.y)), es = enemiesOf(u).filter(e => alive(e) && !e.down);
+      const far = v => Math.min(99, ...es.map(e => dist(e, { ...u, x: v.x, y: v.y, id: u.id }))); cands.sort((p, q) => far(q) - far(p));
+      const dest = cands[0]; if (dest && (dest.x !== u.x || dest.y !== u.y)) { const mv = await B.moveAlong(u, B.pathTo(map, dest.x, dest.y), { noProvoke: true }); if (u.t) u.t.moved = (u.t.moved || 0) + (mv ? mv.spent : 0); }
+      if (!alive(u) || u.down || !alive(t)) { ctl.commit(); return true; }
+      const r = await B.doAttack(u, t, a, { onCommit: () => { B.commitAttack(u, a, t); ctl.commit(); } }); if (r && r.cancelled) ctl.commit(); return true; },
+    ai(u) { const a = atkFor(u, "ranged"); if (!a) return null; const near = enemiesOf(u).some(e => alive(e) && !e.down && dist(e, u) <= 1), ts = B.attackTargets(u, a).filter(t => t.side !== u.side); return near && ts.length ? { unit: ts[0], score: 12 } : null; } };
+  /* Гигантская мухоловка */
+  P.flytrap = { dmgBonusVs(u, { tgt, o }) { const g = tgt && has(tgt, "grappled"); return g && g.data && g.data.by === u.id && o && o.ctx && onceO(o, "flytrapSap") ? roll(1, 6).total : 0; } };
+  P["body:flytrap"] = { immune(u, { id }) { return id === "prone"; },
+    afterAttack(u, ctx) { const r = ctx.res, t = ctx.tgt; if (r && r.hit && t && alive(t) && !t.down && ctx.atk && /Пасть/.test(ctx.atk.n) && !has(t, "grappled")) { addStatus(t, "grappled", { k: Infinity, data: { by: u.id } }); fx(t, "схвачен пастью", "bad"); } },
+    async turnStartAsync(u) { for (const t of live().filter(o => alive(o) && o.side !== u.side)) { const g = has(t, "grappled"); if (g && g.data && g.data.by === u.id) { if (dist(t, u) > 2) { removeStatus(t, "grappled"); continue; } await B.applyDamage(u, t, [{ v: roll(1, 8).total, dt: "acid", label: "Пищеварительный сок" }], { src: u }); } } } };
+  A.flytrap = { time: "action", tgt() { return { type: "none" }; }, can(u) { return foesIn(u, 3).length ? true : "нет врагов в 3 клетках"; },
+    async run(u, pk, ctl) { ctl.commit(); ui() && ui().banner("Сладкий нектар"); const ts = foesIn(u, 3).filter(t => dist(t, u) > 1);
+      for (const t of ts) { const sv = await save(t, "wis", dcOf(u, u.side === "hero" ? "cha" : "con"), "Сладкий нектар", [], u); if (!sv.ok && alive(t) && !t.down) { const n = await stepsToward(t, u, 2); if (n) fx(t, "тянется к нектару", "bad"); } } return true; },
+    ai(u) { const n = foesIn(u, 3).filter(t => dist(t, u) > 1).length; return n ? { score: 6 + n * 2 } : null; } };
+  /* Живой фолиант */
+  P["living-tome"] = { saveMods(u, ctx) { if (ctx && (ctx.abil === "int" || ctx.abil === "wis")) ctx.mods.push({ l: "Начитанный", v: 2 }); } };
+  P["body:living-tome"] = { vulnerable(u, { dt }) { return dt === "fire"; } };
+  A["living-tome"] = { time: "action", tgt(u) { const ts = foesIn(u, 3); return { type: "units", prompt: "Бумажный вихрь: до 3 врагов в 3 клетках", units: ts.map(x => x.id), cells: B.cellsWithin(u, 3), min: 1, max: 3, kind: "attack" }; },
+    can(u) { return foesIn(u, 3).length ? true : "нет врагов в 3 клетках"; },
+    async run(u, pk, ctl) { const ts = (pk.units || []).filter(x => alive(x) && !x.down).slice(0, 3); if (!ts.length) return false; ctl.commit(); ui() && ui().banner("Бумажный вихрь");
+      for (const t of ts) { const sv = await save(t, "dex", dcOf(u, "int"), "Бумажный вихрь", [], u); if (!sv.ok && alive(t)) await B.applyDamage(u, t, [{ v: roll(1, 6).total + amod(u.abil.int), dt: "slash", label: "Бумажный вихрь" }], { src: u }); } return true; },
+    ai(u) { const ts = foesIn(u, 3); return ts.length >= 2 ? { units: ts.slice(0, 3), score: 6 + ts.length * 2 } : null; } };
+  /* Пустой доспех */
+  P["empty-armor"] = { critGuard(u) { if (u.armorCritUsed) return false; u.armorCritUsed = true; log(`${u.name}: удар проходит сквозь пустоту — не критический.`, "good"); fx(u, "никого внутри", "good"); return true; },
+    immune(u, { id }) { return id === "poisoned"; }, dmgFlat(u, { dt, v }) { return dt === "poison" ? -v : 0; }, acBonus(u) { return has(u, "platedrop") ? -2 : 0; } };
+  A["empty-armor"] = { time: "bonus", tgt() { return { type: "self" }; }, can(u) { return has(u, "platedrop") ? "пластины уже сброшены" : true; },
+    async run(u, pk, ctl) { ctl.commit(); addStatus(u, "platedrop", { k: Infinity, data: { prot: 3, ...durEnd(u, 2) } }); fx(u, "сброс пластин", "good"); log(`${u.name} сбрасывает пластины: Защита +3, Уворот −2.`, "skill"); return true; },
+    ai(u) { return !has(u, "platedrop") && enemiesOf(u).some(e => alive(e) && !e.down && dist(e, u) <= 1) ? { score: 4 } : null; } };
+  /* Песочный часовой */
+  P["sand-sentinel"] = { onDamaged(u, { src, o }) { if (!src || src.side === u.side || !o || !o.ctx || !o.ctx.melee) return; addStatus(src, "slowed", { k: 1, when: "end", data: { add: -1 } }); fx(src, "песок в шестернях", "bad"); },
+    turnStart(u) { if (!B.S) return; (u.hpLog ||= []).push({ r: B.S.round, hp: u.hp }); if (u.hpLog.length > 3) u.hpLog.shift(); } };
+  A["sand-sentinel"] = { time: "bonus", tgt() { return { type: "self" }; }, can(u) { const h = (u.hpLog || []).find(x => x.r === B.S.round - 1) || (u.hpLog || [])[0]; return h && h.hp > u.hp ? true : "за раунд ОЗ не терял"; },
+    async run(u, pk, ctl) { const h = (u.hpLog || []).find(x => x.r === B.S.round - 1) || (u.hpLog || [])[0]; if (!h || h.hp <= u.hp) return false; ctl.commit(); const n = h.hp - u.hp; B.heal(u, n, u); fx(u, `часы перевёрнуты +${n}`, "good"); log(`${u.name} переворачивает часы: +${n} ОЗ.`, "skill"); return true; },
+    ai(u) { const h = (u.hpLog || []).find(x => x.r === B.S.round - 1) || (u.hpLog || [])[0]; return h && h.hp - u.hp >= Math.max(6, u.maxHp * 0.2) ? { score: 9 } : null; } };
+  /* Древняя гарпия */
+  P["elder-harpy"] = {};          // «Прижать к земле»: встать рядом с ней стоит всего движения (обёртка B.standCost)
+  { const prevStand = B.standCost; B.standCost = u => { const base = prevStand(u); return enemiesOf(u).some(e => alive(e) && !e.down && f4has(e, "elder-harpy") && dist(e, u) <= 1) ? Math.max(base, speedOf(u)) : base; }; }
+  A["elder-harpy"] = { time: "action", tgt(u) { return specUnit(u, "Сорвать с места: цель в 4 клетках", dropTargets(u, 4), B.cellsWithin(u, 4)); }, can(u) { return dropTargets(u, 4).length ? true : "нет цели в 4 клетках"; },
+    async run(u, pk, ctl) { const t = pk.unit; if (!t) return false; ctl.commit(); if (dist(u, t) > 1) { const c = B.freeCellsNear(t, 1, u).sort((p, q) => distCell(u, p[0], p[1]) - distCell(u, q[0], q[1]))[0]; if (c) await B.teleport(u, c[0], c[1]); }
+      const sv = await save(t, "str", dcOf(u, "dex"), "Сорвать с места", [], u);
+      if (!sv.ok && alive(t)) { await B.applyDamage(u, t, [{ v: roll(2, 6).total, dt: "bludgeon", label: "Сорвать с места" }], { src: u }); if (alive(t) && !t.down) { await B.push(t, u.x, u.y, 1); addStatus(t, "prone", { k: Infinity }); fx(t, "сброшен", "bad"); } } return true; },
+    ai(u) { const ts = dropTargets(u, 4).filter(t => !has(t, "prone")); return ts.length ? { unit: ts[0], score: 10 } : null; } };
+  /* Гаргулья-страж */
+  P["gargoyle-guard"] = { guardAura(a, { att, tgt, ctx }) { if (a !== tgt && a.side === tgt.side && alive(a) && !a.down && dist(a, tgt) <= 1) ctx.mods.push({ l: "Хранитель порога", v: -2 }); } };
+  A["gargoyle-guard"] = { time: "bonus", tgt(u) { const al = alliesOf(u).filter(a => alive(a) && !a.down && dist(a, u) <= 3 && a !== u); return specUnit(u, "Встать на пути: к какому союзнику", al, B.cellsWithin(u, 3), "heal"); },
+    can(u) { return alliesOf(u).some(a => alive(a) && !a.down && a !== u && dist(a, u) <= 3) ? true : "нет союзника в 3 клетках"; },
+    async run(u, pk, ctl) { const a = pk.unit; if (!a) return false; ctl.commit(); if (dist(u, a) > 1) { const c = B.freeCellsNear(a, 1, u).sort((p, q) => distCell(u, p[0], p[1]) - distCell(u, q[0], q[1]))[0]; if (c) await B.teleport(u, c[0], c[1]); }
+      addStatus(a, "waystand", { k: Infinity, data: { prot: 2, endAtStartOf: u.id } }); fx(a, "под защитой", "good"); log(`${u.name} встаёт рядом с ${a.name}.`, "skill"); return true; },
+    ai(u) { const al = alliesOf(u).filter(a => alive(a) && !a.down && a !== u && dist(a, u) <= 3 && a.hp < a.maxHp * 0.6); return al.length ? { unit: al[0], score: 6 } : null; } };
+  /* Кентавр-рыцарь */
+  const lanceOf = u => { const ls = B.attacksOf(u).filter(a => a.kind === "melee" && !a.offhand && (u.side === "mon" ? /Копь/.test(a.n) : a.w && /spear|pike/.test(a.w.id || ""))); return ls[0] || null; };
+  const lanceLine = (u, t) => { const dx = Math.sign(t.x - u.x), dy = Math.sign(t.y - u.y); for (const [x, y] of footprint(t)) { const o = B.occupant(x + dx, y + dy); if (o && o !== t && o.side !== u.side && alive(o) && !o.down) return o; } return null; };
+  P["centaur-knight"] = {};
+  A["centaur-knight"] = { time: "action", tgt(u) { const a = lanceOf(u); return specUnit(u, "Пронзающий удар: первая цель на линии", a ? B.attackTargets(u, a).filter(t => t.side !== u.side) : [], B.cellsWithin(u, 3)); },
+    can(u) { const a = lanceOf(u); if (!a) return "нужно копьё или пика"; return B.attackTargets(u, a).some(t => t.side !== u.side) ? true : "нет цели"; },
+    async run(u, pk, ctl) { const t = pk.unit, a = lanceOf(u); if (!t || !a) return false; const t2 = lanceLine(u, t);
+      const r = await B.doAttack(u, t, a, { onCommit: () => { B.commitAttack(u, a, t); ctl.commit(); } }); if (r && r.cancelled) return false;
+      if (t2 && alive(t2) && !t2.down) await B.doAttack(u, t2, { ...a, dmgMult: 0.5 }, { free: true }); return true; },
+    ai(u) { const a = lanceOf(u); if (!a) return null; const ts = B.attackTargets(u, a).filter(t => t.side !== u.side && lanceLine(u, t)); return ts.length ? { unit: ts[0], score: 12 } : null; } };
+  /* Механический конь */
+  P["mech-horse"] = { acBonus(u, ctx) { if (ctx && ctx.o && ctx.o.reaction && ctx.dis) ctx.dis.push("заводной бег"); return 0; } };
+  P["body:mech-horse"] = { vulnerable(u, { dt }) { return dt === "lightning"; } };
+  const backFoes = u => enemiesOf(u).filter(t => alive(t) && !t.down && B.shadowBack(t, u));
+  A["mech-horse"] = { time: "action", tgt(u) { return specUnit(u, "Удар копытами назад: цель за спиной", backFoes(u), B.cellsWithin(u, 1)); }, can(u) { return backFoes(u).length ? true : "за спиной никого"; },
+    async run(u, pk, ctl) { const t = pk.unit; if (!t) return false; ctl.commit(); const sv = await saveDmg(u, t, "dex", dcOf(u, "str"), [2, 8, amod(u.abil.str)], "bludgeon", "Удар копытами назад");
+      if (!sv.ok && alive(t) && !t.down) await B.push(t, u.x, u.y, 2); return true; },
+    ai(u) { const ts = backFoes(u); return ts.length ? { unit: ts[0], score: 11 } : null; } };
+  /* Цветок-сирена */
+  P["siren-flower"] = { foeSaveAura(e, { u, abil, ctx }) { if (abil === "wis" && alive(e) && !e.down && dist(e, u) <= 2) ctx.mods.push({ l: "Сладкий аромат", v: -2 }); } };
+  P["body:siren-flower"] = { immune(u, { id }) { return id === "prone"; }, vulnerable(u, { dt }) { return dt === "fire"; } };
+  P["body:pollen-charmed"] = { async turnStartAsync(u) { const st = has(u, "pollen"); if (!st) { u.pass = u.pass.filter(p => p !== "body:pollen-charmed"); return; } const src = B.byId(st.data.by);
+      removeStatus(u, "pollen"); u.pass = u.pass.filter(p => p !== "body:pollen-charmed"); if (src && alive(src)) await stepsToward(u, src, 2); if (u.t) u.t.action = 0; fx(u, "пыльца: идёт к цветку", "bad"); log(`${u.name} зачарован пыльцой и бредёт к цветку.`, "bad"); } };
+  A["siren-flower"] = { time: "action", tgt(u) { return specUnit(u, "Песнь пыльцы: цель в 4 клетках", foesIn(u, 4), B.cellsWithin(u, 4)); }, can(u) { return foesIn(u, 4).length ? true : "нет цели в 4 клетках"; },
+    async run(u, pk, ctl) { const t = pk.unit; if (!t) return false; ctl.commit(); const sv = await save(t, "wis", dcOf(u, "cha"), "Песнь пыльцы", [], u);
+      if (!sv.ok && alive(t)) { addStatus(t, "pollen", { k: Infinity, data: { by: u.id } }); if (!t.pass.includes("body:pollen-charmed")) t.pass.push("body:pollen-charmed"); fx(t, "зачарован", "bad"); } return true; },
+    ai(u) { const ts = foesIn(u, 4).filter(t => !has(t, "pollen") && dist(t, u) > 1); return ts.length ? { unit: ts[0], score: 9 } : null; } };
+  /* Стеклянный голем */
+  P["glass-golem"] = { onDamaged(u, { src, o }) { if (!src || src.side === u.side || !o || !o.ctx || !o.ctx.melee || !alive(src)) return; B.applyDamage(u, src, [{ v: roll(1, 6).total, dt: "slash", label: "Режущие осколки" }], { src: u, pure: true }); } };
+  P["body:glass-golem"] = { vulnerable(u, { dt }) { return dt === "bludgeon"; } };
+  A["glass-golem"] = { time: "action", tgt(u) { return coneSpec(u, "Преломить свет", 3); }, can(u) { return B.cellsWithin(u, 1).some(c => coneFoes(u, c, 3).length) ? true : "никого в конусе"; },
+    async run(u, pk, ctl) { const c = pk.cell; if (!c) return false; const ts = coneFoes(u, c, 3); if (!ts.length) return false; ctl.commit(); ui() && ui().banner("Преломить свет");
+      for (const t of ts) { const sv = await save(t, "con", dcOf(u, "cha"), "Преломить свет", [], u); if (!sv.ok && alive(t)) { addStatus(t, "blinded", { k: 1, when: "end" }); fx(t, "ослеплён", "bad"); } } return true; },
+    ai(u) { const b = bestCone(u, 3); return b ? { cell: b.cell, score: 6 + b.n * 3 } : null; } };
+  /* Древняя гаргулья */
+  P["elder-gargoyle"] = { immune(u, { id }) { return id === "frightened" || id === "charmed" || id === "pollen"; }, saveMods(u, ctx) { if (ctx && ctx.abil === "con") (ctx.adv ||= []).push("Вековой камень"); } };
+  A["elder-gargoyle"] = { time: "action", tgt(u) { return specUnit(u, "Окаменяющий взгляд: цель в 6 клетках", foesIn(u, 6), B.cellsWithin(u, 6)); }, can(u) { return foesIn(u, 6).length ? true : "нет цели в 6 клетках"; },
+    async run(u, pk, ctl) { const t = pk.unit; if (!t) return false; ctl.commit(); const sv = await save(t, "con", dcOf(u, "wis"), "Окаменяющий взгляд", [], u); if (sv.ok || !alive(t)) return true;
+      if (has(t, "stoning")) { removeStatus(t, "stoning"); addStatus(t, "petrified", { k: 2 }); addStatus(t, "paralyzed", { k: 2 }); fx(t, "окаменел", "bad"); log(`${t.name} обращается в камень!`, "bad"); }
+      else { addStatus(t, "stoning", { k: Infinity, data: durEnd(t, 1) }); addStatus(t, "slowed", { k: Infinity, data: { mult: 0, ...durEnd(t, 1) } }); fx(t, "каменеет", "bad"); } return true; },
+    ai(u) { const ts = foesIn(u, 6).filter(t => !has(t, "petrified")).sort((a, b) => (has(b, "stoning") ? 1 : 0) - (has(a, "stoning") ? 1 : 0)); return ts.length ? { unit: ts[0], score: has(ts[0], "stoning") ? 14 : 9 } : null; } };
+  /* Паровой бык */
+  const steamOf = u => { const s = has(u, "steam"); return s ? s.data.n || 0 : 0; };
+  const setSteam = (u, n) => { removeStatus(u, "steam"); if (n > 0) addStatus(u, "steam", { k: Infinity, data: { n } }); };
+  P["steam-bull"] = { turnStart(u) { setSteam(u, Math.min(3, steamOf(u) + 1)); }, dmgBonusVs(u, { o }) { return o && o.ctx && onceO(o, "steamDmg") ? steamOf(u) : 0; } };
+  P["body:steam-bull"] = { vulnerable(u, { dt }) { return dt === "lightning"; } };
+  B.steamOf = steamOf;
+  A["steam-bull"] = { time: "action", tgt(u) { return coneSpec(u, "Выпуск пара", 3); }, can(u) { if (!steamOf(u)) return "нет давления"; return B.cellsWithin(u, 1).some(c => coneFoes(u, c, 3).length) ? true : "никого в конусе"; },
+    async run(u, pk, ctl) { const c = pk.cell, n = steamOf(u); if (!c || !n) return false; const ts = coneFoes(u, c, 3); if (!ts.length) return false; ctl.commit(); setSteam(u, 0); ui() && ui().banner(`Выпуск пара (${n})`);
+      for (const t of ts) await saveDmg(u, t, "con", dcOf(u, "con"), [n, 6], "fire", "Выпуск пара", ["splash"]); return true; },
+    ai(u) { const n = steamOf(u); if (n < 2) return null; const b = bestCone(u, 3); return b && (b.n >= 2 || n >= 3) ? { cell: b.cell, score: 5 + b.n * n * 1.5 } : null; } };
+  /* Древень-страж */
+  P["treant-warden"] = { dmgFlat(u, { dt, v }) { if (dt === "fire" && v > 0 && B.S) u.sapBurn = B.S.round; return 0; },
+    turnStart(u) { const still = !u.lastMoved; u.lastMoved = false; if (!alive(u) || u.down || u.hp >= u.maxHp || !still || (u.sapBurn != null && B.S.round - u.sapBurn <= 1)) return; B.heal(u, 5, u); fx(u, "+5 сок жизни", "good"); },
+    onMoveStep(u) { u.lastMoved = true; } };
+  P["body:treant-warden"] = { vulnerable(u, { dt }) { return dt === "fire"; } };
+  A["treant-warden"] = { time: "action", tgt(u) { return { type: "cell", prompt: "Корни из-под земли: центр области 3×3", cells: B.cellsWithin(u, 5).filter(([x, y]) => B.inB(x, y)), kind: "attack", radius: 1 }; }, can(u) { return foesIn(u, 6).length ? true : "нет врагов рядом"; },
+    async run(u, pk, ctl) { const c = pk.cell; if (!c) return false; ctl.commit(); ui() && ui().banner("Корни из-под земли"); const cells = crBox(c[0], c[1], 1);
+      for (const o of live().filter(o => alive(o) && !o.isObj && o.side !== u.side && !o.down && crIn(o, cells))) { const sv = await saveDmg(u, o, "str", dcOf(u, "wis"), [2, 6], "bludgeon", "Корни из-под земли", ["splash"]); if (!sv.ok && alive(o) && !o.down) { addStatus(o, "restrained", { k: 1, when: "end" }); fx(o, "опутан корнями", "bad"); } } return true; },
+    ai(u) { const b = crBestBox(u, 5, 1, 1); return b ? { cell: b.cell, score: 6 + b.sc * 3 } : null; } };
+  /* Кентавр-вождь */
+  P["centaur-chief"] = { attackAura(a, { att, ctx }) { if (a !== att && alive(a) && !a.down && dist(a, att) <= 3 && ctx.atk && ctx.atk.kind === "ranged") { ctx.dmgPlus = (ctx.dmgPlus || 0) + 2; ctx.notes.push("знамя табуна +2"); } } };
+  const volleyAllies = u => [u, ...alliesOf(u).filter(a => a !== u && alive(a) && !a.down && dist(a, u) <= 6)].filter(a => atkFor(a, "ranged"));
+  A["centaur-chief"] = { time: "action", tgt(u) { const a = atkFor(u, "ranged"); return specUnit(u, "Залп табуна: цель", a ? B.attackTargets(u, a).filter(t => t.side !== u.side) : foesIn(u, 12), B.cellsWithin(u, 12)); },
+    can(u) { return volleyAllies(u).length ? (foesIn(u, 12).length ? true : "нет цели") : "ни у кого нет дальней атаки"; },
+    async run(u, pk, ctl) { const t = pk.unit; if (!t) return false; ctl.commit(); ui() && ui().banner("Залп табуна!");
+      for (const a of volleyAllies(u)) { if (!alive(t) || t.down) break; const at = atkFor(a, "ranged"); if (!at || !B.attackTargets(a, at).includes(t)) continue; await B.doAttack(a, t, at, { free: true }); } return true; },
+    ai(u) { const n = volleyAllies(u).length; if (n < 2) return null; const a = atkFor(u, "ranged"), ts = a ? B.attackTargets(u, a).filter(t => t.side !== u.side) : []; return ts.length ? { unit: ts.sort((p, q) => p.hp - q.hp)[0], score: 6 + n * 4 } : null; } };
+  /* Сфинкс-привратник */
+  P.sphinx = {};
+  A.sphinx = { time: "action", tgt() { return { type: "none" }; }, can(u) { return foesIn(u, 3).length || enemiesOf(u).some(e => alive(e) && has(e, "hidden") && dist(e, u) <= 3) ? true : "никого в 3 клетках"; },
+    async run(u, pk, ctl) { ctl.commit(); ui() && ui().banner("Рык истины");
+      for (const e of enemiesOf(u).filter(e => alive(e) && dist(e, u) <= 3)) { if (has(e, "hidden")) { removeStatus(e, "hidden"); fx(e, "раскрыт", "bad"); } }
+      for (const t of foesIn(u, 3)) { const sv = await save(t, "wis", dcOf(u, "wis"), "Рык истины", [], u); if (!sv.ok && alive(t)) { addStatus(t, "frightened", { k: Infinity, data: { by: u.id, ...durEnd(t, 1) } }); fx(t, "испуган", "bad"); } } return true; },
+    ai(u) { const n = foesIn(u, 3).length; return n >= 2 ? { score: 6 + n * 3 } : null; } };
+  // Загадка сфинкса — в начале боя (зовётся из preStart): бросок за героя с лучшим Интеллектом.
+  B.sphinxRiddle = S => { const sx = B.mons().find(m => m.ref === "sphinx" && alive(m)); if (!sx || S.riddleDone) return; S.riddleDone = true;
+    const hs = B.heroes().filter(h => alive(h) && !h.down); if (!hs.length) return; const h = hs.slice().sort((a, b) => b.abil.int - a.abil.int)[0];
+    const bonus = h.hero && typeof hasEssence === "function" && hasEssence(h.hero, "sphinx") ? 2 : 0, d = roll(1, 20).total, tot = d + amod(h.abil.int) + bonus, ok = tot >= 16;
+    if (ok) { sx.hp = Math.max(1, Math.round(sx.maxHp * 0.75)); log(`Загадка сфинкса: ${h.name} отгадывает (${tot} против 16). Сфинкс ранен.`, "good"); }
+    else { for (const x of hs) x.riddleDis = true; log(`Загадка сфинкса: ${h.name} не отгадывает (${tot} против 16). Первая атака каждого героя — с помехой.`, "bad"); }
+    S.riddle = { hero: h.name, total: tot, ok }; };
   B.fillActiveTimes();
 })();

@@ -1783,7 +1783,7 @@ const ESSENCES = {
 
 // Общие категории монстров (решение автора 31.10): по виду существа, а не по зоне. monCat(m) берёт их из поля type.
 // 12.11 (автор): большие группы монстров и подгруппы. Большие — гуманоиды, звери, нежить, элементали (остальные — пока как были); подгруппы — ниже.
-const KIND_RU = { humanoid: "Гуманоиды", beast: "Звери", undead: "Нежить", elemental: "Элементали", construct: "Механизмы и конструкты", ooze: "Слизи", monster: "Чудовища и мутанты" };
+const KIND_RU = { humanoid: "Гуманоиды", beast: "Звери", undead: "Нежить", elemental: "Элементали", construct: "Механизмы и конструкты", ooze: "Слизи", plant: "Растения", monster: "Чудовища и мутанты" };
 const SUB_RU = { goblin: "Гоблины", orc: "Орки", kobold: "Кобольды", human: "Люди", troll: "Тролли и полукровки", bird: "Птицы", land: "Сухопутные", sea: "Водные", dragon: "Драконоподобные", bug: "Насекомые и пауки",
   spirit: "Духи", fairy: "Феи", elem: "Элементали", ghost: "Призраки", dead: "Ходячие мертвецы" };
 const SUB_GROUP = { goblin: "humanoid", orc: "humanoid", kobold: "humanoid", human: "humanoid", troll: "humanoid", bird: "beast", land: "beast", sea: "beast", dragon: "beast", bug: "beast", spirit: "elemental", fairy: "elemental", elem: "elemental", ghost: "undead", dead: "undead" };
@@ -1806,7 +1806,7 @@ const MON_KIND = {
 };
 const MON_SUB_BY_ID = Object.fromEntries(Object.entries(MON_SUB).flatMap(([k, ids]) => ids.map(id => [id, k])));
 const MON_KIND_BY_ID = Object.fromEntries(Object.entries(MON_KIND).flatMap(([k, ids]) => ids.map(id => [id, k])));
-const monCat = m => { if (m && MON_KIND_BY_ID[m.id]) return MON_KIND_BY_ID[m.id]; if (m && MON_SUB_BY_ID[m.id]) return SUB_GROUP[MON_SUB_BY_ID[m.id]]; const t = String((m && m.type) || "").toLowerCase(); return /нежить|призрак/.test(t) ? "undead" : /конструкт/.test(t) ? "construct" : /элементал|дух/.test(t) ? "elemental" : /зверь|животн/.test(t) ? "beast" : /гуманоид/.test(t) ? "humanoid" : "monster"; };
+const monCat = m => { if (m && MON_KIND_BY_ID[m.id]) return MON_KIND_BY_ID[m.id]; if (m && MON_SUB_BY_ID[m.id]) return SUB_GROUP[MON_SUB_BY_ID[m.id]]; const t = String((m && m.type) || "").toLowerCase(); return /растен/.test(t) ? "plant" : /нежить|призрак/.test(t) ? "undead" : /конструкт/.test(t) ? "construct" : /элементал|дух/.test(t) ? "elemental" : /зверь|животн/.test(t) ? "beast" : /гуманоид/.test(t) ? "humanoid" : "monster"; };
 const monSub = m => { if (!m) return null; if (MON_SUB_BY_ID[m.id]) return MON_SUB_BY_ID[m.id]; const g = monCat(m), nm = `${m.id} ${m.name || ""}`.toLowerCase(), t = String(m.type || "").toLowerCase();
   if (g === "humanoid") return /гоблин|goblin|^hob/.test(nm) ? "goblin" : /^orc-|орк/.test(nm) ? "orc" : /кобольд|kobold/.test(nm) ? "kobold" : "human";
   if (g === "beast") return /полёт/.test(m.speed || "") && !/летуч/.test(nm) ? "bird" : "land";
@@ -2954,6 +2954,89 @@ const C5_ESS = {
   "ruin-guardian": ["Эссенция вечного стража руин", { con: 4, wis: 2, dex: -1, int: -1, cha: -1 }, ["КД +1", "Магическая броня +5", "Скорость −1,5 м", "Уязвимость к урону дробящим"], ["Рунная броня", "В начале боя у тебя 15 временных ОЗ."], ["Рунный удар", 5, "действие", "Атака оружием по всем врагам вокруг тебя, +1к8 урона магией; задетые получают −2 к попаданию до твоего следующего хода. Перезарядка 3 раунда."]],
 };
 for (const [id, [name, stats, other, [pn, pt], [an, mana, time, at]]] of Object.entries(C5_ESS)) ESSENCES[id] = { id, name, cls: 5, source: id, draft: true, stats, other, passive: { name: pn, text: pt }, active: { name: an, mana, time, text: at } };
+// ===== 4 этаж — Башня: новые монстры 9–6 класса (автор 18.11 одобрил состав; статблоки и числа — черновик) =====
+// [id, имя, класс, размер, тип, ph, КД, ОЗ, скорость, статы, чувства, особенности]
+const F4_MON = [
+  ["creeping-vine", "Ползучая лоза", 9, "Маленькое растение", "Растение", "beast", "10", "11 (2к8+2)", "1,5 м", [12, 12, 12, 1, 10, 3], "Чувство вибраций 6 м.", [
+    ["Похожа на траву", "В начале боя прячется в зарослях и выглядит как обычная трава.", "behavior"], ["Хлёст лозой", "+4 к попаданию, досягаемость 3 м, 1к6+2 дробящего.", "attacks"]]],
+  ["candle-stub", "Свечной огарок", 9, "Маленький элементаль", "Элементаль огня", "elemental", "10", "10 (3к6)", "6 м", [6, 14, 10, 6, 12, 6], "Тёмное зрение 9 м.", [
+    ["Восковое тело", "Огонь не ранит его.", "body"], ["Огонёк", "+4 к попаданию, 1к6+2 огнём.", "attacks"]]],
+  ["dust-moth", "Пыльная моль", 9, "Маленькое насекомое", "Насекомое", "beast", "10", "9 (2к6+2)", "1,5 м, полёт 9 м", [4, 16, 10, 2, 12, 4], "Тёмное зрение 18 м.", [
+    ["Пыльные крылья", "+4 к попаданию, 1к4+2 рубящего.", "attacks"]]],
+  ["wall-bug", "Каменный клоп", 9, "Маленькое насекомое", "Насекомое", "beast", "10 (каменный панцирь)", "12 (3к6+2)", "6 м", [12, 12, 14, 1, 10, 3], "Чувство вибраций 6 м.", [
+    ["Живёт в кладке", "В начале боя держится у стен и скал.", "behavior"], ["Укус", "+4 к попаданию, 1к6+2 колющего.", "attacks"]]],
+  ["harpy", "Гарпия", 8, "Средняя тварь", "Чудовище (гарпия)", "beast", "13", "27 (6к8)", "6 м, полёт 12 м", [10, 15, 12, 6, 12, 10], "Тёмное зрение 18 м.", [
+    ["Стая", "Чаще встречается вместе с другими гарпиями.", "behavior"], ["Когти", "+5 к попаданию, 1к8+3 рубящего.", "attacks"]]],
+  ["gargoyle", "Гаргулья", 8, "Средний конструкт", "Конструкт (камень)", "elemental", "14 (камень)", "30 (4к8+12)", "6 м, полёт 12 м", [15, 11, 16, 5, 11, 6], "Тёмное зрение 18 м.", [
+    ["Изваяние", "В начале боя неподвижна и похожа на статую — нападает из засады.", "behavior"], ["Каменные когти", "+5 к попаданию, 1к8+3 рубящего.", "attacks"]]],
+  ["centaur-raider", "Кентавр-разбойник", 8, "Большой гуманоид", "Гуманоид (кентавр)", "humanoid", "13 (кожаный доспех)", "36 (6к10+3)", "15 м", [14, 16, 13, 9, 13, 9], "Восприятие +2.", [
+    ["Налётчик", "Держится на расстоянии и стреляет, не даёт себя окружить.", "behavior"],
+    ["Короткий лук", "+5 к попаданию, 24/96 м, 1к8+3 колющего.", "attacks"], ["Копыта", "+5 к попаданию, 1к6+3 дробящего.", "attacks"]]],
+  ["flytrap", "Гигантская мухоловка", 8, "Большое растение", "Растение", "beast", "12", "39 (6к10+6)", "0 м", [16, 8, 16, 1, 10, 3], "Чувство вибраций 9 м.", [
+    ["Захлопнуть пасть", "Попадание пастью хватает цель; в начале хода мухоловки схваченный получает 1к8 кислотой.", "behavior"], ["Корни в полу", "Не двигается, сдвинуть её нельзя.", "body"],
+    ["Пасть", "+5 к попаданию, досягаемость 3 м, 1к10+3 колющего.", "attacks"]]],
+  ["living-tome", "Живой фолиант", 8, "Маленький конструкт", "Конструкт (книга)", "elemental", "13", "27 (6к6+6)", "1,5 м, полёт 9 м", [6, 14, 10, 16, 14, 8], "Слепое зрение 9 м.", [
+    ["Бумага", "Огонь по нему — двойной урон.", "body"],
+    ["Страница", "+5 к попаданию, 1к6+3 рубящего.", "attacks"], ["Строка заклятья", "+5 к попаданию, 9/18 м, 1к8+2 магией.", "attacks"]]],
+  ["empty-armor", "Пустой доспех", 8, "Средний конструкт", "Конструкт (доспех)", "humanoid", "16 (латы)", "33 (6к8+6)", "7,5 м", [16, 10, 16, 3, 10, 3], "Слепое зрение 9 м.", [
+    ["Меч стража", "+5 к попаданию, 1к8+3 рубящего.", "attacks"]]],
+  ["sand-sentinel", "Песочный часовой", 8, "Средний конструкт", "Конструкт (часы)", "elemental", "15 (латунь)", "36 (6к8+9)", "7,5 м", [14, 10, 16, 12, 15, 6], "Слепое зрение 9 м.", [
+    ["Часовая стрелка", "+5 к попаданию, досягаемость 3 м, 1к8+3 колющего.", "attacks"]]],
+  ["elder-harpy", "Древняя гарпия", 7, "Средняя тварь", "Чудовище (гарпия)", "beast", "14", "60 (11к8+10)", "6 м, полёт 15 м", [12, 17, 14, 10, 14, 12], "Тёмное зрение 36 м.", [
+    ["Вожак стаи", "Приходит со стаей гарпий.", "behavior"], ["Когти", "+6 к попаданию, 2к6+4 рубящего.", "attacks"]]],
+  ["gargoyle-guard", "Гаргулья-страж", 7, "Средний конструкт", "Конструкт (камень)", "elemental", "16 (камень)", "56 (8к8+20)", "6 м, полёт 12 м", [17, 10, 17, 6, 12, 6], "Тёмное зрение 18 м.", [
+    ["Каменная кожа", "Физический урон по ней −2, кроме дробящего; дробящий — +2.", "body"], ["Каменный кулак", "+6 к попаданию, 2к6+4 дробящего.", "attacks"]]],
+  ["centaur-knight", "Кентавр-рыцарь", 7, "Большой гуманоид", "Гуманоид (кентавр)", "humanoid", "17 (латы)", "75 (10к10+20)", "15 м", [18, 12, 16, 10, 13, 12], "Восприятие +2.", [
+    ["Рыцарь", "Не отступает и выбирает того, кто стоит в строю врагов.", "behavior"],
+    ["Копьё", "+6 к попаданию, досягаемость 3 м, 2к6+4 колющего.", "attacks"], ["Копыта", "+6 к попаданию, 1к8+4 дробящего.", "attacks"]]],
+  ["mech-horse", "Механический конь", 7, "Большой конструкт", "Конструкт (механизм)", "beast", "16 (стальной корпус)", "60 (8к10+16)", "18 м", [17, 15, 16, 3, 10, 3], "Слепое зрение 9 м.", [
+    ["Паровой котёл", "Уязвим к урону молнией.", "body"], ["Копыта", "+6 к попаданию, 2к6+4 дробящего.", "attacks"]]],
+  ["siren-flower", "Цветок-сирена", 7, "Среднее растение", "Растение", "beast", "12", "52 (8к8+16)", "0 м", [8, 10, 14, 12, 15, 18], "Чувство вибраций 12 м.", [
+    ["Корни в полу", "Не двигается, сдвинуть её нельзя. Уязвима к огню.", "body"],
+    ["Шипастый стебель", "+6 к попаданию, досягаемость 3 м, 1к8+3 колющего.", "attacks"]]],
+  ["glass-golem", "Стеклянный голем", 7, "Средний конструкт", "Конструкт (стекло)", "elemental", "14 (стекло)", "66 (8к10+22)", "7,5 м", [16, 10, 15, 3, 10, 14], "Слепое зрение 9 м.", [
+    ["Хрупкое стекло", "Уязвим к дробящему.", "body"], ["Стеклянный кулак", "+6 к попаданию, 2к6+4 рубящего.", "attacks"]]],
+  ["elder-gargoyle", "Древняя гаргулья", 6, "Большой конструкт", "Конструкт (камень)", "elemental", "17 (вековой камень)", "90 (12к10+24)", "6 м, полёт 12 м", [20, 10, 20, 8, 14, 8], "Тёмное зрение 36 м.", [
+    ["Две атаки", "За ход удар когтями и удар хвостом.", "attacks"], ["Когти", "+8 к попаданию, 2к8+5 рубящего.", "attacks"], ["Хвост", "+8 к попаданию, 1к10+5 дробящего.", "attacks"]]],
+  ["steam-bull", "Паровой бык", 6, "Большой конструкт", "Конструкт (механизм)", "beast", "17 (клёпаная сталь)", "105 (10к10+50)", "12 м", [20, 8, 20, 3, 10, 3], "Слепое зрение 9 м.", [
+    ["Котёл", "Уязвим к урону молнией.", "body"], ["Рога", "+8 к попаданию, 2к8+5 колющего.", "attacks"]]],
+  ["treant-warden", "Древень-страж", 6, "Огромное растение", "Растение", "beast", "16 (кора)", "110 (12к10+44)", "6 м", [20, 6, 20, 10, 16, 8], "Чувство вибраций 18 м.", [
+    ["Сухая кора", "Уязвим к огню.", "body"], ["Ветви", "+8 к попаданию, досягаемость 3 м, 2к8+5 дробящего.", "attacks"]]],
+  ["centaur-chief", "Кентавр-вождь", 6, "Большой гуманоид", "Гуманоид (кентавр)", "humanoid", "16 (кольчуга)", "70 (9к10+20)", "15 м", [18, 16, 16, 12, 14, 16], "Восприятие +4.", [
+    ["Свита", "Приходит с двумя кентаврами-разбойниками.", "behavior"],
+    ["Длинный лук", "+7 к попаданию, 30/120 м, 2к6+4 колющего.", "attacks"], ["Сабля", "+8 к попаданию, 2к6+5 рубящего.", "attacks"]]],
+  ["sphinx", "Сфинкс-привратник", 6, "Большое чудовище", "Чудовище (сфинкс)", "beast", "15", "105 (12к10+40)", "12 м", [18, 14, 18, 18, 18, 16], "Истинное зрение 9 м.", [
+    ["Загадка", "В начале боя загадывает загадку: герой с лучшим Интеллектом проверяет его (Сл 16). Отгадал — сфинкс начинает бой раненым (−25 % ОЗ); не отгадал — первая атака каждого героя с помехой.", "behavior"],
+    ["Две атаки", "За ход два удара когтями.", "attacks"], ["Когти", "+8 к попаданию, 2к6+5 рубящего.", "attacks"]]],
+];
+for (const [id, name, cls, size, type, ph, ac, hp, speed, abil, senses, traits] of F4_MON) MONSTERS.push({ id, zone: "stone", rare: false, weight: 1, name, floor: 4, cls, rank: "normal", size, type, group: cls === 6 ? "Мини-босс Башни" : "Башня",
+  areas: ["4 этаж: Башня"], ac, hp, speed, cr: String(cls), abil, senses, traits, loot: `Камень ${cls}-го класса.`, essence: id, ph, statDraft: true });
+// эссенции: [название, статы, прочее, [пассивка], [активка: имя, мана, время, текст]]
+const F4_ESS = {
+  "creeping-vine": ["Эссенция ползучей лозы", { dex: 2, cha: -1 }, ["Скрытность +1"], ["Цепкие побеги", "Раз в раунд: враг, вошедший в клетку рядом с тобой, — спасбросок Силы, провал — опутан до конца своего хода."], ["Оплести", 3, "действие", "Перезарядка 3 раунда. Цель в 2 клетках — спасбросок Силы, провал — опутана до конца своего следующего хода и подтянута к тебе на 1 клетку."]],
+  "candle-stub": ["Эссенция свечного огарка", { int: 1, wis: 1 }, ["Свечение", "Скрытность −1"], ["Огонёк фитиля", "Ты светишься: в темноте вокруг тебя светло (2 клетки), факел в бою тебе не нужен. Твои атаки +1 огнём."], ["Капля воска", 2, "действие", "Перезарядка 2 раунда. Цель в 4 клетках — спасбросок Ловкости, провал — скорость −2 клетки до конца её следующего хода."]],
+  "dust-moth": ["Эссенция пыльной моли", { dex: 1, cha: -1 }, ["Скрытность +1", "Восприятие +1"], ["Тянется к огню", "+2 к попаданию по горящим целям и по тем, кто стоит в свете."], ["Погасить свет", 2, "бонусное действие", "Перезарядка 3 раунда. Гасишь огонь рядом: снимаешь «Горит» с себя и соседей, тушишь пламя в соседних клетках. Монстр рядом с героем гасит факел отряда."]],
+  "wall-bug": ["Эссенция каменного клопа", { str: 1, con: 1, dex: -1 }, ["КД +1"], ["Панцирь кладки", "Стоя вплотную к стене, скале или другому непроходимому препятствию — Защита +2."], ["Выстрелить из щели", 2, "действие", "Перезарядка 3 раунда. Стоя у препятствия: прыжок к врагу в 4 клетках (до свободной клетки рядом с ним, без атак по возможности) и атака ближнего боя."]],
+  harpy: ["Эссенция гарпии", { dex: 2, con: -1, cha: -1 }, ["Восприятие +1", "Скорость +1,5 м"], ["Стайная охота", "+1 к попаданию за каждого союзника рядом с твоей целью (до +2)."], ["Перья-лезвия", 3, "действие", "Перезарядка 3 раунда. Конус 3 клетки — спасбросок Ловкости: 2к4 рубящего, успех — половина."]],
+  gargoyle: ["Эссенция гаргульи", { con: 2, str: 1, dex: -1 }, ["КД +1", "Скрытность −1"], ["Каменная кожа", "Физический урон по тебе −2, кроме дробящего; дробящий по тебе — +2."], ["Падение камнем", 3, "действие", "Перезарядка 3 раунда. Цель в 3 клетках: прыжок к ней и атака ближнего боя +1к8 дробящего; попал — спасбросок Силы, провал — сбита с ног."]],
+  "centaur-raider": ["Эссенция кентавра-разбойника", { dex: 2, cha: -1 }, ["Выживание +1", "Восприятие +1", "Скрытность −1"], ["Выстрел на скаку", "Прошёл за ход 2 клетки и больше — дальние атаки +2 к урону."], ["Залп на отходе", 2, "действие", "Перезарядка 2 раунда. Отходишь до 3 клеток без атак по возможности и стреляешь из лука."]],
+  flytrap: ["Эссенция гигантской мухоловки", { str: 2, con: 2, dex: -1, cha: -1 }, [], ["Сок переваривания", "Атаки по тому, кого ты держишь (схвачен тобой), +1к6 урона."], ["Сладкий нектар", 3, "действие", "Перезарядка 3 раунда. Враги в 3 клетках — спасбросок Мудрости, провал — делают 2 шага к тебе."]],
+  "living-tome": ["Эссенция живого фолианта", { int: 2, wis: 1, str: -1, con: -1 }, ["Расследование +1"], ["Начитанный", "+2 к спасброскам Интеллекта и Мудрости. Вне боя — +2 к проверкам в библиотеках (город и Башня)."], ["Бумажный вихрь", 3, "действие", "Перезарядка 3 раунда. До 3 разных врагов в 3 клетках — спасбросок Ловкости, провал — 1к6 + мод. Интеллекта рубящего."]],
+  "empty-armor": ["Эссенция пустого доспеха", { con: 2, str: 2, dex: -1 }, ["Скрытность −1"], ["Никого внутри", "Первое критическое попадание по тебе за бой считается обычным. Яд на тебя не действует."], ["Сброс пластин", 2, "бонусное действие", "Перезарядка 4 раунда. На 2 раунда: Защита +3, Уворот −2."]],
+  "sand-sentinel": ["Эссенция песочного часового", { wis: 2, con: 1, int: 1, dex: -1, cha: -1 }, [], ["Песок в шестернях", "Кто попал по тебе ближней атакой, теряет 1 клетку скорости до конца своего хода."], ["Перевернуть часы", 3, "бонусное действие", "Раз за бой: возвращаешь ОЗ, потерянные за последний раунд."]],
+  "elder-harpy": ["Эссенция древней гарпии", { dex: 2, wis: 1, con: -1, cha: -1 }, ["Восприятие +2"], ["Прижать к земле", "Сбитый с ног враг рядом с тобой тратит на то, чтобы встать, всё своё движение."], ["Сорвать с места", 4, "действие", "Перезарядка 3 раунда. Цель в 4 клетках: подлетаешь к ней, спасбросок Силы, провал — 2к6 дробящего, сбита с ног и отброшена на 1 клетку."]],
+  "gargoyle-guard": ["Эссенция гаргульи-стража", { con: 2, str: 2, dex: -1 }, ["КД +1", "Скрытность −1"], ["Хранитель порога", "Враги, атакующие союзника рядом с тобой, получают −2 к попаданию."], ["Встать на пути", 3, "бонусное действие", "Перезарядка 3 раунда. Переносишься к союзнику в 3 клетках; до начала твоего следующего хода у него Защита +2."]],
+  "centaur-knight": ["Эссенция кентавра-рыцаря", { str: 2, con: 1, dex: -1 }, ["Атлетика +1", "Угроза +1", "Скрытность −1"], ["Длинное древко", "Копьё бьёт на 2 клетки без помехи на второй, пика — на 3 клетки."], ["Пронзающий удар", 3, "действие", "Перезарядка 3 раунда. Удар копьём или пикой по линии в 2 клетки: атака по каждой цели на линии, вторая получает половину урона."]],
+  "mech-horse": ["Эссенция механического коня", { dex: 2, int: -1, wis: -1 }, ["Скорость +3 м", "Атлетика +1", "Уворот +1"], ["Заводной бег", "Атаки по возможности по тебе — с помехой."], ["Удар копытами назад", 3, "действие", "Перезарядка 3 раунда. Цель у тебя за спиной (у героя — клетка под ним, у монстра — над ним) — спасбросок Ловкости, провал — 2к8 + мод. Силы дробящего и отброшена на 2 клетки, успех — половина."]],
+  "siren-flower": ["Эссенция цветка-сирены", { cha: 3, wis: 2, str: -1, con: -1 }, [], ["Сладкий аромат", "Враги в 2 клетках от тебя получают −2 к спасброскам Мудрости."], ["Песнь пыльцы", 4, "действие", "Перезарядка 3 раунда. Цель в 4 клетках — спасбросок Мудрости, провал — зачарована: в начале своего хода идёт к тебе на 2 клетки и теряет действие."]],
+  "glass-golem": ["Эссенция стеклянного голема", { con: 2, cha: 2, dex: -1 }, ["КД +1", "Уязвимость к урону дробящим"], ["Режущие осколки", "Кто попал по тебе ближней атакой, получает 1к6 рубящего."], ["Преломить свет", 3, "действие", "Перезарядка 3 раунда. Конус 3 клетки — спасбросок Телосложения, провал — ослеплён до конца своего хода."]],
+  "elder-gargoyle": ["Эссенция древней гаргульи", { con: 3, str: 2, wis: 1, dex: -1, cha: -1 }, ["КД +1", "Скрытность −1"], ["Вековой камень", "Испуг и очарование на тебя не действуют; преимущество на спасброски Телосложения."], ["Окаменяющий взгляд", 5, "действие", "Перезарядка 3 раунда. Цель в 6 клетках — спасбросок Телосложения. Провал — каменеет: скорость 0 до конца её следующего хода; если уже каменела — окаменела на 2 раунда (не действует, физический урон по ней вдвое меньше)."]],
+  "steam-bull": ["Эссенция парового быка", { con: 3, str: 2, dex: -1 }, ["КД +1", "Угроза +1", "Скрытность −1", "Уязвимость к урону молнией"], ["Давление пара", "В начале каждого раунда +1 давление (до 3); каждое давление — +1 к урону твоих атак."], ["Выпуск пара", 3, "действие", "Перезарядка 2 раунда, нужно давление. Тратишь всё давление: конус 3 клетки — 1к6 огнём за каждое давление, спасбросок Телосложения — половина."]],
+  "treant-warden": ["Эссенция древня-стража", { con: 4, str: 2, wis: 1, dex: -1, cha: -1 }, ["Уязвимость к урону огнём"], ["Сок жизни", "В начале твоего хода +5 ОЗ, если в прошлый свой ход ты не двигался. Огонь останавливает это до конца твоего следующего хода."], ["Корни из-под земли", 5, "действие", "Перезарядка 3 раунда. Область 3×3 в 5 клетках — спасбросок Силы: 2к6 дробящего и опутан до конца своего хода, успех — половина урона."]],
+  "centaur-chief": ["Эссенция кентавра-вождя", { cha: 3, dex: 2, wis: 1, con: -1, int: -1 }, ["Угроза +1", "Скрытность −1"], ["Знамя табуна", "Союзники в 3 клетках от тебя наносят дальними атаками +2 урона."], ["Залп табуна", 5, "действие", "Перезарядка 4 раунда. Ты и союзники с дальней атакой в 6 клетках сразу стреляют по выбранной цели."]],
+  sphinx: ["Эссенция сфинкса-привратника", { int: 3, wis: 2, cha: 2, str: -1, dex: -1 }, ["Скрытность −1"], ["Мудрость веков", "Вне боя — +2 к проверкам Интеллекта и Мудрости (испытания Башни, библиотеки)."], ["Рык истины", 4, "действие", "Перезарядка 4 раунда. Враги в 3 клетках — спасбросок Мудрости, провал — испуганы до конца своего следующего хода; все скрытые враги в 3 клетках раскрыты."]],
+};
+for (const [id, [name, stats, other, [pn, pt], [an, mana, time, at]]] of Object.entries(F4_ESS)) ESSENCES[id] = { id, name, cls: MONSTERS.find(m => m.id === id).cls, source: id, draft: true, stats, other, passive: { name: pn, text: pt }, active: { name: an, mana, time, text: at } };
 const RIFT_RANK = 7, RIFT_EXIT_DAYS = 2;
 const RIFTS = { blood: { name: "Кровавая крепость", zone: "undead", w: 5, h: 15 }, ice: { name: "Ледяной грот", zone: "stone", w: 3, h: 15 }, sand: { name: "Зыбучие пески", zone: "beast", w: 15, h: 15 }, mine: { name: "Зелёная шахта", zone: "goblin", w: 5, h: 3 }, past: { name: "Чаща прошлого", zone: "beast", w: 15, h: 15 }, gcity: { name: "Гоблинград", zone: "goblin", w: 15, h: 15 }, gyard: { name: "Кладбище прошлого", zone: "undead", w: 15, h: 15 }, crystal: { name: "Кристальный рудник прошлого", zone: "stone", w: 15, h: 15 } };
 const riftF1Open = r => !!(r && r.floor === 1 && partyRank() <= RIFT_RANK && (r.day === 3 || (r.day === 4 && r.act <= 2)));
@@ -4044,10 +4127,12 @@ const TW_DOOR = {
 };
 const TW_WEIGHT = { fight: 30, group: 18, hard: 14, rest: 12, heal: 10, trial: 10, rift: 0 };          // разлом пока не появляется
 const TW_BOSSES = ["troll", "ogre", "brood-mother", "mana-devourer", "dread-rider", "ruin-guardian"], TW_BIG_BOSS = ["brood-mother", "dread-rider", "ruin-guardian"];
-const TW_MINIS = ["forge-smith", "trap-queen", "orc-chief", "silence-keeper", "foreman-gorn", "alpha01", "crystal-alchemist", "night-abbot", "lantern-keeper"];
+const TW_MINIS = ["elder-gargoyle", "steam-bull", "treant-warden", "centaur-chief", "sphinx", "orc-chief"];          // 18.11 (автор): новые мини-боссы 6 класса + вождь орков; Альфа-01 — секретный босс, не здесь
+// 18.11 (автор, вариант 1): в Башне — новые монстры 4 этажа и не больше 30 % старых, только этот список
+const TW_OLD = ["hobgoblin-shield", "orc-spear", "iron-fox", "bolt-golem", "bone-knight", "crystal-colossus", "marble-guardian", "witch-cat"];
 const towerState = () => state.run && state.run.tower;
 const twBand = L => L >= 20 ? 3 : L >= 10 ? 2 : 1;          // с 10-го и с 20-го уровня бои сложнее
-const twPool = cls => MONSTERS.filter(m => m.cls === cls && !m.draft && !m.dyn && !m.rift && !m.spectral && m.rank === "normal" && (m.floor === 2 || m.floor === 3) && m.abil && m.traits);
+const twPool = cls => MONSTERS.filter(m => m.cls === cls && !m.draft && !m.dyn && !m.rift && !m.spectral && !m.rare && m.rank === "normal" && ((m.floor === 4 && !TW_MINIS.includes(m.id)) || TW_OLD.includes(m.id)) && m.abil && m.traits);
 const twPick = cls => { const a = twPool(cls); return a.length ? a[rnd(a.length)].id : null; };
 function towerGroup(type, L) {
   const b = twBand(L), p = c => twPick(c), n = (lo, hi) => lo + rnd(hi - lo + 1);
@@ -4055,6 +4140,7 @@ function towerGroup(type, L) {
     fight: [[7, 8, 8], [7, 7, 8], [7, 7, 7]], group: [[8, 8, 8, 8, ...(n(0, 1) ? [8] : [])], [8, 8, 8, 7, 7], [7, 7, 7, 7, 8, 8]], hard: [[7, 7, 8], [7, 7, 7], [6, 7, 7]],
   }[type][b - 1];
   const list = T.map(c => c === 6 ? pick1(TW_MINIS.filter(id => MONSTERS.some(m => m.id === id))) : p(c)).filter(Boolean);
+  if (list.includes("elder-harpy") && !list.includes("harpy")) { const i = list.findIndex(x => x !== "elder-harpy" && MONSTERS.find(m => m.id === x).cls === 8); if (i >= 0) list[i] = "harpy"; }          // вожак стаи приходит с гарпиями
   const Tw = towerState();          // Непримечательная тень (17.11): с 20-го уровня, одна, в группе от 4; в первом групповом бою — обязательно
   if (L >= TW_SHADOW_L && list.length >= 4 && Tw && (!Tw.shadowMet || Math.random() < TW_SHADOW_P)) { Tw.shadowMet = true; list[list.length - 1] = "plain-shadow"; }
   return list;
@@ -4109,7 +4195,7 @@ function towerFight(room) {
   const L = room.L, b = twBand(L), t = room.type;
   let list, title, big = false;
   if (t === "boss") { const id = room.boss || (room.boss = pick1(TW_BOSSES)); list = [id]; title = `Башня, уровень ${L}: босс — ${MONSTERS.find(m => m.id === id).name}`; big = TW_BIG_BOSS.includes(id); }
-  else if (t === "mini") { const id = room.mini || (room.mini = pick1(TW_MINIS.filter(x => MONSTERS.some(m => m.id === x)))); list = [id, twPick(8), twPick(7)].filter(Boolean); title = `Башня, уровень ${L}: мини-босс — ${MONSTERS.find(m => m.id === id).name}`; big = true; }
+  else if (t === "mini") { const id = room.mini || (room.mini = pick1(TW_MINIS.filter(x => MONSTERS.some(m => m.id === x)))); list = (id === "centaur-chief" ? [id, "centaur-raider", "centaur-raider"] : [id, twPick(8), twPick(7)]).filter(Boolean); title = `Башня, уровень ${L}: мини-босс — ${MONSTERS.find(m => m.id === id).name}`; big = true; }          // вождь кентавров — со свитой из двух разбойников
   else { list = room.list || (room.list = towerGroup(t, L)); title = `Башня, уровень ${L}: ${TW_DOOR[t].name.toLowerCase()}`; }
   startSpecial(title, { zone: "stone", place: "Башня", list, big10: big });
   dgUi.enc.tower = true; dgUi.enc.noFlee = !(t === "boss" && !state.run.towerBossFled); dgUi.enc.tBoost = b === 3 ? { hp: 1.4, dmg: 2, hit: 1 } : b === 2 ? { hp: 1.2, dmg: 1 } : null;
@@ -4153,7 +4239,7 @@ function towerTrial() {
   const T = towerState(); if (!T || !T.room || T.room.type !== "trial" || T.room.done) return;
   const [name, ab, abRu] = T.room.trial || (T.room.trial = pick1(TW_TRIALS)), dc = 13 + twBand(T.room.L);
   const live = state.party.filter(c => !c.dead), hero = live.slice().sort((a, b) => totals(b)[ab].total - totals(a)[ab].total)[0]; if (!hero) return;
-  const d = riftD(1 + rnd(20)), mod = Math.floor((totals(hero)[ab].total - 10) / 2), sum = d + mod, ok = sum >= dc, lines = [`${name}: ${hero.name} — ${abRu} к20 = ${d} ${mod >= 0 ? "+" : "−"} ${Math.abs(mod)} = ${sum} против Сл ${dc}.`];
+  const d = riftD(1 + rnd(20)), mod = Math.floor((totals(hero)[ab].total - 10) / 2) + ((ab === "int" || ab === "wis") && hasEssence(hero, "sphinx") ? 2 : 0), sum = d + mod, ok = sum >= dc, lines = [`${name}: ${hero.name} — ${abRu} к20 = ${d} ${mod >= 0 ? "+" : "−"} ${Math.abs(mod)} = ${sum} против Сл ${dc}.`];
   if (ok) { lines.push("Испытание пройдено.", giveParty({ t: "g", id: "stone-8", qty: 2 + rnd(3), noGem: true }), giveParty({ t: "g", id: "stone-7", qty: 1, noGem: true })); if (Math.random() < .3) lines.push(giveParty({ t: "g", id: "potion-good", qty: 1 })); }
   else { lines.push("Испытание провалено."); for (const c of live) { const v = roll2d6(); c.hp = Math.max(1, hpOf(c) - v); lines.push(`${c.name}: −${v} ОЗ`); } }
   T.room.done = true; logRun("Башня, испытание: " + lines.join(" ")); dgUi.res = { title: "Испытание", roll: `к20 = ${d}`, pic: "tower-trial", lines };
@@ -4169,7 +4255,8 @@ function twLibCands(lib) {
   return MONSTERS.filter(m => !m.dyn && m.abil && m.traits && (lib.src === "rift" ? (m.rift && RIFT_FLOOR[m.rift] === lib.floor) : lib.floor === 4 ? (m.floor === 4) : (!m.rift && !m.draft && (m.floors || [m.floor]).includes(lib.floor))))
     .filter(m => !lib.kind || monCat(m) === lib.kind);
 }
-const twLibBonus = c => { const t = totals(c); return Math.floor((t.int.total - 10) / 2) + Math.floor((t.wis.total - 10) / 2); };
+const studyBonus = c => (hasEssence(c, "living-tome") ? 2 : 0) + (hasEssence(c, "sphinx") ? 2 : 0);          // «Начитанный» фолианта и «Мудрость веков» сфинкса: +2 к проверкам в библиотеках
+const twLibBonus = c => { const t = totals(c); return Math.floor((t.int.total - 10) / 2) + Math.floor((t.wis.total - 10) / 2) + studyBonus(c); };
 function twLibRoll() {
   const T = towerState(), lib = T && T.room && T.room.lib; if (!lib || lib.step !== "check") return;
   const hero = state.party.filter(c => !c.dead).sort((a, b) => twLibBonus(b) - twLibBonus(a))[0], m = MONSTERS.find(x => x.id === lib.mon); if (!hero || !m) return;
@@ -4325,7 +4412,7 @@ const MON_FOOT = {
     "stone-elk": [1, 2], "ice-deer": [1, 2], "glen-warden": [1, 2], "silent-predator": [1, 2], "toll-bull": [1, 2], "mutant-boar": [1, 2],
     "lab-direwolf": [1, 2], "fled-chimera": [1, 2], "swamp-fang": [1, 2], "magma-wyrm": [1, 2], "deep-serpent": [1, 2],
     "mammoth-calf": [2, 2], "crystal-colossus": [2, 2], "magma-golem": [2, 2], "rift-heart": [2, 2], "giant-mole": [2, 2], "spider-queen": [2, 2], "faceless-sculptor": [2, 2], "flesh-golem": [2, 2], "kel-worm": [2, 2], "fallen-keeper": [2, 2],
-    "faceless-ringer": [1, 1], "bone-knight": [1, 1], "corpse-eater": [1, 1], "werewolf": [1, 1], "orc-chief": [1, 1], "forge-smith": [1, 1], "half-troll": [1, 1], "troll": [2, 1], ogre: [2, 2], "brood-mother": [3, 3], "dread-rider": [1, 2], "ruin-guardian": [2, 2], "trollgob-porter": [1, 1],
+    "faceless-ringer": [1, 1], "bone-knight": [1, 1], "corpse-eater": [1, 1], "werewolf": [1, 1], "orc-chief": [1, 1], "forge-smith": [1, 1], "half-troll": [1, 1], "flytrap": [2, 2], "elder-gargoyle": [2, 2], "treant-warden": [2, 2], sphinx: [2, 2], "centaur-raider": [1, 2], "centaur-knight": [1, 2], "mech-horse": [1, 2], "steam-bull": [1, 2], "centaur-chief": [1, 2], "troll": [2, 1], ogre: [2, 2], "brood-mother": [3, 3], "dread-rider": [1, 2], "ruin-guardian": [2, 2], "trollgob-porter": [1, 1],
     "fog-lantern": [1, 1], "dead-vulture": [1, 1],
   };
 const monFoot = m => MON_FOOT[m.id] || (/^(Огромн|Громадн|Исполинск)/.test(m.size || "") ? [3, 3] : /^Больш/.test(m.size || "") ? [2, 2] : [1, 1]);
@@ -4357,7 +4444,8 @@ Object.assign(MON_ARMOR, { "goblin-merchant": 0, "goblin-lamplighter": 1, "city-
 Object.assign(MON_ARMOR, { "moss-hedgehog": 1, "firefly-swarm": 0, "branded-critter": 0, "tree-lynx": 0, "chimera-hound": 1, homunculus: 0, "alch-intern": 1, "lab-direwolf": 1, "senior-alch": 1, "mutant-boar": 2, "fled-chimera": 1, "swarm-mother": 0, "fallen-keeper": 3, naturalist: 2, luna: 2 });
 Object.assign(MON_ARMOR, { "troll": 2, ogre: 2, "brood-mother": 1, "brood-larva": 1, "mana-devourer": 1, "dread-rider": 1, "ruin-guardian": 3, "unfinished-blade": 3, "ash-owl": 0, "clockwork-orange": 2, "pendulum-guard": 3, "goblin-miner": 1, kobold: 1, slime: 0, "kobold-guard": 2, "goblin-blaster": 1, "acid-slime": 0, "stone-slime": 3, "split-slime": 0, "mine-ghost": 0, "cart-mimic": 3, "kobold-captain": 3, "goblin-foreman": 2, rimuru: 1, "sand-vulture": 0, "sand-scorpion": 2, "worm-larva": 1, "sand-worm": 2, "big-stinger": 2, "pseudo-cactus": 2, "mirage-scorpion": 2, "dead-vulture": 1, "kel-worm": 3, "ice-imp": 0, "frost-beetle": 2, "snow-hunter": 1, "ice-spirit": 0, "mammoth-calf": 1, "ice-deer": 0, "half-troll": 2 });          // Ледяной грот
 MON_ARMOR["plain-shadow"] = 0;
-["troll", "ogre", "brood-mother", "brood-larva", "mana-devourer", "dread-rider", "ruin-guardian"].forEach(id => { const m = MONSTERS.find(x => x.id === id); if (!m) return; const d = monDefOf({ ...m, armor: undefined }); m.armor = d.tier; m.dodge = d.dodge; m.prot = d.prot; });          // 5 класс: броня задана ниже общего расчёта
+Object.assign(MON_ARMOR, { "creeping-vine": 0, "candle-stub": 0, "dust-moth": 0, "wall-bug": 2, harpy: 0, gargoyle: 3, "centaur-raider": 1, flytrap: 1, "living-tome": 0, "empty-armor": 3, "sand-sentinel": 3, "elder-harpy": 0, "gargoyle-guard": 2, "centaur-knight": 3, "mech-horse": 3, "siren-flower": 0, "glass-golem": 2, "elder-gargoyle": 3, "steam-bull": 4, "treant-warden": 3, "centaur-chief": 2, sphinx: 1 });          // 4 этаж (18.11)
+[...F4_MON.map(x => x[0]), "plain-shadow", "troll", "ogre", "brood-mother", "brood-larva", "mana-devourer", "dread-rider", "ruin-guardian"].forEach(id => { const m = MONSTERS.find(x => x.id === id); if (!m) return; const d = monDefOf({ ...m, armor: undefined }); m.armor = d.tier; m.dodge = d.dodge; m.prot = d.prot; });          // 5 класс: броня задана ниже общего расчёта
 Object.assign(MON_BOOST, { "flesh-golem": { hp: 1.15, dmg: 2, hit: 1 }, abomination: { hp: 1.5, dmg: 4, hit: 2 } });
 Object.assign(MON_BOOST, { "alpha01": { hp: 1.35, dmg: 2, hit: 1 }, "lesser-death": { hp: 0.85, dmg: -1 }, "night-abbot": { hp: 1.2, dmg: 1, hit: 1 }, "buried-priest": { dmg: 1 }, "azik-lich": { hp: 0.9 } });          // Кладбище прошлого (13.11, черновик): по прогонам отряда 5 ур. в стали          // Мордрейн (страж) — без правки: статблок = обычный 7 класс ×1,3 (v116)
 Object.assign(MON_BOOST, { "primal-crystal": { hp: 1.3, dmg: 2, hit: 1 }, "crystal-alchemist": { hp: 1.6, dmg: 4, hit: 2 }, "crystal-greed": { hp: 1.6, dmg: 4, hit: 2 }, "singing-crystal": { hp: 1.3, dmg: 1 } });          // Кристальный рудник прошлого (14.11, прогоны lab)
@@ -5267,7 +5355,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 159;
+const BATTLE_REV = 160;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-weap2.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster() || st.dev === false) st.tactical = true; return st; }
@@ -5461,7 +5549,7 @@ function loadNet() {
   return netLoad;
 }
 /* ----- здания города (assets/js/town.js грузится при первом входе в здание) ----- */
-const TOWN_REV = 43, TOWN_FILES = ["assets/css/town.css", "assets/js/town.js"];
+const TOWN_REV = 44, TOWN_FILES = ["assets/css/town.css", "assets/js/town.js"];
 let townLoad = null;
 function loadTown() {
   if (window.Town && window.Town.ready) return Promise.resolve(true);

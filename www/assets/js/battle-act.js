@@ -39,7 +39,7 @@
     }
     if (w.dmgPlus) { atk.dmg.b += w.dmgPlus; }          // копьё, посох: +1 к урону
     if (c && typeof awkward2h === "function" && awkward2h(c) && (mode === "hand" || mode === "off")) { atk.hit -= AWK.hit; atk.parts.push({ l: "Неудобный хват", v: -AWK.hit }); }          // двуручное + вещь во второй руке (03.11)
-    if (mode === "hand" && !ranged) { atk.kind = "melee"; atk.reach = w.id === "spear" ? 2 : w.id === "pike" ? (w.artId ? 2 : 1) : 1 + longArm(u, w); if (w.id === "spear" && !u.pass.includes("goblin-spear")) atk.stretch = true;
+    if (mode === "hand" && !ranged) { atk.kind = "melee"; atk.reach = w.id === "spear" ? 2 : w.id === "pike" ? (w.artId ? 2 : 1) : 1 + longArm(u, w); if (w.id === "spear" && !u.pass.includes("goblin-spear")) atk.stretch = true; if (u.pass.includes("centaur-knight")) { if (w.id === "spear") { atk.stretch = false; atk.lineCheck = true; } if (w.id === "pike") { atk.reach = Math.max(atk.reach, 3); atk.lineCheck = true; } }          // «Длинное древко» (кентавр-рыцарь, 18.11)
       if (w.id === "flail") { const la = longArm(u, w) ? 1 : 0; atk.flower = [4 + la, 3 + la]; atk.reach = atk.flower[0]; atk.chain = true; }          // цеп: «цветок» — 4 клетки по прямой, 3 по диагонали; груз может задеть стоящего на пути
       if (w.id === "mace") { atk.acIgnore = 1; } atk.sub = atk.flower ? `цепь: ${atk.flower[0]} кл. по прямой, ${atk.flower[1]} по диагонали` : atk.reach > 1 ? `досягаемость ${atk.reach * 1.5} м`.replace(".", ",") : "ближний бой"; }
     else if (mode === "hand" && ranged) {
