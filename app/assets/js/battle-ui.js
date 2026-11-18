@@ -130,7 +130,7 @@
   }
   const hpColor = f => (f > 0.6 ? "#7cc05a" : f > 0.3 ? "#e0b13c" : "#d6523f");
   function statusIcons(u) {
-    const list = u.conds.filter(c => D.status[c.id]); if (u.dead) return "";
+    const list = B.uiConds(u); if (u.dead) return "";
     const shown = list.slice(0, 4), extra = list.length - shown.length;
     return shown.map(c => `<i class="bt-st ${D.status[c.id].good ? "good" : "bad"}" data-sid="${c.id}" data-uid="${u.id}" title="${esc(D.status[c.id].name)}">${stIco(c.id)}</i>`).join("") + (extra > 0 ? `<i class="bt-st more">+${extra}</i>` : "");
   }
@@ -190,6 +190,7 @@
       if (bigOn) h += `<div class="bt-warmall"></div>`;
       for (const k of warm) { const [x, y] = k.split(",").map(Number); h += `<div class="bt-zcell k-warm" style="left:${x * cell}px;top:${y * cell}px;width:${cell}px;height:${cell}px"></div>`; }
     }
+    if (UI.foeSight && S.phase === "fight") for (const k of B.foeSightCells()) { const [x, y] = k.split(",").map(Number); h += `<div class="bt-zcell k-foesight" style="left:${x * cell}px;top:${y * cell}px;width:${cell}px;height:${cell}px"></div>`; }
     l.innerHTML = h;
   }
   // Мягкая тень от полных укрытий и тумана: тёмный слой по клеткам (чем меньше героев видят клетку, тем гуще), размытый, чтобы края были с полутенью.
@@ -304,8 +305,12 @@
   document.addEventListener("pointerdown", e => {
     if (!UI.active) return; const el = e.target.closest && e.target.closest("[data-sid]"); if (!el) return;
     clearTimeout(stHold && stHold.t);
-    stHold = { x: e.clientX, y: e.clientY, t: setTimeout(() => { const h = stHold; stHold = null; if (!h) return; UI._noClickUntil = Date.now() + 700; try { if (navigator.vibrate) navigator.vibrate(16); } catch (err) {} if (UI.statusNote) UI.statusNote(el.dataset.uid, el.dataset.sid); }, HOLD_MS) };
+    stHold = { x: e.clientX, y: e.clientY, t: setTimeout(() => { const h = stHold; stHold = null; if (!h) return; UI._noClickUntil = Date.now() + 700; try { if (navigator.vibrate) navigator.vibrate(16); } catch (err) {}
+      if (el.dataset.sid === "spotted") { UI.foeSight = true; document.body.classList.add("bt-foesight"); if (B.S) renderZones(B.S); return; }          // глаз: пока держишь — подсветка того, что видят враги
+      if (UI.statusNote) UI.statusNote(el.dataset.uid, el.dataset.sid); }, HOLD_MS) };
   }, true);
+  const foeSightOff = () => { if (UI.foeSight) { UI.foeSight = false; document.body.classList.remove("bt-foesight"); if (B.S) renderZones(B.S); } };
+  document.addEventListener("pointerup", foeSightOff, true); document.addEventListener("pointercancel", foeSightOff, true);
   document.addEventListener("pointermove", e => { if (stHold && Math.hypot(e.clientX - stHold.x, e.clientY - stHold.y) > 10) { clearTimeout(stHold.t); stHold = null; } }, true);
   document.addEventListener("pointerup", () => { if (stHold) { clearTimeout(stHold.t); stHold = null; } }, true);
   function onHoldMove(e) { if (hold && Math.hypot(e.clientX - hold.x, e.clientY - hold.y) > 10) { clearTimeout(hold.t); hold = null; } }

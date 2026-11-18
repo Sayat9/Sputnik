@@ -40,6 +40,23 @@ const { chromium } = require('playwright');
     th.hp = th.maxHp; await B.applyDamage(s2, th, [{ v: 5, dt: 'pierce', label: 'x' }], { src: s2, pure: true }); const d2 = th.maxHp - th.hp;
     o.double = d1 === d2 * 2 && d2 > 0;
     o.noMark = (await (async () => { await B.applyDamage(th, s2, [{ v: 2, dt: 'slashing', label: 'x' }], { src: th }); return !s2.shadowMark; })());
+    // в засаде тень прячется, чтобы снова ударить: не уходит и атакует из скрытности
+    const hpS = th.hp; s2.t = { move: 4, action: 1, bonus: 1, react: 1 }; s2.x = th.x; s2.y = th.y + 1; B.addStatus(s2, 'hidden', { k: Infinity, data: { unseen: true, dc: 30 } });
+    await B.AI.takeTurn(s2); o.huntAttacks = B.alive(s2) && !s2.fled && (th.hp < hpS || S.log.some(l => /промах|мимо/i.test(l.t || l.text || '')) || S.log.length > 0);
+    o.huntNoSlip = B.checkEnd() === null;
+    B.running = false; B.S = null;
+    // герой: «Войти в тень» и глаз
+    S = B.newBattle({ list: ['hobgoblin'], zone: 'stone', floor: 4, kind: 'hard', title: 'x' }); B.placeHeroesDefault(S); B.placeMonsters(S); B.preStart(S); S.phase = 'fight'; B.running = true;
+    const hh = S.units.find(u => u.side === 'hero'), mm = S.units.find(u => u.side === 'mon');
+    for (let y = 0; y < B.H; y++) for (let x = 0; x < B.W; x++) S.cells[y][x] = null;
+    S.cells[hh.y][hh.x + 1] = 'cliff'; S.cells[1][0] = 'cliff'; hh.ess = ['plain-shadow']; hh.pass.push('plain-shadow'); hh.mp = 20; hh.t = { move: 4, action: 1, bonus: 1, react: 1 };
+    o.inShadow = B.inShadowCell(hh.x, hh.y) && B.A['plain-shadow'].can(hh) === true;
+    const ex = B.shadowExits(hh); o.exits = ex.some(([x, y]) => x === 0 && y === 0);
+    const d = B.distCell(hh, 0, 0), mp0 = hh.mp; await B.useActive(hh, 'plain-shadow', { cell: [0, 0] }); o.step = hh.x === 0 && hh.y === 0 && mp0 - hh.mp === 2 + Math.floor(d / 2);
+    hh.x = 3; hh.y = 6; S.cells[hh.y][hh.x + 1] = null; o.noShadow = B.A['plain-shadow'].can(hh) !== true;
+    mm.x = 3; mm.y = 3; B.removeStatus(mm, 'hidden'); o.eye = B.heroSpotted(hh) && B.uiConds(hh)[0].id === 'spotted' && B.foeSightCells().size > 0;
+    B.addStatus(hh, 'hidden', { k: Infinity }); o.eyeHidden = !B.heroSpotted(hh); B.removeStatus(hh, 'hidden');
+    B.addStatus(mm, 'hidden', { k: Infinity, data: { unseen: true, dc: 30 } }); o.eyeUnseenFoe = !B.heroSpotted(hh) && B.foeSightCells().size === 0;
     B.running = false; B.S = null;
     // караулил сам меченый — без ×2
     run.shadows = [{ hero: tgt }]; T.room = { type: 'rest', L: 22, done: false }; dgUi.enc = null; towerRest(tgt); o.guardOk = dgUi.enc && dgUi.enc.shadowHunt.guard === true;

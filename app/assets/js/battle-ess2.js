@@ -3677,9 +3677,20 @@
   const d20 = () => roll(1, 20).total;
   P["body:shadow-victim"] = { dmgTotal(t, { total, src, notes }) {          // меченый не караулил: первый удар тени ×2
     if (!src || src.ref !== "plain-shadow" || t.shadowDoubled || !(total > 0)) return total; t.shadowDoubled = true; notes && notes.push("спал: удар ×2"); return total * 2; } };
-  A["plain-shadow"] = { time: "bonus", tgt() { return { type: "self" }; },
-    can(u) { if (u.side === "mon") return "сама"; return has(u, "hidden") ? "уже скрыт" : true; },
-    async run(u, pk, ctl) { ctl.commit(); const r = await B.hideRoll(u, { anywhere: true, seen: true, title: "Стать никем", toast: false }); return !!r; },
+  // «Войти в тень» (18.11, автор): тень — клетка рядом с высоким укрытием (полное укрытие: стена, скала, частокол…) или тёмная клетка без света.
+  const inShadowCell = (x, y) => { const S = B.S; if (S.dark && !(B.lightAt && B.lightAt(x, y))) return true;
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const t = B.tinfo(x + dx, y + dy); if (t && t.block) return true; } return false; };
+  B.inShadowCell = inShadowCell;
+  const shadowCost = d => 2 + Math.floor(d / 2);
+  const shadowExits = u => { const out = []; for (let y = 0; y < B.H; y++) for (let x = 0; x < B.W; x++) {
+    const d = distCell(u, x, y); if (d < 1 || shadowCost(d) > (u.mp || 0) || !inShadowCell(x, y) || !B.canStand(u, x, y) || B.occupant(x, y)) continue; out.push([x, y]); } return out; };
+  B.shadowExits = shadowExits;
+  A["plain-shadow"] = { time: "bonus",
+    tgt(u) { return { type: "cell", prompt: "Войти в тень: из какой тени выйти? (2 маны + 1 за каждые 2 клетки)", cells: shadowExits(u), kind: "move" }; },
+    can(u) { if (u.side === "mon") return "сама"; if (!footprint(u).some(([x, y]) => inShadowCell(x, y))) return "нужно стоять в тени: у высокого укрытия или в темноте"; return shadowExits(u).length ? true : "нет другой тени в досягаемости маны"; },
+    async run(u, pk, ctl) { const c = pk.cell; if (!c) return false; const d = distCell(u, c[0], c[1]), extra = shadowCost(d) - 2; if ((u.mp || 0) < 2 + extra) return false;
+      ctl.commit(); if (extra) B.setMp(u, u.mp - extra); await B.teleport(u, c[0], c[1]);
+      fx(u, "из тени", "good"); log(`${u.name} входит в тень и выходит из другой (${d} кл., ${2 + extra} маны).`, "skill"); return true; },
     ai() { return null; } };
   // Ход тени с меткой, пока её не нашли: не атакует, уходит подальше от героев.
   B.shadowTurn = async u => {

@@ -12,7 +12,7 @@
   /* ===== панель ===== */
   const barHtml = (cls, cur, max, tmp) => `<div class="bt-meter ${cls}"><i style="width:${max ? Math.round(Math.max(0, Math.min(1, cur / max)) * 100) : 0}%"></i>${tmp > 0 && max ? `<i class="tmp" style="width:${Math.max(4, Math.round(Math.min(1, tmp / max) * 100))}%"></i>` : ""}</div>`;
   function unitCard(u, compact) {
-    const sts = u.conds.filter(c => D.status[c.id]).map(c => `<span class="bt-stchip ${D.status[c.id].good ? "good" : "bad"}" data-sid="${c.id}" data-uid="${u.id}" title="Удерживайте: что это">${stIco(c.id)}${esc(D.status[c.id].name)}</span>`).join("");
+    const sts = B.uiConds(u).map(c => `<span class="bt-stchip ${D.status[c.id].good ? "good" : "bad"}" data-sid="${c.id}" data-uid="${u.id}" title="Удерживайте: что это">${stIco(c.id)}${esc(D.status[c.id].name)}</span>`).join("");
     const hero = !!u.hero, mine = u.side === "hero";
     return `<div class="bt-card${compact ? " compact" : ""}"><div class="bt-cface ${u.side}${u.spectral ? " ghost" : ""}"><img src="${u.face}" alt=""></div>
       <div class="bt-cinfo"><b>${esc(u.name)}</b><small>${hero ? `${esc(raceById(u.race).name)} · ${u.level} ур. · Уворот ${u.ac} · Защита ${u.prot || 0}` : u.summon ? `${u.kind === "double" ? "Двойник" : "Призванный волк"} · КД ${u.ac}` : `${esc(u.mon.size)} · КД ${u.ac}`}</small>
@@ -160,7 +160,7 @@
     const atk = B.attacksOf(u).filter(a => !a.offhand).map(a => `<li><b>${esc(a.n)}</b> · ${a.kind === "melee" ? "ближний" : "дальний"} · ${a.hit != null ? "+" + (a.hit) : ""} · ${a.dmg.n ? B.fmtDice(a.dmg) : a.dmg.b} ${D.DT[a.dt] || ""}${a.dmgMult === 0.5 ? " (вполсилы)" : ""}</li>`).join("");
     const pk = id => typeof essSeen !== "function" || essSeen(id, "ess-passive"), ak = id => typeof essActiveLevel !== "function" || essActiveLevel(id) > 0;          // неизученные навыки — без названия (02.11)
     const ess = (!hero && !u.summon ? [] : u.ess).map(id => { const e = ESSENCES[id]; return `<li>${pk(id) ? `<b>${esc(e.passive.name)} (П).</b> ${esc(e.passive.text)}` : "<b>?? (П).</b> свойства ещё не изучены"}</li><li>${ak(id) ? `<b>${esc(e.active.name)} (А).</b> ${e.active.mana} маны, ${esc(e.active.time)}. ${esc(e.active.text)}` : "<b>?? (А).</b> свойства ещё не изучены"}</li>`; }).join("");
-    const sts = u.conds.filter(c => D.status[c.id]).map(c => `<li><span class="bt-stchip ${D.status[c.id].good ? "good" : "bad"}" data-sid="${c.id}" data-uid="${u.id}">${stIco(c.id)}${esc(D.status[c.id].name)}</span> ${esc(D.status[c.id].desc)}</li>`).join("");
+    const sts = B.uiConds(u).map(c => `<li><span class="bt-stchip ${D.status[c.id].good ? "good" : "bad"}" data-sid="${c.id}" data-uid="${u.id}">${stIco(c.id)}${esc(D.status[c.id].name)}</span> ${esc(D.status[c.id].desc)}</li>`).join("");
     // 09.11: особенности монстра — поведение (часть раздела «Характеристики») и особенность тела (свой раздел библиотеки), как в карточке библиотеки
     const tr = !hero && !u.summon && u.mon && Array.isArray(u.mon.traits) ? u.mon.traits : [], kBody = !rev || rev.includes("body");
     const feats = tr.filter(t => (t[2] === "behavior" && kStats) || (t[2] === "body" && kBody)).map(t => `<li><b>${esc(t[0])}.</b> ${esc(t[1])}</li>`).join("");

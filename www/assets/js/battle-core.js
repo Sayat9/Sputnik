@@ -423,6 +423,11 @@
     return out;
   }
   Object.assign(B, { visionCells, seenByParty, visionLevels, visibleTo, sightRange, canSightCell });
+  // Глаз (18.11, автор): видят ли героя враги — только по тем врагам, которых видит отряд; скрытый/невидимый герой глаза не получает, даже если его чуют иначе.
+  const knownFoeEyes = () => live().filter(e => e.side === "mon" && !e.down && !e.fled && !has(e, "blinded") && !has(e, "underground") && !isUnseen(e) && seenByParty(e));
+  B.heroSpotted = h => !!h && h.side === "hero" && alive(h) && !h.down && !has(h, "hidden") && knownFoeEyes().some(e => footprint(h).some(([x, y]) => canSightCell(e, x, y)));
+  B.foeSightCells = () => { const set = new Set(), es = knownFoeEyes(); for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (es.some(e => canSightCell(e, x, y))) set.add(key(x, y)); return set; };
+  B.uiConds = u => { const l = (u.conds || []).filter(c => D.status[c.id]); return B.S && B.S.phase === "fight" && u.hero && B.heroSpotted(u) ? [{ id: "spotted", k: Infinity }, ...l] : l; };
   // Номер у одинаковых монстров появляется, когда отряд увидел хотя бы двоих; потом не пропадает.
   B.syncNames = function () {
     const S = B.S; if (!S) return; const by = {};

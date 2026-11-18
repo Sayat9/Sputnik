@@ -2913,7 +2913,7 @@ MONSTERS.push({ id: "plain-shadow", zone: "stone", rare: true, weight: 1, name: 
   loot: "Камень 7-го класса.", essence: "plain-shadow", ph: "undead", statDraft: true });
 ESSENCES["plain-shadow"] = { id: "plain-shadow", name: "Эссенция непримечательной тени", cls: 7, source: "plain-shadow", draft: true, stats: { dex: 2, con: -1 }, other: ["Скрытность +2", "Уворот +1", "Харизма −1"],
   passive: { name: "Под лопатку", text: "Атака ближнего боя со спины цели наносит +2к6 урона. Спина героя — клетка под ним, спина монстра — клетка над ним." },
-  active: { name: "Стать никем", mana: 3, time: "бонусное действие", text: "Перезарядка 4 раунда. Проверка Скрытности против пассивного Восприятия врагов — без укрытия и даже на виду, когда враг рядом. Успех — ты скрыт: первая атака с преимуществом." } };
+  active: { name: "Войти в тень", mana: 2, time: "бонусное действие", text: "Перезарядка 4 раунда. Стоя в тени (рядом с высоким укрытием — стеной, скалой, частоколом — или в темноте), входишь в неё и выходишь из другой клетки в тени на поле. Мана: 2 + 1 за каждые 2 клетки расстояния." } };
 // ===== 5 класс: огр, мать-кладка, пожиратель магии, наездник ужаса, вечный страж руин (автор 15.11; мест появления пока нет — draft). Числа — черновик =====
 const C5_MON = [
   ["ogre", "Огр", "Огромный великан", "humanoid", "5 (бугристая шкура)", "200 (16к12+96)", "9 м", [26, 8, 24, 6, 9, 6], "Тёмное зрение 18 м.", [
@@ -5267,7 +5267,7 @@ const essStash = () => { const inv = inventory(); return (inv.essStash ||= []); 
 
 /* ===================== ТАКТИЧЕСКИЙ БОЙ (тестовая функция, полностью отключаемая) ===================== */
 // Файлы боя грузятся только при включённом переключателе. Выключен — работает старый экран боя (encounterOverlay).
-const BATTLE_REV = 157;
+const BATTLE_REV = 158;
 const BATTLE_FILES = ["assets/css/battle.css", "assets/js/battle-data.js", "assets/js/battle-core.js", "assets/js/battle-rules.js", "assets/js/battle-dice.js", "assets/js/battle-ext.js",
   "assets/js/battle-act.js", "assets/js/battle-ess.js", "assets/js/battle-ess2.js", "assets/js/battle-weap.js", "assets/js/battle-weap2.js", "assets/js/battle-env.js", "assets/js/battle-ai.js", "assets/js/battle-ui.js", "assets/js/battle-menu.js", "assets/js/battle-end.js", "assets/js/battle-net.js", "assets/js/battle.js"];
 function settings() { const st = state.settings ||= {}; if (st.tactical === undefined || !isMaster() || st.dev === false) st.tactical = true; return st; }
