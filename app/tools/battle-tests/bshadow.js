@@ -57,6 +57,13 @@ const { chromium } = require('playwright');
     mm.x = 3; mm.y = 3; B.removeStatus(mm, 'hidden'); o.eye = B.heroSpotted(hh) && B.uiConds(hh)[0].id === 'spotted' && B.foeSightCells().size > 0;
     B.addStatus(hh, 'hidden', { k: Infinity }); o.eyeHidden = !B.heroSpotted(hh); B.removeStatus(hh, 'hidden');
     B.addStatus(mm, 'hidden', { k: Infinity, data: { unseen: true, dc: 30 } }); o.eyeUnseenFoe = !B.heroSpotted(hh) && B.foeSightCells().size === 0;
+    // монстр-тень пользуется «Войти в тень»: выходит за спину героя
+    { const S3 = B.newBattle({ list: ['plain-shadow'], zone: 'stone', floor: 4, kind: 'hard', title: 'x' }); B.placeHeroesDefault(S3); B.placeMonsters(S3); B.preStart(S3); S3.phase = 'fight';
+      for (let y = 0; y < B.H; y++) for (let x = 0; x < B.W; x++) S3.cells[y][x] = null;
+      const m3 = S3.units.find(u => u.ref === 'plain-shadow'), h3 = S3.units.find(u => u.side === 'hero'); B.removeStatus(m3, 'hidden'); m3.x = 0; m3.y = 0; S3.cells[0][1] = 'cliff'; h3.x = 3; h3.y = 3; S3.cells[4][4] = 'cliff';
+      for (const u of S3.units) if (u.side === 'hero' && u !== h3) { u.x = 6; u.y = 6; }
+      const r3 = B.A['plain-shadow'].ai(m3); o.monUses = !!r3 && r3.cell[0] === 3 && r3.cell[1] === 4;
+      m3.t = { move: 4, action: 1, bonus: 1, react: 1 }; await B.useActive(m3, 'plain-shadow', { cell: r3 ? r3.cell : null }); o.monMoved = m3.x === 3 && m3.y === 4; }
     B.running = false; B.S = null;
     // караулил сам меченый — без ×2
     run.shadows = [{ hero: tgt }]; T.room = { type: 'rest', L: 22, done: false }; dgUi.enc = null; towerRest(tgt); o.guardOk = dgUi.enc && dgUi.enc.shadowHunt.guard === true;

@@ -3682,16 +3682,23 @@
     for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const t = B.tinfo(x + dx, y + dy); if (t && t.block) return true; } return false; };
   B.inShadowCell = inShadowCell;
   const shadowCost = d => 2 + Math.floor(d / 2);
+  const shadowMana = u => u.side === "mon" ? 6 : (u.mp || 0);          // монстр маны не тратит: предел — как у героя с 6 маной (до 9 клеток)
   const shadowExits = u => { const out = []; for (let y = 0; y < B.H; y++) for (let x = 0; x < B.W; x++) {
-    const d = distCell(u, x, y); if (d < 1 || shadowCost(d) > (u.mp || 0) || !inShadowCell(x, y) || !B.canStand(u, x, y) || B.occupant(x, y)) continue; out.push([x, y]); } return out; };
+    const d = distCell(u, x, y); if (d < 1 || shadowCost(d) > shadowMana(u) || !inShadowCell(x, y) || !B.canStand(u, x, y) || B.occupant(x, y)) continue; out.push([x, y]); } return out; };
   B.shadowExits = shadowExits;
   A["plain-shadow"] = { time: "bonus",
     tgt(u) { return { type: "cell", prompt: "Войти в тень: из какой тени выйти? (2 маны + 1 за каждые 2 клетки)", cells: shadowExits(u), kind: "move" }; },
-    can(u) { if (u.side === "mon") return "сама"; if (!footprint(u).some(([x, y]) => inShadowCell(x, y))) return "нужно стоять в тени: у высокого укрытия или в темноте"; return shadowExits(u).length ? true : "нет другой тени в досягаемости маны"; },
-    async run(u, pk, ctl) { const c = pk.cell; if (!c) return false; const d = distCell(u, c[0], c[1]), extra = shadowCost(d) - 2; if ((u.mp || 0) < 2 + extra) return false;
-      ctl.commit(); if (extra) B.setMp(u, u.mp - extra); await B.teleport(u, c[0], c[1]);
-      fx(u, "из тени", "good"); log(`${u.name} входит в тень и выходит из другой (${d} кл., ${2 + extra} маны).`, "skill"); return true; },
-    ai() { return null; } };
+    can(u) { if (!footprint(u).some(([x, y]) => inShadowCell(x, y))) return "нужно стоять в тени: у высокого укрытия или в темноте"; return shadowExits(u).length ? true : "нет другой тени в досягаемости маны"; },
+    async run(u, pk, ctl) { const c = pk.cell; if (!c) return false; const d = distCell(u, c[0], c[1]), extra = shadowCost(d) - 2; if (u.side === "hero" && (u.mp || 0) < 2 + extra) return false;
+      ctl.commit(); if (extra && u.side === "hero") B.setMp(u, u.mp - extra); await B.teleport(u, c[0], c[1]);
+      fx(u, "из тени", "good"); log(u.side === "hero" ? `${u.name} входит в тень и выходит из другой (${d} кл., ${2 + extra} маны).` : `${u.name} уходит в тень и выходит из другой.`, "skill"); return true; },
+    // Монстр (18.11, автор: «позволь тени использовать навык»): выйти за спину героя, если оттуда можно ударить; раненая и окружённая — уйти подальше.
+    ai(u) { const ex = shadowExits(u); if (!ex.length) return null;
+      const hs = B.heroes().filter(h => alive(h) && !h.down && B.visibleTo(u, h));
+      const back = ex.filter(([x, y]) => hs.some(h => backOf({ ...u, x, y }, h)));
+      if (back.length && !hs.some(h => backOf(u, h))) { const c = back[Math.floor(Math.random() * back.length)]; return { cell: c, score: 14 }; }
+      if (u.hp < u.maxHp / 2 && hs.some(h => dist(h, u) <= 1)) { const far = ex.slice().sort((a, b) => Math.min(...hs.map(h => distCell(h, b[0], b[1]))) - Math.min(...hs.map(h => distCell(h, a[0], a[1])))); return { cell: far[0], score: 10 }; }
+      return null; } };
   // Ход тени с меткой, пока её не нашли: не атакует, уходит подальше от героев.
   B.shadowTurn = async u => {
     const S = B.S; if (!u.shadowMark || !B.isUnseen(u) || (S.ev && S.ev.shadowHunt)) return false;
