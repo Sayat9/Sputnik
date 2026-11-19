@@ -3793,7 +3793,7 @@
       await B.teleport(u, c[0], c[1]); fx(u, "из щели", "good"); const r = await B.doAttack(u, t, a, { onCommit: () => { B.commitAttack(u, a, t); ctl.commit(); } }); if (r && r.cancelled) ctl.commit(); return true; },
     ai(u) { if (!nearWall(u)) return null; const ts = leapTargets(u, 4).filter(t => dist(u, t) > 1); return ts.length ? { unit: ts[0], score: 9 } : null; } };
   /* Гарпия */
-  P.harpy = { attackMods(u, ctx) { const t = ctx.tgt; if (!t) return; const n = Math.min(2, alliesOf(u).filter(a => a !== u && alive(a) && !a.down && dist(a, t) <= 1).length); if (n) ctx.mods.push({ l: "Стайная охота", v: n }); } };
+  P.harpy = { noProvoke(u) { return !!(u.t && u.t.meleeAttacked); } };          // «Удар на взлёте» (19.11, автор: эффект прежний, название новое)
   A.harpy = { time: "action", tgt(u) { return coneSpec(u, "Перья-лезвия", 3); }, can(u) { return B.cellsWithin(u, 1).some(c => coneFoes(u, c, 3).length) ? true : "никого в конусе"; },
     async run(u, pk, ctl) { const c = pk.cell; if (!c) return false; const ts = coneFoes(u, c, 3); if (!ts.length) return false; ctl.commit(); ui() && ui().banner("Перья-лезвия");
       for (const t of ts) await saveDmg(u, t, "dex", dcOf(u, "dex"), [2, 4, u.side === "hero" ? 0 : 1], "slash", "Перья-лезвия", ["splash"]); return true; },
@@ -3851,8 +3851,7 @@
     async run(u, pk, ctl) { const h = (u.hpLog || []).find(x => x.r === B.S.round - 1) || (u.hpLog || [])[0]; if (!h || h.hp <= u.hp) return false; ctl.commit(); const n = h.hp - u.hp; B.heal(u, n, u); fx(u, `часы перевёрнуты +${n}`, "good"); log(`${u.name} переворачивает часы: +${n} ОЗ.`, "skill"); return true; },
     ai(u) { const h = (u.hpLog || []).find(x => x.r === B.S.round - 1) || (u.hpLog || [])[0]; return h && h.hp - u.hp >= Math.max(6, u.maxHp * 0.2) ? { score: 9 } : null; } };
   /* Древняя гарпия */
-  P["elder-harpy"] = {};          // «Прижать к земле»: встать рядом с ней стоит всего движения (обёртка B.standCost)
-  { const prevStand = B.standCost; B.standCost = u => { const base = prevStand(u); return enemiesOf(u).some(e => alive(e) && !e.down && f4has(e, "elder-harpy") && dist(e, u) <= 1) ? Math.max(base, speedOf(u)) : base; }; }
+  P["elder-harpy"] = { attackMods(u, ctx) { if (ctx.tgt && (has(ctx.tgt, "prone") || has(ctx.tgt, "restrained")) && ctx.extra) ctx.extra.push({ n: 1, s: 6, b: 0, dt: "slash", label: "Когти над павшим" }); } };          // 19.11 (автор): эффект прежний, название новое
   A["elder-harpy"] = { time: "action", tgt(u) { return specUnit(u, "Сорвать с места: цель в 4 клетках", dropTargets(u, 4), B.cellsWithin(u, 4)); }, can(u) { return dropTargets(u, 4).length ? true : "нет цели в 4 клетках"; },
     async run(u, pk, ctl) { const t = pk.unit; if (!t) return false; ctl.commit(); if (dist(u, t) > 1) { const c = B.freeCellsNear(t, 1, u).sort((p, q) => distCell(u, p[0], p[1]) - distCell(u, q[0], q[1]))[0]; if (c) await B.teleport(u, c[0], c[1]); }
       const sv = await save(t, "str", dcOf(u, "dex"), "Сорвать с места", [], u);

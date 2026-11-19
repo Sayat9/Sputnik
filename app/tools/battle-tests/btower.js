@@ -48,6 +48,15 @@ const { chromium } = require('playwright');
     T.doors = [{ type: 'fight' }, { type: 'rest' }]; towerChoose(0); o.noFleeFight = dgUi.enc.noFlee === true; dgUi.enc.outcome = 'win'; finishFight(dgUi.enc, dgUi.enc.list.map((x, i) => i)); towerNext(); clr();
     T.lvl = 29; T.doors = [{ type: 'boss' }, { type: 'fight' }, { type: 'rest' }]; towerChoose(0); const f1 = dgUi.enc.noFlee; dgUi.enc.outcome = 'flee'; finishFight(dgUi.enc, []); clr(); towerChoose(0); const f2 = dgUi.enc.noFlee; dgUi.enc.outcome = 'win'; finishFight(dgUi.enc, [0]); T.chest = null; towerNext(); clr();
     o.bossFleeOnce = f1 === false && f2 === true;
+    // 19.11: отдых в комнате после боя (усталость −1), через 3 действия — набег, засада чаще; зона отдыха реже
+    o.restRare = TW_WEIGHT.rest === 6;
+    { T.doors = [{ type: 'fight' }, { type: 'heal' }]; towerChoose(0); dgUi.enc.outcome = 'win'; finishFight(dgUi.enc, dgUi.enc.list.map((x, i) => i)); clr(); rerender();
+      const btn = document.querySelector('[data-tw="rest"]'); state.party.forEach(c => { c.hp = 5; Object.assign(run.status[c.id], { fat: 3, sat: 9, starve: 0 }); }); run.shadows = [];
+      towerRest(); o.fieldRest = !!btn && state.party.every(c => c.hp > 5 && run.status[c.id].fat === 2) && T.room.done && !dgUi.enc && T.room.idle === 2 ? true : [!!btn, state.party.map(c => run.status[c.id].fat), T.room, !!dgUi.enc]; clr();
+      towerRest(); const raid = dgUi.enc; o.raid = !!raid && raid.twRaid && raid.tower && raid.noFlee && raid.list.length >= 3 ? true : raid; const lvl = T.lvl;
+      raid.outcome = 'win'; finishFight(raid, raid.list.map((x, i) => i)); o.raidWin = T.room && T.room.done && T.room.idle === 0 && T.lvl === lvl; clr();
+      let amb = 0; for (let i = 0; i < 400; i++) { T.room.idle = 3; towerRaid([]); if (dgUi.enc.ambush) amb++; clr(); } o.raidAmb = amb > 140 && amb < 260 ? true : amb;
+      towerNext(); clr(); }
     // выход закрыт
     T.doors = [{ type: 'exit' }, { type: 'fight' }]; const l0 = T.lvl; towerChoose(0); o.exitClosed = T.lvl === l0 && !!T.doors && /не открыт/.test(dgUi.res.lines.join(' ')); clr();
     // срок этажа
