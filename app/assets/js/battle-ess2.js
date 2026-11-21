@@ -2339,7 +2339,7 @@
       await B.applyDamage(u, t, [{ v: roll(2, 6).total + Math.max(0, amod(u.abil.str)), dt: "pierce", label: "Мясницкий крюк" }], { src: u });
       if (!alive(t) || t.down) return true;
       const s2 = await save(t, "str", dc, "Мясницкий крюк: удержаться", ["push"], u);
-      if (!s2.ok && alive(t)) { if (dist(u, t) > 1) await B.pullAdjacent(t, u); await B.applyDamage(u, t, [{ v: roll(1, 8).total, dt: "pierce", label: "Крюк рвёт плоть" }], { src: u }); fx(t, "притянут", "bad"); }
+      if (!s2.ok && alive(t)) { const mv = dist(u, t) > 1 ? await B.pullAdjacent(t, u) : 0; await B.applyDamage(u, t, [{ v: roll(1, 8).total, dt: "pierce", label: "Крюк рвёт плоть" }], { src: u }); if (mv) fx(t, "притянут", "bad"); }
       return true; },
     ai(u) { const ts = hookTargets(u).sort((a, b) => dist(u, b) - dist(u, a)); return ts.length ? { unit: ts[0], score: 13 + (dist(u, ts[0]) > 1 ? 4 : 0) } : null; },
   };
@@ -2583,7 +2583,7 @@
   P["dead-vulture"] = {
     onHitDealt(u, { tgt, atk }) {
       if (!tgt || !heavyMelee(u, atk)) return;
-      if (has(u, "hookreach") && alive(tgt) && !tgt.down && dist(u, tgt) > 1) B.queue(async () => { if (alive(tgt) && !tgt.down && dist(u, tgt) > 1) { await B.pullAdjacent(tgt, u); fx(tgt, "притянут", "bad"); } });
+      if (has(u, "hookreach") && alive(tgt) && !tgt.down && dist(u, tgt) > 1) B.queue(async () => { if (alive(tgt) && !tgt.down && dist(u, tgt) > 1) { if (await B.pullAdjacent(tgt, u)) fx(tgt, "притянут", "bad"); } });
       const side = enemiesOf(u).find(e => e !== tgt && alive(e) && !e.down && dist(e, tgt) <= 1); if (!side || u.stormRound === B.S.round) return; u.stormRound = B.S.round;
       B.queue(async () => { if (alive(side) && !side.down) await B.applyDamage(u, side, [{ v: Math.max(1, Math.floor(roll(atk.dmg ? atk.dmg.n || 1 : 1, atk.dmg ? atk.dmg.s || 6 : 6).total / 2 + 1)), dt: atk.dt || "slash", label: "Крылья бури" }], { src: u, noAbilParts: true }); });
     },
@@ -3504,7 +3504,7 @@
     beforeZero(u) { if (u.side !== "hero" || u.trollRip || (u.mp || 0) < 6) return false; u.trollRip = true; B.setMp(u, u.mp - 6); log(`${u.name} вырывает плоть из лап смерти и встаёт!`, "good"); fx(u, "вырвать плоть", "good"); return Math.max(1, Math.floor(u.maxHp / 2)); } };
   // «Размах дубиной» (автор 15.11): область 2×2 вплотную к троллю в одну сторону
   const fpSet = u => new Set(footprint(u).map(([x, y]) => x + "," + y));
-  const clubBoxes = u => { const fp = fpSet(u), out = []; for (let y = u.y - 2; y <= u.y + (u.h || 1); y++) for (let x = u.x - 2; x <= u.x + (u.w || 1); x++) { const cells = [[x, y], [x + 1, y], [x, y + 1], [x + 1, y + 1]].filter(([a, b]) => B.inB(a, b)); if (cells.length < 4 || cells.some(([a, b]) => fp.has(a + "," + b))) continue; if (!cells.some(([a, b]) => footprint(u).some(([fx, fy]) => Math.max(Math.abs(fx - a), Math.abs(fy - b)) === 1))) continue; out.push(cells); } return out; };
+  const clubBoxes = u => { const fp = fpSet(u), out = []; for (let y = u.y - 2; y <= u.y + (u.h || 1); y++) for (let x = u.x - 2; x <= u.x + (u.w || 1); x++) { const cells = [[x, y], [x + 1, y], [x, y + 1], [x + 1, y + 1]].filter(([a, b]) => B.inB(a, b)); if (!cells.length || cells.some(([a, b]) => fp.has(a + "," + b))) continue; /* у края поля квадрат обрезается (21.11: раньше такие квадраты отбрасывались, и у края тролль задевал меньше врагов) */ if (!cells.some(([a, b]) => footprint(u).some(([fx, fy]) => Math.max(Math.abs(fx - a), Math.abs(fy - b)) === 1))) continue; out.push(cells); } return out; };
   const boxFoes = (u, cells) => enemiesOf(u).filter(t => alive(t) && !t.down && !t.isObj && footprint(t).some(([x, y]) => cells.some(([a, b]) => a === x && b === y)));
   const bestBox = u => { let best = null; for (const c of clubBoxes(u)) { const n = boxFoes(u, c).length; if (n && (!best || n > best.n)) best = { cells: c, n }; } return best; };
   A.troll = { time: "action", tgt(u) { return { type: "none" }; }, can(u) { if (u.side === "hero") return u.trollRip ? "уже было в этом бою" : "срабатывает само на 0 ОЗ (6 маны)"; return bestBox(u) ? true : "никого рядом"; },

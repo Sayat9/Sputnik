@@ -265,7 +265,10 @@
     let moved = 0;
     if (t.mon && B.forceVs && B.forceVs(t).immune) { B.log(`${t.name}: ${B.forceVs(t).why} — не притянуть.`); return 0; }          // вес и размер (12.11)
     for (let i = 0; i < 6 && dist(t, to) > 1; i++) {
-      const dx = Math.sign(to.x - t.x), dy = Math.sign(to.y - t.y), cands = [[dx, dy], [dx, 0], [0, dy]].filter(([a, b]) => a || b);
+      const dx = Math.sign(to.x - t.x), dy = Math.sign(to.y - t.y), d0 = dist(t, to), pri = [[dx, dy], [dx, 0], [0, dy]].filter(([a, b]) => a || b);
+      // 21.11: прямой шаг закрыт (камень, боец) — обход любой соседней клеткой, которая всё равно приближает; раньше притягивание тут останавливалось
+      const near = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]].filter(([a, b]) => !pri.some(([p, q]) => p === a && q === b)).map(([a, b]) => [a, b, dist({ ...t, x: t.x + a, y: t.y + b }, to)]).filter(c => c[2] < d0).sort((p, q) => p[2] - q[2]).map(([a, b]) => [a, b]);
+      const cands = [...pri, ...near];
       let done = false;
       for (const [a, b] of cands) { const nx = t.x + a, ny = t.y + b; if (B.canStand(t, nx, ny)) { const from = [t.x, t.y]; t.x = nx; t.y = ny; moved++; const g = ui(); if (g) await g.animMove(t, from, [nx, ny]); B.breakGrapples(t); await B.terrainEnter(t); done = true; break; } }
       if (!done) break;

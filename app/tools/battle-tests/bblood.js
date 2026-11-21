@@ -28,6 +28,10 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
     S = setup(['abomination']); const ab = B.mons()[0]; const hh = B.heroes()[0]; B.heroes()[1].x = 0; B.heroes()[1].y = 6;
     let pulled = 0, tries = 0; for (let i = 0; i < 12 && !pulled; i++) { tries++; hh.hp = hh.maxHp; hh.down = false; hh.x = ab.x; hh.y = Math.min(ab.y + 3, 6); if (B.occupant && B.occupant(hh.x, hh.y) && B.occupant(hh.x, hh.y) !== hh) hh.x = (ab.x + 1) % 7;
       hh.abil.dex = 1; hh.abil.str = 1; const d0 = B.dist(ab, hh); out.dbg = (out.dbg || []).concat([[hh.x, hh.y, ab.x, ab.y, d0]]); await B.A.abomination.run(ab, { unit: hh }, { commit() {} }); if (B.dist(ab, hh) === 1 && d0 > 1) pulled = 1; }
+    // 21.11: прямо на пути частокол — притягивание обходит его соседней клеткой
+    { const S = B.S, sx = ab.x, mid = Math.min(ab.y + 2, 6), save = S.cells.map(r => r.slice()); for (let y = 0; y < 7; y++) for (let x = 0; x < 7; x++) if (!(x === sx && y === mid)) S.cells[y][x] = null; S.cells[mid][sx] = 'palisade';
+      for (const o2 of B.S.units) if (o2 !== hh && o2 !== ab) { o2.x = -9; o2.y = -9; } hh.x = sx; hh.y = Math.min(ab.y + 3, 6); hh.down = false; const d0 = B.dist(ab, hh); const mv = await B.pullAdjacent(hh, ab);
+      out.around = { d0, mv, d1: B.dist(ab, hh), ok: d0 > 1 && mv > 0 && B.dist(ab, hh) === 1 }; S.cells = save; }
     out.hook = { pulled, tries, dbg: out.dbg, log: (B.S.log || []).slice(-6).map(l => l.t || l), name: ESSENCES.abomination.active.name };
     out.guard = MONSTERS.find(m => m.id === 'death-knight').rank;
     out.aura = /\+2 урона/.test(ESSENCES['death-knight'].passive.text);
@@ -38,6 +42,7 @@ const FILES = ['battle-data','battle-core','battle-rules','battle-dice','battle-
   ok('жрец: «Жертвенное лечение» — активка (доп. действие), «Кровавая печать» — пассивка', o.priestActive, o);
   ok('голем: 5 врем. ОЗ, урон 4 уходит в них, обновляются до 5 и не складываются', o.golem.t1 === 5 && o.golem.t2 < 5 && o.golem.hpLoss === 0 && o.golem.t3 === 5 && o.golem.t4 === 5, o.golem);
   ok('голем: после огня временные ОЗ не обновляются', o.golem.t5 < 5, o.golem);
+  ok('притягивание обходит препятствие на пути', o.around && o.around.ok, o.around);
   ok('поганище: «Мясницкий крюк» притягивает вплотную', o.hook.pulled && o.hook.name === 'Мясницкий крюк', o.hook);
   ok('Мордрейн — страж, аура +2', o.guard === 'guardian' && o.aura, o);
   ok('нет ошибок страницы', !errs.length, errs.slice(0, 3));
